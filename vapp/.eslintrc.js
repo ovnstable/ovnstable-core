@@ -1,7 +1,7 @@
 module.exports = {
     "env": {
-        "browser": true,
-        "es6": true
+        "browser": false,
+        "es6": false
     },
     "extends": [
         "eslint:recommended",
@@ -18,6 +18,5 @@ module.exports = {
     "plugins": [
         "vue"
     ],
-    "rules": {
-    }
+    "rules": {}
 };

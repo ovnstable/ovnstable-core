@@ -1,1 +1,6 @@
 node_modules
+
+vapp/src/contracts/*
+.idea/
+
+ganache_local/
