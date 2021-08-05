@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.21 <0.9.0;
+pragma solidity >=0.5 <0.9.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC20MintableBurnable.sol";
@@ -19,7 +19,7 @@ contract Exchange {
     }
 
     function redeem(uint256 _amount) public {
-      
+
         ovn.transferFrom(msg.sender, address(this), _amount);
         ovn.burn(_amount);
 
