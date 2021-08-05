@@ -17,6 +17,6 @@
   },
   "license": "ISC",
   "dependencies": {
-    "openzeppelin-solidity": "^2.1.1"
+    "openzeppelin-solidity": "4.2.0"
   }
 }
