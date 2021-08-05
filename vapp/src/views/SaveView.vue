@@ -12,16 +12,17 @@
           sm="8"
           md="4"
       >
-        <v-row class="justify-center align-center">
-          <v-icon large>mdi-piggy-bank</v-icon>
-          <p class="text-center  pt-5  save-text">Save</p>
+        <v-row class="justify-center align-center pt-15">
+          <v-icon class="save-text"  >mdi-piggy-bank</v-icon>
+          <p class="text-center  pt-5 save-text ">Save</p>
         </v-row>
-        <v-card>
+        <v-card class="mt-15">
           <v-card-text>
             <v-tabs
+                color="black"
+                fixed-tabs
                 centered
                 v-model="tab"
-
             >
               <v-tabs-slider></v-tabs-slider>
 
@@ -29,23 +30,19 @@
                 Deposit
               </v-tab>
 
-              <v-tab :key="2">
+              <v-tab disabled :key="2">
                 Redeem
               </v-tab>
 
-              <v-tab :key="3">
-                Stake
-              </v-tab>
             </v-tabs>
 
-            <v-tabs-items touchless
+            <v-tabs-items
                           v-model="tab" class="mt-5">
 
-              <v-tab-item :key="1">
+              <v-tab-item :transition=false :key="1">
                 <Deposit/>
               </v-tab-item>
-              <v-tab-item :key="2"></v-tab-item>
-              <v-tab-item :key="3"></v-tab-item>
+              <v-tab-item :transition=false :key="2"></v-tab-item>
 
             </v-tabs-items>
 
@@ -77,8 +74,8 @@ export default {
 <style scoped>
 
 .save-text {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.54)
+  color: #383838;
 }
 </style>

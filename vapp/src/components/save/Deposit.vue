@@ -1,90 +1,114 @@
 <template>
- <div>
-   <v-row dense>
-     <v-col cols="10" class="pb-0 mb-0">
-       <v-text-field class="pb-0 mb-0" label="0.0" outlined dense></v-text-field>
-     </v-col>
+  <div class="pa-5">
+    <v-row dense>
+      <v-col cols="9" class="pb-0 mb-0">
+        <v-text-field color="black"
+                      class="pb-0 mb-0"
+                      placeholder="0.0"
+                      outlined
+                      v-model="sum"
+                      dense></v-text-field>
+      </v-col>
 
-     <v-col cols="2">
-       <v-menu
-           left
-           bottom
-       >
-         <template v-slot:activator="{ on, attrs }">
-           <v-btn
-               icon
-               v-bind="attrs"
-               v-on="on"
-           >
-             {{ currency.name }}
-           </v-btn>
-         </template>
+      <v-col cols="3">
 
-         <v-list>
-           <v-list-item
-               v-for="item in currencies"
-               :key="item.id"
-               @click="selectItem(item)"
-           >
-             <v-list-item-title>{{ item.name }}</v-list-item-title>
-           </v-list-item>
-         </v-list>
-       </v-menu>
-     </v-col>
-   </v-row>
+        <v-select color="black"
+                  outlined
+                  dense
+                  item-value="id"
+                  item-text="name"
+                  v-model="currency"
+                  :items="currencies"
+        >
 
-   <v-row dense class="justify-center">
-     <v-icon large>mdi-arrow-down</v-icon>
-   </v-row>
+        </v-select>
+      </v-col>
+    </v-row>
 
-   <v-row dense>
+    <v-row dense class="justify-center pb-5">
+      <v-icon large>mdi-arrow-down</v-icon>
+    </v-row>
 
-     <v-col cols="10">
-       <v-text-field readonly label="0.0" outlined dense></v-text-field>
-     </v-col>
-     <v-col cols="2">
-       <v-img :src="buyCurrency.image"/>
-       <v-btn
-       >
-         {{ buyCurrency.name }}
-       </v-btn>
-     </v-col>
-   </v-row>
+    <v-row dense>
 
-   <v-row dense class="justify-center">
-     <v-btn small outlined>Enter an amount</v-btn>
-   </v-row>
- </div>
+      <v-col cols="9">
+        <v-text-field color="black"
+                      readonly
+                      placeholder="0.0"
+                      outlined
+                      v-model="sum"
+                      dense></v-text-field>
+      </v-col>
+      <v-col cols="3">
+
+        <v-select color="black"
+                  outlined
+                  dense
+                  disabled
+                  item-value="id"
+                  item-text="name"
+                  v-model="buyCurrency"
+                  :items="BuyCurrencies"
+        ></v-select>
+
+      </v-col>
+    </v-row>
+
+    <v-row dense class="justify-center pb-8">
+      <v-btn large outlined @click="buy">Buy</v-btn>
+    </v-row>
+  </div>
 </template>
 
 <script>
+import {mapGetters} from "vuex";
+
 export default {
   name: "Deposit",
 
   data: () => ({
     menu: false,
     tab: null,
-    currency: null,
+    currency: {id: 'musd'},
 
     currencies: [],
 
-    buyCurrency: {
-      id: 'overnight',
-      name: 'OVN',
-      image: require('../../assets/currencies//usdc.svg')
-    }
+    sum: null,
+
+    buyCurrency: {id: 'overnight'},
+    BuyCurrencies: [
+      {
+        id: 'overnight',
+        name: 'OVNGT',
+        image: require('../../assets/currencies//usdc.svg')
+      }
+    ],
+
+
   }),
+
+
+  computed: {
+    ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
+    ...mapGetters('drizzle', ['isDrizzleInitialized']),
+
+  },
 
   created() {
 
-    this.currencies.push({id: 'usdc', name: 'USDC', image: require('../../assets/currencies/dai.svg')});
     this.currencies.push({id: 'musd', name: 'mUSD', image: require('../../assets/currencies/mUsdc.svg')});
     this.currencies.push({id: 'dai', name: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
-    this.currency = this.currencies[0];
   },
 
   methods: {
+
+
+    buy() {
+
+      const contract = this.drizzle.contracts.Exchange;
+
+    },
 
     selectItem(item) {
       this.currency = item;

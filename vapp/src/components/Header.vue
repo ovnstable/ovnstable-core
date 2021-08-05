@@ -2,75 +2,26 @@
   <v-app-bar
       dense
       app
+      color="white"
+      class="elevation-1"
   >
 
-    <v-col cols="2">
-      <v-toolbar-title>
-        <v-icon>mdi-set-right</v-icon>
+    <v-col cols="10" >
+      <v-toolbar-title >
+        <v-icon color="black">mdi-set-center</v-icon>
         OverNight
       </v-toolbar-title>
     </v-col>
 
-    <v-col cols="8">
-      <v-tabs
-          centered
-      >
-        <v-tabs-slider></v-tabs-slider>
-
-        <v-tab to="/">
-          Save
-        </v-tab>
-
-        <v-tab to="/exchange/swap">
-          Exchange
-        </v-tab>
-
-        <v-tab to="/stats">
-          Stats
-        </v-tab>
-
-        <v-tab to="/account">
-          Account
-        </v-tab>
-
-        <v-tab to="/example">
-          Example
-        </v-tab>
-      </v-tabs>
-    </v-col>
 
     <v-col cols="2">
 
       <v-row class="align-center justify-end">
-        <v-btn small outlined title="Account" rounded @click="onBoardInit">
+        <v-btn small outlined title="Account" rounded disabled @click="onBoardInit">
           Connect
           <v-icon>mdi-wallet</v-icon>
         </v-btn>
 
-        <v-menu
-            left
-            bottom
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-                icon
-                v-bind="attrs"
-                v-on="on"
-            >
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
-
-          <v-list>
-            <v-list-item
-                v-for="n in 5"
-                :key="n"
-                @click="() => {}"
-            >
-              <v-list-item-title>Option {{ n }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
       </v-row>
     </v-col>
   </v-app-bar>
