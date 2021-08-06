@@ -1,5 +1,10 @@
 import SimpleStorage from './contracts/SimpleStorage.json'
 import Exchange from './contracts/Exchange.json'
+import OvernightToken from './contracts/OvernightToken.json'
+import USDCtest from './contracts/USDCtest.json'
+
+      
+
 
 const options = {
     web3: {
@@ -12,7 +17,9 @@ const options = {
     contracts:
         [
             SimpleStorage,
-            Exchange
+            Exchange,
+            OvernightToken,
+            USDCtest
         ],
     events: {
         SimpleStorage: ['StorageSet']
