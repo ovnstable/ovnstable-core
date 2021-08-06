@@ -111,7 +111,6 @@ export default {
      let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
       const approved = contrOVN.methods['approve'].cacheSend(this.sum)
       let contract = this.drizzleInstance.contracts["Exchange"];
-      // let contract = this.drizzleInstance.contracts["SimpleStorage"];
       const stackId = contract.methods['redeem'].cacheSend(this.sum)
 
       console.log(stackId)
