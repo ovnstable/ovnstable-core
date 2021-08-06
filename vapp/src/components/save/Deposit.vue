@@ -69,7 +69,7 @@ export default {
   data: () => ({
     menu: false,
     tab: null,
-    currency: {id: 'musd'},
+    currency: {id: 'usdc'},
 
     currencies: [],
 
@@ -97,7 +97,7 @@ export default {
 
   created() {
 
-    this.currencies.push({id: 'musd', name: 'mUSD', image: require('../../assets/currencies/mUsdc.svg')});
+    this.currencies.push({id: 'usdc', name: 'USDC', image: require('../../assets/currencies/usdc.svg')});
     this.currencies.push({id: 'dai', name: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
   },

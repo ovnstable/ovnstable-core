@@ -8,14 +8,22 @@ contract Exchange {
     IERC20MintableBurnable ovn;
     IERC20 usdc;
 
+    uint public storedData;
+
     function setTokens(address _ovn, address _usdc) public {
         ovn = IERC20MintableBurnable(_ovn);
         usdc = IERC20(_usdc);
     }
 
     function buy(uint256 _amount) public {
-        usdc.transferFrom(msg.sender, address(this), _amount);
-        ovn.mint(_amount);
+        storedData += _amount;
+//        usdc.transferFrom(msg.sender, address(this), _amount);
+//        ovn.mint(_amount);
+
+    }
+
+    function balance() public view returns (uint) {
+        return storedData;
     }
 
     function redeem(uint256 _amount) public {
