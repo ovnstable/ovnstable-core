@@ -1,9 +1,41 @@
 <template>
-  <div v-if="isDrizzleInitialized">
+  <div v-if="isDrizzleInitialized" class="pa-5">
+    <v-row dense>
+      <v-col cols="2">
+        <v-subheader class="font-weight-bold">Account</v-subheader>
+      </v-col>
+      <v-col cols="10">
+        <v-text-field  outlined color="black" dense v-model="activeAccount" readonly></v-text-field>
+      </v-col>
+    </v-row>
 
-    <p><strong>Account:</strong> {{ activeAccount }}</p>
-    <p><strong>Your ETH balance:</strong> {{ Number(getEthBalance).toFixed(4) }} ETH</p>
-    <p><strong>Your OVNGT balance:</strong> {{ Number(balance).toFixed(2) }} OVNGT</p>
+    <v-row dense>
+      <v-col cols="2">
+        <v-subheader class="font-weight-bold">OVNGT</v-subheader>
+      </v-col>
+      <v-col cols="10">
+        <v-text-field  outlined color="black" dense v-model="ovngtTokenBalance" readonly></v-text-field>
+      </v-col>
+    </v-row>
+
+    <v-row dense>
+      <v-col cols="2">
+        <v-subheader class="font-weight-bold">ETH</v-subheader>
+      </v-col>
+      <v-col cols="10">
+        <v-text-field  outlined color="black" dense v-model="getEthBalance" readonly></v-text-field>
+      </v-col>
+    </v-row>
+
+    <v-row dense>
+      <v-col cols="2">
+        <v-subheader class="font-weight-bold">USDC</v-subheader>
+      </v-col>
+      <v-col cols="10">
+        <v-text-field  outlined color="black" dense v-model="usdcTokenBalance" readonly></v-text-field>
+      </v-col>
+    </v-row>
+
 
   </div>
 </template>
@@ -17,17 +49,8 @@ export default {
   computed: {
     ...mapGetters("accounts", ["activeAccount", "activeBalance"]),
     ...mapGetters('drizzle', ['isDrizzleInitialized', 'drizzleInstance']),
-    ...mapGetters("profile", ["getTestTokenBalance"]),
+    ...mapGetters("profile", ["usdcTokenBalance", "ovngtTokenBalance"]),
     ...mapGetters('contracts', ['getContractData']),
-
-
-    balance() {
-      return this.getContractData({
-        contract: 'Exchange',
-        method: 'balance',
-        methodArgs: [this.activeAccount]
-      })
-    },
 
 
     getEthBalance() {
@@ -36,10 +59,12 @@ export default {
   },
 
   created() {
-    this.fetchTestTokenBalance();
+    this.getUsdcTokenBalance();
+    this.getUsdcTokenBalance();
   },
   methods: {
-    ...mapActions("profile", ["fetchTestTokenBalance"])
+    ...mapActions("profile", ["getUsdcTokenBalance"]),
+    ...mapActions("profile", ["getOvngtTokenBalance"])
 
   },
 }

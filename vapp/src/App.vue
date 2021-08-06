@@ -6,7 +6,7 @@
         <router-view></router-view>
       </v-container>
     </v-main>
-
+    <Footer/>
   </v-app>
 
 </template>
@@ -15,10 +15,11 @@
 
 import Header from "./components/Header";
 import { mapGetters } from 'vuex';
+import Footer from "./components/Footer";
 
 export default {
   name: 'App',
-  components: {Header},
+  components: {Footer, Header},
 
   data() {
     return {
@@ -33,6 +34,12 @@ export default {
     this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
       contractName: "Exchange",
       method: "buy",
+      methodArgs: []
+    });
+
+    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
+      contractName: "USDCtest",
+      method: "approve",
       methodArgs: []
     });
 

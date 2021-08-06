@@ -4,3 +4,4 @@ vapp/src/contracts/*
 .idea/
 
 ganache_local/
+package-lock.json

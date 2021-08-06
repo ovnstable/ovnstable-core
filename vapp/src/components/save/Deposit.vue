@@ -107,7 +107,7 @@ export default {
 
     buy() {
 
-      
+
       // let contract = this.drizzleInstance.contracts["SimpleStorage"];
       let contrUSDC = this.drizzleInstance.contracts["USDCtest"];
       const approved = contrUSDC.methods['approve'].cacheSend(this.sum)

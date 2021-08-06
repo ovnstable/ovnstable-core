@@ -1,28 +1,45 @@
 const state = {
-    testTokenBalance: 0
+    usdcTokenBalance: 0,
+    ovngtTokenBalance: 0,
 };
 
 const getters = {
-    getTestTokenBalance(state) {
-        return state.testTokenBalance;
+    usdcTokenBalance(state) {
+        return state.usdcTokenBalance;
+    },
+
+    ovngtTokenBalance(state) {
+        return state.ovngtTokenBalance;
     }
 };
 
 const actions = {
-    async fetchTestTokenBalance({commit, rootState: state}) {
+    async getUsdcTokenBalance({commit, rootState: state}) {
         let drizzleInstance = state.drizzle.drizzleInstance;
         let activeAccount = state.accounts.activeAccount;
 
-        let method = drizzleInstance.contracts['Exchange'].methods['balance'];
-        const smallUnitBalance = await method.cacheCall();
-        commit("setTestTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
+        const smallUnitBalance = await drizzleInstance.contracts.USDCtest.methods.balanceOf(activeAccount).call();
+        commit("setUsdcTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
+    },
+
+    async getOvngtTokenBalance({commit, rootState: state}) {
+        let drizzleInstance = state.drizzle.drizzleInstance;
+        let activeAccount = state.accounts.activeAccount;
+
+        const smallUnitBalance = await drizzleInstance.contracts.Exchange.methods.USDCtest.call();
+        commit("setUsdcTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
     }
+
 };
 
 const mutations = {
-    setTestTokenBalance(state, balance) {
-        state.testTokenBalance = balance;
-    }
+    setUsdcTokenBalance(state, balance) {
+        state.usdcTokenBalance = balance;
+    },
+
+    setOvngtTokenBalance(state, balance) {
+        state.ovngtTokenBalance = balance;
+    },
 };
 
 export default {
