@@ -36,11 +36,7 @@ export default {
       methodArgs: []
     });
 
-    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
-      contractName: "SimpleStorage",
-      method: "set",
-      methodArgs: []
-    })
+   
   }
 
 
