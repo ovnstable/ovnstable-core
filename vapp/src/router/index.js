@@ -35,12 +35,6 @@ const routes = [
 
     },
 
-    {
-        path: '/example',
-        name: 'HelloWorld',
-        component: () => import('../example/HelloWorld'),
-
-    },
 
 
 

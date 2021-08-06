@@ -13,7 +13,7 @@
           md="4"
       >
         <v-row class="justify-center align-center pt-15">
-          <v-icon class="save-text"  >mdi-piggy-bank</v-icon>
+          <v-icon class="save-text">mdi-piggy-bank</v-icon>
           <p class="text-center  pt-5 save-text ">Save</p>
         </v-row>
         <v-card class="mt-15">
@@ -30,19 +30,29 @@
                 Deposit
               </v-tab>
 
-              <v-tab disabled :key="2">
+              <v-tab  :key="2">
                 Redeem
+              </v-tab>
+
+
+              <v-tab :key="3">
+                Balance
               </v-tab>
 
             </v-tabs>
 
             <v-tabs-items
-                          v-model="tab" class="mt-5">
+                v-model="tab" class="mt-5">
 
               <v-tab-item :transition=false :key="1">
                 <Deposit/>
               </v-tab-item>
-              <v-tab-item :transition=false :key="2"></v-tab-item>
+              <v-tab-item :transition=false :key="2">
+                <Redeem/>
+              </v-tab-item>
+              <v-tab-item :transition=false :key="3">
+                <Balance/>
+              </v-tab-item>
 
             </v-tabs-items>
 
@@ -58,10 +68,12 @@
 
 
 import Deposit from "@/components/save/Deposit";
+import Balance from "../components/save/Balance";
+import Redeem from "../components/save/Redeem";
 
 export default {
   name: "SaveView",
-  components: {Deposit},
+  components: {Redeem, Balance, Deposit},
   data: () => ({
     tab: null,
   }),

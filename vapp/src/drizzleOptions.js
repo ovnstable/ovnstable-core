@@ -1,6 +1,4 @@
 import SimpleStorage from './contracts/SimpleStorage.json'
-import ComplexStorage from './contracts/ComplexStorage.json'
-import TutorialToken from './contracts/TutorialToken.json'
 import Exchange from './contracts/Exchange.json'
 
 const options = {
@@ -14,8 +12,6 @@ const options = {
     contracts:
         [
             SimpleStorage,
-            ComplexStorage,
-            TutorialToken,
             Exchange
         ],
     events: {

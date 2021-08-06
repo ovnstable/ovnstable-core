@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-5">
+  <div class="pa-5" >
     <v-row dense>
       <v-col cols="9" class="pb-0 mb-0">
         <v-text-field color="black"
@@ -55,7 +55,7 @@
     </v-row>
 
     <v-row dense class="justify-center pb-8">
-      <v-btn large outlined @click="buy">Buy</v-btn>
+      <v-btn large outlined @click="buy" :disabled="!sum">Buy</v-btn>
     </v-row>
   </div>
 </template>
@@ -89,8 +89,9 @@ export default {
 
 
   computed: {
+    ...mapGetters("contracts", ["getContractData"]),
     ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
-    ...mapGetters('drizzle', ['isDrizzleInitialized']),
+    ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
 
   },
 
@@ -106,8 +107,11 @@ export default {
 
     buy() {
 
-      const contract = this.drizzle.contracts.Exchange;
+      let contract = this.drizzleInstance.contracts["Exchange"];
+      // let contract = this.drizzleInstance.contracts["SimpleStorage"];
+      const stackId = contract.methods['buy'].cacheSend(this.sum)
 
+      console.log(stackId)
     },
 
     selectItem(item) {

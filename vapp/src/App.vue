@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app">
+  <v-app id="app" v-if="isDrizzleInitialized">
     <Header/>
     <v-main>
       <v-container fluid>
@@ -14,16 +14,34 @@
 <script>
 
 import Header from "./components/Header";
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'App',
-  components: {  Header},
+  components: {Header},
 
   data() {
     return {
       drawer: true,
     }
   },
+
+  computed: mapGetters('drizzle', ['isDrizzleInitialized']),
+
+
+  created() {
+    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
+      contractName: "Exchange",
+      method: "buy",
+      methodArgs: []
+    });
+
+    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
+      contractName: "SimpleStorage",
+      method: "set",
+      methodArgs: []
+    })
+  }
 
 
 };
