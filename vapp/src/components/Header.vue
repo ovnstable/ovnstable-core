@@ -6,10 +6,9 @@
       class="elevation-1"
   >
 
-    <v-col cols="10" >
+    <v-col cols="10" class="ml-0 pl-0">
       <v-toolbar-title >
-        <v-icon color="black">mdi-set-center</v-icon>
-        OverNight
+        <v-img :src="require('../assets/logo/apple-touch-icon.png')" height="40" width="40"> </v-img>
       </v-toolbar-title>
     </v-col>
 
