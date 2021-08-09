@@ -1,12 +1,14 @@
-// const SimpleStorage = artifacts.require("SimpleStorage");
-// const TutorialToken = artifacts.require("TutorialToken");
-// const ComplexStorage = artifacts.require("ComplexStorage");
 const OvernightToken = artifacts.require("OvernightToken");
+const USDCtest = artifacts.require("USDCtest");
+const Exchange = artifacts.require("Exchange");
 
-module.exports = function(deployer) {
-  // deployer.deploy(SimpleStorage);
-  // deployer.deploy(TutorialToken);
-  // deployer.deploy(ComplexStorage);
-
-  deployer.deploy(OvernightToken);
+module.exports = async function(deployer) {
+  await deployer.deploy(OvernightToken);
+  const ovnt = await OvernightToken.deployed();
+  await deployer.deploy(USDCtest);
+  const usdct = await USDCtest.deployed();
+  await deployer.deploy(Exchange);
+  const exchange = await Exchange.deployed();
+  
+  await exchange.setTokens(ovnt.address,usdct.address);
 };

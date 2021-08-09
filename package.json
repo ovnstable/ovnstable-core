@@ -1,7 +1,7 @@
 {
-  "name": "drizzle-vue-box",
+  "name": "overnight",
   "version": "0.0.1",
-  "description": "",
+  "description": "overnight superstable coin & dApp",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
@@ -17,6 +17,6 @@
   },
   "license": "ISC",
   "dependencies": {
-    "openzeppelin-solidity": "4.2.0"
+    "@openzeppelin/contracts": "^4.2.0"
   }
 }

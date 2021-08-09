@@ -1,22 +1,29 @@
-import SimpleStorage from './contracts/SimpleStorage.json'
-import ComplexStorage from './contracts/ComplexStorage.json'
-import TutorialToken from './contracts/TutorialToken.json'
+import Exchange from './contracts/Exchange.json'
+import OvernightToken from './contracts/OvernightToken.json'
+import USDCtest from './contracts/USDCtest.json'
+
+
+
 
 const options = {
-  web3: {
-    block: false,
-    fallback: {
-      type: 'ws',
-      url: 'ws://127.0.0.1:9545'
+    web3: {
+        block: false,
+        fallback: {
+            type: 'ws',
+            url: 'ws://127.0.0.1:8545'
+        }
+    },
+    contracts:
+        [
+            Exchange,
+            OvernightToken,
+            USDCtest
+        ],
+    events: {
+    },
+    polls: {
+        accounts: 5000
     }
-  },
-  contracts: [SimpleStorage, ComplexStorage, TutorialToken],
-  events: {
-    SimpleStorage: ['StorageSet']
-  },
-  polls: {
-    accounts: 15000
-  }
 }
 
 export default options

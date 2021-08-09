@@ -1,11 +1,39 @@
 <template>
   <div class="pa-5" >
+
+    <v-row dense>
+
+      <v-col cols="9">
+        <v-text-field color="black"
+                      placeholder="0.0"
+                      outlined
+                      v-model="sum"
+                      dense></v-text-field>
+      </v-col>
+      <v-col cols="3">
+
+        <v-select color="black"
+                  outlined
+                  dense
+                  readonly
+                  item-value="id"
+                  item-text="name"
+                  v-model="buyCurrency"
+                  :items="BuyCurrencies"
+        ></v-select>
+
+      </v-col>
+    </v-row>
+    <v-row dense class="justify-center pb-5">
+      <v-icon large>mdi-arrow-down</v-icon>
+    </v-row>
     <v-row dense>
       <v-col cols="9" class="pb-0 mb-0">
         <v-text-field color="black"
                       class="pb-0 mb-0"
                       placeholder="0.0"
                       outlined
+                      readonly
                       v-model="sum"
                       dense></v-text-field>
       </v-col>
@@ -15,6 +43,7 @@
         <v-select color="black"
                   outlined
                   dense
+                  readonly
                   item-value="id"
                   item-text="name"
                   v-model="currency"
@@ -25,37 +54,11 @@
       </v-col>
     </v-row>
 
-    <v-row dense class="justify-center pb-5">
-      <v-icon large>mdi-arrow-down</v-icon>
-    </v-row>
 
-    <v-row dense>
 
-      <v-col cols="9">
-        <v-text-field color="black"
-                      readonly
-                      placeholder="0.0"
-                      outlined
-                      v-model="sum"
-                      dense></v-text-field>
-      </v-col>
-      <v-col cols="3">
-
-        <v-select color="black"
-                  outlined
-                  dense
-                  disabled
-                  item-value="id"
-                  item-text="name"
-                  v-model="buyCurrency"
-                  :items="BuyCurrencies"
-        ></v-select>
-
-      </v-col>
-    </v-row>
 
     <v-row dense class="justify-center pb-8">
-      <v-btn large outlined @click="buy" :disabled="!sum">Buy</v-btn>
+      <v-btn large outlined @click="redeem" :disabled="!sum">Redeem</v-btn>
     </v-row>
   </div>
 </template>
@@ -64,8 +67,9 @@
 import {mapGetters} from "vuex";
 import web3 from 'web3';
 
+
 export default {
-  name: "Deposit",
+  name: "Redeem",
 
   data: () => ({
     menu: false,
@@ -84,7 +88,6 @@ export default {
         image: require('../../assets/currencies//usdc.svg')
       }
     ],
-
 
   }),
 
@@ -106,18 +109,14 @@ export default {
   methods: {
 
 
-    buy() {
+    redeem() {
+      let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
+      let bidContract = this.drizzleInstance.contracts["Exchange"];
+      const approved = contrOVN.methods['approve'].cacheSend(bidContract.address, web3.utils.toWei(this.sum))
+        
+        const stackId = bidContract.methods['redeem'].cacheSend(web3.utils.toWei(this.sum))
 
-
-      const contrUSDC = this.drizzleInstance.contracts["USDCtest"];
-      const bidContract = this.drizzleInstance.contracts["Exchange"];
-
-      const approved = contrUSDC.methods['approve'].cacheSend( bidContract.address,web3.utils.toWei(this.sum))
-      console.log(approved)
-
-      let stackId = bidContract.methods['buy'].cacheSend(web3.utils.toWei(this.sum));
-
-      console.log(stackId)
+        console.log(stackId)
     },
 
     selectItem(item) {

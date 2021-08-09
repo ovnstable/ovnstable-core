@@ -1,12 +1,12 @@
 <template>
-  <v-app id="app">
+  <v-app id="app" v-if="isDrizzleInitialized">
     <Header/>
     <v-main>
       <v-container fluid>
         <router-view></router-view>
       </v-container>
     </v-main>
-
+    <Footer/>
   </v-app>
 
 </template>
@@ -14,16 +14,27 @@
 <script>
 
 import Header from "./components/Header";
+import { mapGetters } from 'vuex';
+import Footer from "./components/Footer";
 
 export default {
   name: 'App',
-  components: {  Header},
+  components: {Footer, Header},
 
   data() {
     return {
       drawer: true,
     }
   },
+
+  computed: mapGetters('drizzle', ['isDrizzleInitialized']),
+
+
+  created() {
+
+
+
+  }
 
 
 };

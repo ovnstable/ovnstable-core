@@ -9,6 +9,7 @@ const routes = [
     {
         path: '/',
         name: 'SaveView',
+        // component: () => import('../example/HelloWorld'),
         component: () => import('../views/SaveView.vue'),
 
     },
@@ -34,12 +35,6 @@ const routes = [
 
     },
 
-    {
-        path: '/example',
-        name: 'HelloWorld',
-        component: () => import('../example/HelloWorld'),
-
-    },
 
 
 
