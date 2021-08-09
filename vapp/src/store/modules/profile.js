@@ -25,7 +25,7 @@ const actions = {
     async getOvngtTokenBalance({commit, rootState: state}) {
         let drizzleInstance = state.drizzle.drizzleInstance;
 
-        const smallUnitBalance = await drizzleInstance.contracts.Exchange.methods.balance.call();
+        const smallUnitBalance = await drizzleInstance.contracts.Exchange.methods.balance().call();
         commit("setOvngtTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
     }
 

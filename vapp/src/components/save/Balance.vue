@@ -42,7 +42,7 @@ export default {
 
   created() {
     this.getUsdcTokenBalance();
-    this.getUsdcTokenBalance();
+    this.getOvngtTokenBalance();
   },
   methods: {
     ...mapActions("profile", ["getUsdcTokenBalance"]),
