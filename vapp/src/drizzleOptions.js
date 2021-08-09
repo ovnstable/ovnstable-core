@@ -1,8 +1,9 @@
 import Exchange from './contracts/Exchange.json'
 import OvernightToken from './contracts/OvernightToken.json'
 import USDCtest from './contracts/USDCtest.json'
+import SimpleStorage from './contracts/SimpleStorage.json'
 
-      
+
 
 
 const options = {
@@ -15,7 +16,7 @@ const options = {
     },
     contracts:
         [
-            
+            SimpleStorage,
             Exchange,
             OvernightToken,
             USDCtest
@@ -23,7 +24,7 @@ const options = {
     events: {
     },
     polls: {
-        accounts: 15000
+        accounts: 5000
     }
 }
 

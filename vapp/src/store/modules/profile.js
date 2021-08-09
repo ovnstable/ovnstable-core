@@ -24,10 +24,9 @@ const actions = {
 
     async getOvngtTokenBalance({commit, rootState: state}) {
         let drizzleInstance = state.drizzle.drizzleInstance;
-        let activeAccount = state.accounts.activeAccount;
 
-        const smallUnitBalance = await drizzleInstance.contracts.Exchange.methods.USDCtest.call();
-        commit("setUsdcTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
+        const smallUnitBalance = await drizzleInstance.contracts.Exchange.methods.balance.call();
+        commit("setOvngtTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
     }
 
 };

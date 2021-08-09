@@ -109,9 +109,11 @@ export default {
 
 
       let contrUSDC = this.drizzleInstance.contracts["USDCtest"];
-      const approved = contrUSDC.methods['approve'].cacheSend(this.sum)
-      let contract = this.drizzleInstance.contracts["Exchange"];
-      const stackId = contract.methods['buy'].cacheSend(this.sum)
+      const approved = contrUSDC.methods['approve'].cacheSend(this.activeAccount,this.sum)
+      console.log(approved)
+
+      const bidContractMethod = this.drizzleInstance.contracts["Exchange"].methods['buy'];
+      let stackId = bidContractMethod.cacheSend(this.sum);
 
       console.log(stackId)
     },

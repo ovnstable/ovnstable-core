@@ -31,17 +31,7 @@ export default {
 
 
   created() {
-    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
-      contractName: "Exchange",
-      method: "buy",
-      methodArgs: []
-    });
 
-    this.$store.dispatch("drizzle/REGISTER_CONTRACT", {
-      contractName: "USDCtest",
-      method: "approve",
-      methodArgs: []
-    });
 
 
   }
