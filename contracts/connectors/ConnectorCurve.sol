@@ -10,11 +10,11 @@ contract ConnectorCurve is IConnector {
 
     }
 
-    function stake (uint256 _amount) public override {
+    function stake (address _asset, uint256 _amount, address _beneficiar )  public override {
 
     }
 
-    function unstake (uint256 _amount) public override {
+    function unstake  (address _asset, uint256 _amount, address _beneficiar )  public override returns (uint256) {
         
     }
 
