@@ -18,24 +18,6 @@
       </v-col>
     </v-row>
 
-    <v-row dense>
-      <v-col cols="2">
-        <v-subheader class="font-weight-bold">ETH</v-subheader>
-      </v-col>
-      <v-col cols="10">
-        <v-text-field  outlined color="black" dense v-model="getEthBalance" readonly></v-text-field>
-      </v-col>
-    </v-row>
-
-    <v-row dense>
-      <v-col cols="2">
-        <v-subheader class="font-weight-bold">USDC</v-subheader>
-      </v-col>
-      <v-col cols="10">
-        <v-text-field  outlined color="black" dense v-model="usdcTokenBalance" readonly></v-text-field>
-      </v-col>
-    </v-row>
-
 
   </div>
 </template>
