@@ -3,14 +3,15 @@
 
     <v-row dense>
 
-      <v-col cols="9">
+      <v-col  lg="9" sm="10">
         <v-text-field color="black"
                       placeholder="0.0"
                       outlined
                       v-model="sum"
                       dense></v-text-field>
       </v-col>
-      <v-col cols="3">
+      <v-col  lg="3" sm="10">
+
 
         <v-select color="black"
                   outlined
@@ -28,7 +29,7 @@
       <v-icon large>mdi-arrow-down</v-icon>
     </v-row>
     <v-row dense>
-      <v-col cols="9" class="pb-0 mb-0">
+      <v-col lg="9" sm="10" class="pb-0 mb-0">
         <v-text-field color="black"
                       class="pb-0 mb-0"
                       placeholder="0.0"
@@ -38,7 +39,7 @@
                       dense></v-text-field>
       </v-col>
 
-      <v-col cols="3">
+      <v-col lg="3" sm="10">
 
         <v-select color="black"
                   outlined
@@ -113,7 +114,7 @@ export default {
       let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
       let bidContract = this.drizzleInstance.contracts["Exchange"];
       const approved = contrOVN.methods['approve'].cacheSend(bidContract.address, web3.utils.toWei(this.sum))
-        
+
         const stackId = bidContract.methods['redeem'].cacheSend(web3.utils.toWei(this.sum))
 
         console.log(stackId)

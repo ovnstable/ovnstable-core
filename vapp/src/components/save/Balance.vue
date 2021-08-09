@@ -1,19 +1,19 @@
 <template>
   <div v-if="isDrizzleInitialized" class="pa-5">
     <v-row dense>
-      <v-col cols="2">
+      <v-col lg="2" sm="2">
         <v-subheader class="font-weight-bold">Account</v-subheader>
       </v-col>
-      <v-col cols="10">
+      <v-col lg="10" sm="10">
         <v-text-field  outlined color="black" dense v-model="activeAccount" readonly></v-text-field>
       </v-col>
     </v-row>
 
     <v-row dense>
-      <v-col cols="2">
+      <v-col  lg="2" sm="2">
         <v-subheader class="font-weight-bold">OVNGT</v-subheader>
       </v-col>
-      <v-col cols="10">
+      <v-col  lg="10" sm="10">
         <v-text-field  outlined color="black" dense v-model="ovngtTokenBalance" readonly></v-text-field>
       </v-col>
     </v-row>

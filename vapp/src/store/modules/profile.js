@@ -1,11 +1,16 @@
 const state = {
     usdcTokenBalance: 0,
     ovngtTokenBalance: 0,
+    daiBalance: 0,
 };
 
 const getters = {
     usdcTokenBalance(state) {
         return state.usdcTokenBalance;
+    },
+
+    daiBalance(state) {
+        return state.daiBalance;
     },
 
     ovngtTokenBalance(state) {
@@ -20,6 +25,16 @@ const actions = {
 
         const smallUnitBalance = await drizzleInstance.contracts.USDCtest.methods.balanceOf(activeAccount).call();
         commit("setUsdcTokenBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
+
+    },
+
+
+    async getDaiBalance({commit, rootState: state}) {
+        let drizzleInstance = state.drizzle.drizzleInstance;
+        let activeAccount = state.accounts.activeAccount;
+
+        const smallUnitBalance = await drizzleInstance.contracts.DAItest.methods.balanceOf(activeAccount).call();
+        commit("setDaiBalance", drizzleInstance.web3.utils.fromWei(smallUnitBalance, "ether"));
     },
 
     async getOvngtTokenBalance({commit, rootState: state}) {
@@ -39,6 +54,10 @@ const mutations = {
     setOvngtTokenBalance(state, balance) {
         state.ovngtTokenBalance = balance;
     },
+
+    setDaiBalance(state, balance) {
+        state.daiBalance = balance;
+    }
 };
 
 export default {

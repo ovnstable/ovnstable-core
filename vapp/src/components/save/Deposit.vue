@@ -1,7 +1,7 @@
 <template>
   <div class="pa-5" >
     <v-row dense>
-      <v-col cols="9" class="pb-0 mb-0">
+      <v-col lg="9" sm="10" class="pb-0 mb-0">
         <v-text-field color="black"
                       class="pb-0 mb-0"
                       placeholder="0.0"
@@ -10,7 +10,7 @@
                       dense></v-text-field>
       </v-col>
 
-      <v-col cols="3">
+      <v-col lg="3" sm="10">
 
         <v-select color="black"
                   outlined
@@ -31,7 +31,7 @@
 
     <v-row dense>
 
-      <v-col cols="9">
+      <v-col lg="9" sm="10">
         <v-text-field color="black"
                       readonly
                       placeholder="0.0"
@@ -39,7 +39,7 @@
                       v-model="sum"
                       dense></v-text-field>
       </v-col>
-      <v-col cols="3">
+      <v-col lg="3" sm="10">
 
         <v-select color="black"
                   outlined

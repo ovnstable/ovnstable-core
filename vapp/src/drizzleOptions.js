@@ -1,6 +1,7 @@
 import Exchange from './contracts/Exchange.json'
 import OvernightToken from './contracts/OvernightToken.json'
 import USDCtest from './contracts/USDCtest.json'
+import DAItest from './contracts/DAItest.json'
 
 
 
@@ -17,7 +18,8 @@ const options = {
         [
             Exchange,
             OvernightToken,
-            USDCtest
+            USDCtest,
+            DAItest
         ],
     events: {
     },
