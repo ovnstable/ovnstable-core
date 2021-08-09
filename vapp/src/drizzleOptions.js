@@ -1,7 +1,6 @@
 import Exchange from './contracts/Exchange.json'
 import OvernightToken from './contracts/OvernightToken.json'
 import USDCtest from './contracts/USDCtest.json'
-import SimpleStorage from './contracts/SimpleStorage.json'
 
 
 
@@ -16,7 +15,6 @@ const options = {
     },
     contracts:
         [
-            SimpleStorage,
             Exchange,
             OvernightToken,
             USDCtest

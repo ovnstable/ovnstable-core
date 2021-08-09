@@ -65,6 +65,8 @@
 
 <script>
 import {mapGetters} from "vuex";
+import web3 from 'web3';
+
 
 export default {
   name: "Redeem",
@@ -108,12 +110,13 @@ export default {
 
 
     redeem() {
-     let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
-      const approved = contrOVN.methods['approve'].cacheSend(this.activeAccount, this.sum)
-      let contract = this.drizzleInstance.contracts["Exchange"];
-      const stackId = contract.methods['redeem'].cacheSend(this.sum)
+      let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
+      let bidContract = this.drizzleInstance.contracts["Exchange"];
+      const approved = contrOVN.methods['approve'].cacheSend(bidContract.address, web3.utils.toWei(this.sum))
+        
+        const stackId = bidContract.methods['redeem'].cacheSend(web3.utils.toWei(this.sum))
 
-      console.log(stackId)
+        console.log(stackId)
     },
 
     selectItem(item) {

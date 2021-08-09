@@ -62,6 +62,7 @@
 
 <script>
 import {mapGetters} from "vuex";
+import web3 from 'web3';
 
 export default {
   name: "Deposit",
@@ -108,12 +109,13 @@ export default {
     buy() {
 
 
-      let contrUSDC = this.drizzleInstance.contracts["USDCtest"];
-      const approved = contrUSDC.methods['approve'].cacheSend(this.activeAccount,this.sum)
+      const contrUSDC = this.drizzleInstance.contracts["USDCtest"];
+      const bidContract = this.drizzleInstance.contracts["Exchange"];
+
+      const approved = contrUSDC.methods['approve'].cacheSend( bidContract.address,web3.utils.toWei(this.sum))
       console.log(approved)
 
-      const bidContractMethod = this.drizzleInstance.contracts["Exchange"].methods['buy'];
-      let stackId = bidContractMethod.cacheSend(this.sum);
+      let stackId = bidContract.methods['buy'].cacheSend(web3.utils.toWei(this.sum));
 
       console.log(stackId)
     },
