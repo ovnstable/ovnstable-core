@@ -7,12 +7,7 @@ pragma solidity >=0.8.0 <0.9.0;
 /// @dev Choosing of connector releasing by changing address of connector's contract
 interface IConnector {
 
-
     
-function addLiquidity (uint256 _amount) external;
-
-function removeLiquidity (uint256 _amount) external;
-
 function stake (address _asset, uint256 _amount, address _beneficiar) external;
 
 function unstake (address _asset, uint256 _amount, address _to ) external  returns (uint256);
