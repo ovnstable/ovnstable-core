@@ -3,25 +3,13 @@ import "../interfaces/IConnector.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
 import "./curve/interfaces/iCurveToken.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ConnectorCurve is IConnector {
+contract ConnectorCurve is IConnector , Ownable{
 
     iCurvePool pool;
     address owner;
 
-
-    modifier onlyOwner () {
-        require(msg.sender == owner, "only owner can");
-        _;
-    }
-
-    function setOwner (address _addrOwner) public onlyOwner {
-        owner = _addrOwner;
-    
-    }
-    function setPool (address _poolAddr) public onlyOwner {
-        pool = iCurvePool(_poolAddr);
-    }
 
     function stake (address _asset, uint256 _amount, address _beneficiar )  public override {
 

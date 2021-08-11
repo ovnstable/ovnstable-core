@@ -4,26 +4,15 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IConnector.sol";
 import "./aave/interfaces/ILendingPool.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract ConnectorAAVE is IConnector {
+contract ConnectorAAVE is IConnector, Ownable {
 
     ILendingPool pool;
     address owner;
 
-    constructor () {
-        owner = msg.sender;
-    }
 
-    modifier onlyOwner () {
-        require(msg.sender == owner, "only owner can");
-        _;
-    }
-
-    function setOwner (address _addrOwner) public onlyOwner {
-        owner = _addrOwner;
-    
-    }
     function setPool (address _poolAddr) public onlyOwner {
         pool = ILendingPool(_poolAddr);
     }
