@@ -4,10 +4,10 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IConnector.sol";
 import "./aave/interfaces/ILendingPool.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../OwnableExt.sol";
 
 
-contract ConnectorAAVE is IConnector, Ownable {
+contract ConnectorAAVE is IConnector, OwnableExt {
 
     ILendingPool pool;
     address owner;

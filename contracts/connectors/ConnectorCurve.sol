@@ -3,9 +3,9 @@ import "../interfaces/IConnector.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
 import "./curve/interfaces/iCurveToken.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../OwnableExt.sol";
 
-contract ConnectorCurve is IConnector , Ownable{
+contract ConnectorCurve is IConnector , OwnableExt{
 
     iCurvePool pool;
     address owner;

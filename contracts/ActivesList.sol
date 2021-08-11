@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.0 <0.9.0;
 import "./interfaces/IActivesList.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./OwnableExt.sol";
 /// @title ActivesList - mantains list of actives in system
 /// @author @stanta
 /// @notice CRUU for actives. Unpublishing insrtead of Deleting
 
-contract ActivesList is Ownable, IActivesList {
+contract ActivesList is OwnableExt, IActivesList {
 
     mapping (address => uint256) actPos;
     Active[] actList;

@@ -6,7 +6,7 @@ pragma solidity >=0.8.0 <0.9.0;
 interface IActivesList  {
     struct Active
     {
-        address actAdsress;
+        address actAddress;
         uint16 minShare;
         uint16 maxShare;
         uint8 isWork;

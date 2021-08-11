@@ -1,6 +1,7 @@
 node_modules
 
 vapp/src/contracts/*
+vapp/dist
 .idea/
 
 ganache_local/
