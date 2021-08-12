@@ -17,9 +17,9 @@
     <v-col lg="4"></v-col>
     <v-col lg="2" class="ma-0 pa-0">
       <div>
-        <span class="active-tab" @click="$router.push('/')">Swap</span>
-        <span class="in-active-tab ml-10" @click="$router.push('/dashboard')">Dashboard</span>
-        <span class="in-active-tab ml-10" @click="$router.push('/stats')">Stats</span>
+        <span v-bind:class="{'active-tab': rootId}" class="in-active-tab" @click="$router.push('/')">Swap</span>
+        <span v-bind:class="{'active-tab': dashboardId}" class="in-active-tab ml-10" @click="$router.push('/dashboard')">Dashboard</span>
+        <span v-bind:class="{'active-tab': statsId}" class="in-active-tab ml-10" @click="$router.push('/stats')">Stats</span>
       </div>
 
     </v-col>
@@ -58,6 +58,31 @@ export default {
     polLogo: require('../assets/currencies/pol.svg'),
 
   }),
+
+  watch: {
+    '$route.params.search': {
+      handler: function(search) {
+        console.log(search)
+      },
+      deep: true,
+      immediate: true
+    }
+  },
+
+  computed: {
+
+    dashboardId(){
+      return this.$router.currentRoute.path === '/dashboard';
+    },
+
+    rootId(){
+      return this.$router.currentRoute.path === '/';
+    },
+
+    statsId(){
+      return this.$router.currentRoute.path === '/stats';
+    },
+  },
 
   methods: {
 

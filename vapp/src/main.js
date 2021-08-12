@@ -13,6 +13,8 @@ import router from './router/index'
 
 Vue.use(Vuex)
 
+
+
 Vue.use(drizzleVuePlugin, { store, drizzleOptions })
 
 Vue.config.productionTip = false

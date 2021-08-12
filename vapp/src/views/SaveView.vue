@@ -19,9 +19,9 @@
 
         <v-row>
           <v-col lg="4" class="pt-10 stats">
-            <p>Total OVN Minted: 113 332 344</p>
-            <p>OVN in circulation: <strong>79 886 800</strong></p>
-            <p>Total OVN Burnt: 33 445 544</p>
+            <p>Total OVN Minted: {{total.minted}}</p>
+            <p>OVN in circulation: <strong>{{total.circulation}}</strong></p>
+            <p>Total OVN Burnt: {{total.minted}}</p>
           </v-col>
           <v-col lg="4">
             <v-row class="desc pr-5 pl-5 pt-10" justify="center">
@@ -34,60 +34,16 @@
         </v-row>
 
         <v-row justify="center" class="pr-5 pl-5">
-          <v-col lg="4" class="tabs">
+          <v-col lg="4" class="tabs pa-1">
             <button class="tab-button">Mint</button>
             <button class="tab-button-in-active">Redeem</button>
           </v-col>
         </v-row>
 
-
         <v-row justify="center">
-          <v-col lg="4">
-            <v-card class="mt-5 card">
-              <v-card-text>
-                <v-tabs
-                    color="black"
-                    fixed-tabs
-                    centered
-                    v-model="tab"
-                >
-                  <v-tabs-slider></v-tabs-slider>
-
-                  <v-tab :key="1">
-                    Deposit
-                  </v-tab>
-
-
-                  <v-tab :key="2">
-                    Redeem
-                  </v-tab>
-
-
-                  <v-tab :key="3">
-                    Balance
-                  </v-tab>
-
-                </v-tabs>
-
-                <v-tabs-items
-                    v-model="tab" class="mt-5">
-
-                  <v-tab-item :transition=false :key="1">
-                    <Deposit/>
-                  </v-tab-item>
-                  <v-tab-item :transition=false :key="2">
-                    <Redeem/>
-                  </v-tab-item>
-                  <v-tab-item :transition=false :key="3">
-                    <Balance/>
-                  </v-tab-item>
-
-                </v-tabs-items>
-
-              </v-card-text>
-            </v-card>
-          </v-col>
+         <Mint/>
         </v-row>
+
       </v-col>
     </v-row>
   </v-container>
@@ -96,15 +52,21 @@
 <script>
 
 
-import Deposit from "@/components/save/Deposit";
 import Balance from "../components/save/Balance";
 import Redeem from "../components/save/Redeem";
+import Mint from "../components/save/Mint";
 
 export default {
   name: "SaveView",
-  components: { Redeem, Balance, Deposit},
+  components: {Mint, Redeem, Balance},
   data: () => ({
     tab: null,
+
+    total: {
+      minted: 113332344,
+      circulation: 79886800,
+      burnt: 33445544,
+    },
   }),
 
   methods: {}

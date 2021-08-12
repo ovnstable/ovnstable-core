@@ -7,9 +7,16 @@
         flat
         tile
     >
-
-      <v-card-text class="py-2 black--text text-center ">
-        {{ new Date().getFullYear() }} — <strong c>OverNight</strong>
+      <v-card-text>
+          <v-row justify="end">
+            <v-col lg="10"></v-col>
+            <v-col lg="2">
+              <v-icon color="black">mdi-github</v-icon>
+              <v-icon color="black" class="ml-2">mdi-discord</v-icon>
+              <v-icon color="black" class="ml-2">mdi-twitter</v-icon>
+              <v-icon color="black" class="ml-2">mdi-email</v-icon>
+            </v-col>
+          </v-row>
       </v-card-text>
     </v-card>
   </v-footer>

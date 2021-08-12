@@ -25,11 +25,12 @@
     "babel-eslint": "^10.0.1",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
-    "html-webpack-plugin": "^5.3.2",
+    "html-webpack-plugin": "^4.5.2",
     "sass": "~1.32.0",
     "sass-loader": "^10.0.0",
     "vue-cli-plugin-vuetify": "~2.4.2",
     "vue-template-compiler": "^2.6.10",
-    "vuetify-loader": "^1.7.0"
+    "vuetify-loader": "^1.7.0",
+    "webpack": "^4.46.0"
   }
 }
