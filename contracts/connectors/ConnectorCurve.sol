@@ -8,7 +8,6 @@ import "../OwnableExt.sol";
 contract ConnectorCurve is IConnector , OwnableExt{
 
     iCurvePool pool;
-    address owner;
 
 
     function stake (address _asset, uint256 _amount, address _beneficiar )  public override {
@@ -44,5 +43,8 @@ contract ConnectorCurve is IConnector , OwnableExt{
         }
     }
 
+    function getPrice (address _asset ) external view override returns (uint256) {
+        return 1; 
+    }
 
 }

@@ -7,6 +7,5 @@ interface IMark2Market   {
 
     function m2m () external view returns (int128[] memory actChanges) ;
 
-    function changeBal (address _active, int128 _balance) external ;
 
 }

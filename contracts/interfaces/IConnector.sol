@@ -12,4 +12,6 @@ function stake (address _asset, uint256 _amount, address _beneficiar) external;
 
 function unstake (address _asset, uint256 _amount, address _to ) external  returns (uint256);
 
+function getPrice (address _asset ) external view returns (uint256);
+
 }
