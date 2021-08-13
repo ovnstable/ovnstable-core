@@ -6,7 +6,7 @@
           <v-col class="field ">
             <v-row dense>
               <v-col lg="7">
-                <v-text-field placeholder="0.00" flat solo></v-text-field>
+                <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
               </v-col>
               <v-col lg="2" class="pt-3" align="end">
                 <div class="max">Max</div>
@@ -40,7 +40,7 @@
           <v-col class="field ">
             <v-row dense>
               <v-col lg="7">
-                <v-text-field readonly placeholder="0.00" flat solo></v-text-field>
+                <v-text-field v-model="sum" readonly placeholder="0.00" flat solo></v-text-field>
               </v-col>
               <v-col lg="2">
 
@@ -64,7 +64,7 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0">Enter the amount to Mint & Swap</v-btn>
+          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!account">Enter the amount to Mint & Swap</v-btn>
         </v-row>
 
         <v-row dense class="pt-4">
@@ -95,7 +95,8 @@
 
 <script>
 import {mapGetters} from "vuex";
-import web3 from 'web3';
+import web3 from "web3";
+import utils from 'web3-utils';
 import Selector from "../common/Selector";
 
 export default {
@@ -128,7 +129,7 @@ export default {
     ...mapGetters("contracts", ["getContractData"]),
     ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
     ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
-
+    ...mapGetters("profile", ["contracts", "web3", 'account']),
   },
 
   created() {
@@ -147,15 +148,23 @@ export default {
     buy() {
 
 
-      const contrUSDC = this.drizzleInstance.contracts["USDCtest"];
-      const bidContract = this.drizzleInstance.contracts["Exchange"];
+      try {
+        let toWei = utils.toWei(this.sum);
 
-      const approved = contrUSDC.methods['approve'].cacheSend(bidContract.address, web3.utils.toWei(this.sum))
-      console.log(approved)
+        let contracts = this.contracts;
+        let from = this.account;
 
-      let stackId = bidContract.methods['buy'].cacheSend(web3.utils.toWei(this.sum));
+        contracts.usdc.methods.approve(from, toWei).send({from: from}).then(function () {
+           alert('Success first step!')
+         });
 
-      console.log(stackId)
+        contracts.exchange.methods.buy(toWei).send().then(function (){
+          alert('Success second step!')
+        });
+
+      } catch (e) {
+        console.log(e)
+      }
     },
 
     selectItem(item) {

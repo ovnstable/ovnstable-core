@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app" v-if="isDrizzleInitialized">
+  <v-app id="app" >
     <Header/>
     <v-main>
       <v-container fluid>
@@ -26,16 +26,6 @@ export default {
       drawer: true,
     }
   },
-
-  computed: mapGetters('drizzle', ['isDrizzleInitialized']),
-
-
-  created() {
-
-
-
-  }
-
 
 };
 </script>

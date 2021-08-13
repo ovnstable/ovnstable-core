@@ -17,21 +17,22 @@
     <v-col lg="4"></v-col>
     <v-col lg="2" class="ma-0 pa-0">
       <div>
-        <span v-bind:class="{'active-tab': rootId}" class="in-active-tab" @click="$router.push('/')">Swap</span>
-        <span v-bind:class="{'active-tab': dashboardId}" class="in-active-tab ml-10" @click="$router.push('/dashboard')">Dashboard</span>
-        <span v-bind:class="{'active-tab': statsId}" class="in-active-tab ml-10" @click="$router.push('/stats')">Stats</span>
+        <span v-bind:class="activeTabSave" @click="$router.push('/')">Swap</span>
+        <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/dashboard')">Dashboard</span>
+        <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
       </div>
 
     </v-col>
     <v-col lg="2"></v-col>
     <v-col lg="3">
-      <v-row dense class="pt-2">
-        <v-col class="justify-end" v-on:click="onBoardInit">
-          <button class="btn">Connect Wallet
+      <v-row dense class="pt-2 ">
+        <v-col class="justify-end" v-on:click="testNative">
+          <button v-if="!account" class="btn">Connect Wallet
             <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
           </button>
-          <img class="type ml-5" :src="require('../assets/eth.png')" height="40" width="40"/>
-          <img class="settings ml-5" :src="require('../assets/gear.png')" height="35" width="35"/>
+          <div v-else>{{account}}</div>
+          <!--          <img class="type ml-5" :src="require('../assets/eth.png')" height="40" width="40"/>-->
+          <!--          <img class="settings ml-5" :src="require('../assets/gear.png')" height="35" width="35"/>-->
         </v-col>
       </v-row>
     </v-col>
@@ -39,7 +40,15 @@
 </template>
 <script>
 import Web3 from "web3";
-import Onboard from 'bnc-onboard'
+import {mapGetters, mapMutations} from "vuex";
+
+import contract from '@truffle/contract';
+import drizzleVuePlugin, {Drizzle} from '@drizzle/vue-plugin'
+import drizzleOptions from '../drizzleOptions'
+import Vue from 'vue'
+
+import store from "../store/index.js";
+import file from "../contracts/Exchange.json";
 
 
 export default {
@@ -57,56 +66,112 @@ export default {
     ethLogo: require('../assets/currencies/eth.svg'),
     polLogo: require('../assets/currencies/pol.svg'),
 
+    tabId: 1,
   }),
 
+
   watch: {
-    '$route.params.search': {
-      handler: function(search) {
-        console.log(search)
-      },
-      deep: true,
-      immediate: true
+
+
+    $route(to, from) {
+
+      switch (to.path) {
+        case '/':
+          this.tabId = 1;
+          break;
+        case '/stats':
+          this.tabId = 3;
+          break;
+        case '/dashboard':
+          this.tabId = 2;
+          break;
+      }
     }
   },
 
+
   computed: {
 
-    dashboardId(){
-      return this.$router.currentRoute.path === '/dashboard';
+
+    ...mapGetters('profile', ['exchange', 'account']),
+
+
+    activeTabSave: function () {
+      return {
+        'active-tab': this.tabId === 1,
+        'in-active-tab': this.tabId !== 1,
+      }
     },
 
-    rootId(){
-      return this.$router.currentRoute.path === '/';
+    activeTabDashboard: function () {
+      return {
+        'active-tab': this.tabId === 2,
+        'in-active-tab': this.tabId !== 2,
+      }
     },
 
-    statsId(){
-      return this.$router.currentRoute.path === '/stats';
+
+    activeTabStats: function () {
+      return {
+        'active-tab': this.tabId === 3,
+        'in-active-tab': this.tabId !== 3,
+      }
     },
+  },
+
+
+  created() {
   },
 
   methods: {
 
+
+    ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
+
+
+    async testNative() {
+
+      const web3 = new Web3(window.ethereum);
+
+      await window.ethereum.enable();
+      this.setWeb3(web3);
+
+      web3.eth.getAccounts((error, accounts) => {
+        let account = accounts[0];
+        this.setAccount(account);
+
+
+        let first1 = this.load(require('../contracts/Exchange.json'), account, web3);
+        let first2 = this.load(require('../contracts/USDCtest.json'), account, web3);
+        let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
+
+        this.setContracts({exchange: first1, usdc: first2, ovn: first3})
+      });
+
+
+    },
+
+
+    load(file, account, web3){
+
+      let contractConfig = contract(file);
+
+      const networkId = 999;
+
+      const {abi, networks, deployedBytecode} = contractConfig
+      let ethContract = new web3.eth.Contract(abi, networks[networkId].address, {
+        from: account,
+        data: deployedBytecode
+      });
+
+
+      return ethContract;
+    },
+
     async onBoardInit() {
 
-      let web3
-      const BLOCKNATIVE_KEY = '334dcfd0-ce7f-4fcc-92ca-962c43f98a4a'
-      const NETWORK_ID = 1
+      Vue.use(drizzleVuePlugin, {store, drizzleOptions})
 
-      const onboard = Onboard({
-        dappId: BLOCKNATIVE_KEY,
-        networkId: NETWORK_ID,
-        subscriptions: {
-          wallet: wallet => {
-            // instantiate web3 when the user has selected a wallet
-            web3 = new Web3(wallet.provider)
-            console.log(`${wallet.name} connected!`)
-
-          }
-        }
-      })
-
-      await onboard.walletSelect()
-      await onboard.walletCheck();
 
     },
 
@@ -124,7 +189,7 @@ export default {
 }
 
 .active-tab {
-  color: #171717;
+  color: #5686B2;
   font-size: 25px;
   font-weight: bold;
   border-bottom: 4px solid #171717;

@@ -35,13 +35,14 @@
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button class="tab-button">Mint</button>
-            <button class="tab-button-in-active">Redeem</button>
+            <button v-bind:class="activeTabMint"  @click="tab = 1">Mint</button>
+            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Redeem</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-         <Mint/>
+         <Mint v-if="tab === 1"/>
+          <Redeem v-if="tab === 2"/>
         </v-row>
 
       </v-col>
@@ -60,7 +61,7 @@ export default {
   name: "SaveView",
   components: {Mint, Redeem, Balance},
   data: () => ({
-    tab: null,
+    tab: 1,
 
     total: {
       minted: 113332344,
@@ -68,6 +69,23 @@ export default {
       burnt: 33445544,
     },
   }),
+
+
+  computed: {
+    activeTabMint: function () {
+      return {
+        'tab-button': this.tab === 1,
+        'tab-button-in-active': this.tab !== 1,
+      }
+    },
+
+    activeTabRedeem: function () {
+      return {
+        'tab-button': this.tab === 2,
+        'tab-button-in-active': this.tab !== 2,
+      }
+    }
+  },
 
   methods: {}
 

@@ -10,12 +10,15 @@
   "dependencies": {
     "@drizzle/store": "^1.5.0",
     "@drizzle/vue-plugin": "^0.1.0",
+    "@truffle/contract": "^4.3.30",
     "bnc-onboard": "^1.32.0",
     "prettier": "^1.18.2",
     "vue": "^2.6.10",
     "vue-router": "^3.0.3",
     "vuetify": "^2.4.0",
-    "vuex": "^3.1.1"
+    "vuex": "^3.1.1",
+    "web3-utils": "^1.5.1",
+    "web3modal": "^1.9.4"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",
@@ -31,6 +34,7 @@
     "vue-cli-plugin-vuetify": "~2.4.2",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.7.0",
+    "web3": "^1.5.1",
     "webpack": "^4.46.0"
   }
 }

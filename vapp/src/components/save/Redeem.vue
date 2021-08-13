@@ -1,72 +1,82 @@
 <template>
-  <div class="pa-5" >
+  <v-col lg="4">
+    <v-card class="mt-5 card elevation-0">
+      <v-card-text>
+        <v-row dense>
+          <v-col class="field ">
+            <v-row dense>
+              <v-col lg="7">
+                <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
+              </v-col>
+              <v-col lg="2" class="pt-3" align="end">
+                <div class="max">Max</div>
+              </v-col>
+              <v-col lg="3">
+                <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly class="custom" flat solo>
+                  <template v-slot:selection="{ item, index }">
+                    <img :src="item.image.default" width="40" height="40" ><span
+                      class="title-custom ml-1">{{ item.title }}</span>
+                  </template>
+                  <template v-slot:item="{ item }">
+                    <img :src="item.image.default" width="34" height="34"> <span
+                      class="title-custom">{{ item.title }}</span>
+                  </template>
+                </v-select>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
 
-    <v-row dense>
+        <v-row class="pa-3">
+          <v-col lg="2">
+            <span class="gas-title">Gas fee: {{ gas }}</span>
+          </v-col>
+          <v-col lg="8" align="center">
+            <img :src="require('../../assets/icons8-arrow 1.svg').default" height="30" width="30"/>
+          </v-col>
+          <v-col lg="2"></v-col>
+        </v-row>
+        <v-row dense>
+          <v-col class="field ">
+            <v-row dense>
+              <v-col lg="7">
+                <v-text-field v-model="sum" readonly placeholder="0.00" flat solo></v-text-field>
+              </v-col>
+              <v-col lg="2">
 
-      <v-col  lg="9" sm="10">
-        <v-text-field color="black"
-                      placeholder="0.0"
-                      outlined
-                      v-model="sum"
-                      dense></v-text-field>
-      </v-col>
-      <v-col  lg="3" sm="10">
-
-
-        <v-select color="black"
-                  outlined
-                  dense
-                  readonly
-                  item-value="id"
-                  item-text="name"
-                  v-model="buyCurrency"
-                  :items="BuyCurrencies"
-        ></v-select>
-
-      </v-col>
-    </v-row>
-    <v-row dense class="justify-center pb-5">
-      <v-icon large>mdi-arrow-down</v-icon>
-    </v-row>
-    <v-row dense>
-      <v-col lg="9" sm="10" class="pb-0 mb-0">
-        <v-text-field color="black"
-                      class="pb-0 mb-0"
-                      placeholder="0.0"
-                      outlined
-                      readonly
-                      v-model="sum"
-                      dense></v-text-field>
-      </v-col>
-
-      <v-col lg="3" sm="10">
-
-        <v-select color="black"
-                  outlined
-                  dense
-                  readonly
-                  item-value="id"
-                  item-text="name"
-                  v-model="currency"
-                  :items="currencies"
-        >
-
-        </v-select>
-      </v-col>
-    </v-row>
+              </v-col>
+              <v-col lg="3">
+                <v-select append-icon="" :items="currencies" readonly color="black" v-model="currency"
+                          class="custom" flat solo>
+                  <template v-slot:selection="{ item, index }">
+                    <img :src="item.image.default" width="40" height="40"><span
+                      class="title-custom ml-1">{{ item.title }}</span>
+                  </template>
+                  <template v-slot:item="{ item }">
+                    <img :src="item.image.default" width="34" height="34"> <span
+                      class="title-custom">{{ item.title }}</span>
+                  </template>
+                </v-select>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
 
 
+        <v-row dense class="pt-4">
+          <v-btn height="60" class="buy elevation-0" @click="redeem" :disabled="!account">Withdraw</v-btn>
+        </v-row>
 
 
-    <v-row dense class="justify-center pb-8">
-      <v-btn large outlined @click="redeem" :disabled="!sum">Redeem</v-btn>
-    </v-row>
-  </div>
+      </v-card-text>
+    </v-card>
+  </v-col>
 </template>
 
 <script>
 import {mapGetters} from "vuex";
 import web3 from 'web3';
+import utils from "web3-utils";
 
 
 export default {
@@ -81,14 +91,16 @@ export default {
 
     sum: null,
 
-    buyCurrency: {id: 'overnight'},
-    BuyCurrencies: [
-      {
-        id: 'overnight',
-        name: 'OVNGT',
-        image: require('../../assets/currencies//usdc.svg')
-      }
-    ],
+
+    gas: null,
+
+    buyCurrency: null,
+    buyCurrencies: [{
+      id: 'ovn',
+      title: 'OVN',
+      image: require('../../assets/currencies/ovn.svg')
+    }],
+
 
   }),
 
@@ -97,27 +109,43 @@ export default {
     ...mapGetters("contracts", ["getContractData"]),
     ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
     ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
+    ...mapGetters("profile", ["contracts", "account", 'web3']),
 
   },
 
   created() {
 
-    this.currencies.push({id: 'usdc', name: 'USDC', image: require('../../assets/currencies/usdc.svg')});
-    this.currencies.push({id: 'dai', name: 'DAI', image: require('../../assets/currencies/dai.svg')});
+    this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.svg')});
+    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
+    this.currency = this.currencies[0];
+
+    this.buyCurrency = this.buyCurrencies[0];
   },
 
   methods: {
 
 
     redeem() {
-      let contrOVN = this.drizzleInstance.contracts["OvernightToken"];
-      let bidContract = this.drizzleInstance.contracts["Exchange"];
-      const approved = contrOVN.methods['approve'].cacheSend(bidContract.address, web3.utils.toWei(this.sum))
 
-        const stackId = bidContract.methods['redeem'].cacheSend(web3.utils.toWei(this.sum))
 
-        console.log(stackId)
+      try {
+        let toWei = utils.toWei(this.sum);
+
+        let contracts = this.contracts;
+        let from = this.account;
+        contracts.ovn.methods.approve(from, toWei).send({from: from}).then(function () {
+          alert('Success first step!')
+        });
+
+        contracts.exchange.methods.redeem(toWei).send({from: from}).then(function (){
+
+          alert('Success second step!')
+        });
+
+      } catch (e) {
+        console.log(e)
+      }
     },
 
     selectItem(item) {
@@ -128,5 +156,96 @@ export default {
 </script>
 
 <style scoped>
+.selector {
+  padding: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  color: rgb(37, 39, 45);
+  height: 45px;
+}
 
+.selector:hover {
+  color: rgb(37, 39, 45);
+  background: rgba(247, 247, 247, 1);
+  border-radius: 10px;
+}
+
+.card {
+  border-radius: 15px;
+  border: 1px solid #BBBBBB;
+}
+
+.max {
+  width: 45px;
+  color: #40404C;
+  text-align: center;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 15px;
+  border: 1px solid #BBBBBB;
+}
+
+
+.advanced {
+  border-radius: 10px;
+  border: 1px solid #BBBBBB;
+  box-shadow: none !important;
+}
+
+.gas-title {
+  color: #8F8F8F;
+}
+
+.switch {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  padding: 5px;
+  padding-top: 17px;
+  background-color: #FDFDFD !important;
+  color: #909399 !important;
+  text-align: center;
+  border: 1px solid #BBBBBB;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  text-transform: none;
+}
+
+.buy {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  padding: 5px;
+  padding-top: 17px;
+  background-color: #ECECEC !important;
+  color: #40404C !important;
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+
+  text-transform: none;
+}
+
+.field {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  border: 1px solid #BBBBBB;
+}
+
+.custom.v-text-field > .v-input__control > .v-input__slot:before {
+  border-style: none;
+}
+
+.custom.v-text-field > .v-input__control > .v-input__slot:after {
+  border-style: none;
+}
+
+.title-custom {
+  font-weight: bold;
+  font-size: 18px;
+}
 </style>

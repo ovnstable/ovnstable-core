@@ -2,6 +2,11 @@ const state = {
     usdcTokenBalance: 0,
     ovngtTokenBalance: 0,
     daiBalance: 0,
+
+
+    contracts: null,
+    account: null,
+    web3: null,
 };
 
 const getters = {
@@ -15,7 +20,18 @@ const getters = {
 
     ovngtTokenBalance(state) {
         return state.ovngtTokenBalance;
-    }
+    },
+
+    contracts(state) {
+        return state.contracts;
+    },
+    account(state) {
+        return state.account;
+    },
+
+    web3(state) {
+        return state.web3;
+    },
 };
 
 const actions = {
@@ -57,6 +73,18 @@ const mutations = {
 
     setDaiBalance(state, balance) {
         state.daiBalance = balance;
+    },
+
+    setContracts(state, contracts) {
+        state.contracts = contracts;
+    },
+
+    setAccount(state, account) {
+        state.account = account;
+    },
+
+    setWeb3(state, web3) {
+        state.web3 = web3;
     }
 };
 
