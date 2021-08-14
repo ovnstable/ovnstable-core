@@ -1,6 +1,6 @@
 const path = require('path');
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-// const pk = require("../pk.json");
+const pk = require("./pk.json");
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>

@@ -5,3 +5,5 @@ node_modules
 ganache_local/
 package-lock.json
 vapp/dist
+deploy.sh
+./vapp/src/contracts/

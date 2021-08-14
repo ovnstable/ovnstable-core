@@ -1490,7 +1490,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.1",
-  "updatedAt": "2021-08-14T08:38:14.042Z",
+  "updatedAt": "2021-08-14T10:06:38.654Z",
   "devdoc": {
     "details": "check number of coins in pool and add functions  with nesessary  uint256[N_COINS]",
     "kind": "dev",
