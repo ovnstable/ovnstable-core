@@ -6,4 +6,5 @@ ganache_local/
 package-lock.json
 vapp/dist
 deploy.sh
-./vapp/src/contracts/
+vapp/src/contracts/*
+
