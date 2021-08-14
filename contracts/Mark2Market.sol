@@ -14,32 +14,33 @@ contract Mark2Market is IMark2Market, OwnableExt {
         actListContr = IActivesList(_addr);
     }
 
-    function m2m () public view override returns (int128[] memory actChanges) {
+    function m2m () public view override returns (uint256[] memory priceAct) {
         IActivesList.Active[] memory actives = actListContr.getAllActives();
         //calculate total activites sum
-        uint totalSum; 
         for (uint8 a = 0; a<actives.length; a++) {
             {
-            (int128 bal,
-             uint16 minShare, 
-             uint16 maxShare, 
-             uint8 isWork, 
-             address connector)= actListContr.getActive(actives[a].actAddress);
-            if (isWork > 0) { 
-                uint priceAct = IConnector(connector).getPrice(actives[a].actAddress); 
-                totalSum +=  (uint128 (bal)) * priceAct;
+            
+            if (actives[a].isWork > 0) { 
+                 priceAct[a] = IConnector(actives[a].poolPrice).getPriceLiq(actives[a].actAddress, 
+                                                                            actives[a].poolPrice,
+                                                                            actives[a].balance); 
             }
             }
-        }
-        // calculate proportions and changes value
-        for (uint8 a = 0; a<actives.length; a++) {
-
-
         }
 
 
     }
 
+    /* // function m2mchanges () {
 
+    // calculate proportions and changes value
+        for (uint8 a = 0; a<actives.length; a++) {
+                totalSum +=  (uint128 (actives[a].balance)) * priceAct;
+
+
+        }
+
+    }
+ */
 
 }

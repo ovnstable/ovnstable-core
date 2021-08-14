@@ -12,30 +12,38 @@ import "../OwnableExt.sol";
 
 
 contract ConnectorAAVE is IConnector, OwnableExt {
+    IPriceOracleGetter oraclePrice; 
 
-    ILendingPoolAddressesProvider poolProv;
-    
+    function setOraclePrice  (address _oracle) public onlyOwner {
+        oraclePrice =     IPriceOracleGetter (_oracle); 
 
-    function setPoolProv (address _poolProvAddr) public onlyOwner {
-        poolProv = ILendingPoolAddressesProvider(_poolProvAddr);
     }
 
-    function stake (address _asset, uint256 _amount, address _beneficiar ) public override  {
-        ILendingPool pool = ILendingPool(poolProv.getLendingPool());
+
+    function stake (address _asset, address _pool, uint256 _amount, address _beneficiar ) public override  {
+        ILendingPool pool = ILendingPool(_pool);
         IERC20(_asset).approve(address(pool), _amount);
 
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
 
 
-    function unstake (address _asset, uint256 _amount, address _to  ) public override  returns (uint256) {
-        ILendingPool pool = ILendingPool(poolProv.getLendingPool());
+    function unstake (address _asset, address _pool,uint256 _amount, address _to  ) public override  returns (uint256) {
+        ILendingPool pool = ILendingPool(_pool);
         pool.withdraw(_asset, _amount, _to);
         }
 
-    function getPrice (address _asset) external view override returns (uint256) {
-        IPriceOracleGetter oracle = IPriceOracleGetter(poolProv.getLendingPool());
-        return oracle.getAssetPrice(_asset);
+    function getPriceOffer (address _asset,  address _pool) public view override returns (uint256) {
+
+        return oraclePrice.getAssetPrice(_asset);
+    }
+
+
+    function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
+
+        uint price = getPriceOffer (_asset, _pool);
+        uint income =  ILendingPool(_pool).getReserveNormalizedIncome(_asset);
+        return price*income / 10**27;
     }
 
 }

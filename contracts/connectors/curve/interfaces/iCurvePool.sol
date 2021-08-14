@@ -18,6 +18,11 @@ function remove_liquidity (uint256 _amounts, uint[3] memory _min_amounts, bool _
 
 function underlying_coins (uint i ) external view returns (address);
 function lp_token () external view returns (address);
-function calc_token_amount(uint[3] memory _amounts, bool _is_deposite) external returns (uint256);
+function calc_token_amount(uint[3] memory _amounts, bool _is_deposite) external view  returns (uint256);
+function coins(uint256 i) external view returns (address);
+function get_virtual_price() external view returns (uint256);
+// StableSwap.get_dy(i: int128, j: int128, _dx: uint256) → uint256: view
+function get_dy(int128 i, int128 j, uint256 _dx ) external view returns (uint256);
+
 
 }

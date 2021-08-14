@@ -8,10 +8,11 @@ pragma solidity >=0.8.0 <0.9.0;
 interface IConnector {
 
     
-function stake (address _asset, uint256 _amount, address _beneficiar) external;
+function stake (address _asset, address _pool,uint256 _amount, address _beneficiar) external;
 
-function unstake (address _asset, uint256 _amount, address _to ) external  returns (uint256);
+function unstake (address _asset, address _pool,uint256 _amount, address _to ) external  returns (uint256);
 
-function getPrice (address _asset ) external view returns (uint256);
+function getPriceOffer (address _asset,  address _pool ) external view  returns (uint256);
+function getPriceLiq (address _asset, address _pool, uint256 _balance ) external view  returns (uint256);
 
 }

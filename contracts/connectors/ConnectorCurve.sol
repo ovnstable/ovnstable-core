@@ -7,10 +7,13 @@ import "../OwnableExt.sol";
 
 contract ConnectorCurve is IConnector , OwnableExt{
 
-    iCurvePool pool;
+    address USDC;
 
-
-    function stake (address _asset, uint256 _amount, address _beneficiar )  public override {
+    function setUSDC (address _usdc) public onlyOwner {
+        USDC = _usdc;
+    }
+    function stake (address _asset, address _pool,uint256 _amount, address _beneficiar )  public override {
+      iCurvePool  pool = iCurvePool(_pool);
 
         for (uint i=0; i<3; i++ ) {
             
@@ -27,8 +30,9 @@ contract ConnectorCurve is IConnector , OwnableExt{
         }
     }
 
-    function unstake  (address _asset, uint256 _amount, address _beneficiar )  public override returns (uint256) {
-        for (uint i=0; i<3; i++ ) {    
+    function unstake (address _asset, address _pool, uint256 _amount, address _beneficiar )  public override returns (uint256) {
+     iCurvePool   pool = iCurvePool(_pool);
+        for (uint256 i=0; i<3; i++ ) {    
             if (pool.underlying_coins(i) == _asset) {
                 uint256 [3] memory amounts;
                 iCurveToken(pool.lp_token()).approve(address(pool), _amount);
@@ -38,13 +42,31 @@ contract ConnectorCurve is IConnector , OwnableExt{
                 uint [3] memory retAmount = pool.remove_liquidity(LPTok ,
                                                                 amounts, 
                                                                 true);
+                IERC20(pool.coins(i)).transfer(_beneficiar, retAmount[i]);
                 return retAmount[i];
             }
         }
     }
 
-    function getPrice (address _asset ) external view override returns (uint256) {
-        return 1; 
+    function getPriceOffer (address _asset,  address _pool) external override view returns (uint256) {
+        iCurvePool  pool = iCurvePool(_pool);
+        return pool.get_virtual_price();
+
     }
+
+    function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
+        iCurvePool  pool = iCurvePool(_pool);
+        for (uint256 i=0; i<3; i++) {
+            if (pool.underlying_coins(i) == USDC) {
+                for (uint256  j=0; j<3; j++) {
+                    if (pool.underlying_coins(j) == _asset) {
+                        return pool.get_dy(int128(uint128(j)), int128(uint128(i)), _balance);
+                    }
+                }
+            }
+        }
+        revert ("can't find addresses of coins");
+    }
+
 
 }
