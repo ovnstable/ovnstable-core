@@ -1,0 +1,267 @@
+{
+  "contractName": "IMark2Market",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "prices",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "priceAct",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"prices\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"priceAct\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0xf93e01c60269ebd05aeca2e4387cfe9c238be2ed2c45136a48676dbd390cd515\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://7efcfee864ed58ab7fa2899cc58a7fe1e6fea6f0f8378c56541051a1b3935838\",\"dweb:/ipfs/QmW4LLXuZr3EgvjLwRZDvBNpdnFXugbRKT6ZXxHWAKvWmQ\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: GPL-3.0\n\npragma solidity >=0.8.0 <0.9.0;\n\n\ninterface IMark2Market   {\n\n    function prices () external view returns (uint256[] memory priceAct) ;\n\n\n}\n",
+  "sourcePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
+  "ast": {
+    "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
+    "exportedSymbols": {
+      "IMark2Market": [
+        1806
+      ]
+    },
+    "id": 1807,
+    "license": "GPL-3.0",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1799,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "37:31:17"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 1806,
+        "linearizedBaseContracts": [
+          1806
+        ],
+        "name": "IMark2Market",
+        "nameLocation": "81:12:17",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "d3419bf3",
+            "id": 1805,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "prices",
+            "nameLocation": "112:6:17",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1800,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "119:2:17"
+            },
+            "returnParameters": {
+              "id": 1804,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1803,
+                  "mutability": "mutable",
+                  "name": "priceAct",
+                  "nameLocation": "162:8:17",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1805,
+                  "src": "145:25:17",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 1801,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "145:7:17",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 1802,
+                    "nodeType": "ArrayTypeName",
+                    "src": "145:9:17",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "144:27:17"
+            },
+            "scope": 1806,
+            "src": "103:70:17",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1807,
+        "src": "71:106:17",
+        "usedErrors": []
+      }
+    ],
+    "src": "37:141:17"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
+    "exportedSymbols": {
+      "IMark2Market": [
+        1806
+      ]
+    },
+    "id": 1807,
+    "license": "GPL-3.0",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1799,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "37:31:17"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 1806,
+        "linearizedBaseContracts": [
+          1806
+        ],
+        "name": "IMark2Market",
+        "nameLocation": "81:12:17",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "d3419bf3",
+            "id": 1805,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "prices",
+            "nameLocation": "112:6:17",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1800,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "119:2:17"
+            },
+            "returnParameters": {
+              "id": 1804,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1803,
+                  "mutability": "mutable",
+                  "name": "priceAct",
+                  "nameLocation": "162:8:17",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1805,
+                  "src": "145:25:17",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 1801,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "145:7:17",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 1802,
+                    "nodeType": "ArrayTypeName",
+                    "src": "145:9:17",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "144:27:17"
+            },
+            "scope": 1806,
+            "src": "103:70:17",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1807,
+        "src": "71:106:17",
+        "usedErrors": []
+      }
+    ],
+    "src": "37:141:17"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.7+commit.e28d00a7.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.0",
+  "updatedAt": "2021-08-16T08:43:51.114Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

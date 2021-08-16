@@ -14,7 +14,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         actListContr = IActivesList(_addr);
     }
 
-    function m2m () public view override returns (uint256[] memory priceAct) {
+    function prices () public view override returns (uint256[] memory priceAct) {
         IActivesList.Active[] memory actives = actListContr.getAllActives();
         //calculate total activites sum
         for (uint8 a = 0; a<actives.length; a++) {
@@ -31,7 +31,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
 
     }
 
-    /* // function m2mchanges () {
+    /* // function m2m () {
 
     // calculate proportions and changes value
         for (uint8 a = 0; a<actives.length; a++) {
