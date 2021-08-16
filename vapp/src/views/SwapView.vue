@@ -24,11 +24,9 @@
           <v-col lg="1"></v-col>
 
           <v-col lg="4">
-            <v-row class="desc pr-5 pl-5 pt-10" justify="center">
+            <v-row class="desc pr-5 pl-5 pt-10" >
               Deposit stablecoins to earn yield overnight with most conservative DeFi liquidity management solution
-              <br>
-              <br>
-              Redeem anytime
+              <p class="text-left font-weight-bold"> Redeem anytime</p>
             </v-row>
           </v-col>
         </v-row>
@@ -53,14 +51,13 @@
 <script>
 
 
-import Balance from "../components/swap/Balance";
 import Redeem from "../components/swap/Redeem";
 import Mint from "../components/swap/Mint";
 import StatsWidget from "../components/common/StatsWidget";
 
 export default {
   name: "SwapView",
-  components: {StatsWidget, Mint, Redeem, Balance},
+  components: {StatsWidget, Mint, Redeem},
   data: () => ({
     tab: 1,
 

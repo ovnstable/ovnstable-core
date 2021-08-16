@@ -20,30 +20,30 @@
           <v-col lg="3" class="pt-10">
             <StatsWidget/>
           </v-col>
-        <v-col lg="1">
+          <v-col lg="1">
 
-        </v-col>
+          </v-col>
 
           <v-col lg="4">
-            <v-row class="desc pr-5 pl-5 pt-10" justify="center">
+            <v-row class="desc pr-5 pl-5 pt-10">
               Automated Overnight DeFi total asset portfolio management dashboards. Your assets are there.
               <br>
               <br>
-              Redeem anytime
+              <p class="text-left font-weight-bold"> Redeem anytime</p>
             </v-row>
           </v-col>
         </v-row>
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button v-bind:class="activeTabMint"  @click="tab = 1">Current Data</button>
+            <button v-bind:class="activeTabMint" @click="tab = 1">Current Data</button>
             <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Historical Data</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-          <Mint v-if="tab === 1"/>
-          <Redeem v-if="tab === 2"/>
+          <CurrentTotalData v-if="tab === 1"/>
+          <HistoryTotalData v-if="tab === 2"/>
         </v-row>
 
       </v-col>
@@ -53,19 +53,15 @@
 
 <script>
 
-
-import Balance from "../components/swap/Balance";
-import Redeem from "../components/swap/Redeem";
-import Mint from "../components/swap/Mint";
 import StatsWidget from "../components/common/StatsWidget";
+import CurrentTotalData from "../components/dashboard/CurrentTotalData";
+import HistoryTotalData from "../components/dashboard/HistoryTotalData";
 
 export default {
   name: "DashboardView",
-  components: {StatsWidget, Mint, Redeem, Balance},
+  components: {HistoryTotalData, CurrentTotalData, StatsWidget, },
   data: () => ({
     tab: 1,
-
-
   }),
 
 
@@ -113,6 +109,7 @@ export default {
   opacity: 0.8;
 
 }
+
 .tab-button {
   color: #0A0952;
   cursor: pointer; /* Mouse pointer on hover */
@@ -135,7 +132,6 @@ export default {
   background-color: #F4F5F9;
   border-radius: 8px;
 }
-
 
 
 .save-text {
