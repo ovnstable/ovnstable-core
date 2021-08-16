@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app" >
+  <v-app id="app">
     <Header/>
     <v-main>
       <v-container fluid>
@@ -14,23 +14,44 @@
 <script>
 
 import Header from "./components/Header";
-import { mapGetters } from 'vuex';
+import {mapGetters, mapMutations} from 'vuex';
 import Footer from "./components/Footer";
+import Web3 from "web3";
+import contract from "@truffle/contract";
 
 export default {
   name: 'App',
   components: {Footer, Header},
 
-  data() {
-    return {
-      drawer: true,
-    }
+
+  data: () => ({}),
+
+
+  computed: {
+    ...mapGetters(['profile/account'])
   },
+
+  created() {
+    this.initWeb3();
+  },
+
+  methods: {
+
+    ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
+
+    async initWeb3() {
+
+
+    }
+
+  }
+
 
 };
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
 html {
   overflow-y: auto !important;
 }

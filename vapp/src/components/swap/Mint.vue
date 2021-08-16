@@ -5,11 +5,11 @@
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="7">
+              <v-col lg="6">
                 <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
               </v-col>
-              <v-col lg="2" class="pt-3" align="end">
-                <div class="max">Max</div>
+              <v-col lg="3" class="pt-3" align="end">
+                <div class="max">Max: {{balanceMint}}</div>
               </v-col>
               <v-col lg="3">
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
@@ -94,7 +94,7 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 import web3 from "web3";
 import utils from 'web3-utils';
 
@@ -124,10 +124,9 @@ export default {
 
 
   computed: {
-    ...mapGetters("contracts", ["getContractData"]),
-    ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
-    ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
-    ...mapGetters("profile", ["contracts", "web3", 'account']),
+
+
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'balanceMint']),
   },
 
   created() {
@@ -138,9 +137,13 @@ export default {
     this.currency = this.currencies[0];
 
     this.buyCurrency = this.buyCurrencies[0];
+
+    this.getBalanceMint('USDC');
   },
 
   methods: {
+
+    ...mapActions( "profile", ['getBalanceMint']),
 
 
     buy() {
@@ -196,11 +199,12 @@ export default {
 }
 
 .max {
-  width: 45px;
+  font-weight: bold;
   color: #40404C;
   text-align: center;
   cursor: pointer;
-  padding: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
   border-radius: 15px;
   border: 1px solid #BBBBBB;
 }

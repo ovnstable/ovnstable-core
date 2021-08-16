@@ -40,15 +40,9 @@
 </template>
 <script>
 import Web3 from "web3";
-import {mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 import contract from '@truffle/contract';
-import drizzleVuePlugin, {Drizzle} from '@drizzle/vue-plugin'
-import drizzleOptions from '../drizzleOptions'
-import Vue from 'vue'
-
-import store from "../store/index.js";
-import file from "../contracts/Exchange.json";
 
 
 export default {
@@ -93,7 +87,7 @@ export default {
   computed: {
 
 
-    ...mapGetters('profile', ['exchange', 'account']),
+    ...mapGetters('profile', ['exchange', 'account', 'web3']),
 
 
     activeTabSave: function () {
@@ -120,14 +114,12 @@ export default {
   },
 
 
-  created() {
-  },
 
   methods: {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-
+    ...mapActions('profile', ['getBalanceMint']),
 
     async testNative() {
 
@@ -136,7 +128,7 @@ export default {
       await window.ethereum.enable();
       this.setWeb3(web3);
 
-      web3.eth.getAccounts((error, accounts) => {
+      this.web3.eth.getAccounts((error, accounts) => {
         let account = accounts[0];
         this.setAccount(account);
 
@@ -146,6 +138,7 @@ export default {
         let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
 
         this.setContracts({exchange: first1, usdc: first2, ovn: first3})
+        this.getBalanceMint('USDC');
       });
 
 
@@ -166,13 +159,6 @@ export default {
 
 
       return ethContract;
-    },
-
-    async onBoardInit() {
-
-      Vue.use(drizzleVuePlugin, {store, drizzleOptions})
-
-
     },
 
 

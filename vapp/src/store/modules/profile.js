@@ -7,6 +7,8 @@ const state = {
     contracts: null,
     account: null,
     web3: null,
+
+    balanceMint: 0,
 };
 
 const getters = {
@@ -20,6 +22,10 @@ const getters = {
 
     ovngtTokenBalance(state) {
         return state.ovngtTokenBalance;
+    },
+
+    balanceMint(state) {
+        return state.balanceMint;
     },
 
     contracts(state) {
@@ -44,6 +50,18 @@ const actions = {
 
     },
 
+    async getBalanceMint({commit, dispatch, getters}, value) {
+
+        let balance = 0;
+        switch (value) {
+            case 'USDC':
+                balance = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
+
+        }
+
+        console.log(balance)
+        commit('setBalanceMint', state.web3.utils.fromWei(balance, 'ether'));
+    },
 
     async getDaiBalance({commit, rootState: state}) {
         let drizzleInstance = state.drizzle.drizzleInstance;
@@ -85,6 +103,10 @@ const mutations = {
 
     setWeb3(state, web3) {
         state.web3 = web3;
+    },
+
+    setBalanceMint(state, balanceMint) {
+        state.balanceMint = balanceMint;
     }
 };
 
