@@ -8,33 +8,17 @@ const routes = [
 
     {
         path: '/',
-        name: 'SaveView',
-        // component: () => import('../example/HelloWorld'),
-        component: () => import('../views/SaveView.vue'),
-
-    },
-
-    {
-        path: '/exchange/swap',
         name: 'SwapView',
         component: () => import('../views/SwapView.vue'),
 
     },
 
     {
-        path: '/stats',
-        name: 'StatsView',
-        component: () => import('../views/StatsView.vue'),
+        path: '/dashboard',
+        name: 'DashboardView',
+        component: () => import('../views/DashboardView.vue'),
 
     },
-
-    {
-        path: '/account',
-        name: 'AccountView',
-        component: () => import('../views/AccountView.vue'),
-
-    },
-
 
 
 

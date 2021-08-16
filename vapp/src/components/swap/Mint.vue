@@ -97,11 +97,9 @@
 import {mapGetters} from "vuex";
 import web3 from "web3";
 import utils from 'web3-utils';
-import Selector from "../common/Selector";
 
 export default {
   name: "Mint",
-  components: {Selector},
   data: () => ({
     menu: false,
     tab: null,

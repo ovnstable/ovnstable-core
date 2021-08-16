@@ -13,19 +13,20 @@
           md="4"
       >
         <v-row class="justify-center align-center pt-15">
-          <img :src="require('../assets/swap.png')">
-          <div class="swap-title ml-2">Swap</div>
+          <div class="swap-title ml-2">OVN Total Portfolio</div>
         </v-row>
 
         <v-row>
-          <v-col lg="4" class="pt-10 stats">
-            <p>Total OVN Minted: {{total.minted}}</p>
-            <p>OVN in circulation: <strong>{{total.circulation}}</strong></p>
-            <p>Total OVN Burnt: {{total.minted}}</p>
+          <v-col lg="3" class="pt-10">
+            <StatsWidget/>
           </v-col>
+        <v-col lg="1">
+
+        </v-col>
+
           <v-col lg="4">
             <v-row class="desc pr-5 pl-5 pt-10" justify="center">
-              Deposit stablecoins to earn yield overnight with most conservative DeFi liquidity management solution
+              Automated Overnight DeFi total asset portfolio management dashboards. Your assets are there.
               <br>
               <br>
               Redeem anytime
@@ -35,13 +36,13 @@
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button v-bind:class="activeTabMint"  @click="tab = 1">Mint</button>
-            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Redeem</button>
+            <button v-bind:class="activeTabMint"  @click="tab = 1">Current Data</button>
+            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Historical Data</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-         <Mint v-if="tab === 1"/>
+          <Mint v-if="tab === 1"/>
           <Redeem v-if="tab === 2"/>
         </v-row>
 
@@ -53,21 +54,18 @@
 <script>
 
 
-import Balance from "../components/save/Balance";
-import Redeem from "../components/save/Redeem";
-import Mint from "../components/save/Mint";
+import Balance from "../components/swap/Balance";
+import Redeem from "../components/swap/Redeem";
+import Mint from "../components/swap/Mint";
+import StatsWidget from "../components/common/StatsWidget";
 
 export default {
-  name: "SaveView",
-  components: {Mint, Redeem, Balance},
+  name: "DashboardView",
+  components: {StatsWidget, Mint, Redeem, Balance},
   data: () => ({
     tab: 1,
 
-    total: {
-      minted: 113332344,
-      circulation: 79886800,
-      burnt: 33445544,
-    },
+
   }),
 
 
@@ -138,9 +136,7 @@ export default {
   border-radius: 8px;
 }
 
-.stats {
-  font-size: 15px;
-}
+
 
 .save-text {
   font-size: 2.5rem;
