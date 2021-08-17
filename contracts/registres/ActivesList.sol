@@ -11,15 +11,15 @@ contract ActivesList is OwnableExt, IActivesList {
     mapping (address => uint256) actPos;
     Active[] actList;
 
-    function actAdd (address _addrAct, address _poolP, address _connectorS, uint16 _minSh, uint16 _maxSh  ) external override onlyOwner {
-        actList.push (Active (_addrAct, _poolP, _connectorS, 0,  _minSh,  _maxSh, 1));
+    function actAdd (address _addrAct, address _poolP, address _connectorS, uint16 _minSh, uint16 _maxSh, uint256 _initBal  ) external override onlyOwner {
+        actList.push (Active (_addrAct, _poolP, _connectorS, _initBal,  _minSh,  _maxSh, 1));
         actPos[_addrAct] = actList.length - 1;
     }
 
     function editAct (address _addrAct, address _poolP, address _connectorS,  uint16 _minSh, uint16 _maxSh, uint8 _isW) external override  onlyOwner {
 
-        actList[actPos[_addrAct]].poolPrice = _poolP;
-        actList[actPos[_addrAct]].connectorStake = _connectorS;
+        actList[actPos[_addrAct]].poolPriceAddr = _poolP;
+        actList[actPos[_addrAct]].connectorStakeAddr = _connectorS;
         actList[actPos[_addrAct]].minShare = _minSh;
         actList[actPos[_addrAct]].maxShare = _maxSh;
         actList[actPos[_addrAct]].isWork = _isW;

@@ -14,8 +14,10 @@ import "../OwnableExt.sol";
 contract ConnectorAAVE is IConnector, OwnableExt {
     IPriceOracleGetter oraclePrice; 
 
-    function setOraclePrice  (address _oracle) public onlyOwner {
-        oraclePrice =     IPriceOracleGetter (_oracle); 
+    function setAAVE  (address _LPAP) public onlyOwner {
+        ILendingPoolAddressesProvider lpap = ILendingPoolAddressesProvider(_LPAP);
+        address oracle = lpap.getPriceOracle();
+        oraclePrice = IPriceOracleGetter (oracle); 
 
     }
 
@@ -35,14 +37,14 @@ contract ConnectorAAVE is IConnector, OwnableExt {
 
     function getPriceOffer (address _asset,  address _pool) public view override returns (uint256) {
 
-        return oraclePrice.getAssetPrice(_asset);
+        return  oraclePrice.getAssetPrice(_asset);
     }
 
 
     function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
 
         uint price = getPriceOffer (_asset, _pool);
-        uint income =  ILendingPool(_pool).getReserveNormalizedIncome(_asset);
+        uint income = ILendingPool(_pool).getReserveNormalizedIncome(_asset);
         return price*income / 10**27;
     }
 
