@@ -44,7 +44,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
 
         uint price = getPriceOffer (_asset, _pool);
-        uint income = ILendingPool(_pool).getReserveNormalizedIncome(_asset);
+        uint income = 10**27; // ILendingPool(_pool).getReserveNormalizedIncome(_asset);
         return price*income / 10**27;
     }
 
