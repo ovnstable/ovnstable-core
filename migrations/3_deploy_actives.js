@@ -26,7 +26,9 @@ if (chainID == '80001') {
   }
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
-  await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
+  //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
+  await actList.actAdd(USDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
+
   const connectorCv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorCv,connectorCv, "2500", "9500",  "20000000000000000000");
   await m2m.tstPrice ("1");

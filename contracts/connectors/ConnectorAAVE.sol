@@ -13,17 +13,18 @@ import "../OwnableExt.sol";
 
 contract ConnectorAAVE is IConnector, OwnableExt {
     IPriceOracleGetter oraclePrice; 
-
+    ILendingPool pool;
     function setAAVE  (address _LPAP) public onlyOwner {
         ILendingPoolAddressesProvider lpap = ILendingPoolAddressesProvider(_LPAP);
         address oracle = lpap.getPriceOracle();
         oraclePrice = IPriceOracleGetter (oracle); 
+        pool = ILendingPool(lpap.getLendingPool());
 
     }
 
 
     function stake (address _asset, address _pool, uint256 _amount, address _beneficiar ) public override  {
-        ILendingPool pool = ILendingPool(_pool);
+     //   ILendingPool pool = ILendingPool(_pool);
         IERC20(_asset).approve(address(pool), _amount);
 
         pool.deposit(_asset, _amount, _beneficiar, 0);
@@ -31,7 +32,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
 
 
     function unstake (address _asset, address _pool,uint256 _amount, address _to  ) public override  returns (uint256) {
-        ILendingPool pool = ILendingPool(_pool);
+     //   ILendingPool pool = ILendingPool(_pool);
         pool.withdraw(_asset, _amount, _to);
         }
 
@@ -44,7 +45,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
 
         uint price = getPriceOffer (_asset, _pool);
-        uint income = 10**27; // ILendingPool(_pool).getReserveNormalizedIncome(_asset);
+        uint income = pool.getReserveNormalizedIncome(_asset);
         return price*income / 10**27;
     }
 

@@ -39,6 +39,7 @@ module.exports = async function(deployer) {
      // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
       aaveLendingPoolAddressesProvider = "0x178113104fEcbcD7fF8669a0150721e231F0FD4B"
       usdctaddr = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
+      
    } else {
     await deployer.deploy(USDCtest);
     await deployer.deploy(aUSDCtest);
