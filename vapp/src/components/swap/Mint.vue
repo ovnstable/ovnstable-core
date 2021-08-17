@@ -6,10 +6,15 @@
           <v-col class="field ">
             <v-row dense>
               <v-col lg="6">
-                <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
+                <v-text-field placeholder="0.00"
+                              flat
+                              solo
+                              type="number"
+                              :rules="[numberRule]"
+                              v-model="sum"></v-text-field>
               </v-col>
               <v-col lg="3" class="pt-3" align="end">
-                <div class="max">Max: {{balanceMint}}</div>
+                <div class="max">Max: {{ balanceMint }}</div>
               </v-col>
               <v-col lg="3">
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
@@ -64,7 +69,8 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!account">Enter the amount to Mint & Swap</v-btn>
+          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">Enter the amount to Mint & Swap
+          </v-btn>
         </v-row>
 
         <v-row dense class="pt-4">
@@ -125,6 +131,24 @@ export default {
 
   computed: {
 
+    isBuy: function (){
+      return this.account && this.sum > 0;
+    },
+
+    numberRule: function () {
+
+      let v = this.sum;
+
+      if (!v)
+        return true;
+
+      if (!v.trim()) return true;
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balanceMint)) return true;
+
+
+      return 'Number has to be between 1 and ' + this.balanceMint;
+    },
+
 
     ...mapGetters("profile", ["contracts", "web3", 'account', 'balanceMint']),
   },
@@ -143,7 +167,7 @@ export default {
 
   methods: {
 
-    ...mapActions( "profile", ['getBalanceMint']),
+    ...mapActions("profile", ['getBalanceMint']),
 
 
     buy() {
@@ -156,10 +180,10 @@ export default {
         let from = this.account;
 
         contracts.usdc.methods.approve(from, toWei).send({from: from}).then(function () {
-           alert('Success first step!')
-         });
+          alert('Success first step!')
+        });
 
-        contracts.exchange.methods.buy(toWei).send().then(function (){
+        contracts.exchange.methods.buy(from, toWei).send({from: from}).then(function () {
           alert('Success second step!')
         });
 

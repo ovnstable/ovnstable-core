@@ -119,7 +119,7 @@ export default {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-    ...mapActions('profile', ['getBalanceMint']),
+    ...mapActions('profile', ['getBalanceMint', 'getBalanceRedeem']),
 
     async testNative() {
 
@@ -139,6 +139,7 @@ export default {
 
         this.setContracts({exchange: first1, usdc: first2, ovn: first3})
         this.getBalanceMint('USDC');
+        this.getBalanceRedeem();
       });
 
 

@@ -9,7 +9,8 @@
                 <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
               </v-col>
               <v-col lg="2" class="pt-3" align="end">
-                <div class="max">Max</div>
+                <div class="max">Max: {{balanceRedeem}}</div>
+
               </v-col>
               <v-col lg="3">
                 <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly class="custom" flat solo>
@@ -74,7 +75,7 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 import web3 from 'web3';
 import utils from "web3-utils";
 
@@ -106,10 +107,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("contracts", ["getContractData"]),
-    ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
-    ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
-    ...mapGetters("profile", ["contracts", "account", 'web3']),
+    ...mapGetters("profile", ["contracts", "account", 'web3', 'balanceRedeem']),
 
   },
 
@@ -121,9 +119,14 @@ export default {
     this.currency = this.currencies[0];
 
     this.buyCurrency = this.buyCurrencies[0];
+
+    this.getBalanceRedeem();
+
   },
 
   methods: {
+
+    ...mapActions( "profile", ['getBalanceRedeem']),
 
 
     redeem() {
@@ -156,20 +159,7 @@ export default {
 </script>
 
 <style scoped>
-.selector {
-  padding: 5px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  color: rgb(37, 39, 45);
-  height: 45px;
-}
 
-.selector:hover {
-  color: rgb(37, 39, 45);
-  background: rgba(247, 247, 247, 1);
-  border-radius: 10px;
-}
 
 .card {
   border-radius: 15px;
@@ -177,41 +167,23 @@ export default {
 }
 
 .max {
-  width: 45px;
+  font-weight: bold;
   color: #40404C;
   text-align: center;
   cursor: pointer;
-  padding: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
   border-radius: 15px;
   border: 1px solid #BBBBBB;
+
 }
 
-
-.advanced {
-  border-radius: 10px;
-  border: 1px solid #BBBBBB;
-  box-shadow: none !important;
-}
 
 .gas-title {
   color: #8F8F8F;
 }
 
-.switch {
-  width: 100%;
-  height: 60px;
-  border-radius: 10px;
-  padding: 5px;
-  padding-top: 17px;
-  background-color: #FDFDFD !important;
-  color: #909399 !important;
-  text-align: center;
-  border: 1px solid #BBBBBB;
-  font-weight: bold;
-  font-size: 15px;
-  cursor: pointer;
-  text-transform: none;
-}
+
 
 .buy {
   width: 100%;
