@@ -2,17 +2,20 @@
   <v-col lg="4">
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
-        <v-row dense>
+        <v-row dense >
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="6">
+              <v-col lg="5">
                 <v-text-field placeholder="0.00"
                               flat
                               solo
-                              type="number"
+                              color="#8F8F8F"
+                              class="field-sum"
+                              hide-details
                               :rules="[numberRule]"
                               v-model="sum"></v-text-field>
               </v-col>
+              <v-col lg="1"></v-col>
               <v-col lg="3" class="pt-3" align="end">
                 <div class="max">Max: {{ balanceMint }}</div>
               </v-col>
@@ -32,29 +35,37 @@
           </v-col>
         </v-row>
 
-        <v-row class="pa-3">
-          <v-col lg="2">
-            <span class="gas-title">Gas fee: {{ gas }}</span>
-          </v-col>
-          <v-col lg="8" align="center">
+        <v-row class="pa-3 " align="center">
+          <v-col lg="2" align="center">
             <img :src="require('../../assets/icons8-arrow 1.svg').default" height="30" width="30"/>
           </v-col>
-          <v-col lg="2"></v-col>
+          <v-col lg="4" class="pt-1">
+            <span class="gas-title">Gas fee: {{ gas }}</span>
+            <img class="ml-2" :src="require('../../assets/poly.svg').default" height="20" width="20"/>
+          </v-col>
+          <v-col lg="6">
+            <v-row justify="end">
+              <span class="gas-waived pr-2">Gas fee waived if >10000</span>
+            </v-row>
+          </v-col>
         </v-row>
         <v-row dense>
-          <v-col class="field ">
+          <v-col class="field">
             <v-row dense>
-              <v-col lg="7">
-                <v-text-field v-model="sum" readonly placeholder="0.00" flat solo></v-text-field>
+              <v-col lg="5">
+                <div class="field-buy mt-1 ml-1">
+                  {{sumResult}}
+                </div>
               </v-col>
-              <v-col lg="2">
-
+              <v-col lg="1"></v-col>
+              <v-col lg="3" class="pt-3" align="end">
+                <div class="balance">Balance: {{ balanceRedeem }}</div>
               </v-col>
               <v-col lg="3">
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
-                    <img :src="item.image.default" width="40" height="40"><span
+                    <img :src="item.image.default" width="34" height="34"><span
                       class="title-custom ml-1">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
@@ -116,7 +127,7 @@ export default {
     sum: null,
 
 
-    gas: null,
+    gas: 0.112,
 
     buyCurrency: null,
     buyCurrencies: [{
@@ -131,8 +142,18 @@ export default {
 
   computed: {
 
-    isBuy: function (){
-      return this.account && this.sum > 0;
+    sumResult: function (){
+
+      if(!this.sum || this.sum === 0)
+        return '0.00';
+      else
+        return this.sum;
+
+
+    },
+
+    isBuy: function () {
+      return this.account && this.sum > 0 && this.numberRule;
     },
 
     numberRule: function () {
@@ -150,7 +171,7 @@ export default {
     },
 
 
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'balanceMint']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'balanceMint', 'balanceRedeem']),
   },
 
   created() {
@@ -211,6 +232,25 @@ export default {
   height: 45px;
 }
 
+.field-buy{
+  padding: 10px;
+  color: #8F8F8F;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #ECECEC;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.balance {
+  font-weight: bold;
+  color: #40404C;
+  text-align: center;
+  cursor: pointer;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
 .selector:hover {
   color: rgb(37, 39, 45);
   background: rgba(247, 247, 247, 1);
@@ -240,8 +280,14 @@ export default {
   box-shadow: none !important;
 }
 
+.gas-waived {
+  color: #8F8F8F;
+  font-size: 15px;
+}
+
 .gas-title {
   color: #8F8F8F;
+  font-size: 18px;
 }
 
 .switch {
@@ -275,6 +321,13 @@ export default {
 
   text-transform: none;
 }
+
+.field-sum{
+  font-size: 18px;
+  font-weight: bold;
+  color: #8F8F8F;
+}
+
 
 .field {
   width: 100%;
