@@ -60,23 +60,12 @@ URL: http://127.0.0.1:8545
 Chain ID: 1337
 
 
-## Mumbai testnet:
+### Working with Polygon Mumbai local fork
 
-0. add Mumbai network to MetaMask:
-Network name: Mumbai
-RPC https://rpc-mumbai.maticvigil.com/
-ChainID 80001
-Currency: MAT
-1. Switch Metamsk to this network 
+1. fork Mumbai testnet locally:
+rm -r ../ganache_mumbai && ganache-cli -m "clutch captain shoe salt awake harvest setup primary inmate ugly among become" -f 'https://polygon-mumbai.infura.io/v3/753a98a2eb6c4d64918829f47d069440' -u 0xa0df350d2637096571F7A701CBc1C5fdE30dF76A --db ../ganache_mumbai  -p 8555 -g 20 -e 1000
 
-2.Goto https://faucet.matic.network/ and ask for Matic token on Mumbai testnet for your Metamask address 
+2. deploy by  truffle on ml network:
+truffle migrate --reset --compile-all --network ml
 
-3. Ask @stanta for USDCtst token
-
-4. Add USDCtst token to Metamsk  0x220d28d6063423B1A95289Ec5Dc124dAC7b169e6 (ask @stanta if need more and more )
-
-5. add OVNtst token 0xeD7681C74F85815E43C2Fc86e70bc0d47e5cE580 (have to be added to metamask)
- 
-6.  Enjoy http://ovnstable.io !
-
-Exchange  address on Mumbai is 0x459bD4c08937CF43337e71859E0349dc7C420E7F
+3. goto "Run project" step 3

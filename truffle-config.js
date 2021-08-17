@@ -1,7 +1,4 @@
-const path = require('path');
-const HDWalletProvider = require("@truffle/hdwallet-provider");
-const pk = require("./pk.json");
-
+const path = require('path')
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -13,26 +10,18 @@ module.exports = {
       port: 8545,
       network_id: "*"
     },
-    mumbai: {
-      provider: () => new HDWalletProvider({
-          privateKeys: pk["80001"]["pk"],
-          providerOrUrl:  pk["80001"]["infkey"]
-        }),
-          network_id: 80001
-      // https://ropsten.infura.io/v3/753a98a2eb6c4d64918829f47d069440", // Endpoint of an node to connect to. Can be on localhost or on the internet
-      },
+    ml: { //mumbai local
+      host: "127.0.0.1",
+      port: 8555,
+      network_id: "80001"
+    } /* // fork from Mumbai testnnet, needs start ganache as
+rm -r ../ganache_mumbai && ganache-cli -m "clutch captain shoe salt awake harvest setup primary inmate ugly among become" -f 'https://polygon-mumbai.infura.io/v3/753a98a2eb6c4d64918829f47d069440' -u 0xa0df350d2637096571F7A701CBc1C5fdE30dF76A --db ../ganache_mumbai  -p 8555 -g 20 -e 1000
 
-  devpk: {
-    provider: () => new HDWalletProvider({
-        privateKeys: pk["999"]["pk"],
-        providerOrUrl: `http://localhost:8545`}),
-        network_id: 999
-    // https://ropsten.infura.io/v3/753a98a2eb6c4d64918829f47d069440", // Endpoint of an node to connect to. Can be on localhost or on the internet
-    },
-},
+     */
+  },
   compilers: {
     solc: {
-      version: "^0.8.0"
+      version: "0.8.6"
     }
   },
 

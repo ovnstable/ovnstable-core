@@ -3,27 +3,17 @@ import "../interfaces/IConnector.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
 import "./curve/interfaces/iCurveToken.sol";
+import "../OwnableExt.sol";
 
-contract ConnectorCurve is IConnector {
+contract ConnectorCurve is IConnector , OwnableExt{
 
-    iCurvePool pool;
-    address owner;
+    address USDC;
 
-
-    modifier onlyOwner () {
-        require(msg.sender == owner, "only owner can");
-        _;
+    function setUSDC (address _usdc) public onlyOwner {
+        USDC = _usdc;
     }
-
-    function setOwner (address _addrOwner) public onlyOwner {
-        owner = _addrOwner;
-    
-    }
-    function setPool (address _poolAddr) public onlyOwner {
-        pool = iCurvePool(_poolAddr);
-    }
-
-    function stake (address _asset, uint256 _amount, address _beneficiar )  public override {
+    function stake (address _asset, address _pool,uint256 _amount, address _beneficiar )  public override {
+      iCurvePool  pool = iCurvePool(_pool);
 
         for (uint i=0; i<3; i++ ) {
             
@@ -40,8 +30,9 @@ contract ConnectorCurve is IConnector {
         }
     }
 
-    function unstake  (address _asset, uint256 _amount, address _beneficiar )  public override returns (uint256) {
-        for (uint i=0; i<3; i++ ) {    
+    function unstake (address _asset, address _pool, uint256 _amount, address _beneficiar )  public override returns (uint256) {
+     iCurvePool   pool = iCurvePool(_pool);
+        for (uint256 i=0; i<3; i++ ) {    
             if (pool.underlying_coins(i) == _asset) {
                 uint256 [3] memory amounts;
                 iCurveToken(pool.lp_token()).approve(address(pool), _amount);
@@ -51,9 +42,30 @@ contract ConnectorCurve is IConnector {
                 uint [3] memory retAmount = pool.remove_liquidity(LPTok ,
                                                                 amounts, 
                                                                 true);
+                IERC20(pool.coins(i)).transfer(_beneficiar, retAmount[i]);
                 return retAmount[i];
             }
         }
+    }
+
+    function getPriceOffer (address _asset,  address _pool) external override view returns (uint256) {
+        iCurvePool  pool = iCurvePool(_pool);
+        return pool.get_virtual_price();
+
+    }
+
+    function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
+        iCurvePool  pool = iCurvePool(_pool);
+        for (uint256 i=0; i<3; i++) {
+            if (pool.underlying_coins(i) == USDC) {
+                for (uint256  j=0; j<3; j++) {
+                    if (pool.underlying_coins(j) == _asset) {
+                        return pool.get_dy(int128(uint128(j)), int128(uint128(i)), _balance);
+                    }
+                }
+            }
+        }
+        revert ("can't find addresses of coins");
     }
 
 

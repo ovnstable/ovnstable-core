@@ -1,0 +1,13 @@
+{"80001":[
+    {"actAddress":"",
+    "poolPriceAddr":"",
+    "connectorStakeAddr":"",
+    "balance":"100",
+    "minShare":"2500",
+    "maxShare":"9500",
+    "isWork":1
+        
+    }
+]
+
+}
