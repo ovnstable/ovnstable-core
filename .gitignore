@@ -6,3 +6,4 @@ ganache_local/
 package-lock.json
 vapp/dist
 deploy.sh
+ganache_mumbai/
