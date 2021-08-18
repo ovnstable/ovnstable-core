@@ -16,13 +16,13 @@ const m2m = await Mark2Market.deployed();// at(Mark2Market.networks[chainID]['ad
 
 if (chainID == '80001') {
     // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
-    USDC = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
-    aUSDC = "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9";
-  
+  USDC = USDCtest.networks[chainID]['address'];
+  aUSDC = aUSDCtest.networks[chainID]['address'];
+
   } else {
     USDC = USDCtest.networks[chainID]['address'];
     aUSDC = aUSDCtest.networks[chainID]['address'];
-  
+
   }
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];

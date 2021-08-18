@@ -21,10 +21,10 @@ contract Exchange is OwnableExt {
     }
 
     function buy(address _addrTok, uint256 _amount) public {
-        
+
         IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
         ovn.mint(msg.sender, _amount);
-        actList.changeBal(_addrTok, int128(uint128(_amount)));
+//        actList.changeBal(_addrTok, int128(uint128(_amount)));
 
     }
 
@@ -36,7 +36,7 @@ contract Exchange is OwnableExt {
 
         ovn.transferFrom(msg.sender, address(this), _amount);
         ovn.burn(msg.sender, _amount);
-        actList.changeBal(_addrTok, -int128(uint128(_amount)));
+//        actList.changeBal(_addrTok, -int128(uint128(_amount)));
 
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite

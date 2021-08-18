@@ -14,7 +14,7 @@ var aaveLendingPoolAddressesProvider;
 module.exports = async function(deployer) {
   await deployer.deploy(OvernightToken);
   const ovnt = await OvernightToken.deployed();
-  
+
   await deployer.deploy(Exchange);
   const exchange = await Exchange.deployed();
 
@@ -29,22 +29,28 @@ module.exports = async function(deployer) {
 
   await deployer.deploy(Mark2Market);
   const m2m = await Mark2Market.deployed();
-  
+
   // setOraclePrice AAAVE
 
-  
+
    const chainID = await web3.eth.net.getId();
   var usdctaddr
    if (chainID == '80001') {
      // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
       aaveLendingPoolAddressesProvider = "0x178113104fEcbcD7fF8669a0150721e231F0FD4B"
       usdctaddr = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
-      
+
+       await deployer.deploy(USDCtest);
+       await deployer.deploy(aUSDCtest);
+       const usdct = await USDCtest.deployed();
+       const ausdc = await USDCtest.deployed();
+       usdctaddr = usdct.address
+
    } else {
     await deployer.deploy(USDCtest);
     await deployer.deploy(aUSDCtest);
     const usdct = await USDCtest.deployed();
-    const ausdc = await USDCtest.deployed(); 
+    const ausdc = await USDCtest.deployed();
     usdctaddr = usdct.address
    }
 
