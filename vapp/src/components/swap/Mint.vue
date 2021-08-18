@@ -2,7 +2,7 @@
   <v-col lg="4">
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
-        <v-row dense >
+        <v-row dense>
           <v-col class="field ">
             <v-row dense>
               <v-col lg="5">
@@ -17,7 +17,7 @@
               </v-col>
               <v-col lg="1"></v-col>
               <v-col lg="3" class="pt-3" align="end">
-                <div class="max">Max: {{ balanceMint }}</div>
+                <div class="max">Max: {{ balance.usdc }}</div>
               </v-col>
               <v-col lg="3">
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
@@ -54,12 +54,12 @@
             <v-row dense>
               <v-col lg="5">
                 <div class="field-buy mt-1 ml-1">
-                  {{sumResult}}
+                  {{ sumResult }}
                 </div>
               </v-col>
               <v-col lg="1"></v-col>
               <v-col lg="3" class="pt-3" align="end">
-                <div class="balance">Balance: {{ balanceRedeem }}</div>
+                <div class="balance">Balance: {{ balance.ovn }}</div>
               </v-col>
               <v-col lg="3">
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
@@ -142,9 +142,9 @@ export default {
 
   computed: {
 
-    sumResult: function (){
+    sumResult: function () {
 
-      if(!this.sum || this.sum === 0)
+      if (!this.sum || this.sum === 0)
         return '0.00';
       else
         return this.sum;
@@ -164,14 +164,14 @@ export default {
         return true;
 
       if (!v.trim()) return true;
-      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balanceMint)) return true;
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.usdc)) return true;
 
 
-      return 'Number has to be between 1 and ' + this.balanceMint;
+      return 'Number has to be between 1 and ' + this.balance.usdc;
     },
 
 
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'balanceMint', 'balanceRedeem']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'balance']),
   },
 
   created() {
@@ -183,30 +183,40 @@ export default {
 
     this.buyCurrency = this.buyCurrencies[0];
 
-    this.getBalanceMint('USDC');
   },
 
   methods: {
 
-    ...mapActions("profile", ['getBalanceMint']),
+    ...mapActions("profile", ['refreshBalance']),
 
+    setSum(value) {
+      this.sum = value;
+    },
 
     buy() {
 
 
       try {
         let toWei = utils.toWei(this.sum);
+        let bn = utils.toBN(this.sum);
+        let refreshBalance = this.refreshBalance;
 
         let contracts = this.contracts;
         let from = this.account;
+        let setSum = this.setSum;
 
-        contracts.usdc.methods.approve(from, toWei).send({from: from}).then(function () {
+
+        contracts.usdc.methods.approve(contracts.exchange.options.address, toWei).send({from: from}).then(function () {
           alert('Success first step!')
+
+          contracts.exchange.methods.buy(contracts.usdc.options.address, bn).send({from: from}).then(function () {
+            alert('Success second step!')
+
+            refreshBalance();
+            setSum(null)
+          });
         });
 
-        contracts.exchange.methods.buy(from, toWei).send({from: from}).then(function () {
-          alert('Success second step!')
-        });
 
       } catch (e) {
         console.log(e)
@@ -232,7 +242,7 @@ export default {
   height: 45px;
 }
 
-.field-buy{
+.field-buy {
   padding: 10px;
   color: #8F8F8F;
   font-size: 18px;
@@ -263,6 +273,7 @@ export default {
 }
 
 .max {
+  white-space: nowrap;
   font-weight: bold;
   color: #40404C;
   text-align: center;
@@ -322,7 +333,7 @@ export default {
   text-transform: none;
 }
 
-.field-sum{
+.field-sum {
   font-size: 18px;
   font-weight: bold;
   color: #8F8F8F;

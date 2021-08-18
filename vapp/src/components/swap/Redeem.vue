@@ -9,13 +9,14 @@
                 <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
               </v-col>
               <v-col lg="2" class="pt-3" align="end">
-                <div class="max">Max: {{balanceRedeem}}</div>
+                <div class="max">Max: {{ balance.ovn }}</div>
 
               </v-col>
               <v-col lg="3">
-                <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly class="custom" flat solo>
+                <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly
+                          class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
-                    <img :src="item.image.default" width="40" height="40" ><span
+                    <img :src="item.image.default" width="40" height="40"><span
                       class="title-custom ml-1">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
@@ -107,7 +108,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "account", 'web3', 'balanceRedeem']),
+    ...mapGetters("profile", ["contracts", "account", 'web3', 'balance']),
 
   },
 
@@ -120,31 +121,40 @@ export default {
 
     this.buyCurrency = this.buyCurrencies[0];
 
-    this.getBalanceRedeem();
 
   },
 
   methods: {
 
-    ...mapActions( "profile", ['getBalanceRedeem']),
+    ...mapActions("profile", ['refreshBalance']),
 
+
+    setSum(value) {
+      this.sum = value;
+    },
 
     redeem() {
 
 
       try {
         let toWei = utils.toWei(this.sum);
+        let bn = utils.toBN(this.sum);
+
+        let refreshBalance = this.refreshBalance;
+        let setSum = this.setSum;
 
         let contracts = this.contracts;
         let from = this.account;
         contracts.ovn.methods.approve(from, toWei).send({from: from}).then(function () {
           alert('Success first step!')
+
+          contracts.exchange.methods.redeem(contracts.ovn.options.address, bn).send({from: from}).then(function () {
+            alert('Success second step!')
+            refreshBalance();
+            setSum(null)
+          });
         });
 
-        contracts.exchange.methods.redeem(toWei).send({from: from}).then(function (){
-
-          alert('Success second step!')
-        });
 
       } catch (e) {
         console.log(e)
@@ -182,7 +192,6 @@ export default {
 .gas-title {
   color: #8F8F8F;
 }
-
 
 
 .buy {

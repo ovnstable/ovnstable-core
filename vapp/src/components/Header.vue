@@ -30,7 +30,7 @@
           <button v-if="!account" class="btn">Connect Wallet
             <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
           </button>
-          <div v-else>{{account}}</div>
+          <div v-else>{{ account }}</div>
           <!--          <img class="type ml-5" :src="require('../assets/eth.png')" height="40" width="40"/>-->
           <!--          <img class="settings ml-5" :src="require('../assets/gear.png')" height="35" width="35"/>-->
         </v-col>
@@ -114,12 +114,11 @@ export default {
   },
 
 
-
   methods: {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-    ...mapActions('profile', ['getBalanceMint', 'getBalanceRedeem']),
+    ...mapActions('profile', ['refreshBalance']),
 
     async testNative() {
 
@@ -129,42 +128,53 @@ export default {
       this.setWeb3(web3);
 
       this.web3.eth.getAccounts((error, accounts) => {
-        let account = accounts[0];
-        this.setAccount(account);
+            let account = accounts[0];
+            this.setAccount(account);
+
+            web3.eth.getBalance(account)
+                .then(value => {
+                  console.log(web3.utils.fromWei(value, 'ether'))
+                });
 
 
-        let first1 = this.load(require('../contracts/Exchange.json'), account, web3);
-        let first2 = this.load(require('../contracts/USDCtest.json'), account, web3);
-        let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
+            let first1 = this.load(require('../contracts/Exchange.json'), account, web3);
+            let first2 = this.load(require('../contracts/USDCtest.json'), account, web3);
+            let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
 
-        this.setContracts({exchange: first1, usdc: first2, ovn: first3})
-        this.getBalanceMint('USDC');
-        this.getBalanceRedeem();
-      });
+            this.setContracts({exchange: first1, usdc: first2, ovn: first3})
+
+            try {
+              this.refreshBalance();
+            } catch (e) {
+            }
+
+
+          }
+      )
+      ;
 
 
     },
 
 
-    load(file, account, web3){
+    load(file, account, web3) {
 
       let contractConfig = contract(file);
 
-      const networkId = 999;
+      const networkId = 80001;
 
       const {abi, networks, deployedBytecode} = contractConfig
-      let ethContract = new web3.eth.Contract(abi, networks[networkId].address, {
-        from: account,
-        data: deployedBytecode
-      });
+      let ethContract = new web3.eth.Contract(abi, networks[networkId].address);
 
 
       return ethContract;
-    },
+    }
+    ,
 
 
   },
-};
+}
+;
 </script>
 <style>
 .app-bar {
