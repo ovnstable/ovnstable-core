@@ -138,7 +138,7 @@ export default {
 
       try {
         let toWei = utils.toWei(this.sum);
-        let bn = utils.toBN(this.sum);
+        let bn = utils.toWei(this.sum);
 
         let refreshBalance = this.refreshBalance;
         let setSum = this.setSum;

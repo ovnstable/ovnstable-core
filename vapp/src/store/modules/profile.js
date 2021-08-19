@@ -4,6 +4,7 @@ const state = {
     web3: null,
 
 
+    currentTotalData: null,
     balance: {
         ovn: 0,
         usdc: 0,
@@ -24,6 +25,10 @@ const getters = {
         return state.balance;
     },
 
+    currentTotalData(state) {
+        return state.currentTotalData;
+    },
+
     web3(state) {
         return state.web3;
     },
@@ -42,6 +47,22 @@ const actions = {
             usdc: usdc
         })
 
+    },
+
+    async refreshCurrentTotalData({commit, dispatch, getters}){
+
+        getters.contracts.m2m.methods.activesPrices().call().then(value => {
+
+            let data = [];
+
+            let balance = getters.web3.utils.fromWei(value[0][0]['balance'], 'ether');
+            data.push({name: 'USDC', value: balance, status: 'UP'});
+
+            commit('setCurrentTotalData', data)
+        })
+
+
+
     }
 
 
@@ -49,7 +70,9 @@ const actions = {
 
 const mutations = {
 
-
+    setCurrentTotalData(state, currentTotalData) {
+        state.currentTotalData = currentTotalData;
+    },
 
     setContracts(state, contracts) {
         state.contracts = contracts;

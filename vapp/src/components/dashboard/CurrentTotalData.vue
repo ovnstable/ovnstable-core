@@ -4,7 +4,7 @@
       <v-card-text>
 
         <v-container>
-          <v-row dense v-for="item in items" class="row">
+          <v-row dense v-for="item in currentTotalData" class="row">
             <v-col lg="8">
               {{item.name}}
             </v-col>
@@ -142,10 +142,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("contracts", ["getContractData"]),
-    ...mapGetters('accounts', ['activeAccount', 'activeBalance']),
-    ...mapGetters("drizzle", ["isDrizzleInitialized", "drizzleInstance"]),
-    ...mapGetters("profile", ["contracts", "web3", 'account']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData']),
   },
 
   created() {

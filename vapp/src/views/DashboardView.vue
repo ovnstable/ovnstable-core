@@ -56,6 +56,7 @@
 import StatsWidget from "../components/common/StatsWidget";
 import CurrentTotalData from "../components/dashboard/CurrentTotalData";
 import HistoryTotalData from "../components/dashboard/HistoryTotalData";
+import {mapGetters} from "vuex";
 
 export default {
   name: "DashboardView",
@@ -78,7 +79,9 @@ export default {
         'tab-button': this.tab === 2,
         'tab-button-in-active': this.tab !== 2,
       }
-    }
+    },
+
+
   },
 
   methods: {}

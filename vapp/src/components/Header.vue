@@ -118,7 +118,7 @@ export default {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-    ...mapActions('profile', ['refreshBalance']),
+    ...mapActions('profile', ['refreshBalance', 'refreshCurrentTotalData']),
 
     async testNative() {
 
@@ -138,16 +138,14 @@ export default {
 
 
             let first1 = this.load(require('../contracts/Exchange.json'), account, web3);
-            let first2 = this.load(require('../contracts/USDCtest.json'), account, web3);
+            let first2 = this.load(require('../contracts/USDCtest.json'), account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
             let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
+            let first4 = this.load(require('../contracts/Mark2Market.json'), account, web3);
 
-            this.setContracts({exchange: first1, usdc: first2, ovn: first3})
+            this.setContracts({exchange: first1, usdc: first2, ovn: first3, m2m: first4})
 
-            try {
-              this.refreshBalance();
-            } catch (e) {
-            }
-
+            this.refreshBalance();
+            this.refreshCurrentTotalData();
 
           }
       )
@@ -157,14 +155,19 @@ export default {
     },
 
 
-    load(file, account, web3) {
+    load(file, account, web3, address) {
 
       let contractConfig = contract(file);
 
-      const networkId = 80001;
+      const networkId = 137;
 
       const {abi, networks, deployedBytecode} = contractConfig
-      let ethContract = new web3.eth.Contract(abi, networks[networkId].address);
+
+      if (!address) {
+        address = networks[networkId].address
+      }
+
+      let ethContract = new web3.eth.Contract(abi, address);
 
 
       return ethContract;
