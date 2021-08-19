@@ -43,8 +43,8 @@ module.exports = async function(deployer) {
 
   await deployer.deploy(DepositAAVE);
   const dAV = await DepositAAVE.deployed();
-  await usdc.approve (dAV.address, balance);//) balance.toNumber());
-  await dAV.deposit(USDC, balance, accounts[0], aaveLendingPoolAddressesProvider);
+  // await usdc.approve (dAV.address, balance);//) balance.toNumber());
+  // await dAV.deposit(USDC, balance, accounts[0], aaveLendingPoolAddressesProvider);
 
 
 }

@@ -25,8 +25,8 @@ contract ConnectorAAVE is IConnector, OwnableExt {
 
     function stake (address _asset, address _pool, uint256 _amount, address _beneficiar ) public override  {
      //   ILendingPool pool = ILendingPool(_pool);
+//IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
         IERC20(_asset).approve(address(pool), _amount);
-        IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
 
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
