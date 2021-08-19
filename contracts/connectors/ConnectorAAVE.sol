@@ -26,6 +26,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     function stake (address _asset, address _pool, uint256 _amount, address _beneficiar ) public override  {
      //   ILendingPool pool = ILendingPool(_pool);
         IERC20(_asset).approve(address(pool), _amount);
+        IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
 
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
@@ -42,11 +43,10 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     }
 
 
-    function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
+    function getPriceLiq (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
 
-        uint price = getPriceOffer (_asset, _pool);
-        uint income = pool.getReserveNormalizedIncome(_asset);
-        return price*income / 10**27;
+     
+        return IERC20(_asset).balanceOf(_where);
     }
 
 }
