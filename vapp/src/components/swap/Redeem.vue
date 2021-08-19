@@ -145,15 +145,15 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
-        contracts.ovn.methods.approve(from, toWei).send({from: from}).then(function () {
-          alert('Success first step!')
+        // contracts.ovn.methods.approve(contracts.exchange.options.address, toWei).send({from: from}).then(function () {
+        //   alert('Success first step!')
 
-          contracts.exchange.methods.redeem(contracts.ovn.options.address, bn).send({from: from}).then(function () {
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, bn).send({from: from}).then(function () {
             alert('Success second step!')
             refreshBalance();
             setSum(null)
           });
-        });
+        // });
 
 
       } catch (e) {
