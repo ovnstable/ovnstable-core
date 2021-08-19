@@ -137,7 +137,6 @@ export default {
 
 
       try {
-        let toWei = utils.toWei(this.sum);
         let bn = utils.toWei(this.sum);
 
         let refreshBalance = this.refreshBalance;
@@ -145,16 +144,12 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
-        // contracts.ovn.methods.approve(contracts.exchange.options.address, toWei).send({from: from}).then(function () {
-        //   alert('Success first step!')
 
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, bn).send({from: from}).then(function () {
-            alert('Success second step!')
-            refreshBalance();
-            setSum(null)
-          });
-        // });
-
+        contracts.exchange.methods.redeem(contracts.usdc.options.address, bn).send({from: from}).then(function () {
+          alert('Success second step!')
+          refreshBalance();
+          setSum(null)
+        });
 
       } catch (e) {
         console.log(e)
