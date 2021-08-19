@@ -8246,19 +8246,19 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/OvernightToken.sol",
     "exportedSymbols": {
       "Context": [
-        2768
+        2795
       ],
       "ERC20": [
-        2644
+        2671
       ],
       "IERC20": [
-        2722
+        2749
       ],
       "IERC20Metadata": [
-        2747
+        2774
       ],
       "IERC20MintableBurnable": [
-        1874
+        1887
       ],
       "OvernightToken": [
         373
@@ -8288,7 +8288,7 @@
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
         "scope": 374,
-        "sourceUnit": 1875,
+        "sourceUnit": 1888,
         "src": "62:49:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -8300,7 +8300,7 @@
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
         "scope": 374,
-        "sourceUnit": 2645,
+        "sourceUnit": 2672,
         "src": "112:55:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -8313,7 +8313,7 @@
               "id": 333,
               "name": "IERC20MintableBurnable",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 1874,
+              "referencedDeclaration": 1887,
               "src": "197:22:3"
             },
             "id": 334,
@@ -8325,7 +8325,7 @@
               "id": 335,
               "name": "ERC20",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 2644,
+              "referencedDeclaration": 2671,
               "src": "222:5:3"
             },
             "id": 336,
@@ -8339,11 +8339,11 @@
         "id": 373,
         "linearizedBaseContracts": [
           373,
-          2644,
-          2747,
-          1874,
-          2722,
-          2768
+          2671,
+          2774,
+          1887,
+          2749,
+          2795
         ],
         "name": "OvernightToken",
         "nameLocation": "179:14:3",
@@ -8401,7 +8401,7 @@
                   "id": 338,
                   "name": "ERC20",
                   "nodeType": "IdentifierPath",
-                  "referencedDeclaration": 2644,
+                  "referencedDeclaration": 2671,
                   "src": "249:5:3"
                 },
                 "nodeType": "ModifierInvocation",
@@ -8431,7 +8431,7 @@
           },
           {
             "baseFunctions": [
-              1866
+              1879
             ],
             "body": {
               "id": 357,
@@ -8481,7 +8481,7 @@
                       "name": "_mint",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2504,
+                      "referencedDeclaration": 2531,
                       "src": "370:5:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
@@ -8599,7 +8599,7 @@
           },
           {
             "baseFunctions": [
-              1873
+              1886
             ],
             "body": {
               "id": 371,
@@ -8649,7 +8649,7 @@
                       "name": "_burn",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2576,
+                      "referencedDeclaration": 2603,
                       "src": "481:5:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
@@ -8777,19 +8777,19 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/OvernightToken.sol",
     "exportedSymbols": {
       "Context": [
-        2768
+        2795
       ],
       "ERC20": [
-        2644
+        2671
       ],
       "IERC20": [
-        2722
+        2749
       ],
       "IERC20Metadata": [
-        2747
+        2774
       ],
       "IERC20MintableBurnable": [
-        1874
+        1887
       ],
       "OvernightToken": [
         373
@@ -8819,7 +8819,7 @@
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
         "scope": 374,
-        "sourceUnit": 1875,
+        "sourceUnit": 1888,
         "src": "62:49:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -8831,7 +8831,7 @@
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
         "scope": 374,
-        "sourceUnit": 2645,
+        "sourceUnit": 2672,
         "src": "112:55:3",
         "symbolAliases": [],
         "unitAlias": ""
@@ -8844,7 +8844,7 @@
               "id": 333,
               "name": "IERC20MintableBurnable",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 1874,
+              "referencedDeclaration": 1887,
               "src": "197:22:3"
             },
             "id": 334,
@@ -8856,7 +8856,7 @@
               "id": 335,
               "name": "ERC20",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 2644,
+              "referencedDeclaration": 2671,
               "src": "222:5:3"
             },
             "id": 336,
@@ -8870,11 +8870,11 @@
         "id": 373,
         "linearizedBaseContracts": [
           373,
-          2644,
-          2747,
-          1874,
-          2722,
-          2768
+          2671,
+          2774,
+          1887,
+          2749,
+          2795
         ],
         "name": "OvernightToken",
         "nameLocation": "179:14:3",
@@ -8932,7 +8932,7 @@
                   "id": 338,
                   "name": "ERC20",
                   "nodeType": "IdentifierPath",
-                  "referencedDeclaration": 2644,
+                  "referencedDeclaration": 2671,
                   "src": "249:5:3"
                 },
                 "nodeType": "ModifierInvocation",
@@ -8962,7 +8962,7 @@
           },
           {
             "baseFunctions": [
-              1866
+              1879
             ],
             "body": {
               "id": 357,
@@ -9012,7 +9012,7 @@
                       "name": "_mint",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2504,
+                      "referencedDeclaration": 2531,
                       "src": "370:5:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
@@ -9130,7 +9130,7 @@
           },
           {
             "baseFunctions": [
-              1873
+              1886
             ],
             "body": {
               "id": 371,
@@ -9180,7 +9180,7 @@
                       "name": "_burn",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2576,
+                      "referencedDeclaration": 2603,
                       "src": "481:5:3",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_uint256_$returns$__$",
@@ -9309,6 +9309,12 @@
     "version": "0.8.6+commit.11564f7e.Emscripten.clang"
   },
   "networks": {
+    "137": {
+      "events": {},
+      "links": {},
+      "address": "0x0Bb909b7c3817F8fB7188e8fbaA2763028956E30",
+      "transactionHash": "0x2d3dbb4ba172251f46e02df64d49e71ff8dec5042a5715c7cf6e846c6b5e8d67"
+    },
     "999": {
       "events": {},
       "links": {},
@@ -9318,12 +9324,12 @@
     "80001": {
       "events": {},
       "links": {},
-      "address": "0x9999c88F31DC3BAeECc6F0d66db98D22e844f661",
-      "transactionHash": "0x8e09e04a6ccb3b897d342ad63bb543b8000c529edc7de57759db1275db1aea27"
+      "address": "0xf1C010f4D51eADcBDbb96ac9eb3263d73447AC67",
+      "transactionHash": "0x1e065206fcf0bdf85a3917d6d8893e05d20c7f9a02d5c79d0c96b7ad729879bd"
     }
   },
   "schemaVersion": "3.4.0",
-  "updatedAt": "2021-08-17T12:11:45.044Z",
+  "updatedAt": "2021-08-19T08:09:06.608Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

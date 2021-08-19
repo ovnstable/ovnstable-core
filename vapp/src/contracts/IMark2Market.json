@@ -16,12 +16,17 @@
                 },
                 {
                   "internalType": "address",
-                  "name": "poolPriceAddr",
+                  "name": "connector",
                   "type": "address"
                 },
                 {
                   "internalType": "address",
-                  "name": "connectorStakeAddr",
+                  "name": "poolPrice",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "poolStake",
                   "type": "address"
                 },
                 {
@@ -64,7 +69,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"activesPrices\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"actAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"poolPriceAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"connectorStakeAddr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"minShare\",\"type\":\"uint16\"},{\"internalType\":\"uint16\",\"name\":\"maxShare\",\"type\":\"uint16\"},{\"internalType\":\"uint8\",\"name\":\"isWork\",\"type\":\"uint8\"}],\"internalType\":\"struct IActivesList.Active\",\"name\":\"active\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.ActivesPrices[10]\",\"name\":\"\",\"type\":\"tuple[10]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IActivesList.sol\":{\"keccak256\":\"0x346f56d5130a4efc5b55f3d077469a931d45f558926b2c859fc751386aeb4b9d\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://09764e512eb9529419ed0c64a69f7a1ec6d446b73f8c948b46a59909406801a4\",\"dweb:/ipfs/QmSQJEcVMMtzMovsmqd1sii8Nr68GVP6qUH4f91Lz1StZ1\"]},\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0x932be9b3a1d46720fd18ebda03a4cddbde9842f47768e313724ba038c933776d\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://4733598fe62a4ec440034837c87241bf94a155fc61bee2985d046e23b857d667\",\"dweb:/ipfs/QmPqzoMn3v1QrtgCBLCG3E3DGp5fED7dcyHF82bDVVgb7S\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"activesPrices\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"actAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"connector\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"poolPrice\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"poolStake\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"minShare\",\"type\":\"uint16\"},{\"internalType\":\"uint16\",\"name\":\"maxShare\",\"type\":\"uint16\"},{\"internalType\":\"uint8\",\"name\":\"isWork\",\"type\":\"uint8\"}],\"internalType\":\"struct IActivesList.Active\",\"name\":\"active\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.ActivesPrices[10]\",\"name\":\"\",\"type\":\"tuple[10]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IActivesList.sol\":{\"keccak256\":\"0x40e8e2afeb7cf1144a3a2a32d42686a3df60c01cb7af350c2e6d24edf556f9cd\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://0f9292482ce5cf71f72086b1d59d320bf099b43d2ddbdec0dc88d2c38dc4a3a9\",\"dweb:/ipfs/QmYDTfUuih8TcvvCWknvF4UomCCrmx1F1USdRRdqiQyoQr\"]},\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0x932be9b3a1d46720fd18ebda03a4cddbde9842f47768e313724ba038c933776d\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://4733598fe62a4ec440034837c87241bf94a155fc61bee2985d046e23b857d667\",\"dweb:/ipfs/QmPqzoMn3v1QrtgCBLCG3E3DGp5fED7dcyHF82bDVVgb7S\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -78,18 +83,18 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
     "exportedSymbols": {
       "IActivesList": [
-        1806
+        1819
       ],
       "IMark2Market": [
-        1892
+        1905
       ]
     },
-    "id": 1893,
+    "id": 1906,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1876,
+        "id": 1889,
         "literals": [
           "solidity",
           ">=",
@@ -105,11 +110,11 @@
       {
         "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IActivesList.sol",
         "file": "./IActivesList.sol",
-        "id": 1877,
+        "id": 1890,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 1893,
-        "sourceUnit": 1807,
+        "scope": 1906,
+        "sourceUnit": 1820,
         "src": "69:28:18",
         "symbolAliases": [],
         "unitAlias": ""
@@ -120,9 +125,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1892,
+        "id": 1905,
         "linearizedBaseContracts": [
-          1892
+          1905
         ],
         "name": "IMark2Market",
         "nameLocation": "109:12:18",
@@ -130,37 +135,37 @@
         "nodes": [
           {
             "canonicalName": "IMark2Market.ActivesPrices",
-            "id": 1883,
+            "id": 1896,
             "members": [
               {
                 "constant": false,
-                "id": 1880,
+                "id": 1893,
                 "mutability": "mutable",
                 "name": "active",
                 "nameLocation": "181:6:18",
                 "nodeType": "VariableDeclaration",
-                "scope": 1883,
+                "scope": 1896,
                 "src": "161:26:18",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Active_$1753_storage_ptr",
+                  "typeIdentifier": "t_struct$_Active_$1762_storage_ptr",
                   "typeString": "struct IActivesList.Active"
                 },
                 "typeName": {
-                  "id": 1879,
+                  "id": 1892,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 1878,
+                    "id": 1891,
                     "name": "IActivesList.Active",
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 1753,
+                    "referencedDeclaration": 1762,
                     "src": "161:19:18"
                   },
-                  "referencedDeclaration": 1753,
+                  "referencedDeclaration": 1762,
                   "src": "161:19:18",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Active_$1753_storage_ptr",
+                    "typeIdentifier": "t_struct$_Active_$1762_storage_ptr",
                     "typeString": "struct IActivesList.Active"
                   }
                 },
@@ -168,12 +173,12 @@
               },
               {
                 "constant": false,
-                "id": 1882,
+                "id": 1895,
                 "mutability": "mutable",
                 "name": "price",
                 "nameLocation": "205:5:18",
                 "nodeType": "VariableDeclaration",
-                "scope": 1883,
+                "scope": 1896,
                 "src": "197:13:18",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -182,7 +187,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 1881,
+                  "id": 1894,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "197:7:18",
@@ -197,13 +202,13 @@
             "name": "ActivesPrices",
             "nameLocation": "137:13:18",
             "nodeType": "StructDefinition",
-            "scope": 1892,
+            "scope": 1905,
             "src": "130:88:18",
             "visibility": "public"
           },
           {
             "functionSelector": "f4a93710",
-            "id": 1891,
+            "id": 1904,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -211,52 +216,52 @@
             "nameLocation": "233:13:18",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1884,
+              "id": 1897,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "247:2:18"
             },
             "returnParameters": {
-              "id": 1890,
+              "id": 1903,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1889,
+                  "id": 1902,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1891,
+                  "scope": 1904,
                   "src": "273:24:18",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1883_memory_ptr_$10_memory_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1896_memory_ptr_$10_memory_ptr",
                     "typeString": "struct IMark2Market.ActivesPrices[10]"
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1886,
+                      "id": 1899,
                       "nodeType": "UserDefinedTypeName",
                       "pathNode": {
-                        "id": 1885,
+                        "id": 1898,
                         "name": "ActivesPrices",
                         "nodeType": "IdentifierPath",
-                        "referencedDeclaration": 1883,
+                        "referencedDeclaration": 1896,
                         "src": "273:13:18"
                       },
-                      "referencedDeclaration": 1883,
+                      "referencedDeclaration": 1896,
                       "src": "273:13:18",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_ActivesPrices_$1883_storage_ptr",
+                        "typeIdentifier": "t_struct$_ActivesPrices_$1896_storage_ptr",
                         "typeString": "struct IMark2Market.ActivesPrices"
                       }
                     },
-                    "id": 1888,
+                    "id": 1901,
                     "length": {
                       "hexValue": "3130",
-                      "id": 1887,
+                      "id": 1900,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -273,7 +278,7 @@
                     "nodeType": "ArrayTypeName",
                     "src": "273:17:18",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1883_storage_$10_storage_ptr",
+                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1896_storage_$10_storage_ptr",
                       "typeString": "struct IMark2Market.ActivesPrices[10]"
                     }
                   },
@@ -282,14 +287,14 @@
               ],
               "src": "272:27:18"
             },
-            "scope": 1892,
+            "scope": 1905,
             "src": "224:77:18",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1893,
+        "scope": 1906,
         "src": "99:206:18",
         "usedErrors": []
       }
@@ -300,18 +305,18 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
     "exportedSymbols": {
       "IActivesList": [
-        1806
+        1819
       ],
       "IMark2Market": [
-        1892
+        1905
       ]
     },
-    "id": 1893,
+    "id": 1906,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1876,
+        "id": 1889,
         "literals": [
           "solidity",
           ">=",
@@ -327,11 +332,11 @@
       {
         "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IActivesList.sol",
         "file": "./IActivesList.sol",
-        "id": 1877,
+        "id": 1890,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 1893,
-        "sourceUnit": 1807,
+        "scope": 1906,
+        "sourceUnit": 1820,
         "src": "69:28:18",
         "symbolAliases": [],
         "unitAlias": ""
@@ -342,9 +347,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1892,
+        "id": 1905,
         "linearizedBaseContracts": [
-          1892
+          1905
         ],
         "name": "IMark2Market",
         "nameLocation": "109:12:18",
@@ -352,37 +357,37 @@
         "nodes": [
           {
             "canonicalName": "IMark2Market.ActivesPrices",
-            "id": 1883,
+            "id": 1896,
             "members": [
               {
                 "constant": false,
-                "id": 1880,
+                "id": 1893,
                 "mutability": "mutable",
                 "name": "active",
                 "nameLocation": "181:6:18",
                 "nodeType": "VariableDeclaration",
-                "scope": 1883,
+                "scope": 1896,
                 "src": "161:26:18",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Active_$1753_storage_ptr",
+                  "typeIdentifier": "t_struct$_Active_$1762_storage_ptr",
                   "typeString": "struct IActivesList.Active"
                 },
                 "typeName": {
-                  "id": 1879,
+                  "id": 1892,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 1878,
+                    "id": 1891,
                     "name": "IActivesList.Active",
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 1753,
+                    "referencedDeclaration": 1762,
                     "src": "161:19:18"
                   },
-                  "referencedDeclaration": 1753,
+                  "referencedDeclaration": 1762,
                   "src": "161:19:18",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Active_$1753_storage_ptr",
+                    "typeIdentifier": "t_struct$_Active_$1762_storage_ptr",
                     "typeString": "struct IActivesList.Active"
                   }
                 },
@@ -390,12 +395,12 @@
               },
               {
                 "constant": false,
-                "id": 1882,
+                "id": 1895,
                 "mutability": "mutable",
                 "name": "price",
                 "nameLocation": "205:5:18",
                 "nodeType": "VariableDeclaration",
-                "scope": 1883,
+                "scope": 1896,
                 "src": "197:13:18",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -404,7 +409,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 1881,
+                  "id": 1894,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "197:7:18",
@@ -419,13 +424,13 @@
             "name": "ActivesPrices",
             "nameLocation": "137:13:18",
             "nodeType": "StructDefinition",
-            "scope": 1892,
+            "scope": 1905,
             "src": "130:88:18",
             "visibility": "public"
           },
           {
             "functionSelector": "f4a93710",
-            "id": 1891,
+            "id": 1904,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -433,52 +438,52 @@
             "nameLocation": "233:13:18",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1884,
+              "id": 1897,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "247:2:18"
             },
             "returnParameters": {
-              "id": 1890,
+              "id": 1903,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1889,
+                  "id": 1902,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1891,
+                  "scope": 1904,
                   "src": "273:24:18",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1883_memory_ptr_$10_memory_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1896_memory_ptr_$10_memory_ptr",
                     "typeString": "struct IMark2Market.ActivesPrices[10]"
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 1886,
+                      "id": 1899,
                       "nodeType": "UserDefinedTypeName",
                       "pathNode": {
-                        "id": 1885,
+                        "id": 1898,
                         "name": "ActivesPrices",
                         "nodeType": "IdentifierPath",
-                        "referencedDeclaration": 1883,
+                        "referencedDeclaration": 1896,
                         "src": "273:13:18"
                       },
-                      "referencedDeclaration": 1883,
+                      "referencedDeclaration": 1896,
                       "src": "273:13:18",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_ActivesPrices_$1883_storage_ptr",
+                        "typeIdentifier": "t_struct$_ActivesPrices_$1896_storage_ptr",
                         "typeString": "struct IMark2Market.ActivesPrices"
                       }
                     },
-                    "id": 1888,
+                    "id": 1901,
                     "length": {
                       "hexValue": "3130",
-                      "id": 1887,
+                      "id": 1900,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -495,7 +500,7 @@
                     "nodeType": "ArrayTypeName",
                     "src": "273:17:18",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1883_storage_$10_storage_ptr",
+                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$1896_storage_$10_storage_ptr",
                       "typeString": "struct IMark2Market.ActivesPrices[10]"
                     }
                   },
@@ -504,14 +509,14 @@
               ],
               "src": "272:27:18"
             },
-            "scope": 1892,
+            "scope": 1905,
             "src": "224:77:18",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1893,
+        "scope": 1906,
         "src": "99:206:18",
         "usedErrors": []
       }
@@ -524,7 +529,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.0",
-  "updatedAt": "2021-08-17T12:11:30.985Z",
+  "updatedAt": "2021-08-18T12:16:50.996Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

@@ -48,14 +48,14 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/iReg.sol",
     "exportedSymbols": {
       "iReg": [
-        1907
+        1920
       ]
     },
-    "id": 1908,
+    "id": 1921,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1894,
+        "id": 1907,
         "literals": [
           "solidity",
           ">=",
@@ -71,9 +71,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1907,
+        "id": 1920,
         "linearizedBaseContracts": [
-          1907
+          1920
         ],
         "name": "iReg",
         "nameLocation": "37:4:19",
@@ -81,7 +81,7 @@
         "nodes": [
           {
             "functionSelector": "ba938c3f",
-            "id": 1899,
+            "id": 1912,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -89,17 +89,17 @@
             "nameLocation": "57:4:19",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1897,
+              "id": 1910,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1896,
+                  "id": 1909,
                   "mutability": "mutable",
                   "name": "_in",
                   "nameLocation": "76:3:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1899,
+                  "scope": 1912,
                   "src": "63:16:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -108,7 +108,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1895,
+                    "id": 1908,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "63:5:19",
@@ -123,12 +123,12 @@
               "src": "62:18:19"
             },
             "returnParameters": {
-              "id": 1898,
+              "id": 1911,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "89:0:19"
             },
-            "scope": 1907,
+            "scope": 1920,
             "src": "48:42:19",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -136,7 +136,7 @@
           },
           {
             "functionSelector": "877b82de",
-            "id": 1906,
+            "id": 1919,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -144,17 +144,17 @@
             "nameLocation": "104:4:19",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1902,
+              "id": 1915,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1901,
+                  "id": 1914,
                   "mutability": "mutable",
                   "name": "_in",
                   "nameLocation": "123:3:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1906,
+                  "scope": 1919,
                   "src": "110:16:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -163,7 +163,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1900,
+                    "id": 1913,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "110:5:19",
@@ -178,17 +178,17 @@
               "src": "109:18:19"
             },
             "returnParameters": {
-              "id": 1905,
+              "id": 1918,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1904,
+                  "id": 1917,
                   "mutability": "mutable",
                   "name": "_out",
                   "nameLocation": "159:4:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1906,
+                  "scope": 1919,
                   "src": "146:17:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -197,7 +197,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1903,
+                    "id": 1916,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "146:5:19",
@@ -211,14 +211,14 @@
               ],
               "src": "145:19:19"
             },
-            "scope": 1907,
+            "scope": 1920,
             "src": "95:70:19",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1908,
+        "scope": 1921,
         "src": "27:140:19",
         "usedErrors": []
       }
@@ -229,14 +229,14 @@
     "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/iReg.sol",
     "exportedSymbols": {
       "iReg": [
-        1907
+        1920
       ]
     },
-    "id": 1908,
+    "id": 1921,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1894,
+        "id": 1907,
         "literals": [
           "solidity",
           ">=",
@@ -252,9 +252,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1907,
+        "id": 1920,
         "linearizedBaseContracts": [
-          1907
+          1920
         ],
         "name": "iReg",
         "nameLocation": "37:4:19",
@@ -262,7 +262,7 @@
         "nodes": [
           {
             "functionSelector": "ba938c3f",
-            "id": 1899,
+            "id": 1912,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -270,17 +270,17 @@
             "nameLocation": "57:4:19",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1897,
+              "id": 1910,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1896,
+                  "id": 1909,
                   "mutability": "mutable",
                   "name": "_in",
                   "nameLocation": "76:3:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1899,
+                  "scope": 1912,
                   "src": "63:16:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -289,7 +289,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1895,
+                    "id": 1908,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "63:5:19",
@@ -304,12 +304,12 @@
               "src": "62:18:19"
             },
             "returnParameters": {
-              "id": 1898,
+              "id": 1911,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "89:0:19"
             },
-            "scope": 1907,
+            "scope": 1920,
             "src": "48:42:19",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -317,7 +317,7 @@
           },
           {
             "functionSelector": "877b82de",
-            "id": 1906,
+            "id": 1919,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -325,17 +325,17 @@
             "nameLocation": "104:4:19",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1902,
+              "id": 1915,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1901,
+                  "id": 1914,
                   "mutability": "mutable",
                   "name": "_in",
                   "nameLocation": "123:3:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1906,
+                  "scope": 1919,
                   "src": "110:16:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -344,7 +344,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1900,
+                    "id": 1913,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "110:5:19",
@@ -359,17 +359,17 @@
               "src": "109:18:19"
             },
             "returnParameters": {
-              "id": 1905,
+              "id": 1918,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1904,
+                  "id": 1917,
                   "mutability": "mutable",
                   "name": "_out",
                   "nameLocation": "159:4:19",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1906,
+                  "scope": 1919,
                   "src": "146:17:19",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -378,7 +378,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 1903,
+                    "id": 1916,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "146:5:19",
@@ -392,14 +392,14 @@
               ],
               "src": "145:19:19"
             },
-            "scope": 1907,
+            "scope": 1920,
             "src": "95:70:19",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1908,
+        "scope": 1921,
         "src": "27:140:19",
         "usedErrors": []
       }
@@ -412,7 +412,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.0",
-  "updatedAt": "2021-08-17T12:11:30.987Z",
+  "updatedAt": "2021-08-18T12:16:50.999Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

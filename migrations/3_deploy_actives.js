@@ -1,7 +1,6 @@
-
 const Mark2Market = artifacts.require("./Mark2Market.sol");
-const USDCtest = artifacts.require("./USDCtest.sol");
-const aUSDCtest = artifacts.require("./aUSDCtest.sol");
+const USDCtest = artifacts.require("./tests/USDCtest.sol");
+const aUSDCtest = artifacts.require("./tests/aUSDCtest.sol");
 const ActivesList = artifacts.require("./registres/ActivesList.sol");
 const ConnectorAAVE = artifacts.require("./connectors/ConnectorAAVE.sol");
 const ConnectorCurve = artifacts.require("./connectors/ConnectorCurve.sol");
@@ -16,22 +15,29 @@ const m2m = await Mark2Market.deployed();// at(Mark2Market.networks[chainID]['ad
 
 if (chainID == '80001') {
     // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
-  USDC = USDCtest.networks[chainID]['address'];
-  aUSDC = aUSDCtest.networks[chainID]['address'];
-
-  } else {
+    USDC = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
+    aUSDC = "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9";
+  
+  } else if (chainID == 137) {
+    USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+    DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
+    CurvepoolPrice = "0x751B1e21756bDbc307CBcC5085c042a0e9AaEf36"
+    CurvepoolStake = "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE"
+  }
+  else {
     USDC = USDCtest.networks[chainID]['address'];
     aUSDC = aUSDCtest.networks[chainID]['address'];
-
+  
   }
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
-  await actList.actAdd(USDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
+  await actList.actAdd(USDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "10000000000000000000");
 
   const connectorCv = ConnectorCurve.networks[chainID]['address'];
-  //await actList.actAdd(aUSDC, connectorCv,connectorCv, "2500", "9500",  "20000000000000000000");
-  await m2m.tstPrice ("1");
-  const actives = await m2m.activesPrices ();
-  console.log (actives[0]);
+  //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");
+  //await m2m.tstPrice ("1");
+  //const actives = await m2m.activesPrices ();
+  //console.log (actives[0]);
+
 }

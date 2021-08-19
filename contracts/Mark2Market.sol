@@ -22,8 +22,8 @@ contract Mark2Market is IMark2Market, OwnableExt {
             
             
             if (actives[a].isWork > 0) { 
-                 uint price = IConnector(actives[a].poolPriceAddr).getPriceLiq(actives[a].actAddress, 
-                    actives[a].poolPriceAddr,
+                 uint price = IConnector(actives[a].connector).getPriceLiq(actives[a].actAddress, 
+                    actives[a].poolPrice,
                     actives[a].balance); 
                 ap[a] =  ActivesPrices( actives[a], price);
                
