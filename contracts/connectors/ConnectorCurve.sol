@@ -56,10 +56,15 @@ contract ConnectorCurve is IConnector , OwnableExt{
 
     function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
         iCurvePool  pool = iCurvePool(_pool);
-        for (uint256 i=0; i<3; i++) {
-            if (pool.underlying_coins(i) == USDC) {
+        uint256 N_COINS = 3;
+        for (uint256 i=0; i<N_COINS; i++) {
+            address ai = pool.coins(i);
+            if (ai == USDC) {
+
                 for (uint256  j=0; j<3; j++) {
-                    if (pool.underlying_coins(j) == _asset) {
+                address aj = pool.coins(j);
+                    
+                    if (aj == _asset) {
                         return pool.get_dy(int128(uint128(j)), int128(uint128(i)), _balance);
                     }
                 }

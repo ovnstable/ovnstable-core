@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@aave/protocol-v2": "^1.0.1",
-    "@openzeppelin/contracts": "^4.2.0"
+    "@openzeppelin/contracts": "^4.2.0",
+    "uniswap-polygon-sdk": "^3.0.4"
   }
 }

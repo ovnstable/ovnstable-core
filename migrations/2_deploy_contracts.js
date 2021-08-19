@@ -1,6 +1,6 @@
 const OvernightToken = artifacts.require("OvernightToken");
-const USDCtest = artifacts.require("USDCtest");
-const aUSDCtest = artifacts.require("aUSDCtest");
+const USDCtest = artifacts.require("tests/USDCtest");
+const aUSDCtest = artifacts.require("tests/aUSDCtest");
 const Exchange = artifacts.require("Exchange");
 
 const ConnectorAAVE = artifacts.require("./connectors/ConnectorAAVE.sol");
@@ -39,8 +39,14 @@ module.exports = async function(deployer) {
      // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
       aaveLendingPoolAddressesProvider = "0x178113104fEcbcD7fF8669a0150721e231F0FD4B"
       usdctaddr = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
-      
-   } else {
+
+   }
+  else if (chainID == '137') {
+    aaveLendingPoolAddressesProvider = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744"
+    usdctaddr = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+    daiaddr = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
+  } 
+   else {
     await deployer.deploy(USDCtest);
     await deployer.deploy(aUSDCtest);
     const usdct = await USDCtest.deployed();
