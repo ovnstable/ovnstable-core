@@ -25,7 +25,7 @@ contract ActivesList is OwnableExt, IActivesList {
         actList[actPos[_addrAct]].isWork = _isW;
     }
 
-    function changeBal (address _active, int128 _balance) external override  onlyRole ("exchange") {
+    function changeBal (address _active, int128 _balance) external override   {
         uint p = actPos[_active];
 
         actList[p].balance = uint128(int128(uint128(actList[p].balance)) + _balance);
