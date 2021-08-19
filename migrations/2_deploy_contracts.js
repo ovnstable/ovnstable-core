@@ -8,7 +8,9 @@ const ConnectorCurve = artifacts.require("./connectors/ConnectorCurve.sol");
 
 const ActivesList = artifacts.require("./registres/ActivesList.sol");
 
-const Mark2Market = artifacts.require("./Mark2Market.sol")
+const Mark2Market = artifacts.require("./Mark2Market.sol");
+const PortfolioManager = artifacts.require("./PortfolioManager.sol")
+
 var aaveLendingPoolAddressesProvider;
 
 module.exports = async function(deployer) {
@@ -29,6 +31,9 @@ module.exports = async function(deployer) {
 
   await deployer.deploy(Mark2Market);
   const m2m = await Mark2Market.deployed();
+  
+  await deployer.deploy(PortfolioManager);
+  const pm = await PortfolioManager.deployed();
   
   // setOraclePrice AAAVE
 
@@ -55,9 +60,9 @@ module.exports = async function(deployer) {
    }
 
   await exchange.setTokens(ovnt.address,usdctaddr);
-  await exchange.setactList(actList.address);
+  await exchange.setAddr(actList.address, pm.address);
   await m2m.setActList(actList.address);
-
+  await pm.setAddr(actList.address)
 
   await connAAVE.setAAVE (aaveLendingPoolAddressesProvider);
 
