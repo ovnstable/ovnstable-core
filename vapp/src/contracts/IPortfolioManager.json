@@ -1,0 +1,510 @@
+{
+  "contractName": "IPortfolioManager",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "stake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "unstake",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"unstake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"@Stanta\",\"details\":\"Choosing of connector releasing by changing address of connector's contract\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Common inrterface to DeFi protocol connectors\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Every connector have to implement this function\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol\":\"IPortfolioManager\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol\":{\"keccak256\":\"0xad049c1009e481acb5a65734b9609ecaad9509b49ff289b0ff49e9b304ed407e\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://cf69489ed0449ca3d1e4d04938a4b9fc461985a30de6773e09e1abdfb12a3513\",\"dweb:/ipfs/QmUGKo42ScQZpyvPD2vXxqticpmcL1kPXa8MswEb1r3gi5\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity >=0.8.0 <0.9.0;\n\n/// @title Common inrterface to DeFi protocol connectors\n/// @author @Stanta\n/// @notice Every connector have to implement this function\n/// @dev Choosing of connector releasing by changing address of connector's contract\ninterface IPortfolioManager {\n\n    \nfunction stake (address _asset, uint256 _amount) external;\n\nfunction unstake (address _asset,uint256 _amount ) external;\n\n\n}",
+  "sourcePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol",
+  "ast": {
+    "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol",
+    "exportedSymbols": {
+      "IPortfolioManager": [
+        1309
+      ]
+    },
+    "id": 1310,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1293,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:31:12"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 1294,
+          "nodeType": "StructuredDocumentation",
+          "src": "65:222:12",
+          "text": "@title Common inrterface to DeFi protocol connectors\n @author @Stanta\n @notice Every connector have to implement this function\n @dev Choosing of connector releasing by changing address of connector's contract"
+        },
+        "fullyImplemented": false,
+        "id": 1309,
+        "linearizedBaseContracts": [
+          1309
+        ],
+        "name": "IPortfolioManager",
+        "nameLocation": "297:17:12",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "adc9772e",
+            "id": 1301,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "stake",
+            "nameLocation": "332:5:12",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1299,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1296,
+                  "mutability": "mutable",
+                  "name": "_asset",
+                  "nameLocation": "347:6:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1301,
+                  "src": "339:14:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 1295,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "339:7:12",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 1298,
+                  "mutability": "mutable",
+                  "name": "_amount",
+                  "nameLocation": "363:7:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1301,
+                  "src": "355:15:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1297,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "355:7:12",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "338:33:12"
+            },
+            "returnParameters": {
+              "id": 1300,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "380:0:12"
+            },
+            "scope": 1309,
+            "src": "323:58:12",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "c2a672e0",
+            "id": 1308,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "unstake",
+            "nameLocation": "392:7:12",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1306,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1303,
+                  "mutability": "mutable",
+                  "name": "_asset",
+                  "nameLocation": "409:6:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1308,
+                  "src": "401:14:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 1302,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "401:7:12",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 1305,
+                  "mutability": "mutable",
+                  "name": "_amount",
+                  "nameLocation": "424:7:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1308,
+                  "src": "416:15:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1304,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "416:7:12",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "400:33:12"
+            },
+            "returnParameters": {
+              "id": 1307,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "442:0:12"
+            },
+            "scope": 1309,
+            "src": "383:60:12",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1310,
+        "src": "287:160:12",
+        "usedErrors": []
+      }
+    ],
+    "src": "32:415:12"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/st/Documents/work/OVN/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol",
+    "exportedSymbols": {
+      "IPortfolioManager": [
+        1309
+      ]
+    },
+    "id": 1310,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1293,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:31:12"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 1294,
+          "nodeType": "StructuredDocumentation",
+          "src": "65:222:12",
+          "text": "@title Common inrterface to DeFi protocol connectors\n @author @Stanta\n @notice Every connector have to implement this function\n @dev Choosing of connector releasing by changing address of connector's contract"
+        },
+        "fullyImplemented": false,
+        "id": 1309,
+        "linearizedBaseContracts": [
+          1309
+        ],
+        "name": "IPortfolioManager",
+        "nameLocation": "297:17:12",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "adc9772e",
+            "id": 1301,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "stake",
+            "nameLocation": "332:5:12",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1299,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1296,
+                  "mutability": "mutable",
+                  "name": "_asset",
+                  "nameLocation": "347:6:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1301,
+                  "src": "339:14:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 1295,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "339:7:12",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 1298,
+                  "mutability": "mutable",
+                  "name": "_amount",
+                  "nameLocation": "363:7:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1301,
+                  "src": "355:15:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1297,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "355:7:12",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "338:33:12"
+            },
+            "returnParameters": {
+              "id": 1300,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "380:0:12"
+            },
+            "scope": 1309,
+            "src": "323:58:12",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "c2a672e0",
+            "id": 1308,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "unstake",
+            "nameLocation": "392:7:12",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 1306,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 1303,
+                  "mutability": "mutable",
+                  "name": "_asset",
+                  "nameLocation": "409:6:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1308,
+                  "src": "401:14:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 1302,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "401:7:12",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 1305,
+                  "mutability": "mutable",
+                  "name": "_amount",
+                  "nameLocation": "424:7:12",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 1308,
+                  "src": "416:15:12",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 1304,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "416:7:12",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "400:33:12"
+            },
+            "returnParameters": {
+              "id": 1307,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "442:0:12"
+            },
+            "scope": 1309,
+            "src": "383:60:12",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 1310,
+        "src": "287:160:12",
+        "usedErrors": []
+      }
+    ],
+    "src": "32:415:12"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.6+commit.11564f7e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.0",
+  "updatedAt": "2021-08-19T16:33:59.692Z",
+  "devdoc": {
+    "author": "@Stanta",
+    "details": "Choosing of connector releasing by changing address of connector's contract",
+    "kind": "dev",
+    "methods": {},
+    "title": "Common inrterface to DeFi protocol connectors",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "notice": "Every connector have to implement this function",
+    "version": 1
+  }
+}

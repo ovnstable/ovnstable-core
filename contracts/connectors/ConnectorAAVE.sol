@@ -24,7 +24,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
        ILendingPool pool = ILendingPool(lpap.getLendingPool());
     //IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
         IERC20(_asset).approve(address(pool), _amount);
-     //   DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
 
@@ -41,11 +41,19 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     }
 
 
-    function getPriceLiq (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
+    function getBalance (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
 
-     
         return IERC20(_asset).balanceOf(_where);
     }
+
+    function getLiqBalance (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
+        uint balance = IERC20(_asset).balanceOf(_where);
+        ILendingPool pool = ILendingPool(lpap.getLendingPool());
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+        balance = balance * (100-res.liquidityIndex)/100;
+        return balance;
+    }
+
 
 }
 
