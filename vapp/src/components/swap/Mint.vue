@@ -187,7 +187,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
 
     setSum(value) {
       this.sum = value;
@@ -198,8 +198,9 @@ export default {
 
       try {
         let toWei = utils.toWei(this.sum);
-        let bn = utils.toWei(this.sum);
+        let bn = utils.toBN(this.sum);
         let refreshBalance = this.refreshBalance;
+        let refreshCurrentTotalData = this.refreshCurrentTotalData;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -213,6 +214,7 @@ export default {
             alert('Success second step!')
 
             refreshBalance();
+            refreshCurrentTotalData();
             setSum(null)
           });
         });
