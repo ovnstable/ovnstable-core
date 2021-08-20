@@ -10,25 +10,29 @@ contract Mark2Market is IMark2Market, OwnableExt {
     IActivesList actListContr;
 
     uint testprice ;
-    function setActList (address _addr) public onlyOwner{
-        actListContr = IActivesList(_addr);
+    address  addrWault;
+
+    function setAddr (address _addrAL, address _addrWault) public onlyOwner{
+        actListContr = IActivesList(_addrAL);
+        addrWault = _addrWault;
     }
 
     function activesPrices () public view override returns (ActivesPrices[10] memory ap ) {
         IActivesList.Active[] memory actives = actListContr.getAllActives();
         //calculate total activites sum
          //USDC price]
-         ap[0] = ActivesPrices( actives[0], 
-                    IConnector(actives[0].connector).getPriceOffer(actives[0].actAddress, 
-                    actives[0].poolPrice));
-        for (uint8 a = 1; a<actives.length && a<100; a++) {
+         
+        for (uint8 a = 0; a<actives.length && a<100; a++) {
             
             
             if (actives[a].isWork > 0) { 
-                 uint price = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
-                    actives[a].poolPrice,
-                    actives[a].balance); 
-                ap[a] =  ActivesPrices( actives[a], price);
+                 uint balance = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
+                    addrWault); 
+                 uint balanceLiq = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
+                    addrWault); 
+                uint price = IConnector(actives[a].connector).getLiqBalance(actives[a].actAddress, 
+                    actives[a].poolPrice);
+                ap[a] =  ActivesPrices( actives[a], price, balance, balanceLiq);
                
             }
             

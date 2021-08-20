@@ -7,6 +7,8 @@ interface IMark2Market   {
     struct ActivesPrices {
         IActivesList.Active active;
         uint256 price;
+        uint256 balance;
+        uint256 balanceLiq;
 
     }
 

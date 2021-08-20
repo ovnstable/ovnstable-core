@@ -41,12 +41,12 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     }
 
 
-    function getBalance (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
+    function getBalance (address _asset, address _where) external view override returns (uint256) {
 
         return IERC20(_asset).balanceOf(_where);
     }
 
-    function getLiqBalance (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
+    function getLiqBalance (address _asset, address _where) external view override returns (uint256) {
         uint balance = IERC20(_asset).balanceOf(_where);
         ILendingPool pool = ILendingPool(lpap.getLendingPool());
         DataTypes.ReserveData memory res = pool.getReserveData(_asset);
