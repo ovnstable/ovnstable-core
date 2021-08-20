@@ -40,6 +40,10 @@ contract Exchange is OwnableExt {
 
     function redeem(address _addrTok, uint256 _amount) public {
 
+        //TODO: Real unstacke amount may be different to _amount
+        uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
+ 
+
         // Transfer from sender to contract then burn from contract
         // ovn.transferFrom(msg.sender, address(this), _amount);
         // ovn.burn(address(this), _amount);
