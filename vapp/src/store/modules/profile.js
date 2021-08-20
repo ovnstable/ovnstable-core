@@ -55,7 +55,7 @@ const actions = {
 
             let data = [];
 
-            let balance = getters.web3.utils.fromWei(value[0][0]['balance'], 'ether');
+            let balance = getters.web3.utils.fromWei(value[0][0]['price'], 'ether');
             data.push({name: 'USDC', value: balance, status: 'UP'});
 
             commit('setCurrentTotalData', data)

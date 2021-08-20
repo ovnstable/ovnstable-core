@@ -29,7 +29,7 @@ rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest 
  */
         dev: { //mumbai local
             host: "https://ovnstable.io/ganache-test",
-            port: 80,
+            port: 8555,
             network_id: "137"
         }
 
