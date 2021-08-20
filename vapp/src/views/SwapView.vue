@@ -19,12 +19,12 @@
 
         <v-row>
           <v-col lg="3" class="pt-10">
-           <StatsWidget/>
+            <StatsWidget/>
           </v-col>
           <v-col lg="1"></v-col>
 
           <v-col lg="4">
-            <v-row class="desc pr-5 pl-5 pt-10" >
+            <v-row class="desc pr-5 pl-5 pt-10">
               Deposit stablecoins to earn yield overnight with most conservative DeFi liquidity management solution
               <p class="text-left font-weight-bold"> Redeem anytime</p>
             </v-row>
@@ -33,13 +33,13 @@
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button v-bind:class="activeTabMint"  @click="tab = 1">Mint</button>
+            <button v-bind:class="activeTabMint" @click="tab = 1">Mint</button>
             <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Redeem</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-         <Mint v-if="tab === 1"/>
+          <Mint v-if="tab === 1"/>
           <Redeem v-if="tab === 2"/>
         </v-row>
 
@@ -113,6 +113,15 @@ export default {
   opacity: 0.8;
 
 }
+
+
+.tab-button-in-active:hover {
+  opacity: 1;
+  background-color: #FFFFFF;
+  border: 1px solid #ECECEC;
+  border-radius: 5px;
+}
+
 .tab-button {
   color: #0A0952;
   cursor: pointer; /* Mouse pointer on hover */

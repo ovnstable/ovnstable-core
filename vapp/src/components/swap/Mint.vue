@@ -80,7 +80,7 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">Enter the amount to Mint & Swap
+          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">{{buttonLabel}}
           </v-btn>
         </v-row>
 
@@ -150,6 +150,15 @@ export default {
         return this.sum;
 
 
+    },
+
+    buttonLabel: function (){
+
+      if (this.isBuy){
+        return 'Press to Mint & Swap'
+      }else {
+        return 'Enter the amount to Mint & Swap';
+      }
     },
 
     isBuy: function () {

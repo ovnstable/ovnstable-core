@@ -40,7 +40,7 @@ const actions = {
     async refreshBalance({commit, dispatch, getters}){
 
         let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
-        let ovn =  await getters.contracts.exchange.methods.balance().call();
+        let ovn =  await getters.contracts.ovn.methods.balanceOf(getters.account).call();
 
         commit('setBalance', {
             ovn: ovn,
@@ -55,6 +55,7 @@ const actions = {
 
             let data = [];
 
+            console.log(value);
             let balance = value[0][0]['balance'];
             data.push({name: 'USDC', value: balance, status: 'UP'});
 
