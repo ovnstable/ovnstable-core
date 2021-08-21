@@ -2,6 +2,7 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 import "./interfaces/IActivesList.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IConnector.sol";
 import "./OwnableExt.sol";
@@ -26,13 +27,21 @@ contract Mark2Market is IMark2Market, OwnableExt {
             
             
             if (actives[a].isWork > 0) { 
-                 uint balance = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
-                    addrWault); 
-                 uint balanceLiq = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
-                    addrWault); 
+                IERC20Metadata tokAct = IERC20Metadata(actives[a].actAddress);
                 uint price = IConnector(actives[a].connector).getLiqBalance(actives[a].actAddress, 
                     actives[a].poolPrice);
-                ap[a] =  ActivesPrices( actives[a], price, balance, balanceLiq);
+                uint bookValue = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
+                    addrWault); 
+                uint liqValue = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
+                    addrWault); 
+             
+                ap[a] =  ActivesPrices( actives[a].actAddress,
+                                        tokAct.name(),
+                                        tokAct.symbol(),
+                                        tokAct.decimals(),
+                                        price, 
+                                        bookValue, 
+                                        liqValue);
                
             }
             
