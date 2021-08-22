@@ -17,8 +17,11 @@ contract Mark2Market is IMark2Market, OwnableExt {
     function activesPrices () public view override returns (ActivesPrices[10] memory ap ) {
         IActivesList.Active[] memory actives = actListContr.getAllActives();
         //calculate total activites sum
-        
-        for (uint8 a = 0; a<actives.length && a<100; a++) {
+         //USDC price]
+         ap[0] = ActivesPrices( actives[0], 
+                    IConnector(actives[0].connector).getPriceOffer(actives[0].actAddress, 
+                    actives[0].poolPrice));
+        for (uint8 a = 1; a<actives.length && a<100; a++) {
             
             
             if (actives[a].isWork > 0) { 
