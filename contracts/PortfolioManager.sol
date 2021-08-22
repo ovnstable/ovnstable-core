@@ -21,7 +21,7 @@ contract PortfolioManager is  IPortfolioManager, OwnableExt {
         actList = IActivesList(_addrAL);
     }
 
-    
+
 function stake (address _asset, uint256 _amount) external override {
 
     // 1. get actives data from active list
@@ -33,9 +33,26 @@ function stake (address _asset, uint256 _amount) external override {
 
 }
 
-function unstake (address _asset,uint256 _amount ) external override {
-return;
-}
+    function unstake(address _asset, uint256 _amount)
+        external
+        override
+        returns (uint256)
+    {
+        // 1. get actives data from active list
+        IActivesList.Active memory active = actList.getActive(_asset);
 
+        // 2. unstake
+        // uint256 unstackedAmount =
+        IConnector(active.connector).unstake(
+            _asset,
+            active.poolStake,
+            _amount,
+            address(this)
+        );
 
+        //3. transfer balance to calles
+        IERC20(_asset).transfer(msg.sender, _amount);
+
+        // return unstackedAmount;
+    }
 }
