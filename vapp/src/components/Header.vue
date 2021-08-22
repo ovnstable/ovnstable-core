@@ -122,7 +122,7 @@ export default {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-    ...mapActions('profile', ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions('profile', ['refreshProfile']),
 
     async testNative() {
 
@@ -148,8 +148,7 @@ export default {
 
             this.setContracts({exchange: first1, usdc: first2, ovn: first3, m2m: first4})
 
-            this.refreshBalance();
-            this.refreshCurrentTotalData();
+            this.refreshProfile();
 
           }
       )

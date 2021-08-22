@@ -9,6 +9,8 @@ const state = {
         ovn: 0,
         usdc: 0,
     },
+
+    gasPrice: 0,
 };
 
 const getters = {
@@ -32,6 +34,11 @@ const getters = {
     web3(state) {
         return state.web3;
     },
+
+
+    gasPrice(state) {
+        return state.gasPrice;
+    },
 };
 
 const actions = {
@@ -47,6 +54,17 @@ const actions = {
             usdc: usdc
         })
 
+    },
+
+    async refreshProfile({commit, dispatch, getters}){
+
+        dispatch('refreshGasPrice');
+        dispatch('refreshCurrentTotalData');
+        dispatch('refreshBalance');
+    },
+
+    async refreshGasPrice({commit, dispatch, getters}){
+        getters.web3.eth.getGasPrice(function(e, r) { commit('setGasPrice', r) })
     },
 
     async refreshCurrentTotalData({commit, dispatch, getters}){
@@ -91,6 +109,9 @@ const mutations = {
         state.balance= balance;
     },
 
+    setGasPrice(state, price) {
+        state.gasPrice = price;
+    },
 
 };
 
