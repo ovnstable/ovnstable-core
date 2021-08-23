@@ -22,6 +22,7 @@ if (chainID == '80001') {
     USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     aUSDC = "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"
     DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
+    aDAI = "0x27F8D03b3a2196956ED754baDc28D73be8830A6e"
     CurvepoolPrice = "0x751B1e21756bDbc307CBcC5085c042a0e9AaEf36"
     CurvepoolStake = "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE"
   }
@@ -33,8 +34,10 @@ if (chainID == '80001') {
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
-  await actList.actAdd(USDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
+  await actList.actAdd(USDC, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
   await actList.actAdd(aUSDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
+  await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
+  await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
 
   const connectorCv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");

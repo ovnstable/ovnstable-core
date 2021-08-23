@@ -12,56 +12,48 @@ import "../OwnableExt.sol";
 
 
 contract ConnectorAAVE is IConnector, OwnableExt {
-    IPriceOracleGetter oraclePrice;
-    ILendingPool pool;
+    ILendingPoolAddressesProvider lpap;
+    
     function setAAVE  (address _LPAP) public onlyOwner {
-        ILendingPoolAddressesProvider lpap = ILendingPoolAddressesProvider(_LPAP);
-        address oracle = lpap.getPriceOracle();
-        oraclePrice = IPriceOracleGetter (oracle);
-        pool = ILendingPool(lpap.getLendingPool());
+        lpap = ILendingPoolAddressesProvider(_LPAP);
 
     }
 
 
     function stake (address _asset, address _pool, uint256 _amount, address _beneficiar ) public override  {
-     //   ILendingPool pool = ILendingPool(_pool);
-//IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
+       ILendingPool pool = ILendingPool(lpap.getLendingPool());
+    //IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
         IERC20(_asset).approve(address(pool), _amount);
-
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
 
-    function unstake(
-        address _asset,
-        address _pool,
-        uint256 _amount,
-        address _to
-    ) public override returns (uint256) {
-        //   ILendingPool pool = ILendingPool(_pool);
 
-        //TODO: check if need here change amount because of usage of scaledAmount in
-        //      mint/burn methods inside aToken
-        uint256 unstackedAmount = pool.withdraw(_asset, _amount, address(this));
-
-        // After withdraw ConnectorAAVE contract would have balance of returned tokens
-        // so we need to transfer it back to PortfolioManager what call this method
-        // here we need
-        //TODO: may be should use _to instead of msg.sender
-        IERC20(_asset).transfer(msg.sender, unstackedAmount);
-        return unstackedAmount;
-    }
+    function unstake (address _asset, address _pool,uint256 _amount, address _to  ) public override  returns (uint256) {
+       ILendingPool pool = ILendingPool(lpap.getLendingPool());
+        pool.withdraw(_asset, _amount, _to);
+        }
 
     function getPriceOffer (address _asset,  address _pool) public view override returns (uint256) {
+       IPriceOracleGetter  oraclePrice = IPriceOracleGetter (lpap.getPriceOracle()); 
 
-        return  oraclePrice.getAssetPrice(_asset);
+        return  oraclePrice.getAssetPrice(_asset); 
     }
 
 
-    function getPriceLiq (address _asset, address _where, uint256 _balance) external view override returns (uint256) {
-
+    function getBalance (address _asset, address _where) external view override returns (uint256) {
 
         return IERC20(_asset).balanceOf(_where);
     }
+
+    function getLiqBalance (address _asset, address _where) external view override returns (uint256) {
+        uint balance = IERC20(_asset).balanceOf(_where);
+        ILendingPool pool = ILendingPool(lpap.getLendingPool());
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+        balance = balance * (100-res.liquidityIndex)/100;
+        return balance;
+    }
+
 
 }
 
