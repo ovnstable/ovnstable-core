@@ -25,15 +25,11 @@
     </v-col>
     <v-col lg="2"></v-col>
     <v-col lg="3">
-      <v-row dense class="pt-2 ">
-        <v-col class="justify-end" v-on:click="testNative">
-          <button v-if="!account" class="btn">Connect Wallet
+      <v-row dense class="pt-2 " justify="end">
+          <button v-on:click="testNative" v-if="!account" class="btn">Connect Wallet
             <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
           </button>
-          <div v-else>{{ account }}</div>
-          <!--          <img class="type ml-5" :src="require('../assets/eth.png')" height="40" width="40"/>-->
-          <!--          <img class="settings ml-5" :src="require('../assets/gear.png')" height="35" width="35"/>-->
-        </v-col>
+          <div v-else class="account">{{ accountShort }}</div>
       </v-row>
     </v-col>
   </v-app-bar>
@@ -48,6 +44,7 @@ import Exchange from '../contracts/Exchange.json';
 import USDCtest from '../contracts/USDCtest.json';
 import OverNightToken from '../contracts/OvernightToken.json';
 import Mark2Market from '../contracts/Mark2Market.json';
+import DAItest from '../contracts/DAItest.json'
 
 export default {
   name: 'Header',
@@ -94,6 +91,14 @@ export default {
     ...mapGetters('profile', ['exchange', 'account', 'web3']),
 
 
+    accountShort: function () {
+
+      if (this.account) {
+        return this.account.substring(0, 20) + '...';
+      }
+      return null;
+    },
+
     activeTabSave: function () {
       return {
         'active-tab': this.tabId === 1,
@@ -118,6 +123,11 @@ export default {
   },
 
 
+  created() {
+    this.testNative();
+  },
+
+
   methods: {
 
 
@@ -135,18 +145,15 @@ export default {
             let account = accounts[0];
             this.setAccount(account);
 
-            web3.eth.getBalance(account)
-                .then(value => {
-                  console.log(web3.utils.fromWei(value, 'ether'))
-                });
+            let contracts = {};
 
+            contracts.exchange = this.load(Exchange, account, web3);
+            contracts.usdc = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+            contracts.dai = this.load(DAItest, account, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
+            contracts.ovn = this.load(OverNightToken, account, web3);
+            contracts.m2m = this.load(Mark2Market, account, web3);
 
-            let first1 = this.load(Exchange, account, web3);
-            let first2 = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-            let first3 = this.load(OverNightToken, account, web3);
-            let first4 = this.load(Mark2Market, account, web3);
-
-            this.setContracts({exchange: first1, usdc: first2, ovn: first3, m2m: first4})
+            this.setContracts(contracts)
 
             this.refreshProfile();
 
@@ -171,7 +178,6 @@ export default {
       }
 
       let ethContract = new web3.eth.Contract(abi, address);
-
 
       return ethContract;
     }
@@ -216,6 +222,18 @@ export default {
   border: 1px solid #ECECEC;
   border-radius: 10px;
   opacity: 0.8;
+}
+
+.account {
+  cursor: pointer; /* Mouse pointer on hover */
+  color: #686868;
+  width: 180px;
+  height: 35px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 5px;
+  border: 1px solid #ECECEC;
+  border-radius: 10px;
 }
 
 /* Darker background on mouse-over */
