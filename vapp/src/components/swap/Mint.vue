@@ -198,7 +198,9 @@ export default {
 
       try {
         let toWei = utils.toWei(this.sum);
-        let bn = utils.toBN(this.sum);
+        // 10**6 - корректировка для USDc, необходимо брать в зависимости от decimal() на токене
+        let bn = utils.toBN(this.sum * 10**6);
+
         let refreshBalance = this.refreshBalance;
 
         let contracts = this.contracts;
@@ -206,11 +208,11 @@ export default {
         let setSum = this.setSum;
 
 
-        contracts.usdc.methods.approve(contracts.exchange.options.address, toWei).send({from: from}).then(function () {
-          alert('Success first step!')
+        contracts.usdc.methods.approve(contracts.exchange.options.address, bn).send({from: from}).then(function () {
+          // alert('Success first step!')
 
           contracts.exchange.methods.buy(contracts.usdc.options.address, bn).send({from: from}).then(function () {
-            alert('Success second step!')
+            // alert('Success second step!')
 
             refreshBalance();
             setSum(null)

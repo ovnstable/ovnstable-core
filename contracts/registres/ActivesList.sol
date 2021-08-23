@@ -11,12 +11,13 @@ contract ActivesList is OwnableExt, IActivesList {
     mapping (address => uint256) actPos;
     Active[] actList;
 
-    function actAdd (address _addrAct, address _connector, address _poolPrice, address _poolStake,  uint16 _minSh, uint16 _maxSh, uint256 _initBal  )external override onlyOwner {
-        actList.push (Active (_addrAct, _connector, _poolPrice, _poolStake, _initBal,  _minSh,  _maxSh, 1));
+    function actAdd (address _addrAct, address _addrAAct, address _connector, address _poolPrice, address _poolStake,  uint16 _minSh, uint16 _maxSh, uint256 _initBal  )external override onlyOwner {
+        actList.push (Active (_addrAct, _addrAAct, _connector, _poolPrice, _poolStake, _initBal,  _minSh,  _maxSh, 1));
         actPos[_addrAct] = actList.length - 1;
     }
 
-    function editAct (address _addrAct, address _connector, address _poolPrice, address _poolStake,  uint16 _minSh, uint16 _maxSh, uint8 _isW) external override  onlyOwner {
+    function editAct (address _addrAct, address _addrAAct, address _connector, address _poolPrice, address _poolStake,  uint16 _minSh, uint16 _maxSh, uint8 _isW) external override  onlyOwner {
+        actList[actPos[_addrAct]].aTokenAddress = _addrAAct;
         actList[actPos[_addrAct]].connector = _connector;
         actList[actPos[_addrAct]].poolPrice = _poolPrice;
         actList[actPos[_addrAct]].poolStake = _poolStake;
