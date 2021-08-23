@@ -6,16 +6,14 @@
         <v-container>
           <v-row dense v-for="item in currentTotalData" class="row">
             <v-col lg="8">
-              {{item.name}}
+              {{item.symbol}}
             </v-col>
-            <v-col lg="3">
-              {{item.value.toLocaleString()}}
+            <v-col lg="2">
+              {{item.price.toLocaleString()}}
             </v-col >
-            <v-col lg="1">
-              <v-icon small color="#00FF19" v-if="item.status === 'UP'">mdi-arrow-up-drop-circle</v-icon>
-              <v-icon small color="#FF0000" v-if="item.status === 'DOWN'" >mdi-arrow-down-drop-circle</v-icon>
-              <template v-else></template>
-            </v-col>
+            <v-col lg="2">
+              {{item.liquidationValue.toLocaleString()}}
+            </v-col >
           </v-row>
 
           <v-row dense class="row pt-10">
@@ -63,12 +61,6 @@ export default {
   data: () => ({
     menu: false,
     tab: null,
-    currency: {id: 'usdc'},
-
-    currencies: [],
-
-    sum: null,
-
     totalPortfolio: {
       value: 831435.95,
       status: 'UP'
@@ -128,15 +120,6 @@ export default {
       },
     ],
 
-    gas: null,
-
-    buyCurrency: null,
-    buyCurrencies: [{
-      id: 'ovn',
-      title: 'OVN',
-      image: require('../../assets/currencies/ovn.svg')
-    }],
-
 
   }),
 
@@ -147,42 +130,10 @@ export default {
 
   created() {
 
-    this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.svg')});
-    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
-
-    this.currency = this.currencies[0];
-
-    this.buyCurrency = this.buyCurrencies[0];
   },
 
   methods: {
 
-
-    buy() {
-
-
-      try {
-        let toWei = utils.toWei(this.sum);
-
-        let contracts = this.contracts;
-        let from = this.account;
-
-        contracts.usdc.methods.approve(from, toWei).send({from: from}).then(function () {
-          alert('Success first step!')
-        });
-
-        contracts.exchange.methods.buy(toWei).send().then(function (){
-          alert('Success second step!')
-        });
-
-      } catch (e) {
-        console.log(e)
-      }
-    },
-
-    selectItem(item) {
-      this.currency = item;
-    }
   }
 }
 </script>
