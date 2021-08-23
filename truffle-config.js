@@ -19,7 +19,7 @@ rm -r ../ganache_mumbai && ganache-cli -m "clutch captain shoe salt awake harves
 
      */
 
-        pl: { //mumbai local
+        pl: { //poligon  local fork
             host: "127.0.0.1",
             port: 8555,
             network_id: "137"
@@ -27,9 +27,9 @@ rm -r ../ganache_mumbai && ganache-cli -m "clutch captain shoe salt awake harves
 rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest setup primary inmate ugly among become" -f 'https://polygon-mainnet.infura.io/v3/753a98a2eb6c4d64918829f47d069440' -u 0xa0df350d2637096571F7A701CBc1C5fdE30dF76A --db ../ganache_poly  -p 8555 -g 20 -e 1000
 
  */
-        dev: { //mumbai local
+        dev: { //ONV testnet 
             host: "https://ovnstable.io/ganache-test",
-            port: 80,
+            port: 8555,
             network_id: "137"
         }
 

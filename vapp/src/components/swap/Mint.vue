@@ -40,7 +40,7 @@
             <img :src="require('../../assets/icons8-arrow 1.svg').default" height="30" width="30"/>
           </v-col>
           <v-col lg="4" class="pt-1">
-            <span class="gas-title">Gas fee: {{ gas }}</span>
+            <span class="gas-title">Gas fee: {{ gasPrice }}</span>
             <img class="ml-2" :src="require('../../assets/poly.svg').default" height="20" width="20"/>
           </v-col>
           <v-col lg="6">
@@ -80,29 +80,11 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">Enter the amount to Mint & Swap
+          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">{{buttonLabel}}
           </v-btn>
         </v-row>
 
-        <v-row dense class="pt-4">
 
-          <v-expansion-panels disabled class="advanced elevation-0">
-            <v-expansion-panel
-
-            >
-              <v-expansion-panel-header>
-                Advanced
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
-                Max slippage
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-row>
-
-        <v-row dense class="pt-4">
-          <v-btn height="40" class="switch elevation-0">Switch to mint via multipple assets</v-btn>
-        </v-row>
 
       </v-card-text>
     </v-card>
@@ -152,6 +134,15 @@ export default {
 
     },
 
+    buttonLabel: function (){
+
+      if (this.isBuy){
+        return 'Press to Mint & Swap'
+      }else {
+        return 'Enter the amount to Mint & Swap';
+      }
+    },
+
     isBuy: function () {
       return this.account && this.sum > 0 && this.numberRule;
     },
@@ -171,7 +162,7 @@ export default {
     },
 
 
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'balance']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'balance', 'gasPrice']),
   },
 
   created() {
@@ -187,7 +178,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
 
     setSum(value) {
       this.sum = value;
@@ -202,6 +193,7 @@ export default {
         let bn = utils.toBN(this.sum * 10**6);
 
         let refreshBalance = this.refreshBalance;
+        let refreshCurrentTotalData = this.refreshCurrentTotalData;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -215,7 +207,9 @@ export default {
             // alert('Success second step!')
 
             refreshBalance();
+            refreshCurrentTotalData();
             setSum(null)
+
           });
         });
 

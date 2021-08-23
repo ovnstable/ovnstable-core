@@ -113,6 +113,13 @@ export default {
 
 }
 
+.tab-button-in-active:hover {
+  opacity: 1;
+  background-color: #FFFFFF;
+  border: 1px solid #ECECEC;
+  border-radius: 5px;
+}
+
 .tab-button {
   color: #0A0952;
   cursor: pointer; /* Mouse pointer on hover */

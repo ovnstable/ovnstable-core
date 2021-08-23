@@ -7,3 +7,5 @@ package-lock.json
 vapp/dist
 deploy.sh
 ganache_mumbai/
+/vapp/truffle-migrate.sh
+vapp/src/contracts

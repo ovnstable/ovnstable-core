@@ -16,7 +16,7 @@ var aaveLendingPoolAddressesProvider;
 module.exports = async function(deployer) {
   await deployer.deploy(OvernightToken);
   const ovnt = await OvernightToken.deployed();
-  
+
   await deployer.deploy(Exchange);
   const exchange = await Exchange.deployed();
 
@@ -31,13 +31,13 @@ module.exports = async function(deployer) {
 
   await deployer.deploy(Mark2Market);
   const m2m = await Mark2Market.deployed();
-  
+
   await deployer.deploy(PortfolioManager);
   const pm = await PortfolioManager.deployed();
-  
+
   // setOraclePrice AAAVE
 
-  
+
    const chainID = await web3.eth.net.getId();
   var usdctaddr
    if (chainID == '80001') {
@@ -50,18 +50,18 @@ module.exports = async function(deployer) {
     aaveLendingPoolAddressesProvider = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744"
     usdctaddr = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     daiaddr = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
-  } 
+  }
    else {
     await deployer.deploy(USDCtest);
     await deployer.deploy(aUSDCtest);
     const usdct = await USDCtest.deployed();
-    const ausdc = await USDCtest.deployed(); 
+    const ausdc = await USDCtest.deployed();
     usdctaddr = usdct.address
    }
 
   await exchange.setTokens(ovnt.address,usdctaddr);
   await exchange.setAddr(actList.address, pm.address);
-  await m2m.setActList(actList.address);
+  await m2m.setAddr(actList.address, pm.address);
   await pm.setAddr(actList.address)
 
   await connAAVE.setAAVE (aaveLendingPoolAddressesProvider);

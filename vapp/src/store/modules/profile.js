@@ -9,6 +9,8 @@ const state = {
         ovn: 0,
         usdc: 0,
     },
+
+    gasPrice: 0,
 };
 
 const getters = {
@@ -32,15 +34,20 @@ const getters = {
     web3(state) {
         return state.web3;
     },
+
+
+    gasPrice(state) {
+        return state.gasPrice;
+    },
 };
 
 const actions = {
 
 
-    async refreshBalance({commit, dispatch, getters}){
+    async refreshBalance({commit, dispatch, getters}) {
 
         let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
-        let ovn =  await getters.contracts.exchange.methods.balance().call();
+        let ovn = await getters.contracts.ovn.methods.balanceOf(getters.account).call();
 
         commit('setBalance', {
             ovn: ovn,
@@ -49,18 +56,25 @@ const actions = {
 
     },
 
-    async refreshCurrentTotalData({commit, dispatch, getters}){
+    async refreshProfile({commit, dispatch, getters}) {
+
+        dispatch('refreshGasPrice');
+        dispatch('refreshCurrentTotalData');
+        dispatch('refreshBalance');
+    },
+
+    async refreshGasPrice({commit, dispatch, getters}) {
+        getters.web3.eth.getGasPrice(function (e, r) {
+            commit('setGasPrice', r)
+        })
+    },
+
+    async refreshCurrentTotalData({commit, dispatch, getters}) {
 
         getters.contracts.m2m.methods.activesPrices().call().then(value => {
-
-            let data = [];
-
-            let balance = getters.web3.utils.fromWei(value[0][0]['balance'], 'ether');
-            data.push({name: 'USDC', value: balance, status: 'UP'});
-
-            commit('setCurrentTotalData', data)
+            console.log(value)
+            commit('setCurrentTotalData', value)
         })
-
 
 
     }
@@ -87,9 +101,12 @@ const mutations = {
     },
 
     setBalance(state, balance) {
-        state.balance= balance;
+        state.balance = balance;
     },
 
+    setGasPrice(state, price) {
+        state.gasPrice = price;
+    },
 
 };
 

@@ -44,6 +44,10 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 import contract from '@truffle/contract';
 
+import Exchange from '../contracts/Exchange.json';
+import USDCtest from '../contracts/USDCtest.json';
+import OverNightToken from '../contracts/OvernightToken.json';
+import Mark2Market from '../contracts/Mark2Market.json';
 
 export default {
   name: 'Header',
@@ -118,7 +122,7 @@ export default {
 
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-    ...mapActions('profile', ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions('profile', ['refreshProfile']),
 
     async testNative() {
 
@@ -137,15 +141,14 @@ export default {
                 });
 
 
-            let first1 = this.load(require('../contracts/Exchange.json'), account, web3);
-            let first2 = this.load(require('../contracts/USDCtest.json'), account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-            let first3 = this.load(require('../contracts/OvernightToken.json'), account, web3);
-            let first4 = this.load(require('../contracts/Mark2Market.json'), account, web3);
+            let first1 = this.load(Exchange, account, web3);
+            let first2 = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+            let first3 = this.load(OverNightToken, account, web3);
+            let first4 = this.load(Mark2Market, account, web3);
 
             this.setContracts({exchange: first1, usdc: first2, ovn: first3, m2m: first4})
 
-            this.refreshBalance();
-            this.refreshCurrentTotalData();
+            this.refreshProfile();
 
           }
       )

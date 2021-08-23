@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.8.0 <0.9.0;
-import "./IActivesList.sol";
 
 interface IMark2Market   {
     struct ActivesPrices {
-        IActivesList.Active active;
+        address addr;
+        string name;
+        string symbol;
+        uint decimals;
         uint256 price;
+        uint256 bookValue;
+        uint256 liquidationValue;
 
     }
 
-    function activesPrices () external view returns (ActivesPrices[10] memory ) ;
+    function activesPrices () external view returns (ActivesPrices[] memory ) ;
 
 
 }

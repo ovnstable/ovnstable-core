@@ -54,7 +54,8 @@ contract ConnectorCurve is IConnector , OwnableExt{
 
     }
 
-    function getPriceLiq (address _asset, address _pool, uint256 _balance) external view override returns (uint256) {
+    function getBalance (address _asset, address _pool) external view override returns (uint256) {
+        uint256 _balance = 0; //TODO !!! balance of tokens on WAULT contract
         iCurvePool  pool = iCurvePool(_pool);
         uint256 N_COINS = 3;
         for (uint256 i=0; i<N_COINS; i++) {
@@ -73,5 +74,8 @@ contract ConnectorCurve is IConnector , OwnableExt{
         revert ("can't find addresses of coins");
     }
 
+    function getLiqBalance (address _asset, address _where) external view override returns (uint256) {
+        
+    }
 
 }
