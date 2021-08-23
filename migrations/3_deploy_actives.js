@@ -34,11 +34,10 @@ if (chainID == '80001') {
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
-  await actList.actAdd(USDC, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
-  await actList.actAdd(aUSDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
-  await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
-  await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
-  await actList.actAdd(USDC, aUSDC, connectorAv, connectorAv, connectorAv, "2500", "9500", "10000000000000000000");
+  await actList.actAdd(USDC, aUSDC, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
+  await actList.actAdd(aUSDC, aUSDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
+  await actList.actAdd(DAI, aDAI,connectorAv,connectorAv, connectorAv, "500", "1000", "0");
+  await actList.actAdd(aDAI, aDAI,connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
 
   const connectorCv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");
