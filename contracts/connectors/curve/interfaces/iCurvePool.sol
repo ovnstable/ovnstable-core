@@ -22,5 +22,6 @@ function coins(uint256 i) external view returns (address);
 function get_virtual_price() external view returns (uint256);
 // StableSwap.get_dy(i: int128, j: int128, _dx: uint256) → uint256: view
 function get_dy(int128 i, int128 j, uint256 _dx ) external view returns (uint256);
+function calc_withdraw_one_coin(uint256 _amount, int128 i) external view returns (uint256);
 
 }

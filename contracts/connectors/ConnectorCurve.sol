@@ -48,34 +48,45 @@ contract ConnectorCurve is IConnector , OwnableExt{
         }
     }
 
-    function getPriceOffer (address _asset,  address _pool) external override view returns (uint256) {
+    function getPriceOffer (address _asset,  address _pool) public override view returns (uint256) {
         iCurvePool  pool = iCurvePool(_pool);
         return pool.get_virtual_price();
 
     }
 
-    function getBalance (address _asset, address _pool) external view override returns (uint256) {
-        uint256 _balance = 0; //TODO !!! balance of tokens on WAULT contract
+    function getBookValue (address _asset, address _addrWault,  address _pool) external view override returns (uint256) { 
+        uint256 balance = IERC20(_asset).balanceOf(_addrWault);        
         iCurvePool  pool = iCurvePool(_pool);
         uint256 N_COINS = 3;
         for (uint256 i=0; i<N_COINS; i++) {
-            address ai = pool.coins(i);
+            address ai = pool.underlying_coins(i);
             if (ai == USDC) {
-
-                for (uint256  j=0; j<3; j++) {
-                address aj = pool.coins(j);
-                    
-                    if (aj == _asset) {
-                        return pool.get_dy(int128(uint128(j)), int128(uint128(i)), _balance);
-                    }
-                }
+                uint256 price = getPriceOffer(_asset, _pool) ;
+                return price * balance; 
             }
         }
         revert ("can't find addresses of coins");
     }
 
-    function getLiqBalance (address _asset, address _where) external view override returns (uint256) {
+    function getLiqValue (address _asset, address _addrWault,  address _pool) external view override returns (uint256) {
         
+        uint256 balance = IERC20(_asset).balanceOf(_addrWault);        
+        iCurvePool  pool = iCurvePool(_pool);
+        uint256 N_COINS = 3;
+        for (uint256 i=0; i<N_COINS; i++) {
+            address ai = pool.underlying_coins(i);
+            if (ai == USDC && balance > 0) {
+                uint256 USDCsliq = pool.calc_withdraw_one_coin(balance, int128(uint128(i))); 
+                uint256 price = getPriceOffer(_asset, _pool) ;
+               
+                return price * USDCsliq; 
+            } else  {
+                return 0;
+            }
+
+        }
+        revert ("can't find addresses of coins");
+
     }
 
 }
