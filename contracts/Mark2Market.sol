@@ -18,11 +18,11 @@ contract Mark2Market is IMark2Market, OwnableExt {
         addrWault = _addrWault;
     }
 
-    function activesPrices () public view override returns (ActivesPrices[10] memory ap ) {
+    function activesPrices () public view override returns (ActivesPrices[] memory ) { 
         IActivesList.Active[] memory actives = actListContr.getAllActives();
         //calculate total activites sum
          //USDC price]
-         
+        ActivesPrices[] memory ap = new ActivesPrices[](actives.length);
         for (uint8 a = 0; a<actives.length && a<100; a++) {
             
             
@@ -46,11 +46,12 @@ contract Mark2Market is IMark2Market, OwnableExt {
             }
             
         }
+
+        return ap;
     }
 
     function tstPrice (uint256 _tst)  public onlyOwner {
-        ActivesPrices[10] memory ap;
-        ap = activesPrices ();
+        ActivesPrices[] memory ap = activesPrices ();
         
         testprice = _tst;
     }

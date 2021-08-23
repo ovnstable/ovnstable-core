@@ -14,7 +14,7 @@ interface IMark2Market   {
 
     }
 
-    function activesPrices () external view returns (ActivesPrices[10] memory ) ;
+    function activesPrices () external view returns (ActivesPrices[] memory ) ;
 
 
 }

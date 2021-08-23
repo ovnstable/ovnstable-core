@@ -7,11 +7,14 @@ import "./aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "./aave/interfaces/IPriceOracleGetter.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {WadRayMath} from './aave/libraries/math/WadRayMath.sol';
 
 import "../OwnableExt.sol";
 
 
 contract ConnectorAAVE is IConnector, OwnableExt {
+    using WadRayMath for uint256;
+
     ILendingPoolAddressesProvider lpap;
     
     function setAAVE  (address _LPAP) public onlyOwner {
@@ -47,11 +50,13 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     }
 
     function getLiqBalance (address _asset, address _where) external view override returns (uint256) {
-        uint balance = IERC20(_asset).balanceOf(_where);
+        uint256 balance = IERC20(_asset).balanceOf(_where);
         ILendingPool pool = ILendingPool(lpap.getLendingPool());
         DataTypes.ReserveData memory res = pool.getReserveData(_asset);
-        balance = balance * (100-res.liquidityIndex)/100;
-        return balance;
+        if  (res.liquidityIndex > 0) {
+            balance = balance.rayDiv(res.liquidityIndex);
+        }       
+     return balance;
     }
 
 
