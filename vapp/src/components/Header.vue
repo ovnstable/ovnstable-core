@@ -9,9 +9,9 @@
     <v-col lg="4" md="2" cols="2" class="ml-0 pl-0">
       <v-row dense style="width: 400px">
         <div style="width: 40px; height: 40px">
-          <v-img :src="require('../assets/main-logo.png')"></v-img>
+          <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
-        <div class="logo-title ml-2 mt-1 hidden-sm-and-down">OVERNIGHT</div>
+        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div>
       </v-row>
     </v-col>
     <v-col lg="4" md="8" cols="8" class="ma-0 pa-0">
