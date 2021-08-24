@@ -201,7 +201,7 @@ export default {
         contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
           alert('Success first step!')
 
-          contracts.exchange.methods.buy(sum).send({from: from}).then(function () {
+          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function () {
             alert('Success second step!')
 
             refreshBalance();

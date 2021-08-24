@@ -126,7 +126,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
 
 
     setSum(value) {
@@ -139,13 +139,15 @@ export default {
       try {
 
         let refreshBalance = this.refreshBalance;
+        let refreshCurrentTotalData = this.refreshCurrentTotalData;
         let setSum = this.setSum;
 
         let contracts = this.contracts;
         let from = this.account;
 
-        contracts.exchange.methods.redeem( this.sum).send({from: from}).then(function () {
+        contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum).send({from: from}).then(function () {
           refreshBalance();
+          refreshCurrentTotalData();
           setSum(null)
         });
 
