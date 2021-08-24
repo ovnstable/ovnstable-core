@@ -22,7 +22,8 @@
           <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
         </div>
         <div class="hidden-sm-and-up mt-10">
-          <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to" @input="pushUrl" item-text="name"/>
+          <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to"
+                    @input="pushUrl" item-text="name"/>
         </div>
       </v-row>
     </v-col>
@@ -145,7 +146,7 @@ export default {
 
     let path = this.$router.history.current.path;
     let find = this.menus.find(value => value.to === path);
-    if(find)
+    if (find)
       this.menu = find;
 
     this.testNative();
@@ -159,7 +160,7 @@ export default {
     ...mapActions('profile', ['refreshProfile']),
 
 
-    pushUrl(to){
+    pushUrl(to) {
       this.$router.push(to)
     },
 
@@ -170,26 +171,33 @@ export default {
       await window.ethereum.enable();
       this.setWeb3(web3);
 
+      let self = this;
       this.web3.eth.getAccounts((error, accounts) => {
-            let account = accounts[0];
-            this.setAccount(account);
+        self.init(web3, accounts);
+      })
 
-            let contracts = {};
+      window.ethereum.on('accountsChanged', function (accounts) {
+        self.init(web3, accounts);
+      });
 
-            contracts.exchange = this.load(Exchange, account, web3);
-            contracts.usdc = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-            contracts.dai = this.load(DAItest, account, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
-            contracts.ovn = this.load(OverNightToken, account, web3);
-            contracts.m2m = this.load(Mark2Market, account, web3);
+    },
 
-            this.setContracts(contracts)
 
-            this.refreshProfile();
+    init(web3, accounts) {
+      let account = accounts[0];
+      this.setAccount(account);
 
-          }
-      )
-      ;
+      let contracts = {};
 
+      contracts.exchange = this.load(Exchange, account, web3);
+      contracts.usdc = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+      contracts.dai = this.load(DAItest, account, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
+      contracts.ovn = this.load(OverNightToken, account, web3);
+      contracts.m2m = this.load(Mark2Market, account, web3);
+
+      this.setContracts(contracts)
+
+      this.refreshProfile();
 
     },
 
@@ -213,7 +221,8 @@ export default {
     ,
 
 
-  },
+  }
+  ,
 }
 ;
 </script>
