@@ -34,21 +34,21 @@ function stake (address _asset, uint256 _amount) external override {
     // 1. get actives data from active list
     IActivesList.Active memory active = actList.getActive(_asset);
     // 2. sent liquidity to connector
-    require(IERC20(_asset).balanceOf(address(this)) >= _amount, "Not enough balance on PM");
+    // require(IERC20(_asset).balanceOf(address(this)) >= _amount, "Not enough balance on PM");
 
-    emit ConsoleLogNamed("Before stake USDC ", IERC20(_asset).balanceOf(address(this)));
-    emit ConsoleLogNamed("Before stake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
+    // emit ConsoleLogNamed("Before stake USDC ", IERC20(_asset).balanceOf(address(this)));
+    // emit ConsoleLogNamed("Before stake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
 
-    IERC20(_asset).transfer(active.connector, _amount);
+     IERC20(_asset).transfer(active.connector, _amount);
 
-    emit ConsoleLogNamed("Before stake USDC on Connector", IERC20(_asset).balanceOf(active.connector));
-    emit ConsoleLogNamed("Before stake aUSDC on Connector", IERC20(active.aTokenAddress).balanceOf(active.connector));
+    // emit ConsoleLogNamed("Before stake USDC on Connector", IERC20(_asset).balanceOf(active.connector));
+    // emit ConsoleLogNamed("Before stake aUSDC on Connector", IERC20(active.aTokenAddress).balanceOf(active.connector));
 
     // 3. stake
     IConnector(active.connector).stake(_asset, active.poolStake, _amount, address(this));
 
-    emit ConsoleLogNamed("After stake USDC ", IERC20(_asset).balanceOf(address(this)));
-    emit ConsoleLogNamed("After stake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
+    // emit ConsoleLogNamed("After stake USDC ", IERC20(_asset).balanceOf(address(this)));
+    // emit ConsoleLogNamed("After stake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
 
 }
 
@@ -62,31 +62,40 @@ function stake (address _asset, uint256 _amount) external override {
 
         // 2. unstake
 
-        emit ConsoleLogNamed("try unstake", _amount);
+        // emit ConsoleLogNamed("try unstake", _amount);
 
-        emit ConsoleLogNamed("Before unstake USDC ", IERC20(_asset).balanceOf(address(this)));
-        emit ConsoleLogNamed("Before unstake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
+        // emit ConsoleLogNamed("Before unstake USDC ", IERC20(_asset).balanceOf(address(this)));
+        // emit ConsoleLogNamed("Before unstake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
 
-        require(IERC20(active.aTokenAddress).balanceOf(address(this)) >= _amount, "Not enough balance aToken on PM");
+        // require(IERC20(active.aTokenAddress).balanceOf(address(this)) >= _amount, "Not enough balance aToken on PM");
+        uint256 unstackedAmount; 
+        for (uint8 i= 0; i< active.derivatives.length; i++) 
+        {       //todo calculate derAmount depends on strategy 
+                uint derAmount = IERC20(active.derivatives[i]).balanceOf(address(this));
 
-        IERC20(active.aTokenAddress).transfer(active.connector, _amount);
+                IERC20(active.derivatives[i]).transfer(active.connector, derAmount); 
 
-        emit ConsoleLogNamed("Before unstake USDC on Connector", IERC20(_asset).balanceOf(active.connector));
-        emit ConsoleLogNamed("Before unstake aUSDC on Connector", IERC20(active.aTokenAddress).balanceOf(active.connector));
+                // emit ConsoleLogNamed("Before unstake USDC on Connector", IERC20(_asset).balanceOf(active.connector));
+                // emit ConsoleLogNamed("Before unstake aUSDC on Connector", IERC20(active.aTokenAddress).balanceOf(active.connector));
+                uint unstaked = IConnector(active.connector).unstake(
+                    active.actAddress, //derivatives[i],
+                    active.poolStake,
+                    derAmount,
+                    address(this));
+                unstackedAmount =  unstackedAmount + unstaked;
+                
 
-        uint256 unstackedAmount = IConnector(active.connector).unstake(
-            _asset,
-            active.poolStake,
-            _amount,
-            address(this)
-        );
-        emit ConsoleLogNamed("Unstacked", unstackedAmount);
-        emit ConsoleLogNamed("After unstake USDC ", IERC20(_asset).balanceOf(address(this)));
-        emit ConsoleLogNamed("After unstake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
+                // emit ConsoleLogNamed("Unstacked", unstackedAmount);
+                // emit ConsoleLogNamed("After unstake USDC ", IERC20(_asset).balanceOf(address(this)));
+                // emit ConsoleLogNamed("After unstake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
+                if (unstackedAmount >= _amount)
+                {
+                    //3. transfer balance to calles
+                    IERC20(_asset).transfer(msg.sender, _amount);
 
-        //3. transfer balance to calles
-        IERC20(_asset).transfer(msg.sender, unstackedAmount);
-
-        return unstackedAmount;
-    }
+                    return unstackedAmount;
+                }
+        }
+        revert ("No enougth amounts to unstake");
+     }
 }

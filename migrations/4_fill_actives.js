@@ -27,9 +27,9 @@ module.exports = async function(deployer) {
         aUSDC = aUSDCtest.networks[chainID]['address'];
       
       }
-    var  accounts;
-    await web3.eth.getAccounts().then( (a) => { accounts=a; });
-    console.log ("accounts:", accounts);
+     var  accounts;
+     await web3.eth.getAccounts().then( (a) => { accounts=a; });
+    // console.log ("accounts:", accounts);
 
   await deployer.deploy(BuyonSwap);
 
@@ -38,8 +38,8 @@ module.exports = async function(deployer) {
 
   const usdc = await USDCtest.at(USDC);
   
-  const balance = await usdc.balanceOf(accounts[0]);
-  console.log ("balance:", balance.toNumber());
+  // const balance = await usdc.balanceOf(accounts[0]);
+  // console.log ("balance:", balance.toNumber());
 
   await deployer.deploy(DepositAAVE);
   const dAV = await DepositAAVE.deployed();
