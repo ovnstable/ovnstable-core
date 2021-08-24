@@ -48,7 +48,11 @@ function stake (address _asset, uint256 _amount) external override {
     IConnector(active.connector).stake(_asset, active.poolStake, _amount, address(this));
 
     IActivesList.Active memory active2 = actList.getActive(active.derivatives[0]);
-    
+    uint bal2 = IERC20(active2.actAddress).balanceOf(address(this));
+    IConnector(active2.connector).stake(active2.actAddress, active2.poolStake, 
+        bal2,
+        address(this));
+
 }
 
     function unstake(address _asset, uint256 _amount)
