@@ -4,7 +4,7 @@
       <v-card-text>
 
         <v-container>
-          <v-row dense v-for="item in currentTotalData" class="row">
+          <v-row dense  :key="item.symbol" v-for="item in currentTotalData" class="row">
             <v-col lg="8">
               {{item.symbol}}
             </v-col>

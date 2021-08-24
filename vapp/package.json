@@ -36,5 +36,24 @@
     "vuetify-loader": "^1.7.0",
     "web3": "^1.5.1",
     "webpack": "^4.46.0"
+  },
+
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {
+      "no-debugger": "off",
+      "no-control-regex": "off",
+      "no-redeclare": "off"
+    }
   }
 }

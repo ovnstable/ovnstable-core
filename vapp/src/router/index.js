@@ -20,7 +20,12 @@ const routes = [
 
     },
 
+    {
+        path: '/stats',
+        name: 'StatsView',
+        component: () => import('../views/StatsView.vue'),
 
+    },
 
 
 ]
