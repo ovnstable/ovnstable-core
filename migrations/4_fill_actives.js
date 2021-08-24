@@ -38,8 +38,8 @@ module.exports = async function(deployer) {
 
   const usdc = await USDCtest.at(USDC);
   
-  const balance = await usdc.balanceOf(accounts[0]);
-  console.log ("balance:", balance.toNumber());
+  // const balance = await usdc.balanceOf(accounts[0]);
+  // console.log ("balance:", balance.toNumber());
 
   await deployer.deploy(DepositAAVE);
   const dAV = await DepositAAVE.deployed();

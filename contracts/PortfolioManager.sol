@@ -31,6 +31,8 @@ function stake (address _asset, uint256 _amount) external override {
     // 3. stake
     IConnector(active.connector).stake(_asset, active.poolStake, _amount, address(this));
 
+    IActivesList.Active memory active2 = actList.getActive(active.derivatives[0]);
+    
 }
 
     function unstake(address _asset, uint256 _amount)
