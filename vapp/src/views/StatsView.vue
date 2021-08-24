@@ -14,7 +14,7 @@
 
       >
         <v-row class="justify-center align-center pt-15">
-          <div class="swap-title ml-2">OVN Total Portfolio</div>
+          <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
         </v-row>
 
         <v-row>
@@ -27,25 +27,24 @@
 
           <v-col lg="4" sm="12" md="12" cols="12">
             <v-row class="desc pr-5 pl-5 pt-10">
-              Automated Overnight DeFi total asset portfolio management dashboards. Your assets are there.
-              <br>
-              <br>
-              <p class="text-left font-weight-bold"> Redeem anytime</p>
+              <div>
+                <p>Keep track on all interactions between you and Overnight</p>
+                <p><b>Redeem anytime</b></p>
+              </div>
             </v-row>
           </v-col>
         </v-row>
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button v-bind:class="activeTabMint" @click="tab = 1">Current Data</button>
-            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Historical Data</button>
+            <button v-bind:class="activeTabTx" @click="tab = 1">Transaction Log</button>
+            <button v-bind:class="activeTabGas" @click="tab = 2 ">Gas Fees Log</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
           <v-col lg="4" class="pa-0 ma-0">
-            <CurrentTotalData v-if="tab === 1"/>
-            <HistoryTotalData v-if="tab === 2"/>
+            <TransactionLog v-if="tab === 1"/>
           </v-col>
         </v-row>
 
@@ -57,27 +56,29 @@
 <script>
 
 import StatsWidget from "../components/common/StatsWidget";
-import CurrentTotalData from "../components/dashboard/CurrentTotalData";
-import HistoryTotalData from "../components/dashboard/HistoryTotalData";
 import {mapGetters} from "vuex";
+import TransactionLog from "../components/stats/TransactionLog";
 
 export default {
-  name: "DashboardView",
-  components: {HistoryTotalData, CurrentTotalData, StatsWidget,},
+  name: "StatsView",
+  components: {TransactionLog, StatsWidget},
   data: () => ({
     tab: 1,
   }),
 
 
   computed: {
-    activeTabMint: function () {
+
+    ...mapGetters('profile', ['balance']),
+
+    activeTabTx: function () {
       return {
         'tab-button': this.tab === 1,
         'tab-button-in-active': this.tab !== 1,
       }
     },
 
-    activeTabRedeem: function () {
+    activeTabGas: function () {
       return {
         'tab-button': this.tab === 2,
         'tab-button-in-active': this.tab !== 2,

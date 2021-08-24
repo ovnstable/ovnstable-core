@@ -9,8 +9,8 @@
     >
       <v-col
           lg="12"
+          md="8"
           sm="8"
-          md="4"
       >
         <v-row class="justify-center align-center pt-15">
           <img :src="require('../assets/swap.png')">
@@ -18,12 +18,10 @@
         </v-row>
 
         <v-row>
-          <v-col lg="3" class="pt-10">
+          <v-col lg="4"  class="pt-10 hidden-sm-and-down hidden-md-and-down">
             <StatsWidget/>
           </v-col>
-          <v-col lg="1"></v-col>
-
-          <v-col lg="4">
+          <v-col lg="4" sm="12" md="12" cols="12">
             <v-row class="desc pr-5 pl-5 pt-10">
               Deposit stablecoins to earn yield overnight with most conservative DeFi liquidity management solution
               <p class="text-left font-weight-bold"> Redeem anytime</p>
@@ -39,10 +37,11 @@
         </v-row>
 
         <v-row justify="center">
-          <Mint v-if="tab === 1"/>
-          <Redeem v-if="tab === 2"/>
+          <v-col lg="4"  class="pa-0 ma-0">
+            <Mint v-if="tab === 1"/>
+            <Redeem v-if="tab === 2"/>
+          </v-col>
         </v-row>
-
       </v-col>
     </v-row>
   </v-container>

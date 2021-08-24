@@ -1,5 +1,5 @@
 <template>
-  <v-col lg="4">
+  <v-col >
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
         <v-row dense>
@@ -22,11 +22,11 @@
               <v-col lg="3">
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
-                    <img :src="item.image.default" width="34" height="34"><span
+                    <img :src="item.image" width="40" height="40"><span
                       class="title-custom ml-1">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
-                    <img :src="item.image.default" width="34" height="34"> <span
+                    <img :src="item.image" width="34" height="34"> <span
                       class="title-custom">{{ item.title }}</span>
                   </template>
                 </v-select>
@@ -37,11 +37,11 @@
 
         <v-row class="pa-3 " align="center">
           <v-col lg="2" align="center">
-            <img :src="require('../../assets/icons8-arrow 1.svg').default" height="30" width="30"/>
+            <img :src="require('../../assets/arrow.png')" height="30" width="30"/>
           </v-col>
           <v-col lg="4" class="pt-1">
             <span class="gas-title">Gas fee: {{ gasPrice }}</span>
-            <img class="ml-2" :src="require('../../assets/poly.svg').default" height="20" width="20"/>
+            <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
           </v-col>
           <v-col lg="6">
             <v-row justify="end">
@@ -65,11 +65,11 @@
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
-                    <img :src="item.image.default" width="34" height="34"><span
+                    <img :src="item.image" width="40" height="40"><span
                       class="title-custom ml-1">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
-                    <img :src="item.image.default" width="34" height="34"> <span
+                    <img :src="item.image" width="34" height="34"> <span
                       class="title-custom">{{ item.title }}</span>
                   </template>
                 </v-select>
@@ -115,7 +115,7 @@ export default {
     buyCurrencies: [{
       id: 'ovn',
       title: 'OVN',
-      image: require('../../assets/currencies/ovn.svg')
+      image: require('../../assets/ovn.png')
     }],
 
 
@@ -167,8 +167,8 @@ export default {
 
   created() {
 
-    this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.svg')});
-    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
+    this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.png')});
+    // this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
     this.currency = this.currencies[0];
 
@@ -188,8 +188,8 @@ export default {
 
 
       try {
-        let toWei = utils.toWei(this.sum);
-        let bn = utils.toBN(this.sum);
+        let sum = this.sum;
+
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;
 
@@ -198,10 +198,10 @@ export default {
         let setSum = this.setSum;
 
 
-        contracts.usdc.methods.approve(contracts.exchange.options.address, toWei).send({from: from}).then(function () {
+        contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
           alert('Success first step!')
 
-          contracts.exchange.methods.buy(contracts.usdc.options.address, bn).send({from: from}).then(function () {
+          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function () {
             alert('Success second step!')
 
             refreshBalance();

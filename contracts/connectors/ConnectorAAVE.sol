@@ -27,14 +27,16 @@ contract ConnectorAAVE is IConnector, OwnableExt {
        ILendingPool pool = ILendingPool(lpap.getLendingPool());
     //IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
         IERC20(_asset).approve(address(pool), _amount);
-        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+     //   DataTypes.ReserveData memory res = pool.getReserveData(_asset);
         pool.deposit(_asset, _amount, _beneficiar, 0);
         }
 
 
     function unstake (address _asset, address _pool,uint256 _amount, address _to  ) public override  returns (uint256) {
        ILendingPool pool = ILendingPool(lpap.getLendingPool());
-        pool.withdraw(_asset, _amount, _to);
+        // IERC20(_asset).transfer(address(pool), _amount);
+        uint w = pool.withdraw(_asset, _amount, _to);
+        return   w;
         }
 
     function getPriceOffer (address _asset,  address _pool) public view override returns (uint256) {

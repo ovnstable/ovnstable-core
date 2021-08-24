@@ -17,7 +17,7 @@ if (chainID == '80001') {
     // https://docs.aave.com/developers/deployed-contracts/matic-polygon-market
     USDC = "0x2058A9D7613eEE744279e3856Ef0eAda5FCbaA7e";
     aUSDC = "0x2271e3Fef9e15046d09E1d78a8FF038c691E9Cf9";
-  
+
   } else if (chainID == 137) {
     USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     aUSDC = "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"
@@ -32,26 +32,24 @@ if (chainID == '80001') {
   else {
     USDC = USDCtest.networks[chainID]['address'];
     aUSDC = aUSDCtest.networks[chainID]['address'];
-  
+
   }
 
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
   const connectorCrv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
-  await actList.actAdd(USDC, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
-  await actList.actAdd(aUSDC, connectorAv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0");
+  await actList.actAdd(USDC,  connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aUSDC]);
+  // await actList.actAdd(aUSDC,  connectorAv,connectorAv, connectorAv, "2500", "9500", "0",[] );
+  await actList.actAdd(aUSDC, connectorAv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
 
-  //await actList.actAdd(aUSDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
-  //await actList.actAdd(aUSDC, connectorAv,connectorAv, connectorAv, "2500", "9500", "0");
-  await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0");
-  await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0") ;
-  await actList.actAdd(aCurveLP, connectorCrv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0");
-
+  await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aDAI]);
+  await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0", []);
 
   const connectorCv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");
-  // await m2m.tstPrice ("1");
+  //await m2m.tstPrice ("1");
   // const actives = await m2m.activesPrices ();
   // console.log (actives);
 
 }
+

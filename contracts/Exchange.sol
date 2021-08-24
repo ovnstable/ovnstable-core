@@ -26,6 +26,8 @@ contract Exchange is OwnableExt {
 
     function buy(address _addrTok, uint256 _amount) public {
 
+        require(IERC20(_addrTok).balanceOf(msg.sender) >= _amount, "Not enough tokens to buy");
+
         IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
         ovn.mint(msg.sender, _amount);
         actList.changeBal(_addrTok, int128(uint128(_amount)));
@@ -42,7 +44,7 @@ contract Exchange is OwnableExt {
 
         //TODO: Real unstacke amount may be different to _amount
         uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
- 
+
 
         // Transfer from sender to contract then burn from contract
         // ovn.transferFrom(msg.sender, address(this), _amount);

@@ -27,9 +27,9 @@ module.exports = async function(deployer) {
         aUSDC = aUSDCtest.networks[chainID]['address'];
       
       }
-    var  accounts;
-    await web3.eth.getAccounts().then( (a) => { accounts=a; });
-    console.log ("accounts:", accounts);
+     var  accounts;
+     await web3.eth.getAccounts().then( (a) => { accounts=a; });
+    // console.log ("accounts:", accounts);
 
   await deployer.deploy(BuyonSwap);
 
