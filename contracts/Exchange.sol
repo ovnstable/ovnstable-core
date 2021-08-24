@@ -19,44 +19,34 @@ contract Exchange is OwnableExt {
         usdc = IERC20(_usdc);
     }
 
-    function setAddr (address _addrAL, address _addrPM  ) external onlyOwner {
+    function setAddr(address _addrAL, address _addrPM) external onlyOwner {
         actList = IActivesList(_addrAL);
         PM = IPortfolioManager(_addrPM);
     }
 
-    function buy(address _addrTok, uint256 _amount) public {
+    function buy(uint256 _amount) public {
+        // Amount must be greater than zero
+        require(_amount > 0, "amount cannot be 0");
+        usdc.transferFrom(msg.sender, address(this), _amount);
 
-        require(IERC20(_addrTok).balanceOf(msg.sender) >= _amount, "Not enough tokens to buy");
-
-        IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
         ovn.mint(msg.sender, _amount);
-        actList.changeBal(_addrTok, int128(uint128(_amount)));
-// call portfolio manager
-        IERC20(_addrTok).transfer(address(PM), _amount);
-        PM.stake ( _addrTok, _amount);
+
+
     }
 
     function balance() public view returns (uint) {
         return ovn.balanceOf(msg.sender);
     }
 
-    function redeem(address _addrTok, uint256 _amount) public {
+    function redeem(uint256 _amount) public {
+        require(_amount > 0, "You need to redeem at least some tokens");
 
-        //TODO: Real unstacke amount may be different to _amount
-        uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
+        uint256 balance = ovn.balanceOf(msg.sender);
+        require(balance >= _amount, "You need to redeem at least ovn tokens");
 
+        require(usdc.transfer(msg.sender, _amount), "Transfer failed");
 
-        // Transfer from sender to contract then burn from contract
-        // ovn.transferFrom(msg.sender, address(this), _amount);
-        // ovn.burn(address(this), _amount);
+        ovn.burn(msg.sender, _amount);
 
-        // Or just burn from sender
-        ovn.burn(msg.sender, unstakedAmount);
-
-        actList.changeBal(_addrTok, -int128(uint128(unstakedAmount)));
-
-        // TODO: correct amount by rates or oracles
-        // TODO: check threshhold limits to withdraw deposite
-        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
     }
 }

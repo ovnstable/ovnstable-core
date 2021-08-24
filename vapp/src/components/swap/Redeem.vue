@@ -137,8 +137,6 @@ export default {
 
 
       try {
-        // 10**6 - корректировка для USDc, необходимо брать в зависимости от decimal() на токене
-        let bn = utils.toBN(this.sum * 10**6);
 
         let refreshBalance = this.refreshBalance;
         let setSum = this.setSum;
@@ -146,8 +144,7 @@ export default {
         let contracts = this.contracts;
         let from = this.account;
 
-        contracts.exchange.methods.redeem(contracts.usdc.options.address, bn).send({from: from}).then(function () {
-          // alert('Success second step!')
+        contracts.exchange.methods.redeem( this.sum).send({from: from}).then(function () {
           refreshBalance();
           setSum(null)
         });
