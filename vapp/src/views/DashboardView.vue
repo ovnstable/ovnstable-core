@@ -9,22 +9,23 @@
     >
       <v-col
           lg="12"
+          md="8"
           sm="8"
-          md="4"
+
       >
         <v-row class="justify-center align-center pt-15">
           <div class="swap-title ml-2">OVN Total Portfolio</div>
         </v-row>
 
         <v-row>
-          <v-col lg="3" class="pt-10">
+          <v-col lg="3" class="pt-10  hidden-sm-and-down hidden-md-and-down">
             <StatsWidget/>
           </v-col>
           <v-col lg="1">
 
           </v-col>
 
-          <v-col lg="4">
+          <v-col lg="4" sm="12" md="12" cols="12">
             <v-row class="desc pr-5 pl-5 pt-10">
               Automated Overnight DeFi total asset portfolio management dashboards. Your assets are there.
               <br>
@@ -42,8 +43,10 @@
         </v-row>
 
         <v-row justify="center">
-          <CurrentTotalData v-if="tab === 1"/>
-          <HistoryTotalData v-if="tab === 2"/>
+          <v-col lg="4" class="pa-0 ma-0">
+            <CurrentTotalData v-if="tab === 1"/>
+            <HistoryTotalData v-if="tab === 2"/>
+          </v-col>
         </v-row>
 
       </v-col>
@@ -60,7 +63,7 @@ import {mapGetters} from "vuex";
 
 export default {
   name: "DashboardView",
-  components: {HistoryTotalData, CurrentTotalData, StatsWidget, },
+  components: {HistoryTotalData, CurrentTotalData, StatsWidget,},
   data: () => ({
     tab: 1,
   }),

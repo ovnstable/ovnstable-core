@@ -1,5 +1,5 @@
 <template>
-  <v-col lg="4">
+  <v-col >
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
 
@@ -23,11 +23,6 @@
             <v-col lg="3">
               {{totalPortfolio.value.toLocaleString()}}
             </v-col>
-            <v-col lg="1">
-                <v-icon small color="#00FF19" v-if="totalPortfolio.status === 'UP'">mdi-arrow-up-drop-circle</v-icon>
-                <v-icon small color="#FF0000" v-if="totalPortfolio.status === 'DOWN'" >mdi-arrow-down-drop-circle</v-icon>
-                <template v-else></template>
-            </v-col>
           </v-row>
 
           <v-row dense class="row font-weight-bold">
@@ -36,11 +31,6 @@
             </v-col>
             <v-col lg="3">
               {{totalOVN.value.toLocaleString()}}
-            </v-col>
-            <v-col lg="1">
-              <v-icon small color="#00FF19" v-if="totalOVN.status === 'UP'">mdi-arrow-up-drop-circle</v-icon>
-              <v-icon small color="#FF0000" v-if="totalOVN.status === 'DOWN'" >mdi-arrow-down-drop-circle</v-icon>
-              <template v-else></template>
             </v-col>
           </v-row>
         </v-container>
@@ -62,12 +52,12 @@ export default {
     menu: false,
     tab: null,
     totalPortfolio: {
-      value: 831435.95,
+      value: 0,
       status: 'UP'
     },
 
     totalOVN: {
-      value: 830000.00,
+      value: 0,
       status: 'UP'
     },
 

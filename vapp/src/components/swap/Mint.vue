@@ -1,5 +1,5 @@
 <template>
-  <v-col lg="4">
+  <v-col >
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
         <v-row dense>

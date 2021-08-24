@@ -6,30 +6,32 @@
       class="app-bar"
   >
 
-    <v-col lg="1" class="ml-0 pl-0">
+    <v-col lg="4" md="2" cols="2" class="ml-0 pl-0">
       <v-row dense style="width: 400px">
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/main-logo.png')"></v-img>
         </div>
-        <div class="logo-title ml-2 mt-1">OVERNIGHT</div>
+        <div class="logo-title ml-2 mt-1 hidden-sm-and-down">OVERNIGHT</div>
       </v-row>
     </v-col>
-    <v-col lg="4"></v-col>
-    <v-col lg="2" class="ma-0 pa-0">
-      <div>
-        <span v-bind:class="activeTabSave" @click="$router.push('/')">Swap</span>
-        <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/dashboard')">Dashboard</span>
-        <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
-      </div>
-
+    <v-col lg="4" md="8" cols="8" class="ma-0 pa-0">
+      <v-row justify="center">
+        <div class="hidden-xs-only">
+          <span v-bind:class="activeTabSave" @click="$router.push('/')">Swap</span>
+          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/dashboard')">Dashboard</span>
+          <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
+        </div>
+        <div class="hidden-sm-and-up mt-10">
+          <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to" @input="pushUrl" item-text="name"/>
+        </div>
+      </v-row>
     </v-col>
-    <v-col lg="2"></v-col>
-    <v-col lg="3">
+    <v-col lg="4" md="2" cols="2" class="hidden-sm-and-down">
       <v-row dense class="pt-2 " justify="end">
-          <button v-on:click="testNative" v-if="!account" class="btn">Connect Wallet
-            <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
-          </button>
-          <div v-else class="account">{{ accountShort }}</div>
+        <button v-on:click="testNative" v-if="!account" class="btn">Connect Wallet
+          <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
+        </button>
+        <div v-else class="account">{{ accountShort }}</div>
       </v-row>
     </v-col>
   </v-app-bar>
@@ -50,7 +52,6 @@ export default {
   name: 'Header',
   components: {},
   data: () => ({
-    menu: false,
     exitAppShow: false,
     direction: 'top',
     fab: false,
@@ -62,6 +63,23 @@ export default {
     polLogo: require('../assets/currencies/pol.svg'),
 
     tabId: 1,
+
+    menu: null,
+
+    menus: [
+      {
+        name: 'Swap',
+        to: '/'
+      },
+      {
+        name: 'Dashboard',
+        to: '/dashboard'
+      },
+      {
+        name: 'Stats',
+        to: '/stats'
+      },
+    ]
   }),
 
 
@@ -124,6 +142,12 @@ export default {
 
 
   created() {
+
+    let path = this.$router.history.current.path;
+    let find = this.menus.find(value => value.to === path);
+    if(find)
+      this.menu = find;
+
     this.testNative();
   },
 
@@ -133,6 +157,11 @@ export default {
 
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
     ...mapActions('profile', ['refreshProfile']),
+
+
+    pushUrl(to){
+      this.$router.push(to)
+    },
 
     async testNative() {
 
@@ -203,6 +232,12 @@ export default {
   font-weight: bold;
   border-bottom: 4px solid #171717;
   cursor: pointer;
+}
+
+.menu-select {
+  width: 150px;
+  font-size: 25px;
+  color: #171717;
 }
 
 .in-active-tab {
