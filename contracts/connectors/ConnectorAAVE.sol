@@ -40,7 +40,13 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     function getPriceOffer (address _asset,  address _pool) public view override returns (uint256) {
        IPriceOracleGetter  oraclePrice = IPriceOracleGetter (lpap.getPriceOracle()); 
 
-        return  oraclePrice.getAssetPrice(_asset); 
+        try oraclePrice.getAssetPrice(_asset) returns (uint price)
+        {
+           return price;
+        } catch {
+           return 0;
+        }
+  
     }
 
 
