@@ -138,6 +138,7 @@ export default {
 
       try {
 
+        let sum =this.web3.utils.toWei(this.sum, 'Mwei')
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;
         let setSum = this.setSum;
@@ -145,7 +146,7 @@ export default {
         let contracts = this.contracts;
         let from = this.account;
 
-        contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum  *10**6).send({from: from}).then(function () {
+        contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
           refreshBalance();
           refreshCurrentTotalData();
           setSum(null)

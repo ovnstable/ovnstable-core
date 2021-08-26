@@ -188,7 +188,7 @@ export default {
 
 
       try {
-        let sum = this.sum *10**6; //decimals USDC
+        let sum = this.web3.utils.toWei(this.sum, 'Mwei'); //decimals USDC
 
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;

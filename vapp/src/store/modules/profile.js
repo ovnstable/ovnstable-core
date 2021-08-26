@@ -49,6 +49,8 @@ const actions = {
         let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
         let ovn = await getters.contracts.ovn.methods.balanceOf(getters.account).call();
 
+        ovn = getters.web3.utils.fromWei(ovn, 'Mwei');
+        usdc = getters.web3.utils.fromWei(usdc, 'Mwei');
         commit('setBalance', {
             ovn: ovn,
             usdc: usdc

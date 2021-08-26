@@ -53,7 +53,10 @@
     "rules": {
       "no-debugger": "off",
       "no-control-regex": "off",
-      "no-redeclare": "off"
+      "no-redeclare": "off",
+      "no-undef": "off",
+      "no-console": "off",
+      "no-unused-vars": "off"
     }
   }
 }
