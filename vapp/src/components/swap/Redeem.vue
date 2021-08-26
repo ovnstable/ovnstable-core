@@ -145,7 +145,7 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
-        contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
+        contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
           alert('Success first step!')
 
           contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
