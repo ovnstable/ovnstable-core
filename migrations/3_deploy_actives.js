@@ -38,7 +38,7 @@ if (chainID == '80001') {
   const connectorAv = ConnectorAAVE.networks[chainID]['address'];
   const connectorCrv = ConnectorCurve.networks[chainID]['address'];
   //await actList.actAdd(aUSDC, connectorAv,connectorAv, "2500", "9500", "10000000000000000000");
-  await actList.actAdd(USDC,  connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aUSDC]);
+  await actList.actAdd(USDC,  connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aUSDC, aCurveLP]);
   // await actList.actAdd(aUSDC,  connectorAv,connectorAv, connectorAv, "2500", "9500", "0",[] );
   await actList.actAdd(aUSDC, connectorCrv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
 

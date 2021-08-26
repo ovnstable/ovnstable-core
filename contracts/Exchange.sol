@@ -53,10 +53,10 @@ contract Exchange is OwnableExt {
         // Or just burn from sender
         ovn.burn(msg.sender, _amount);
 
-        actList.changeBal(_addrTok, -int128(uint128(_amount)));
+        actList.changeBal(_addrTok, -int128(uint128(unstakedAmount)));
 
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
-        IERC20(_addrTok).transfer(msg.sender, _amount);
+        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
     }
 }

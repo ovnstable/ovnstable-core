@@ -145,7 +145,7 @@ export default {
         let contracts = this.contracts;
         let from = this.account;
 
-        contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum).send({from: from}).then(function () {
+        contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum  *10**6).send({from: from}).then(function () {
           refreshBalance();
           refreshCurrentTotalData();
           setSum(null)
