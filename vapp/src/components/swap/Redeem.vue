@@ -144,11 +144,17 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
+        contracts.usdc.methods.approve(contracts.exchange.options.address, this.sum  *10**6).send({from: from}).then(function () {
+          alert('Success first step!')
 
-        contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum  *10**6).send({from: from}).then(function () {
-          refreshBalance();
-          refreshCurrentTotalData();
-          setSum(null)
+
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum  *10**6).send({from: from}).then(function () {
+            alert('Success second step!')
+
+            refreshBalance();
+            refreshCurrentTotalData();
+            setSum(null)
+          });
         });
 
       } catch (e) {
