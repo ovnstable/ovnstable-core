@@ -13,7 +13,7 @@ function stake (address _asset, address _pool,uint256 _amount, address _benefici
 function unstake (address _asset, address _pool,uint256 _amount, address _to ) external  returns (uint256);
 
 function getPriceOffer (address _asset,  address _pool ) external view  returns (uint256);
-function getBalance (address _asset, address _pool) external view  returns (uint256);
-function getLiqBalance (address _asset, address _pool ) external view  returns (uint256);
+function getBookValue (address _asset,  address _addrWault, address _pool) external view  returns (uint256);
+function getLiqValue (address _asset,  address _addrWault, address _pool ) external view  returns (uint256);
 
 }

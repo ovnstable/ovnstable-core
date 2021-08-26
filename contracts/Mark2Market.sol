@@ -28,12 +28,12 @@ contract Mark2Market is IMark2Market, OwnableExt {
             
             if (actives[a].isWork > 0) { 
                 IERC20Metadata tokAct = IERC20Metadata(actives[a].actAddress);
-                uint price = IConnector(actives[a].connector).getLiqBalance(actives[a].actAddress, 
+                uint price = IConnector(actives[a].connector).getPriceOffer(actives[a].actAddress, 
                     actives[a].poolPrice);
-                uint bookValue = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
-                    addrWault); 
-                uint liqValue = IConnector(actives[a].connector).getBalance(actives[a].actAddress, 
-                    addrWault); 
+                uint bookValue = IConnector(actives[a].connector).getBookValue(actives[a].actAddress, 
+                    addrWault, actives[a].poolPrice); 
+                uint liqValue = IConnector(actives[a].connector).getLiqValue(actives[a].actAddress, 
+                    addrWault, actives[a].poolPrice); 
              
                 ap[a] =  ActivesPrices( actives[a].actAddress,
                                         tokAct.name(),
