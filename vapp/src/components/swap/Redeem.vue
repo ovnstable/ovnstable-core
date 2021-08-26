@@ -1,18 +1,24 @@
 <template>
-  <v-col >
+  <v-col>
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="7">
-                <v-text-field placeholder="0.00" flat solo v-model="sum"></v-text-field>
+              <v-col lg="5" md="5" sm="5" cols="7">
+                <v-text-field placeholder="0.00"
+                              flat
+                              solo
+                              color="#8F8F8F"
+                              class="field-sum"
+                              hide-details
+                              v-model="sum"></v-text-field>
               </v-col>
-              <v-col lg="2" class="pt-3" align="end">
+              <v-col lg="1" md="1" sm="1" class="hidden-md-and-down"></v-col>
+              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
                 <div class="max">Max: {{ balance.ovn }}</div>
-
               </v-col>
-              <v-col lg="3">
+              <v-col lg="3" cols="5" md="3" sm="3">
                 <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
@@ -29,26 +35,34 @@
           </v-col>
         </v-row>
 
-        <v-row class="pa-3">
-          <v-col lg="2">
-            <span class="gas-title">Gas fee: {{ gas }}</span>
-          </v-col>
-          <v-col lg="8" align="center">
+        <v-row class="pa-3 " align="center">
+          <v-col lg="2" align="center">
             <img :src="require('../../assets/arrow.png')" height="30" width="30"/>
           </v-col>
-          <v-col lg="2"></v-col>
+          <v-col lg="4" class="pt-1">
+            <span class="gas-title">Gas fee: {{ gasPrice }}</span>
+            <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
+          </v-col>
+          <v-col lg="6">
+            <v-row justify="end">
+              <span class="gas-waived pr-2">Gas fee waived if >10000</span>
+            </v-row>
+          </v-col>
         </v-row>
         <v-row dense>
-          <v-col class="field ">
+          <v-col class="field">
             <v-row dense>
-              <v-col lg="7">
-                <v-text-field v-model="sum" readonly placeholder="0.00" flat solo></v-text-field>
+              <v-col lg="5" md="5" sm="5" cols="7">
+                <div class="field-buy mt-1 ml-1">
+                  {{ sumResult }}
+                </div>
               </v-col>
-              <v-col lg="2">
-
+              <v-col lg="1" md="1" sm="1" class="hidden-md-and-down"></v-col>
+              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
+                <div class="balance">Balance: {{ balance.ovn }}</div>
               </v-col>
-              <v-col lg="3">
-                <v-select append-icon="" :items="currencies" readonly color="black" v-model="currency"
+              <v-col lg="3" cols="5" md="3" sm="3">
+                <v-select :items="currencies" color="black" v-model="currency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
                     <img :src="item.image" width="40" height="40"><span
@@ -66,7 +80,7 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0" @click="redeem" :disabled="!account">Withdraw</v-btn>
+          <v-btn height="60" class="buy elevation-0" @click="redeem" :disabled="!isBuy">{{ buttonLabel }}</v-btn>
         </v-row>
 
 
@@ -93,7 +107,6 @@ export default {
 
     sum: null,
 
-
     gas: null,
 
     buyCurrency: null,
@@ -108,8 +121,44 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "account", 'web3', 'balance']),
+    ...mapGetters("profile", ["contracts", "account", 'web3', 'balance', 'gasPrice']),
 
+    sumResult: function () {
+      if (!this.sum || this.sum === 0)
+        return '0.00';
+      else
+        return this.sum;
+    },
+
+    numberRule: function () {
+
+      let v = this.sum;
+
+      if (!v)
+        return false;
+
+      if (!v.trim()) return false;
+
+      v = parseFloat(v);
+
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.ovn)) return true;
+
+
+      return false;
+    },
+
+    buttonLabel: function () {
+
+      if (this.isBuy) {
+        return 'Press to Withdraw'
+      } else {
+        return 'Enter the amount to Withdraw';
+      }
+    },
+
+    isBuy: function () {
+      return this.account && this.sum > 0 && this.numberRule;
+    },
   },
 
   created() {
@@ -138,7 +187,7 @@ export default {
 
       try {
 
-        let sum = this.sum *10**6;
+        let sum = this.sum * 10 ** 6;
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;
         let setSum = this.setSum;
@@ -172,12 +221,47 @@ export default {
 <style scoped>
 
 
+.selector {
+  padding: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  color: rgb(37, 39, 45);
+  height: 45px;
+}
+
+.field-buy {
+  padding: 10px;
+  color: #8F8F8F;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #ECECEC;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.balance {
+  font-weight: bold;
+  color: #40404C;
+  text-align: center;
+  cursor: pointer;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.selector:hover {
+  color: rgb(37, 39, 45);
+  background: rgba(247, 247, 247, 1);
+  border-radius: 10px;
+}
+
 .card {
   border-radius: 15px;
   border: 1px solid #BBBBBB;
 }
 
 .max {
+  white-space: nowrap;
   font-weight: bold;
   color: #40404C;
   text-align: center;
@@ -186,14 +270,40 @@ export default {
   padding-bottom: 5px;
   border-radius: 15px;
   border: 1px solid #BBBBBB;
-
 }
 
+
+.advanced {
+  border-radius: 10px;
+  border: 1px solid #BBBBBB;
+  box-shadow: none !important;
+}
+
+.gas-waived {
+  color: #8F8F8F;
+  font-size: 15px;
+}
 
 .gas-title {
   color: #8F8F8F;
+  font-size: 18px;
 }
 
+.switch {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  padding: 5px;
+  padding-top: 17px;
+  background-color: #FDFDFD !important;
+  color: #909399 !important;
+  text-align: center;
+  border: 1px solid #BBBBBB;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  text-transform: none;
+}
 
 .buy {
   width: 100%;
@@ -210,6 +320,13 @@ export default {
 
   text-transform: none;
 }
+
+.field-sum {
+  font-size: 18px;
+  font-weight: bold;
+  color: #8F8F8F;
+}
+
 
 .field {
   width: 100%;

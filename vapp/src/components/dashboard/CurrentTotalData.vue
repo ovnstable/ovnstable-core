@@ -8,30 +8,36 @@
             <v-col lg="7">
               {{ item.symbol }}
             </v-col>
-            <v-col lg="3">
-              {{ item.price.toLocaleString() }}
-            </v-col>
-            <v-col lg="2">
+            <v-col lg="4">
+              <v-row justify="end">
               {{ item.value.toLocaleString() }}
+              </v-row>
             </v-col>
+            <v-col lg="1"></v-col>
           </v-row>
 
           <v-row dense class="row pt-10">
-            <v-col lg="10">
+            <v-col lg="7">
               Total Portfolio Value
             </v-col>
-            <v-col lg="2">
+            <v-col lg="4">
+              <v-row justify="end">
               {{ totalPortfolio }}
+              </v-row>
             </v-col>
+            <v-col lg="1"></v-col>
           </v-row>
 
           <v-row dense class="row font-weight-bold">
-            <v-col lg="10">
+            <v-col lg="7">
               Total OVNGT
             </v-col>
-            <v-col lg="2">
+            <v-col lg="4">
+              <v-row justify="end">
               {{ balance.ovn.toLocaleString() }}
+              </v-row>
             </v-col>
+            <v-col lg="1"></v-col>
           </v-row>
         </v-container>
 
@@ -66,7 +72,8 @@ export default {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
-          value += parseInt(item.liquidationValue);
+          if (item.liquidationValue)
+            value += parseInt(item.liquidationValue);
         }
 
       }

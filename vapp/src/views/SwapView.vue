@@ -18,7 +18,7 @@
         </v-row>
 
         <v-row>
-          <v-col lg="4"  class="pt-10 hidden-sm-and-down hidden-md-and-down">
+          <v-col lg="4"  class="pt-10  hidden-md-and-down">
             <StatsWidget/>
           </v-col>
           <v-col lg="4" sm="12" md="12" cols="12">

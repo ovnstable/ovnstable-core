@@ -5,7 +5,7 @@
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="5">
+              <v-col lg="5" md="5" sm="5" cols="7" >
                 <v-text-field placeholder="0.00"
                               flat
                               solo
@@ -15,11 +15,11 @@
                               :rules="[numberRule]"
                               v-model="sum"></v-text-field>
               </v-col>
-              <v-col lg="1"></v-col>
-              <v-col lg="3" class="pt-3" align="end">
+              <v-col lg="1" md="1" sm="1"  class="hidden-md-and-down"></v-col>
+              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
                 <div class="max">Max: {{ balance.usdc }}</div>
               </v-col>
-              <v-col lg="3">
+              <v-col lg="3" cols="5" md="3" sm="3">
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
                     <img :src="item.image" width="40" height="40"><span
@@ -52,16 +52,16 @@
         <v-row dense>
           <v-col class="field">
             <v-row dense>
-              <v-col lg="5">
+              <v-col lg="5" md="5" sm="5" cols="7">
                 <div class="field-buy mt-1 ml-1">
                   {{ sumResult }}
                 </div>
               </v-col>
-              <v-col lg="1"></v-col>
-              <v-col lg="3" class="pt-3" align="end">
+              <v-col lg="1" md="1" sm="1"  class="hidden-md-and-down" ></v-col>
+              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
                 <div class="balance">Balance: {{ balance.ovn }}</div>
               </v-col>
-              <v-col lg="3">
+              <v-col lg="3" cols="5" md="3" sm="3" >
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
@@ -83,9 +83,6 @@
           <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">{{buttonLabel}}
           </v-btn>
         </v-row>
-
-
-
       </v-card-text>
     </v-card>
   </v-col>
@@ -152,13 +149,15 @@ export default {
       let v = this.sum;
 
       if (!v)
-        return true;
+        return false;
 
-      if (!v.trim()) return true;
-      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.usdc)) return true;
+      if (!v.trim()) return false;
 
+      v = parseFloat(v);
 
-      return 'Number has to be between 1 and ' + this.balance.usdc;
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.ovn)) return true;
+
+      return false;
     },
 
 
