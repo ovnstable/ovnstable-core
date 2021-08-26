@@ -157,7 +157,7 @@ export default {
     },
 
     isBuy: function () {
-      return this.account && this.sum > 0 && this.numberRule;
+      return this.account && this.sum > 0 ;
     },
   },
 
