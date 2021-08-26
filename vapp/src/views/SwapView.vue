@@ -44,6 +44,8 @@
         </v-row>
       </v-col>
     </v-row>
+
+    <ShowTransaction/>
   </v-container>
 </template>
 
@@ -53,10 +55,11 @@
 import Redeem from "../components/swap/Redeem";
 import Mint from "../components/swap/Mint";
 import StatsWidget from "../components/common/StatsWidget";
+import ShowTransaction from "../components/common/ShowTransaction";
 
 export default {
   name: "SwapView",
-  components: {StatsWidget, Mint, Redeem},
+  components: {ShowTransaction, StatsWidget, Mint, Redeem},
   data: () => ({
     tab: 1,
 

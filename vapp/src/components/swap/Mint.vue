@@ -178,6 +178,8 @@ export default {
   methods: {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
+
 
     setSum(value) {
       this.sum = value;
@@ -189,23 +191,25 @@ export default {
       try {
         let sum = this.sum *10**6;
 
-        let refreshBalance = this.refreshBalance;
-        let refreshCurrentTotalData = this.refreshCurrentTotalData;
-
         let contracts = this.contracts;
         let from = this.account;
-        let setSum = this.setSum;
+        let self = this;
 
+        this.show('Processing...')
+        this.addText(`Locking ${this.sum} USDC ......  done`)
 
         contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
-          alert('Success first step!')
+          self.addText(`Minting ${self.sum} OVN ......  done`);
+          self.addText(`Transferring ${self.sum} OVN to ${from.substring(1,10)}  ......  done`);
 
           contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function () {
-            alert('Success second step!')
+            self.addText(`Completed, await blockchain, click to proceed`);
 
-            refreshBalance();
-            refreshCurrentTotalData();
-            setSum(null)
+            setTimeout(() => self.hide(), 1000);
+
+            self.refreshBalance();
+            self.refreshCurrentTotalData();
+            self.setSum(null);
 
           });
         });
@@ -213,6 +217,7 @@ export default {
 
       } catch (e) {
         console.log(e)
+        this.hide();
       }
     },
 
