@@ -50,6 +50,7 @@ module.exports = async function(deployer) {
     aaveLendingPoolAddressesProvider = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744"
     usdctaddr = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     daiaddr = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
+    weth = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
   }
    else {
     await deployer.deploy(USDCtest);
@@ -64,7 +65,7 @@ module.exports = async function(deployer) {
   await m2m.setAddr(actList.address, pm.address);
   await pm.setAddr(actList.address)
 
-  await connAAVE.setAAVE (aaveLendingPoolAddressesProvider);
+  await connAAVE.setAAVE (aaveLendingPoolAddressesProvider, usdctaddr );
 
   await connCurve.setUSDC (usdctaddr);
 

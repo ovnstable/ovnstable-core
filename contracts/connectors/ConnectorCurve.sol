@@ -53,27 +53,30 @@ contract ConnectorCurve is IConnector , OwnableExt{
 
             if (coin == _asset) {
                 
-                iCurveToken(pool.lp_token()).approve(address(pool), _amount);
-                 amounts[i] = _amount *98/100;
-             //   uint lpTok = pool.calc_withdraw_one_coin (_amount, int128(uint128(i)) );
+                 amounts[i] = _amount ;
                 uint lpTok = pool.calc_token_amount (amounts, false );
-                uint balCT = iCurveToken(pool.lp_token()).balanceOf(address(this));
-    /*             if (lpTok > balCT ) {
-                    amounts[i] = amounts[i] *balCT/lpTok;
-                    lpTok = balCT;
-                    } */
-/*                 uint  retAmount = pool.remove_liquidity_one_coin(lpTok ,
-                                                                int128(uint128(i)),
-                                                                _amount *9/10); */
-                amounts = pool.remove_liquidity(lpTok, amounts, false );
-                IERC20(pool.coins(i)).transfer(_beneficiar, amounts[i]);
-                iCurveToken(pool.lp_token()).transfer(msg.sender, 
+                uint withdrAmount = pool.calc_withdraw_one_coin (lpTok, int128(uint128(i)) );
+              //  lpTok = lpTok *_amount /withdrAmount;
+               // uint balCT = iCurveToken(pool.lp_token()).balanceOf(address(this));
+
+                iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
+
+                uint  retAmount = pool.remove_liquidity_one_coin(lpTok , int128(uint128(i)), withdrAmount);
+                                                                //_amount *9/10); 
+
+              //  amounts = pool.remove_liquidity(lpTok, amounts, false );
+             //   amounts[i] = _amount /2 ;
+          //      uint  retAmount = pool.remove_liquidity_imbalance( amounts, lpTok ); 
+
+
+                IERC20(pool.coins(i)).transfer(_beneficiar, retAmount);
+                iCurveToken(pool.lp_token()).transfer(_beneficiar, 
                                 iCurveToken(pool.lp_token()).balanceOf(address(this)));
                 // actList.changeBal(_asset, int128(uint128(retAmount)));
 
                 // actList.changeBal(pool.lp_token(), -int128(uint128(_amount)));
 
-                return amounts[i];
+                return retAmount; // amounts[i];
             } else {
                 amounts[i] = 0;
             }

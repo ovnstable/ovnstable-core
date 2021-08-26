@@ -16,12 +16,12 @@ import "../OwnableExt.sol";
 contract ConnectorAAVE is IConnector, OwnableExt {
     using WadRayMath for uint256;
     IActivesList actList;
-
+    address USDC;
     ILendingPoolAddressesProvider lpap;
     
-    function setAAVE  (address _LPAP) public onlyOwner {
+    function setAAVE  (address _LPAP, address _USDC) public onlyOwner {
         lpap = ILendingPoolAddressesProvider(_LPAP);
-
+        USDC = _USDC;
     }
 
     function setAddr (address _addrAL) external onlyOwner {
@@ -59,8 +59,14 @@ contract ConnectorAAVE is IConnector, OwnableExt {
        IPriceOracleGetter  oraclePrice = IPriceOracleGetter (lpap.getPriceOracle()); 
 
         try oraclePrice.getAssetPrice(_asset) returns (uint price)
-        {
-           return price;
+        {       
+            try oraclePrice.getAssetPrice(USDC) returns (uint priceUSDC)
+            {
+            return price *10**18 / priceUSDC;
+            } catch {
+            return 0;
+            }
+           
         } catch {
            return 0;
         }
