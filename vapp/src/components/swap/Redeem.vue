@@ -137,18 +137,18 @@ export default {
 
 
       try {
-
+      let sum = this.sum *10**6;
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;
         let setSum = this.setSum;
 
         let contracts = this.contracts;
         let from = this.account;
-        contracts.usdc.methods.approve(contracts.exchange.options.address, this.sum  *10**6).send({from: from}).then(function () {
+        contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
           alert('Success first step!')
 
 
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, this.sum  *10**6).send({from: from}).then(function () {
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
             alert('Success second step!')
 
             refreshBalance();
