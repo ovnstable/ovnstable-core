@@ -5,14 +5,14 @@
 
         <v-container>
           <v-row dense :key="item.symbol" v-for="item in currentTotalData" class="row">
-            <v-col lg="8">
+            <v-col lg="7">
               {{ item.symbol }}
             </v-col>
-            <v-col lg="2">
+            <v-col lg="3">
               {{ item.price.toLocaleString() }}
             </v-col>
             <v-col lg="2">
-              {{ item.liquidationValue.toLocaleString() }}
+              {{ item.value.toLocaleString() }}
             </v-col>
           </v-row>
 

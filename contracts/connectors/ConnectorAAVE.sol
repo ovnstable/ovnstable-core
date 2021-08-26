@@ -48,6 +48,10 @@ contract ConnectorAAVE is IConnector, OwnableExt {
        ILendingPool pool = ILendingPool(lpap.getLendingPool());
         // IERC20(_asset).transfer(address(pool), _amount);
         uint w = pool.withdraw(_asset, _amount, _to);
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+
+        IERC20(res.aTokenAddress).transfer(msg.sender, 
+                                IERC20(res.aTokenAddress).balanceOf(address(this)));
         return   w;
         }
 

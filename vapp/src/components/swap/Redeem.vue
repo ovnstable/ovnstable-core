@@ -138,18 +138,23 @@ export default {
 
       try {
 
-        let sum =this.web3.utils.toWei(this.sum, 'Mwei')
+        let sum = this.sum *10**6;
         let refreshBalance = this.refreshBalance;
         let refreshCurrentTotalData = this.refreshCurrentTotalData;
         let setSum = this.setSum;
 
         let contracts = this.contracts;
         let from = this.account;
+        contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
+          alert('Success first step!')
 
-        contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
-          refreshBalance();
-          refreshCurrentTotalData();
-          setSum(null)
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
+            alert('Success second step!')
+
+            refreshBalance();
+            refreshCurrentTotalData();
+            setSum(null)
+          });
         });
 
       } catch (e) {

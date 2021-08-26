@@ -49,8 +49,8 @@ const actions = {
         let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
         let ovn = await getters.contracts.ovn.methods.balanceOf(getters.account).call();
 
-        ovn = getters.web3.utils.fromWei(ovn, 'Mwei');
-        usdc = getters.web3.utils.fromWei(usdc, 'Mwei');
+        ovn = ovn / 10 ** 6;
+        usdc = usdc / 10 ** 6;
         commit('setBalance', {
             ovn: ovn,
             usdc: usdc
@@ -75,7 +75,19 @@ const actions = {
 
         getters.contracts.m2m.methods.activesPrices().call().then(value => {
             console.log(value)
-            commit('setCurrentTotalData', value)
+
+            let data = [];
+            for (let i = 0; i < value.length; i++) {
+                let element = value[i];
+
+                data.push({
+                    price: getters.web3.utils.fromWei(element.price),
+                    symbol: element.symbol,
+                    value: element.liquidationValue,
+                })
+            }
+
+            commit('setCurrentTotalData', data)
         })
 
 

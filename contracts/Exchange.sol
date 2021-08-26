@@ -47,11 +47,11 @@ contract Exchange is OwnableExt {
 
 
         // Transfer from sender to contract then burn from contract
-        // ovn.transferFrom(msg.sender, address(this), _amount);
-        // ovn.burn(address(this), _amount);
+         ovn.transferFrom(msg.sender, address(this), _amount);
+         ovn.burn(address(this), _amount);
 
         // Or just burn from sender
-        ovn.burn(msg.sender, _amount);
+       // ovn.burn(msg.sender, _amount);
 
         actList.changeBal(_addrTok, -int128(uint128(unstakedAmount)));
 

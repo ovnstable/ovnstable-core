@@ -21,16 +21,16 @@ contract ConnectorCurve is IConnector , OwnableExt{
 
     function stake (address _asset, address _pool,uint256 _amount, address _beneficiar )  public override {
       iCurvePool  pool = iCurvePool(_pool);
-
+        uint256 [3] memory amounts;
         for (uint i=0; i<3; i++ ) {
             address coin = pool.coins(i);
             if (coin == _asset) {
-                uint256 [3] memory amounts;
+                
                 iCurveToken(_asset).approve(address(pool), _amount);
                 amounts[uint(i)] = _amount;
                 uint lpTok = pool.calc_token_amount (amounts, true );
                 uint retAmount = pool.add_liquidity(amounts, 
-                                                    lpTok * 9/10, 
+                                                    lpTok * 99/100, 
                                                     false);
                 iCurveToken(pool.lp_token()).transfer(_beneficiar, retAmount);
                 // actList.changeBal(_asset, -int128(uint128(_amount)));
@@ -38,6 +38,8 @@ contract ConnectorCurve is IConnector , OwnableExt{
                 // actList.changeBal(pool.lp_token(), int128(uint128(retAmount)));
 
                 return; 
+            } else {
+                amounts[i] = 0;
             }
         }
         revert ("can't find active for staking in pool");
@@ -52,24 +54,28 @@ contract ConnectorCurve is IConnector , OwnableExt{
             if (coin == _asset) {
                 
                 iCurveToken(pool.lp_token()).approve(address(pool), _amount);
-                 amounts[i] = _amount;
+                 amounts[i] = _amount *98/100;
              //   uint lpTok = pool.calc_withdraw_one_coin (_amount, int128(uint128(i)) );
                 uint lpTok = pool.calc_token_amount (amounts, false );
                 uint balCT = iCurveToken(pool.lp_token()).balanceOf(address(this));
-                if (lpTok > balCT ) {
+    /*             if (lpTok > balCT ) {
                     amounts[i] = amounts[i] *balCT/lpTok;
                     lpTok = balCT;
-                    }
+                    } */
 /*                 uint  retAmount = pool.remove_liquidity_one_coin(lpTok ,
                                                                 int128(uint128(i)),
                                                                 _amount *9/10); */
                 amounts = pool.remove_liquidity(lpTok, amounts, false );
                 IERC20(pool.coins(i)).transfer(_beneficiar, amounts[i]);
+                iCurveToken(pool.lp_token()).transfer(msg.sender, 
+                                iCurveToken(pool.lp_token()).balanceOf(address(this)));
                 // actList.changeBal(_asset, int128(uint128(retAmount)));
 
                 // actList.changeBal(pool.lp_token(), -int128(uint128(_amount)));
 
                 return amounts[i];
+            } else {
+                amounts[i] = 0;
             }
         }
         revert ("can't find active for withdraw from pool");
@@ -86,13 +92,13 @@ contract ConnectorCurve is IConnector , OwnableExt{
         iCurvePool  pool = iCurvePool(_pool);
         uint256 N_COINS = 3;
         for (uint256 i=0; i<N_COINS; i++) {
-            address ai = pool.coins(i);
+            address ai = pool.underlying_coins(i);
             if (ai == USDC) {
                 uint256 price = getPriceOffer(_asset, _pool) ;
                 return price * balance; 
             }
         }
-        revert ("can't find addresses of coins");
+        revert ("can't find addresses of coins 1");
     }
 
     function getLiqValue (address _asset, address _addrWault,  address _pool) external view override returns (uint256) {
@@ -101,7 +107,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
         iCurvePool  pool = iCurvePool(_pool);
         uint256 N_COINS = 3;
         for (uint256 i=0; i<N_COINS; i++) {
-            address ai = pool.coins(i);
+            address ai = pool.underlying_coins(i);
             if (ai == USDC && balance > 0) {
                 uint256 USDCsliq = pool.calc_withdraw_one_coin(balance, int128(uint128(i))); 
                 uint256 price = getPriceOffer(_asset, _pool) ;
@@ -112,7 +118,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
             }
 
         }
-        revert ("can't find addresses of coins");
+        revert ("can't find addresses of coins 2");
 
     }
 
