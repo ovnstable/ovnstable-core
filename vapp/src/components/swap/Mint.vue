@@ -141,7 +141,7 @@ export default {
     },
 
     isBuy: function () {
-      return this.account && this.sum > 0 ;
+      return this.account && this.sum > 0 && this.numberRule;
     },
 
     numberRule: function () {
@@ -155,7 +155,7 @@ export default {
 
       v = parseFloat(v);
 
-      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.ovn)) return true;
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.usdc)) return true;
 
       return false;
     },

@@ -157,7 +157,7 @@ export default {
     },
 
     isBuy: function () {
-      return this.account && this.sum > 0 ;
+      return this.account && this.sum > 0 && this.numberRule;
     },
   },
 
@@ -176,6 +176,7 @@ export default {
   methods: {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
 
 
     setSum(value) {
