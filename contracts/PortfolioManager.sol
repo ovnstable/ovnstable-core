@@ -84,11 +84,11 @@ function stake (address _asset, uint256 _amount) external override {
                     withdrAmount,
                     address(this));
         
-        IERC20(der0.actAddress).transfer(der0.connector, 
+        IERC20(der0.actAddress).transfer(active.connector, 
                                         IERC20(der0.actAddress).balanceOf(address(this))); 
-        withdrAmount = IConnector(der0.connector).unstake(
-                    der0.actAddress, //derivatives[i],
-                    der0.poolStake,
+        withdrAmount = IConnector(active.connector).unstake(
+                    active.actAddress, //derivatives[i],
+                    active.poolStake,
                     withdrAmount,
                     address(this));
         // 2. unstake

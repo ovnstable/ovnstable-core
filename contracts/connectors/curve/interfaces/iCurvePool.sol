@@ -25,4 +25,6 @@ function get_dy(int128 i, int128 j, uint256 _dx ) external view returns (uint256
 function calc_withdraw_one_coin(uint256 _amount, int128 i) external view returns (uint256);
 //remove_liquidity_one_coin(_token_amount: uint256, i: int128, _min_amount: uint256) → uint256
 function remove_liquidity_one_coin(uint256 _token_amount , int128 i, uint256 _min_amount) external returns  (uint256);
+// StableSwap.remove_liquidity_imbalance(_amounts: uint256[N_COINS], _max_burn_amount: uint256) → uint256
+function remove_liquidity_imbalance(uint[3] memory _amounts, uint256 _maxAmount ) external returns (uint256);
 }
