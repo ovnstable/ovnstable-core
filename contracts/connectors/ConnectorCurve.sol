@@ -116,7 +116,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
             address ai = pool.underlying_coins(i);
             if (ai == USDC  ) {
                   amounts[i] = balance ;
-                  //todo - research working CurvePool when big liquidity removes
+                  //todo - research work of CurvePool when big liquidity removes
                 try  pool.calc_token_amount (amounts, false ) returns (uint lpTok)
                 {
                     try  pool.calc_withdraw_one_coin (lpTok, int128(uint128(i)) ) returns (uint USDCsliq)
