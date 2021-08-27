@@ -42,20 +42,20 @@ function stake (address _asset, uint256 _amount) external override {
     // emit ConsoleLogNamed("Before stake aUSDC ", IERC20(active.aTokenAddress).balanceOf(address(this)));
 // 3. stake
     // 3.1 act1
-     IERC20(_asset).transfer(active.connector, _amount);
+     IERC20(_asset).transfer(active.connector, _amount * 2/3);
 
     // emit ConsoleLogNamed("Before stake USDC on Connector", IERC20(_asset).balanceOf(active.connector));
     // emit ConsoleLogNamed("Before stake aUSDC on Connector", IERC20(active.aTokenAddress).balanceOf(active.connector));
 
     
-    IConnector(active.connector).stake(_asset, active.poolStake, _amount, address(this));
+    IConnector(active.connector).stake(_asset, active.poolStake, _amount *2/3, address(this));
     // 3.2 act2
      bal2 = IERC20(active2.actAddress).balanceOf(address(this)) - bal2;
 
-    IERC20(active2.actAddress).transfer(active2.connector, bal2);
+    IERC20(active2.actAddress).transfer(active2.connector, bal2 /2);
 
     IConnector(active2.connector).stake(active2.actAddress, active2.poolStake, 
-        bal2,
+        bal2 /2,
         address(this));
 
 }
@@ -81,7 +81,7 @@ function stake (address _asset, uint256 _amount) external override {
         withdrAmount = IConnector(der1.connector).unstake(
                     active.derivatives[0], //derivatives[i],
                     der1.poolStake,
-                    withdrAmount,
+                    _amount /3,
                     address(this));
         
         IERC20(der0.actAddress).transfer(active.connector, 
@@ -89,7 +89,7 @@ function stake (address _asset, uint256 _amount) external override {
         withdrAmount = IConnector(active.connector).unstake(
                     active.actAddress, //derivatives[i],
                     active.poolStake,
-                    withdrAmount,
+                    withdrAmount *2 ,
                     address(this));
         // 2. unstake
 

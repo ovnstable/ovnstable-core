@@ -64,11 +64,11 @@ contract ConnectorAAVE is IConnector, OwnableExt {
             {
             return price *10**18 / priceUSDC;
             } catch {
-            return 11;
+            return 0;
             }
            
         } catch {
-           return 12;
+           return 0;
         }
   
     }

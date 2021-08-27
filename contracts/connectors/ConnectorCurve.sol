@@ -98,7 +98,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
             address ai = pool.underlying_coins(i);
             if (ai == USDC) {
                 uint256 price = getPriceOffer(_asset, _pool) ;
-                return price * balance /10**18; 
+                return  balance; 
             }
         }
         revert ("can't find addresses of coins 1");
@@ -125,11 +125,11 @@ contract ConnectorCurve is IConnector , OwnableExt{
                         return price * USDCsliq /10**18; 
                     }
                     catch {
-                        return 1;
+                        return 0;
                     }
                 }
                 catch {
-                    return 2;
+                    return 0;
                 }
               
             } else  {
