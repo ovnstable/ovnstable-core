@@ -43,7 +43,7 @@
         </v-row>
 
         <v-row justify="center">
-          <v-col lg="4" class="pa-0 ma-0">
+          <v-col lg="10" class="pa-0 ma-0">
             <CurrentTotalData v-if="tab === 1"/>
             <HistoryTotalData v-if="tab === 2"/>
           </v-col>

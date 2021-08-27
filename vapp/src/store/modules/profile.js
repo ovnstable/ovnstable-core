@@ -1,3 +1,12 @@
+let accounting = require("accounting-js")
+
+let accountingConfig = {
+    symbol: "",
+    precision: 2,
+    thousand: " ",
+};
+
+
 const state = {
     contracts: null,
     account: null,
@@ -80,11 +89,31 @@ const actions = {
             for (let i = 0; i < value.length; i++) {
                 let element = value[i];
 
-                data.push({
-                    price: getters.web3.utils.fromWei(element.price),
-                    symbol: element.symbol,
-                    value: element.liquidationValue,
-                })
+                try {
+                    let bookValue = parseInt(element.bookValue );
+                    let liquidationValue = parseInt(element.liquidationValue);
+                    let price = parseFloat(getters.web3.utils.fromWei(element.price))
+
+                    let liquidationPrice = 0
+                    let bookPrice = 0
+
+                    if (liquidationValue !== 0 && bookValue !== 0)
+                        liquidationPrice = liquidationValue / bookValue;
+
+                    if (bookValue !== 0 && price !== 0)
+                        bookPrice = bookValue * price
+
+                    data.push({
+                        symbol: element.symbol,
+                        bookValue: accounting.formatMoney(bookValue, accountingConfig),
+                        price: accounting.formatMoney(price, accountingConfig),
+                        bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
+                        liquidationPrice: accounting.formatMoney(liquidationPrice, accountingConfig),
+                        liquidationValue: accounting.formatMoney(liquidationValue, accountingConfig),
+                    })
+                } catch (e) {
+                    console.log(e)
+                }
             }
 
             commit('setCurrentTotalData', data)

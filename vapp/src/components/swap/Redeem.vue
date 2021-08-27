@@ -59,7 +59,7 @@
               </v-col>
               <v-col lg="1" md="1" sm="1" class="hidden-md-and-down"></v-col>
               <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Balance: {{ balance.ovn }}</div>
+                <div class="balance">Balance: {{ balance.usdc }}</div>
               </v-col>
               <v-col lg="3" cols="5" md="3" sm="3">
                 <v-select :items="currencies" color="black" v-model="currency"

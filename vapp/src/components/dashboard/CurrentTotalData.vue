@@ -4,16 +4,52 @@
       <v-card-text>
 
         <v-container>
+          <v-row dense>
+            <v-col>
+              Инструмент
+            </v-col>
+
+            <v-col>
+              Позиция (штук) (balances) (количество в токенах в волте) bookValue
+            </v-col>
+
+            <v-col>
+              Цена Балансовая (USDC) price
+            </v-col>
+            <v-col>
+              Mark2market (bookValue*price)
+            </v-col>
+
+            <v-col>
+              Цена Ликвидационная (USDC) liquidationValue /bookvalue
+            </v-col>
+
+            <v-col>
+              Mark2market  - ликвидационная стоимость портфеля liquidationValue
+            </v-col>
+          </v-row>
+
           <v-row dense :key="item.symbol" v-for="item in currentTotalData" class="row">
-            <v-col lg="7">
+
+            <v-col>
               {{ item.symbol }}
             </v-col>
-            <v-col lg="4">
-              <v-row justify="end">
-              {{ item.value.toLocaleString() }}
-              </v-row>
+            <v-col>
+              {{ item.bookValue }}
             </v-col>
-            <v-col lg="1"></v-col>
+            <v-col>
+              {{ item.price }}
+            </v-col>
+
+            <v-col>
+              {{ item.bookPrice }}
+            </v-col>
+            <v-col>
+              {{ item.liquidationPrice }}
+            </v-col>
+            <v-col>
+              {{ item.liquidationValue }}
+            </v-col>
           </v-row>
 
           <v-row dense class="row pt-10">
@@ -22,7 +58,7 @@
             </v-col>
             <v-col lg="4">
               <v-row justify="end">
-              {{ totalPortfolio }}
+                {{ totalPortfolio }}
               </v-row>
             </v-col>
             <v-col lg="1"></v-col>
@@ -34,7 +70,7 @@
             </v-col>
             <v-col lg="4">
               <v-row justify="end">
-              {{ balance.ovn.toLocaleString() }}
+                {{ balance.ovn }}
               </v-row>
             </v-col>
             <v-col lg="1"></v-col>

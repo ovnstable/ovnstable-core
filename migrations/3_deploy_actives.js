@@ -45,6 +45,8 @@ if (chainID == '80001') {
   await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aDAI]);
   await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0", []);
   await actList.actAdd(aCurveLP, connectorCrv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
+  await actList.actAdd("0x172370d5cd63279efa6d502dab29171933a610af", connectorAv,connectorAv, connectorAv, "0", "5000", "0", []);
+  await actList.actAdd("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", connectorAv,connectorAv, connectorAv, "0", "5000", "0", []);
   /* await actList.actAdd("0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
   await actList.actAdd("0x17912140e780B29Ba01381F088f21E8d75F954F9",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
   await actList.actAdd("0x1c313e9d0d826662F5CE692134D938656F681350",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
@@ -52,7 +54,7 @@ if (chainID == '80001') {
   await actList.actAdd("0x59e8E9100cbfCBCBAdf86b9279fa61526bBB8765",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
   await actList.actAdd("0xb9A6E29fB540C5F1243ef643EB39b0AcbC2e68E3",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
  */
-  
+
   //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");
   // await m2m.tstPrice ("1");
   // const actives = await m2m.activesPrices ();
