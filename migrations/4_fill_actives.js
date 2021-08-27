@@ -36,13 +36,13 @@ module.exports = async function(deployer) {
    const bos =  await BuyonSwap.deployed();
    await bos.buy(USDC, router, {value: "10000000000000000000"})
 
-  const usdc = await USDCtest.at(USDC);
+  //const usdc = await USDCtest.at(USDC);
   
   // const balance = await usdc.balanceOf(accounts[0]);
   // console.log ("balance:", balance.toNumber());
 
-  await deployer.deploy(DepositAAVE);
-  const dAV = await DepositAAVE.deployed();
+  //await deployer.deploy(DepositAAVE);
+  //const dAV = await DepositAAVE.deployed();
   // await usdc.approve (dAV.address, balance);//) balance.toNumber());
   // await dAV.deposit(USDC, balance, accounts[0], aaveLendingPoolAddressesProvider);
 

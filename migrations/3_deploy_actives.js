@@ -48,9 +48,9 @@ if (chainID == '80001') {
 
   
   //await actList.actAdd(DAI, connectorCv,CurvepoolPrice, CurvepoolStake, "2500", "9500",  "20000000000000000000");
-  //await m2m.tstPrice ("1");
-  const actives = await m2m.activesPrices ();
-  console.log (actives);
+  // await m2m.tstPrice ("1");
+  // const actives = await m2m.activesPrices ();
+  // console.log (actives);
 
 }
 

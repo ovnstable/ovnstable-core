@@ -98,26 +98,42 @@ contract ConnectorCurve is IConnector , OwnableExt{
             address ai = pool.underlying_coins(i);
             if (ai == USDC) {
                 uint256 price = getPriceOffer(_asset, _pool) ;
-                return price * balance; 
+                return price * balance /10**18; 
             }
         }
         revert ("can't find addresses of coins 1");
     }
 
     function getLiqValue (address _asset, address _addrWault,  address _pool) external view override returns (uint256) {
-        
-        uint256 balance = IERC20(_asset).balanceOf(_addrWault);        
         iCurvePool  pool = iCurvePool(_pool);
+
+        uint256 balance = IERC20(pool.lp_token()).balanceOf(_addrWault);  
+        if (balance == 0) {return 0 ;}
+        
         uint256 N_COINS = 3;
+        uint256 [3] memory amounts;
         for (uint256 i=0; i<N_COINS; i++) {
             address ai = pool.underlying_coins(i);
-            if (ai == USDC && balance > 0) {
-                uint256 USDCsliq = pool.calc_withdraw_one_coin(balance, int128(uint128(i))); 
-                uint256 price = getPriceOffer(_asset, _pool) ;
-               
-                return price * USDCsliq; 
+            if (ai == USDC  ) {
+                  amounts[i] = balance ;
+                  //todo - research working CurvePool when big liquidity removes
+                try  pool.calc_token_amount (amounts, false ) returns (uint lpTok)
+                {
+                    try  pool.calc_withdraw_one_coin (lpTok, int128(uint128(i)) ) returns (uint USDCsliq)
+                    {
+                        uint256 price = getPriceOffer(_asset, _pool) ;
+                        return price * USDCsliq /10**18; 
+                    }
+                    catch {
+                        return 0;
+                    }
+                }
+                catch {
+                    return 0;
+                }
+              
             } else  {
-                return 0;
+                amounts[i] = 0;
             }
 
         }
