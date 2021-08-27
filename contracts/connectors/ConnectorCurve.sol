@@ -125,11 +125,11 @@ contract ConnectorCurve is IConnector , OwnableExt{
                         return price * USDCsliq /10**18; 
                     }
                     catch {
-                        return 0;
+                        return 1;
                     }
                 }
                 catch {
-                    return 0;
+                    return 2;
                 }
               
             } else  {
