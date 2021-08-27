@@ -90,8 +90,8 @@ const actions = {
                 let element = value[i];
 
                 try {
-                    let bookValue = parseInt(element.bookValue );
-                    let liquidationValue = parseInt(element.liquidationValue);
+                    let bookValue = parseInt(element.bookValue ) / 10** parseInt(element.decimals);
+                    let liquidationValue = parseInt(element.liquidationValue)  / 10** parseInt(element.decimals);;
                     let price = parseFloat(getters.web3.utils.fromWei(element.price))
 
                     let liquidationPrice = 0
