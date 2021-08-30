@@ -106,8 +106,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
 
     function getLiqValue (address _asset, address _addrWault,  address _pool) external view override returns (uint256) {
         iCurvePool  pool = iCurvePool(_pool);
-
-        uint256 balance = IERC20(pool.lp_token()).balanceOf(_addrWault);  
+        uint256 balance = IERC20(_asset).balanceOf(_addrWault);  
         if (balance == 0) {return 0 ;}
         
         uint256 N_COINS = 3;
@@ -129,7 +128,7 @@ contract ConnectorCurve is IConnector , OwnableExt{
                     }
                 }
                 catch {
-                    return 0;
+                    return balance;
                 }
               
             } else  {
