@@ -45,6 +45,7 @@ abstract contract OwnableExt is Context {
 
     function setRole (bytes32 _role, address _actor) external onlyOwner{
         rolemap[_role] = _actor;
+        //TODO: добавить событие
     }
 
     modifier onlyRole(bytes32 _role) {

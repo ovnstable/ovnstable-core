@@ -27,8 +27,11 @@ contract ConnectorCurve is IConnector , OwnableExt{
             if (coin == _asset) {
                 
                 iCurveToken(_asset).approve(address(pool), _amount);
+                // номер позиции в массиве (amounts) определяет какой актив (_asset) и в каком количестве (_amount)
+                // на стороне керва будет застейкано
                 amounts[uint(i)] = _amount;
                 uint lpTok = pool.calc_token_amount (amounts, true );
+                //TODO: процентажи кудато вынести, slipage 
                 uint retAmount = pool.add_liquidity(amounts, 
                                                     lpTok * 99/100, 
                                                     false);
@@ -55,19 +58,14 @@ contract ConnectorCurve is IConnector , OwnableExt{
                 
                  amounts[i] = _amount ;
                 uint lpTok = pool.calc_token_amount (amounts, false );
+                // _one_coin для возврата конкретной монеты (_assest)
                 uint withdrAmount = pool.calc_withdraw_one_coin (lpTok, int128(uint128(i)) );
-              //  lpTok = lpTok *_amount /withdrAmount;
-               // uint balCT = iCurveToken(pool.lp_token()).balanceOf(address(this));
+
 
                 iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
 
                 uint  retAmount = pool.remove_liquidity_one_coin(lpTok , int128(uint128(i)), withdrAmount);
-                                                                //_amount *9/10); 
-
-              //  amounts = pool.remove_liquidity(lpTok, amounts, false );
-             //   amounts[i] = _amount /2 ;
-          //      uint  retAmount = pool.remove_liquidity_imbalance( amounts, lpTok ); 
-
+ 
 
                 IERC20(pool.coins(i)).transfer(_beneficiar, retAmount);
                 iCurveToken(pool.lp_token()).transfer(_beneficiar, 
@@ -97,7 +95,6 @@ contract ConnectorCurve is IConnector , OwnableExt{
         for (uint256 i=0; i<N_COINS; i++) {
             address ai = pool.underlying_coins(i);
             if (ai == USDC) {
-                uint256 price = getPriceOffer(_asset, _pool) ;
                 return  balance; 
             }
         }
@@ -120,15 +117,14 @@ contract ConnectorCurve is IConnector , OwnableExt{
                 {
                     try  pool.calc_withdraw_one_coin (lpTok, int128(uint128(i)) ) returns (uint USDCsliq)
                     {
-                        uint256 price = getPriceOffer(_asset, _pool) ;
-                        return price * USDCsliq /10**18; 
+                        return USDCsliq; 
                     }
                     catch {
                         return 0;
                     }
                 }
                 catch {
-                    return balance;
+                    return 0;
                 }
               
             } else  {

@@ -11,11 +11,11 @@ interface IActivesList  {
         address connector;
         address poolPrice; //connector to protocol where we get price for active
         address poolStake; //connector to protocol  where we make staking/unstaking
-        uint256 balance;        
-        uint16 minShare;
-        uint16 maxShare;
-        uint8 isWork;
-        address[] derivatives; // derivatives in protocols aave active (aUSDC)
+        uint256 balance; // свой контрольный баланс покупки/продаж, не актально       
+        uint16 minShare; // минимальная доля актива в общем портфеле
+        uint16 maxShare; // максимальная доля актива в общем портфеле
+        uint8 isWork; // является актив рабочим (участвует в портфеле)
+        address[] derivatives; // derivatives in protocols aave active (aUSDC), уровни деривативов (L1/L2....), адрес Active и по нему берется коннектор и остальные пулы/данные
     }
 
 
