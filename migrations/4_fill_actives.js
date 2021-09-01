@@ -1,11 +1,11 @@
- 
+
 const router="0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
 const USDCtest = artifacts.require("tests/USDCtest");
 
 const BuyonSwap = artifacts.require("tests/BuyonSwap.sol");
 const DepositAAVE = artifacts.require("tests/DepositAAVE.sol");
 
-var USDC 
+var USDC
 module.exports = async function(deployer) {
     const chainID = await web3.eth.net.getId();
     if (chainID == '80001') {
@@ -25,7 +25,7 @@ module.exports = async function(deployer) {
       else {
         USDC = USDCtest.networks[chainID]['address'];
         aUSDC = aUSDCtest.networks[chainID]['address'];
-      
+
       }
      var  accounts;
      await web3.eth.getAccounts().then( (a) => { accounts=a; });
@@ -34,10 +34,10 @@ module.exports = async function(deployer) {
   await deployer.deploy(BuyonSwap);
 
    const bos =  await BuyonSwap.deployed();
-   await bos.buy(USDC, router, {value: "10000000000000000000"})
+   await bos.buy(USDC, router, {value: "1000000000000000000000"})
 
   //const usdc = await USDCtest.at(USDC);
-  
+
   // const balance = await usdc.balanceOf(accounts[0]);
   // console.log ("balance:", balance.toNumber());
 
