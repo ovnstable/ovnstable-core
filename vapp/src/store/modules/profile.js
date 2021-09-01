@@ -2,7 +2,7 @@ let accounting = require("accounting-js")
 
 let accountingConfig = {
     symbol: "",
-    precision: 2,
+    precision: 6,
     thousand: " ",
 };
 
@@ -20,6 +20,8 @@ const state = {
     },
 
     gasPrice: 0,
+
+    contractNames: {}
 };
 
 const getters = {
@@ -44,6 +46,9 @@ const getters = {
         return state.web3;
     },
 
+    contractNames(state){
+        return state.contractNames;
+    },
 
     gasPrice(state) {
         return state.gasPrice;

@@ -48,6 +48,13 @@ import USDCtest from '../contracts/USDCtest.json';
 import OverNightToken from '../contracts/OvernightToken.json';
 import Mark2Market from '../contracts/Mark2Market.json';
 import DAItest from '../contracts/DAItest.json'
+import EventService from '../contracts/EventService.json';
+import ActivesList from '../contracts/ActivesList.json';
+import PortfolioManager from '../contracts/PortfolioManager.json';
+import ConnectorAAVE from '../contracts/ConnectorAAVE.json';
+import ConnectorCurve from '../contracts/ConnectorCurve.json';
+
+import abiDecoder from 'abi-decoder';
 
 export default {
   name: 'Header',
@@ -107,7 +114,7 @@ export default {
   computed: {
 
 
-    ...mapGetters('profile', ['exchange', 'account', 'web3']),
+    ...mapGetters('profile', ['exchange', 'account', 'web3', 'contractNames']),
 
 
     accountShort: function () {
@@ -194,6 +201,11 @@ export default {
       contracts.dai = this.load(DAItest, account, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
       contracts.ovn = this.load(OverNightToken, account, web3);
       contracts.m2m = this.load(Mark2Market, account, web3);
+      contracts.pm = this.load(PortfolioManager, account, web3);
+      contracts.activesList = this.load(ActivesList, account, web3);
+
+      this.load(ConnectorAAVE, account, web3, '0x7C7698593eb574535ef5F89e7541A9FC2CfF9B37')
+      this.load(ConnectorCurve, account, web3)
 
       this.setContracts(contracts)
 
@@ -202,9 +214,11 @@ export default {
     },
 
 
+
     load(file, account, web3, address) {
 
       let contractConfig = contract(file);
+      abiDecoder.addABI(file.abi);
 
       const networkId = 137;
 
@@ -213,6 +227,8 @@ export default {
       if (!address) {
         address = networks[networkId].address
       }
+
+      this.contractNames[address] = contractConfig.contractName;
 
       let ethContract = new web3.eth.Contract(abi, address);
 

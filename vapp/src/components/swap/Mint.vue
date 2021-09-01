@@ -162,6 +162,7 @@ export default {
 
 
     ...mapGetters("profile", ["contracts", "web3", 'account', 'balance', 'gasPrice']),
+    ...mapGetters("logTransactions", ["transactions"]),
   },
 
   created() {
@@ -178,7 +179,8 @@ export default {
   methods: {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
-    ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
+    ...mapActions("showTransactions", ['show', 'hide',  'addText']),
+    ...mapActions("logTransactions", ['setTxView']),
 
 
     setSum(value) {
@@ -202,7 +204,9 @@ export default {
           self.addText(`Minting ${self.sum} OVN ......  done`);
           self.addText(`Transferring ${self.sum} OVN to ${from.substring(1,10)}  ......  done`);
 
-          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function () {
+          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function (receipt) {
+            self.transactions.push(receipt);
+
             self.addText(`Completed, await blockchain, click to proceed`);
 
             setTimeout(() => self.hide(), 1000);
