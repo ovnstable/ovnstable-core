@@ -29,6 +29,9 @@
     </v-col>
     <v-col lg="4" md="2" cols="2" class="hidden-sm-and-down">
       <v-row dense class="pt-2 " justify="end">
+        <v-btn icon @click="$router.push('/admin')">
+          <v-icon>mdi-chart-box</v-icon>
+        </v-btn>
         <button v-on:click="testNative" v-if="!account" class="btn">Connect Wallet
           <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
         </button>

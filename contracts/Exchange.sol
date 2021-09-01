@@ -17,6 +17,7 @@ contract Exchange is OwnableExt {
 
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
+    event BusinessEventPrice(IMark2Market.ActivesPrices[] prices);
 
     function setTokens(address _ovn, address _usdc) external onlyOwner {
         ovn = IERC20MintableBurnable(_ovn);
@@ -50,6 +51,9 @@ contract Exchange is OwnableExt {
         IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
 
         emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);
+
+        emit BusinessEventPrice(beforePrices);
+        emit BusinessEventPrice(afterPrices);
 
         for (uint8 a = 0; a < beforePrices.length && a < 100; a++) {
 

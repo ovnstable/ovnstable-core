@@ -53,17 +53,36 @@
 
                   <template v-slot:item.ovn="{ item }">
                     <div v-if="item.ovn">
-                      <p>Before: {{ item.ovn.before }}</p>
-                      <p>After: {{ item.ovn.after }}</p>
-                      <p>Result: {{ item.ovn.result }}</p>
+                      <p>+{{ item.ovn.result }}</p>
                     </div>
                   </template>
 
                   <template v-slot:item.usdc="{ item }">
                     <div v-if="item.usdc">
-                      <p>Before: {{ item.usdc.before }}</p>
-                      <p>After: {{ item.usdc.after }}</p>
-                      <p>Result: {{ item.usdc.result }}</p>
+                      <p>+{{ item.usdc.result }}</p>
+                    </div>
+                  </template>
+                  <template v-slot:item.amUSDC="{ item }">
+                    <div v-if="item.amUSDC">
+                      <p>Before: {{ item.amUSDC.before }}</p>
+                      <p>After: {{ item.amUSDC.after }}</p>
+                      <p>Result: {{ item.amUSDC.result }}</p>
+                    </div>
+                  </template>
+
+                  <template v-slot:item.curve="{ item }">
+                    <div v-if="item.curve">
+                      <p>input: {{ item.curve.in }}</p>
+                      <p>output: {{ item.curve.out }}</p>
+                      <p>commission: {{ item.curve.commission }}</p>
+                    </div>
+                  </template>
+
+                  <template v-slot:item.am3CRV="{ item }">
+                    <div v-if="item.am3CRV">
+                      <p>Before: {{ item.am3CRV.before }}</p>
+                      <p>After: {{ item.am3CRV.after }}</p>
+                      <p>Result: {{ item.am3CRV.result }}</p>
                     </div>
                   </template>
                 </v-data-table>
@@ -72,12 +91,6 @@
           </v-col>
 
         </v-row>
-        <v-card v-if="block" class="mt-1">
-          <v-card-title>About</v-card-title>
-          <v-card-text>
-            <p>Hash: {{ block.hash }}</p>
-          </v-card-text>
-        </v-card>
         <v-card v-if="lastTx" class="mt-1">
           <v-card-title>Event</v-card-title>
           <v-card-text>
@@ -207,7 +220,7 @@ export default {
 
       this.transactionList = [];
 
-      this.web3.eth.getBlockNumber().then(value => {
+      this.web3.eth.getBlockNumber().then(async value => {
 
         let to = value;
 
@@ -228,6 +241,7 @@ export default {
             this.transactionList.push(item)
 
           });
+
 
           to = to - 1;
         }
@@ -252,13 +266,17 @@ export default {
         event = log.events.find(value => value.value === 'Connector Curve');
         if (event) {
           let find = log.events.find(value => value.name === 'amountIn');
-          item.curveIn = find.value / 10 ** 6;
+
+          let curve = {};
+
+          curve.in = find.value / 10 ** 6;
 
           find = log.events.find(value => value.name === 'amountOut');
-          item.curveOut = find.value / 10 ** 18;
+          curve.out = find.value / 10 ** 18;
 
+          curve.commission = curve.in - curve.out;
 
-          item.curveCommission = item.curveIn - item.curveOut;
+          item.curve = curve;
         }
       }
 
@@ -283,7 +301,7 @@ export default {
         }
 
 
-        event = log.events.find(value => value.value === 'usdcBalance');
+        event = log.events.find(value => value.value === 'USDC');
 
         if (event) {
 
@@ -298,6 +316,41 @@ export default {
           usdc.result = usdc.after - usdc.before;
 
           item.usdc = usdc;
+        }
+
+        event = log.events.find(value => value.value === 'am3CRV');
+
+        if (event) {
+
+          let find = log.events.find(value => value.name === 'beforeAmount');
+
+          let am3CRV = {}
+          am3CRV.before = find.value / 10 ** 6;
+
+          find = log.events.find(value => value.name === 'afterAmount');
+          am3CRV.after = find.value / 10 ** 6;
+
+          am3CRV.result = am3CRV.after - am3CRV.before;
+
+          item.am3CRV = am3CRV;
+        }
+
+
+        event = log.events.find(value => value.value === 'amUSDC');
+
+        if (event) {
+
+          let find = log.events.find(value => value.name === 'beforeAmount');
+
+          let amUSDC = {}
+          amUSDC.before = find.value / 10 ** 6;
+
+          find = log.events.find(value => value.name === 'afterAmount');
+          amUSDC.after = find.value / 10 ** 6;
+
+          amUSDC.result = amUSDC.after - amUSDC.before;
+
+          item.amUSDC = amUSDC;
         }
 
 
