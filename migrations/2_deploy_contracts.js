@@ -61,7 +61,7 @@ module.exports = async function(deployer) {
    }
 
   await exchange.setTokens(ovnt.address,usdctaddr);
-  await exchange.setAddr(actList.address, pm.address);
+  await exchange.setAddr(actList.address, pm.address, m2m.address);
   await m2m.setAddr(actList.address, pm.address);
   await pm.setAddr(actList.address)
 

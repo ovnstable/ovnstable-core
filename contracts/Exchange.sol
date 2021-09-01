@@ -23,15 +23,17 @@ contract Exchange is OwnableExt {
         usdc = IERC20(_usdc);
     }
 
-    function setAddr(address _addrAL, address _addrPM) external onlyOwner {
+    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyOwner {
         actList = IActivesList(_addrAL);
         PM = IPortfolioManager(_addrPM);
+        m2m = IMark2Market(_addrM2M);
     }
 
     function buy(address _addrTok, uint256 _amount) public {
         emit EventExchange("buy", _amount);
 
         uint256 beforeAmount = ovn.totalSupply();
+        IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
 
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -45,7 +47,6 @@ contract Exchange is OwnableExt {
 
         uint256 afterAmount = ovn.totalSupply();
 
-        IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
         IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
 
         emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);

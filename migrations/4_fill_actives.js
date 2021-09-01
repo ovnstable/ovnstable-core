@@ -34,7 +34,7 @@ module.exports = async function(deployer) {
   await deployer.deploy(BuyonSwap);
 
    const bos =  await BuyonSwap.deployed();
-   await bos.buy(USDC, router, {value: "1000000000000000000000"})
+   await bos.buy(USDC, router, {value: "1000000000000000000000000"})
 
   //const usdc = await USDCtest.at(USDC);
 
