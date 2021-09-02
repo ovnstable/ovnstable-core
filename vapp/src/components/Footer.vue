@@ -8,15 +8,17 @@
         tile
     >
       <v-card-text>
-          <v-row justify="end">
-            <v-col lg="10"></v-col>
-            <v-col lg="2">
-              <v-icon color="black">mdi-github</v-icon>
-              <v-icon color="black" class="ml-2">mdi-discord</v-icon>
-              <v-icon color="black" class="ml-2">mdi-twitter</v-icon>
-              <v-icon color="black" class="ml-2">mdi-email</v-icon>
-            </v-col>
-          </v-row>
+        <v-row justify="end">
+          <v-col lg="10"></v-col>
+          <v-col lg="2">
+            <v-btn icon href="https://github.com/ovnstable" target="_blank">
+              <v-icon color="black" >mdi-github</v-icon>
+            </v-btn>
+            <v-icon color="black" class="ml-2">mdi-discord</v-icon>
+            <v-icon color="black" class="ml-2">mdi-twitter</v-icon>
+            <v-icon color="black" class="ml-2">mdi-email</v-icon>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
   </v-footer>

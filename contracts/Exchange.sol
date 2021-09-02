@@ -64,7 +64,7 @@ contract Exchange is OwnableExt {
 
     }
 
-    function balance() public view returns (uint) {
+    function balance() public view returns (uint256) {
         return ovn.balanceOf(msg.sender);
     }
 
