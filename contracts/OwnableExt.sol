@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
  */
 abstract contract OwnableExt is Context {
     address private _owner;
-    mapping (bytes32=>address) public rolemap;
+    mapping(bytes32 => address) public rolemap;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
@@ -43,15 +43,15 @@ abstract contract OwnableExt is Context {
         _;
     }
 
-    function setRole (bytes32 _role, address _actor) external onlyOwner{
+    function setRole(bytes32 _role, address _actor) external onlyOwner {
         rolemap[_role] = _actor;
+        //TODO: добавить событие
     }
 
     modifier onlyRole(bytes32 _role) {
-        require( rolemap[_role] == _msgSender(), "OwnableExt: caller has not the role");
+        require(rolemap[_role] == _msgSender(), "OwnableExt: caller has not the role");
         _;
     }
-
 
     /**
      * @dev Leaves the contract without owner. It will not be possible to call

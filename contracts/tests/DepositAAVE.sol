@@ -3,15 +3,17 @@ import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 contract DepositAAVE {
-    function deposit (address _asset, uint _amount, address _ben, address _LPAP ) public payable {
+    function deposit(
+        address _asset,
+        uint256 _amount,
+        address _ben,
+        address _LPAP
+    ) public payable {
         ILendingPoolAddressesProvider lpap = ILendingPoolAddressesProvider(_LPAP);
         ILendingPool pool = ILendingPool(lpap.getLendingPool());
         IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
         IERC20(_asset).approve(address(pool), _amount);
-        pool.deposit(_asset, _amount, _ben , 0);
-   
-
+        pool.deposit(_asset, _amount, _ben, 0);
     }
 }

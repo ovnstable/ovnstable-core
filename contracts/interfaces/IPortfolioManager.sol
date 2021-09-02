@@ -6,10 +6,7 @@ pragma solidity >=0.8.0 <0.9.0;
 /// @notice Every connector have to implement this function
 /// @dev Choosing of connector releasing by changing address of connector's contract
 interface IPortfolioManager {
+    function stake(address _asset, uint256 _amount) external;
 
-
-function stake (address _asset, uint256 _amount) external;
-
-function unstake (address _asset, uint256 _amount) external returns (uint256);
-
+    function unstake(address _asset, uint256 _amount) external returns (uint256);
 }

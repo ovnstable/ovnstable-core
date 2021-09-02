@@ -45,7 +45,9 @@ if (chainID == '80001') {
   await actList.actAdd(DAI, connectorAv,connectorAv, connectorAv, "500", "1000", "0", [aDAI]);
   await actList.actAdd(aDAI, connectorAv,connectorAv, connectorAv, "2500", "9500", "0", []);
   await actList.actAdd(aCurveLP, connectorCrv,aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
+  // токен curve
   await actList.actAdd("0x172370d5cd63279efa6d502dab29171933a610af", connectorAv,connectorAv, connectorAv, "0", "5000", "0", []);
+  // токен MATIC
   await actList.actAdd("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", connectorAv,connectorAv, connectorAv, "0", "5000", "0", []);
   /* await actList.actAdd("0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);
   await actList.actAdd("0x17912140e780B29Ba01381F088f21E8d75F954F9",  connectorAv,connectorAv, connectorAv, "0", "0", "0", []);

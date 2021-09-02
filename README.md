@@ -69,3 +69,14 @@ rm -r ../ganache_mumbai && ganache-cli -m "clutch captain shoe salt awake harves
 truffle migrate --reset --compile-all --network ml
 
 3. goto "Run project" step 3
+
+
+### Prettier
+
+To prettify solidity code install prettier plugin to VSCode:
+```
+code --install-extension esbenp.prettier-vscode
+```
+(https://github.com/prettier-solidity/prettier-plugin-solidity#vscode)
+
+Params in `.prettierrc`
