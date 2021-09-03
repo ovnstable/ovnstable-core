@@ -1,50 +1,21 @@
 <template>
   <v-app id="app">
-    <Header/>
-    <v-main>
-      <v-container fluid>
-        <router-view></router-view>
-      </v-container>
-    </v-main>
-    <Footer/>
+    <router-view></router-view>
   </v-app>
 
 </template>
 
 <script>
 
-import Header from "./components/Header";
-import {mapGetters, mapMutations} from 'vuex';
-import Footer from "./components/Footer";
-import Web3 from "web3";
-import contract from "@truffle/contract";
 
 export default {
   name: 'App',
-  components: {Footer, Header},
-
 
   data: () => ({}),
 
+  computed: {},
 
-  computed: {
-    ...mapGetters(['profile/account'])
-  },
-
-  created() {
-    this.initWeb3();
-  },
-
-  methods: {
-
-    ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
-
-    async initWeb3() {
-
-
-    }
-
-  }
+  methods: {}
 
 
 };

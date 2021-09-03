@@ -8,32 +8,46 @@ const routes = [
 
     {
         path: '/',
-        name: 'SwapView',
-        component: () => import('../views/SwapView.vue'),
+        name: 'Dapp',
+        component: () => import('../Dapp.vue'),
 
-    },
+        children: [
 
-    {
-        path: '/dashboard',
-        name: 'DashboardView',
-        component: () => import('../views/DashboardView.vue'),
+            {
+                path: '/',
+                name: 'SwapView',
+                component: () => import('../views/SwapView.vue'),
 
-    },
+            },
+            {
+                path: '/dashboard',
+                name: 'DashboardView',
+                component: () => import('../views/DashboardView.vue'),
 
-    {
-        path: '/stats',
-        name: 'StatsView',
-        component: () => import('../views/StatsView.vue'),
+            },
 
+            {
+                path: '/stats',
+                name: 'StatsView',
+                component: () => import('../views/StatsView.vue'),
+
+            },
+        ]
     },
 
     {
         path: '/admin',
-        name: 'AdminView',
-        component: () => import('../views/AdminView.vue'),
+        name: 'Admin',
+        component: () => import('../Admin.vue'),
+        children: [
+            {
+                path: '/admin',
+                name: 'AdminView',
+                component: () => import('../views/AdminView.vue'),
 
+            },
+        ]
     },
-
 
 
 ]
