@@ -6,10 +6,17 @@
         <v-btn @click="loadLastTx">
           Load Last tx
         </v-btn>
-
-        <v-btn @click="filter">
-          Only work
-        </v-btn>
+      </v-col>
+      <v-col>
+        <v-row dense justify="end">
+         <v-btn icon @click="$router.push('/')">
+           <v-icon>mdi-account</v-icon>
+         </v-btn>
+        <button  v-if="!account" class="btn">Connect Wallet
+          <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
+        </button>
+        <div v-else class="account">{{ account }}</div>
+        </v-row>
       </v-col>
     </v-row>
     <v-row>
@@ -51,7 +58,7 @@
                     single-expand
                     hide-default-footer
                     :headers="headers"
-                    @click:row="loadTx"
+                    @click:row="selectItem"
                 >
 
                   <template v-slot:item.ovn="{ item }">
@@ -61,9 +68,9 @@
                   </template>
 
                   <template v-slot:item.usdc="{ item }">
-<!--                    <div v-if="item.usdc">-->
-<!--                      <p>{{ item.usdc > 0 ? '+' : '' }}{{ item.usdc}}</p>-->
-<!--                    </div>-->
+                    <!--                    <div v-if="item.usdc">-->
+                    <!--                      <p>{{ item.usdc > 0 ? '+' : '' }}{{ item.usdc}}</p>-->
+                    <!--                    </div>-->
                   </template>
                   <template v-slot:item.amUSDC="{ item }">
                     <div v-if="item.amUSDC">
@@ -124,7 +131,7 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import Table from "../components/admin/Table";
 import accounting from "accounting-js";
 
@@ -167,10 +174,21 @@ export default {
 
 
   created() {
-    this.loadLastTx();
+
+    this.$web3.initComplete((value) => {
+      this.setContracts(value.contracts)
+      this.setAccount(value.account)
+      this.refreshProfile();
+    });
+    this.$web3.initWeb3().then(value => {
+      this.setWeb3(value)
+    })
   },
 
   methods: {
+
+    ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
+    ...mapActions('profile', ['refreshProfile']),
 
     getContractName(address) {
 
@@ -223,12 +241,12 @@ export default {
 
         let to = value;
 
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 35; i++) {
 
           if (to <= 0)
             return
 
-          self.web3.eth.getBlock(to).then(block => {
+          await self.web3.eth.getBlock(to).then(block => {
 
             let item = {
               block: block,
@@ -236,14 +254,17 @@ export default {
               gasUsed: block.gasUsed,
             };
 
-            this.loadTx(item);
-            this.transactionList.push(item)
+            this.loadTx(item).then(newItem => {
+              this.transactionList.push(newItem)
+            });
 
           });
 
-
           to = to - 1;
         }
+
+        this.filter();
+
       });
     },
 
@@ -259,7 +280,7 @@ export default {
           find = log.events.find(value => value.name === 'prices');
 
           if (find.value.symbol === 'USDC')
-            item.usdc= parseInt(find.value.bookValue) / 10 ** parseInt(find.value.decimals);
+            item.usdc = parseInt(find.value.bookValue) / 10 ** parseInt(find.value.decimals);
         }
 
       }
@@ -354,6 +375,20 @@ export default {
     },
 
 
+    selectItem(item){
+
+      this.itemsAfter = [];
+      this.itemsBefore = [];
+      this.totalAfter = {};
+      this.totalBefore = {};
+
+
+      for (let log of item.logs) {
+        this.loadTables(log)
+      }
+    },
+
+
     loadTables(log) {
 
 
@@ -384,7 +419,6 @@ export default {
 
           find = log.events.find(value => value.name === 'afterAmount');
           this.totalAfter.ovn = find.value / 10 ** 6;
-
 
 
         }
@@ -429,33 +463,31 @@ export default {
     }
     ,
 
-    loadTx(item) {
+    async loadTx(item) {
 
-      this.itemsAfter = [];
-      this.itemsBefore = [];
-      this.totalAfter = {};
-      this.totalBefore = {};
 
       let self = this;
       self.block = item.block;
+      item.logs = [];
       self.transaction = [];
-      self.logs = [];
 
       for (let i = 0; i < self.block.transactions.length; i++) {
         let transaction = self.block.transactions[i];
 
-        self.web3.eth.getTransactionReceipt(transaction, function (e, receipt) {
+        await self.web3.eth.getTransactionReceipt(transaction, function (e, receipt) {
           self.transactions.push(receipt);
 
           let logs = self.$abiDecoder.decodeLogs(receipt.logs);
           for (let j = 0; j < logs.length; j++) {
             let log = logs[j];
             self.parseLog(item, log);
-            self.loadTables(log);
+            item.logs.push(log);
           }
 
         });
       }
+
+      return item;
     }
   }
 }
