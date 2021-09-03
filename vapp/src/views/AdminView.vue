@@ -386,6 +386,7 @@ export default {
           this.totalAfter.ovn = find.value / 10 ** 6;
 
 
+
         }
       }
     },

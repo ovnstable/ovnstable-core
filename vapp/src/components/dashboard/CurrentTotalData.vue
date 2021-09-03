@@ -5,33 +5,33 @@
 
         <v-container>
           <v-row dense>
-            <v-col>
-              Инструмент
+            <v-col style="text-align: start">
+              Active
             </v-col>
 
             <v-col>
-              Позиция (штук) (balances) (количество в токенах в волте) bookValue
+              Position
             </v-col>
 
             <v-col>
-              Цена Балансовая (USDC) price
+              Market price
             </v-col>
             <v-col>
-              Mark2market (bookValue*price)
-            </v-col>
-
-            <v-col>
-              Цена Ликвидационная (USDC) liquidationValue /bookvalue
+              Net Asset Value
             </v-col>
 
             <v-col>
-              Mark2market  - ликвидационная стоимость портфеля liquidationValue
+              Liquidation price
+            </v-col>
+
+            <v-col>
+              Liquidation value
             </v-col>
           </v-row>
 
           <v-row dense :key="item.symbol" v-for="item in currentTotalData" class="row">
 
-            <v-col>
+            <v-col style="text-align: start">
               {{ item.symbol }}
             </v-col>
             <v-col>
@@ -53,25 +53,23 @@
           </v-row>
 
           <v-row dense class="row pt-10">
-            <v-col lg="7">
-              Total Portfolio Value
+            <v-col lg="4" style="text-align: start">
+              Total
             </v-col>
             <v-col lg="4">
-              <v-row justify="end">
-                {{ totalPortfolio }}
-              </v-row>
+              {{ netAssetValueTotal }}
             </v-col>
-            <v-col lg="1"></v-col>
+            <v-col lg="4">
+              {{liquidationValueTotal}}
+            </v-col>
           </v-row>
 
           <v-row dense class="row font-weight-bold">
-            <v-col lg="7">
-              Total OVNGT
+            <v-col lg="4" style="text-align: start">
+              Total OVN in circulation
             </v-col>
             <v-col lg="4">
-              <v-row justify="end">
-                {{ balance.ovn }}
-              </v-row>
+              {{ balance.ovn }}
             </v-col>
             <v-col lg="1"></v-col>
           </v-row>
@@ -101,19 +99,33 @@ export default {
   computed: {
     ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'balance']),
 
-    totalPortfolio: function () {
-
+    liquidationValueTotal: function (){
       let value = 0;
       if (this.currentTotalData) {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
           if (item.liquidationValue)
-            value += parseInt(item.liquidationValue);
+            value += parseFloat(item.liquidationValue);
         }
 
       }
-      return value;
+      return this.$utils.formatMoney(value);
+
+    },
+    netAssetValueTotal: function () {
+
+      let value = 0;
+      if (this.currentTotalData) {
+
+        for (let key in this.currentTotalData) {
+          let item = this.currentTotalData[key];
+          if (item.bookPrice)
+            value += parseFloat(item.bookPrice);
+        }
+
+      }
+      return this.$utils.formatMoney(value);
     },
   },
 
@@ -137,6 +149,7 @@ export default {
 .row {
   color: #171717;
   font-size: 17px;
+  text-align: end;
 }
 
 
