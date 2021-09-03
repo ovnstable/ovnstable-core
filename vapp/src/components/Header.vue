@@ -32,7 +32,7 @@
         <v-btn icon @click="$router.push('/admin')">
           <v-icon>mdi-chart-box</v-icon>
         </v-btn>
-        <button v-on:click="testNative" v-if="!account" class="btn">Connect Wallet
+        <button v-on:click="connectWallet" v-if="!account" class="btn">Connect Wallet
           <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
         </button>
         <div v-else class="account">{{ accountShort }}</div>
@@ -41,22 +41,7 @@
   </v-app-bar>
 </template>
 <script>
-import Web3 from "web3";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-
-import contract from '@truffle/contract';
-
-import Exchange from '../contracts/Exchange.json';
-import USDCtest from '../contracts/USDCtest.json';
-import OverNightToken from '../contracts/OvernightToken.json';
-import Mark2Market from '../contracts/Mark2Market.json';
-import DAItest from '../contracts/DAItest.json'
-import EventService from '../contracts/EventService.json';
-import ActivesList from '../contracts/ActivesList.json';
-import PortfolioManager from '../contracts/PortfolioManager.json';
-import ConnectorAAVE from '../contracts/ConnectorAAVE.json';
-import ConnectorCurve from '../contracts/ConnectorCurve.json';
-import IMark2Market from '../contracts/IMark2Market.json';
 
 
 export default {
@@ -159,7 +144,7 @@ export default {
     if (find)
       this.menu = find;
 
-    this.testNative();
+    this.connectWallet();
   },
 
 
@@ -174,79 +159,19 @@ export default {
       this.$router.push(to)
     },
 
-    async testNative() {
 
-      const web3 = new Web3(window.ethereum);
+    connectWallet() {
 
-      await window.ethereum.enable();
-      this.setWeb3(web3);
-
-      let self = this;
-      this.web3.eth.getAccounts((error, accounts) => {
-        self.init(web3, accounts);
+      this.$web3.initComplete((value) => {
+        this.setContracts(value.contracts)
+        this.setAccount(value.account)
+        this.refreshProfile();
+      });
+      this.$web3.initWeb3().then(value => {
+        this.setWeb3(value)
       })
 
-      window.ethereum.on('accountsChanged', function (accounts) {
-        self.init(web3, accounts);
-      });
-
-    },
-
-
-    init(web3, accounts) {
-      let account = accounts[0];
-      this.setAccount(account);
-
-      this.$abiDecoder.setUtils(web3.utils);
-      this.$abiDecoder.setAbiDecoder(web3.eth.abi);
-
-      let contracts = {};
-
-      contracts.exchange = this.load(Exchange, account, web3);
-      contracts.usdc = this.load(USDCtest, account, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-      contracts.dai = this.load(DAItest, account, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
-      contracts.ovn = this.load(OverNightToken, account, web3);
-      contracts.m2m = this.load(Mark2Market, account, web3);
-      contracts.pm = this.load(PortfolioManager, account, web3);
-      contracts.activesList = this.load(ActivesList, account, web3);
-
-      this.load(ConnectorAAVE, account, web3, '0x7C7698593eb574535ef5F89e7541A9FC2CfF9B37')
-      this.load(ConnectorCurve, account, web3)
-      this.load(IMark2Market, account, web3)
-
-      this.setContracts(contracts)
-
-      this.refreshProfile();
-
-    },
-
-
-
-    load(file, account, web3, address) {
-
-      let contractConfig = contract(file);
-      this.$abiDecoder.addABI(file.abi);
-
-      const networkId = 137;
-
-      const {abi, networks, deployedBytecode} = contractConfig
-
-      if (!address) {
-        let network = networks[networkId];
-        if (network)
-            address = network.address
-        else
-          return ;
-      }
-
-      this.contractNames[address] = contractConfig.contractName;
-
-      let ethContract = new web3.eth.Contract(abi, address);
-
-      return ethContract;
     }
-    ,
-
 
   }
   ,
