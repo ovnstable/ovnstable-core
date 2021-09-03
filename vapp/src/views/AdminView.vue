@@ -13,9 +13,12 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col lg="4">
+      <v-col lg="7">
 
-        <v-card height="85vh" class="overflow-y-auto">
+        <Table title="Before" :total="totalBefore" :items="itemsBefore"/>
+        <Table title="After" :total="totalAfter" :items="itemsAfter"/>
+
+        <v-card v-if="false" height="85vh" class="overflow-y-auto">
           <v-stepper
               vertical
               v-model="position"
@@ -32,7 +35,7 @@
           </v-stepper>
         </v-card>
       </v-col>
-      <v-col lg="8">
+      <v-col lg="5">
 
         <v-row dense>
           <v-col>
@@ -53,28 +56,20 @@
 
                   <template v-slot:item.ovn="{ item }">
                     <div v-if="item.ovn">
-                      <p>+{{ item.ovn.result }}</p>
+                      <p>{{ item.ovn.result > 0 ? '+' : '' }}{{ item.ovn.result }}</p>
                     </div>
                   </template>
 
                   <template v-slot:item.usdc="{ item }">
-                    <div v-if="item.usdc">
-                      <p>+{{ item.usdc.result }}</p>
-                    </div>
+<!--                    <div v-if="item.usdc">-->
+<!--                      <p>{{ item.usdc > 0 ? '+' : '' }}{{ item.usdc}}</p>-->
+<!--                    </div>-->
                   </template>
                   <template v-slot:item.amUSDC="{ item }">
                     <div v-if="item.amUSDC">
                       <p>Before: {{ item.amUSDC.before }}</p>
                       <p>After: {{ item.amUSDC.after }}</p>
                       <p>Result: {{ item.amUSDC.result }}</p>
-                    </div>
-                  </template>
-
-                  <template v-slot:item.curve="{ item }">
-                    <div v-if="item.curve">
-                      <p>input: {{ item.curve.in }}</p>
-                      <p>output: {{ item.curve.out }}</p>
-                      <p>commission: {{ item.curve.commission }}</p>
                     </div>
                   </template>
 
@@ -124,18 +119,18 @@
         </v-card>
       </v-col>
 
-
     </v-row>
   </div>
 </template>
 
 <script>
 import {mapGetters} from "vuex";
-import abiDecoder from "abi-decoder";
+import Table from "../components/admin/Table";
+import accounting from "accounting-js";
 
 export default {
   name: "AdminView",
-
+  components: {Table},
   data: () => ({
 
     transactionList: [],
@@ -146,13 +141,16 @@ export default {
       {text: "OVN", value: 'ovn'},
       {text: "USDC", value: 'usdc'},
       {text: "amUSDC", value: 'amUSDC'},
-      {text: "curve", value: 'curve'},
       {text: "am3CRV", value: 'am3CRV'},
     ],
     logs: [],
     block: null,
     position: null,
 
+    itemsAfter: [],
+    totalAfter: {},
+    itemsBefore: [],
+    totalBefore: {},
   }),
 
   computed: {
@@ -216,6 +214,7 @@ export default {
 
     loadLastTx() {
 
+
       let self = this;
 
       this.transactionList = [];
@@ -251,33 +250,18 @@ export default {
     parseLog(item, log) {
 
 
-      if (log.name === 'EventStake') {
-        let event = log.events.find(value => value.value === "aave");
+      if (log.name === 'BusinessEventPrice') {
+        console.log(log)
+        let find = log.events.find(value => value.name === 'label');
 
-        if (event) {
-          let find = log.events.find(value => value.name === 'amountIn');
+        if (find.value === 'after') {
 
-          let amUSDC = {
-            result: find.value / 10 ** 6
-          }
-          item.amUSDC = amUSDC;
+          find = log.events.find(value => value.name === 'prices');
+
+          if (find.value.symbol === 'USDC')
+            item.usdc= parseInt(find.value.bookValue) / 10 ** parseInt(find.value.decimals);
         }
 
-        event = log.events.find(value => value.value === 'Connector Curve');
-        if (event) {
-          let find = log.events.find(value => value.name === 'amountIn');
-
-          let curve = {};
-
-          curve.in = find.value / 10 ** 6;
-
-          find = log.events.find(value => value.name === 'amountOut');
-          curve.out = find.value / 10 ** 18;
-
-          curve.commission = curve.in - curve.out;
-
-          item.curve = curve;
-        }
       }
 
 
@@ -300,23 +284,6 @@ export default {
           item.ovn = ovn;
         }
 
-
-        event = log.events.find(value => value.value === 'USDC');
-
-        if (event) {
-
-          let find = log.events.find(value => value.name === 'beforeAmount');
-
-          let usdc = {}
-          usdc.before = find.value / 10 ** 6;
-
-          find = log.events.find(value => value.name === 'afterAmount');
-          usdc.after = find.value / 10 ** 6;
-
-          usdc.result = usdc.after - usdc.before;
-
-          item.usdc = usdc;
-        }
 
         event = log.events.find(value => value.value === 'am3CRV');
 
@@ -386,7 +353,87 @@ export default {
 
     },
 
+
+    loadTables(log) {
+
+
+      if (log.name === 'BusinessEventPrice') {
+        console.log(log)
+        let find = log.events.find(value => value.name === 'label');
+
+        let array;
+
+        if (find.value === 'after')
+          array = this.itemsAfter;
+        else
+          array = this.itemsBefore;
+
+        find = log.events.find(value => value.name === 'prices');
+        array.push(this.convertItem(find.value))
+      }
+
+
+      if (log.name === 'BusinessEvent') {
+
+        let event = log.events.find(value => value.value === 'ovnBalance');
+
+        if (event) {
+
+          let find = log.events.find(value => value.name === 'beforeAmount');
+          this.totalBefore.ovn = find.value / 10 ** 6;
+
+          find = log.events.find(value => value.name === 'afterAmount');
+          this.totalAfter.ovn = find.value / 10 ** 6;
+
+
+        }
+      }
+    },
+
+    convertItem(element) {
+
+
+      let accountingConfig = {
+        symbol: "",
+        precision: 6,
+        thousand: " ",
+      };
+
+      try {
+        let bookValue = parseInt(element.bookValue) / 10 ** parseInt(element.decimals);
+        let liquidationValue = parseInt(element.liquidationValue) / 10 ** parseInt(element.decimals);
+        ;
+        let price = parseFloat(this.web3.utils.fromWei(element.price))
+
+        let liquidationPrice = 0
+        let bookPrice = 0
+
+        if (liquidationValue !== 0 && bookValue !== 0)
+          liquidationPrice = liquidationValue / bookValue;
+
+        if (bookValue !== 0 && price !== 0)
+          bookPrice = bookValue * price
+
+        return {
+          symbol: element.symbol,
+          bookValue: accounting.formatMoney(bookValue, accountingConfig),
+          price: accounting.formatMoney(price, accountingConfig),
+          bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
+          liquidationPrice: accounting.formatMoney(liquidationPrice, accountingConfig),
+          liquidationValue: accounting.formatMoney(liquidationValue, accountingConfig),
+        };
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    ,
+
     loadTx(item) {
+
+      this.itemsAfter = [];
+      this.itemsBefore = [];
+      this.totalAfter = {};
+      this.totalBefore = {};
 
       let self = this;
       self.block = item.block;
@@ -399,12 +446,11 @@ export default {
         self.web3.eth.getTransactionReceipt(transaction, function (e, receipt) {
           self.transactions.push(receipt);
 
-          let logs = abiDecoder.decodeLogs(receipt.logs);
+          let logs = self.$abiDecoder.decodeLogs(receipt.logs);
           for (let j = 0; j < logs.length; j++) {
             let log = logs[j];
-            self.logs.push(log);
-
-            self.parseLog(item, log)
+            self.parseLog(item, log);
+            self.loadTables(log);
           }
 
         });

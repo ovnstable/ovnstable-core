@@ -17,7 +17,7 @@ contract Exchange is OwnableExt {
 
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
-    event BusinessEventPrice(IMark2Market.ActivesPrices[] prices);
+    event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
 
     function setTokens(address _ovn, address _usdc) external onlyOwner {
         ovn = IERC20MintableBurnable(_ovn);
@@ -37,6 +37,7 @@ contract Exchange is OwnableExt {
         IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
 
 
+
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
 
@@ -46,20 +47,18 @@ contract Exchange is OwnableExt {
         IERC20(_addrTok).transfer(address(PM), _amount);
         PM.stake(_addrTok, _amount);
 
+
+
         uint256 afterAmount = ovn.totalSupply();
-
         IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
-
         emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);
-
-        emit BusinessEventPrice(beforePrices);
-        emit BusinessEventPrice(afterPrices);
 
         for (uint8 a = 0; a < beforePrices.length && a < 100; a++) {
 
             IMark2Market.ActivesPrices memory beforePrice = beforePrices[a];
             IMark2Market.ActivesPrices memory afterPrice = afterPrices[a];
-            emit BusinessEvent(beforePrice.symbol, beforePrice.bookValue, afterPrice.bookValue);
+            emit BusinessEventPrice('before',beforePrice);
+            emit BusinessEventPrice('after', afterPrice);
         }
 
     }
@@ -70,24 +69,34 @@ contract Exchange is OwnableExt {
 
     function redeem(address _addrTok, uint256 _amount) public {
         emit EventExchange("redeem", _amount);
+
         uint256 beforeAmount = ovn.totalSupply();
+        IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
+
+
 
         //TODO: Real unstacke amount may be different to _amount
         uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
-
-
         // Or just burn from sender
         ovn.burn(msg.sender, _amount);
-
         actList.changeBal(_addrTok, - int128(uint128(unstakedAmount)));
-
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
 
-        uint256 afterAmount = ovn.totalSupply();
 
+
+        uint256 afterAmount = ovn.totalSupply();
+        IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
         emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);
+
+        for (uint8 a = 0; a < beforePrices.length && a < 100; a++) {
+
+            IMark2Market.ActivesPrices memory beforePrice = beforePrices[a];
+            IMark2Market.ActivesPrices memory afterPrice = afterPrices[a];
+            emit BusinessEventPrice('before',beforePrice);
+            emit BusinessEventPrice('after', afterPrice);
+        }
 
     }
 }

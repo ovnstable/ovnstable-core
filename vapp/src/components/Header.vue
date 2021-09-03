@@ -56,8 +56,8 @@ import ActivesList from '../contracts/ActivesList.json';
 import PortfolioManager from '../contracts/PortfolioManager.json';
 import ConnectorAAVE from '../contracts/ConnectorAAVE.json';
 import ConnectorCurve from '../contracts/ConnectorCurve.json';
+import IMark2Market from '../contracts/IMark2Market.json';
 
-import abiDecoder from 'abi-decoder';
 
 export default {
   name: 'Header',
@@ -197,6 +197,9 @@ export default {
       let account = accounts[0];
       this.setAccount(account);
 
+      this.$abiDecoder.setUtils(web3.utils);
+      this.$abiDecoder.setAbiDecoder(web3.eth.abi);
+
       let contracts = {};
 
       contracts.exchange = this.load(Exchange, account, web3);
@@ -209,6 +212,7 @@ export default {
 
       this.load(ConnectorAAVE, account, web3, '0x7C7698593eb574535ef5F89e7541A9FC2CfF9B37')
       this.load(ConnectorCurve, account, web3)
+      this.load(IMark2Market, account, web3)
 
       this.setContracts(contracts)
 
@@ -221,14 +225,18 @@ export default {
     load(file, account, web3, address) {
 
       let contractConfig = contract(file);
-      abiDecoder.addABI(file.abi);
+      this.$abiDecoder.addABI(file.abi);
 
       const networkId = 137;
 
       const {abi, networks, deployedBytecode} = contractConfig
 
       if (!address) {
-        address = networks[networkId].address
+        let network = networks[networkId];
+        if (network)
+            address = network.address
+        else
+          return ;
       }
 
       this.contractNames[address] = contractConfig.contractName;
