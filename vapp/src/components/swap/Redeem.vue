@@ -127,7 +127,7 @@ export default {
       if (!this.sum || this.sum === 0)
         return '0.00';
       else
-        return this.$utils.formatMoney(this.sum,2);
+        return this.$utils.formatMoney(this.sum.replace(/,/g,'.'),2);
     },
 
     numberRule: function () {

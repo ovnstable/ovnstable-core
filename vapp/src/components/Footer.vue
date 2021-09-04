@@ -14,9 +14,18 @@
             <v-btn icon href="https://github.com/ovnstable" target="_blank">
               <v-icon color="black" >mdi-github</v-icon>
             </v-btn>
-            <v-icon color="black" class="ml-2">mdi-discord</v-icon>
-            <v-icon color="black" class="ml-2">mdi-twitter</v-icon>
-            <v-icon color="black" class="ml-2">mdi-email</v-icon>
+
+            <v-btn icon href="https://github.com/ovnstable" target="_blank">
+              <v-icon color="black" >mdi-discord</v-icon>
+            </v-btn>
+
+            <v-btn icon href="https://github.com/ovnstable" target="_blank">
+              <v-icon color="black" >mdi-twitter</v-icon>
+            </v-btn>
+
+            <v-btn icon href="https://github.com/ovnstable" target="_blank">
+              <v-icon color="black" >mdi-email</v-icon>
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
