@@ -15,10 +15,11 @@
                               :rules="[numberRule]"
                               v-model="sum"></v-text-field>
               </v-col>
-              <v-col lg="4" md="4" sm="4" cols="2" class="pt-3 hidden-xs-only" align="end">
+              <v-spacer/>
+              <v-col  lg="3" md="3" sm="4" cols="2" class="pt-3 hidden-xs-only" align="end">
                 <div class="balance">Max: {{ $utils.formatMoney(balance.usdc,2) }}</div>
               </v-col>
-              <v-col lg="4" cols="4" md="3" sm="3" align="end" >
+              <v-col lg="3" cols="4" md="3" sm="3" align="end" >
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
                     <img :src="item.image" width="40" height="40"><span
@@ -56,10 +57,11 @@
                   {{ sumResult }}
                 </div>
               </v-col>
+              <v-spacer/>
               <v-col lg="4" md="4" sm="4" class="pt-3 hidden-xs-only" align="end">
                 <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn,2) }}</div>
               </v-col>
-              <v-col lg="4" cols="4" md="3" sm="3" >
+              <v-col lg="3" cols="4" md="3" sm="3" >
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
@@ -254,7 +256,7 @@ export default {
 .balance {
   font-weight: bold;
   color: #40404C;
-  text-align: center;
+  text-align: end;
   cursor: pointer;
   padding-top: 5px;
   padding-bottom: 5px;

@@ -6,15 +6,16 @@
       class="app-bar"
   >
 
-    <v-col lg="4" md="2" cols="2" class="ml-0 pl-0">
+    <v-col lg="4" md="4" cols="2" class="ml-0 pl-0">
       <v-row dense style="width: 400px">
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
-        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div> <span>Alpha</span>
+        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div>
+        <span>Alpha</span>
       </v-row>
     </v-col>
-    <v-col lg="4" md="8" cols="8" class="ma-0 pa-0">
+    <v-col lg="4" md="4" cols="8" class="ma-0 pa-0">
       <v-row justify="center">
         <div class="hidden-xs-only">
           <span v-bind:class="activeTabSave" @click="$router.push('/')">Swap</span>
@@ -27,15 +28,18 @@
         </div>
       </v-row>
     </v-col>
-    <v-col lg="4" md="2" cols="2" class="hidden-sm-and-down">
-      <v-row dense class="pt-2 " justify="end">
-        <v-btn icon @click="$router.push('/admin')">
-          <v-icon>mdi-chart-box</v-icon>
-        </v-btn>
-        <button v-on:click="connectWallet" v-if="!account" class="btn">Connect Wallet
-          <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
-        </button>
-        <div v-else class="account">{{ accountShort }}</div>
+    <v-col lg="4" md="4"  class="hidden-sm-and-down">
+      <v-row dense class="pt-2 " justify="end" >
+        <v-row v-if="!account" justify="end" align="center">
+          <button v-on:click="connectWallet" class="btn">Connect Wallet
+            <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
+          </button>
+        </v-row>
+        <v-row v-else justify="end" align="center">
+          <div class="account ml-1">
+            OVN: {{ balance.ovn }} {{ accountShort }}
+          </div>
+        </v-row>
       </v-row>
     </v-col>
   </v-app-bar>
@@ -102,7 +106,7 @@ export default {
   computed: {
 
 
-    ...mapGetters('profile', ['exchange', 'account', 'web3', 'contractNames']),
+    ...mapGetters('profile', ['exchange', 'account', 'web3', 'contractNames', 'balance']),
 
 
     accountShort: function () {
@@ -223,7 +227,6 @@ export default {
 .account {
   cursor: pointer; /* Mouse pointer on hover */
   color: #686868;
-  width: 180px;
   height: 35px;
   font-weight: 600;
   font-size: 14px;
