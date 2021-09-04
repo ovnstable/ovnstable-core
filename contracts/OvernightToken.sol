@@ -4,13 +4,28 @@ import "./interfaces/IERC20MintableBurnable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract OvernightToken is IERC20MintableBurnable, ERC20 {
+
+
+    uint256 private _totalMint;
+    uint256 private _totalBurn;
+
     constructor() ERC20("TstOvernightToken", "TstOVNGT") {}
 
     function mint(address _sender, uint256 _amount) public override {
         _mint(_sender, _amount);
+        _totalMint += _amount;
     }
 
     function burn(address _sender, uint256 _amount) public override {
         _burn(_sender, _amount);
+        _totalBurn += _amount;
+    }
+
+    function totalMint() public view returns (uint256) {
+        return _totalMint;
+    }
+
+    function totalBurn() public view returns (uint256) {
+        return _totalBurn;
     }
 }

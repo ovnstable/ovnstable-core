@@ -175,7 +175,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
     ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
 
 
@@ -189,9 +189,7 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
-        let refreshBalance = this.refreshBalance;
-        let refreshCurrentTotalData = this.refreshCurrentTotalData;
-        let setSum = this.setSum;
+        let self =  this;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -201,9 +199,8 @@ export default {
           contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
             alert('Success second step!')
 
-            refreshBalance();
-            refreshCurrentTotalData();
-            setSum(null)
+            self.refreshProfile();
+            self.setSum(null)
           });
         });
 

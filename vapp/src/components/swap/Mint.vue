@@ -178,7 +178,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
     ...mapActions("showTransactions", ['show', 'hide',  'addText']),
     ...mapActions("logTransactions", ['setTxView']),
 
@@ -211,8 +211,7 @@ export default {
 
             setTimeout(() => self.hide(), 1000);
 
-            self.refreshBalance();
-            self.refreshCurrentTotalData();
+            self.refreshProfile();
             self.setSum(null);
 
           });

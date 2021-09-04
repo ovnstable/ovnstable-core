@@ -6,7 +6,7 @@
           Total OVN Minted:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces(total.minted) }}
+          {{ numberWithSpaces(totalOvn.totalMint) }}
         </v-col>
       </v-row>
       <v-row dense class="row fatty pt-2 pb-2" align="center">
@@ -14,7 +14,7 @@
           OVN in circulation:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          <strong>{{ numberWithSpaces(total.circulation) }}</strong>
+          <strong>{{ numberWithSpaces(totalOvn.totalSupply) }}</strong>
         </v-col>
         <v-col lg="2">
         </v-col>
@@ -25,7 +25,7 @@
           Total OVN Burnt:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces(total.minted) }}
+          {{ numberWithSpaces(totalOvn.totalBurn) }}
         </v-col>
 
         <v-col>
@@ -47,16 +47,19 @@
 </template>
 
 <script>
+import {mapGetters} from "vuex";
+
 export default {
   name: "StatsWidget",
 
   data: () => ({
-    total: {
-      minted: 113332344,
-      circulation: 79886800,
-      burnt: 33445544,
-    },
+
   }),
+
+
+  computed: {
+    ...mapGetters('profile', ['totalOvn'])
+  },
 
   methods: {
     numberWithSpaces(x) {

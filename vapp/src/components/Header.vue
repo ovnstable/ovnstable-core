@@ -11,7 +11,7 @@
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
-        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div>
+        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div> <span>Alpha</span>
       </v-row>
     </v-col>
     <v-col lg="4" md="8" cols="8" class="ma-0 pa-0">

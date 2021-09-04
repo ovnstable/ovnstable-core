@@ -14,6 +14,13 @@ const state = {
 
 
     currentTotalData: null,
+
+    totalOvn: {
+        totalMint: 0,
+        totalBurn: 0,
+        totalSupply: 0,
+    },
+
     balance: {
         ovn: 0,
         usdc: 0,
@@ -46,13 +53,18 @@ const getters = {
         return state.web3;
     },
 
-    contractNames(state){
+    contractNames(state) {
         return state.contractNames;
     },
 
     gasPrice(state) {
         return state.gasPrice;
     },
+
+    totalOvn(state) {
+        return state.totalOvn;
+    },
+
 };
 
 const actions = {
@@ -72,11 +84,28 @@ const actions = {
 
     },
 
+    async refreshTotalOvn({commit, dispatch, getters}) {
+
+        let totalSupply = await getters.contracts.ovn.methods.totalSupply().call();
+        let totalBurn = await getters.contracts.ovn.methods.totalBurn().call();
+        let totalMint = await getters.contracts.ovn.methods.totalMint().call();
+
+        let request = {
+            totalMint: totalMint / 10 ** 6,
+            totalBurn: totalBurn / 10 ** 6,
+            totalSupply: totalSupply / 10 ** 6,
+        }
+
+        commit('setTotalOvn', request);
+    },
+
+
     async refreshProfile({commit, dispatch, getters}) {
 
         dispatch('refreshGasPrice');
         dispatch('refreshCurrentTotalData');
         dispatch('refreshBalance');
+        dispatch('refreshTotalOvn');
     },
 
     async refreshGasPrice({commit, dispatch, getters}) {
@@ -95,9 +124,9 @@ const actions = {
                 let element = value[i];
 
                 try {
-                    let bookValue = parseInt(element.bookValue ) / 10** parseInt(element.decimals);
-                    let liquidationValue = parseInt(element.liquidationValue)  / 10** parseInt(element.decimals);;
-                    let price = parseFloat(getters.web3.utils.fromWei(element.price))
+                    let bookValue = parseInt(element.bookValue) / 10 ** parseInt(element.decimals);
+                    let liquidationValue = parseInt(element.liquidationValue) / 10 ** parseInt(element.decimals);
+                    let price = parseFloat(getters.web3.utils.fromWei(element.price));
 
                     let liquidationPrice = 0
                     let bookPrice = 0
@@ -154,6 +183,10 @@ const mutations = {
 
     setGasPrice(state, price) {
         state.gasPrice = price;
+    },
+
+    setTotalOvn(state, totalOvn) {
+        state.totalOvn = totalOvn;
     },
 
 };
