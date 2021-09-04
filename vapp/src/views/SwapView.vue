@@ -9,8 +9,8 @@
     >
       <v-col
           lg="12"
-          md="8"
-          sm="8"
+          md="7"
+          sm="10"
       >
         <v-row class="justify-center align-center pt-15">
           <img :src="require('../assets/swap.png')">

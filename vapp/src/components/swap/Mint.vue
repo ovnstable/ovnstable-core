@@ -5,7 +5,7 @@
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="5" md="5" sm="5" cols="7" >
+              <v-col lg="4" md="5" sm="5" cols="8" >
                 <v-text-field placeholder="0.00"
                               flat
                               solo
@@ -15,19 +15,18 @@
                               :rules="[numberRule]"
                               v-model="sum"></v-text-field>
               </v-col>
-              <v-col lg="1" md="1" sm="1"  class="hidden-md-and-down"></v-col>
-              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
-                <div class="max">Max: {{ balance.usdc }}</div>
+              <v-col lg="4" md="4" sm="4" cols="2" class="pt-3 hidden-xs-only" align="end">
+                <div class="balance">Max: {{ $utils.formatMoney(balance.usdc,2) }}</div>
               </v-col>
-              <v-col lg="3" cols="5" md="3" sm="3">
+              <v-col lg="4" cols="4" md="3" sm="3" align="end" >
                 <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
                     <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1">{{ item.title }}</span>
+                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
                     <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom">{{ item.title }}</span>
+                      class="title-custom hidden-xs-only">{{ item.title }}</span>
                   </template>
                 </v-select>
               </v-col>
@@ -52,25 +51,24 @@
         <v-row dense>
           <v-col class="field">
             <v-row dense>
-              <v-col lg="5" md="5" sm="5" cols="7">
+              <v-col lg="4" md="5" sm="5" cols="8">
                 <div class="field-buy mt-1 ml-1">
                   {{ sumResult }}
                 </div>
               </v-col>
-              <v-col lg="1" md="1" sm="1"  class="hidden-md-and-down" ></v-col>
-              <v-col lg="3" md="3" sm="3" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Balance: {{ balance.ovn }}</div>
+              <v-col lg="4" md="4" sm="4" class="pt-3 hidden-xs-only" align="end">
+                <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn,2) }}</div>
               </v-col>
-              <v-col lg="3" cols="5" md="3" sm="3" >
+              <v-col lg="4" cols="4" md="3" sm="3" >
                 <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
                           class="custom" flat solo>
                   <template v-slot:selection="{ item, index }">
                     <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1">{{ item.title }}</span>
+                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
                   </template>
                   <template v-slot:item="{ item }">
                     <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom">{{ item.title }}</span>
+                      class="title-custom hidden-xs-only">{{ item.title }}</span>
                   </template>
                 </v-select>
               </v-col>
@@ -126,7 +124,7 @@ export default {
       if (!this.sum || this.sum === 0)
         return '0.00';
       else
-        return this.sum;
+        return this.$utils.formatMoney(this.sum,2);
 
 
     },
