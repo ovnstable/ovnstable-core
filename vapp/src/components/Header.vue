@@ -37,7 +37,7 @@
         </v-row>
         <v-row v-else justify="end" align="center">
           <div class="account ml-1">
-            OVN: {{ balance.ovn }} {{ accountShort }}
+            OVN: <strong>{{ balance.ovn }}</strong> {{ accountShort }}
           </div>
         </v-row>
       </v-row>

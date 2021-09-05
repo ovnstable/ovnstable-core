@@ -22,7 +22,7 @@
     <v-list v-if="!readonly">
       <v-list-item
           v-for="item in items"
-          :key="item"
+          :key="item.id"
           link
           @click="setItem(item)"
       >
