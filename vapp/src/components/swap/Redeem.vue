@@ -180,11 +180,17 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
+
+        this.show('Processing...')
+        this.addText(`Locking ${this.sum} OVN ......  done`)
+
         contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
-          alert('Success first step!')
+          self.addText(`Burning ${self.sum} OVN ......  done`);
+          self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
 
           contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send({from: from}).then(function () {
-            alert('Success second step!')
+            self.addText(`Completed, await blockchain, click to proceed`);
+            setTimeout(() => self.hide(), 1000);
 
             self.refreshProfile();
             self.setSum(null)
