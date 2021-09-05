@@ -136,6 +136,8 @@ export default {
 
       if (this.isBuy){
         return 'Press to Mint & Swap'
+      }else if(this.sum > parseFloat(this.balance.usdc)) {
+        return 'Invalid amount'
       }else {
         return 'Enter the amount to Mint & Swap';
       }

@@ -151,7 +151,9 @@ export default {
 
       if (this.isBuy) {
         return 'Press to Withdraw'
-      } else {
+      }else if(this.sum > parseFloat(this.balance.ovn)) {
+        return 'Invalid amount'
+      }else {
         return 'Enter the amount to Withdraw';
       }
     },
