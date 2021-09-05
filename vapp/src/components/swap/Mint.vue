@@ -1,11 +1,11 @@
 <template>
-  <v-col >
+  <v-col>
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="4" md="5" sm="5" cols="8" >
+              <v-col lg="4" md="5" sm="5" cols="8">
                 <v-text-field placeholder="0.00"
                               flat
                               solo
@@ -16,20 +16,13 @@
                               v-model="sum"></v-text-field>
               </v-col>
               <v-spacer/>
-              <v-col  lg="3" md="3" sm="4" cols="2" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Max: {{ $utils.formatMoney(balance.usdc,2) }}</div>
+              <v-col lg="3" md="3" sm="4" cols="2" class="pt-3 hidden-xs-only" align="end">
+                <div class="balance">Max: {{ $utils.formatMoney(balance.usdc, 2) }}</div>
               </v-col>
-              <v-col lg="3" cols="4" md="3" sm="3" align="end" >
-                <v-select :items="currencies" color="black" v-model="currency" class="custom" flat solo>
-                  <template v-slot:selection="{ item, index }">
-                    <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                </v-select>
+              <v-col lg="3" cols="4" md="3" sm="3" align="end">
+                <v-row dense class="ma-0 pa-0" justify="end" align="center">
+                  <CurrencySelector :selected-item="currency" :items="currencies"/>
+                </v-row>
               </v-col>
             </v-row>
           </v-col>
@@ -59,20 +52,12 @@
               </v-col>
               <v-spacer/>
               <v-col lg="4" md="4" sm="4" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn,2) }}</div>
+                <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn, 2) }}</div>
               </v-col>
-              <v-col lg="3" cols="4" md="3" sm="3" >
-                <v-select append-icon="" :items="buyCurrencies" readonly color="black" v-model="buyCurrency"
-                          class="custom" flat solo>
-                  <template v-slot:selection="{ item, index }">
-                    <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                </v-select>
+              <v-col lg="3" cols="4" md="3" sm="3">
+                <v-row dense class="ma-0 pa-0" justify="end" align="center">
+                  <CurrencySelector :readonly="true" :selected-item="buyCurrency" :items="buyCurrencies"/>
+                </v-row>
               </v-col>
             </v-row>
           </v-col>
@@ -80,7 +65,7 @@
 
 
         <v-row dense class="pt-4">
-          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">{{buttonLabel}}
+          <v-btn height="60" class="buy elevation-0" @click="buy" :disabled="!isBuy">{{ buttonLabel }}
           </v-btn>
         </v-row>
       </v-card-text>
@@ -93,9 +78,11 @@
 import {mapActions, mapGetters} from "vuex";
 import web3 from "web3";
 import utils from 'web3-utils';
+import CurrencySelector from "../common/CurrencySelector";
 
 export default {
   name: "Mint",
+  components: {CurrencySelector},
   data: () => ({
     menu: false,
     tab: null,
@@ -126,19 +113,19 @@ export default {
       if (!this.sum || this.sum === 0)
         return '0.00';
       else {
-        return this.$utils.formatMoney(this.sum.replace(/,/g,'.'),2);
+        return this.$utils.formatMoney(this.sum.replace(/,/g, '.'), 2);
       }
 
 
     },
 
-    buttonLabel: function (){
+    buttonLabel: function () {
 
-      if (this.isBuy){
+      if (this.isBuy) {
         return 'Press to Mint & Swap'
-      }else if(this.sum > parseFloat(this.balance.usdc)) {
+      } else if (this.sum > parseFloat(this.balance.usdc)) {
         return 'Invalid amount'
-      }else {
+      } else {
         return 'Enter the amount to Mint & Swap';
       }
     },
@@ -171,7 +158,7 @@ export default {
   created() {
 
     this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.png')});
-    // this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
+    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
     this.currency = this.currencies[0];
 
@@ -182,7 +169,7 @@ export default {
   methods: {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
-    ...mapActions("showTransactions", ['show', 'hide',  'addText']),
+    ...mapActions("showTransactions", ['show', 'hide', 'addText']),
     ...mapActions("logTransactions", ['setTxView']),
 
 
@@ -194,7 +181,7 @@ export default {
 
 
       try {
-        let sum = this.sum *10**6;
+        let sum = this.sum * 10 ** 6;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -205,7 +192,7 @@ export default {
 
         contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send({from: from}).then(function () {
           self.addText(`Minting ${self.sum} OVN ......  done`);
-          self.addText(`Transferring ${self.sum} OVN to ${from.substring(1,10)}  ......  done`);
+          self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
 
           contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send({from: from}).then(function (receipt) {
             self.transactions.push(receipt);

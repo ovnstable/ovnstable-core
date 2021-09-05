@@ -19,17 +19,9 @@
                 <div class="balance">Max: {{ $utils.formatMoney(balance.ovn,2) }}</div>
               </v-col>
               <v-col lg="3" cols="4" md="3" sm="3" align="end">
-                <v-select :items="buyCurrencies" color="black" v-model="buyCurrency" append-icon="" readonly
-                          class="custom" flat solo>
-                  <template v-slot:selection="{ item, index }">
-                    <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                </v-select>
+                <v-row dense class="ma-0 pa-0" justify="end" align="center">
+                  <CurrencySelector :readonly="true" :selected-item="buyCurrency" :items="buyCurrencies"/>
+                </v-row>
               </v-col>
             </v-row>
           </v-col>
@@ -62,17 +54,9 @@
                 <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc,2) }}</div>
               </v-col>
               <v-col lg="3" cols="4" md="3" sm="3">
-                <v-select :items="currencies" color="black" v-model="currency"
-                          class="custom" flat solo>
-                  <template v-slot:selection="{ item, index }">
-                    <img :src="item.image" width="40" height="40"><span
-                      class="title-custom ml-1 hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <img :src="item.image" width="34" height="34"> <span
-                      class="title-custom hidden-xs-only">{{ item.title }}</span>
-                  </template>
-                </v-select>
+                <v-row dense class="ma-0 pa-0" justify="end" align="center">
+                  <CurrencySelector  :selected-item="currency" :items="currencies"/>
+                </v-row>
               </v-col>
             </v-row>
           </v-col>
@@ -93,11 +77,12 @@
 import {mapActions, mapGetters} from "vuex";
 import web3 from 'web3';
 import utils from "web3-utils";
+import CurrencySelector from "../common/CurrencySelector";
 
 
 export default {
   name: "Redeem",
-
+  components: {CurrencySelector},
   data: () => ({
     menu: false,
     tab: null,
@@ -166,7 +151,7 @@ export default {
   created() {
 
     this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.png')});
-    // this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
+    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
     this.currency = this.currencies[0];
 
