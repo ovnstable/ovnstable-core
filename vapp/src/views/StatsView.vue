@@ -148,9 +148,5 @@ export default {
 }
 
 
-.save-text {
-  font-size: 2.5rem;
-  color: #383838;
-  font-family: Roboto, sans-serif;
-}
+
 </style>

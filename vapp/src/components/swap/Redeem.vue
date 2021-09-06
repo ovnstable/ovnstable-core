@@ -1,11 +1,11 @@
 <template>
-  <v-col>
+  <v-col class="ma-0 pa-0">
     <v-card class="mt-5 card elevation-0">
       <v-card-text>
         <v-row dense>
           <v-col class="field ">
             <v-row dense>
-              <v-col lg="4" md="5" sm="5" cols="8">
+              <v-col lg="4" md="5" sm="4" cols="8">
                 <v-text-field placeholder="0.00"
                               flat
                               solo
@@ -15,10 +15,10 @@
                               v-model="sum"></v-text-field>
               </v-col>
               <v-spacer/>
-              <v-col lg="3" md="3" sm="4" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Max: {{ $utils.formatMoney(balance.ovn,2) }}</div>
+              <v-col lg="4" md="4" sm="5" class="pt-3 hidden-xs-only" align="end">
+                <div class="max" @click="max">Max: {{ maxResult }}</div>
               </v-col>
-              <v-col lg="3" cols="4" md="3" sm="3" align="end">
+              <v-col lg="4" cols="4" md="3" sm="3" align="end">
                 <v-row dense class="ma-0 pa-0" justify="end" align="center">
                   <CurrencySelector :readonly="true" :selected-item="buyCurrency" :items="buyCurrencies"/>
                 </v-row>
@@ -44,17 +44,17 @@
         <v-row dense>
           <v-col class="field">
             <v-row dense>
-              <v-col lg="4" md="5" sm="5" cols="8">
+              <v-col lg="4" md="5" sm="4" cols="8">
                 <div class="field-buy mt-1 ml-1">
                   {{ sumResult }}
                 </div>
               </v-col>
               <v-spacer/>
-              <v-col lg="4" md="4" sm="4" class="pt-3 hidden-xs-only" align="end">
+              <v-col lg="4" md="4" sm="5" class="pt-3 hidden-xs-only" align="center">
                 <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc,2) }}</div>
               </v-col>
-              <v-col lg="3" cols="4" md="3" sm="3">
-                <v-row dense class="ma-0 pa-0" justify="end" align="center">
+              <v-col lg="4" cols="4" md="3" sm="3">
+                <v-row dense class="ma-0 pa-0" justify="end" align="end">
                   <CurrencySelector  :selected-item="currency" :items="currencies"/>
                 </v-row>
               </v-col>
@@ -132,6 +132,10 @@ export default {
       return false;
     },
 
+    maxResult() {
+      return this.$utils.formatMoney(this.balance.ovn,2);
+    },
+
     buttonLabel: function () {
 
       if (this.isBuy) {
@@ -168,6 +172,11 @@ export default {
 
     setSum(value) {
       this.sum = value;
+    },
+
+    max() {
+      let balanceElement = this.balance.ovn;
+      this.sum = balanceElement + "";
     },
 
     async redeem() {
@@ -248,7 +257,7 @@ export default {
 .balance {
   font-weight: bold;
   color: #40404C;
-  text-align: end;
+  text-align: center;
   cursor: pointer;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -266,17 +275,16 @@ export default {
 }
 
 .max {
-  white-space: nowrap;
+  border: 1px solid #BBBBBB;
+  border-radius: 10px;
   font-weight: bold;
   color: #40404C;
   text-align: center;
+  max-width: 170px;
   cursor: pointer;
   padding-top: 5px;
   padding-bottom: 5px;
-  border-radius: 15px;
-  border: 1px solid #BBBBBB;
 }
-
 
 .advanced {
   border-radius: 10px;

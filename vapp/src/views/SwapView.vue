@@ -10,7 +10,7 @@
       <v-col
           lg="12"
           md="7"
-          sm="10"
+          sm="12"
       >
         <v-row class="justify-center align-center pt-15">
           <img :src="require('../assets/swap.png')">
@@ -18,7 +18,7 @@
         </v-row>
 
         <v-row>
-          <v-col lg="4"  class="pt-10  hidden-md-and-down">
+          <v-col lg="4" class="pt-10  hidden-md-and-down">
             <StatsWidget/>
           </v-col>
           <v-col lg="4" sm="12" md="12" cols="12">
@@ -29,15 +29,15 @@
           </v-col>
         </v-row>
 
-        <v-row justify="center" class="pr-5 pl-5">
-          <v-col lg="4" class="tabs pa-1">
+        <v-row justify="center" >
+          <v-col  class="tabs pa-1 fixed">
             <button v-bind:class="activeTabMint" @click="tab = 1">Mint</button>
             <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Redeem</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-          <v-col lg="4"  class="pa-0 ma-0">
+          <v-col class="pa-0 ma-0 fixed">
             <Mint v-if="tab === 1"/>
             <Redeem v-if="tab === 2"/>
           </v-col>
@@ -147,10 +147,9 @@ export default {
   border-radius: 8px;
 }
 
-
-.save-text {
-  font-size: 2.5rem;
-  color: #383838;
-  font-family: Roboto, sans-serif;
+.fixed{
+  flex: 0 0 600px;
 }
+
+
 </style>
