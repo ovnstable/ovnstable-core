@@ -27,15 +27,17 @@
           </v-col>
         </v-row>
 
-        <v-row class="pa-3 " align="center">
-          <v-col lg="2" align="center">
+        <v-row class="pa-3 "  align="center">
+          <v-col lg="1" md="1" sm="1" cols="2" align="center">
             <img :src="require('../../assets/arrow.png')" height="30" width="30"/>
           </v-col>
-          <v-col lg="4" class="pt-1">
-            <span class="gas-title">Gas fee: {{ gasPrice }}</span>
-            <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
+          <v-col lg="5" cols="8" md="5" sm="5" class="pt-1">
+            <v-row>
+              <span class="gas-title">Gas fee: {{ gasPrice }}</span>
+              <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
+            </v-row>
           </v-col>
-          <v-col lg="6">
+          <v-col lg="6"  class="hidden-xs-only">
             <v-row justify="end">
               <span class="gas-waived pr-2">Gas fee waived if >10000</span>
             </v-row>
@@ -51,11 +53,11 @@
               </v-col>
               <v-spacer/>
               <v-col lg="4" md="4" sm="5" class="pt-3 hidden-xs-only" align="center">
-                <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc,2) }}</div>
+                <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc, 2) }}</div>
               </v-col>
               <v-col lg="4" cols="4" md="3" sm="3">
                 <v-row dense class="ma-0 pa-0" justify="end" align="end">
-                  <CurrencySelector  :selected-item="currency" :items="currencies"/>
+                  <CurrencySelector :selected-item="currency" :items="currencies"/>
                 </v-row>
               </v-col>
             </v-row>
@@ -112,7 +114,7 @@ export default {
       if (!this.sum || this.sum === 0)
         return '0.00';
       else
-        return this.$utils.formatMoney(this.sum.replace(/,/g,'.'),2);
+        return this.$utils.formatMoney(this.sum.replace(/,/g, '.'), 2);
     },
 
     numberRule: function () {
@@ -133,16 +135,16 @@ export default {
     },
 
     maxResult() {
-      return this.$utils.formatMoney(this.balance.ovn,2);
+      return this.$utils.formatMoney(this.balance.ovn, 2);
     },
 
     buttonLabel: function () {
 
       if (this.isBuy) {
         return 'Press to Withdraw'
-      }else if(this.sum > parseFloat(this.balance.ovn)) {
+      } else if (this.sum > parseFloat(this.balance.ovn)) {
         return 'Invalid amount'
-      }else {
+      } else {
         return 'Enter the amount to Withdraw';
       }
     },
@@ -185,7 +187,7 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
-        let self =  this;
+        let self = this;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -204,7 +206,7 @@ export default {
           self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
 
 
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e, value) => {
 
             let buyParams = {gas: value, gasPrice: gasPrice, from: from};
 

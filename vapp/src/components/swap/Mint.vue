@@ -28,14 +28,16 @@
         </v-row>
 
         <v-row class="pa-3 " align="center">
-          <v-col lg="2" align="center">
+          <v-col  lg="1" md="1" sm="1" cols="2" align="center">
             <img :src="require('../../assets/arrow.png')" height="30" width="30"/>
           </v-col>
-          <v-col lg="4" class="pt-1">
+          <v-col lg="5" cols="8" md="5" sm="5" class="pt-1">
+            <v-row>
             <span class="gas-title">Gas fee: {{ gasPrice }}</span>
             <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
+            </v-row>
           </v-col>
-          <v-col lg="6">
+          <v-col lg="6"  class="hidden-xs-only">
             <v-row justify="end">
               <span class="gas-waived pr-2">Gas fee waived if >10000</span>
             </v-row>
