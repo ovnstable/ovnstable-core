@@ -10,22 +10,22 @@
             </v-col>
 
             <v-col>
-              Position
+              Position (# of tokens)
             </v-col>
 
             <v-col>
-              Market price
+              Market price (USDC/token)
             </v-col>
             <v-col>
-              Net Asset Value
-            </v-col>
-
-            <v-col>
-              Liquidation price
+              Net Asset Value (USDC)
             </v-col>
 
             <v-col>
-              Liquidation value
+              Liquidation price (USDC/token)
+            </v-col>
+
+            <v-col>
+              Liquidation value (USDC)
             </v-col>
           </v-row>
 
