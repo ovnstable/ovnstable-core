@@ -7,7 +7,7 @@
   >
 
     <v-col lg="4" md="4" cols="2" class="ml-0 pl-0">
-      <v-row dense style="width: 400px">
+      <v-row dense  class="logo" @click="clickLogo">
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
@@ -163,6 +163,9 @@ export default {
       this.$router.push(to)
     },
 
+    clickLogo(){
+      window.open('https://ovnstable.io/', '_blank').focus();
+    },
 
     connectWallet() {
 
@@ -246,6 +249,11 @@ export default {
 }
 
 .settings {
+  cursor: pointer;
+}
+
+.logo {
+  width: 400px;
   cursor: pointer;
 }
 
