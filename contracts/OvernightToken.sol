@@ -16,6 +16,11 @@ contract OvernightToken is IERC20MintableBurnable, ERC20 {
         _totalMint += _amount;
     }
 
+    function decimals() public view virtual override returns (uint8) {
+        return 6;
+    }
+
+
     function burn(address _sender, uint256 _amount) public override {
         _burn(_sender, _amount);
         _totalBurn += _amount;
