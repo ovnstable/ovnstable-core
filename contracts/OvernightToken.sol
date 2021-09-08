@@ -9,7 +9,7 @@ contract OvernightToken is IERC20MintableBurnable, ERC20 {
     uint256 private _totalMint;
     uint256 private _totalBurn;
 
-    constructor() ERC20("TstOvernightToken", "TstOVNGT") {}
+    constructor() ERC20("TstOvernightToken", "OVN") {}
 
     function mint(address _sender, uint256 _amount) public override {
         _mint(_sender, _amount);

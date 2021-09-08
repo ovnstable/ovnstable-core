@@ -52,13 +52,13 @@
 <script>
 
 
-import Redeem from "../components/swap/Redeem";
-import Mint from "../components/swap/Mint";
+import Redeem from "../components/earn/Redeem";
+import Mint from "../components/earn/Mint";
 import StatsWidget from "../components/common/StatsWidget";
 import ShowTransaction from "../components/common/ShowTransaction";
 
 export default {
-  name: "SwapView",
+  name: "EarnView",
   components: {ShowTransaction, StatsWidget, Mint, Redeem},
   data: () => ({
     tab: 1,

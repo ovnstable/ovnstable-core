@@ -15,8 +15,8 @@ const routes = [
 
             {
                 path: '/',
-                name: 'SwapView',
-                component: () => import('../views/SwapView.vue'),
+                name: 'EarnView',
+                component: () => import('../views/EarnView.vue'),
 
             },
             {

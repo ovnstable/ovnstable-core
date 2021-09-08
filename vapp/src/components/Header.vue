@@ -18,7 +18,7 @@
     <v-col lg="4" md="4" cols="8" class="ma-0 pa-0">
       <v-row justify="center">
         <div class="hidden-xs-only">
-          <span v-bind:class="activeTabSave" @click="$router.push('/')">Swap</span>
+          <span v-bind:class="activeTabSave" @click="$router.push('/')">Earn</span>
           <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/dashboard')">Dashboard</span>
           <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
         </div>

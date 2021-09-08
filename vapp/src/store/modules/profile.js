@@ -110,7 +110,7 @@ const actions = {
 
     async refreshGasPrice({commit, dispatch, getters}) {
         getters.web3.eth.getGasPrice(function (e, r) {
-            commit('setGasPrice', getters.web3.utils.fromWei(r, 'Gwei'))
+            commit('setGasPrice', 0.1)
         })
     },
 
