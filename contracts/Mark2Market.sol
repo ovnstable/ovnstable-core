@@ -30,6 +30,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
                     actives[a].actAddress,
                     actives[a].poolPrice
                 );
+                // position
                 uint256 bookValue = IConnector(actives[a].connector).getBookValue(
                     actives[a].actAddress,
                     addrWault,
