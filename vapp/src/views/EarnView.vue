@@ -14,7 +14,7 @@
       >
         <v-row class="justify-center align-center pt-15">
           <img :src="require('../assets/swap.png')">
-          <div class="swap-title ml-2">Swap</div>
+          <div class="swap-title ml-2">Earn</div>
         </v-row>
 
         <v-row>

@@ -33,7 +33,7 @@
           </v-col>
           <v-col lg="5" cols="8" md="5" sm="5" class="pt-1">
             <v-row>
-              <span class="gas-title">Gas fee: {{ gasPrice }}</span>
+              <span class="gas-title">Gas fee: {{ 0.1 }}</span>
               <img class="ml-2" :src="require('../../assets/poly.png')" height="20" width="20"/>
             </v-row>
           </v-col>
@@ -187,33 +187,39 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
-        let self = this;
+        let self =  this;
 
         let contracts = this.contracts;
         let from = this.account;
-        let gasPrice = 20;
+        let gasPrice = this.web3.utils.toWei(this.gasPrice, 'gwei');
 
 
         this.show('Processing...')
         this.addText(`Locking ${this.sum} OVN ......  done`)
 
 
-        let approveParams = {gasPrice: gasPrice, from: from};
-        let buyParams = {gasPrice: gasPrice, from: from};
-
+        let gasApprove = await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
+        let approveParams = {gas: gasApprove, gasPrice: gasPrice, from: from};
 
         contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
           self.addText(`Burning ${self.sum} OVN ......  done`);
           self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
 
 
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams).then(function () {
-            self.addText(`Completed, await blockchain, click to proceed`);
-            setTimeout(() => self.hide(), 1000);
+          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
 
-            self.refreshProfile();
-            self.setSum(null)
-          });
+            let buyParams = {gas: value, gasPrice: gasPrice, from: from};
+
+            contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams).then(function () {
+              self.addText(`Completed, await blockchain, click to proceed`);
+              setTimeout(() => self.hide(), 1000);
+
+              self.refreshProfile();
+              self.setSum(null)
+            });
+          })
+
+
         });
 
 

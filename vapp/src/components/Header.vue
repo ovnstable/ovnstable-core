@@ -68,7 +68,7 @@ export default {
 
     menus: [
       {
-        name: 'Swap',
+        name: 'Earn',
         to: '/'
       },
       {
