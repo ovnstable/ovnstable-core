@@ -36,6 +36,64 @@ rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest 
             host: "https://ovnstable.io/ganache-test",
             port: 8555,
             network_id: "137"
+        },
+
+        kovan: {
+            provider: function() {
+                return new HDWalletProvider(
+                    //private keys array
+                    [privateKey],
+                    //url to ethereum node
+                    "https://kovan.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea"
+                )
+            },
+            network_id: 42
+        },
+
+        polygon: {
+            provider: function() {
+                return new HDWalletProvider(
+                    //private keys array
+                    [privateKey],
+                    //url to ethereum node
+                    "https://polygon-mumbai.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea"
+                )
+            },
+            network_id: 42
+        },
+
+        mumbai: {
+            provider: function() {
+                return new HDWalletProvider(
+                    //private keys array
+                    [privateKey],
+                    //url to ethereum node
+                    "https://polygon-mumbai.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea"
+                )
+            },
+            gas: 6721975,
+            gasPrice: 20000000000,
+            confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50,  // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: true,     // Skip dry run before migrations? (default: false for public nets )
+            network_id: 80001
+        },
+
+        ropsten: {
+            provider: function() {
+                return new HDWalletProvider(
+                    //private keys array
+                    [privateKey],
+                    //url to ethereum node
+                    "https://ropsten.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea"
+                )
+            },
+            gas: 6721975,
+            gasPrice: 20000000000,
+            confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: true,     // Skip dry run before migrations? (default: false for public nets )
+            network_id: 3
         }
 
     },

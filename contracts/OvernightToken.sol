@@ -2,16 +2,17 @@
 pragma solidity >=0.5.0 <0.9.0;
 import "./interfaces/IERC20MintableBurnable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OvernightToken is IERC20MintableBurnable, ERC20 {
+contract OvernightToken is IERC20MintableBurnable, ERC20, Ownable {
 
 
     uint256 private _totalMint;
     uint256 private _totalBurn;
 
-    constructor() ERC20("TstOvernightToken", "OVN") {}
+    constructor() ERC20("OvernightToken", "OVN") {}
 
-    function mint(address _sender, uint256 _amount) public override {
+    function mint(address _sender, uint256 _amount) public override onlyOwner {
         _mint(_sender, _amount);
         _totalMint += _amount;
     }
@@ -21,7 +22,7 @@ contract OvernightToken is IERC20MintableBurnable, ERC20 {
     }
 
 
-    function burn(address _sender, uint256 _amount) public override {
+    function burn(address _sender, uint256 _amount) public override onlyOwner {
         _burn(_sender, _amount);
         _totalBurn += _amount;
     }

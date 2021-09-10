@@ -17,7 +17,6 @@ contract Exchange is OwnableExt {
 
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
-    event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
 
     function setTokens(address _ovn, address _usdc) external onlyOwner {
         ovn = IERC20MintableBurnable(_ovn);
@@ -33,10 +32,6 @@ contract Exchange is OwnableExt {
     function buy(address _addrTok, uint256 _amount) public {
         emit EventExchange("buy", _amount);
 
-        uint256 beforeAmount = ovn.totalSupply();
-        IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
-
-
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
@@ -47,20 +42,6 @@ contract Exchange is OwnableExt {
         IERC20(_addrTok).transfer(address(PM), _amount);
         PM.stake(_addrTok, _amount);
 
-
-
-        uint256 afterAmount = ovn.totalSupply();
-        IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
-        emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);
-
-        for (uint8 a = 0; a < beforePrices.length && a < 100; a++) {
-
-            IMark2Market.ActivesPrices memory beforePrice = beforePrices[a];
-            IMark2Market.ActivesPrices memory afterPrice = afterPrices[a];
-            emit BusinessEventPrice('before',beforePrice);
-            emit BusinessEventPrice('after', afterPrice);
-        }
-
     }
 
     function balance() public view returns (uint256) {
@@ -69,11 +50,6 @@ contract Exchange is OwnableExt {
 
     function redeem(address _addrTok, uint256 _amount) public {
         emit EventExchange("redeem", _amount);
-
-        uint256 beforeAmount = ovn.totalSupply();
-        IMark2Market.ActivesPrices[] memory beforePrices = m2m.activesPrices();
-
-
 
         //TODO: Real unstacke amount may be different to _amount
         uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
@@ -84,19 +60,6 @@ contract Exchange is OwnableExt {
         // TODO: check threshhold limits to withdraw deposite
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
 
-
-
-        uint256 afterAmount = ovn.totalSupply();
-        IMark2Market.ActivesPrices[] memory afterPrices = m2m.activesPrices();
-        emit BusinessEvent("ovnBalance", beforeAmount, afterAmount);
-
-        for (uint8 a = 0; a < beforePrices.length && a < 100; a++) {
-
-            IMark2Market.ActivesPrices memory beforePrice = beforePrices[a];
-            IMark2Market.ActivesPrices memory afterPrice = afterPrices[a];
-            emit BusinessEventPrice('before',beforePrice);
-            emit BusinessEventPrice('after', afterPrice);
-        }
 
     }
 }

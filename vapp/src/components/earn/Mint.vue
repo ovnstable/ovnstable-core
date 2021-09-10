@@ -196,14 +196,13 @@ export default {
         let contracts = this.contracts;
         let from = this.account;
         let self = this;
-        let gasPrice = this.web3.utils.toWei(this.gasPrice, 'gwei');
 
         this.show('Processing...')
         this.addText(`Locking ${this.sum} USDC ......  done`)
 
 
         let gasApprove = await contracts.usdc.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove, gasPrice: gasPrice, from: from};
+        let approveParams = {gas: gasApprove,  from: from};
 
 
         contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
@@ -213,7 +212,7 @@ export default {
 
           contracts.exchange.methods.buy(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
 
-            let buyParams = {gas: value, gasPrice: gasPrice, from: from};
+            let buyParams = {gas: value,  from: from};
 
             contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).then(function (receipt) {
               self.transactions.push(receipt);
