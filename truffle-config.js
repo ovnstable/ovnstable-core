@@ -1,8 +1,8 @@
 const path = require('path')
-
-
+const fs = require('fs');
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-const privateKey = "test";
+
+let secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 
 module.exports = {
     // See <http://truffleframework.com/docs/advanced/configuration>

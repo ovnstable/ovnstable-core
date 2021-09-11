@@ -13,3 +13,4 @@ ganache_poly
 
 recreate.sh
 truffle-migrate.sh
+secrets.json

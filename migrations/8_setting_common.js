@@ -16,6 +16,6 @@ module.exports = async function (deployer) {
     await pm.setAddr(actList.address)
     await exchange.setAddr(actList.address, pm.address, m2m.address);
 
-    await ovn.transferOwnership(exchange.address)
-
+    // Set role EX
+    await ovn.setExchanger(exchange.address);
 };

@@ -1,18 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
+
 import "./interfaces/IERC20MintableBurnable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract OvernightToken is IERC20MintableBurnable, ERC20, Ownable {
+contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
 
 
     uint256 private _totalMint;
     uint256 private _totalBurn;
 
-    constructor() ERC20("OvernightToken", "OVN") {}
+    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
-    function mint(address _sender, uint256 _amount) public override onlyOwner {
+    modifier onlyAdmin()
+    {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyExchanger()
+    {
+        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    constructor() ERC20("OvernightToken", "OVN") {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function mint(address _sender, uint256 _amount) public override onlyExchanger {
         _mint(_sender, _amount);
         _totalMint += _amount;
     }
@@ -22,7 +40,7 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, Ownable {
     }
 
 
-    function burn(address _sender, uint256 _amount) public override onlyOwner {
+    function burn(address _sender, uint256 _amount) public override onlyExchanger {
         _burn(_sender, _amount);
         _totalBurn += _amount;
     }
@@ -33,5 +51,15 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, Ownable {
 
     function totalBurn() public view returns (uint256) {
         return _totalBurn;
+    }
+
+
+    function setExchanger(address account) public virtual onlyAdmin {
+        grantRole(EXCHANGER, account);
+    }
+
+    function removeExchanger(address account) public virtual onlyAdmin
+    {
+        revokeRole(EXCHANGER, account);
     }
 }

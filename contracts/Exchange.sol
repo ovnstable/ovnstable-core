@@ -7,8 +7,9 @@ import "./interfaces/IActivesList.sol";
 import "./OwnableExt.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Exchange is OwnableExt {
+contract Exchange is AccessControl {
     IERC20MintableBurnable ovn;
     IERC20 usdc;
     IActivesList actList;
@@ -18,12 +19,20 @@ contract Exchange is OwnableExt {
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
 
-    function setTokens(address _ovn, address _usdc) external onlyOwner {
+    constructor() {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function setTokens(address _ovn, address _usdc) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the ADMIN");
+
         ovn = IERC20MintableBurnable(_ovn);
         usdc = IERC20(_usdc);
     }
 
-    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyOwner {
+    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the ADMIN");
+
         actList = IActivesList(_addrAL);
         PM = IPortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);
