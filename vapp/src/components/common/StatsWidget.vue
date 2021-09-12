@@ -6,7 +6,7 @@
           Total OVN Minted:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces(totalOvn.totalMint) }}
+          {{ numberWithSpaces($utils.formatMoney(totalOvn.totalMint, 0)) }}
         </v-col>
       </v-row>
       <v-row dense class="row fatty pt-2 pb-2" align="center">
@@ -14,7 +14,7 @@
           OVN in circulation:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          <strong>{{ numberWithSpaces(totalOvn.totalSupply) }}</strong>
+          <strong>{{ numberWithSpaces($utils.formatMoney(totalOvn.totalSupply, 0)) }}</strong>
         </v-col>
         <v-col lg="2">
         </v-col>
@@ -25,7 +25,7 @@
           Total OVN Burnt:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces(totalOvn.totalBurn) }}
+          {{ numberWithSpaces($utils.formatMoney(totalOvn.totalBurn, 0)) }}
         </v-col>
 
         <v-col>

@@ -9,7 +9,6 @@ module.exports = async function (callback) {
 
     await usdc.approve(Exchange.address, 30);
 
-
     let newVar = await contract.methods.buy(usdc.address, 30);
 
     console.log('EVENTS')

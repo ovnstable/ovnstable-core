@@ -53,13 +53,12 @@ rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest 
         polygon: {
             provider: function() {
                 return new HDWalletProvider(
-                    //private keys array
-                    [privateKey],
-                    //url to ethereum node
-                    "https://polygon-mumbai.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea"
+                    secrets.polygon.pk,
+                    secrets.polygon.infura
                 )
             },
-            network_id: 42
+            network_id: 137,
+            gasPrice: 9000000000,
         },
 
         mumbai: {
@@ -72,7 +71,7 @@ rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest 
                 )
             },
             gas: 6721975,
-            gasPrice: 20000000000,
+            gasPrice: 5000000000,
             confirmations: 2,    // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50,  // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: true,     // Skip dry run before migrations? (default: false for public nets )

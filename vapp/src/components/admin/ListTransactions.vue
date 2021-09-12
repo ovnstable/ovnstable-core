@@ -13,13 +13,13 @@
       </v-col>
       <v-col>
         <v-row dense justify="end">
-         <v-btn icon @click="$router.push('/')">
-           <v-icon>mdi-account</v-icon>
-         </v-btn>
-        <button  v-if="!account" class="btn">Connect Wallet
-          <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
-        </button>
-        <div v-else class="account">{{ account }}</div>
+          <v-btn icon @click="$router.push('/')">
+            <v-icon>mdi-account</v-icon>
+          </v-btn>
+          <button  v-if="!account" class="btn">Connect Wallet
+            <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
+          </button>
+          <div v-else class="account">{{ account }}</div>
         </v-row>
       </v-col>
     </v-row>
@@ -136,11 +136,10 @@
 
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import Table from "../components/admin/Table";
 import accounting from "accounting-js";
 
 export default {
-  name: "AdminView",
+  name: "ListTransactions",
   components: {Table},
   data: () => ({
 

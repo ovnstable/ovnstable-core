@@ -14,6 +14,12 @@ let accountingSecondConfig = {
 }
 
 
+let accountingZeroConfig = {
+    symbol: "",
+    precision: 2,
+    thousand: " ",
+}
+
 export default {
 
 
@@ -27,6 +33,9 @@ export default {
                 return accounting.formatMoney(number, accountingConfig);
             case 2:
                 return accounting.formatMoney(number, accountingSecondConfig);
+            case 0:
+                return accounting.formatMoney(number, accountingZeroConfig);
+
         }
 
     },

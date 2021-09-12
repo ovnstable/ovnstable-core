@@ -16,15 +16,6 @@ module.exports = async function (callback) {
     console.log("usdc: " + await usdc.totalSupply())
     console.log("ausdc: " + await ausdc.totalSupply())
 
-    // await usdc.approve(Exchange.address, 30);
-
-
-    // let newVar = await contract.methods.buy(usdc.address, 30);
-
-    // console.log('EVENTS')
-    // console.log(newVar)
-
-
 
     let pm = await PortfolioManager.deployed();
     console.log("pm usdc: " + await usdc.balanceOf(pm.address));
@@ -32,7 +23,6 @@ module.exports = async function (callback) {
 
     console.log(await exchange.reward());
     // console.log(await ausdc.balanceOf(pm.address));
-
 
 
 }
