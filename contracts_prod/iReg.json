@@ -1,0 +1,426 @@
+{
+  "contractName": "iReg",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_in",
+          "type": "bytes"
+        }
+      ],
+      "name": "sett",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_in",
+          "type": "bytes"
+        }
+      ],
+      "name": "gett",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "_out",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"gett\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"_out\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"sett\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/iReg.sol\":\"iReg\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/iReg.sol\":{\"keccak256\":\"0x1d4222714e5da33dcb1c5af243ad1e1b7c8e22078351b3e33ff76b14fd9a2970\",\"urls\":[\"bzz-raw://1236c1d67996ba59d84c4914380c6445f386e3d218fcb0b53d17c31fa1ccfa38\",\"dweb:/ipfs/QmWZiw1EjdSKzURkh8fgU7jXGPnDAXmdzBKZZHg8qwxW3j\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "pragma solidity >=  0.8.0;\ninterface iReg {\n    function sett (bytes memory _in) external;\n    function gett (bytes memory _in) external returns (bytes memory _out);\n}",
+  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/interfaces/iReg.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/iReg.sol",
+    "exportedSymbols": {
+      "iReg": [
+        4905
+      ]
+    },
+    "id": 4906,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 4892,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:26:31"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 4905,
+        "linearizedBaseContracts": [
+          4905
+        ],
+        "name": "iReg",
+        "nameLocation": "37:4:31",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "ba938c3f",
+            "id": 4897,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "sett",
+            "nameLocation": "57:4:31",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4895,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4894,
+                  "mutability": "mutable",
+                  "name": "_in",
+                  "nameLocation": "76:3:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4897,
+                  "src": "63:16:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4893,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "63:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "62:18:31"
+            },
+            "returnParameters": {
+              "id": 4896,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "89:0:31"
+            },
+            "scope": 4905,
+            "src": "48:42:31",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "877b82de",
+            "id": 4904,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "gett",
+            "nameLocation": "104:4:31",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4900,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4899,
+                  "mutability": "mutable",
+                  "name": "_in",
+                  "nameLocation": "123:3:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4904,
+                  "src": "110:16:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4898,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "110:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "109:18:31"
+            },
+            "returnParameters": {
+              "id": 4903,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4902,
+                  "mutability": "mutable",
+                  "name": "_out",
+                  "nameLocation": "159:4:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4904,
+                  "src": "146:17:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4901,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "146:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "145:19:31"
+            },
+            "scope": 4905,
+            "src": "95:70:31",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 4906,
+        "src": "27:140:31",
+        "usedErrors": []
+      }
+    ],
+    "src": "0:167:31"
+  },
+  "legacyAST": {
+    "absolutePath": "project:/contracts/interfaces/iReg.sol",
+    "exportedSymbols": {
+      "iReg": [
+        4905
+      ]
+    },
+    "id": 4906,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 4892,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:26:31"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 4905,
+        "linearizedBaseContracts": [
+          4905
+        ],
+        "name": "iReg",
+        "nameLocation": "37:4:31",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "ba938c3f",
+            "id": 4897,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "sett",
+            "nameLocation": "57:4:31",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4895,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4894,
+                  "mutability": "mutable",
+                  "name": "_in",
+                  "nameLocation": "76:3:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4897,
+                  "src": "63:16:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4893,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "63:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "62:18:31"
+            },
+            "returnParameters": {
+              "id": 4896,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "89:0:31"
+            },
+            "scope": 4905,
+            "src": "48:42:31",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "877b82de",
+            "id": 4904,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "gett",
+            "nameLocation": "104:4:31",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4900,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4899,
+                  "mutability": "mutable",
+                  "name": "_in",
+                  "nameLocation": "123:3:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4904,
+                  "src": "110:16:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4898,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "110:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "109:18:31"
+            },
+            "returnParameters": {
+              "id": 4903,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4902,
+                  "mutability": "mutable",
+                  "name": "_out",
+                  "nameLocation": "159:4:31",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4904,
+                  "src": "146:17:31",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 4901,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "146:5:31",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "145:19:31"
+            },
+            "scope": 4905,
+            "src": "95:70:31",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 4906,
+        "src": "27:140:31",
+        "usedErrors": []
+      }
+    ],
+    "src": "0:167:31"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.6+commit.11564f7e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.1",
+  "updatedAt": "2021-09-01T08:12:57.589Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

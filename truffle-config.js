@@ -58,7 +58,8 @@ rm -r ../ganache_poly && ganache-cli -m "clutch captain shoe salt awake harvest 
                 )
             },
             network_id: 137,
-            gasPrice: 9000000000,
+            gasPrice: 15000000000,
+            networkCheckTimeout: 1000000000,
         },
 
         mumbai: {

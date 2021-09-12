@@ -1,0 +1,722 @@
+{
+  "contractName": "IMark2Market",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "activesPrices",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "symbol",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decimals",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bookValue",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "liquidationValue",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IMark2Market.ActivesPrices[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"activesPrices\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"bookValue\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"liquidationValue\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.ActivesPrices[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0x42c22f2809235fef2d8bb1182a08d701ea784182feaa1f19f74c4ad9cb7a6ccf\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://2e5b3fbac0414b45838a95cf878d6d55eb5188b8827a5e4e71d8b2ed3dbf174b\",\"dweb:/ipfs/Qmbv9B6xAEVdtfaWEoufhTjjQ3DDSQDtziGxhQcpKnDygM\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: GPL-3.0\n\npragma solidity >=0.8.0 <0.9.0;\n\ninterface IMark2Market {\n    struct ActivesPrices {\n        address addr;\n        string name;\n        string symbol;\n        uint256 decimals;\n        uint256 price;\n        uint256 bookValue;\n        uint256 liquidationValue;\n    }\n\n    function activesPrices() external view returns (ActivesPrices[] memory);\n}\n",
+  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/interfaces/IMark2Market.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
+    "exportedSymbols": {
+      "IMark2Market": [
+        6197
+      ]
+    },
+    "id": 6198,
+    "license": "GPL-3.0",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 6174,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "37:31:35"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 6197,
+        "linearizedBaseContracts": [
+          6197
+        ],
+        "name": "IMark2Market",
+        "nameLocation": "80:12:35",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "IMark2Market.ActivesPrices",
+            "id": 6189,
+            "members": [
+              {
+                "constant": false,
+                "id": 6176,
+                "mutability": "mutable",
+                "name": "addr",
+                "nameLocation": "138:4:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "130:12:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 6175,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "130:7:35",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6178,
+                "mutability": "mutable",
+                "name": "name",
+                "nameLocation": "159:4:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "152:11:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 6177,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "152:6:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6180,
+                "mutability": "mutable",
+                "name": "symbol",
+                "nameLocation": "180:6:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "173:13:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 6179,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "173:6:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6182,
+                "mutability": "mutable",
+                "name": "decimals",
+                "nameLocation": "204:8:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "196:16:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6181,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "196:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6184,
+                "mutability": "mutable",
+                "name": "price",
+                "nameLocation": "230:5:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "222:13:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6183,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "222:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6186,
+                "mutability": "mutable",
+                "name": "bookValue",
+                "nameLocation": "253:9:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "245:17:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6185,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "245:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6188,
+                "mutability": "mutable",
+                "name": "liquidationValue",
+                "nameLocation": "280:16:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "272:24:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6187,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "272:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "ActivesPrices",
+            "nameLocation": "106:13:35",
+            "nodeType": "StructDefinition",
+            "scope": 6197,
+            "src": "99:204:35",
+            "visibility": "public"
+          },
+          {
+            "functionSelector": "f4a93710",
+            "id": 6196,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "activesPrices",
+            "nameLocation": "318:13:35",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 6190,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "331:2:35"
+            },
+            "returnParameters": {
+              "id": 6195,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6194,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6196,
+                  "src": "357:22:35",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$6189_memory_ptr_$dyn_memory_ptr",
+                    "typeString": "struct IMark2Market.ActivesPrices[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 6192,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 6191,
+                        "name": "ActivesPrices",
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 6189,
+                        "src": "357:13:35"
+                      },
+                      "referencedDeclaration": 6189,
+                      "src": "357:13:35",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_ActivesPrices_$6189_storage_ptr",
+                        "typeString": "struct IMark2Market.ActivesPrices"
+                      }
+                    },
+                    "id": 6193,
+                    "nodeType": "ArrayTypeName",
+                    "src": "357:15:35",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$6189_storage_$dyn_storage_ptr",
+                      "typeString": "struct IMark2Market.ActivesPrices[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "356:24:35"
+            },
+            "scope": 6197,
+            "src": "309:72:35",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 6198,
+        "src": "70:313:35",
+        "usedErrors": []
+      }
+    ],
+    "src": "37:347:35"
+  },
+  "legacyAST": {
+    "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
+    "exportedSymbols": {
+      "IMark2Market": [
+        6197
+      ]
+    },
+    "id": 6198,
+    "license": "GPL-3.0",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 6174,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "37:31:35"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 6197,
+        "linearizedBaseContracts": [
+          6197
+        ],
+        "name": "IMark2Market",
+        "nameLocation": "80:12:35",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "IMark2Market.ActivesPrices",
+            "id": 6189,
+            "members": [
+              {
+                "constant": false,
+                "id": 6176,
+                "mutability": "mutable",
+                "name": "addr",
+                "nameLocation": "138:4:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "130:12:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 6175,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "130:7:35",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6178,
+                "mutability": "mutable",
+                "name": "name",
+                "nameLocation": "159:4:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "152:11:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 6177,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "152:6:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6180,
+                "mutability": "mutable",
+                "name": "symbol",
+                "nameLocation": "180:6:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "173:13:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 6179,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "173:6:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6182,
+                "mutability": "mutable",
+                "name": "decimals",
+                "nameLocation": "204:8:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "196:16:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6181,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "196:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6184,
+                "mutability": "mutable",
+                "name": "price",
+                "nameLocation": "230:5:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "222:13:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6183,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "222:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6186,
+                "mutability": "mutable",
+                "name": "bookValue",
+                "nameLocation": "253:9:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "245:17:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6185,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "245:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6188,
+                "mutability": "mutable",
+                "name": "liquidationValue",
+                "nameLocation": "280:16:35",
+                "nodeType": "VariableDeclaration",
+                "scope": 6189,
+                "src": "272:24:35",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6187,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "272:7:35",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "ActivesPrices",
+            "nameLocation": "106:13:35",
+            "nodeType": "StructDefinition",
+            "scope": 6197,
+            "src": "99:204:35",
+            "visibility": "public"
+          },
+          {
+            "functionSelector": "f4a93710",
+            "id": 6196,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "activesPrices",
+            "nameLocation": "318:13:35",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 6190,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "331:2:35"
+            },
+            "returnParameters": {
+              "id": 6195,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6194,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 6196,
+                  "src": "357:22:35",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$6189_memory_ptr_$dyn_memory_ptr",
+                    "typeString": "struct IMark2Market.ActivesPrices[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 6192,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 6191,
+                        "name": "ActivesPrices",
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 6189,
+                        "src": "357:13:35"
+                      },
+                      "referencedDeclaration": 6189,
+                      "src": "357:13:35",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_ActivesPrices_$6189_storage_ptr",
+                        "typeString": "struct IMark2Market.ActivesPrices"
+                      }
+                    },
+                    "id": 6193,
+                    "nodeType": "ArrayTypeName",
+                    "src": "357:15:35",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_struct$_ActivesPrices_$6189_storage_$dyn_storage_ptr",
+                      "typeString": "struct IMark2Market.ActivesPrices[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "356:24:35"
+            },
+            "scope": 6197,
+            "src": "309:72:35",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 6198,
+        "src": "70:313:35",
+        "usedErrors": []
+      }
+    ],
+    "src": "37:347:35"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.6+commit.11564f7e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.1",
+  "updatedAt": "2021-09-12T09:02:17.361Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}
