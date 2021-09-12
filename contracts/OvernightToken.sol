@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
-
-contract OvernightToken is IERC20MintableBurnable, ERC20 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 private _totalMint;
@@ -17,13 +15,13 @@ contract OvernightToken is IERC20MintableBurnable, ERC20 {
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
+    EnumerableSet.AddressSet private _owners;
+
     modifier onlyAdmin()
     {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
     }
-    EnumerableSet.AddressSet private _owners;
-
 
     modifier onlyExchanger()
     {

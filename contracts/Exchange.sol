@@ -23,20 +23,22 @@ contract Exchange is AccessControl {
     event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
     event RewardEvent(uint256 totalOvn, uint256 totalUsdc, uint256 totallyAmountRewarded, uint256 totallySaved);
 
+    modifier onlyAdmin()
+    {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setTokens(address _ovn, address _usdc) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the ADMIN");
-
+    function setTokens(address _ovn, address _usdc) external onlyAdmin{
         ovn = OvernightToken(_ovn);
         usdc = IERC20(_usdc);
     }
 
-    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the ADMIN");
-
+    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyAdmin {
         actList = IActivesList(_addrAL);
         PM = IPortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);
@@ -77,7 +79,7 @@ contract Exchange is AccessControl {
 
     }
 
-    function reward() public {
+    function reward() public onlyAdmin {
         // 1. get current amount of OVN
         // 2. get current amount of USDC
         // 3. get current amount of USDC that we will get from AAVE by total amount of aUSDC
