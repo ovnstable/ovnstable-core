@@ -4,13 +4,15 @@ pragma solidity >=0.8 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IERC20MintableBurnable.sol";
 import "./interfaces/IActivesList.sol";
-import "./OwnableExt.sol";
+import "./interfaces/IConnector.sol";
+import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IActivesList.sol";
 
 contract Exchange is AccessControl {
-    IERC20MintableBurnable ovn;
+    OvernightToken ovn;
     IERC20 usdc;
     IActivesList actList;
     IPortfolioManager PM; //portfolio manager contract
@@ -18,6 +20,8 @@ contract Exchange is AccessControl {
 
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
+    event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
+    event RewardEvent(uint256 totalOvn, uint256 totalUsdc, uint256 totallyAmountRewarded, uint256 totallySaved);
 
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -26,7 +30,7 @@ contract Exchange is AccessControl {
     function setTokens(address _ovn, address _usdc) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the ADMIN");
 
-        ovn = IERC20MintableBurnable(_ovn);
+        ovn = OvernightToken(_ovn);
         usdc = IERC20(_usdc);
     }
 
@@ -70,5 +74,68 @@ contract Exchange is AccessControl {
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
 
 
+
+    }
+
+    function reward() public {
+        // 1. get current amount of OVN
+        // 2. get current amount of USDC
+        // 3. get current amount of USDC that we will get from AAVE by total amount of aUSDC
+        // 4. get total sum of USDC we can get from any source
+        // 5. calc difference between total count of OVN and USDC
+        // 6. go through all OVN owners and mint to their addresses proportionally OVN
+
+        uint totalOvnSupply = ovn.totalSupply();
+        uint amountUsdcAtPM = usdc.balanceOf(address(PM));
+        IActivesList.Active memory active = actList.getActive(address(usdc));
+        uint amountUsdcAtPMByAave = IConnector(active.connector).getBookValue(
+            actList.getActive(active.derivatives[0]).actAddress,
+            address(PM),
+            actList.getActive(active.derivatives[0]).poolPrice
+        );
+
+        uint totalUsdc = amountUsdcAtPM + amountUsdcAtPMByAave;
+        require(totalUsdc > totalOvnSupply, string(abi.encodePacked("Not enough usdc for rewards ", uint2str(totalUsdc), " <= ", uint2str(totalOvnSupply))));
+        uint difference  = totalUsdc - totalOvnSupply;
+
+        uint totallyAmountRewarded = 0;
+        for (uint8 i = 0; i < ovn.ownerLength(); i++) {
+            address ovnOwnerAddress = ovn.ownerAt(i);
+            uint ovnBalance = ovn.balanceOf(ovnOwnerAddress);
+            uint additionalMintAmount = ovnBalance * difference / totalOvnSupply;
+            if (additionalMintAmount > 0) {
+                ovn.mint(ovnOwnerAddress, additionalMintAmount);
+                totallyAmountRewarded += additionalMintAmount;
+            }
+        }
+        //TODO: what to do with saved usdc? Do we need to mint it to PM
+
+        emit RewardEvent(
+            totalOvnSupply,
+            totalUsdc,
+            totallyAmountRewarded,
+            difference - totallyAmountRewarded
+        );
+
+    }
+
+    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len;
+        while (_i != 0) {
+            k=k-1;
+            bstr[k] = bytes1(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
     }
 }
