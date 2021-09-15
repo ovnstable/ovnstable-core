@@ -8,6 +8,8 @@
 <script>
 
 
+import {mapActions} from "vuex";
+
 export default {
   name: 'App',
 
@@ -15,7 +17,15 @@ export default {
 
   computed: {},
 
-  methods: {}
+
+  created() {
+    this.refreshTotalOvn();
+  },
+
+  methods: {
+
+    ...mapActions('profile', ['refreshTotalOvn'])
+  }
 
 
 };

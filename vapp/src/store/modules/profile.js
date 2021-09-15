@@ -1,4 +1,6 @@
 let accounting = require("accounting-js")
+import {axios} from "../../plugins/http-axios";
+
 
 let accountingConfig = {
     symbol: "",
@@ -86,17 +88,10 @@ const actions = {
 
     async refreshTotalOvn({commit, dispatch, getters}) {
 
-        let totalSupply = await getters.contracts.ovn.methods.totalSupply().call();
-        let totalBurn = await getters.contracts.ovn.methods.totalBurn().call();
-        let totalMint = await getters.contracts.ovn.methods.totalMint().call();
+        axios.get('/total').then(value => {
+            commit('setTotalOvn', value.data);
+        })
 
-        let request = {
-            totalMint: totalMint / 10 ** 6,
-            totalBurn: totalBurn / 10 ** 6,
-            totalSupply: totalSupply / 10 ** 6,
-        }
-
-        commit('setTotalOvn', request);
     },
 
 
