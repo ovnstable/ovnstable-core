@@ -161,7 +161,7 @@ export default {
   created() {
 
     this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.png')});
-    this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
+    // this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
     this.currency = this.currencies[0];
 
