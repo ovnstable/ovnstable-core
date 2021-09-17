@@ -1,7 +1,7 @@
 let accounting = require("accounting-js")
 import {axios} from "../../plugins/http-axios";
-
-
+import utils from "../../plugins/utils";
+import abiDecoder from "../../plugins/abiDecoder";
 let accountingConfig = {
     symbol: "",
     precision: 6,
@@ -30,7 +30,9 @@ const state = {
 
     gasPrice: 0,
 
-    contractNames: {}
+    contractNames: {},
+
+    transactionLogs: [],
 };
 
 const getters = {
@@ -67,6 +69,10 @@ const getters = {
         return state.totalOvn;
     },
 
+    transactionLogs(state) {
+        return state.transactionLogs;
+    },
+
 };
 
 const actions = {
@@ -86,6 +92,64 @@ const actions = {
 
     },
 
+    async refreshTransactionLogs({commit, dispatch, getters}) {
+
+        let exchange = getters.contracts.exchange.options.address;
+        let account = getters.account.toLowerCase();
+        let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
+
+        axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=1&endblock=99999999&sort=asc&apikey=${token}`)
+            .then(value => {
+
+                let items = value.data.result.filter(item => {
+                    return item.from === account || item.to === account
+                });
+
+
+                let result = [];
+                let id = 1;
+                for (let item of items) {
+
+                    let log = {
+                        date: new Date(item.timeStamp*1000),
+                        id: id,
+                    }
+
+                    let method = abiDecoder.decodeMethod(item.input);
+
+                    let sum;
+                    let contract;
+                    switch (method.name){
+                        case 'buy':
+                            sum = method.params[1].value / 10 ** 6;
+                            contract = utils.getContractNameByAddress(method.params[0].value)
+                            log.name = `${contract} Minting for ${sum} OVN`;
+                            log.sum = sum;
+                            result.push(log)
+                            break
+                        case 'redeem':
+                            sum = method.params[1].value / 10 ** 6;
+                            contract = utils.getContractNameByAddress(method.params[0].value)
+                            log.name = `OVN Redeemed for ${sum} ${contract}`;
+                            log.sum = sum;
+                            result.push(log)
+                            break
+
+                    }
+
+                    id++;
+                }
+
+                result.sort(function(a,b){
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+                commit('setTransactionLogs', result)
+            })
+
+    },
+
+
     async refreshTotalOvn({commit, dispatch, getters}) {
 
         axios.get('/total').then(value => {
@@ -101,6 +165,7 @@ const actions = {
         dispatch('refreshCurrentTotalData');
         dispatch('refreshBalance');
         dispatch('refreshTotalOvn');
+        dispatch('refreshTransactionLogs');
     },
 
     async refreshGasPrice({commit, dispatch, getters}) {
@@ -182,6 +247,10 @@ const mutations = {
 
     setTotalOvn(state, totalOvn) {
         state.totalOvn = totalOvn;
+    },
+
+    setTransactionLogs(state, transactionLogs) {
+        state.transactionLogs = transactionLogs;
     },
 
 };

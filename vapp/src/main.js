@@ -8,10 +8,11 @@ import vuetify from './plugins/vuetify'
 import web3 from './plugins/web3';
 import router from './router/index'
 import {axios} from './plugins/http-axios';
-
+import moment from 'moment';
 
 Vue.use(Vuex)
 
+Vue.prototype.$moment = moment;
 Vue.prototype.$utils = utils;
 Vue.prototype.$abiDecoder = abiDecoder;
 Vue.prototype.$web3 = web3;

@@ -1,5 +1,5 @@
 let accounting = require("accounting-js")
-
+let moment = require("moment");
 
 let accountingConfig = {
     symbol: "",
@@ -40,5 +40,21 @@ export default {
 
     },
 
+    formatDate(date, pattern){
+        return moment(date, pattern, true)
+    },
+
+
+    getContractNameByAddress(address){
+
+        switch (address){
+            case "0x2791bca1f2de4661ed88a30c99a7a9449aa84174":
+                return "USDC";
+            case "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063":
+                return "DAI";
+            case "0x0FDa923c3f24642C10af8e794973343fAAdbabc6":
+                return "OVN";
+        }
+    }
 
 }
