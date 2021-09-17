@@ -33,6 +33,7 @@ const state = {
     contractNames: {},
 
     transactionLogs: [],
+    payouts: [],
 };
 
 const getters = {
@@ -73,6 +74,10 @@ const getters = {
         return state.transactionLogs;
     },
 
+    payouts(state) {
+        return state.payouts;
+    },
+
 };
 
 const actions = {
@@ -91,6 +96,75 @@ const actions = {
         })
 
     },
+
+
+    async refreshPayouts({commit, dispatch, getters}) {
+
+
+        let exchange = getters.contracts.exchange.options.address;
+        let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
+        let topik = '0x6997cdab3aebbbb5a28dbdf7c61a3c7e9ee2c38784bbe66b9c4e58078e3b587f';
+        let fromBlock = 19022018;
+        let toBlock = await getters.web3.eth.getBlockNumber();
+
+        axios.get(`https://api.polygonscan.com/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${exchange}&topic0=${topik}&apikey=${token}`)
+            .then(value => {
+
+
+                let result = [];
+                let id = 1;
+                for (let item of value.data.result) {
+
+                    let log = { }
+
+                    log.date= new Date(item.timeStamp*1000);
+                    log.id= id;
+                    log.transactionHash = item.transactionHash;
+
+                    let params = getters.web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
+                    log.totalOvn = params[0];
+                    log.totalUsdc = params[1];
+                    log.totallyAmountRewarded = params[2] / 10 ** 6;
+                    log.totallySaved = params[3];
+
+                    result.push(log)
+
+                    id++;
+                }
+
+                result.sort(function(a,b){
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+
+                for (let i = 0; i < result.length; i++) {
+                    let item = result[i];
+
+
+                    let timeItem = item.date.getTime();
+
+                    let dividendsPerYear = 0;
+                    for (let sumItem of result) {
+
+                        let time = sumItem.date.getTime();
+                        let result =timeItem - time;
+                        if(result > 0){
+                            dividendsPerYear += sumItem.totallyAmountRewarded;
+                        }
+                    }
+
+
+                    let dividendAmount = item.totallyAmountRewarded;
+                    item.distributionYield = (dividendAmount * dividendsPerYear) ;
+                }
+
+
+
+                commit('setPayouts', result)
+            })
+
+    },
+
 
     async refreshTransactionLogs({commit, dispatch, getters}) {
 
@@ -166,6 +240,7 @@ const actions = {
         dispatch('refreshBalance');
         dispatch('refreshTotalOvn');
         dispatch('refreshTransactionLogs');
+        dispatch('refreshPayouts')
     },
 
     async refreshGasPrice({commit, dispatch, getters}) {
@@ -251,6 +326,10 @@ const mutations = {
 
     setTransactionLogs(state, transactionLogs) {
         state.transactionLogs = transactionLogs;
+    },
+
+    setPayouts(state, payouts) {
+        state.payouts = payouts;
     },
 
 };

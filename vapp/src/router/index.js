@@ -20,7 +20,7 @@ const routes = [
 
             },
             {
-                path: '/dashboard',
+                path: '/fund',
                 name: 'DashboardView',
                 component: () => import('../views/DashboardView.vue'),
 

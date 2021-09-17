@@ -19,7 +19,7 @@
       <v-row justify="center">
         <div class="hidden-xs-only">
           <span v-bind:class="activeTabSave" @click="$router.push('/')">Earn</span>
-          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/dashboard')">Dashboard</span>
+          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/fund')">Fund performance</span>
           <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
         </div>
         <div class="hidden-sm-and-up mt-10">
@@ -72,8 +72,8 @@ export default {
         to: '/'
       },
       {
-        name: 'Dashboard',
-        to: '/dashboard'
+        name: 'Fund performance',
+        to: '/fund'
       },
       {
         name: 'Stats',
@@ -95,7 +95,7 @@ export default {
         case '/stats':
           this.tabId = 3;
           break;
-        case '/dashboard':
+        case '/fund':
           this.tabId = 2;
           break;
       }
