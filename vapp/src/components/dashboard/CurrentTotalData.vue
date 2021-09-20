@@ -69,7 +69,7 @@
               Total OVN in circulation
             </v-col>
             <v-col lg="4">
-              {{ balance.ovn }}
+              {{ totalOvn.totalSupply }}
             </v-col>
             <v-col lg="1"></v-col>
           </v-row>
@@ -97,7 +97,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'balance']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'totalOvn']),
 
     liquidationValueTotal: function (){
       let value = 0;

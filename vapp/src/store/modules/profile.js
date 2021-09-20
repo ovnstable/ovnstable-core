@@ -112,13 +112,13 @@ const actions = {
 
 
                 let result = [];
-                let id = 1;
-                for (let item of value.data.result) {
+                for (let i = 1; i < value.data.result.length; i++) {
 
+                    let item = value.data.result[i];
                     let log = { }
 
                     log.date= new Date(item.timeStamp*1000);
-                    log.id= id;
+                    log.id= i;
                     log.transactionHash = item.transactionHash;
 
                     let params = getters.web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
@@ -129,8 +129,6 @@ const actions = {
                     log.distributionYield = ((1/log.totalOvn)+1)**365
 
                     result.push(log)
-
-                    id++;
                 }
 
                 result.sort(function(a,b){
@@ -238,21 +236,32 @@ const actions = {
                 let element = value[i];
 
                 try {
+                    let symbol = element.symbol;
                     let bookValue = parseInt(element.bookValue) / 10 ** parseInt(element.decimals);
                     let liquidationValue = parseInt(element.liquidationValue) / 10 ** parseInt(element.decimals);
-                    let price = parseFloat(getters.web3.utils.fromWei(element.price));
-
+                    let price = 0;
                     let liquidationPrice = 0
                     let bookPrice = 0
 
-                    if (liquidationValue !== 0 && bookValue !== 0)
-                        liquidationPrice = liquidationValue / bookValue;
+                    switch (symbol){
+                        case 'USDC':
+                        case 'amUSDC':
+                            price = 1;
+                            liquidationPrice = 1;
+                            break
+                        default:
+                            price = parseFloat(getters.web3.utils.fromWei(element.price));
+                            if (liquidationValue !== 0 && bookValue !== 0)
+                                liquidationPrice = liquidationValue / bookValue;
+                    }
+
+
 
                     if (bookValue !== 0 && price !== 0)
                         bookPrice = bookValue * price
 
                     data.push({
-                        symbol: element.symbol,
+                        symbol: symbol,
                         bookValue: accounting.formatMoney(bookValue, accountingConfig),
                         price: accounting.formatMoney(price, accountingConfig),
                         bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
