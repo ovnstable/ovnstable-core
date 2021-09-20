@@ -29,7 +29,7 @@
               {{ item.totallyAmountRewarded  }}$
             </v-col>
             <v-col lg="3">
-              {{ item.distributionYield }}
+              {{ $utils.formatMoney(item.distributionYield,6) }}%
             </v-col>
 
             <v-col lg="3">

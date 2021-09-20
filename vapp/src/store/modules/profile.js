@@ -122,10 +122,11 @@ const actions = {
                     log.transactionHash = item.transactionHash;
 
                     let params = getters.web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
-                    log.totalOvn = params[0];
-                    log.totalUsdc = params[1];
+                    log.totalOvn = params[0] / 10 ** 6;
+                    log.totalUsdc = params[1] / 10 ** 6;
                     log.totallyAmountRewarded = params[2] / 10 ** 6;
-                    log.totallySaved = params[3];
+                    log.totallySaved = params[3] / 10 ** 6;
+                    log.distributionYield = ((1/log.totalOvn)+1)**365
 
                     result.push(log)
 
@@ -135,28 +136,6 @@ const actions = {
                 result.sort(function(a,b){
                     return new Date(b.date) - new Date(a.date);
                 });
-
-
-                for (let i = 0; i < result.length; i++) {
-                    let item = result[i];
-
-
-                    let timeItem = item.date.getTime();
-
-                    let dividendsPerYear = 0;
-                    for (let sumItem of result) {
-
-                        let time = sumItem.date.getTime();
-                        let result =timeItem - time;
-                        if(result > 0){
-                            dividendsPerYear += sumItem.totallyAmountRewarded;
-                        }
-                    }
-
-
-                    let dividendAmount = item.totallyAmountRewarded;
-                    item.distributionYield = (dividendAmount * dividendsPerYear) ;
-                }
 
 
 
