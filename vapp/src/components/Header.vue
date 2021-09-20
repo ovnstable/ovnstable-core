@@ -18,9 +18,9 @@
     <v-col lg="4" md="4" cols="8" class="ma-0 pa-0">
       <v-row justify="center">
         <div class="hidden-xs-only">
-          <span v-bind:class="activeTabSave" @click="$router.push('/')">Earn</span>
-          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="$router.push('/fund')">Fund performance</span>
-          <span v-bind:class="activeTabStats" class="ml-10" @click="$router.push('/stats')">Stats</span>
+          <span v-bind:class="activeTabSave" @click="goToAction('/')">Earn</span>
+          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="goToAction('/fund')">Fund performance</span>
+          <span v-bind:class="activeTabStats" class="ml-10" @click="goToAction('/stats')">Stats</span>
         </div>
         <div class="hidden-sm-and-up mt-10">
           <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to"
@@ -69,38 +69,21 @@ export default {
     menus: [
       {
         name: 'Earn',
-        to: '/'
+        to: '/',
+        id: 1
       },
       {
         name: 'Fund performance',
-        to: '/fund'
+        to: '/fund',
+        id: 2,
       },
       {
         name: 'Stats',
-        to: '/stats'
+        to: '/stats',
+        id:3,
       },
     ]
   }),
-
-
-  watch: {
-
-
-    $route(to, from) {
-
-      switch (to.path) {
-        case '/':
-          this.tabId = 1;
-          break;
-        case '/stats':
-          this.tabId = 3;
-          break;
-        case '/fund':
-          this.tabId = 2;
-          break;
-      }
-    }
-  },
 
 
   computed: {
@@ -145,8 +128,10 @@ export default {
 
     let path = this.$router.history.current.path;
     let find = this.menus.find(value => value.to === path);
-    if (find)
+    if (find){
       this.menu = find;
+      this.tabId = find.id;
+    }
 
     this.connectWallet();
   },
@@ -158,6 +143,20 @@ export default {
     ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
     ...mapActions('profile', ['refreshProfile']),
 
+    goToAction(id){
+
+      debugger
+      let menu = this.menus.find(value => value.to === id);
+
+      if (menu === this.menu)
+        return;
+      else {
+        this.$router.push(id)
+        this.menu = menu;
+        this.tabId = menu.id;
+      }
+
+    },
 
     pushUrl(to) {
       this.$router.push(to)
