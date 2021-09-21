@@ -8,23 +8,26 @@
 <script>
 
 
-import {mapActions} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: 'App',
 
   data: () => ({}),
 
-  computed: {},
+  computed: {
+
+  },
 
 
   created() {
-    this.refreshTotalOvn();
+
+    this.initWeb3();
   },
 
   methods: {
 
-    ...mapActions('profile', ['refreshTotalOvn'])
+    ...mapActions('web3', ['initWeb3'])
   }
 
 

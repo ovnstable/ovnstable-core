@@ -1,9 +1,9 @@
 <template>
   <v-col >
-    <v-card class="mt-5 card elevation-0">
-      <v-card-text>
+    <v-card class="mt-5 card elevation-0" >
+      <v-card-text v-if="account">
 
-        <v-container class="overflow-y-auto" style="height: 300px">
+        <v-container  class="overflow-y-auto" style="height: 300px">
           <v-row :key="item.id" dense v-for="item in transactionLogs" class="row">
             <v-col lg="2">
               {{item.sum}}
@@ -18,7 +18,13 @@
         </v-container>
 
       </v-card-text>
+
+      <v-card-text v-else class="text-center">
+        You need to connect to a wallet
+      </v-card-text>
     </v-card>
+
+
   </v-col>
 
 </template>
@@ -36,7 +42,8 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'transactionLogs']),
+    ...mapGetters("profile", [ 'transactionLogs']),
+    ...mapGetters("web3", [ 'account']),
   },
 
   created() {

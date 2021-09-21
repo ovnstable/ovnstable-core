@@ -125,7 +125,9 @@ export default {
 
     buttonLabel: function () {
 
-      if (this.isBuy) {
+      if (!this.account){
+        return ' You need to connect to a wallet';
+      }else if (this.isBuy) {
         return 'Press to Mint & Swap'
       } else if (this.sum > parseFloat(this.balance.usdc)) {
         return 'Invalid amount'
@@ -154,7 +156,8 @@ export default {
       return false;
     },
 
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'balance', 'gasPrice']),
+    ...mapGetters("profile", [ 'balance', 'gasPrice']),
+    ...mapGetters("web3", [ "web3", 'account', 'gasPrice']),
     ...mapGetters("logTransactions", ["transactions"]),
   },
 

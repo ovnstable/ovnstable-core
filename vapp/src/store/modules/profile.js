@@ -10,10 +10,6 @@ let accountingConfig = {
 
 
 const state = {
-    contracts: null,
-    account: null,
-    web3: null,
-
 
     currentTotalData: null,
 
@@ -28,23 +24,11 @@ const state = {
         usdc: 0,
     },
 
-    gasPrice: 0,
-
-    contractNames: {},
-
     transactionLogs: [],
     payouts: [],
 };
 
 const getters = {
-
-
-    contracts(state) {
-        return state.contracts;
-    },
-    account(state) {
-        return state.account;
-    },
 
     balance(state) {
         return state.balance;
@@ -54,13 +38,6 @@ const getters = {
         return state.currentTotalData;
     },
 
-    web3(state) {
-        return state.web3;
-    },
-
-    contractNames(state) {
-        return state.contractNames;
-    },
 
     gasPrice(state) {
         return state.gasPrice;
@@ -83,10 +60,27 @@ const getters = {
 const actions = {
 
 
-    async refreshBalance({commit, dispatch, getters}) {
+    async refreshBalance({commit, dispatch, getters, rootState}) {
 
-        let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
-        let ovn = await getters.contracts.ovn.methods.balanceOf(getters.account).call();
+        let web3 = rootState.web3;
+
+        let ovn;
+        let usdc;
+        try {
+            usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+        } catch (e) {
+            console.log('ERROR: ' +  e )
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+        }
+
+        try {
+            ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+        } catch (e) {
+            console.log('ERROR: ' +  e )
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+        }
 
         ovn = ovn / 10 ** 6;
         usdc = usdc / 10 ** 6;
@@ -97,15 +91,34 @@ const actions = {
 
     },
 
+    async resetUserData({commit, dispatch, getters }){
+        commit('setBalance', {
+            ovn: 0,
+            usdc: 0
+        });
 
-    async refreshPayouts({commit, dispatch, getters}) {
+        commit('setTransactionLogs', [])
+    },
 
+    async refreshUserData({commit, dispatch, getters }){
+        dispatch('refreshBalance')
+        dispatch('refreshTransactionLogs')
+    },
 
-        let exchange = getters.contracts.exchange.options.address;
+    async refreshNotUserData({commit, dispatch, getters }){
+        dispatch('refreshPayouts')
+        dispatch('refreshCurrentTotalData')
+        dispatch('refreshTotalOvn')
+    },
+
+    async refreshPayouts({commit, dispatch, getters, rootState}) {
+        let web3 = rootState.web3.web3;
+
+        let exchange = rootState.web3.contracts.exchange.options.address;
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
         let topik = '0x6997cdab3aebbbb5a28dbdf7c61a3c7e9ee2c38784bbe66b9c4e58078e3b587f';
         let fromBlock = 19022018;
-        let toBlock = await getters.web3.eth.getBlockNumber();
+        let toBlock = await web3.eth.getBlockNumber();
 
         axios.get(`https://api.polygonscan.com/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${exchange}&topic0=${topik}&apikey=${token}`)
             .then(value => {
@@ -121,7 +134,7 @@ const actions = {
                     log.id= i;
                     log.transactionHash = item.transactionHash;
 
-                    let params = getters.web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
+                    let params = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
                     log.totalOvn = params[0] / 10 ** 6;
                     log.totalUsdc = params[1] / 10 ** 6;
                     log.totallyAmountRewarded = params[2] / 10 ** 6;
@@ -144,10 +157,10 @@ const actions = {
     },
 
 
-    async refreshTransactionLogs({commit, dispatch, getters}) {
+    async refreshTransactionLogs({commit, dispatch, getters, rootState}) {
 
-        let exchange = getters.contracts.exchange.options.address;
-        let account = getters.account.toLowerCase();
+        let exchange = rootState.web3.contracts.exchange.options.address;
+        let account = rootState.web3.account.toLowerCase();
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
 
         axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=1&endblock=99999999&sort=asc&apikey=${token}`)
@@ -168,25 +181,26 @@ const actions = {
                     }
 
                     let method = abiDecoder.decodeMethod(item.input);
+                    if (method){
+                        let sum;
+                        let contract;
+                        switch (method.name){
+                            case 'buy':
+                                sum = method.params[1].value / 10 ** 6;
+                                contract = utils.getContractNameByAddress(method.params[0].value)
+                                log.name = `${contract} Minting for ${sum} OVN`;
+                                log.sum = sum;
+                                result.push(log)
+                                break
+                            case 'redeem':
+                                sum = method.params[1].value / 10 ** 6;
+                                contract = utils.getContractNameByAddress(method.params[0].value)
+                                log.name = `OVN Redeemed for ${sum} ${contract}`;
+                                log.sum = sum;
+                                result.push(log)
+                                break
 
-                    debugger
-                    let sum;
-                    let contract;
-                    switch (method.name){
-                        case 'buy':
-                            sum = method.params[1].value / 10 ** 6;
-                            contract = utils.getContractNameByAddress(method.params[0].value)
-                            log.name = `${contract} Minting for ${sum} OVN`;
-                            log.sum = sum;
-                            result.push(log)
-                            break
-                        case 'redeem':
-                            sum = method.params[1].value / 10 ** 6;
-                            contract = utils.getContractNameByAddress(method.params[0].value)
-                            log.name = `OVN Redeemed for ${sum} ${contract}`;
-                            log.sum = sum;
-                            result.push(log)
-                            break
+                        }
 
                     }
 
@@ -212,26 +226,12 @@ const actions = {
     },
 
 
-    async refreshProfile({commit, dispatch, getters}) {
 
-        dispatch('refreshGasPrice');
-        dispatch('refreshCurrentTotalData');
-        dispatch('refreshBalance');
-        dispatch('refreshTotalOvn');
-        dispatch('refreshTransactionLogs');
-        dispatch('refreshPayouts')
-    },
 
-    async refreshGasPrice({commit, dispatch, getters}) {
-        getters.web3.eth.getGasPrice(function (e, r) {
-            commit('setGasPrice', r)
-        })
-    },
+    async refreshCurrentTotalData({commit, dispatch, getters, rootState}) {
 
-    async refreshCurrentTotalData({commit, dispatch, getters}) {
-
-        getters.contracts.m2m.methods.activesPrices().call().then(value => {
-            console.log(value)
+        let web3 = rootState.web3;
+        web3.contracts.m2m.methods.activesPrices().call().then(value => {
 
             let data = [];
             for (let i = 0; i < value.length; i++) {
@@ -252,7 +252,7 @@ const actions = {
                             liquidationPrice = 1;
                             break
                         default:
-                            price = parseFloat(getters.web3.utils.fromWei(element.price));
+                            price = parseFloat(web3.web3.utils.fromWei(element.price));
                             if (liquidationValue !== 0 && bookValue !== 0)
                                 liquidationPrice = liquidationValue / bookValue;
                     }
@@ -290,17 +290,6 @@ const mutations = {
         state.currentTotalData = currentTotalData;
     },
 
-    setContracts(state, contracts) {
-        state.contracts = contracts;
-    },
-
-    setAccount(state, account) {
-        state.account = account;
-    },
-
-    setWeb3(state, web3) {
-        state.web3 = web3;
-    },
 
     setBalance(state, balance) {
         state.balance = balance;

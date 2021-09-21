@@ -108,7 +108,10 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "account", 'web3', 'balance', 'gasPrice']),
+
+    ...mapGetters("profile", [ 'balance', 'gasPrice']),
+    ...mapGetters("web3", [ "web3", 'account', 'gasPrice']),
+    ...mapGetters("logTransactions", ["transactions"]),
 
     sumResult: function () {
       if (!this.sum || this.sum === 0)
@@ -140,7 +143,9 @@ export default {
 
     buttonLabel: function () {
 
-      if (this.isBuy) {
+      if (!this.account){
+        return ' You need to connect to a wallet';
+      }else if (this.isBuy) {
         return 'Press to Withdraw'
       } else if (this.sum > parseFloat(this.balance.ovn)) {
         return 'Invalid amount'

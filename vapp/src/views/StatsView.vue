@@ -38,7 +38,7 @@
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
             <button v-bind:class="activeTabTx" @click="tab = 1">Transaction Log</button>
-            <button v-bind:class="activeTabGas" @click="tab = 2 ">Gas Fees Log</button>
+            <button v-bind:class="activeTabGas" @click="tab = 2 " disabled>Gas Fees Log</button>
           </v-col>
         </v-row>
 

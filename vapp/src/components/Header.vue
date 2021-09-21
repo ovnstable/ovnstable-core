@@ -31,7 +31,7 @@
     <v-col lg="4" md="4"  class="hidden-sm-and-down">
       <v-row dense class="pt-2 " justify="end" >
         <v-row v-if="!account" justify="end" align="center">
-          <button v-on:click="connectWallet" class="btn">Connect Wallet
+          <button v-on:click="connectWalletAction" class="btn">Connect Wallet
             <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
           </button>
         </v-row>
@@ -89,7 +89,8 @@ export default {
   computed: {
 
 
-    ...mapGetters('profile', ['exchange', 'account', 'web3', 'contractNames', 'balance']),
+    ...mapGetters('profile', [ 'balance']),
+    ...mapGetters('web3', [ 'account', 'web3', 'contractNames' ]),
 
 
     accountShort: function () {
@@ -133,19 +134,17 @@ export default {
       this.tabId = find.id;
     }
 
-    this.connectWallet();
   },
 
 
   methods: {
 
 
-    ...mapMutations('profile', ['setContracts', 'setAccount', 'setWeb3']),
     ...mapActions('profile', ['refreshProfile']),
+    ...mapActions('web3', ['connectWallet']),
 
     goToAction(id){
 
-      debugger
       let menu = this.menus.find(value => value.to === id);
 
       if (menu === this.menu)
@@ -166,17 +165,8 @@ export default {
       window.open('https://ovnstable.io/', '_blank').focus();
     },
 
-    connectWallet() {
-
-      this.$web3.initComplete((value) => {
-        this.setContracts(value.contracts)
-        this.setAccount(value.account)
-        this.refreshProfile();
-      });
-      this.$web3.initWeb3().then(value => {
-        this.setWeb3(value)
-      })
-
+    connectWalletAction() {
+      this.connectWallet();
     }
 
   }
