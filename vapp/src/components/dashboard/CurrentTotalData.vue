@@ -1,6 +1,6 @@
 <template>
   <v-col>
-    <v-card class="mt-5 card elevation-0">
+    <v-card class="mt-5 card-item elevation-0">
       <v-card-text>
 
         <v-container>
@@ -141,9 +141,9 @@ export default {
 <style scoped lang="scss">
 
 
-.card {
-  border-radius: 15px;
-  border: 1px solid #BBBBBB;
+.card-item {
+  border-radius: 15px !important;
+  border: 1px solid #BBBBBB !important;
 }
 
 .row {

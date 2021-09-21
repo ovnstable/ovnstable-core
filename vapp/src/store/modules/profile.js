@@ -126,7 +126,8 @@ const actions = {
                     log.totalUsdc = params[1] / 10 ** 6;
                     log.totallyAmountRewarded = params[2] / 10 ** 6;
                     log.totallySaved = params[3] / 10 ** 6;
-                    log.distributionYield = ((1/log.totalOvn)+1)**365
+                    log.dailyProfit = (log.totallyAmountRewarded / log.totalOvn);
+                    log.annualizedYield = (((log.dailyProfit+1)**365)-1)*100
 
                     result.push(log)
                 }
@@ -168,6 +169,7 @@ const actions = {
 
                     let method = abiDecoder.decodeMethod(item.input);
 
+                    debugger
                     let sum;
                     let contract;
                     switch (method.name){

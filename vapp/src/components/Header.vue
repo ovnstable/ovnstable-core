@@ -19,10 +19,10 @@
       <v-row justify="center">
         <div class="hidden-xs-only">
           <span v-bind:class="activeTabSave" @click="goToAction('/')">Earn</span>
-          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="goToAction('/fund')">Fund performance</span>
+          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="goToAction('/fund')">Portfolio & performance</span>
           <span v-bind:class="activeTabStats" class="ml-10" @click="goToAction('/stats')">Stats</span>
         </div>
-        <div class="hidden-sm-and-up mt-10">
+        <div class="hidden-sm-and-up mt-10" >
           <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to"
                     @input="pushUrl" item-text="name"/>
         </div>
