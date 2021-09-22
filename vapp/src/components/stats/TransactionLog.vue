@@ -1,19 +1,40 @@
 <template>
-  <v-col >
-    <v-card class="mt-5 card elevation-0" >
+  <v-col>
+    <v-card class="mt-5 card elevation-0">
       <v-card-text v-if="account">
 
-        <v-container  class="overflow-y-auto" style="height: 300px">
+        <template v-if="transactionLogsLoader">
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+        </template>
+        <v-container v-else class="overflow-y-auto" style="height: 300px">
           <v-row :key="item.id" dense v-for="item in transactionLogs" class="row">
             <v-col lg="2">
-              {{item.sum}}
+              {{ item.sum }}
             </v-col>
             <v-col lg="7">
-              {{item.name}}
-            </v-col >
+              {{ item.name }}
+            </v-col>
             <v-col lg="3">
-              {{formatDate(item.date)}}
-            </v-col >
+              {{ formatDate(item.date) }}
+            </v-col>
           </v-row>
         </v-container>
 
@@ -36,14 +57,12 @@ import utils from 'web3-utils';
 
 export default {
   name: "TransactionLog",
-  data: () => ({
-
-  }),
+  data: () => ({}),
 
 
   computed: {
-    ...mapGetters("profile", [ 'transactionLogs']),
-    ...mapGetters("web3", [ 'account']),
+    ...mapGetters("profile", ['transactionLogs', "transactionLogsLoader"]),
+    ...mapGetters("web3", ['account']),
   },
 
   created() {
@@ -51,8 +70,8 @@ export default {
   },
 
   methods: {
-    formatDate(date){
-      return this.$moment(date).format( 'DD.MM.YYYY');
+    formatDate(date) {
+      return this.$moment(date).format('DD.MM.YYYY');
     }
   }
 }

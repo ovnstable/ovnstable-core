@@ -25,6 +25,7 @@ const state = {
     },
 
     transactionLogs: [],
+    transactionLogsLoader: false,
     payouts: [],
 };
 
@@ -53,6 +54,10 @@ const getters = {
 
     payouts(state) {
         return state.payouts;
+    },
+
+    transactionLogsLoader(state) {
+        return state.transactionLogsLoader;
     },
 
 };
@@ -171,62 +176,56 @@ const actions = {
 
     async refreshTransactionLogs({commit, dispatch, getters, rootState}) {
 
-        let exchange = rootState.web3.contracts.exchange.options.address;
+        commit('setTransactionLogsLoader', true)
+        let exchange = rootState.web3.contracts.exchange.options.address.toLowerCase();
+        let ovn = rootState.web3.contracts.ovn.options.address.toLowerCase();
+        let usdc = rootState.web3.contracts.usdc.options.address.toLowerCase();
         let account = rootState.web3.account.toLowerCase();
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
-        let toBlock = await rootState.web3.web3.eth.getBlockNumber();
-        let fromBlock = 19022018;
+        let rewarder ='0x5cb01385d3097b6a189d1ac8ba3364d900666445'.toLowerCase();
 
-        axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=${fromBlock}&endblock=${toBlock}&sort=asc&apikey=${token}`)
-            .then(value => {
+        let response = await axios.get(`https://api.polygonscan.com/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=19999999&sort=desc&apikey=${token}`);
+        let result = response.data.result;
 
-                let items = value.data.result.filter(item => {
-                    return item.from === account || item.to === account
-                });
+        let logs = [];
+        let id = 1;
+        for (let i = 0; i < result.length; i++) {
+            let item = result[i];
 
+            let log = {
+                date: new Date(item.timeStamp*1000),
+                id: id,
+            }
 
-                let result = [];
-                let id = 1;
-                for (let item of items) {
+            if (item.from === exchange && item.contractAddress === usdc) {
+                let sum = item.value / 10 ** 6;
+                log.name = `OVN Redeemed for ${sum} ${item.tokenSymbol}`;
+                log.sum = sum;
+                logs.push(log);
+                id++;
+            }else if (item.from === account && item.to === exchange && item.contractAddress === usdc){
+                let sum = item.value / 10 ** 6;
+                log.name = `${item.tokenSymbol} Minting for ${sum} OVN`;
+                log.sum = sum;
+                logs.push(log);
+                id++;
+            }else if(item.from === '0x0000000000000000000000000000000000000000' && item.to === account && item.contractAddress === ovn){
 
-                    let log = {
-                        date: new Date(item.timeStamp*1000),
-                        id: id,
-                    }
-
-                    let method = abiDecoder.decodeMethod(item.input);
-                    if (method){
-                        let sum;
-                        let contract;
-                        switch (method.name){
-                            case 'buy':
-                                sum = method.params[1].value / 10 ** 6;
-                                contract = utils.getContractNameByAddress(method.params[0].value)
-                                log.name = `${contract} Minting for ${sum} OVN`;
-                                log.sum = sum;
-                                result.push(log)
-                                break
-                            case 'redeem':
-                                sum = method.params[1].value / 10 ** 6;
-                                contract = utils.getContractNameByAddress(method.params[0].value)
-                                log.name = `OVN Redeemed for ${sum} ${contract}`;
-                                log.sum = sum;
-                                result.push(log)
-                                break
-
-                        }
-
-                    }
-
+                let transaction = await rootState.web3.web3.eth.getTransactionReceipt(item.hash);
+                if (transaction.from === rewarder){
+                    let sum = item.value / 10 ** 6;
+                    log.name = `Rewarding ${sum} OVN`;
+                    log.sum = sum;
+                    logs.push(log);
                     id++;
                 }
 
-                result.sort(function(a,b){
-                    return new Date(b.date) - new Date(a.date);
-                });
 
-                commit('setTransactionLogs', result)
-            });
+            }
+        }
+
+        commit('setTransactionLogs', logs)
+        commit('setTransactionLogsLoader', false)
 
     },
 
@@ -323,6 +322,10 @@ const mutations = {
 
     setPayouts(state, payouts) {
         state.payouts = payouts;
+    },
+
+    setTransactionLogsLoader(state, transactionLogsLoader) {
+        state.transactionLogsLoader= transactionLogsLoader;
     },
 
 };
