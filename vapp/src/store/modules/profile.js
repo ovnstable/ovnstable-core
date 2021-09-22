@@ -174,8 +174,10 @@ const actions = {
         let exchange = rootState.web3.contracts.exchange.options.address;
         let account = rootState.web3.account.toLowerCase();
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
+        let toBlock = await rootState.web3.web3.eth.getBlockNumber();
+        let fromBlock = 19022018;
 
-        axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=1&endblock=99999999&sort=asc&apikey=${token}`)
+        axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=${fromBlock}&endblock=${toBlock}&sort=asc&apikey=${token}`)
             .then(value => {
 
                 let items = value.data.result.filter(item => {
@@ -224,7 +226,7 @@ const actions = {
                 });
 
                 commit('setTransactionLogs', result)
-            })
+            });
 
     },
 
