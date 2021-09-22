@@ -110,7 +110,7 @@ export default {
   computed: {
 
     ...mapGetters("profile", [ 'balance', 'gasPrice']),
-    ...mapGetters("web3", [ "web3", 'account', 'gasPrice']),
+    ...mapGetters("web3", [ "web3", 'account', 'gasPrice', 'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
 
     sumResult: function () {
@@ -196,7 +196,6 @@ export default {
 
         let contracts = this.contracts;
         let from = this.account;
-        let gasPrice = this.web3.utils.toWei(this.gasPrice, 'gwei');
 
 
         this.show('Processing...')

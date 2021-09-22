@@ -157,7 +157,7 @@ export default {
     },
 
     ...mapGetters("profile", [ 'balance', 'gasPrice']),
-    ...mapGetters("web3", [ "web3", 'account', 'gasPrice']),
+    ...mapGetters("web3", [ "web3", 'account', 'gasPrice', 'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
   },
 
