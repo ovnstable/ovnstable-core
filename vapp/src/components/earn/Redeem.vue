@@ -173,7 +173,8 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
+    ...mapActions("web3", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
 
 
@@ -202,8 +203,11 @@ export default {
         this.addText(`Locking ${this.sum} OVN ......  done`)
 
 
+        await this.refreshGasPrice();
+        let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast+"",'gwei');
+
         let gasApprove = await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove,  from: from};
+        let approveParams = {gas: gasApprove, gasPrice: gasPriceFast, from: from};
 
         contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
           self.addText(`Burning ${self.sum} OVN ......  done`);
@@ -212,13 +216,13 @@ export default {
 
           contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
 
-            let buyParams = {gas: value,  from: from};
+            let buyParams = {gas: value, gasPrice: gasPriceFast,  from: from};
 
             contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams).then(function () {
               self.addText(`Completed, await blockchain, click to proceed`);
               setTimeout(() => self.hide(), 1000);
 
-              self.refreshProfile();
+              self.refreshUserData();
               self.setSum(null)
             });
           })

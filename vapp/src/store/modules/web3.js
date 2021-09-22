@@ -12,6 +12,7 @@ import ConnectorAAVE from "../../contracts/ConnectorAAVE.json";
 import ConnectorCurve from "../../contracts/ConnectorCurve.json";
 import IMark2Market from "../../contracts/IMark2Market.json";
 import contract from "@truffle/contract";
+import {axios} from "../../plugins/http-axios";
 
 
 const state = {
@@ -19,7 +20,12 @@ const state = {
     account: null,
     web3: null,
     contractNames: {},
-    gasPrice: 0,
+    gasPrice: {
+        safeLow: 10,
+        standard: 20,
+        fast: 30,
+        fastest: 50,
+    },
 
 };
 
@@ -51,10 +57,20 @@ const getters = {
 const actions = {
 
 
-    async connectWallet({commit, dispatch, getters}){
+    async connectWallet({commit, dispatch, getters}) {
 
         const provider = await detectEthereumProvider();
         await provider.enable();
+    },
+
+
+    async refreshGasPrice({commit, dispatch, getters}){
+
+        axios.get('https://gasstation-mainnet.matic.network').then(value => {
+            commit('setGasPrice', value.data);
+        }).catch(reason => {
+            console.log('Error get gas price: ' + reason)
+        })
     },
 
     async initWeb3({commit, dispatch, getters, rootState}) {
@@ -86,7 +102,7 @@ const actions = {
         commit('setWeb3', web3);
         dispatch('initContracts');
 
-        dispatch('profile/refreshNotUserData', null, {root:true})
+        dispatch('profile/refreshNotUserData', null, {root: true})
 
         web3.eth.getAccounts((error, accounts) => {
             let account = accounts[0];
@@ -95,13 +111,13 @@ const actions = {
     },
 
 
-    async accountChange({commit, dispatch, getters, rootState}, account){
+    async accountChange({commit, dispatch, getters, rootState}, account) {
 
         commit('setAccount', account);
-        if (account){
-            dispatch('profile/refreshUserData', null, {root:true})
-        }else {
-            dispatch('profile/resetUserData', null, {root:true})
+        if (account) {
+            dispatch('profile/refreshUserData', null, {root: true})
+        } else {
+            dispatch('profile/resetUserData', null, {root: true})
         }
     },
 
@@ -126,11 +142,6 @@ const actions = {
         commit('setContracts', contracts)
     },
 
-    async refreshGasPrice({commit, dispatch, getters}) {
-        getters.web3.eth.getGasPrice(function (e, r) {
-            commit('setGasPrice', r)
-        })
-    },
 };
 
 const mutations = {
@@ -160,7 +171,6 @@ export default {
     actions,
     mutations
 };
-
 
 
 function _load(file, web3, address) {

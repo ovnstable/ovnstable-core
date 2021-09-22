@@ -71,7 +71,13 @@ const actions = {
         } catch (e) {
             console.log('ERROR: ' +  e )
             await new Promise(resolve => setTimeout(resolve, 2000));
-            usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+            try {
+                usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+            } catch (e) {
+                console.log('ERROR: ' +  e )
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+            }
         }
 
         try {
@@ -79,7 +85,13 @@ const actions = {
         } catch (e) {
             console.log('ERROR: ' +  e )
             await new Promise(resolve => setTimeout(resolve, 2000));
-            ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            try {
+                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            } catch (e) {
+                console.log('ERROR: ' +  e )
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            }
         }
 
         ovn = ovn / 10 ** 6;

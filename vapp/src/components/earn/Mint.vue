@@ -125,9 +125,9 @@ export default {
 
     buttonLabel: function () {
 
-      if (!this.account){
+      if (!this.account) {
         return ' You need to connect to a wallet';
-      }else if (this.isBuy) {
+      } else if (this.isBuy) {
         return 'Press to Mint & Swap'
       } else if (this.sum > parseFloat(this.balance.usdc)) {
         return 'Invalid amount'
@@ -156,8 +156,8 @@ export default {
       return false;
     },
 
-    ...mapGetters("profile", [ 'balance', 'gasPrice']),
-    ...mapGetters("web3", [ "web3", 'account', 'gasPrice', 'contracts']),
+    ...mapGetters("profile", ['balance', 'gasPrice']),
+    ...mapGetters("web3", ["web3", 'account', 'gasPrice', 'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
   },
 
@@ -174,11 +174,10 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
+    ...mapActions("web3", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText']),
     ...mapActions("logTransactions", ['setTxView']),
-
-
 
 
     max() {
@@ -204,8 +203,11 @@ export default {
         this.addText(`Locking ${this.sum} USDC ......  done`)
 
 
+        await this.refreshGasPrice();
+        let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast+"",'gwei');
+
         let gasApprove = await contracts.usdc.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove,  from: from};
+        let approveParams = {gas: gasApprove, gasPrice: gasPriceFast, from: from};
 
 
         contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
@@ -213,9 +215,9 @@ export default {
           self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
 
 
-          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
+          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e, value) => {
 
-            let buyParams = {gas: value,  from: from};
+            let buyParams = {gas: value, gasPrice: gasPriceFast, from: from};
 
             contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).then(function (receipt) {
               self.transactions.push(receipt);
@@ -224,7 +226,7 @@ export default {
 
               setTimeout(() => self.hide(), 1000);
 
-              self.refreshProfile();
+              self.refreshUserData();
               self.setSum(null);
 
             });
