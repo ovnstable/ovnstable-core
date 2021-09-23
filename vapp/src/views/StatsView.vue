@@ -10,7 +10,7 @@
       <v-col
           lg="12"
           md="8"
-          sm="8"
+          sm="12"
 
       >
         <v-row class="justify-center align-center pt-15">
@@ -43,7 +43,7 @@
         </v-row>
 
         <v-row justify="center">
-          <v-col lg="4" class="pa-0 ma-0">
+          <v-col lg="6" md="12" sm="12" class="pa-0 ma-0 " style="max-width: 650px">
             <TransactionLog v-if="tab === 1"/>
           </v-col>
         </v-row>

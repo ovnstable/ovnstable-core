@@ -6,16 +6,16 @@
       class="app-bar"
   >
 
-    <v-col lg="4" md="4" cols="2" class="ml-0 pl-0">
+    <v-col lg="3" md="1" cols="2" sm="2" class="ml-0 pl-0">
       <v-row dense  class="logo" @click="clickLogo">
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
-        <div class="logo-title ml-2 mt-0 hidden-sm-and-down">OVERNIGHT</div>
+        <div class="logo-title ml-2 mt-0 hidden-md-and-down">OVERNIGHT</div>
         <span>Alpha</span>
       </v-row>
     </v-col>
-    <v-col lg="4" md="4" cols="8" class="ma-0 pa-0">
+    <v-col lg="6" md="10" sm="8" cols="10" class="ma-0 pa-0">
       <v-row justify="center">
         <div class="hidden-xs-only">
           <span v-bind:class="activeTabSave" @click="goToAction('/')">Earn</span>
@@ -28,7 +28,7 @@
         </div>
       </v-row>
     </v-col>
-    <v-col lg="4" md="4"  class="hidden-sm-and-down">
+    <v-col lg="3" md="1"  class="hidden-sm-and-down">
       <v-row dense class="pt-2 " justify="end" >
         <v-row v-if="!account" justify="end" align="center">
           <button v-on:click="connectWalletAction" class="btn">Connect Wallet
