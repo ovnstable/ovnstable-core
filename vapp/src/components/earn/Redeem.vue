@@ -175,7 +175,7 @@ export default {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
     ...mapActions("web3", ['refreshGasPrice']),
-    ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
+    ...mapActions("showTransactions", ['show', 'hide',  'addText', 'failed']),
 
 
     setSum(value) {
