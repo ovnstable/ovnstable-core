@@ -158,7 +158,6 @@ export default {
 
     ...mapGetters("profile", ['balance', 'gasPrice']),
     ...mapGetters("web3", ["web3", 'account', 'gasPrice', 'contracts']),
-    ...mapGetters("logTransactions", ["transactions"]),
   },
 
   created() {
@@ -177,7 +176,6 @@ export default {
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
     ...mapActions("web3", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
-    ...mapActions("logTransactions", ['setTxView']),
 
 
     max() {
@@ -203,41 +201,41 @@ export default {
         this.addText(`Locking ${this.sum} USDC ......  done`)
 
 
-        await this.refreshGasPrice();
-        let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast+"",'gwei');
+        try {
+          await this.refreshGasPrice();
+          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
+          let approveParams = { gasPrice: gasPriceFast, from: from};
+          await contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return;
+        }
 
-        let gasApprove = await contracts.usdc.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove, gasPrice: gasPriceFast, from: from};
+        self.addText(`Minting ${self.sum} OVN ......  done`);
+        self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
 
+        try {
+          await this.refreshGasPrice();
+          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
+          let buyParams = { gasPrice: gasPriceFast, from: from};
+          await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams);
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return;
+        }
 
-        contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
-          self.addText(`Minting ${self.sum} OVN ......  done`);
-          self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
+        self.addText(`Completed, await blockchain, click to proceed`);
+        setTimeout(() => self.hide(), 1000);
 
-
-          contracts.exchange.methods.buy(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e, value) => {
-
-            let buyParams = {gas: value, gasPrice: gasPriceFast, from: from};
-
-            contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).then(function (receipt) {
-              self.transactions.push(receipt);
-
-              self.addText(`Completed, await blockchain, click to proceed`);
-
-              setTimeout(() => self.hide(), 1000);
-
-              self.refreshUserData();
-              self.setSum(null);
-
-            });
-          });
-
-        });
+        self.refreshUserData();
+        self.setSum(null);
 
 
       } catch (e) {
         console.log(e)
-        this.hide();
+        this.failed();
       }
     },
 

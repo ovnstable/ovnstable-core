@@ -109,8 +109,8 @@ export default {
 
   computed: {
 
-    ...mapGetters("profile", [ 'balance', 'gasPrice']),
-    ...mapGetters("web3", [ "web3", 'account', 'gasPrice', 'contracts']),
+    ...mapGetters("profile", ['balance', 'gasPrice']),
+    ...mapGetters("web3", ["web3", 'account', 'gasPrice', 'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
 
     sumResult: function () {
@@ -143,9 +143,9 @@ export default {
 
     buttonLabel: function () {
 
-      if (!this.account){
+      if (!this.account) {
         return ' You need to connect to a wallet';
-      }else if (this.isBuy) {
+      } else if (this.isBuy) {
         return 'Press to Withdraw'
       } else if (this.sum > parseFloat(this.balance.ovn)) {
         return 'Invalid amount'
@@ -175,7 +175,7 @@ export default {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
     ...mapActions("web3", ['refreshGasPrice']),
-    ...mapActions("showTransactions", ['show', 'hide',  'addText', 'failed']),
+    ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
 
     setSum(value) {
@@ -193,7 +193,7 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
-        let self =  this;
+        let self = this;
 
         let contracts = this.contracts;
         let from = this.account;
@@ -203,38 +203,44 @@ export default {
         this.addText(`Locking ${this.sum} OVN ......  done`)
 
 
-        await this.refreshGasPrice();
-        let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast+"",'gwei');
+        try {
+          await this.refreshGasPrice();
+          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
+          let approveParams = {gasPrice: gasPriceFast, from: from};
+          await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return;
+        }
 
-        let gasApprove = await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove, gasPrice: gasPriceFast, from: from};
+        self.addText(`Burning ${self.sum} OVN ......  done`);
+        self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
 
-        contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
-          self.addText(`Burning ${self.sum} OVN ......  done`);
-          self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
-
-
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
-
-            let buyParams = {gas: value, gasPrice: gasPriceFast,  from: from};
-
-            contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams).then(function () {
-              self.addText(`Completed, await blockchain, click to proceed`);
-              setTimeout(() => self.hide(), 1000);
-
-              self.refreshUserData();
-              self.setSum(null)
-            });
-          })
+        try {
+          await this.refreshGasPrice();
+          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
+          let buyParams = {gasPrice: gasPriceFast, from: from};
+          await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return;
+        }
 
 
-        });
+        self.addText(`Completed, await blockchain, click to proceed`);
+        setTimeout(() => self.hide(), 1000);
 
+        self.refreshUserData();
+        self.setSum(null)
 
       } catch (e) {
         console.log(e)
+        this.failed();
       }
     },
+
 
     selectItem(item) {
       this.currency = item;
