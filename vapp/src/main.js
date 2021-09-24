@@ -18,6 +18,13 @@ Vue.prototype.$axios = axios;
 
 Vue.config.productionTip = false
 
+import VueGtag from "vue-gtag";
+
+Vue.use(VueGtag, {
+  config: { id: "G-97YQSM714C" }
+}, router);
+
+
 new Vue({
   store,
   vuetify,
