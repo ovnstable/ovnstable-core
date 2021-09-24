@@ -44,6 +44,16 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         // actList.changeBal(pool.lp_token(), int128(uint128(retAmount)));
     }
 
+    function stake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiar
+    ) public override {
+        ILendingPool pool = ILendingPool(lpap.getLendingPool());
+        IERC20(_asset).approve(address(pool), _amount);
+        pool.deposit(_asset, _amount, _beneficiar, 0);
+    }
+
     function unstake(
         address _asset,
         address _pool,
@@ -52,6 +62,23 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     ) public override returns (uint256) {
         ILendingPool pool = ILendingPool(lpap.getLendingPool());
         // IERC20(_asset).transfer(address(pool), _amount);
+        uint256 w = pool.withdraw(_asset, _amount, _to);
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+
+        IERC20(res.aTokenAddress).transfer(
+            msg.sender,
+            IERC20(res.aTokenAddress).balanceOf(address(this))
+        );
+        return w;
+    }
+
+    function unstake(
+        address _asset,
+        uint256 _amount,
+        address _to
+    ) public override returns (uint256) {
+        ILendingPool pool = ILendingPool(lpap.getLendingPool());
+
         uint256 w = pool.withdraw(_asset, _amount, _to);
         DataTypes.ReserveData memory res = pool.getReserveData(_asset);
 

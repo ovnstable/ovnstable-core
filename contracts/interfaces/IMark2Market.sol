@@ -13,5 +13,22 @@ interface IMark2Market {
         uint256 liquidationValue;
     }
 
+    struct AssetPrices {
+        address asset;
+
+        uint256 amountInVault; // balance on Vault
+        uint256 usdcPriceOne; // current price one token at USDC
+        uint256 usdcPriceInVault; // current total price of balance at USDC
+        uint256 diffToTarget; // diff usdcPriceInVault to target in portfolio
+        int8 diffToTargetSign; // diff sign usdcPriceInVault to target in portfolio
+    }
+
+    struct TotalAssetPrices {
+        AssetPrices[] assetPrices;
+        uint256 totalUsdcPrice;
+    }
+
     function activesPrices() external view returns (ActivesPrices[] memory);
+
+    function assetPricesForBalance() external returns (TotalAssetPrices memory);
 }

@@ -9,9 +9,11 @@ import "../OwnableExt.sol";
 contract ConnectorCurve is IConnector, OwnableExt {
     address USDC;
     IActivesList actList;
+    iCurvePool pool;
 
-    function setUSDC(address _usdc) public onlyOwner {
+    function setUSDC(address _usdc, address _pool) public onlyOwner {
         USDC = _usdc;
+        pool = iCurvePool(_pool);
     }
 
     function setAddr(address _addrAL) external onlyOwner {
@@ -49,6 +51,35 @@ contract ConnectorCurve is IConnector, OwnableExt {
         revert("can't find active for staking in pool");
     }
 
+    function stake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiar
+    ) public override {
+        uint256[3] memory amounts;
+        for (uint256 i = 0; i < 3; i++) {
+            address coin = pool.coins(i);
+            if (coin == _asset) {
+                iCurveToken(_asset).approve(address(pool), _amount);
+                // номер позиции в массиве (amounts) определяет какой актив (_asset) и в каком количестве (_amount)
+                // на стороне керва будет застейкано
+                amounts[uint256(i)] = _amount;
+                uint256 lpTok = pool.calc_token_amount(amounts, true);
+                //TODO: процентажи кудато вынести, slipage
+                uint256 retAmount = pool.add_liquidity(amounts, (lpTok * 99) / 100, false);
+                iCurveToken(pool.lp_token()).transfer(_beneficiar, retAmount);
+                // actList.changeBal(_asset, -int128(uint128(_amount)));
+
+                // actList.changeBal(pool.lp_token(), int128(uint128(retAmount)));
+
+                return;
+            } else {
+                amounts[i] = 0;
+            }
+        }
+        revert("can't find active for staking in pool");
+    }
+
     function unstake(
         address _asset,
         address _pool,
@@ -57,6 +88,46 @@ contract ConnectorCurve is IConnector, OwnableExt {
     ) public override returns (uint256) {
         uint256[3] memory amounts;
         iCurvePool pool = iCurvePool(_pool);
+        for (uint256 i = 0; i < 3; i++) {
+            address coin = pool.coins(i);
+
+            if (coin == _asset) {
+                amounts[i] = _amount;
+                uint256 lpTok = pool.calc_token_amount(amounts, false);
+                // _one_coin для возврата конкретной монеты (_assest)
+                uint256 withdrAmount = pool.calc_withdraw_one_coin(lpTok, int128(uint128(i)));
+
+                iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
+
+                uint256 retAmount = pool.remove_liquidity_one_coin(
+                    lpTok,
+                    int128(uint128(i)),
+                    withdrAmount
+                );
+
+                IERC20(pool.coins(i)).transfer(_beneficiar, retAmount);
+                iCurveToken(pool.lp_token()).transfer(
+                    _beneficiar,
+                    iCurveToken(pool.lp_token()).balanceOf(address(this))
+                );
+                // actList.changeBal(_asset, int128(uint128(retAmount)));
+
+                // actList.changeBal(pool.lp_token(), -int128(uint128(_amount)));
+
+                return retAmount; // amounts[i];
+            } else {
+                amounts[i] = 0;
+            }
+        }
+        revert("can't find active for withdraw from pool");
+    }
+
+    function unstake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiar
+    ) public override returns (uint256) {
+        uint256[3] memory amounts;
         for (uint256 i = 0; i < 3; i++) {
             address coin = pool.coins(i);
 

@@ -7,6 +7,7 @@ import "./interfaces/IActivesList.sol";
 import "./interfaces/IConnector.sol";
 import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
+import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IActivesList.sol";
@@ -15,7 +16,7 @@ contract Exchange is AccessControl {
     OvernightToken ovn;
     IERC20 usdc;
     IActivesList actList;
-    IPortfolioManager PM; //portfolio manager contract
+    PortfolioManager PM; //portfolio manager contract
     IMark2Market m2m;
 
     event EventExchange(string label, uint256 amount);
@@ -40,8 +41,23 @@ contract Exchange is AccessControl {
 
     function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyAdmin {
         actList = IActivesList(_addrAL);
-        PM = IPortfolioManager(_addrPM);
+        PM = PortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);
+    }
+
+    function invest(address _addrTok, uint256 _amount) public {
+        emit EventExchange("buy", _amount);
+
+
+        uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
+        require(balance >= _amount, "Not enough tokens to buy");
+
+        IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
+        ovn.mint(msg.sender, _amount);
+
+        IERC20(_addrTok).transfer(address(PM), _amount);
+        PM.invest( IERC20(_addrTok), _amount);
+
     }
 
     function buy(address _addrTok, uint256 _amount) public {

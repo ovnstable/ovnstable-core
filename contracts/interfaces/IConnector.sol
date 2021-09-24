@@ -12,10 +12,22 @@ interface IConnector {
         uint256 _amount,
         address _beneficiar
     ) external;
+ 
+    function stake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiar
+    ) external;
 
     function unstake(
         address _asset,
         address _pool,
+        uint256 _amount,
+        address _to
+    ) external returns (uint256);
+
+    function unstake(
+        address _asset,
         uint256 _amount,
         address _to
     ) external returns (uint256);
