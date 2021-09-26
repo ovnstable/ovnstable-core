@@ -66,7 +66,52 @@ contract Balancer {
             actionBuildersInOrder.length
         );
         //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked("actionBuildersInOrder.length: ", uint2str(actionBuildersInOrder.length))));
+        emit ConsoleLog(
+            string(
+                abi.encodePacked(
+                    "actionBuildersInOrder.length: ",
+                    uint2str(actionBuildersInOrder.length)
+                )
+            )
+        );
+        for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
+            IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
+                .buildAction(assetPrices, actionOrder);
+            actionOrder[i] = action;
+        }
+
+        return actionOrder;
+    }
+
+    function balanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
+        public
+        returns (IActionBuilder.ExchangeAction[] memory)
+    {
+        // 1. get current prices from M2M
+        IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance(
+            address(withdrawToken),
+            withdrawAmount
+        );
+
+        // 2. calc total price
+        uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+
+        //TODO: remove
+        emit ConsoleLog(string(abi.encodePacked("totalUsdcPrice: ", uint2str(totalUsdcPrice))));
+
+        // 3. make actions
+        IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
+            actionBuildersInOrder.length
+        );
+        //TODO: remove
+        emit ConsoleLog(
+            string(
+                abi.encodePacked(
+                    "actionBuildersInOrder.length: ",
+                    uint2str(actionBuildersInOrder.length)
+                )
+            )
+        );
         for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
             IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
                 .buildAction(assetPrices, actionOrder);

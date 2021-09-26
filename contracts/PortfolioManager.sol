@@ -48,6 +48,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
 
     function initActionBuilders() external onlyOwner {}
 
+    //TODO: exchange only
     function invest(IERC20 _token, uint256 _amount) external {
         // 1. put tokens into Vault
         _token.transfer(address(vault), _amount);
@@ -59,6 +60,114 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
     function balanceOnInvest() public {
         // 1. got action to balance
         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions();
+        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+
+        // 2. execute them
+        bool someActionExecuted = true;
+        while (someActionExecuted) {
+            someActionExecuted = false;
+            for (uint8 i = 0; i < actionOrder.length; i++) {
+                IActionBuilder.ExchangeAction memory action = actionOrder[i];
+                if (action.executed) {
+                    // Skip executed
+                    emit ConsoleLog(
+                        string(
+                            abi.encodePacked(
+                                uint2str(i),
+                                " Skip executed: ",
+                                uint2str(action.amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
+                    continue;
+                }
+                if (action.amount == 0) {
+                    // Skip zero amount action
+                    emit ConsoleLog(
+                        string(
+                            abi.encodePacked(
+                                uint2str(i),
+                                " Skip zero amount action: ",
+                                uint2str(action.amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
+                    continue;
+                }
+                if (action.from.balanceOf(address(vault)) < action.amount) {
+                    // Skip not enough blance for execute know
+                    emit ConsoleLog(
+                        string(
+                            abi.encodePacked(
+                                uint2str(i),
+                                " Skip not enough blance for execute know: ",
+                                uint2str(action.amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
+                    continue;
+                }
+                // move tokens to tokenExchange for executing action
+                vault.transfer(action.from, address(action.tokenExchange), action.amount);
+                // execute exchange
+                action.tokenExchange.exchange(
+                    address(vault),
+                    action.from,
+                    address(vault),
+                    action.to,
+                    action.amount
+                );
+                action.executed = true;
+                emit ConsoleLog(
+                    string(
+                        abi.encodePacked(
+                            "Exchange ",
+                            uint2str(action.amount),
+                            " from ",
+                            toAsciiString(address(action.from)),
+                            " to ",
+                            toAsciiString(address(action.to))
+                        )
+                    )
+                );
+                someActionExecuted = true;
+            }
+        }
+    }
+
+    //TODO: exchange only
+    function withdraw(IERC20 _token, uint256 _amount) external returns (uint256) {
+        // 0.1 TODO: check that _token is one off used
+        // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
+
+        // 1. balance to needed amount
+        balanceOnWithdraw(_token, _amount);
+
+        // 2. transfer back tokens
+        // TODO: transfer amount should be without fees
+        vault.transfer(_token, msg.sender, _amount);
+
+        return _amount;
+    }
+
+    function balanceOnWithdraw(IERC20 _token, uint256 _amount) public {
+        // 1. got action to balance
+        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions(
+            _token,
+            _amount
+        );
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
@@ -182,87 +291,6 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         }
         return string(bstr);
     }
-
-    // function rebalanceOnInvest() public {
-    //     // 1. get current prices from M2M
-    //     ActivesPrices[] activePrices = m2m.activesPrices();
-
-    //     // 2. calc total price
-    //     uint256 totalUsdcPrice = 0;
-    //     for (uint8 i = 0; i < actives.length; i++) {
-    //         totalUsdcPrice += activePrices[i].price;
-    //     }
-
-    //     // // 3. calc weight of each active in total
-    //     // for (uint8 i = 0; i < actives.length; i++) {
-    //     //     // here we lose some precision but it doesn't affect out work
-    //     //     // NOTE: if it would be moved to M2M and could be used in fronts then
-    //     //     //       need to correct losses to get 100% at total
-    //     //     activePrices[i].weightInTotal = (TOTAL_WEIGHT * activePrices[i].price) / totalUsdcPrice;
-    //     // }
-
-    //     // 4. get action what to do:
-    //     //      1 - do nothing
-    //     //      2 - invest with some amount of tokens
-    //     //      3 - withdraw with some amount of tokens
-    //     Action[] actions = new Action[actives.length];
-    //     for (uint8 i = 0; i < actives.length; i++) {
-    //         Active active = new Active();
-    //         ActiveInfo activeInfo = new ActiveInfo();
-    //         ActivePrice activePrice = activePrices[i];
-    //         uint256 currentPrice = activePrice.price;
-    //         uint256 targetPrice = (totalUsdcPrice * active.targetWeight) / TOTAL_WEIGHT;
-    //         uint256 minPrice = (totalUsdcPrice * active.minWeight) / TOTAL_WEIGHT;
-    //         uint256 maxPrice = (totalUsdcPrice * active.maxWeight) / TOTAL_WEIGHT;
-
-    //         if (currentPrice < minPrice) {
-    //             // here we always know that targetPrice is higher than currentPrice
-    //             uint256 difference = targetPrice - currentPrice;
-    //             actions.push(new Action(3, difference));
-    //         } else if (maxPrice < currentPrice) {
-    //             // here we always know that currentPrice is higher than targetPrice
-    //             uint256 difference = currentPrice - targetPrice;
-    //             actions.push(new Action(2, difference));
-    //         } else {
-    //             actions.push(new Action(1, 0));
-    //         }
-    //     }
-
-    //     // 5. do the things
-    //     for (uint8 i = 0; i < actives.length; i++) {
-    //         ActiveInfo activeInfo = new ActiveInfo();
-    //         doAction(activeInfo, actions[i]);
-    //     }
-    // }
-
-    // function withdraw(IERC20 _token, uint256 _amount) {
-    //     // 0. TODO: check that _token is one off used
-
-    //     // 1. get current prices from M2M
-    //     ActivesPrices[] activePrices = m2m.activesPricess();
-
-    //     // 2. calc total price
-    //     uint256 totalUsdcPrice = 0;
-    //     for (uint8 i = 0; i < actives.length; i++) {
-    //         totalUsdcPrice += activePrices[i].price;
-    //     }
-
-    //     address tokenAddress = address(_token);
-    //     uint256 currentUsdcBalanceAtVault = 0;
-    //     for (uint8 i = 0; i < actives.length; i++) {
-    //         if (tokenAddress == activePrices[i].asset) {
-    //             // calc diff for
-    //             currentUsdcBalanceAtVault = activePrices[i].price;
-    //         }
-    //     }
-    //     // total sum of other tokens - need to calc target
-    //     uint256 otherTokensTotalUsdcPrice = totalUsdcPrice - currentUsdcBalanceAtVault;
-
-    //     required(totalUsdcPrice >= _amount);
-    //     // new total sum without withdrawed amount - need to calc target
-    //     uint256 newTotalUsdcPrice = totalUsdcPrice - _amount;
-
-    // }
 
     function stake(address _asset, uint256 _amount) external override {
         // 1. get actives data from active list

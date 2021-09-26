@@ -51,7 +51,7 @@ contract Exchange is AccessControl {
     }
 
     function invest(address _addrTok, uint256 _amount) public {
-        emit EventExchange("buy", _amount);
+        emit EventExchange("e", _amount);
 
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -62,6 +62,21 @@ contract Exchange is AccessControl {
 
         IERC20(_addrTok).transfer(address(PM), _amount);
         PM.invest( IERC20(_addrTok), _amount);
+
+    }
+
+    function redeem2(address _addrTok, uint256 _amount) public {
+        emit EventExchange("redeem", _amount);
+
+        //TODO: Real unstacke amount may be different to _amount
+        uint256 unstakedAmount = PM.withdraw(IERC20(_addrTok), _amount);
+
+        // Or just burn from sender
+        ovn.burn(msg.sender, _amount);
+
+        // TODO: correct amount by rates or oracles
+        // TODO: check threshhold limits to withdraw deposite
+        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
 
     }
 

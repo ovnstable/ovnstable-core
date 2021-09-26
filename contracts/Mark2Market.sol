@@ -130,6 +130,79 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return totalPrices;
     }
 
+    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
+        external
+        override
+        returns (TotalAssetPrices memory)
+    {
+        InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
+            .getAllAssetWeights();
+
+        //TODO: remove
+        emit ConsoleLog(
+            string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
+        );
+
+        uint256 totalUsdcPrice = 0;
+        uint256 count = assetWeights.length;
+        // limit iteration count. TODO: recheck
+        if (count > 100) {
+            count = 100;
+        }
+        AssetPrices[] memory assetPrices = new AssetPrices[](count);
+        for (uint8 i = 0; i < count; i++) {
+            InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
+            uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
+            uint256 usdcPriceOne = 1; //TODO: use
+            uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
+
+            //TODO: remove
+            emit ConsoleLog(string(abi.encodePacked("amountInVault: ", uint2str(amountInVault))));
+
+            totalUsdcPrice += usdcPriceInVault;
+
+            assetPrices[i] = AssetPrices(
+                assetWeight.asset,
+                amountInVault,
+                usdcPriceOne,
+                usdcPriceInVault,
+                0,
+                0
+            );
+        }
+
+        // 3. validate withdrawAmount
+        require(totalUsdcPrice >= withdrawAmount, "Withdraw more than total");
+
+        // 4. correct total with withdrawAmount
+        totalUsdcPrice = totalUsdcPrice - withdrawAmount;
+
+        for (uint8 i = 0; i < count; i++) {
+            AssetPrices memory assetPrice = assetPrices[i];
+            (assetPrice.diffToTarget, assetPrice.diffToTargetSign) = diffToTarget(
+                totalUsdcPrice,
+                assetPrice.asset
+            );
+            // update diff for withdrawn token
+            if (assetPrice.asset == withdrawToken) {
+                if (assetPrice.diffToTargetSign < 0) {
+                    if (assetPrice.diffToTarget > withdrawAmount) {
+                        assetPrice.diffToTarget = assetPrice.diffToTarget - withdrawAmount;
+                    } else {
+                        assetPrice.diffToTarget = withdrawAmount - assetPrice.diffToTarget;
+                        assetPrice.diffToTargetSign = int8(1);
+                    }
+                } else {
+                    assetPrice.diffToTarget = assetPrice.diffToTarget + withdrawAmount;
+                }
+            }
+        }
+
+        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
+
+        return totalPrices;
+    }
+
     function diffToTarget(uint256 totalUsdcPrice, address asset)
         internal
         view
@@ -142,7 +215,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             investmentPortfolio.TOTAL_WEIGHT();
         uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
 
-        if (targetAmount > currentAmount) {
+        if (targetAmount >= currentAmount) {
             return (targetAmount - currentAmount, int8(1));
         } else {
             return (currentAmount - targetAmount, int8(-1));
