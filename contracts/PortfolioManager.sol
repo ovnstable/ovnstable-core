@@ -32,14 +32,17 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
     event ConsoleLogNamed(string label, address addr);
 
     function setAddr(address _addrAL) external onlyOwner {
+        require(_addrAL != address(0), "Zero address not allowed");
         actList = IActivesList(_addrAL);
     }
 
     function setVault(address _vault) external onlyOwner {
+        require(_vault != address(0), "Zero address not allowed");
         vault = Vault(_vault);
     }
 
     function setBalancer(address _balancer) external onlyOwner {
+        require(_balancer != address(0), "Zero address not allowed");
         balancer = Balancer(_balancer);
     }
 

@@ -44,6 +44,7 @@ abstract contract OwnableExt is Context {
     }
 
     function setRole(bytes32 _role, address _actor) external onlyOwner {
+        require(_actor != address(0), "Zero address not allowed");
         rolemap[_role] = _actor;
         //TODO: добавить событие
     }
@@ -69,11 +70,11 @@ abstract contract OwnableExt is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "OwnableExt: new owner is the zero address");
         _setOwner(newOwner);
     }
 
     function _setOwner(address newOwner) private {
+        require(newOwner != address(0), "Zero address not allowed");
         address oldOwner = _owner;
         _owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);

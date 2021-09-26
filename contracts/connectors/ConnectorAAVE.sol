@@ -19,11 +19,14 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     ILendingPoolAddressesProvider lpap;
 
     function setAAVE(address _LPAP, address _USDC) public onlyOwner {
+        require(_LPAP != address(0), "Zero address not allowed");
+        require(_USDC != address(0), "Zero address not allowed");
         lpap = ILendingPoolAddressesProvider(_LPAP);
         USDC = _USDC;
     }
 
     function setAddr(address _addrAL) external onlyOwner {
+        require(_addrAL != address(0), "Zero address not allowed");
         actList = IActivesList(_addrAL);
     }
 

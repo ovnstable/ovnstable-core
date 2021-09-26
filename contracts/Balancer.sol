@@ -24,6 +24,7 @@ contract Balancer {
     event ConsoleLog(string str);
 
     function setMark2Market(address _m2m) public {
+        require(_m2m != address(0), "Zero address not allowed");
         m2m = IMark2Market(_m2m);
     }
 

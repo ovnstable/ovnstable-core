@@ -32,6 +32,7 @@ contract InvestmentPortfolio is AccessControl {
     }
 
     function addAsset(address asset) external onlyAdmin {
+        require(asset != address(0), "Zero address not allowed");
         assets.push(IERC20(asset));
         assetPositions[address(asset)] = assets.length - 1;
     }

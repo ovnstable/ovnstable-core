@@ -35,11 +35,16 @@ contract Exchange is AccessControl {
     }
 
     function setTokens(address _ovn, address _usdc) external onlyAdmin{
+        require(_ovn != address(0), "Zero address not allowed");
+        require(_usdc != address(0), "Zero address not allowed");
         ovn = OvernightToken(_ovn);
         usdc = IERC20(_usdc);
     }
 
     function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyAdmin {
+        require(_addrAL != address(0), "Zero address not allowed");
+        require(_addrPM != address(0), "Zero address not allowed");
+        require(_addrM2M != address(0), "Zero address not allowed");
         actList = IActivesList(_addrAL);
         PM = PortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);

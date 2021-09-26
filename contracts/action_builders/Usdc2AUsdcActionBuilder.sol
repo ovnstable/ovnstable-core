@@ -20,6 +20,9 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         address _usdcToken,
         address _aUsdcToken
     ) {
+        require(_tokenExchange != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_aUsdcToken != address(0), "Zero address not allowed");
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);

@@ -22,11 +22,15 @@ contract Mark2Market is IMark2Market, OwnableExt {
     event ConsoleLog(string str);
 
     function setAddr(address _addrAL, address _addrWault) public onlyOwner {
+        require(_addrAL != address(0), "Zero address not allowed");
+        require(_addrWault != address(0), "Zero address not allowed");
         actListContr = IActivesList(_addrAL);
         addrWault = _addrWault;
     }
 
     function init(address _vault, address _investmentPortfolio) public onlyOwner {
+        require(_vault != address(0), "Zero address not allowed");
+        require(_investmentPortfolio != address(0), "Zero address not allowed");
         vault = Vault(_vault);
         investmentPortfolio = InvestmentPortfolio(_investmentPortfolio);
     }

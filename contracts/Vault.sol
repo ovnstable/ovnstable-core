@@ -31,10 +31,12 @@ contract Vault is AccessControl {
     }
 
     function setPortfolioManager(address account) public virtual onlyAdmin {
+        require(account != address(0), "Zero address not allowed");
         grantRole(PORTFOLIO_MANAGER, account);
     }
 
     function removePortfolioManager(address account) public virtual onlyAdmin {
+        require(account != address(0), "Zero address not allowed");
         revokeRole(PORTFOLIO_MANAGER, account);
     }
 

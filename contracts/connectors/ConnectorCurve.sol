@@ -12,11 +12,14 @@ contract ConnectorCurve is IConnector, OwnableExt {
     iCurvePool pool;
 
     function setUSDC(address _usdc, address _pool) public onlyOwner {
+        require(_usdc != address(0), "Zero address not allowed");
+        require(_pool != address(0), "Zero address not allowed");
         USDC = _usdc;
         pool = iCurvePool(_pool);
     }
 
     function setAddr(address _addrAL) external onlyOwner {
+        require(_addrAL != address(0), "Zero address not allowed");
         actList = IActivesList(_addrAL);
     }
 
