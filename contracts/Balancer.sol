@@ -15,6 +15,7 @@ import "./registries/InvestmentPortfolio.sol";
 import "./interfaces/IConnector.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
+//TODO: use AccessControl or Ownable from zeppelin
 contract Balancer {
     IMark2Market m2m;
     InvestmentPortfolio investmentPortfolio;

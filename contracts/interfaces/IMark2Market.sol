@@ -15,7 +15,6 @@ interface IMark2Market {
 
     struct AssetPrices {
         address asset;
-
         uint256 amountInVault; // balance on Vault
         uint256 usdcPriceOne; // current price one token at USDC
         uint256 usdcPriceInVault; // current total price of balance at USDC
@@ -31,5 +30,8 @@ interface IMark2Market {
     function activesPrices() external view returns (ActivesPrices[] memory);
 
     function assetPricesForBalance() external returns (TotalAssetPrices memory);
-    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount) external returns (TotalAssetPrices memory);
+
+    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
+        external
+        returns (TotalAssetPrices memory);
 }

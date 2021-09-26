@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-/// @title Common inrterface to DeFi protocol connectors
-/// @author @Stanta
-/// @notice Every connector have to implement this function
-/// @dev Choosing of connector releasing by changing address of connector's contract
-interface IPortfolioManager {
-    function stake(address _asset, uint256 _amount) external;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-    function unstake(address _asset, uint256 _amount) external returns (uint256);
+interface IPortfolioManager {
+    function invest(IERC20 _token, uint256 _amount) external;
+
+    function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);
 }

@@ -15,7 +15,6 @@ import "./interfaces/IActivesList.sol";
 contract Exchange is AccessControl {
     OvernightToken ovn;
     IERC20 usdc;
-    IActivesList actList;
     PortfolioManager PM; //portfolio manager contract
     IMark2Market m2m;
 
@@ -41,18 +40,19 @@ contract Exchange is AccessControl {
         usdc = IERC20(_usdc);
     }
 
-    function setAddr(address _addrAL, address _addrPM, address _addrM2M) external onlyAdmin {
-        require(_addrAL != address(0), "Zero address not allowed");
+    function setAddr(address _addrPM, address _addrM2M) external onlyAdmin {
         require(_addrPM != address(0), "Zero address not allowed");
         require(_addrM2M != address(0), "Zero address not allowed");
-        actList = IActivesList(_addrAL);
         PM = PortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);
     }
 
-    function invest(address _addrTok, uint256 _amount) public {
-        emit EventExchange("e", _amount);
+    function balance() public view returns (uint256) {
+        return ovn.balanceOf(msg.sender);
+    }
 
+    function buy(address _addrTok, uint256 _amount) public {
+        emit EventExchange("buy", _amount);
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
@@ -62,10 +62,9 @@ contract Exchange is AccessControl {
 
         IERC20(_addrTok).transfer(address(PM), _amount);
         PM.invest( IERC20(_addrTok), _amount);
-
     }
 
-    function redeem2(address _addrTok, uint256 _amount) public {
+    function redeem(address _addrTok, uint256 _amount) public {
         emit EventExchange("redeem", _amount);
 
         //TODO: Real unstacke amount may be different to _amount
@@ -77,50 +76,14 @@ contract Exchange is AccessControl {
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
-
     }
 
-    function buy(address _addrTok, uint256 _amount) public {
-        emit EventExchange("buy", _amount);
-
-
-        uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
-        require(balance >= _amount, "Not enough tokens to buy");
-
-        IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
-        ovn.mint(msg.sender, _amount);
-        actList.changeBal(_addrTok, int128(uint128(_amount)));
-        IERC20(_addrTok).transfer(address(PM), _amount);
-        PM.stake(_addrTok, _amount);
-
-    }
-
-    function balance() public view returns (uint256) {
-        return ovn.balanceOf(msg.sender);
-    }
-
-    function redeem(address _addrTok, uint256 _amount) public {
-        emit EventExchange("redeem", _amount);
-
-        //TODO: Real unstacke amount may be different to _amount
-        uint256 unstakedAmount = PM.unstake(_addrTok, _amount);
-        // Or just burn from sender
-        ovn.burn(msg.sender, _amount);
-        actList.changeBal(_addrTok, - int128(uint128(unstakedAmount)));
-        // TODO: correct amount by rates or oracles
-        // TODO: check threshhold limits to withdraw deposite
-        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
-
-
-
-    }
 
     function reward() public onlyAdmin {
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
         // 3. calc difference between total count of OVN and USDC
         // 4. go through all OVN owners and mint to their addresses proportionally OVN
-
 
         uint totalOvnSupply = ovn.totalSupply();
         IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();

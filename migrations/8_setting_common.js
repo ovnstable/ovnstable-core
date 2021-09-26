@@ -19,7 +19,7 @@ module.exports = async function (deployer) {
     // let usdc = await ERC20.at('0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     // let aUsdc = await ERC20.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
 
-    
+    //TODO: move all deploy to its own scripts
     // vault
     await deployer.deploy(Vault);
     const vault = await Vault.deployed();
@@ -81,8 +81,7 @@ module.exports = async function (deployer) {
     const pm = await PortfolioManager.deployed();
 
     await m2m.setAddr(actList.address, pm.address);
-    await pm.setAddr(actList.address)
-    await exchange.setAddr(actList.address, pm.address, m2m.address);
+    await exchange.setAddr(pm.address, m2m.address);
 
     // set pm
     await vault.setPortfolioManager(pm.address);
@@ -94,10 +93,7 @@ module.exports = async function (deployer) {
     await m2m.init(vault.address, investmentPortfolio.address);
 
     // set actions builders
-    console.log("aaaaa");
     let res = await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);
-    console.log("bbbb");
-
 
 
     // Set role EX

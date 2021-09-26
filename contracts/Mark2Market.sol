@@ -9,6 +9,7 @@ import "./OwnableExt.sol";
 import "./registries/InvestmentPortfolio.sol";
 import "./Vault.sol";
 
+//TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
     IActivesList private actListContr;
 
