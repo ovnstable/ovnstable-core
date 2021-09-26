@@ -20,12 +20,8 @@ contract Balancer {
     InvestmentPortfolio investmentPortfolio;
     address[] actionBuildersInOrder;
 
+    //TODO: remove
     event ConsoleLog(string str);
-
-    event ConsoleLogNamed(string label, int256 num);
-    event ConsoleLogNamed(string label, uint256 num);
-    event ConsoleLogNamed(string label, string str);
-    event ConsoleLogNamed(string label, address addr);
 
     function setMark2Market(address _m2m) public {
         m2m = IMark2Market(_m2m);
@@ -61,12 +57,14 @@ contract Balancer {
 
         // 2. calc total price
         uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked("totalUsdcPrice: ", uint2str(totalUsdcPrice))));
- 
+
         // 3. make actions
         IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
             actionBuildersInOrder.length
         );
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked("actionBuildersInOrder.length: ", uint2str(actionBuildersInOrder.length))));
         for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
             IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
@@ -77,7 +75,7 @@ contract Balancer {
         return actionOrder;
     }
 
-    
+    //TODO: remove
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";

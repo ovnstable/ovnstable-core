@@ -18,6 +18,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
     Vault private vault;
     InvestmentPortfolio private investmentPortfolio;
 
+    //TODO: remove
     event ConsoleLog(string str);
 
     function setAddr(address _addrAL, address _addrWault) public onlyOwner {
@@ -79,6 +80,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
             .getAllAssetWeights();
 
+        //TODO: remove
         emit ConsoleLog(
             string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
         );
@@ -96,6 +98,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 usdcPriceOne = 1; //TODO: use
             uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
 
+            //TODO: remove
             emit ConsoleLog(string(abi.encodePacked("amountInVault: ", uint2str(amountInVault))));
 
             totalUsdcPrice += usdcPriceInVault;
@@ -142,6 +145,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         }
     }
 
+    //TODO: remove
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";

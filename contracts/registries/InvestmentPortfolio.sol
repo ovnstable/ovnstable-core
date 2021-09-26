@@ -12,6 +12,7 @@ contract InvestmentPortfolio is AccessControl {
     mapping(address => uint256) private assetWeightPositions;
     AssetWeight[] public assetWeights;
 
+    //TODO: remove
     event ConsoleLog(string str);
 
     struct AssetWeight {
@@ -61,17 +62,27 @@ contract InvestmentPortfolio is AccessControl {
     }
 
     function setWeights(AssetWeight[] memory _assetWeights) public {
-        emit ConsoleLog(string(abi.encodePacked("_assetWeights.length: ", uint2str(_assetWeights.length))));
+        //TODO: remove
+        emit ConsoleLog(
+            string(abi.encodePacked("_assetWeights.length: ", uint2str(_assetWeights.length)))
+        );
 
         uint256 totalTarget = 0;
         for (uint8 i = 0; i < _assetWeights.length; i++) {
             AssetWeight memory assetWeight = _assetWeights[i];
             require(assetWeight.asset != address(0), "weight without asset");
-            require(assetWeight.minWeight <= assetWeight.targetWeight, "minWeight shouldn't higher than targetWeight");
-            require(assetWeight.targetWeight <= assetWeight.maxWeight, "targetWeight shouldn't higher than maxWeight");
+            require(
+                assetWeight.minWeight <= assetWeight.targetWeight,
+                "minWeight shouldn't higher than targetWeight"
+            );
+            require(
+                assetWeight.targetWeight <= assetWeight.maxWeight,
+                "targetWeight shouldn't higher than maxWeight"
+            );
             totalTarget += assetWeight.targetWeight;
         }
         require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked("totalTarget: ", uint2str(totalTarget))));
 
         for (uint8 i = 0; i < _assetWeights.length; i++) {
@@ -101,11 +112,15 @@ contract InvestmentPortfolio is AccessControl {
     }
 
     function getAllAssetWeights() external returns (AssetWeight[] memory) {
-        emit ConsoleLog(string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length))));
-                
+        //TODO: remove
+        emit ConsoleLog(
+            string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
+        );
+
         return assetWeights;
     }
 
+    //TODO: remove
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
