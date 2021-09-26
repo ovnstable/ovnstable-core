@@ -40,94 +40,13 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         balanceOnInvest();
     }
 
-    function balanceOnInvest() public {
+    function balanceOnInvest() private {
         // 1. got action to balance
         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions();
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
-        bool someActionExecuted = true;
-        while (someActionExecuted) {
-            someActionExecuted = false;
-            for (uint8 i = 0; i < actionOrder.length; i++) {
-                IActionBuilder.ExchangeAction memory action = actionOrder[i];
-                if (action.executed) {
-                    // Skip executed
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip executed: ",
-                                uint2str(action.amount),
-                                " from ",
-                                toAsciiString(address(action.from)),
-                                " to ",
-                                toAsciiString(address(action.to))
-                            )
-                        )
-                    );
-                    continue;
-                }
-                if (action.amount == 0) {
-                    // Skip zero amount action
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip zero amount action: ",
-                                uint2str(action.amount),
-                                " from ",
-                                toAsciiString(address(action.from)),
-                                " to ",
-                                toAsciiString(address(action.to))
-                            )
-                        )
-                    );
-                    continue;
-                }
-                if (action.from.balanceOf(address(vault)) < action.amount) {
-                    // Skip not enough blance for execute know
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip not enough blance for execute know: ",
-                                uint2str(action.amount),
-                                " from ",
-                                toAsciiString(address(action.from)),
-                                " to ",
-                                toAsciiString(address(action.to))
-                            )
-                        )
-                    );
-                    continue;
-                }
-                // move tokens to tokenExchange for executing action
-                vault.transfer(action.from, address(action.tokenExchange), action.amount);
-                // execute exchange
-                action.tokenExchange.exchange(
-                    address(vault),
-                    action.from,
-                    address(vault),
-                    action.to,
-                    action.amount
-                );
-                action.executed = true;
-                emit ConsoleLog(
-                    string(
-                        abi.encodePacked(
-                            "Exchange ",
-                            uint2str(action.amount),
-                            " from ",
-                            toAsciiString(address(action.from)),
-                            " to ",
-                            toAsciiString(address(action.to))
-                        )
-                    )
-                );
-                someActionExecuted = true;
-            }
-        }
+        executeActions(actionOrder);
     }
 
     //TODO: exchange only
@@ -145,7 +64,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         return _amount;
     }
 
-    function balanceOnWithdraw(IERC20 _token, uint256 _amount) public {
+    function balanceOnWithdraw(IERC20 _token, uint256 _amount) private {
         // 1. got action to balance
         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions(
             _token,
@@ -154,6 +73,12 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
+        executeActions(actionOrder);
+    }
+
+    function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) private {
+        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+
         bool someActionExecuted = true;
         while (someActionExecuted) {
             someActionExecuted = false;
@@ -237,7 +162,6 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
             }
         }
     }
-
     function toAsciiString(address x) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
         for (uint i = 0; i < 20; i++) {

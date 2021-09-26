@@ -43,7 +43,6 @@ contract Balancer {
     function setActionBuilders(address[] memory _actionBuildersInOrder) public {
         for (uint8 i = 0; i < _actionBuildersInOrder.length; i++) {
             addActionBuilderAt(_actionBuildersInOrder[i], i);
-            // actionBuildersInOrder[i] = _actionBuildersInOrder[i];
         }
         if (actionBuildersInOrder.length > _actionBuildersInOrder.length) {
             uint256 removeCount = actionBuildersInOrder.length - _actionBuildersInOrder.length;
@@ -54,34 +53,8 @@ contract Balancer {
     }
 
     function balanceActions() public returns (IActionBuilder.ExchangeAction[] memory) {
-        // 1. get current prices from M2M
-        IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
-
-        // 2. calc total price
-        uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
-        //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked("totalUsdcPrice: ", uint2str(totalUsdcPrice))));
-
-        // 3. make actions
-        IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
-            actionBuildersInOrder.length
-        );
-        //TODO: remove
-        emit ConsoleLog(
-            string(
-                abi.encodePacked(
-                    "actionBuildersInOrder.length: ",
-                    uint2str(actionBuildersInOrder.length)
-                )
-            )
-        );
-        for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
-            IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
-                .buildAction(assetPrices, actionOrder);
-            actionOrder[i] = action;
-        }
-
-        return actionOrder;
+        // Same to zero withdrawal balance
+        return balanceActions(IERC20(address(0)), 0);
     }
 
     function balanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
@@ -98,21 +71,15 @@ contract Balancer {
         uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
 
         //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked("totalUsdcPrice: ", uint2str(totalUsdcPrice))));
+        log("totalUsdcPrice: ", totalUsdcPrice);
 
         // 3. make actions
         IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
             actionBuildersInOrder.length
         );
         //TODO: remove
-        emit ConsoleLog(
-            string(
-                abi.encodePacked(
-                    "actionBuildersInOrder.length: ",
-                    uint2str(actionBuildersInOrder.length)
-                )
-            )
-        );
+        log("actionBuildersInOrder.length: ", actionBuildersInOrder.length);
+
         for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
             IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
                 .buildAction(assetPrices, actionOrder);
@@ -120,6 +87,11 @@ contract Balancer {
         }
 
         return actionOrder;
+    }
+
+    //TODO: remove
+    function log(string memory message, uint value) internal {
+        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
     }
 
     //TODO: remove

@@ -86,9 +86,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             .getAllAssetWeights();
 
         //TODO: remove
-        emit ConsoleLog(
-            string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
-        );
+        log("assetWeights.length: ", assetWeights.length);
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
@@ -104,7 +102,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
 
             //TODO: remove
-            emit ConsoleLog(string(abi.encodePacked("amountInVault: ", uint2str(amountInVault))));
+            log("amountInVault: ", amountInVault);
 
             totalUsdcPrice += usdcPriceInVault;
 
@@ -140,9 +138,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             .getAllAssetWeights();
 
         //TODO: remove
-        emit ConsoleLog(
-            string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
-        );
+        log("assetWeights.length: ", assetWeights.length);
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
@@ -154,11 +150,11 @@ contract Mark2Market is IMark2Market, OwnableExt {
         for (uint8 i = 0; i < count; i++) {
             InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
-            uint256 usdcPriceOne = 1; //TODO: use
+            uint256 usdcPriceOne = 1; //TODO: use real price
             uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
 
             //TODO: remove
-            emit ConsoleLog(string(abi.encodePacked("amountInVault: ", uint2str(amountInVault))));
+            log("amountInVault: ", amountInVault);
 
             totalUsdcPrice += usdcPriceInVault;
 
@@ -242,6 +238,11 @@ contract Mark2Market is IMark2Market, OwnableExt {
             _i /= 10;
         }
         return string(bstr);
+    }
+
+    //TODO: remove
+    function log(string memory message, uint value) internal {
+        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
     }
 }
 

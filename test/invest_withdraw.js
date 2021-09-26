@@ -46,11 +46,12 @@ module.exports = async function (callback) {
     console.log("userAccount ausdcBalance: " + await ausdc.balanceOf(userAccount));
     console.log("userAccount ovnBalance: " + await ovn.balanceOf(userAccount));
 
+    var userInversAmount = 100000 * 1000000;
 
-    await usdc.approve(exchange.address, 30);
-    console.log("user approve 30");
-    await exchange.invest(usdc.address, 30);
-    console.log("user invest 30");
+    await usdc.approve(exchange.address, userInversAmount);
+    console.log("user approve " + userInversAmount);
+    await exchange.buy(usdc.address, userInversAmount);
+    console.log("user buy " + userInversAmount);
 
     
     console.log("userAccount usdcBalance: " +  await usdc.balanceOf(userAccount));
@@ -60,10 +61,10 @@ module.exports = async function (callback) {
     console.log("vault usdcBalance: " +  await usdc.balanceOf(vault.address));
     console.log("vault ausdcBalance: " + await ausdc.balanceOf(vault.address));
   
-    await usdc.approve(exchange.address, 30);
-    console.log("user approve 30");
-    await exchange.invest(usdc.address, 30);
-    console.log("user invest 30");
+    await usdc.approve(exchange.address, userInversAmount);
+    console.log("user approve " + userInversAmount);
+    await exchange.buy(usdc.address, userInversAmount);
+    console.log("user buy " + userInversAmount);
 
     
     console.log("userAccount usdcBalance: " +  await usdc.balanceOf(userAccount));
@@ -75,8 +76,8 @@ module.exports = async function (callback) {
 
     var ovnBalance = await ovn.balanceOf(userAccount);
     var withdrawAmount = parseInt(ovnBalance * 0.2, 10);
-    console.log("userAccount withdraw: " + withdrawAmount);
-    await exchange.redeem2(usdc.address, withdrawAmount);
+    console.log("userAccount redeem: " + withdrawAmount);
+    await exchange.redeem(usdc.address, withdrawAmount);
 
      
     console.log("userAccount usdcBalance: " +  await usdc.balanceOf(userAccount));
@@ -100,8 +101,8 @@ module.exports = async function (callback) {
 
     ovnBalance = await ovn.balanceOf(userAccount);
     withdrawAmount = ovnBalance;
-    console.log("userAccount withdraw: " + withdrawAmount);
-    await exchange.redeem2(usdc.address, withdrawAmount);
+    console.log("userAccount redeem: " + withdrawAmount);
+    await exchange.redeem(usdc.address, withdrawAmount);
 
      
     console.log("userAccount usdcBalance: " +  await usdc.balanceOf(userAccount));
