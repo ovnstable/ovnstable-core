@@ -117,23 +117,15 @@ contract Exchange is AccessControl {
 
     function reward() public onlyAdmin {
         // 1. get current amount of OVN
-        // 2. get current amount of USDC
-        // 3. get current amount of USDC that we will get from AAVE by total amount of aUSDC
-        // 4. get total sum of USDC we can get from any source
-        // 5. calc difference between total count of OVN and USDC
-        // 6. go through all OVN owners and mint to their addresses proportionally OVN
+        // 2. get total sum of USDC we can get from any source
+        // 3. calc difference between total count of OVN and USDC
+        // 4. go through all OVN owners and mint to their addresses proportionally OVN
+
 
         uint totalOvnSupply = ovn.totalSupply();
-        uint amountUsdcAtPM = usdc.balanceOf(address(PM));
-        IActivesList.Active memory active = actList.getActive(address(usdc));
-        uint amountUsdcAtPMByAave = IConnector(active.connector).getBookValue(
-            actList.getActive(active.derivatives[0]).actAddress,
-            address(PM),
-            actList.getActive(active.derivatives[0]).poolPrice
-        );
-
-        uint totalUsdc = amountUsdcAtPM + amountUsdcAtPMByAave;
-        require(totalUsdc > totalOvnSupply, string(abi.encodePacked("Not enough usdc for rewards ", uint2str(totalUsdc), " <= ", uint2str(totalOvnSupply))));
+        IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
+        uint256 totalUsdc = assetPrices.totalUsdcPrice;
+        require(totalUsdc > totalOvnSupply, string(abi.encodePacked("Nothing to reward: ", uint2str(totalUsdc), " <= ", uint2str(totalOvnSupply))));
         uint difference  = totalUsdc - totalOvnSupply;
 
         uint totallyAmountRewarded = 0;
