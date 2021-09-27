@@ -20,8 +20,7 @@ const state = {
     account: null,
     web3: null,
     contractNames: {},
-
-
+    networkId: null,
 };
 
 const getters = {
@@ -43,6 +42,9 @@ const getters = {
         return state.contractNames;
     },
 
+    networkId(state) {
+        return state.networkId;
+    },
 
 };
 
@@ -54,7 +56,6 @@ const actions = {
         const provider = await detectEthereumProvider();
         await provider.enable();
     },
-
 
 
     async initWeb3({commit, dispatch, getters, rootState}) {
@@ -70,12 +71,24 @@ const actions = {
 
         let networkId = await web3.eth.net.getId();
         console.log('Network ID ' + networkId)
-        state.networkId = networkId;
+        commit('setNetworkId', networkId)
 
         if (provider && provider.on) {
             provider.on('accountsChanged', function (accounts) {
                 let account = accounts[0];
                 dispatch('accountChange', account)
+            });
+
+            provider.on('networkChanged', function (networkId){
+                networkId = parseInt(networkId)
+                commit('setNetworkId', networkId)
+                if (networkId === 137) {
+                    dispatch('initPolygonData');
+                }else {
+                    dispatch('profile/resetUserData', null, {root: true})
+                }
+
+
             });
         }
 
@@ -84,16 +97,12 @@ const actions = {
 
         console.log('Web3 init completed!')
         commit('setWeb3', web3);
-        dispatch('initContracts');
 
-        dispatch('profile/refreshNotUserData', null, {root: true})
+        if (networkId === 137) {
+            dispatch('initPolygonData');
+        }
 
-        web3.eth.getAccounts((error, accounts) => {
-            let account = accounts[0];
-            dispatch('accountChange', account)
-        })
     },
-
 
     async accountChange({commit, dispatch, getters, rootState}, account) {
 
@@ -126,6 +135,33 @@ const actions = {
         commit('setContracts', contracts)
     },
 
+
+    async initPolygonData({commit, dispatch, getters, rootState}) {
+        dispatch('initContracts');
+        dispatch('profile/refreshNotUserData', null, {root: true})
+
+        await getters.web3.eth.getAccounts((error, accounts) => {
+            let account = accounts[0];
+            dispatch('accountChange', account)
+        })
+    },
+
+    async setNetwork({commit, dispatch, getters, rootState}, networkId) {
+
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{chainId: getters.web3.utils.toHex(networkId)}], // chainId must be in hexadecimal numbers
+        });
+
+        let newNetworkId = await getters.web3.eth.net.getId();
+        if (newNetworkId === 137) {
+            commit('setNetworkId', newNetworkId)
+            dispatch('initPolygonData')
+        }
+
+    },
+
+
 };
 
 const mutations = {
@@ -140,6 +176,10 @@ const mutations = {
 
     setAccount(state, account) {
         state.account = account;
+    },
+
+    setNetworkId(state, value) {
+        state.networkId = value;
     },
 
 

@@ -7,7 +7,7 @@
   >
 
     <v-col lg="3" md="1" cols="2" sm="2" class="ml-0 pl-0">
-      <v-row dense  class="logo" @click="clickLogo">
+      <v-row dense class="logo" @click="clickLogo">
         <div style="width: 40px; height: 40px">
           <v-img :src="require('../assets/ovn.png')"></v-img>
         </div>
@@ -19,38 +19,47 @@
       <v-row justify="center">
         <div class="hidden-xs-only">
           <span v-bind:class="activeTabSave" @click="goToAction('/')">Earn</span>
-          <span v-bind:class="activeTabDashboard" class=" ml-10" @click="goToAction('/fund')">Portfolio & performance</span>
+          <span v-bind:class="activeTabDashboard" class=" ml-10"
+                @click="goToAction('/fund')">Portfolio & performance</span>
           <span v-bind:class="activeTabStats" class="ml-10" @click="goToAction('/stats')">Stats</span>
         </div>
-        <div class="hidden-sm-and-up mt-10" >
+        <div class="hidden-sm-and-up mt-10">
           <v-select class="menu-select" flat solo color="#5686B2" :items="menus" v-model="menu" item-value="to"
                     @input="pushUrl" item-text="name"/>
         </div>
       </v-row>
     </v-col>
-    <v-col lg="3" md="1"  class="hidden-sm-and-down">
-      <v-row dense class="pt-2 " justify="end" >
-        <v-row v-if="!account" justify="end" align="center">
-          <button v-on:click="connectWalletAction" class="btn">Connect Wallet
-            <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
-          </button>
-        </v-row>
-        <v-row v-else justify="end" align="center">
-          <div class="account ml-1">
-            OVN: <strong>{{ balance.ovn }}</strong> {{ accountShort }}
-          </div>
-        </v-row>
+    <v-col lg="3" md="1" class="hidden-sm-and-down">
+      <v-row dense class="pt-2 " justify="end">
+
+        <template v-if="networkId === 137">
+          <v-row v-if="!account" justify="end" align="center">
+            <button v-on:click="connectWalletAction" class="btn">Connect Wallet
+              <v-icon color="#C7C7C7" class="ml-1">mdi-logout</v-icon>
+            </button>
+          </v-row>
+          <v-row v-else justify="end" align="center">
+            <div class="account ml-1">
+              OVN: <strong>{{ balance.ovn }}</strong> {{ accountShort }}
+            </div>
+          </v-row>
+        </template>
+        <template v-else>
+          <SwitchToPolygon/>
+        </template>
+
       </v-row>
     </v-col>
   </v-app-bar>
 </template>
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import SwitchToPolygon from "./common/SwitchToPolygon";
 
 
 export default {
   name: 'Header',
-  components: {},
+  components: {SwitchToPolygon},
   data: () => ({
     exitAppShow: false,
     direction: 'top',
@@ -80,7 +89,7 @@ export default {
       {
         name: 'Stats',
         to: '/stats',
-        id:3,
+        id: 3,
       },
     ]
   }),
@@ -89,8 +98,8 @@ export default {
   computed: {
 
 
-    ...mapGetters('profile', [ 'balance']),
-    ...mapGetters('web3', [ 'account', 'web3', 'contractNames' ]),
+    ...mapGetters('profile', ['balance']),
+    ...mapGetters('web3', ['account', 'web3', 'contractNames', 'networkId']),
 
 
     accountShort: function () {
@@ -129,7 +138,7 @@ export default {
 
     let path = this.$router.history.current.path;
     let find = this.menus.find(value => value.to === path);
-    if (find){
+    if (find) {
       this.menu = find;
       this.tabId = find.id;
     }
@@ -143,7 +152,7 @@ export default {
     ...mapActions('profile', ['refreshProfile']),
     ...mapActions('web3', ['connectWallet']),
 
-    goToAction(id){
+    goToAction(id) {
 
       let menu = this.menus.find(value => value.to === id);
 
@@ -161,7 +170,7 @@ export default {
       this.$router.push(to)
     },
 
-    clickLogo(){
+    clickLogo() {
       window.open('https://ovnstable.io/', '_blank').focus();
     },
 
