@@ -20,12 +20,7 @@ const state = {
     account: null,
     web3: null,
     contractNames: {},
-    gasPrice: {
-        safeLow: 10,
-        standard: 20,
-        fast: 30,
-        fastest: 50,
-    },
+
 
 };
 
@@ -48,9 +43,6 @@ const getters = {
         return state.contractNames;
     },
 
-    gasPrice(state) {
-        return state.gasPrice;
-    },
 
 };
 
@@ -64,14 +56,6 @@ const actions = {
     },
 
 
-    async refreshGasPrice({commit, dispatch, getters}){
-
-        axios.get('https://gasstation-mainnet.matic.network').then(value => {
-            commit('setGasPrice', value.data);
-        }).catch(reason => {
-            console.log('Error get gas price: ' + reason)
-        })
-    },
 
     async initWeb3({commit, dispatch, getters, rootState}) {
 
@@ -158,9 +142,6 @@ const mutations = {
         state.account = account;
     },
 
-    setGasPrice(state, gasPrice) {
-        state.gasPrice = gasPrice;
-    },
 
 };
 

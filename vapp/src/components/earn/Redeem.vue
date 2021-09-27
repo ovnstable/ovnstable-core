@@ -68,7 +68,9 @@
         <v-row dense class="pt-4">
           <v-btn height="60" class="buy elevation-0" @click="redeem" :disabled="!isBuy">{{ buttonLabel }}</v-btn>
         </v-row>
-
+        <v-row dense class="pt-4">
+          <GasPriceSelector/>
+        </v-row>
 
       </v-card-text>
     </v-card>
@@ -80,11 +82,12 @@ import {mapActions, mapGetters} from "vuex";
 import web3 from 'web3';
 import utils from "web3-utils";
 import CurrencySelector from "../common/CurrencySelector";
+import GasPriceSelector from "./GasPriceSelector";
 
 
 export default {
   name: "Redeem",
-  components: {CurrencySelector},
+  components: {GasPriceSelector, CurrencySelector},
   data: () => ({
     menu: false,
     tab: null,
@@ -110,8 +113,10 @@ export default {
   computed: {
 
     ...mapGetters("profile", ['balance', 'gasPrice']),
-    ...mapGetters("web3", ["web3", 'account', 'gasPrice', 'contracts']),
+    ...mapGetters("web3", ["web3", 'account',  'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
+    ...mapGetters("gasPrice", ["gasPriceGwei"]),
+
 
     sumResult: function () {
       if (!this.sum || this.sum === 0)
@@ -174,7 +179,7 @@ export default {
   methods: {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
-    ...mapActions("web3", ['refreshGasPrice']),
+    ...mapActions("gasPrice", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
 
@@ -205,8 +210,7 @@ export default {
 
         try {
           await this.refreshGasPrice();
-          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
-          let approveParams = {gasPrice: gasPriceFast, from: from};
+          let approveParams = {gasPrice: this.gasPriceGwei, from: from};
           await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
         } catch (e) {
           console.log(e)
@@ -219,8 +223,7 @@ export default {
 
         try {
           await this.refreshGasPrice();
-          let gasPriceFast = this.web3.utils.toWei(this.gasPrice.fast + "", 'gwei');
-          let buyParams = {gasPrice: gasPriceFast, from: from};
+          let buyParams = {gasPrice: this.gasPriceGwei, from: from};
           await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
         } catch (e) {
           console.log(e)
