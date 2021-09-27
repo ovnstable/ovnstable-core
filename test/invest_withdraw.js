@@ -45,6 +45,9 @@ module.exports = async function (callback) {
     console.log("userAccount usdcBalance: " +  await usdc.balanceOf(userAccount));
     console.log("userAccount ausdcBalance: " + await ausdc.balanceOf(userAccount));
     console.log("userAccount ovnBalance: " + await ovn.balanceOf(userAccount));
+    
+    console.log("vault usdcBalance: " +  await usdc.balanceOf(vault.address));
+    console.log("vault ausdcBalance: " + await ausdc.balanceOf(vault.address));
 
     var userInversAmount = 100000 * 1000000;
 

@@ -82,55 +82,11 @@ contract Mark2Market is IMark2Market, OwnableExt {
     }
 
     function assetPricesForBalance() external override returns (TotalAssetPrices memory) {
-        InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
-            .getAllAssetWeights();
-
-        //TODO: remove
-        log("assetWeights.length: ", assetWeights.length);
-
-        uint256 totalUsdcPrice = 0;
-        uint256 count = assetWeights.length;
-        // limit iteration count. TODO: recheck
-        if (count > 100) {
-            count = 100;
-        }
-        AssetPrices[] memory assetPrices = new AssetPrices[](count);
-        for (uint8 i = 0; i < count; i++) {
-            InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
-            uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
-            uint256 usdcPriceOne = 1; //TODO: use
-            uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
-
-            //TODO: remove
-            log("amountInVault: ", amountInVault);
-
-            totalUsdcPrice += usdcPriceInVault;
-
-            assetPrices[i] = AssetPrices(
-                assetWeight.asset,
-                amountInVault,
-                usdcPriceOne,
-                usdcPriceInVault,
-                0,
-                0
-            );
-        }
-
-        for (uint8 i = 0; i < count; i++) {
-            AssetPrices memory assetPrice = assetPrices[i];
-            (assetPrices[i].diffToTarget, assetPrices[i].diffToTargetSign) = diffToTarget(
-                totalUsdcPrice,
-                assetPrice.asset
-            );
-        }
-
-        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
-
-        return totalPrices;
+        return assetPricesForBalance(address(0), 0);
     }
 
     function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
-        external
+        public
         override
         returns (TotalAssetPrices memory)
     {
@@ -181,7 +137,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 assetPrice.asset
             );
             // update diff for withdrawn token
-            if (assetPrice.asset == withdrawToken) {
+            if (withdrawAmount > 0 && assetPrice.asset == withdrawToken) {
                 if (assetPrice.diffToTargetSign < 0) {
                     if (assetPrice.diffToTarget > withdrawAmount) {
                         assetPrice.diffToTarget = assetPrice.diffToTarget - withdrawAmount;
