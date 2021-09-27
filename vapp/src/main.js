@@ -9,6 +9,14 @@ import router from './router/index'
 import {axios} from './plugins/http-axios';
 import moment from 'moment';
 
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+const options = {
+  toastClassName: "toast",
+};
+Vue.use(Toast, options);
+
+
 Vue.use(Vuex)
 
 Vue.prototype.$moment = moment;

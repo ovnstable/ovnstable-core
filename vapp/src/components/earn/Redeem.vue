@@ -83,6 +83,7 @@ import web3 from 'web3';
 import utils from "web3-utils";
 import CurrencySelector from "../common/CurrencySelector";
 import GasPriceSelector from "./GasPriceSelector";
+import ToastTransaction from "../common/ToastTransaction";
 
 
 export default {
@@ -224,7 +225,8 @@ export default {
         try {
           await this.refreshGasPrice();
           let buyParams = {gasPrice: this.gasPriceGwei, from: from};
-          await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
+          let redeemResult = await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
+          this.showSuccessRedeemToast(self.sum, redeemResult.transactionHash)
         } catch (e) {
           console.log(e)
           this.failed();
@@ -244,6 +246,16 @@ export default {
       }
     },
 
+    showSuccessRedeemToast(sum, tx){
+      const content = {
+        component: ToastTransaction,
+        props: {
+          text: `Redeem ${sum} USDC`,
+          tx: tx,
+        },
+      }
+      this.$toast(content, { position: "top-right",  type: 'success'});
+    },
 
     selectItem(item) {
       this.currency = item;

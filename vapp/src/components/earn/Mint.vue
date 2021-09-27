@@ -83,6 +83,7 @@ import web3 from "web3";
 import utils from 'web3-utils';
 import CurrencySelector from "../common/CurrencySelector";
 import GasPriceSelector from "./GasPriceSelector";
+import ToastTransaction from "../common/ToastTransaction";
 
 export default {
   name: "Mint",
@@ -219,15 +220,18 @@ export default {
         self.addText(`Minting ${self.sum} OVN ......  done`);
         self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
 
+
         try {
           await this.refreshGasPrice();
           let buyParams = { gasPrice: this.gasPriceGwei, from: from};
-          await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams);
+          let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams);
+          this.showSuccessMintToast(self.sum, buyResult.transactionHash)
         } catch (e) {
           console.log(e)
           this.failed();
           return;
         }
+
 
         self.addText(`Completed, await blockchain, click to proceed`);
         setTimeout(() => self.hide(), 1000);
@@ -235,11 +239,22 @@ export default {
         self.refreshUserData();
         self.setSum(null);
 
-
       } catch (e) {
         console.log(e)
         this.failed();
       }
+    },
+
+
+    showSuccessMintToast(sum, tx){
+      const content = {
+        component: ToastTransaction,
+        props: {
+          text: `Mint ${sum} OVN`,
+          tx: tx,
+        },
+      }
+      this.$toast(content, { position: "top-right",  type: 'success' });
     },
 
     selectItem(item) {

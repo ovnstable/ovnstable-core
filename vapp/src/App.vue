@@ -61,4 +61,11 @@ html {
   background-color: #555;
 }
 
+.Vue-Toastification__toast--success.toast {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 25px;
+  padding-right: 20px;
+}
+
 </style>
