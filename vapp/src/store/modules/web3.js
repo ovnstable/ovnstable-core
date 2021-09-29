@@ -79,12 +79,12 @@ const actions = {
                 dispatch('accountChange', account)
             });
 
-            provider.on('networkChanged', function (networkId){
+            provider.on('networkChanged', function (networkId) {
                 networkId = parseInt(networkId)
                 commit('setNetworkId', networkId)
                 if (networkId === 137) {
                     dispatch('initPolygonData');
-                }else {
+                } else {
                     dispatch('profile/resetUserData', null, {root: true})
                 }
 
@@ -98,9 +98,13 @@ const actions = {
         console.log('Web3 init completed!')
         commit('setWeb3', web3);
 
+        dispatch('initContracts');
+        dispatch('profile/refreshNotUserData', null, {root: true})
+
         if (networkId === 137) {
             dispatch('initPolygonData');
         }
+
 
     },
 
@@ -148,10 +152,37 @@ const actions = {
 
     async setNetwork({commit, dispatch, getters, rootState}, networkId) {
 
-        await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{chainId: getters.web3.utils.toHex(networkId)}], // chainId must be in hexadecimal numbers
-        });
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{chainId: getters.web3.utils.toHex(networkId)}], // chainId must be in hexadecimal numbers
+            });
+        } catch (switchError) {
+            // This error code indicates that the chain has not been added to MetaMask.
+            if (switchError.code === 4902) {
+                try {
+
+                    let params = {
+                        chainId: getters.web3.utils.toHex(137),
+                        rpcUrls: ['https://rpc-mainnet.matic.network'],
+                        blockExplorerUrls: ['https://polygonscan.com/'],
+                        chainName: 'Polygon Mainnet',
+                        nativeCurrency: {
+                            symbol: 'MATIC',
+                            name: 'MATIC',
+                            decimals: 18,
+                        }
+                    };
+
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [params],
+                    });
+                } catch (addError) {
+
+                }
+            }
+        }
 
         let newNetworkId = await getters.web3.eth.net.getId();
         if (newNetworkId === 137) {
@@ -203,7 +234,7 @@ function _load(file, web3, address) {
     const {abi, networks, deployedBytecode} = contractConfig
 
     if (!address) {
-        let network = networks[state.networkId];
+        let network = networks[137];
         if (network)
             address = network.address
         else
