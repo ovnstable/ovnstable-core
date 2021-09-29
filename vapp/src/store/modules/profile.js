@@ -132,13 +132,7 @@ const actions = {
     async refreshPayouts({commit, dispatch, getters, rootState}) {
         let web3 = rootState.web3.web3;
 
-        let exchange = rootState.web3.contracts.exchange.options.address;
-        let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
-        let topik = '0x6997cdab3aebbbb5a28dbdf7c61a3c7e9ee2c38784bbe66b9c4e58078e3b587f';
-        let fromBlock = 19022018;
-        let toBlock = await web3.eth.getBlockNumber();
-
-        axios.get(`https://api.polygonscan.com/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${exchange}&topic0=${topik}&apikey=${token}`)
+        axios.get(`/payouts`)
             .then(value => {
 
 
@@ -211,13 +205,18 @@ const actions = {
                 id++;
             } else if (item.from === '0x0000000000000000000000000000000000000000' && item.to === account && item.contractAddress === ovn) {
 
-                let transaction = await rootState.web3.web3.eth.getTransactionReceipt(item.hash);
-                if (transaction.from === rewarder) {
-                    let sum = item.value / 10 ** 6;
-                    log.name = `Rewarding ${sum} OVN`;
-                    log.sum = sum;
-                    logs.push(log);
-                    id++;
+                try {
+                    let transaction = await rootState.web3.web3.eth.getTransactionReceipt(item.hash);
+                    if (transaction.from === rewarder) {
+                        let sum = item.value / 10 ** 6;
+                        log.name = `Rewarding ${sum} OVN`;
+                        log.sum = sum;
+                        logs.push(log);
+                        id++;
+                    }
+
+                } catch (e) {
+                    console.log(e)
                 }
 
 

@@ -63,9 +63,10 @@ const actions = {
         let provider = await detectEthereumProvider();
 
         if (!provider) {
-            provider = new Web3.providers.HttpProvider("https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea");
+            provider = await new Web3.providers.HttpProvider("https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea");
         }
 
+        console.log('Provider ' + provider)
         provider = Web3RequestLogger(provider);
         let web3 = new Web3(provider);
 
@@ -141,8 +142,6 @@ const actions = {
 
 
     async initPolygonData({commit, dispatch, getters, rootState}) {
-        dispatch('initContracts');
-        dispatch('profile/refreshNotUserData', null, {root: true})
 
         await getters.web3.eth.getAccounts((error, accounts) => {
             let account = accounts[0];
@@ -185,6 +184,7 @@ const actions = {
         }
 
         let newNetworkId = await getters.web3.eth.net.getId();
+
         if (newNetworkId === 137) {
             commit('setNetworkId', newNetworkId)
             dispatch('initPolygonData')

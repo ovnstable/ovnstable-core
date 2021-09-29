@@ -70,7 +70,7 @@ import Mint from "../components/earn/Mint";
 import StatsWidget from "../components/common/StatsWidget";
 import ShowTransaction from "../components/common/ShowTransaction";
 import {mapActions} from "vuex";
-import AddTokenBtn from "../components/earn/AddTokenBtn";
+import AddTokenBtn from "../components/common/AddTokenBtn";
 
 export default {
   name: "EarnView",
