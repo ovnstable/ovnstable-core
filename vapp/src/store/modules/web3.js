@@ -14,6 +14,8 @@ import IMark2Market from "../../contracts/IMark2Market.json";
 import contract from "@truffle/contract";
 import {axios} from "../../plugins/http-axios";
 
+import OvnImage from '../../assets/ovn.json';
+
 
 const state = {
     contracts: null,
@@ -203,7 +205,7 @@ const actions = {
                         address: rootState.web3.contracts.ovn.options.address,
                         symbol: 'OVN',
                         decimals: 6,
-                        image: 'https://app.ovnstable.io/ovn.png',
+                        image: OvnImage.image,
                     },
                 },
             })
