@@ -29,8 +29,8 @@
           </v-col>
         </v-row>
 
-        <v-row justify="center" >
-          <v-col  class="tabs pa-1 fixed">
+        <v-row justify="center">
+          <v-col class="tabs pa-1 fixed">
             <button v-bind:class="activeTabMint" @click="tab = 1">Mint</button>
             <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Redeem</button>
           </v-col>
@@ -40,6 +40,19 @@
           <v-col class="pa-0 ma-0 fixed">
             <Mint v-if="tab === 1"/>
             <Redeem v-if="tab === 2"/>
+          </v-col>
+        </v-row>
+
+        <v-row justify="center">
+          <v-col lg="4">
+          </v-col>
+          <v-col lg="4">
+            <v-row justify="end" class="mr-1 mt-1">
+              <AddTokenBtn :add-token="addOvnToken" text="Add OVN to your browser wallet"/>
+            </v-row>
+          </v-col>
+          <v-col lg="4">
+
           </v-col>
         </v-row>
       </v-col>
@@ -56,10 +69,12 @@ import Redeem from "../components/earn/Redeem";
 import Mint from "../components/earn/Mint";
 import StatsWidget from "../components/common/StatsWidget";
 import ShowTransaction from "../components/common/ShowTransaction";
+import {mapActions} from "vuex";
+import AddTokenBtn from "../components/earn/AddTokenBtn";
 
 export default {
   name: "EarnView",
-  components: {ShowTransaction, StatsWidget, Mint, Redeem},
+  components: {AddTokenBtn, ShowTransaction, StatsWidget, Mint, Redeem},
   data: () => ({
     tab: 1,
 
@@ -87,7 +102,10 @@ export default {
     }
   },
 
-  methods: {}
+  methods: {
+    ...mapActions('web3', ['addOvnToken'])
+
+  }
 
 }
 </script>
@@ -147,7 +165,7 @@ export default {
   border-radius: 8px;
 }
 
-.fixed{
+.fixed {
   flex: 0 0 600px;
 }
 
