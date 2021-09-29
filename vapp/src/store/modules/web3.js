@@ -69,8 +69,9 @@ const actions = {
         }
 
         console.log('Provider ' + provider)
-        provider = Web3RequestLogger(provider);
-        let web3 = new Web3(provider);
+        let web3 = await new Web3(provider);
+
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 sec
 
         let networkId = await web3.eth.net.getId();
         console.log('Network ID ' + networkId)
@@ -165,7 +166,7 @@ const actions = {
 
                     let params = {
                         chainId: getters.web3.utils.toHex(137),
-                        rpcUrls: ['https://rpc-mainnet.matic.network'],
+                        rpcUrls: ['https://polygon-rpc.com/'],
                         blockExplorerUrls: ['https://polygonscan.com/'],
                         chainName: 'Polygon Mainnet',
                         nativeCurrency: {

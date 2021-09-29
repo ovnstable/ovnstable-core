@@ -57,7 +57,6 @@ export default {
   computed: {},
 
   created() {
-    this.refreshGasPrice();
   },
 
   methods: {

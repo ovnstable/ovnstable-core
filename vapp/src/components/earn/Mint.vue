@@ -210,6 +210,9 @@ export default {
         try {
           await this.refreshGasPrice();
           let approveParams = { gasPrice: this.gasPriceGwei, from: from};
+
+          let newVar = await contracts.usdc.methods.allowance(contracts.exchange.options.address, sum).call();
+
           await contracts.usdc.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
         } catch (e) {
           console.log(e)
