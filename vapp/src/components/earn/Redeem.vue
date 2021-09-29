@@ -208,15 +208,19 @@ export default {
         this.show('Processing...')
         this.addText(`Locking ${this.sum} OVN ......  done`)
 
+        let allowanceValue = await contracts.ovn.methods.allowance(from, contracts.exchange.options.address).call();
+        console.log('Allowance value ' + allowanceValue)
 
-        try {
-          await this.refreshGasPrice();
-          let approveParams = {gasPrice: this.gasPriceGwei, from: from};
-          await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
-        } catch (e) {
-          console.log(e)
-          this.failed();
-          return;
+        if (allowanceValue < sum) {
+          try {
+            await this.refreshGasPrice();
+            let approveParams = {gasPrice: this.gasPriceGwei, from: from};
+            await contracts.ovn.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935').send(approveParams);
+          } catch (e) {
+            console.log(e)
+            this.failed();
+            return;
+          }
         }
 
         self.addText(`Burning ${self.sum} OVN ......  done`);

@@ -104,6 +104,7 @@ const actions = {
 
         dispatch('initContracts');
         dispatch('profile/refreshNotUserData', null, {root: true})
+        dispatch('gasPrice/refreshGasPrice', null, {root: true})
 
         if (networkId === 137) {
             dispatch('initPolygonData');
