@@ -254,7 +254,7 @@ export default {
           tx: tx,
         },
       }
-      this.$toast(content, { position: "top-right",  type: 'success' });
+      this.$toast(content, { position: "top-right",  type: 'success', timeout: 10000 });
     },
 
     selectItem(item) {
