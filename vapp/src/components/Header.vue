@@ -16,12 +16,15 @@
 
 
     <template v-if="loadingWeb3">
-      <v-skeleton-loader
-          type="actions"
-      ></v-skeleton-loader>
-      <v-skeleton-loader
-          type="button"
-      ></v-skeleton-loader>
+      <v-container>
+        <v-row justify="end">
+          <v-skeleton-loader
+              type="actions"
+          ></v-skeleton-loader>
+        </v-row>
+
+      </v-container>
+
     </template>
     <template v-else>
       <AccountBar v-if="!switchToPolygon"/>

@@ -52,8 +52,8 @@ const actions = {
 
             transactionReceiptRetry().then(value => {
                 console.log('GET TX ' + value)
-
-                this._vm.$toast.info(value)
+                let filter = getters.transactionPending.filter(tx=> tx !== value.transactionHash);
+                commit('setTransactionPending', filter)
             })
         }
 

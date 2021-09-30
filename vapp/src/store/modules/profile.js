@@ -13,6 +13,7 @@ let accountingConfig = {
 const state = {
 
     currentTotalData: null,
+    loadingCurrentTotalData: true,
 
     totalOvn: {
         totalMint: 0,
@@ -26,10 +27,12 @@ const state = {
         ovn: 0,
         usdc: 0,
     },
+    loadingBalance: true,
 
     transactionLogs: [],
     transactionLogsLoader: false,
     payouts: [],
+    loadingPayouts: true,
 };
 
 const getters = {
@@ -38,8 +41,16 @@ const getters = {
         return state.balance;
     },
 
+
+    loadingBalance(state) {
+        return state.loadingBalance;
+    },
+
     currentTotalData(state) {
         return state.currentTotalData;
+    },
+    loadingCurrentTotalData(state) {
+        return state.loadingCurrentTotalData;
     },
 
 
@@ -63,6 +74,10 @@ const getters = {
         return state.payouts;
     },
 
+    loadingPayouts(state) {
+        return state.loadingPayouts;
+    },
+
     transactionLogsLoader(state) {
         return state.transactionLogsLoader;
     },
@@ -74,6 +89,7 @@ const actions = {
 
     async refreshBalance({commit, dispatch, getters, rootState}) {
 
+        commit('setLoadingBalance', true)
         let web3 = rootState.web3;
 
         let ovn;
@@ -113,6 +129,8 @@ const actions = {
             usdc: usdc
         })
 
+        commit('setLoadingBalance', false)
+
     },
 
     async resetUserData({commit, dispatch, getters}) {
@@ -136,6 +154,7 @@ const actions = {
     },
 
     async refreshPayouts({commit, dispatch, getters, rootState}) {
+        commit('setLoadingPayouts', true);
         let web3 = rootState.web3.web3;
 
         axios.get(`/payouts`)
@@ -168,7 +187,8 @@ const actions = {
                 });
 
 
-                commit('setPayouts', result)
+                commit('setPayouts', result);
+                commit('setLoadingPayouts', false);
             })
 
     },
@@ -246,7 +266,7 @@ const actions = {
 
 
     async refreshCurrentTotalData({commit, dispatch, getters, rootState}) {
-
+        commit('setLoadingCurrentTotalData', true)
         let web3 = rootState.web3;
         axios.get('/prices').then(resp => {
 
@@ -293,6 +313,7 @@ const actions = {
             }
 
             commit('setCurrentTotalData', data)
+            commit('setLoadingCurrentTotalData', false)
         })
 
 
@@ -307,9 +328,17 @@ const mutations = {
         state.currentTotalData = currentTotalData;
     },
 
+    setLoadingCurrentTotalData(state, value) {
+        state.loadingCurrentTotalData = value;
+    },
+
 
     setBalance(state, balance) {
         state.balance = balance;
+    },
+
+    setLoadingBalance(state, value) {
+        state.loadingBalance = value;
     },
 
     setGasPrice(state, price) {
@@ -334,6 +363,10 @@ const mutations = {
 
     setLoadingTotalOvn(state, value) {
         state.loadingTotalOvn = value;
+    },
+
+    setLoadingPayouts(state, value) {
+        state.loadingPayouts = value;
     },
 
 };

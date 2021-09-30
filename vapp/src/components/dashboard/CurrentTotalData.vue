@@ -3,77 +3,101 @@
     <v-card class="mt-5 card-item elevation-0">
       <v-card-text>
 
-        <v-container>
-          <v-row dense>
-            <v-col style="text-align: start">
-              Active
-            </v-col>
+        <template v-if="loadingCurrentTotalData">
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-            <v-col>
-              Position (# of tokens)
-            </v-col>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-            <v-col>
-              Market price (USDC/token)
-            </v-col>
-            <v-col>
-              Net Asset Value (USDC)
-            </v-col>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-            <v-col>
-              Liquidation price (USDC/token)
-            </v-col>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+        </template>
+        <template v-else>
+          <v-container>
+            <v-row dense>
+              <v-col style="text-align: start">
+                Active
+              </v-col>
 
-            <v-col>
-              Liquidation value (USDC)
-            </v-col>
-          </v-row>
+              <v-col>
+                Position (# of tokens)
+              </v-col>
 
-          <v-row dense :key="item.symbol" v-for="item in currentTotalData" class="row">
+              <v-col>
+                Market price (USDC/token)
+              </v-col>
+              <v-col>
+                Net Asset Value (USDC)
+              </v-col>
 
-            <v-col style="text-align: start">
-              {{ item.symbol }}
-            </v-col>
-            <v-col>
-              {{ item.bookValue }}
-            </v-col>
-            <v-col>
-              {{ item.price }}
-            </v-col>
+              <v-col>
+                Liquidation price (USDC/token)
+              </v-col>
 
-            <v-col>
-              {{ item.bookPrice }}
-            </v-col>
-            <v-col>
-              {{ item.liquidationPrice }}
-            </v-col>
-            <v-col>
-              {{ item.liquidationValue }}
-            </v-col>
-          </v-row>
+              <v-col>
+                Liquidation value (USDC)
+              </v-col>
+            </v-row>
 
-          <v-row dense class="row pt-10">
-            <v-col lg="4" style="text-align: start">
-              Total
-            </v-col>
-            <v-col lg="4">
-              {{ netAssetValueTotal }}
-            </v-col>
-            <v-col lg="4">
-              {{liquidationValueTotal}}
-            </v-col>
-          </v-row>
+            <v-row dense :key="item.symbol" v-for="item in currentTotalData" class="row">
 
-          <v-row dense class="row font-weight-bold">
-            <v-col lg="4" style="text-align: start">
-              Total OVN in circulation
-            </v-col>
-            <v-col lg="4">
-              {{ totalOvn.totalSupply }}
-            </v-col>
-            <v-col lg="1"></v-col>
-          </v-row>
-        </v-container>
+              <v-col style="text-align: start">
+                {{ item.symbol }}
+              </v-col>
+              <v-col>
+                {{ item.bookValue }}
+              </v-col>
+              <v-col>
+                {{ item.price }}
+              </v-col>
+
+              <v-col>
+                {{ item.bookPrice }}
+              </v-col>
+              <v-col>
+                {{ item.liquidationPrice }}
+              </v-col>
+              <v-col>
+                {{ item.liquidationValue }}
+              </v-col>
+            </v-row>
+
+            <v-row dense class="row pt-10">
+              <v-col lg="4" style="text-align: start">
+                Total
+              </v-col>
+              <v-col lg="4">
+                {{ netAssetValueTotal }}
+              </v-col>
+              <v-col lg="4">
+                {{liquidationValueTotal}}
+              </v-col>
+            </v-row>
+
+            <v-row dense class="row font-weight-bold">
+              <v-col lg="4" style="text-align: start">
+                Total OVN in circulation
+              </v-col>
+              <v-col lg="4">
+                {{ totalOvn.totalSupply }}
+              </v-col>
+              <v-col lg="1"></v-col>
+            </v-row>
+          </v-container>
+        </template>
+
 
       </v-card-text>
     </v-card>
@@ -97,7 +121,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'totalOvn']),
+    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'totalOvn', 'loadingCurrentTotalData']),
 
     liquidationValueTotal: function (){
       let value = 0;

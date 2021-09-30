@@ -16,7 +16,16 @@
                               v-model="sum"></v-text-field>
               </v-col>
               <v-col lg="4" md="4" sm="5" cols="2" class="pt-3 hidden-xs-only" align="center">
-                <div class="max" @click="max">Max: {{ maxResult }}</div>
+                <template v-if="loadingBalance">
+                  <div class="balance pt-0">
+                    <v-row class="ma-0 pa-0" justify="center">
+                      <v-skeleton-loader type="chip"></v-skeleton-loader>
+                    </v-row>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="max" @click="max">Max: {{ maxResult }}</div>
+                </template>
               </v-col>
               <v-col lg="4" cols="4" md="4" sm="3" align="end">
                 <v-row dense class="ma-0 pa-0" justify="end" align="end">
@@ -52,7 +61,17 @@
                 </div>
               </v-col>
               <v-col lg="4" md="4" sm="4" class="pt-3 hidden-xs-only" align="end">
-                <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn, 2) }}</div>
+
+                <template v-if="loadingBalance">
+                  <div class="balance pt-0">
+                    <v-row class="ma-0 pa-0" justify="center">
+                      <v-skeleton-loader type="chip"></v-skeleton-loader>
+                    </v-row>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn, 2) }}</div>
+                </template>
               </v-col>
               <v-col lg="4" cols="4" md="3" sm="3">
                 <v-row dense class="ma-0 pa-0" justify="end" align="end">
@@ -113,6 +132,11 @@ export default {
 
   computed: {
 
+    ...mapGetters("profile", ['balance', 'gasPrice', 'loadingBalance']),
+    ...mapGetters("transaction", ['transactions', 'transactionReceipts']),
+    ...mapGetters("web3", ["web3", 'account', 'contracts']),
+    ...mapGetters("gasPrice", ["gasPriceGwei"]),
+
     maxResult: function () {
       return this.$utils.formatMoney(this.balance.usdc, 2);
     },
@@ -161,10 +185,7 @@ export default {
       return false;
     },
 
-    ...mapGetters("profile", ['balance', 'gasPrice']),
-    ...mapGetters("transaction", ['transactions', 'transactionReceipts']),
-    ...mapGetters("web3", ["web3", 'account', 'contracts']),
-    ...mapGetters("gasPrice", ["gasPriceGwei"]),
+
   },
 
   created() {

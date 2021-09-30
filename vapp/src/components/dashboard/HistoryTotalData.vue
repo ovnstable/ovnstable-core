@@ -3,40 +3,64 @@
     <v-card class="mt-5 card-item elevation-0">
       <v-card-text>
 
-        <v-container>
-          <v-row dense class="row-header">
-            <v-col lg="3" style="text-align: start">
-              Payable date (UTC)
-            </v-col>
+        <template v-if="loadingPayouts">
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-            <v-col lg="3">
-              Daily profit (USDC per OVN)
-            </v-col>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-            <v-col lg="3">
-              Annualized yield (% per year)
-            </v-col>
-            <v-col lg="3">
-              View on PolygonScan
-            </v-col>
-          </v-row>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
 
-          <v-row dense :key="item.id" v-for="item in payouts" class="row-item" justify="center">
-            <v-col lg="3" style="text-align: start">
-              {{ formatDate(item.date) }}
-            </v-col>
-            <v-col lg="3">
-              {{ $utils.formatMoney(item.dailyProfit, 6) }}$
-            </v-col>
-            <v-col lg="3">
-              {{ $utils.formatMoney(item.annualizedYield, 6) }}%
-            </v-col>
+          <v-skeleton-loader
+              class="mx-auto"
+              type="list-item-two-line"
+          ></v-skeleton-loader>
+        </template>
+        <template v-else>
+          <v-container>
+            <v-row dense class="row-header">
+              <v-col lg="3" style="text-align: start">
+                Payable date (UTC)
+              </v-col>
 
-            <v-col lg="3">
-              <v-icon @click="openOnScan(item)">mdi-eye</v-icon>
-            </v-col>
-          </v-row>
-        </v-container>
+              <v-col lg="3">
+                Daily profit (USDC per OVN)
+              </v-col>
+
+              <v-col lg="3">
+                Annualized yield (% per year)
+              </v-col>
+              <v-col lg="3">
+                View on PolygonScan
+              </v-col>
+            </v-row>
+
+            <v-row dense :key="item.id" v-for="item in payouts" class="row-item" justify="center">
+              <v-col lg="3" style="text-align: start">
+                {{ formatDate(item.date) }}
+              </v-col>
+              <v-col lg="3">
+                {{ $utils.formatMoney(item.dailyProfit, 6) }}$
+              </v-col>
+              <v-col lg="3">
+                {{ $utils.formatMoney(item.annualizedYield, 6) }}%
+              </v-col>
+
+              <v-col lg="3">
+                <v-icon @click="openOnScan(item)">mdi-eye</v-icon>
+              </v-col>
+            </v-row>
+          </v-container>
+        </template>
+
 
       </v-card-text>
     </v-card>
@@ -50,7 +74,7 @@ export default {
   name: "HistoryTotalData",
 
   computed: {
-    ...mapGetters('profile', ['payouts'])
+    ...mapGetters('profile', ['payouts', 'loadingPayouts'])
   },
 
   methods: {

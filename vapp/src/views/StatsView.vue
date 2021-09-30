@@ -14,7 +14,14 @@
 
       >
         <v-row class="justify-center align-center pt-15">
-          <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
+          <template v-if="loadingBalance">
+            <v-skeleton-loader
+                type="button"
+            />
+          </template>
+          <template v-else>
+            <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
+          </template>
         </v-row>
 
         <v-row>
@@ -69,7 +76,7 @@ export default {
 
   computed: {
 
-    ...mapGetters('profile', ['balance']),
+    ...mapGetters('profile', ['balance', 'loadingBalance']),
 
     activeTabTx: function () {
       return {
