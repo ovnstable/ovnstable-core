@@ -20,6 +20,8 @@ const state = {
         totalSupply: 0,
     },
 
+    loadingTotalOvn: true,
+
     balance: {
         ovn: 0,
         usdc: 0,
@@ -47,6 +49,10 @@ const getters = {
 
     totalOvn(state) {
         return state.totalOvn;
+    },
+
+    loadingTotalOvn(state) {
+        return state.loadingTotalOvn;
     },
 
     transactionLogs(state) {
@@ -230,9 +236,10 @@ const actions = {
 
 
     async refreshTotalOvn({commit, dispatch, getters}) {
-
+        commit('setLoadingTotalOvn', true)
         axios.get('/total').then(value => {
             commit('setTotalOvn', value.data);
+            commit('setLoadingTotalOvn', false)
         })
 
     },
@@ -323,6 +330,10 @@ const mutations = {
 
     setTransactionLogsLoader(state, transactionLogsLoader) {
         state.transactionLogsLoader = transactionLogsLoader;
+    },
+
+    setLoadingTotalOvn(state, value) {
+        state.loadingTotalOvn = value;
     },
 
 };

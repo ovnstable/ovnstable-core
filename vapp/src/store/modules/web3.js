@@ -15,7 +15,7 @@ import contract from "@truffle/contract";
 import {axios} from "../../plugins/http-axios";
 
 import OvnImage from '../../assets/ovn.json';
-
+import { createAlchemyWeb3 } from "@alch/alchemy-web3";
 
 const state = {
     contracts: null,
@@ -23,6 +23,8 @@ const state = {
     web3: null,
     contractNames: {},
     networkId: null,
+    switchToPolygon: false,
+    loadingWeb3: true,
 };
 
 const getters = {
@@ -48,6 +50,14 @@ const getters = {
         return state.networkId;
     },
 
+    switchToPolygon(state) {
+        return state.switchToPolygon;
+    },
+
+    loadingWeb3(state) {
+        return state.loadingWeb3;
+    },
+
 };
 
 const actions = {
@@ -61,6 +71,7 @@ const actions = {
 
 
     async initWeb3({commit, dispatch, getters, rootState}) {
+        commit('setLoadingWeb3', true);
 
         let provider = await detectEthereumProvider();
 
@@ -77,7 +88,8 @@ const actions = {
         console.log('Network ID ' + networkId)
         commit('setNetworkId', networkId)
 
-        if (provider && provider.on) {
+        if (window.ethereum) {
+            let provider = window.ethereum;
             provider.on('accountsChanged', function (accounts) {
                 let account = accounts[0];
                 dispatch('accountChange', account)
@@ -90,8 +102,8 @@ const actions = {
                     dispatch('initPolygonData');
                 } else {
                     dispatch('profile/resetUserData', null, {root: true})
+                    commit('setSwitchToPolygon', true)
                 }
-
 
             });
         }
@@ -108,9 +120,12 @@ const actions = {
 
         if (networkId === 137) {
             dispatch('initPolygonData');
+        }else {
+            commit('setSwitchToPolygon', true)
         }
 
 
+        commit('setLoadingWeb3', false);
     },
 
     async accountChange({commit, dispatch, getters, rootState}, account) {
@@ -118,6 +133,7 @@ const actions = {
         commit('setAccount', account);
         if (account) {
             dispatch('profile/refreshUserData', null, {root: true})
+            dispatch('transaction/loadTransaction', null, {root: true})
         } else {
             dispatch('profile/resetUserData', null, {root: true})
         }
@@ -146,7 +162,7 @@ const actions = {
 
 
     async initPolygonData({commit, dispatch, getters, rootState}) {
-
+        commit('setSwitchToPolygon', false)
         await getters.web3.eth.getAccounts((error, accounts) => {
             let account = accounts[0];
             dispatch('accountChange', account)
@@ -192,11 +208,13 @@ const actions = {
         if (newNetworkId === 137) {
             commit('setNetworkId', newNetworkId)
             dispatch('initPolygonData')
+        }else {
+            commit('setSwitchToPolygon', true)
         }
 
     },
 
-    async addOvnToken({commit, dispatch, getters, rootState}){
+    async addOvnToken({commit, dispatch, getters, rootState}) {
 
         await window.ethereum
             .request({
@@ -243,6 +261,13 @@ const mutations = {
         state.networkId = value;
     },
 
+    setSwitchToPolygon(state, value) {
+        state.switchToPolygon= value;
+    },
+
+    setLoadingWeb3(state, value) {
+        state.loadingWeb3 = value;
+    },
 
 };
 

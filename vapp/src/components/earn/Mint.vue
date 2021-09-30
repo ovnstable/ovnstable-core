@@ -162,7 +162,8 @@ export default {
     },
 
     ...mapGetters("profile", ['balance', 'gasPrice']),
-    ...mapGetters("web3", ["web3", 'account',  'contracts']),
+    ...mapGetters("transaction", ['transactions', 'transactionReceipts']),
+    ...mapGetters("web3", ["web3", 'account', 'contracts']),
     ...mapGetters("gasPrice", ["gasPriceGwei"]),
   },
 
@@ -181,6 +182,7 @@ export default {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
     ...mapActions("gasPrice", ['refreshGasPrice']),
+    ...mapActions("transaction", ['putTransactionPending']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
 
@@ -206,14 +208,18 @@ export default {
         this.show('Processing...')
         this.addText(`Locking ${this.sum} USDC ......  done`)
 
-        let allowanceValue = await contracts.usdc.methods.allowance(from,contracts.exchange.options.address).call();
+        let allowanceValue = await contracts.usdc.methods.allowance(from, contracts.exchange.options.address).call();
         console.log('Allowance value ' + allowanceValue)
 
-        if (allowanceValue < sum){
+        if (allowanceValue < sum) {
           try {
             await this.refreshGasPrice();
-            let approveParams = { gasPrice: this.gasPriceGwei, from: from};
-            await contracts.usdc.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935').send(approveParams);
+            let approveParams = {gasPrice: this.gasPriceGwei, from: from};
+            await contracts.usdc.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935')
+                .send(approveParams)
+                .on('transactionHash', function (hash) {
+                  self.putTransactionPending(hash);
+                });
           } catch (e) {
             console.log(e)
             this.failed();
@@ -227,8 +233,13 @@ export default {
 
         try {
           await this.refreshGasPrice();
-          let buyParams = { gasPrice: this.gasPriceGwei, from: from};
-          let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams);
+          let buyParams = {gasPrice: this.gasPriceGwei, from: from};
+          let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).on('transactionHash', function (hash) {
+            self.putTransactionPending(hash);
+            console.log(hash);
+          });
+
+
           this.showSuccessMintToast(self.sum, buyResult.transactionHash)
         } catch (e) {
           console.log(e)
@@ -250,7 +261,7 @@ export default {
     },
 
 
-    showSuccessMintToast(sum, tx){
+    showSuccessMintToast(sum, tx) {
       const content = {
         component: ToastTransaction,
         props: {
@@ -258,7 +269,7 @@ export default {
           tx: tx,
         },
       }
-      this.$toast(content, { position: "top-right",  type: 'success', timeout: 10000 });
+      this.$toast(content, {position: "top-right", type: 'success', timeout: 10000});
     },
 
     selectItem(item) {
