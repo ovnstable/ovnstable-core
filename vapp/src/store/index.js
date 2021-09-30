@@ -5,6 +5,7 @@ import showTransactions from './modules/show-transaction';
 import transaction from './modules/transaction'
 import gasPrice from './modules/gas-price';
 import web3 from "./modules/web3";
+import accountProfile from './modules/account-profile';
 
 import createPersistedState from "vuex-persistedstate";
 
@@ -16,7 +17,8 @@ export default new Vuex.Store({
         gasPrice,
         showTransactions,
         transaction,
-        web3
+        web3,
+        accountProfile
     },
     plugins: [createPersistedState({paths: ['transaction']})]
 });

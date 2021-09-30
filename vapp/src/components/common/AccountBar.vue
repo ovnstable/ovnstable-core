@@ -8,7 +8,7 @@
           </button>
         </v-row>
       </v-col>
-      <v-col lg="7" v-if="account">
+      <v-col lg="7" v-if="account" @click="showAccountProfile">
         <v-row class="account" style="height: 50px" align="center">
           <div>OVN: <strong>{{ balance.ovn }}</strong></div>
           <div class="pl-5"> {{ accountShort }}</div>
@@ -41,7 +41,7 @@ export default {
   methods: {
 
     ...mapActions('web3', ['connectWallet']),
-
+    ...mapActions('accountProfile', ['showAccountProfile']),
 
     connectWalletAction() {
       this.connectWallet();

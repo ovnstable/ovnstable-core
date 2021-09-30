@@ -203,7 +203,7 @@ export default {
 
     ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
     ...mapActions("gasPrice", ['refreshGasPrice']),
-    ...mapActions("transaction", ['putTransactionPending']),
+    ...mapActions("transaction", ['putTransaction']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
 
@@ -239,7 +239,14 @@ export default {
             await contracts.usdc.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935')
                 .send(approveParams)
                 .on('transactionHash', function (hash) {
-                  self.putTransactionPending(hash);
+
+                  let tx = {
+                    text: 'Approve USDC',
+                    hash: hash,
+                    pending: true,
+                  };
+
+                  self.putTransaction(tx);
                 });
           } catch (e) {
             console.log(e)
@@ -256,8 +263,12 @@ export default {
           await this.refreshGasPrice();
           let buyParams = {gasPrice: this.gasPriceGwei, from: from};
           let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).on('transactionHash', function (hash) {
-            self.putTransactionPending(hash);
-            console.log(hash);
+            let tx = {
+              text: `Minting ${self.sum} OVN`,
+              hash: hash,
+              pending: true,
+            };
+            self.putTransaction(tx);
           });
 
 

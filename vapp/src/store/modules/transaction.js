@@ -3,8 +3,6 @@ const Promise = require("bluebird");
 
 const state = {
     transactions: [],
-    transactionReceipts: [],
-    transactionPending: [],
 };
 
 const getters = {
@@ -14,34 +12,35 @@ const getters = {
     },
 
 
-    transactionReceipts(state) {
-        return state.transactionReceipts;
-    },
-
-    transactionPending(state) {
-        return state.transactionPending;
-    },
-
 };
 
 const actions = {
 
-    putTransactionPending({commit, dispatch, getters}, tx) {
-        getters.transactionPending.push(tx);
-        commit('setTransactions', getters.transactionPending);
+    putTransaction({commit, dispatch, getters}, tx) {
+        getters.transactions.push(tx);
+        commit('setTransactions', getters.transactions);
     },
 
 
+    clearTransaction({commit, dispatch, getters, rootState}){
+      commit('setTransactions', [])
+    },
+
     loadTransaction({commit, dispatch, getters, rootState}) {
 
-        for (let i = 0; i < getters.transactionPending.length; i++) {
-            let transaction = getters.transactionPending[i];
+        for (let i = 0; i < getters.transactions.length; i++) {
+            let transaction = getters.transactions[i];
             if (transaction == null)
                 continue;
 
+            if (transaction.pending !== true){
+                continue;
+            }
+
             console.log('Pull tx ' + transaction)
-            const transactionReceiptRetry = () => rootState.web3.web3.eth.getTransactionReceipt(transaction)
+            const transactionReceiptRetry = () => rootState.web3.web3.eth.getTransactionReceipt(transaction.hash)
                 .then((receipt) => {
+                    console.log('Check tx ')
                     if (receipt != null) {
                         return receipt;
                     } else {
@@ -49,11 +48,12 @@ const actions = {
                     }
                 });
 
-
             transactionReceiptRetry().then(value => {
                 console.log('GET TX ' + value)
-                let filter = getters.transactionPending.filter(tx=> tx !== value.transactionHash);
-                commit('setTransactionPending', filter)
+                let filter = getters.transactions.find(tx=> tx.hash === value.transactionHash);
+                filter.pending = false;
+
+                commit('setTransactions', getters.transactions)
             })
         }
 
@@ -69,13 +69,6 @@ const mutations = {
         state.transactions = transactions;
     },
 
-    setTransactionReceipts(state, transactions) {
-        state.transactionReceipts = transactions;
-    },
-
-    setTransactionPending(state, transactions) {
-        state.transactionPending = transactions;
-    },
 
 };
 
