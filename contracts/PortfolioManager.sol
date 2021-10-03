@@ -2,37 +2,70 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./registries/InvestmentPortfolio.sol";
 
-import "./OwnableExt.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
 
-//TODO: use AccessControl or Ownable from zeppelin
-contract PortfolioManager is IPortfolioManager, OwnableExt {
+contract PortfolioManager is IPortfolioManager, AccessControl {
+    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+
+    // ---  fields
+
     Vault vault;
     Balancer balancer;
+    address exchanger;
 
+    // ---  events
+
+    //TODO: remove
     event ConsoleLog(string str);
 
-    function setVault(address _vault) external onlyOwner {
+    // ---  modifiers
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyExchanger() {
+        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    // ---  constructor
+
+    constructor() {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    // ---  setters
+
+    function setExchanger(address _exchanger) public onlyAdmin {
+        require(_exchanger != address(0), "Zero address not allowed");
+        exchanger = _exchanger;
+        grantRole(EXCHANGER, exchanger);
+    }
+
+    function setVault(address _vault) external onlyAdmin {
         require(_vault != address(0), "Zero address not allowed");
         vault = Vault(_vault);
     }
 
-    function setBalancer(address _balancer) external onlyOwner {
+    function setBalancer(address _balancer) external onlyAdmin {
         require(_balancer != address(0), "Zero address not allowed");
         balancer = Balancer(_balancer);
     }
 
-    function initActionBuilders() external onlyOwner {}
+    // ---  logic
 
     //TODO: exchange only
-    function invest(IERC20 _token, uint256 _amount) external override {
+    function invest(IERC20 _token, uint256 _amount) external onlyExchanger override {
         // 1. put tokens into Vault
         _token.transfer(address(vault), _amount);
 
@@ -40,17 +73,18 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         balanceOnInvest();
     }
 
-    function balanceOnInvest() private {
+    function balanceOnInvest() internal {
         // 1. got action to balance
-        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions();
+        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
         executeActions(actionOrder);
     }
 
-    //TODO: exchange only
-    function withdraw(IERC20 _token, uint256 _amount) external override returns (uint256) {
+
+    function withdraw(IERC20 _token, uint256 _amount) external onlyExchanger override returns (uint256) {
         // 0.1 TODO: check that _token is one off used
         // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
 
@@ -58,25 +92,27 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         balanceOnWithdraw(_token, _amount);
 
         // 2. transfer back tokens
-        // TODO: transfer amount should be without fees
+        // TODO: transfer amount should be reduced by fees
         vault.transfer(_token, msg.sender, _amount);
 
         return _amount;
     }
 
-    function balanceOnWithdraw(IERC20 _token, uint256 _amount) private {
+    function balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
         // 1. got action to balance
-        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.balanceActions(
+        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions(
             _token,
             _amount
         );
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
         executeActions(actionOrder);
     }
 
-    function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) private {
+    function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
+        //TODO: remove
         emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         bool someActionExecuted = true;
@@ -86,6 +122,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
                 IActionBuilder.ExchangeAction memory action = actionOrder[i];
                 if (action.executed) {
                     // Skip executed
+                    //TODO: remove
                     emit ConsoleLog(
                         string(
                             abi.encodePacked(
@@ -103,6 +140,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
                 }
                 if (action.amount == 0) {
                     // Skip zero amount action
+                    //TODO: remove
                     emit ConsoleLog(
                         string(
                             abi.encodePacked(
@@ -120,6 +158,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
                 }
                 if (action.from.balanceOf(address(vault)) < action.amount) {
                     // Skip not enough blance for execute know
+                    //TODO: remove
                     emit ConsoleLog(
                         string(
                             abi.encodePacked(
@@ -146,6 +185,7 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
                     action.amount
                 );
                 action.executed = true;
+                //TODO: remove
                 emit ConsoleLog(
                     string(
                         abi.encodePacked(
@@ -162,6 +202,8 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
             }
         }
     }
+
+    //TODO: remove
     function toAsciiString(address x) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
         for (uint i = 0; i < 20; i++) {
@@ -174,11 +216,13 @@ contract PortfolioManager is IPortfolioManager, OwnableExt {
         return string(s);
     }
 
+    //TODO: remove
     function char(bytes1 b) internal pure returns (bytes1 c) {
         if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
         else return bytes1(uint8(b) + 0x57);
     }
 
+    //TODO: remove
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";

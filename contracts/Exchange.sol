@@ -2,15 +2,13 @@
 pragma solidity >=0.8 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IERC20MintableBurnable.sol";
-import "./interfaces/IActivesList.sol";
 import "./interfaces/IConnector.sol";
 import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./interfaces/IActivesList.sol";
 
 contract Exchange is AccessControl {
     OvernightToken ovn;
@@ -51,7 +49,7 @@ contract Exchange is AccessControl {
         return ovn.balanceOf(msg.sender);
     }
 
-    function buy(address _addrTok, uint256 _amount) public {
+    function buy(address _addrTok, uint256 _amount) external {
         emit EventExchange("buy", _amount);
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -64,7 +62,7 @@ contract Exchange is AccessControl {
         PM.invest( IERC20(_addrTok), _amount);
     }
 
-    function redeem(address _addrTok, uint256 _amount) public {
+    function redeem(address _addrTok, uint256 _amount) external {
         emit EventExchange("redeem", _amount);
 
         //TODO: Real unstacke amount may be different to _amount
@@ -79,7 +77,7 @@ contract Exchange is AccessControl {
     }
 
 
-    function reward() public onlyAdmin {
+    function reward() external onlyAdmin {
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
         // 3. calc difference between total count of OVN and USDC

@@ -30,14 +30,15 @@ contract Vault is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setPortfolioManager(address account) public virtual onlyAdmin {
-        require(account != address(0), "Zero address not allowed");
-        grantRole(PORTFOLIO_MANAGER, account);
+    function setPortfolioManager(address _portfolioManager) public onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        grantRole(PORTFOLIO_MANAGER, _portfolioManager);
     }
 
-    function removePortfolioManager(address account) public virtual onlyAdmin {
-        require(account != address(0), "Zero address not allowed");
-        revokeRole(PORTFOLIO_MANAGER, account);
+    //TODO: do we really need this feature?
+    function removePortfolioManager(address _portfolioManager) public onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        revokeRole(PORTFOLIO_MANAGER, _portfolioManager);
     }
 
     /**

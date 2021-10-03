@@ -1,36 +1,85 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-/// @title Common inrterface to DeFi protocol connectors
-/// @author @Stanta
-/// @notice Every connector have to implement this function
-/// @dev Choosing of connector releasing by changing address of connector's contract
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
 import "./registries/InvestmentPortfolio.sol";
-import "./registries/InvestmentPortfolio.sol";
-import "./interfaces/IConnector.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
-contract Balancer {
+contract Balancer is AccessControl {
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
+
+    // ---  fields
+
     IMark2Market m2m;
     InvestmentPortfolio investmentPortfolio;
     address[] actionBuildersInOrder;
 
+    // ---  events
+
     //TODO: remove
     event ConsoleLog(string str);
 
-    function setMark2Market(address _m2m) public {
+    // ---  modifiers
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyPortfolioManager() {
+        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Caller is not the PORTFOLIO_MANAGER");
+        _;
+    }
+
+    // ---  constructor
+
+    constructor() {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    // ---  setters
+
+    function setPortfolioManager(address _portfolioManager) public onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        grantRole(PORTFOLIO_MANAGER, _portfolioManager);
+    }
+
+    //TODO: do we really need this feature?
+    function removePortfolioManager(address _portfolioManager) public onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        revokeRole(PORTFOLIO_MANAGER, _portfolioManager);
+    }
+
+    function setMark2Market(address _m2m) external onlyAdmin {
         require(_m2m != address(0), "Zero address not allowed");
         m2m = IMark2Market(_m2m);
     }
 
-    function addActionBuilderAt(address actionBuilder, uint256 index) public {
+    function setActionBuilders(address[] calldata _actionBuildersInOrder) external onlyAdmin {
+        for (uint8 i = 0; i < _actionBuildersInOrder.length; i++) {
+            _addActionBuilderAt(_actionBuildersInOrder[i], i);
+        }
+        // truncate array if needed
+        if (actionBuildersInOrder.length > _actionBuildersInOrder.length) {
+            uint256 removeCount = actionBuildersInOrder.length - _actionBuildersInOrder.length;
+            for (uint8 i = 0; i < removeCount; i++) {
+                actionBuildersInOrder.pop();
+            }
+        }
+    }
+
+    function addActionBuilderAt(address actionBuilder, uint256 index) external onlyAdmin {
+        _addActionBuilderAt(actionBuilder, index);
+    }
+
+    function _addActionBuilderAt(address actionBuilder, uint256 index) internal {
         uint256 currentlength = actionBuildersInOrder.length;
+        // expand array id needed
         if (currentlength == 0 || currentlength - 1 < index) {
             uint256 additionalCount = index - currentlength + 1;
             for (uint8 i = 0; i < additionalCount; i++) {
@@ -40,25 +89,20 @@ contract Balancer {
         actionBuildersInOrder[index] = actionBuilder;
     }
 
-    function setActionBuilders(address[] memory _actionBuildersInOrder) public {
-        for (uint8 i = 0; i < _actionBuildersInOrder.length; i++) {
-            addActionBuilderAt(_actionBuildersInOrder[i], i);
-        }
-        if (actionBuildersInOrder.length > _actionBuildersInOrder.length) {
-            uint256 removeCount = actionBuildersInOrder.length - _actionBuildersInOrder.length;
-            for (uint8 i = 0; i < removeCount; i++) {
-                actionBuildersInOrder.pop();
-            }
-        }
-    }
+    // ---  logic
 
-    function balanceActions() public returns (IActionBuilder.ExchangeAction[] memory) {
-        // Same to zero withdrawal balance
-        return balanceActions(IERC20(address(0)), 0);
-    }
-
-    function balanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
+    function buildBalanceActions()
         public
+        onlyPortfolioManager
+        returns (IActionBuilder.ExchangeAction[] memory)
+    {
+        // Same to zero withdrawal balance
+        return buildBalanceActions(IERC20(address(0)), 0);
+    }
+
+    function buildBalanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
+        public
+        onlyPortfolioManager
         returns (IActionBuilder.ExchangeAction[] memory)
     {
         // 1. get current prices from M2M

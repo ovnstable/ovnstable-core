@@ -87,8 +87,10 @@ module.exports = async function (deployer) {
     await vault.setPortfolioManager(pm.address);
     await pm.setVault(vault.address);
     await pm.setBalancer(balancer.address);
+    await pm.setExchanger(exchange.address);
 
     await balancer.setMark2Market(m2m.address);
+    await balancer.setPortfolioManager(pm.address);
 
     await m2m.init(vault.address, investmentPortfolio.address);
 

@@ -37,32 +37,7 @@ contract InvestmentPortfolio is AccessControl {
         assetPositions[address(asset)] = assets.length - 1;
     }
 
-    function setWeights2(AssetWeight[] memory _assetWeights) external onlyAdmin {
-        uint256 totalTarget = 0;
-        for (uint8 i = 0; i < _assetWeights.length; i++) {
-            require(_assetWeights[i].asset != address(0), "weight without asset");
-            totalTarget += _assetWeights[i].targetWeight;
-        }
-        require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
-
-        for (uint8 i = 0; i < _assetWeights.length; i++) {
-            assetWeights[i] = _assetWeights[i];
-            assetWeightPositions[assetWeights[i].asset] = i;
-        }
-    }
-
-    function addActionBuilderAt(AssetWeight memory assetWeight, uint256 index) internal {
-        uint256 currentlength = assetWeights.length;
-        if (currentlength == 0 || currentlength - 1 < index) {
-            uint256 additionalCount = index - currentlength + 1;
-            for (uint8 i = 0; i < additionalCount; i++) {
-                assetWeights.push();
-            }
-        }
-        assetWeights[index] = assetWeight;
-    }
-
-    function setWeights(AssetWeight[] memory _assetWeights) public {
+    function setWeights(AssetWeight[] calldata _assetWeights) external onlyAdmin {
         //TODO: remove
         emit ConsoleLog(
             string(abi.encodePacked("_assetWeights.length: ", uint2str(_assetWeights.length)))
@@ -87,21 +62,29 @@ contract InvestmentPortfolio is AccessControl {
         emit ConsoleLog(string(abi.encodePacked("totalTarget: ", uint2str(totalTarget))));
 
         for (uint8 i = 0; i < _assetWeights.length; i++) {
-            addActionBuilderAt(_assetWeights[i], i);
-            // assetWeights[i] = _assetWeights[i];
+            _addWeightAt(_assetWeights[i], i);
             assetWeightPositions[assetWeights[i].asset] = i;
         }
 
-        // for (uint8 i = 0; i < _assetWeights.length; i++) {
-        //     addActionBuilderAt(_assetWeights[i], i);
-        //     // actionBuildersInOrder[i] = _actionBuildersInOrder[i];
-        // }
+        // truncate if need
         if (assetWeights.length > _assetWeights.length) {
             uint256 removeCount = assetWeights.length - _assetWeights.length;
             for (uint8 i = 0; i < removeCount; i++) {
                 assetWeights.pop();
             }
         }
+    }
+
+    function _addWeightAt(AssetWeight memory assetWeight, uint256 index) internal {
+        uint256 currentlength = assetWeights.length;
+        // expand if need
+        if (currentlength == 0 || currentlength - 1 < index) {
+            uint256 additionalCount = index - currentlength + 1;
+            for (uint8 i = 0; i < additionalCount; i++) {
+                assetWeights.push();
+            }
+        }
+        assetWeights[index] = assetWeight;
     }
 
     function getAllAssets() external view returns (IERC20[] memory) {
@@ -112,6 +95,7 @@ contract InvestmentPortfolio is AccessControl {
         return assetWeights[assetWeightPositions[asset]];
     }
 
+    //TODO: add `view` after removing event emitting
     function getAllAssetWeights() external returns (AssetWeight[] memory) {
         //TODO: remove
         emit ConsoleLog(
