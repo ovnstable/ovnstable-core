@@ -8,14 +8,14 @@ import "./ITokenExchange.sol";
 interface IActionBuilder {
     struct ExchangeAction {
         ITokenExchange tokenExchange;
-        string code;
+        bytes32 code;
         IERC20 from;
         IERC20 to;
-        uint256 amount;
+        uint256 amount; // amount at usdc with 6 digit fractions
         bool executed;
     }
 
-    function getActionCode() external pure returns (string memory);
+    function getActionCode() external pure returns (bytes32);
 
     function buildAction(
         IMark2Market.TotalAssetPrices memory assetPrices,

@@ -7,7 +7,7 @@ module.exports = async function (deployer) {
 
     const chainID = await web3.eth.net.getId();
 
-    const actList = await ActivesList.deployed();
+    // const actList = await ActivesList.deployed();
 
     USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     aUSDC = "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"
@@ -21,16 +21,16 @@ module.exports = async function (deployer) {
     const connectorAv = ConnectorAAVE.networks[chainID]['address'];
     const connectorCrv = ConnectorCurve.networks[chainID]['address'];
 
-    await actList.actAdd(USDC, connectorAv, connectorAv, connectorAv, "500", "1000", "0", [aUSDC, aCurveLP]);
-    await actList.actAdd(aUSDC, connectorCrv, aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
+    // await actList.actAdd(USDC, connectorAv, connectorAv, connectorAv, "500", "1000", "0", [aUSDC, aCurveLP]);
+    // await actList.actAdd(aUSDC, connectorCrv, aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
 
-    await actList.actAdd(DAI, connectorAv, connectorAv, connectorAv, "500", "1000", "0", [aDAI]);
-    await actList.actAdd(aDAI, connectorAv, connectorAv, connectorAv, "2500", "9500", "0", []);
-    await actList.actAdd(aCurveLP, connectorCrv, aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
-    // токен curve
-    await actList.actAdd("0x172370d5cd63279efa6d502dab29171933a610af", connectorAv, connectorAv, connectorAv, "0", "5000", "0", []);
-    // токен MATIC
-    await actList.actAdd("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", connectorAv, connectorAv, connectorAv, "0", "5000", "0", []);
+    // await actList.actAdd(DAI, connectorAv, connectorAv, connectorAv, "500", "1000", "0", [aDAI]);
+    // await actList.actAdd(aDAI, connectorAv, connectorAv, connectorAv, "2500", "9500", "0", []);
+    // await actList.actAdd(aCurveLP, connectorCrv, aCurvepoolStake, aCurvepoolStake, "0", "5000", "0", [aCurveLP]);
+    // // токен curve
+    // await actList.actAdd("0x172370d5cd63279efa6d502dab29171933a610af", connectorAv, connectorAv, connectorAv, "0", "5000", "0", []);
+    // // токен MATIC
+    // await actList.actAdd("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", connectorAv, connectorAv, connectorAv, "0", "5000", "0", []);
 
 }
 

@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
@@ -65,7 +66,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     // ---  logic
 
     //TODO: exchange only
-    function invest(IERC20 _token, uint256 _amount) external onlyExchanger override {
+    function invest(IERC20 _token, uint256 _amount) external override onlyExchanger {
         // 1. put tokens into Vault
         _token.transfer(address(vault), _amount);
 
@@ -83,8 +84,12 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         executeActions(actionOrder);
     }
 
-
-    function withdraw(IERC20 _token, uint256 _amount) external onlyExchanger override returns (uint256) {
+    function withdraw(IERC20 _token, uint256 _amount)
+        external
+        override
+        onlyExchanger
+        returns (uint256)
+    {
         // 0.1 TODO: check that _token is one off used
         // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
 
@@ -100,6 +105,23 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
     function balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
         // 1. got action to balance
+        // try balancer.buildBalanceActions(_token, _amount) returns (
+        //     IActionBuilder.ExchangeAction[] memory actionOrder
+        // ) {
+        //     //TODO: remove
+        //     emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+
+        //     // 2. execute them
+        //     executeActions(actionOrder);
+        // } catch Error(string memory reason) {
+        //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
+        //     emit ConsoleLog(reason);
+        //     revert(reason);
+        // } catch {
+        //     emit ConsoleLog("buildBalanceActions: No reason");
+        //     revert("buildBalanceActions: No reason");
+        // }
+
         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions(
             _token,
             _amount
@@ -113,7 +135,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
     function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
         //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+        emit ConsoleLog(
+            string(abi.encodePacked(uint2str(actionOrder.length), " actions to execute"))
+        );
 
         bool someActionExecuted = true;
         while (someActionExecuted) {
@@ -138,7 +162,8 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                     continue;
                 }
-                if (action.amount == 0) {
+                uint256 amount = action.amount;
+                if (amount == 0) {
                     // Skip zero amount action
                     //TODO: remove
                     emit ConsoleLog(
@@ -146,7 +171,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                             abi.encodePacked(
                                 uint2str(i),
                                 " Skip zero amount action: ",
-                                uint2str(action.amount),
+                                uint2str(amount),
                                 " from ",
                                 toAsciiString(address(action.from)),
                                 " to ",
@@ -156,33 +181,81 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                     continue;
                 }
-                if (action.from.balanceOf(address(vault)) < action.amount) {
+                if (action.from.balanceOf(address(vault)) < amount) {
                     // Skip not enough blance for execute know
                     //TODO: remove
                     emit ConsoleLog(
                         string(
                             abi.encodePacked(
                                 uint2str(i),
-                                " Skip not enough blance for execute know: ",
-                                uint2str(action.amount),
+                                " Skip not enough balance for execute know: ",
+                                uint2str(amount),
                                 " from ",
                                 toAsciiString(address(action.from)),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                toAsciiString(address(action.to)),
+                                " current ",
+                                uint2str(action.from.balanceOf(address(vault)))
                             )
                         )
                     );
                     continue;
                 }
                 // move tokens to tokenExchange for executing action
-                vault.transfer(action.from, address(action.tokenExchange), action.amount);
+                //TODO: denominator usage
+                uint256 denominator = 10**(IERC20Metadata(address(action.from)).decimals() - 6);
+                // uint256 amount = action.amount * denominator;
+                vault.transfer(action.from, address(action.tokenExchange), amount * denominator);
                 // execute exchange
+                // try
+                //     action.tokenExchange.exchange(
+                //         address(vault),
+                //         action.from,
+                //         address(vault),
+                //         action.to,
+                //         amount
+                //     )
+                // {
+                //     action.executed = true;
+                //     //TODO: remove
+                //     emit ConsoleLog(
+                //         string(
+                //             abi.encodePacked(
+                //                 "Exchange ",
+                //                 uint2str(amount),
+                //                 " from ",
+                //                 toAsciiString(address(action.from)),
+                //                 " to ",
+                //                 toAsciiString(address(action.to))
+                //             )
+                //         )
+                //     );
+                // } catch Error(string memory reason) {
+                //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
+                //     emit ConsoleLog(reason);
+                //     revert(reason);
+                // } catch {
+                //     emit ConsoleLog("action.tokenExchange.exchange: No reason");
+                //     revert(
+                //         string(
+                //             abi.encodePacked(
+                //                 "action.tokenExchange.exchange: No reason ",
+                //                 uint2str(amount),
+                //                 " from ",
+                //                 toAsciiString(address(action.from)),
+                //                 " to ",
+                //                 toAsciiString(address(action.to))
+                //             )
+                //         )
+                //     );
+                // }
+
                 action.tokenExchange.exchange(
                     address(vault),
                     action.from,
                     address(vault),
                     action.to,
-                    action.amount
+                    amount
                 );
                 action.executed = true;
                 //TODO: remove
@@ -190,7 +263,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     string(
                         abi.encodePacked(
                             "Exchange ",
-                            uint2str(action.amount),
+                            uint2str(amount),
                             " from ",
                             toAsciiString(address(action.from)),
                             " to ",

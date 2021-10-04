@@ -18,6 +18,7 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         require(_aaveConnector != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
+        
         aaveConnector = IConnector(_aaveConnector);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);

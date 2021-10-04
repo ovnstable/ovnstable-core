@@ -107,7 +107,9 @@ contract Mark2Market is IMark2Market, OwnableExt {
             InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
             uint256 usdcPriceOne = 1; //TODO: use real price
-            uint256 usdcPriceInVault = amountInVault * usdcPriceOne;
+            //TODO: denominator usage
+            uint256 denominator =  10 ** (IERC20Metadata(assetWeight.asset).decimals() - 6);
+            uint256 usdcPriceInVault = amountInVault * usdcPriceOne / denominator;
 
             //TODO: remove
             log("amountInVault: ", amountInVault);
@@ -167,6 +169,9 @@ contract Mark2Market is IMark2Market, OwnableExt {
         uint256 targetAmount = (totalUsdcPrice * assetWeight.targetWeight) /
             investmentPortfolio.TOTAL_WEIGHT();
         uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
+        //TODO: denominator usage
+        uint256 denominator =  10 ** (IERC20Metadata(asset).decimals() - 6);
+        currentAmount = currentAmount / denominator;
 
         if (targetAmount >= currentAmount) {
             return (targetAmount - currentAmount, int8(1));

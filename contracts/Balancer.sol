@@ -11,8 +11,6 @@ import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Balancer is AccessControl {
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
-
     // ---  fields
 
     IMark2Market m2m;
@@ -31,11 +29,6 @@ contract Balancer is AccessControl {
         _;
     }
 
-    modifier onlyPortfolioManager() {
-        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Caller is not the PORTFOLIO_MANAGER");
-        _;
-    }
-
     // ---  constructor
 
     constructor() {
@@ -43,17 +36,6 @@ contract Balancer is AccessControl {
     }
 
     // ---  setters
-
-    function setPortfolioManager(address _portfolioManager) public onlyAdmin {
-        require(_portfolioManager != address(0), "Zero address not allowed");
-        grantRole(PORTFOLIO_MANAGER, _portfolioManager);
-    }
-
-    //TODO: do we really need this feature?
-    function removePortfolioManager(address _portfolioManager) public onlyAdmin {
-        require(_portfolioManager != address(0), "Zero address not allowed");
-        revokeRole(PORTFOLIO_MANAGER, _portfolioManager);
-    }
 
     function setMark2Market(address _m2m) external onlyAdmin {
         require(_m2m != address(0), "Zero address not allowed");
@@ -91,18 +73,13 @@ contract Balancer is AccessControl {
 
     // ---  logic
 
-    function buildBalanceActions()
-        public
-        onlyPortfolioManager
-        returns (IActionBuilder.ExchangeAction[] memory)
-    {
+    function buildBalanceActions() public returns (IActionBuilder.ExchangeAction[] memory) {
         // Same to zero withdrawal balance
         return buildBalanceActions(IERC20(address(0)), 0);
     }
 
     function buildBalanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
         public
-        onlyPortfolioManager
         returns (IActionBuilder.ExchangeAction[] memory)
     {
         // 1. get current prices from M2M
@@ -129,6 +106,8 @@ contract Balancer is AccessControl {
                 .buildAction(assetPrices, actionOrder);
             actionOrder[i] = action;
         }
+        //TODO: remove
+        log("actionOrder.length: ", actionOrder.length);
 
         return actionOrder;
     }

@@ -8,9 +8,12 @@ import "./interfaces/IConnector.sol";
 import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./PortfolioManager.sol";
+import "./Buffer.sol";
 import "./interfaces/IMark2Market.sol";
 
 contract Exchange is AccessControl {
+    using Buffer for Buffer.buffer;
+
     OvernightToken ovn;
     IERC20 usdc;
     PortfolioManager PM; //portfolio manager contract
@@ -62,10 +65,31 @@ contract Exchange is AccessControl {
         PM.invest( IERC20(_addrTok), _amount);
     }
 
+    event ErrorLogging(string reason);
+
     function redeem(address _addrTok, uint256 _amount) external {
         emit EventExchange("redeem", _amount);
 
         //TODO: Real unstacke amount may be different to _amount
+
+        // try PM.withdraw(IERC20(_addrTok), _amount) returns (uint256 unstakedAmount) {
+            
+        //     // Or just burn from sender
+        //     ovn.burn(msg.sender, _amount);
+
+        //     // TODO: correct amount by rates or oracles
+        //     // TODO: check threshhold limits to withdraw deposite
+        //     IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+
+        // } catch Error(string memory reason) {
+        //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
+        //     emit ErrorLogging(reason);
+        // } catch {
+        //     emit ErrorLogging("No reason");
+        //     // revert (string(buf.buf));
+        // }
+
+
         uint256 unstakedAmount = PM.withdraw(IERC20(_addrTok), _amount);
 
         // Or just burn from sender

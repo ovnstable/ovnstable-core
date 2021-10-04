@@ -5,17 +5,25 @@ const PortfolioManager = artifacts.require("./PortfolioManager.sol")
 const OvernightToken = artifacts.require("OvernightToken");
 
 const ConnectorAAVE = artifacts.require("./connectors/ConnectorAAVE.sol");
+const ConnectorCurve = artifacts.require("./connectors/ConnectorCurve.sol");
+
 const Vault = artifacts.require("./Vault.sol")
 const Balancer = artifacts.require("./Balancer.sol")
 const InvestmentPortfolio = artifacts.require("./regetries/InvestmentPortfolio.sol")
+
 const Usdc2AUsdcActionBuilder = artifacts.require("./action_builders/Usdc2AUsdcActionBuilder.sol")
 const Usdc2AUsdcTokenExchange = artifacts.require("./token_exchanges/Usdc2AUsdcTokenExchange.sol")
+
+const AUsdc2A3CrvActionBuilder = artifacts.require("./action_builders/AUsdc2A3CrvActionBuilder.sol")
+const AUsdc2A3CrvTokenExchange = artifacts.require("./token_exchanges/AUsdc2A3CrvTokenExchange.sol")
+
 const ERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/ERC20.sol")
 
 module.exports = async function (deployer) {
 
     let usdc = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     let aUsdc = "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"
+    let a3Crv = "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"
     // let usdc = await ERC20.at('0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     // let aUsdc = await ERC20.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
 
@@ -35,24 +43,32 @@ module.exports = async function (deployer) {
     let usdcWeight = {
         asset: usdc,
         minWeight: 25000,
-        targetWeight: 50000,
+        targetWeight: 40000,
         maxWeight: 60000,
     }
     let aUsdcWeight = {
         asset: aUsdc,
         minWeight: 25000,
-        targetWeight: 50000,
+        targetWeight: 40000,
         maxWeight: 60000,
+    }
+    let a3CrvWeight = {
+        asset: a3Crv,
+        minWeight: 0,
+        targetWeight: 20000,
+        maxWeight: 40000,
     }
     let weights = [
         usdcWeight,
-        aUsdcWeight
+        aUsdcWeight,
+        a3CrvWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
     console.log("setWeights: " + result);
 
 
     const connAAVE = await ConnectorAAVE.deployed();
+    const connCurve = await ConnectorCurve.deployed();
 
     // first token exchange
     await deployer.deploy(
@@ -67,10 +83,29 @@ module.exports = async function (deployer) {
     await deployer.deploy(
         Usdc2AUsdcActionBuilder,
         usdc2AUsdcTokenExchange.address, // tokenExchange = _tokenExchange;
-        usdc,// usdcToken = _usdcToken;
+        usdc, // usdcToken = _usdcToken;
         aUsdc // aUsdcToken = _aUsdcToken;
     );
     const usdc2AUsdcActionBuilder = await Usdc2AUsdcActionBuilder.deployed();
+
+    // second token exchange
+    await deployer.deploy(
+        AUsdc2A3CrvTokenExchange,
+        connCurve.address, // IConnector _aaveConnector,
+        aUsdc, // IERC20 _usdcToken,
+        a3Crv // IERC20 _aUsdcToken
+    );
+    const aUsdc2A3CrvTokenExchange = await AUsdc2A3CrvTokenExchange.deployed();
+
+    // second token exchange
+    await deployer.deploy(
+        AUsdc2A3CrvActionBuilder,
+        aUsdc2A3CrvTokenExchange.address, // address _tokenExchange,
+        aUsdc, // address _aUsdcToken,
+        a3Crv, // address _a3CrvToken,
+        usdc2AUsdcActionBuilder.address // address _usdc2AUsdcActionBuilder
+    );
+    const aUsdc2A3CrvActionBuilder = await AUsdc2A3CrvActionBuilder.deployed();
 
 
 
@@ -90,12 +125,12 @@ module.exports = async function (deployer) {
     await pm.setExchanger(exchange.address);
 
     await balancer.setMark2Market(m2m.address);
-    await balancer.setPortfolioManager(pm.address);
 
     await m2m.init(vault.address, investmentPortfolio.address);
 
-    // set actions builders
-    let res = await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);
+    // set actions builders in order
+    await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);
+    await balancer.addActionBuilderAt(aUsdc2A3CrvActionBuilder.address, 1);
 
 
     // Set role EX

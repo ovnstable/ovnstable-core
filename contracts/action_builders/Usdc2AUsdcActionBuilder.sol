@@ -6,10 +6,9 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
-import "../token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
 contract Usdc2AUsdcActionBuilder is IActionBuilder {
-    string constant ACTION_CODE = "Usc2AUsdc";
+    bytes32 constant ACTION_CODE = keccak256("Usc2AUsdc");
 
     ITokenExchange tokenExchange;
     IERC20 usdcToken;
@@ -23,12 +22,13 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
+        
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
     }
 
-    function getActionCode() external pure override returns (string memory) {
+    function getActionCode() external pure override returns (bytes32) {
         return ACTION_CODE;
     }
 
