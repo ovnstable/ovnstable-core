@@ -10,11 +10,18 @@
       <v-col
           lg="12"
           md="8"
-          sm="8"
+          sm="12"
 
       >
         <v-row class="justify-center align-center pt-15">
-          <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
+          <template v-if="loadingBalance">
+            <v-skeleton-loader
+                type="button"
+            />
+          </template>
+          <template v-else>
+            <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
+          </template>
         </v-row>
 
         <v-row>
@@ -38,12 +45,12 @@
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
             <button v-bind:class="activeTabTx" @click="tab = 1">Transaction Log</button>
-            <button v-bind:class="activeTabGas" @click="tab = 2 ">Gas Fees Log</button>
+            <button v-bind:class="activeTabGas" @click="tab = 2 " disabled>Gas Fees Log</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-          <v-col lg="4" class="pa-0 ma-0">
+          <v-col lg="6" md="12" sm="12" class="pa-0 ma-0 " style="max-width: 650px">
             <TransactionLog v-if="tab === 1"/>
           </v-col>
         </v-row>
@@ -69,7 +76,7 @@ export default {
 
   computed: {
 
-    ...mapGetters('profile', ['balance']),
+    ...mapGetters('profile', ['balance', 'loadingBalance']),
 
     activeTabTx: function () {
       return {

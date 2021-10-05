@@ -2,6 +2,8 @@ const state = {
     show: false,
     text: '',
     textSecond: '',
+    persistent: true,
+    failed: false,
 };
 
 const getters = {
@@ -14,8 +16,16 @@ const getters = {
         return state.text;
     },
 
+    persistent(state) {
+        return state.persistent;
+    },
+
     textSecond(state) {
         return state.textSecond;
+    },
+
+    failed(state) {
+        return state.failed;
     },
 
 };
@@ -24,8 +34,11 @@ const actions = {
 
 
     show({commit, dispatch, getters}, text) {
+        commit('setPersistence', true);
+        commit('setFailed', false);
+        dispatch('addText', '')
         commit('setText', text);
-        commit('setShow', true)
+        commit('setShow', true);
     },
 
     addText({commit, dispatch, getters}, text) {
@@ -34,6 +47,11 @@ const actions = {
         commit('setText', text);
     },
 
+
+    failed({commit, dispatch, getters}) {
+        commit('setFailed', true);
+        commit('setPersistence', false)
+    },
 
     hide({commit, dispatch, getters}) {
         commit('setShow', false);
@@ -57,7 +75,13 @@ const mutations = {
         state.show = show;
     },
 
+    setPersistence(state, persistent) {
+        state.persistent = persistent;
+    },
 
+    setFailed(state, failed) {
+        state.failed = failed;
+    },
 };
 
 export default {

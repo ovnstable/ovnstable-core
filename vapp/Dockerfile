@@ -1,9 +1,5 @@
-FROM node:lts-alpine
-
-# install simple http server for serving static content
-RUN npm install -g http-server
-
-COPY dist/ ./dist
-
+FROM nginx:stable-alpine as production-stage
+COPY dist/ /usr/share/nginx/html
+COPY prod_nginx.conf /etc/nginx/nginx.conf
 EXPOSE 8080
-CMD [ "http-server", "dist" ]
+CMD ["nginx", "-g", "daemon off;"]

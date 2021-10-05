@@ -5,20 +5,33 @@ import store from "./store/index.js";
 import utils from "./plugins/utils";
 import abiDecoder from "./plugins/abiDecoder";
 import vuetify from './plugins/vuetify'
-import web3 from './plugins/web3';
 import router from './router/index'
 import {axios} from './plugins/http-axios';
 import moment from 'moment';
+
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+const options = {
+  toastClassName: "toast",
+};
+Vue.use(Toast, options);
+
 
 Vue.use(Vuex)
 
 Vue.prototype.$moment = moment;
 Vue.prototype.$utils = utils;
 Vue.prototype.$abiDecoder = abiDecoder;
-Vue.prototype.$web3 = web3;
 Vue.prototype.$axios = axios;
 
 Vue.config.productionTip = false
+
+import VueGtag from "vue-gtag";
+
+Vue.use(VueGtag, {
+  config: { id: "G-97YQSM714C" }
+}, router);
+
 
 new Vue({
   store,

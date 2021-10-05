@@ -2,6 +2,7 @@ let accounting = require("accounting-js")
 import {axios} from "../../plugins/http-axios";
 import utils from "../../plugins/utils";
 import abiDecoder from "../../plugins/abiDecoder";
+
 let accountingConfig = {
     symbol: "",
     precision: 6,
@@ -10,12 +11,9 @@ let accountingConfig = {
 
 
 const state = {
-    contracts: null,
-    account: null,
-    web3: null,
-
 
     currentTotalData: null,
+    loadingCurrentTotalData: true,
 
     totalOvn: {
         totalMint: 0,
@@ -23,44 +21,38 @@ const state = {
         totalSupply: 0,
     },
 
+    loadingTotalOvn: true,
+
     balance: {
         ovn: 0,
         usdc: 0,
     },
-
-    gasPrice: 0,
-
-    contractNames: {},
+    loadingBalance: true,
 
     transactionLogs: [],
+    transactionLogsLoader: false,
     payouts: [],
+    loadingPayouts: true,
 };
 
 const getters = {
-
-
-    contracts(state) {
-        return state.contracts;
-    },
-    account(state) {
-        return state.account;
-    },
 
     balance(state) {
         return state.balance;
     },
 
+
+    loadingBalance(state) {
+        return state.loadingBalance;
+    },
+
     currentTotalData(state) {
         return state.currentTotalData;
     },
-
-    web3(state) {
-        return state.web3;
+    loadingCurrentTotalData(state) {
+        return state.loadingCurrentTotalData;
     },
 
-    contractNames(state) {
-        return state.contractNames;
-    },
 
     gasPrice(state) {
         return state.gasPrice;
@@ -68,6 +60,10 @@ const getters = {
 
     totalOvn(state) {
         return state.totalOvn;
+    },
+
+    loadingTotalOvn(state) {
+        return state.loadingTotalOvn;
     },
 
     transactionLogs(state) {
@@ -78,15 +74,53 @@ const getters = {
         return state.payouts;
     },
 
+    loadingPayouts(state) {
+        return state.loadingPayouts;
+    },
+
+    transactionLogsLoader(state) {
+        return state.transactionLogsLoader;
+    },
+
 };
 
 const actions = {
 
 
-    async refreshBalance({commit, dispatch, getters}) {
+    async refreshBalance({commit, dispatch, getters, rootState}) {
 
-        let usdc = await getters.contracts.usdc.methods.balanceOf(getters.account).call();
-        let ovn = await getters.contracts.ovn.methods.balanceOf(getters.account).call();
+        commit('setLoadingBalance', true)
+        let web3 = rootState.web3;
+
+        let ovn;
+        let usdc;
+        try {
+            usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+        } catch (e) {
+            console.log('ERROR: ' + e)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            try {
+                usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+            } catch (e) {
+                console.log('ERROR: ' + e)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
+            }
+        }
+
+        try {
+            ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+        } catch (e) {
+            console.log('ERROR: ' + e)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            try {
+                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            } catch (e) {
+                console.log('ERROR: ' + e)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            }
+        }
 
         ovn = ovn / 10 ** 6;
         usdc = usdc / 10 ** 6;
@@ -95,185 +129,178 @@ const actions = {
             usdc: usdc
         })
 
+        commit('setLoadingBalance', false)
+
     },
 
+    async resetUserData({commit, dispatch, getters}) {
+        commit('setBalance', {
+            ovn: 0,
+            usdc: 0
+        });
 
-    async refreshPayouts({commit, dispatch, getters}) {
+        commit('setTransactionLogs', [])
+    },
 
+    async refreshUserData({commit, dispatch, getters}) {
+        dispatch('refreshBalance')
+        dispatch('refreshTransactionLogs')
+    },
 
-        let exchange = getters.contracts.exchange.options.address;
-        let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
-        let topik = '0x6997cdab3aebbbb5a28dbdf7c61a3c7e9ee2c38784bbe66b9c4e58078e3b587f';
-        let fromBlock = 19022018;
-        let toBlock = await getters.web3.eth.getBlockNumber();
+    async refreshNotUserData({commit, dispatch, getters}) {
+        dispatch('refreshPayouts')
+        dispatch('refreshCurrentTotalData')
+        dispatch('refreshTotalOvn')
+    },
 
-        axios.get(`https://api.polygonscan.com/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&address=${exchange}&topic0=${topik}&apikey=${token}`)
+    async refreshPayouts({commit, dispatch, getters, rootState}) {
+        commit('setLoadingPayouts', true);
+        let web3 = rootState.web3.web3;
+
+        axios.get(`/payouts`)
             .then(value => {
 
 
                 let result = [];
-                let id = 1;
-                for (let item of value.data.result) {
+                for (let i = 1; i < value.data.result.length; i++) {
 
-                    let log = { }
+                    let item = value.data.result[i];
+                    let log = {}
 
-                    log.date= new Date(item.timeStamp*1000);
-                    log.id= id;
+                    log.date = new Date(item.timeStamp * 1000);
+                    log.id = i;
                     log.transactionHash = item.transactionHash;
 
-                    let params = getters.web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
-                    log.totalOvn = params[0];
-                    log.totalUsdc = params[1];
+                    let params = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
+                    log.totalOvn = params[0] / 10 ** 6;
+                    log.totalUsdc = params[1] / 10 ** 6;
                     log.totallyAmountRewarded = params[2] / 10 ** 6;
-                    log.totallySaved = params[3];
+                    log.totallySaved = params[3] / 10 ** 6;
+                    log.dailyProfit = (log.totallyAmountRewarded / log.totalOvn);
+                    log.annualizedYield = (((log.dailyProfit + 1) ** 365) - 1) * 100
 
                     result.push(log)
-
-                    id++;
                 }
 
-                result.sort(function(a,b){
+                result.sort(function (a, b) {
                     return new Date(b.date) - new Date(a.date);
                 });
 
 
-                for (let i = 0; i < result.length; i++) {
-                    let item = result[i];
-
-
-                    let timeItem = item.date.getTime();
-
-                    let dividendsPerYear = 0;
-                    for (let sumItem of result) {
-
-                        let time = sumItem.date.getTime();
-                        let result =timeItem - time;
-                        if(result > 0){
-                            dividendsPerYear += sumItem.totallyAmountRewarded;
-                        }
-                    }
-
-
-                    let dividendAmount = item.totallyAmountRewarded;
-                    item.distributionYield = (dividendAmount * dividendsPerYear) ;
-                }
-
-
-
-                commit('setPayouts', result)
+                commit('setPayouts', result);
+                commit('setLoadingPayouts', false);
             })
 
     },
 
 
-    async refreshTransactionLogs({commit, dispatch, getters}) {
+    async refreshTransactionLogs({commit, dispatch, getters, rootState}) {
 
-        let exchange = getters.contracts.exchange.options.address;
-        let account = getters.account.toLowerCase();
+        commit('setTransactionLogsLoader', true)
+        let exchange = rootState.web3.contracts.exchange.options.address.toLowerCase();
+        let ovn = rootState.web3.contracts.ovn.options.address.toLowerCase();
+        let usdc = rootState.web3.contracts.usdc.options.address.toLowerCase();
+        let account = rootState.web3.account.toLowerCase();
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
+        let rewarder = '0x5cb01385d3097b6a189d1ac8ba3364d900666445'.toLowerCase();
 
-        axios.get(`https://api.polygonscan.com/api?module=account&action=txlist&address=${exchange}&startblock=1&endblock=99999999&sort=asc&apikey=${token}`)
-            .then(value => {
+        let response = await axios.get(`https://api.polygonscan.com/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=19999999&sort=desc&apikey=${token}`);
+        let result = response.data.result;
 
-                let items = value.data.result.filter(item => {
-                    return item.from === account || item.to === account
-                });
+        let logs = [];
+        let id = 1;
+        for (let i = 0; i < result.length; i++) {
+            let item = result[i];
 
+            let log = {
+                date: new Date(item.timeStamp * 1000),
+                id: id,
+            }
 
-                let result = [];
-                let id = 1;
-                for (let item of items) {
+            if (item.from === exchange && item.contractAddress === usdc) {
+                let sum = item.value / 10 ** 6;
+                log.name = `OVN Redeemed for ${sum} ${item.tokenSymbol}`;
+                log.sum = sum;
+                logs.push(log);
+                id++;
+            } else if (item.from === account && item.to === exchange && item.contractAddress === usdc) {
+                let sum = item.value / 10 ** 6;
+                log.name = `${item.tokenSymbol} Minting for ${sum} OVN`;
+                log.sum = sum;
+                logs.push(log);
+                id++;
+            } else if (item.from === '0x0000000000000000000000000000000000000000' && item.to === account && item.contractAddress === ovn) {
 
-                    let log = {
-                        date: new Date(item.timeStamp*1000),
-                        id: id,
+                try {
+                    let transaction = await rootState.web3.web3.eth.getTransactionReceipt(item.hash);
+                    if (transaction.from === rewarder) {
+                        let sum = item.value / 10 ** 6;
+                        log.name = `Rewarding ${sum} OVN`;
+                        log.sum = sum;
+                        logs.push(log);
+                        id++;
                     }
 
-                    let method = abiDecoder.decodeMethod(item.input);
-
-                    let sum;
-                    let contract;
-                    switch (method.name){
-                        case 'buy':
-                            sum = method.params[1].value / 10 ** 6;
-                            contract = utils.getContractNameByAddress(method.params[0].value)
-                            log.name = `${contract} Minting for ${sum} OVN`;
-                            log.sum = sum;
-                            result.push(log)
-                            break
-                        case 'redeem':
-                            sum = method.params[1].value / 10 ** 6;
-                            contract = utils.getContractNameByAddress(method.params[0].value)
-                            log.name = `OVN Redeemed for ${sum} ${contract}`;
-                            log.sum = sum;
-                            result.push(log)
-                            break
-
-                    }
-
-                    id++;
+                } catch (e) {
+                    console.log(e)
                 }
 
-                result.sort(function(a,b){
-                    return new Date(b.date) - new Date(a.date);
-                });
 
-                commit('setTransactionLogs', result)
-            })
+            }
+        }
+
+        commit('setTransactionLogs', logs)
+        commit('setTransactionLogsLoader', false)
 
     },
 
 
     async refreshTotalOvn({commit, dispatch, getters}) {
-
+        commit('setLoadingTotalOvn', true)
         axios.get('/total').then(value => {
             commit('setTotalOvn', value.data);
+            commit('setLoadingTotalOvn', false)
         })
 
     },
 
 
-    async refreshProfile({commit, dispatch, getters}) {
+    async refreshCurrentTotalData({commit, dispatch, getters, rootState}) {
+        commit('setLoadingCurrentTotalData', true)
+        let web3 = rootState.web3;
+        axios.get('/prices').then(resp => {
 
-        dispatch('refreshGasPrice');
-        dispatch('refreshCurrentTotalData');
-        dispatch('refreshBalance');
-        dispatch('refreshTotalOvn');
-        dispatch('refreshTransactionLogs');
-        dispatch('refreshPayouts')
-    },
-
-    async refreshGasPrice({commit, dispatch, getters}) {
-        getters.web3.eth.getGasPrice(function (e, r) {
-            commit('setGasPrice', r)
-        })
-    },
-
-    async refreshCurrentTotalData({commit, dispatch, getters}) {
-
-        getters.contracts.m2m.methods.activesPrices().call().then(value => {
-            console.log(value)
-
+            let value = resp.data;
             let data = [];
             for (let i = 0; i < value.length; i++) {
                 let element = value[i];
 
                 try {
+                    let symbol = element.symbol;
                     let bookValue = parseInt(element.bookValue) / 10 ** parseInt(element.decimals);
                     let liquidationValue = parseInt(element.liquidationValue) / 10 ** parseInt(element.decimals);
-                    let price = parseFloat(getters.web3.utils.fromWei(element.price));
-
+                    let price = 0;
                     let liquidationPrice = 0
                     let bookPrice = 0
 
-                    if (liquidationValue !== 0 && bookValue !== 0)
-                        liquidationPrice = liquidationValue / bookValue;
+                    switch (symbol) {
+                        case 'USDC':
+                        case 'amUSDC':
+                            price = 1;
+                            liquidationPrice = 1;
+                            break
+                        default:
+                            price = parseFloat(web3.web3.utils.fromWei(element.price));
+                            if (liquidationValue !== 0 && bookValue !== 0)
+                                liquidationPrice = liquidationValue / bookValue;
+                    }
+
 
                     if (bookValue !== 0 && price !== 0)
                         bookPrice = bookValue * price
 
                     data.push({
-                        symbol: element.symbol,
+                        symbol: symbol,
                         bookValue: accounting.formatMoney(bookValue, accountingConfig),
                         price: accounting.formatMoney(price, accountingConfig),
                         bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
@@ -286,6 +313,7 @@ const actions = {
             }
 
             commit('setCurrentTotalData', data)
+            commit('setLoadingCurrentTotalData', false)
         })
 
 
@@ -300,20 +328,17 @@ const mutations = {
         state.currentTotalData = currentTotalData;
     },
 
-    setContracts(state, contracts) {
-        state.contracts = contracts;
+    setLoadingCurrentTotalData(state, value) {
+        state.loadingCurrentTotalData = value;
     },
 
-    setAccount(state, account) {
-        state.account = account;
-    },
-
-    setWeb3(state, web3) {
-        state.web3 = web3;
-    },
 
     setBalance(state, balance) {
         state.balance = balance;
+    },
+
+    setLoadingBalance(state, value) {
+        state.loadingBalance = value;
     },
 
     setGasPrice(state, price) {
@@ -330,6 +355,18 @@ const mutations = {
 
     setPayouts(state, payouts) {
         state.payouts = payouts;
+    },
+
+    setTransactionLogsLoader(state, transactionLogsLoader) {
+        state.transactionLogsLoader = transactionLogsLoader;
+    },
+
+    setLoadingTotalOvn(state, value) {
+        state.loadingTotalOvn = value;
+    },
+
+    setLoadingPayouts(state, value) {
+        state.loadingPayouts = value;
     },
 
 };

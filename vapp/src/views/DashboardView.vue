@@ -37,15 +37,17 @@
 
         <v-row justify="center" class="pr-5 pl-5">
           <v-col lg="4" class="tabs pa-1">
-            <button v-bind:class="activeTabMint" @click="tab = 1">Current Data</button>
-            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Payouts</button>
+            <button v-bind:class="activeTabMint" @click="tab = 1">Payouts</button>
+            <button v-bind:class="activeTabRedeem" @click="tab = 2 ">Portfolio</button>
           </v-col>
         </v-row>
 
         <v-row justify="center">
-          <v-col lg="6" class="pa-0 ma-0">
-            <CurrentTotalData v-if="tab === 1"/>
-            <HistoryTotalData v-if="tab === 2"/>
+          <v-col lg="7" class="pa-0 ma-0" v-if="tab === 1">
+            <HistoryTotalData />
+          </v-col>
+          <v-col lg="8" class="pa-0 ma-0" v-if="tab === 2">
+            <CurrentTotalData/>
           </v-col>
         </v-row>
 

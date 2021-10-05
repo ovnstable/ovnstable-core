@@ -8,23 +8,26 @@
 <script>
 
 
-import {mapActions} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: 'App',
 
   data: () => ({}),
 
-  computed: {},
+  computed: {
+
+  },
 
 
   created() {
-    this.refreshTotalOvn();
+
+    this.initWeb3();
   },
 
   methods: {
 
-    ...mapActions('profile', ['refreshTotalOvn'])
+    ...mapActions('web3', ['initWeb3'])
   }
 
 
@@ -56,6 +59,13 @@ html {
   border-radius: 10px;
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
   background-color: #555;
+}
+
+.Vue-Toastification__toast--success.toast {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 25px;
+  padding-right: 20px;
 }
 
 </style>

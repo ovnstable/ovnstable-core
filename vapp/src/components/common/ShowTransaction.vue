@@ -1,20 +1,24 @@
 <template>
-  <v-dialog width="500" v-model="modal" >
+  <v-dialog width="500" v-model="modal" :persistent="persistent">
     <v-container class="notification pa-0 ma-0">
       <v-row dense class="pa-0 ma-0 ml-4">
         <v-col lg="1" cols="1" sm="1" md="1" align-self="center">
-          <v-progress-circular
+          <v-progress-circular v-if="!failed"
               :size="50"
               size="40"
               color="#F3A964"
               indeterminate
           ></v-progress-circular>
+          <v-icon v-else color="#EF4242" size="40">mdi-alert</v-icon>
         </v-col>
         <v-col lg="11" cols="11" sm="11" md="11">
           <div class="text-block ml-4">
-            {{ textSecond }}
+            {{ textSecond }}  <span v-if="failed" class="text-failed pl-4">transaction failed</span>
             <br>
-            {{ text }}
+            <template v-if="!failed">
+              {{ text }}
+            </template>
+            <span v-else class="text-failed">Click anywhere to continue...</span>
           </div>
         </v-col>
       </v-row>
@@ -33,7 +37,7 @@ export default {
   }),
 
   computed: {
-    ...mapGetters('showTransactions', ['text', 'textSecond', "show"]),
+    ...mapGetters('showTransactions', ['text', 'textSecond', "show", 'failed', 'persistent']),
 
 
     modal: {
@@ -68,5 +72,8 @@ export default {
   font-weight: bold;
   height: 60px;
   overflow: hidden;
+}
+.text-failed{
+  color: #EF4242;
 }
 </style>

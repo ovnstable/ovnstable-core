@@ -16,7 +16,17 @@
               </v-col>
               <v-spacer/>
               <v-col lg="4" md="4" sm="5" class="pt-3 hidden-xs-only" align="end">
-                <div class="max" @click="max">Max: {{ maxResult }}</div>
+                <template v-if="loadingBalance">
+                  <div class="balance pt-0">
+                    <v-row class="ma-0 pa-0" justify="center">
+                      <v-skeleton-loader type="chip"></v-skeleton-loader>
+                    </v-row>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="max" @click="max">Max: {{ maxResult }}</div>
+
+                </template>
               </v-col>
               <v-col lg="4" cols="4" md="3" sm="3" align="end">
                 <v-row dense class="ma-0 pa-0" justify="end" align="center">
@@ -53,7 +63,16 @@
               </v-col>
               <v-spacer/>
               <v-col lg="4" md="4" sm="5" class="pt-3 hidden-xs-only" align="center">
-                <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc, 2) }}</div>
+                <template v-if="loadingBalance">
+                  <div class="balance pt-0">
+                    <v-row class="ma-0 pa-0" justify="center">
+                      <v-skeleton-loader type="chip"></v-skeleton-loader>
+                    </v-row>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="balance">Balance: {{ $utils.formatMoney(balance.usdc, 2) }}</div>
+                </template>
               </v-col>
               <v-col lg="4" cols="4" md="3" sm="3">
                 <v-row dense class="ma-0 pa-0" justify="end" align="end">
@@ -68,7 +87,9 @@
         <v-row dense class="pt-4">
           <v-btn height="60" class="buy elevation-0" @click="redeem" :disabled="!isBuy">{{ buttonLabel }}</v-btn>
         </v-row>
-
+        <v-row dense class="pt-4">
+          <GasPriceSelector/>
+        </v-row>
 
       </v-card-text>
     </v-card>
@@ -80,11 +101,13 @@ import {mapActions, mapGetters} from "vuex";
 import web3 from 'web3';
 import utils from "web3-utils";
 import CurrencySelector from "../common/CurrencySelector";
+import GasPriceSelector from "./GasPriceSelector";
+import ToastTransaction from "../common/ToastTransaction";
 
 
 export default {
   name: "Redeem",
-  components: {CurrencySelector},
+  components: {GasPriceSelector, CurrencySelector},
   data: () => ({
     menu: false,
     tab: null,
@@ -108,7 +131,12 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "account", 'web3', 'balance', 'gasPrice']),
+
+    ...mapGetters("profile", ['balance', 'gasPrice', 'loadingBalance']),
+    ...mapGetters("web3", ["web3", 'account',  'contracts']),
+    ...mapGetters("logTransactions", ["transactions"]),
+    ...mapGetters("gasPrice", ["gasPriceGwei"]),
+
 
     sumResult: function () {
       if (!this.sum || this.sum === 0)
@@ -140,7 +168,9 @@ export default {
 
     buttonLabel: function () {
 
-      if (this.isBuy) {
+      if (!this.account) {
+        return ' You need to connect to a wallet';
+      } else if (this.isBuy) {
         return 'Press to Withdraw'
       } else if (this.sum > parseFloat(this.balance.ovn)) {
         return 'Invalid amount'
@@ -168,8 +198,9 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshProfile']),
-    ...mapActions("showTransactions", ['show', 'hide', , 'addText']),
+    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
+    ...mapActions("gasPrice", ['refreshGasPrice']),
+    ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
 
     setSum(value) {
@@ -187,45 +218,66 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
-        let self =  this;
+        let self = this;
 
         let contracts = this.contracts;
         let from = this.account;
-        let gasPrice = this.web3.utils.toWei(this.gasPrice, 'gwei');
 
 
         this.show('Processing...')
         this.addText(`Locking ${this.sum} OVN ......  done`)
 
+        let allowanceValue = await contracts.ovn.methods.allowance(from, contracts.exchange.options.address).call();
+        console.log('Allowance value ' + allowanceValue)
 
-        let gasApprove = await contracts.ovn.methods.approve(contracts.exchange.options.address, sum).estimateGas({from: from});
-        let approveParams = {gas: gasApprove,  from: from};
+        if (allowanceValue < sum) {
+          try {
+            await this.refreshGasPrice();
+            let approveParams = {gasPrice: this.gasPriceGwei, from: from};
+            await contracts.ovn.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935').send(approveParams);
+          } catch (e) {
+            console.log(e)
+            this.failed();
+            return;
+          }
+        }
 
-        contracts.ovn.methods.approve(contracts.exchange.options.address, sum).send(approveParams).then(function () {
-          self.addText(`Burning ${self.sum} OVN ......  done`);
-          self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
+        self.addText(`Burning ${self.sum} OVN ......  done`);
+        self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
+
+        try {
+          await this.refreshGasPrice();
+          let buyParams = {gasPrice: this.gasPriceGwei, from: from};
+          let redeemResult = await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
+          this.showSuccessRedeemToast(self.sum, redeemResult.transactionHash)
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return;
+        }
 
 
-          contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).estimateGas({from: from}).then((e,value)=>{
+        self.addText(`Completed, await blockchain, click to proceed`);
+        setTimeout(() => self.hide(), 1000);
 
-            let buyParams = {gas: value,  from: from};
-
-            contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams).then(function () {
-              self.addText(`Completed, await blockchain, click to proceed`);
-              setTimeout(() => self.hide(), 1000);
-
-              self.refreshProfile();
-              self.setSum(null)
-            });
-          })
-
-
-        });
-
+        self.refreshUserData();
+        self.setSum(null)
 
       } catch (e) {
         console.log(e)
+        this.failed();
       }
+    },
+
+    showSuccessRedeemToast(sum, tx){
+      const content = {
+        component: ToastTransaction,
+        props: {
+          text: `Redeem ${sum} USDC`,
+          tx: tx,
+        },
+      }
+      this.$toast(content, { position: "top-right",  type: 'success', timeout: 10000} );
     },
 
     selectItem(item) {

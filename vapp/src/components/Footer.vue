@@ -15,16 +15,16 @@
               <v-icon color="black" >mdi-github</v-icon>
             </v-btn>
 
-            <v-btn icon href="https://github.com/ovnstable" target="_blank">
-              <v-icon color="black" >mdi-discord</v-icon>
+            <v-btn icon href="https://ovnstable.medium.com/" target="_blank">
+              <img width="24" height="24" :src="require('../assets/resource/medium.png')">
             </v-btn>
 
-            <v-btn icon href="https://github.com/ovnstable" target="_blank">
+            <v-btn icon href="https://twitter.com/ovnstable" target="_blank">
               <v-icon color="black" >mdi-twitter</v-icon>
             </v-btn>
 
-            <v-btn icon href="https://github.com/ovnstable" target="_blank">
-              <v-icon color="black" >mdi-email</v-icon>
+            <v-btn icon href="https://t.me/ovnstable" target="_blank">
+              <img width="24" height="24" :src="require('../assets/resource/telegram.png')">
             </v-btn>
           </v-col>
         </v-row>

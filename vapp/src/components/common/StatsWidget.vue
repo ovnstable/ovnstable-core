@@ -5,8 +5,17 @@
         <v-col lg="6">
           Total OVN Minted:
         </v-col>
+
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces($utils.formatMoney(totalOvn.totalMint, 0)) }}
+
+          <template v-if="loadingTotalOvn">
+            <v-skeleton-loader
+                type="text"
+            ></v-skeleton-loader>
+          </template>
+          <template v-else>
+            {{ numberWithSpaces($utils.formatMoney(totalOvn.totalMint, 0)) }}
+          </template>
         </v-col>
       </v-row>
       <v-row dense class="row fatty pt-2 pb-2" align="center">
@@ -14,7 +23,15 @@
           OVN in circulation:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          <strong>{{ numberWithSpaces($utils.formatMoney(totalOvn.totalSupply, 0)) }}</strong>
+          <template v-if="loadingTotalOvn">
+            <v-skeleton-loader
+                type="text"
+            ></v-skeleton-loader>
+          </template>
+          <template v-else>
+            <strong>{{ numberWithSpaces($utils.formatMoney(totalOvn.totalSupply, 0)) }}</strong>
+          </template>
+
         </v-col>
         <v-col lg="2">
         </v-col>
@@ -25,7 +42,15 @@
           Total OVN Burnt:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          {{ numberWithSpaces($utils.formatMoney(totalOvn.totalBurn, 0)) }}
+
+          <template v-if="loadingTotalOvn">
+            <v-skeleton-loader
+                type="text"
+            ></v-skeleton-loader>
+          </template>
+          <template v-else>
+            {{ numberWithSpaces($utils.formatMoney(totalOvn.totalBurn, 0)) }}
+          </template>
         </v-col>
 
         <v-col>
@@ -58,7 +83,7 @@ export default {
 
 
   computed: {
-    ...mapGetters('profile', ['totalOvn'])
+    ...mapGetters('profile', ['totalOvn', 'loadingTotalOvn'])
   },
 
   methods: {
