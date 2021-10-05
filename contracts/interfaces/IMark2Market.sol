@@ -16,7 +16,7 @@ interface IMark2Market {
     struct AssetPrices {
         address asset;
         uint256 amountInVault; // balance on Vault
-        uint256 usdcPriceOne; // current price one token at USDC
+        // uint256 usdcPriceOne; // current price one token at USDC
         uint256 usdcPriceInVault; // current total price of balance at USDC
         uint256 diffToTarget; // diff usdcPriceInVault to target in portfolio
         int8 diffToTargetSign; // diff sign usdcPriceInVault to target in portfolio
@@ -24,7 +24,11 @@ interface IMark2Market {
         uint256 usdcPriceDenominator;
         uint256 usdcSellPrice;
         uint256 usdcBuyPrice;
-        uint256 usdcPriceInVault2;
+        // uint256 usdcPriceInVault2;
+        //
+        uint256 decimals;
+        string name;
+        string symbol;
     }
 
     struct TotalAssetPrices {
