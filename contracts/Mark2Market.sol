@@ -124,7 +124,8 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 denominator = 10**(IERC20Metadata(assetWeight.asset).decimals() - 6);
             // uint256 usdcPriceInVault = (amountInVault * usdcPriceOne) / denominator;
             uint256 usdcPriceInVault = (amountInVault * usdcPriceDenominator) /
-                (usdcSellPrice * denominator);
+                usdcSellPrice /
+                denominator;
 
             // amountInVault = 19500_000000
             // usdcSellPrice = 0.975 * 10^18
@@ -141,17 +142,21 @@ contract Mark2Market is IMark2Market, OwnableExt {
             assetPrices[i] = AssetPrices(
                 assetWeight.asset,
                 amountInVault,
-                usdcPriceOne,
+                // usdcPriceOne,
                 usdcPriceInVault,
                 0,
-                0,
+                int8(0),
                 usdcPriceDenominator,
                 usdcSellPrice,
                 usdcBuyPrice,
-                (amountInVault * usdcPriceDenominator) / (usdcSellPrice * denominator)
+                // (amountInVault * usdcPriceDenominator) / usdcSellPrice / denominator
+                // ,
+                IERC20Metadata(assetWeight.asset).decimals(),
+                IERC20Metadata(assetWeight.asset).name(),
+                IERC20Metadata(assetWeight.asset).symbol()
             );
 
-            log("usdcPriceInVault2: ", assetPrices[i].usdcPriceInVault2);
+            // log("usdcPriceInVault2: ", assetPrices[i].usdcPriceInVault2);
         }
 
         // 3. validate withdrawAmount
