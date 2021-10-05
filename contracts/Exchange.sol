@@ -8,11 +8,9 @@ import "./interfaces/IConnector.sol";
 import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./PortfolioManager.sol";
-import "./Buffer.sol";
 import "./interfaces/IMark2Market.sol";
 
 contract Exchange is AccessControl {
-    using Buffer for Buffer.buffer;
 
     OvernightToken ovn;
     IERC20 usdc;
