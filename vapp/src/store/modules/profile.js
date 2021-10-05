@@ -147,6 +147,13 @@ const actions = {
         dispatch('refreshTransactionLogs')
     },
 
+    async refreshAfterMintRedeem({commit, dispatch, getters}) {
+        dispatch('refreshBalance')
+        dispatch('refreshTransactionLogs')
+        dispatch('refreshCurrentTotalData')
+        dispatch('refreshTotalOvn')
+    },
+
     async refreshNotUserData({commit, dispatch, getters}) {
         dispatch('refreshPayouts')
         dispatch('refreshCurrentTotalData')
@@ -267,55 +274,41 @@ const actions = {
 
     async refreshCurrentTotalData({commit, dispatch, getters, rootState}) {
         commit('setLoadingCurrentTotalData', true)
-        let web3 = rootState.web3;
+
         axios.get('/prices').then(resp => {
+            let data = [];
 
             let value = resp.data;
-            let data = [];
             for (let i = 0; i < value.length; i++) {
-                let element = value[i];
+            let element = value[i];
 
-                try {
-                    let symbol = element.symbol;
-                    let bookValue = parseInt(element.bookValue) / 10 ** parseInt(element.decimals);
-                    let liquidationValue = parseInt(element.liquidationValue) / 10 ** parseInt(element.decimals);
-                    let price = 0;
-                    let liquidationPrice = 0
-                    let bookPrice = 0
+            try {
 
-                    switch (symbol) {
-                        case 'USDC':
-                        case 'amUSDC':
-                            price = 1;
-                            liquidationPrice = 1;
-                            break
-                        default:
-                            price = parseFloat(web3.web3.utils.fromWei(element.price));
-                            if (liquidationValue !== 0 && bookValue !== 0)
-                                liquidationPrice = liquidationValue / bookValue;
-                    }
+                let symbol = element.symbol;
+                let name = element.name;
+                let bookValue = element.amountInVault / 10 ** element.decimals;
+                let liquidationValue = element.usdcPriceInVault / 10 ** 6;
+                let price = element.usdcBuyPrice/ element.usdcPriceDenominator;
+                let liquidationPrice = element.usdcSellPrice / element.usdcPriceDenominator;
+                let bookPrice = element.usdcPriceInVault / 10 ** 6 ;
 
-
-                    if (bookValue !== 0 && price !== 0)
-                        bookPrice = bookValue * price
-
-                    data.push({
-                        symbol: symbol,
-                        bookValue: accounting.formatMoney(bookValue, accountingConfig),
-                        price: accounting.formatMoney(price, accountingConfig),
-                        bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
-                        liquidationPrice: accounting.formatMoney(liquidationPrice, accountingConfig),
-                        liquidationValue: accounting.formatMoney(liquidationValue, accountingConfig),
-                    })
-                } catch (e) {
-                    console.log(e)
-                }
+                data.push({
+                    symbol: symbol,
+                    name: name,
+                    bookValue: accounting.formatMoney(bookValue, accountingConfig),
+                    price: accounting.formatMoney(price, accountingConfig),
+                    bookPrice: accounting.formatMoney(bookPrice, accountingConfig),
+                    liquidationPrice: accounting.formatMoney(liquidationPrice, accountingConfig),
+                    liquidationValue: accounting.formatMoney(liquidationValue, accountingConfig),
+                })
+            } catch (e) {
+                console.log(e)
             }
+        }
 
-            commit('setCurrentTotalData', data)
-            commit('setLoadingCurrentTotalData', false)
+        commit('setCurrentTotalData', data)
+        commit('setLoadingCurrentTotalData', false)
         })
-
 
     }
 

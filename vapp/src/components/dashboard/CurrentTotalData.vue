@@ -82,7 +82,7 @@
                 {{ netAssetValueTotal }}
               </v-col>
               <v-col lg="4">
-                {{liquidationValueTotal}}
+                {{ liquidationValueTotal }}
               </v-col>
             </v-row>
 
@@ -107,8 +107,7 @@
 
 <script>
 import {mapGetters} from "vuex";
-import web3 from "web3";
-import utils from 'web3-utils';
+import BigNumber from "bignumber.js";
 
 export default {
   name: "CurrentTotalData",
@@ -121,35 +120,41 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ["contracts", "web3", 'account', 'currentTotalData', 'totalOvn', 'loadingCurrentTotalData']),
+    ...mapGetters("profile", ['currentTotalData', 'totalOvn', 'loadingCurrentTotalData']),
+    ...mapGetters("web3", ['web3']),
 
-    liquidationValueTotal: function (){
-      let value = 0;
+    liquidationValueTotal: function () {
+
+      let value = new BigNumber(0);
+
       if (this.currentTotalData) {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
           if (item.liquidationValue)
-            value += parseFloat(item.liquidationValue);
+            value = value.plus(new BigNumber(item.liquidationValue))
         }
 
       }
-      return this.$utils.formatMoney(value);
+
+      return value.toFixed(6);
 
     },
     netAssetValueTotal: function () {
 
-      let value = 0;
+      let value = new BigNumber(0);
+
       if (this.currentTotalData) {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
           if (item.bookPrice)
-            value += parseFloat(item.bookPrice);
+            value = value.plus(new BigNumber(item.bookPrice))
         }
 
       }
-      return this.$utils.formatMoney(value);
+
+      return value.toFixed(6);
     },
   },
 

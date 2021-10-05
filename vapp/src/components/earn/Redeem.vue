@@ -198,7 +198,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", ['refreshBalance', 'refreshCurrentTotalData', 'refreshUserData']),
+    ...mapActions("profile", [ 'refreshAfterMintRedeem']),
     ...mapActions("gasPrice", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
@@ -260,7 +260,7 @@ export default {
         self.addText(`Completed, await blockchain, click to proceed`);
         setTimeout(() => self.hide(), 1000);
 
-        self.refreshUserData();
+        self.refreshAfterMintRedeem();
         self.setSum(null)
 
       } catch (e) {
