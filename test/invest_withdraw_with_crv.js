@@ -119,9 +119,9 @@ module.exports = async function (callback) {
 
     var ovnBalance = await ovn.balanceOf(userAccount);
     var withdrawAmount = parseInt(ovnBalance * 0.2, 10);
-    console.log("userAccount redeem: " + withdrawAmount);
+    console.log("userAccount redeem: " + withdrawAmount + " of " + ovnBalance);
     callResult = await exchange.redeem(usdc.address, withdrawAmount);
-    console.log("user redeem " + withdrawAmount);
+    console.log("user redeem " + withdrawAmount + " of " + ovnBalance);
     for(let rawLog of callResult.receipt.rawLogs) {
         let data = rawLog.data;
         data = data.replace("0x", "");
@@ -154,8 +154,8 @@ module.exports = async function (callback) {
 
 
     ovnBalance = await ovn.balanceOf(userAccount);
-    withdrawAmount = ovnBalance;
-    console.log("userAccount redeem: " + withdrawAmount);
+    withdrawAmount = parseInt(ovnBalance * 0.96, 10);
+    console.log("userAccount redeem: " + withdrawAmount + " of " + ovnBalance);
     await exchange.redeem(usdc.address, withdrawAmount);
 
      

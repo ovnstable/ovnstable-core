@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract InvestmentPortfolio is AccessControl {
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
-    mapping(address => uint256) private assetPositions;
-    IERC20[] assets;
+    mapping(address => uint256) private assetInfoPositions;
+    AssetInfo[] assetInfos;
     mapping(address => uint256) private assetWeightPositions;
     AssetWeight[] public assetWeights;
 
@@ -22,6 +22,11 @@ contract InvestmentPortfolio is AccessControl {
         uint256 maxWeight;
     }
 
+    struct AssetInfo {
+        address asset;
+        address priceGetter;
+    }
+
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
@@ -31,10 +36,35 @@ contract InvestmentPortfolio is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function addAsset(address asset) external onlyAdmin {
-        require(asset != address(0), "Zero address not allowed");
-        assets.push(IERC20(asset));
-        assetPositions[address(asset)] = assets.length - 1;
+    function setAssetInfos(AssetInfo[] calldata _assetInfos) external onlyAdmin {
+        for (uint8 i = 0; i < _assetInfos.length; i++) {
+            _addAssetInfoAt(_assetInfos[i], i);
+        }
+        // truncate array if needed
+        if (assetInfos.length > _assetInfos.length) {
+            uint256 removeCount = assetInfos.length - _assetInfos.length;
+            for (uint8 i = 0; i < removeCount; i++) {
+                //TODO: do we need remove from mapping?
+                assetInfos.pop();
+            }
+        }
+    }
+
+    function addAssetInfoAt(AssetInfo calldata assetInfo, uint256 index) external onlyAdmin {
+        _addAssetInfoAt(assetInfo, index);
+    }
+
+    function _addAssetInfoAt(AssetInfo calldata assetInfo, uint256 index) internal {
+        uint256 currentlength = assetInfos.length;
+        // expand array id needed
+        if (currentlength == 0 || currentlength - 1 < index) {
+            uint256 additionalCount = index - currentlength + 1;
+            for (uint8 i = 0; i < additionalCount; i++) {
+                assetInfos.push();
+            }
+        }
+        assetInfos[index] = assetInfo;
+        assetInfoPositions[assetInfo.asset] = index;
     }
 
     function setWeights(AssetWeight[] calldata _assetWeights) external onlyAdmin {
@@ -87,8 +117,12 @@ contract InvestmentPortfolio is AccessControl {
         assetWeights[index] = assetWeight;
     }
 
-    function getAllAssets() external view returns (IERC20[] memory) {
-        return assets;
+    function getAllAssets() external view returns (AssetInfo[] memory) {
+        return assetInfos;
+    }
+
+    function getAssetInfo(address asset) external view returns (AssetInfo memory) {
+        return assetInfos[assetInfoPositions[asset]];
     }
 
     function getAssetWeight(address asset) external view returns (AssetWeight memory) {

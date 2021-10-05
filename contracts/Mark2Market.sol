@@ -5,6 +5,7 @@ import "./interfaces/IActivesList.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IConnector.sol";
+import "./interfaces/IPriceGetter.sol";
 import "./OwnableExt.sol";
 import "./registries/InvestmentPortfolio.sol";
 import "./Vault.sol";
@@ -107,9 +108,30 @@ contract Mark2Market is IMark2Market, OwnableExt {
             InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
             uint256 usdcPriceOne = 1; //TODO: use real price
+
+            InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(
+                assetWeight.asset
+            );
+            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+
+            uint256 usdcPrice = usdcPriceOne * 10**18;
+
+            uint256 usdcPriceDenominator = priceGetter.denominator();
+            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
+            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
+
             //TODO: denominator usage
-            uint256 denominator =  10 ** (IERC20Metadata(assetWeight.asset).decimals() - 6);
-            uint256 usdcPriceInVault = amountInVault * usdcPriceOne / denominator;
+            uint256 denominator = 10**(IERC20Metadata(assetWeight.asset).decimals() - 6);
+            // uint256 usdcPriceInVault = (amountInVault * usdcPriceOne) / denominator;
+            uint256 usdcPriceInVault = (amountInVault * usdcPriceDenominator) /
+                (usdcSellPrice * denominator);
+
+            // amountInVault = 19500_000000
+            // usdcSellPrice = 0.975 * 10^18
+            // usdcPriceDenominator = 10^18
+
+            // uint256 amounbtDenominator = 10**(IERC20Metadata(assetWeight.asset).decimals() - 6);
+            // uint256 usdcPriceInVault2 = ;
 
             //TODO: remove
             log("amountInVault: ", amountInVault);
@@ -122,12 +144,28 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 usdcPriceOne,
                 usdcPriceInVault,
                 0,
-                0
+                0,
+                usdcPriceDenominator,
+                usdcSellPrice,
+                usdcBuyPrice,
+                (amountInVault * usdcPriceDenominator) / (usdcSellPrice * denominator)
             );
+
+            log("usdcPriceInVault2: ", assetPrices[i].usdcPriceInVault2);
         }
 
         // 3. validate withdrawAmount
-        require(totalUsdcPrice >= withdrawAmount, "Withdraw more than total");
+        require(
+            totalUsdcPrice >= withdrawAmount,
+            string(
+                abi.encodePacked(
+                    "Withdraw more than total: ",
+                    uint2str(withdrawAmount),
+                    " > ",
+                    uint2str(totalUsdcPrice)
+                )
+            )
+        );
 
         // 4. correct total with withdrawAmount
         totalUsdcPrice = totalUsdcPrice - withdrawAmount;
@@ -170,7 +208,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             investmentPortfolio.TOTAL_WEIGHT();
         uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
         //TODO: denominator usage
-        uint256 denominator =  10 ** (IERC20Metadata(asset).decimals() - 6);
+        uint256 denominator = 10**(IERC20Metadata(asset).decimals() - 6);
         currentAmount = currentAmount / denominator;
 
         if (targetAmount >= currentAmount) {

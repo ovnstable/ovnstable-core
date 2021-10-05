@@ -20,6 +20,11 @@ interface IMark2Market {
         uint256 usdcPriceInVault; // current total price of balance at USDC
         uint256 diffToTarget; // diff usdcPriceInVault to target in portfolio
         int8 diffToTargetSign; // diff sign usdcPriceInVault to target in portfolio
+        //
+        uint256 usdcPriceDenominator;
+        uint256 usdcSellPrice;
+        uint256 usdcBuyPrice;
+        uint256 usdcPriceInVault2;
     }
 
     struct TotalAssetPrices {
