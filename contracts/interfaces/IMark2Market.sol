@@ -38,6 +38,8 @@ interface IMark2Market {
 
     function activesPrices() external view returns (ActivesPrices[] memory);
 
+    function assetPrices() external returns (TotalAssetPrices memory);
+
     function assetPricesForBalance() external returns (TotalAssetPrices memory);
 
     function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)

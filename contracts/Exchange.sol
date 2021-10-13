@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -11,7 +11,6 @@ import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 
 contract Exchange is AccessControl {
-
     OvernightToken ovn;
     IERC20 usdc;
     PortfolioManager PM; //portfolio manager contract
@@ -20,10 +19,14 @@ contract Exchange is AccessControl {
     event EventExchange(string label, uint256 amount);
     event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
     event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
-    event RewardEvent(uint256 totalOvn, uint256 totalUsdc, uint256 totallyAmountRewarded, uint256 totallySaved);
+    event RewardEvent(
+        uint256 totalOvn,
+        uint256 totalUsdc,
+        uint256 totallyAmountRewarded,
+        uint256 totallySaved
+    );
 
-    modifier onlyAdmin()
-    {
+    modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
     }
@@ -32,7 +35,7 @@ contract Exchange is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setTokens(address _ovn, address _usdc) external onlyAdmin{
+    function setTokens(address _ovn, address _usdc) external onlyAdmin {
         require(_ovn != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         ovn = OvernightToken(_ovn);
@@ -57,10 +60,13 @@ contract Exchange is AccessControl {
         require(balance >= _amount, "Not enough tokens to buy");
 
         IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
-        ovn.mint(msg.sender, _amount);
+
+        // uint256 mintAmount = _amount - (_amount * 4) / 10000;
+        uint256 mintAmount = _amount;
+        ovn.mint(msg.sender, mintAmount);
 
         IERC20(_addrTok).transfer(address(PM), _amount);
-        PM.invest( IERC20(_addrTok), _amount);
+        PM.invest(IERC20(_addrTok), _amount);
     }
 
     event ErrorLogging(string reason);
@@ -71,7 +77,7 @@ contract Exchange is AccessControl {
         //TODO: Real unstacke amount may be different to _amount
 
         // try PM.withdraw(IERC20(_addrTok), _amount) returns (uint256 unstakedAmount) {
-            
+
         //     // Or just burn from sender
         //     ovn.burn(msg.sender, _amount);
 
@@ -87,7 +93,6 @@ contract Exchange is AccessControl {
         //     // revert (string(buf.buf));
         // }
 
-
         uint256 unstakedAmount = PM.withdraw(IERC20(_addrTok), _amount);
 
         // Or just burn from sender
@@ -95,9 +100,12 @@ contract Exchange is AccessControl {
 
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
+        require(
+            IERC20(_addrTok).balanceOf(address(this)) >= unstakedAmount,
+            "Not enough for transfer unstakedAmount"
+        );
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
     }
-
 
     function reward() external onlyAdmin {
         // 1. get current amount of OVN
@@ -108,14 +116,24 @@ contract Exchange is AccessControl {
         uint totalOvnSupply = ovn.totalSupply();
         IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
         uint256 totalUsdc = assetPrices.totalUsdcPrice;
-        require(totalUsdc > totalOvnSupply, string(abi.encodePacked("Nothing to reward: ", uint2str(totalUsdc), " <= ", uint2str(totalOvnSupply))));
-        uint difference  = totalUsdc - totalOvnSupply;
+        require(
+            totalUsdc > totalOvnSupply,
+            string(
+                abi.encodePacked(
+                    "Nothing to reward: ",
+                    uint2str(totalUsdc),
+                    " <= ",
+                    uint2str(totalOvnSupply)
+                )
+            )
+        );
+        uint difference = totalUsdc - totalOvnSupply;
 
         uint totallyAmountRewarded = 0;
         for (uint8 i = 0; i < ovn.ownerLength(); i++) {
             address ovnOwnerAddress = ovn.ownerAt(i);
             uint ovnBalance = ovn.balanceOf(ovnOwnerAddress);
-            uint additionalMintAmount = ovnBalance * difference / totalOvnSupply;
+            uint additionalMintAmount = (ovnBalance * difference) / totalOvnSupply;
             if (additionalMintAmount > 0) {
                 ovn.mint(ovnOwnerAddress, additionalMintAmount);
                 totallyAmountRewarded += additionalMintAmount;
@@ -129,7 +147,6 @@ contract Exchange is AccessControl {
             totallyAmountRewarded,
             difference - totallyAmountRewarded
         );
-
     }
 
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
@@ -145,8 +162,8 @@ contract Exchange is AccessControl {
         bytes memory bstr = new bytes(len);
         uint k = len;
         while (_i != 0) {
-            k=k-1;
-            bstr[k] = bytes1(uint8(48 + _i % 10));
+            k = k - 1;
+            bstr[k] = bytes1(uint8(48 + (_i % 10)));
             _i /= 10;
         }
         return string(bstr);

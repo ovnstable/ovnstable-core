@@ -17,6 +17,9 @@ const Usdc2AUsdcTokenExchange = artifacts.require("./token_exchanges/Usdc2AUsdcT
 const AUsdc2A3CrvActionBuilder = artifacts.require("./action_builders/AUsdc2A3CrvActionBuilder.sol")
 const AUsdc2A3CrvTokenExchange = artifacts.require("./token_exchanges/AUsdc2A3CrvTokenExchange.sol")
 
+const A3Crv2A3CrvGaugeActionBuilder = artifacts.require("./action_builders/A3Crv2A3CrvGaugeActionBuilder.sol")
+const A3Crv2A3CrvGaugeTokenExchange = artifacts.require("./token_exchanges/A3Crv2A3CrvGaugeTokenExchange.sol")
+
 const ERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/ERC20.sol")
 
 module.exports = async function (deployer) {
@@ -24,9 +27,13 @@ module.exports = async function (deployer) {
     let usdc = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
     let aUsdc = "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"
     let a3Crv = "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"
+    let a3CrvGauge = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
+    let crv = "0x172370d5Cd63279eFa6d502DAB29171933a610AF"
+    let wMatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
+ 
     // let usdc = await ERC20.at('0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     // let aUsdc = await ERC20.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
-
+ 
     //TODO: move all deploy to its own scripts
     // vault
     await deployer.deploy(Vault);
@@ -42,26 +49,33 @@ module.exports = async function (deployer) {
 
     let usdcWeight = {
         asset: usdc,
-        minWeight: 25000,
-        targetWeight: 40000,
-        maxWeight: 60000,
+        minWeight: 0,
+        targetWeight: 10000,
+        maxWeight: 100000,
     }
     let aUsdcWeight = {
         asset: aUsdc,
-        minWeight: 25000,
-        targetWeight: 40000,
-        maxWeight: 60000,
+        minWeight: 0,
+        targetWeight: 10000,
+        maxWeight: 100000,
     }
     let a3CrvWeight = {
         asset: a3Crv,
         minWeight: 0,
-        targetWeight: 20000,
-        maxWeight: 40000,
+        targetWeight: 30000,
+        maxWeight: 100000,
+    }
+    let a3CrvGaugeWeight = {
+        asset: a3CrvGauge,
+        minWeight: 0,
+        targetWeight: 50000,
+        maxWeight: 100000,
     }
     let weights = [
         usdcWeight,
         aUsdcWeight,
-        a3CrvWeight
+        a3CrvWeight,
+        a3CrvGaugeWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
     console.log("setWeights: " + result);
@@ -108,6 +122,25 @@ module.exports = async function (deployer) {
     const aUsdc2A3CrvActionBuilder = await AUsdc2A3CrvActionBuilder.deployed();
 
 
+    let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
+    // third token exchange
+    await deployer.deploy(
+        A3Crv2A3CrvGaugeTokenExchange,
+        curveGaugeAddress, // address _curveGauge
+    );
+    const a3Crv2A3CrvGaugeTokenExchange = await A3Crv2A3CrvGaugeTokenExchange.deployed();
+
+    // third token exchange
+    await deployer.deploy(
+        A3Crv2A3CrvGaugeActionBuilder,
+        a3Crv2A3CrvGaugeTokenExchange.address, // address _tokenExchange,
+        a3Crv, // address _a3CrvToken,
+        a3CrvGauge, // address _a3CrvGaugeToken
+    );
+    const a3Crv2A3CrvGaugeActionBuilder = await A3Crv2A3CrvGaugeActionBuilder.deployed();
+
+
+
 
     const actList = await ActivesList.deployed();
     const ovn = await OvernightToken.deployed();
@@ -130,7 +163,8 @@ module.exports = async function (deployer) {
 
     // set actions builders in order
     await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);
-    await balancer.addActionBuilderAt(aUsdc2A3CrvActionBuilder.address, 1);
+    await balancer.addActionBuilderAt(a3Crv2A3CrvGaugeActionBuilder.address, 1);
+    await balancer.addActionBuilderAt(aUsdc2A3CrvActionBuilder.address, 2);
 
 
     // Set role EX
