@@ -18,7 +18,7 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
         require(_curveConnector != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
         require(_a3CrvToken != address(0), "Zero address not allowed");
-        
+
         curveConnector = IConnector(_curveConnector);
         aUsdcToken = IERC20(_aUsdcToken);
         a3CrvToken = IERC20(_a3CrvToken);
@@ -33,42 +33,50 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
     ) external override {
         require(
             (from == aUsdcToken && to == a3CrvToken) || (from == a3CrvToken && to == aUsdcToken),
-            "Some token not compatible"
+            "AUsdc2A3CrvTokenExchange: Some token not compatible"
         );
 
         if (from == aUsdcToken && to == a3CrvToken) {
+            require(
+                aUsdcToken.balanceOf(address(this)) >= amount,
+                "AUsdc2A3CrvTokenExchange: Not enought aUsdcToken tokens"
+            );
+
             aUsdcToken.transfer(address(curveConnector), amount);
             curveConnector.stake(address(aUsdcToken), amount, receiver);
         } else {
-
-                // try a3CrvToken.transfer(address(curveConnector), amount) {
-                //     try curveConnector.unstake(address(aUsdcToken), amount, receiver) returns(uint256 withdrewAmount) {
-                //     } catch Error(string memory reason) {
-                //         revert(reason);
-                //     } catch {
-                //         revert(
-                //             string(
-                //                 abi.encodePacked(
-                //                     "curveConnector.unstake"
-                //                 )
-                //             )
-                //         );
-                //     }
-                // } catch Error(string memory reason) {
-                //     revert(reason);
-                // } catch {
-                //     revert(
-                //         string(
-                //             abi.encodePacked(
-                //                 "a3CrvToken.transfer"
-                //             )
-                //         )
-                //     );
-                // }
+            // try a3CrvToken.transfer(address(curveConnector), amount) {
+            //     try curveConnector.unstake(address(aUsdcToken), amount, receiver) returns(uint256 withdrewAmount) {
+            //     } catch Error(string memory reason) {
+            //         revert(reason);
+            //     } catch {
+            //         revert(
+            //             string(
+            //                 abi.encodePacked(
+            //                     "curveConnector.unstake"
+            //                 )
+            //             )
+            //         );
+            //     }
+            // } catch Error(string memory reason) {
+            //     revert(reason);
+            // } catch {
+            //     revert(
+            //         string(
+            //             abi.encodePacked(
+            //                 "a3CrvToken.transfer"
+            //             )
+            //         )
+            //     );
+            // }
 
             //TODO: denominator usage
             uint256 a3CrvAmount = amount * (10**12);
-            require(a3CrvToken.balanceOf(address(this)) >= a3CrvAmount, "Not enought a3Crv tokens");
+            require(
+                a3CrvToken.balanceOf(address(this)) >= a3CrvAmount,
+                "AUsdc2A3CrvTokenExchange: Not enought a3Crv tokens"
+            );
+
             a3CrvToken.transfer(address(curveConnector), a3CrvAmount);
             uint256 withdrewAmount = curveConnector.unstake(address(aUsdcToken), amount, receiver);
 

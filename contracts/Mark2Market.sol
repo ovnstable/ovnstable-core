@@ -82,6 +82,62 @@ contract Mark2Market is IMark2Market, OwnableExt {
         testprice = _tst;
     }
 
+    function assetPrices()
+        public
+        override
+        returns (TotalAssetPrices memory)
+    {
+        InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio
+            .getAllAssets();
+
+        //TODO: remove
+        log("assetInfos.length: ", assetInfos.length);
+
+        uint256 totalUsdcPrice = 0;
+        uint256 count = assetInfos.length;
+        AssetPrices[] memory assetPrices = new AssetPrices[](count);
+        for (uint8 i = 0; i < count; i++) {
+            InvestmentPortfolio.AssetInfo memory assetInfo = assetInfos[i];
+            uint256 amountInVault = IERC20(assetInfo.asset).balanceOf(address(vault));
+
+            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+
+            uint256 usdcPriceDenominator = priceGetter.denominator();
+            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
+            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
+
+            //TODO: denominator usage
+            uint256 denominator = 10**(IERC20Metadata(assetInfo.asset).decimals() - 6);
+            uint256 usdcPriceInVault = (amountInVault * usdcPriceDenominator) /
+                usdcSellPrice /
+                denominator;
+
+            //TODO: remove
+            log("amountInVault: ", amountInVault);
+
+            totalUsdcPrice += usdcPriceInVault;
+
+            assetPrices[i] = AssetPrices(
+                assetInfo.asset,
+                amountInVault,
+                usdcPriceInVault,
+                0,
+                int8(0),
+                usdcPriceDenominator,
+                usdcSellPrice,
+                usdcBuyPrice,
+                IERC20Metadata(assetInfo.asset).decimals(),
+                IERC20Metadata(assetInfo.asset).name(),
+                IERC20Metadata(assetInfo.asset).symbol()
+            );
+        }
+
+        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
+
+        return totalPrices;
+    }
+
+
     function assetPricesForBalance() external override returns (TotalAssetPrices memory) {
         return assetPricesForBalance(address(0), 0);
     }
@@ -107,14 +163,14 @@ contract Mark2Market is IMark2Market, OwnableExt {
         for (uint8 i = 0; i < count; i++) {
             InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
-            uint256 usdcPriceOne = 1; //TODO: use real price
+            // uint256 usdcPriceOne = 1; //TODO: use real price
 
             InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(
                 assetWeight.asset
             );
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
-            uint256 usdcPrice = usdcPriceOne * 10**18;
+            // uint256 usdcPrice = usdcPriceOne * 10**18;
 
             uint256 usdcPriceDenominator = priceGetter.denominator();
             uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();

@@ -18,7 +18,7 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         require(_aaveConnector != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
-        
+
         aaveConnector = IConnector(_aaveConnector);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
@@ -33,13 +33,23 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
     ) external override {
         require(
             (from == usdcToken && to == aUsdcToken) || (from == aUsdcToken && to == usdcToken),
-            "Some token not compatible"
+            "Usdc2AUsdcTokenExchange: Some token not compatible"
         );
 
         if (from == usdcToken && to == aUsdcToken) {
+            require(
+                usdcToken.balanceOf(address(this)) >= amount,
+                "Usdc2AUsdcTokenExchange: Not enought usdcToken tokens"
+            );
+
             usdcToken.transfer(address(aaveConnector), amount);
             aaveConnector.stake(address(usdcToken), amount, receiver);
         } else {
+            require(
+                aUsdcToken.balanceOf(address(this)) >= amount,
+                "Usdc2AUsdcTokenExchange: Not enought aUsdcToken tokens"
+            );
+
             aUsdcToken.transfer(address(aaveConnector), amount);
             uint256 withdrewAmount = aaveConnector.unstake(address(usdcToken), amount, receiver);
 

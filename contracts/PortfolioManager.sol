@@ -98,6 +98,18 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
+        
+        require(
+            _token.balanceOf(address(vault)) >= _amount,
+            string(
+                abi.encodePacked(
+                    "In vault not enough for transfer _amount: ",
+                    uint2str(_token.balanceOf(address(vault))),
+                    " < ",
+                    uint2str(_amount)
+                )
+            )
+        );
         vault.transfer(_token, msg.sender, _amount);
 
         return _amount;
@@ -181,7 +193,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                     continue;
                 }
-                if (action.from.balanceOf(address(vault)) < amount) {
+                //TODO: denominator usage
+                uint256 denominator = 10**(IERC20Metadata(address(action.from)).decimals() - 6);
+                if (action.from.balanceOf(address(vault)) < amount * denominator) {
                     // Skip not enough blance for execute know
                     //TODO: remove
                     emit ConsoleLog(
@@ -189,7 +203,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                             abi.encodePacked(
                                 uint2str(i),
                                 " Skip not enough balance for execute know: ",
-                                uint2str(amount),
+                                uint2str(amount * denominator),
                                 " from ",
                                 toAsciiString(address(action.from)),
                                 " to ",
@@ -202,62 +216,76 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     continue;
                 }
                 // move tokens to tokenExchange for executing action
-                //TODO: denominator usage
-                uint256 denominator = 10**(IERC20Metadata(address(action.from)).decimals() - 6);
                 // uint256 amount = action.amount * denominator;
+                require(
+                    action.from.balanceOf(address(vault)) >= amount * denominator,
+                    string(
+                        abi.encodePacked(
+                            uint2str(i),
+                            " Not enough balance for execute know: ",
+                            uint2str(amount * denominator),
+                            " from ",
+                            toAsciiString(address(action.from)),
+                            " to ",
+                            toAsciiString(address(action.to)),
+                            " current ",
+                            uint2str(action.from.balanceOf(address(vault)))
+                        )
+                    )
+                );
                 vault.transfer(action.from, address(action.tokenExchange), amount * denominator);
                 // execute exchange
-                // try
-                //     action.tokenExchange.exchange(
-                //         address(vault),
-                //         action.from,
-                //         address(vault),
-                //         action.to,
-                //         amount
-                //     )
-                // {
-                //     action.executed = true;
-                //     //TODO: remove
-                //     emit ConsoleLog(
-                //         string(
-                //             abi.encodePacked(
-                //                 "Exchange ",
-                //                 uint2str(amount),
-                //                 " from ",
-                //                 toAsciiString(address(action.from)),
-                //                 " to ",
-                //                 toAsciiString(address(action.to))
-                //             )
-                //         )
-                //     );
-                // } catch Error(string memory reason) {
-                //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
-                //     emit ConsoleLog(reason);
-                //     revert(reason);
-                // } catch {
-                //     emit ConsoleLog("action.tokenExchange.exchange: No reason");
-                //     revert(
-                //         string(
-                //             abi.encodePacked(
-                //                 "action.tokenExchange.exchange: No reason ",
-                //                 uint2str(amount),
-                //                 " from ",
-                //                 toAsciiString(address(action.from)),
-                //                 " to ",
-                //                 toAsciiString(address(action.to))
-                //             )
-                //         )
-                //     );
-                // }
+                try
+                    action.tokenExchange.exchange(
+                        address(vault),
+                        action.from,
+                        address(vault),
+                        action.to,
+                        amount
+                    )
+                {
+                    action.executed = true;
+                    //TODO: remove
+                    emit ConsoleLog(
+                        string(
+                            abi.encodePacked(
+                                "Exchange ",
+                                uint2str(amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
+                } catch Error(string memory reason) {
+                    // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
+                    emit ConsoleLog(reason);
+                    revert(reason);
+                } catch {
+                    emit ConsoleLog("action.tokenExchange.exchange: No reason");
+                    revert(
+                        string(
+                            abi.encodePacked(
+                                "action.tokenExchange.exchange: No reason ",
+                                uint2str(amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
+                }
 
-                action.tokenExchange.exchange(
-                    address(vault),
-                    action.from,
-                    address(vault),
-                    action.to,
-                    amount
-                );
-                action.executed = true;
+                // action.tokenExchange.exchange(
+                //     address(vault),
+                //     action.from,
+                //     address(vault),
+                //     action.to,
+                //     amount
+                // );
+                // action.executed = true;
                 //TODO: remove
                 emit ConsoleLog(
                     string(
