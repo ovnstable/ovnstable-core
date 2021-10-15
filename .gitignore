@@ -5,7 +5,6 @@ node_modules
 ganache_local/
 package-lock.json
 vapp/dist
-deploy.sh
 ganache_mumbai/
 /vapp/truffle-migrate.sh
 vapp/src/contracts
@@ -14,3 +13,4 @@ ganache_poly
 recreate.sh
 truffle-migrate.sh
 secrets.json
+.run
