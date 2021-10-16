@@ -1,14 +1,46 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../price_getters/AbstractPriceGetter.sol";
+import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
 contract WMaticPriceGetter is AbstractPriceGetter {
-    function getUsdcBuyPrice() external pure override returns (uint256) {
-        return DENOMINATOR;
+    IUniswapV2Router02 swapRouter;
+    IERC20 usdcToken;
+    IERC20 wMaticToken;
+
+    constructor(
+        address _swapRouter,
+        address _usdcToken,
+        address _wMaticToken
+    ) {
+        require(_swapRouter != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_wMaticToken != address(0), "Zero address not allowed");
+
+        swapRouter = IUniswapV2Router02(_swapRouter);
+        usdcToken = IERC20(_usdcToken);
+        wMaticToken = IERC20(_wMaticToken);
     }
 
-    function getUsdcSellPrice() external pure override returns (uint256) {
-        return DENOMINATOR;
+    function getUsdcBuyPrice() external view override returns (uint256) {
+        address[] memory path = new address[](2);
+        path[0] = address(usdcToken);
+        path[1] = address(wMaticToken);
+
+        uint[] memory amountsOut = swapRouter.getAmountsOut(10**6, path);
+        // 6 + 12 + 18 - 18 = 18
+        return (amountsOut[0] * (10**12) * DENOMINATOR) / amountsOut[1];
+    }
+
+    function getUsdcSellPrice() external view override returns (uint256) {
+        address[] memory path = new address[](2);
+        path[0] = address(wMaticToken);
+        path[1] = address(usdcToken);
+
+        uint[] memory amountsOut = swapRouter.getAmountsOut(10**18, path);
+        // 6 + 12 + 18 - 18 = 18
+        return (amountsOut[1] * (10**12) * DENOMINATOR) / amountsOut[0];
     }
 }

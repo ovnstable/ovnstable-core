@@ -51,6 +51,28 @@ module.exports = async function (callback) {
 
         // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
 
+        console.log("\n\nassetPrices\n\n")
+
+        callResult = await m2m.assetPrices();
+        console.log("--- Logs: ")
+        for (let rawLog of callResult.receipt.rawLogs) {
+            let data = rawLog.data;
+            data = data.replace("0x", "");
+            // data = data.replace("00", "");
+            console.log(hex2a(data));
+        }
+        console.log("--- Logs end")
+
+        // const fsPromises = require('fs').promises
+        // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
+
+        totalPrices = await m2m.assetPrices.call();
+        console.log("--- totalPrices: ")
+        for (let balanceAction of totalPrices) {
+            console.log(balanceAction)
+        }
+        console.log("--- totalPrices end")
+        // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
 
     } catch (error) {
         console.log(error);

@@ -20,6 +20,9 @@ const AUsdc2A3CrvTokenExchange = artifacts.require("./token_exchanges/AUsdc2A3Cr
 const A3Crv2A3CrvGaugeActionBuilder = artifacts.require("./action_builders/A3Crv2A3CrvGaugeActionBuilder.sol")
 const A3Crv2A3CrvGaugeTokenExchange = artifacts.require("./token_exchanges/A3Crv2A3CrvGaugeTokenExchange.sol")
 
+const WMatic2UsdcActionBuilder = artifacts.require("./action_builders/WMatic2UsdcActionBuilder.sol")
+const WMatic2UsdcTokenExchange = artifacts.require("./token_exchanges/WMatic2UsdcTokenExchange.sol")
+
 const ERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/ERC20.sol")
 
 module.exports = async function (deployer) {
@@ -71,11 +74,18 @@ module.exports = async function (deployer) {
         targetWeight: 50000,
         maxWeight: 100000,
     }
+    let wMaticWeight = {
+        asset: wMatic,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
     let weights = [
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
-        a3CrvGaugeWeight
+        a3CrvGaugeWeight,
+        wMaticWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
     console.log("setWeights: " + result);
@@ -140,6 +150,25 @@ module.exports = async function (deployer) {
     const a3Crv2A3CrvGaugeActionBuilder = await A3Crv2A3CrvGaugeActionBuilder.deployed();
 
 
+    // Wmatic token exchange
+    let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+    await deployer.deploy(
+        WMatic2UsdcTokenExchange,
+        swapRouter, // address _swapRouter
+        usdc, // address _usdcToken
+        wMatic, // address _wMaticToken
+    );
+    const wMatic2UsdcTokenExchange = await WMatic2UsdcTokenExchange.deployed();
+
+    // Wmatic token exchange
+    await deployer.deploy(
+        WMatic2UsdcActionBuilder,
+        wMatic2UsdcTokenExchange.address, // address _tokenExchange,
+        usdc, // address _usdcToken,
+        wMatic, // address _wMaticToken
+    );
+    const wMatic2UsdcActionBuilder = await WMatic2UsdcActionBuilder.deployed();
+ 
 
 
     const actList = await ActivesList.deployed();
@@ -165,6 +194,7 @@ module.exports = async function (deployer) {
     await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);
     await balancer.addActionBuilderAt(a3Crv2A3CrvGaugeActionBuilder.address, 1);
     await balancer.addActionBuilderAt(aUsdc2A3CrvActionBuilder.address, 2);
+    await balancer.addActionBuilderAt(wMatic2UsdcActionBuilder.address, 3);
 
 
     // Set role EX

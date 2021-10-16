@@ -6,6 +6,16 @@ const InvestmentPortfolio = artifacts.require("registries/InvestmentPortfolio")
 const BuyonSwap = artifacts.require("tests/BuyonSwap.sol")
 const OvernightToken = artifacts.require("OvernightToken")
 const Balancer = artifacts.require("Balancer")
+const IERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/IERC20.sol")
+
+let ovn
+let usdc
+let ausdc
+let a3Crv
+let a3CrvGauge
+let crv
+let wMatic
+
 
 function hex2a(hexx) {
     var hex = hexx.toString();//force conversion
@@ -20,13 +30,25 @@ function hex2a(hexx) {
     return str;
 }
 
+async function printBalances(name, address) {
+    console.log("---  " + name + ":");
+    console.log("- " + usdc.address + " | usdcBalance: " + await usdc.balanceOf(address));
+    console.log("- " + ausdc.address + " | ausdcBalance: " + await ausdc.balanceOf(address));
+    console.log("- " + a3Crv.address + " | a3CrvBalance: " + await a3Crv.balanceOf(address));
+    console.log("- " + a3CrvGauge.address + " | a3CrvGaugeBalance: " + await a3CrvGauge.balanceOf(address));
+    console.log("- " + crv.address + " | crvBalance: " + await crv.balanceOf(address));
+    console.log("- " + wMatic.address + " | wMaticBalance: " + await wMatic.balanceOf(address));
+    console.log("- " + ovn.address + " | ovnBalance: " + await ovn.balanceOf(address));
+    console.log("---------------------");
+}
+
 module.exports = async function (callback) {
     try {
         let accounts = await web3.eth.getAccounts()
         let userAccount = accounts[0];
 
         console.log("userAccount: " + userAccount);
-        const ovn = await OvernightToken.deployed();
+        ovn = await OvernightToken.deployed();
         // const pm = await PortfolioManager.deployed();
         // let exchange = await Exchange.deployed();
         let vault = await Vault.deployed();
@@ -34,9 +56,12 @@ module.exports = async function (callback) {
         let balancer = await Balancer.deployed();
 
 
-        let usdc = await USDC.at("0x2791bca1f2de4661ed88a30c99a7a9449aa84174");
-        let ausdc = await USDC.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
-        let a3Crv = await USDC.at("0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171");
+        usdc = await IERC20.at("0x2791bca1f2de4661ed88a30c99a7a9449aa84174");
+        ausdc = await IERC20.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
+        a3Crv = await IERC20.at("0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171");
+        a3CrvGauge = await IERC20.at("0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c");
+        crv = await IERC20.at("0x172370d5Cd63279eFa6d502DAB29171933a610AF");
+        wMatic = await IERC20.at("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270");
 
         // let usdcWeight = {
         //     asset: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
@@ -89,19 +114,21 @@ module.exports = async function (callback) {
         // }
 
 
-        console.log("userAccount usdcBalance: " + await usdc.balanceOf(userAccount));
-        console.log("userAccount ausdcBalance: " + await ausdc.balanceOf(userAccount));
-        console.log("userAccount a3CrvBalance: " + await a3Crv.balanceOf(userAccount));
-        console.log("userAccount ovnBalance: " + await ovn.balanceOf(userAccount));
 
-        console.log("vault usdcBalance: " + await usdc.balanceOf(vault.address));
-        console.log("vault ausdcBalance: " + await ausdc.balanceOf(vault.address));
-        console.log("vault a3CrvBalance: " + await a3Crv.balanceOf(vault.address));
+        
+        // await usdc.transfer(vault.address, 100*1000000);
 
 
+        await printBalances("user", userAccount);
+        await printBalances("vault", vault.address);
+
+
+        // let withdrawAmount = 2 * 10**6;
+        // let withdrawAmount = 0 * 10**6;
+        let withdrawAmount = 18739200;
         callResult = await balancer.buildBalanceActions(
             usdc.address,
-            200 * 1000000
+            withdrawAmount
         )
         console.log("--- Logs: ")
         for (let rawLog of callResult.receipt.rawLogs) {
@@ -117,7 +144,7 @@ module.exports = async function (callback) {
 
         balanceActions = await balancer.buildBalanceActions.call(
             usdc.address,
-            20000000000
+            withdrawAmount
         );
         console.log("--- BalanceActions: ")
         for (let balanceAction of balanceActions) {

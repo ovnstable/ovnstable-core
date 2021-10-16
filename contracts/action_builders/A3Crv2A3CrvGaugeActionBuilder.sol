@@ -40,11 +40,13 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         uint256 diff = 0;
         int8 sign = 0;
+        bool targetIsZero = false;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             // here we need a3CrvGauge diff to make action right
             if (assetPrices[i].asset == address(a3CrvGaugeToken)) {
                 diff = assetPrices[i].diffToTarget;
                 sign = assetPrices[i].diffToTargetSign;
+                targetIsZero = assetPrices[i].targetIsZero;
                 break;
             }
         }
@@ -65,6 +67,7 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
             from,
             to,
             diff,
+            targetIsZero,
             false
         );
 

@@ -6,25 +6,25 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
-contract Usdc2AUsdcActionBuilder is IActionBuilder {
+contract WMatic2UsdcActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("Usc2AUsdc");
 
     ITokenExchange tokenExchange;
     IERC20 usdcToken;
-    IERC20 aUsdcToken;
+    IERC20 wMaticToken;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _aUsdcToken
+        address _wMaticToken
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_aUsdcToken != address(0), "Zero address not allowed");
+        require(_wMaticToken != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
-        aUsdcToken = IERC20(_aUsdcToken);
+        wMaticToken = IERC20(_wMaticToken);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -43,7 +43,7 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         bool targetIsZero = false;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             // here we need USDC diff to make action right
-            if (assetPrices[i].asset == address(usdcToken)) {
+            if (assetPrices[i].asset == address(wMaticToken)) {
                 diff = assetPrices[i].diffToTarget;
                 sign = assetPrices[i].diffToTargetSign;
                 targetIsZero = assetPrices[i].targetIsZero;
@@ -54,11 +54,11 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         IERC20 from;
         IERC20 to;
         if (sign > 0) {
-            from = aUsdcToken;
+            from = wMaticToken;
             to = usdcToken;
         } else {
             from = usdcToken;
-            to = aUsdcToken;
+            to = wMaticToken;
         }
 
         ExchangeAction memory action = ExchangeAction(

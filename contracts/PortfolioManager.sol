@@ -75,13 +75,30 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
     function balanceOnInvest() internal {
-        // 1. got action to balance
-        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
-        //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+        try balancer.buildBalanceActions() returns (
+            IActionBuilder.ExchangeAction[] memory actionOrder
+        ) {
+            //TODO: remove
+            emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
-        // 2. execute them
-        executeActions(actionOrder);
+            // 2. execute them
+            executeActions(actionOrder);
+        } catch Error(string memory reason) {
+            // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
+            emit ConsoleLog(reason);
+            revert(reason);
+        } catch {
+            emit ConsoleLog("balanceOnInvest:buildBalanceActions: No reason");
+            revert("balanceOnInvest:buildBalanceActions: No reason");
+        }
+
+        // // 1. got action to balance
+        // IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
+        // //TODO: remove
+        // emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+
+        // // 2. execute them
+        // executeActions(actionOrder);
     }
 
     function withdraw(IERC20 _token, uint256 _amount)
@@ -98,7 +115,13 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
-        
+
+        //TODO: crunch to get logs, remove
+        uint256 currentBalance = _token.balanceOf(address(vault));
+        if(_amount > currentBalance ){
+            _amount = currentBalance;
+        }
+
         require(
             _token.balanceOf(address(vault)) >= _amount,
             string(
@@ -113,6 +136,10 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         vault.transfer(_token, msg.sender, _amount);
 
         return _amount;
+    }
+
+    function balanceOnReward() external override onlyExchanger {
+        balanceOnInvest();
     }
 
     function balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
@@ -175,6 +202,17 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     continue;
                 }
                 uint256 amount = action.amount;
+                uint256 denormalizedAmount;
+                //TODO: denominator usage
+                uint256 denominator = 10**(18 - IERC20Metadata(address(action.from)).decimals());
+                if (action.exchangeAll) {
+                    denormalizedAmount = action.from.balanceOf(address(vault));
+                    // normalize denormalizedAmount to 10**18
+                    amount = denormalizedAmount * denominator;
+                } else {
+                    // denormalize amount from 10**18 to token decimals
+                    denormalizedAmount = amount / denominator;
+                }
                 if (amount == 0) {
                     // Skip zero amount action
                     //TODO: remove
@@ -193,9 +231,8 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                     continue;
                 }
-                //TODO: denominator usage
-                uint256 denominator = 10**(IERC20Metadata(address(action.from)).decimals() - 6);
-                if (action.from.balanceOf(address(vault)) < amount * denominator) {
+
+                if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
                     // Skip not enough blance for execute know
                     //TODO: remove
                     emit ConsoleLog(
@@ -203,7 +240,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                             abi.encodePacked(
                                 uint2str(i),
                                 " Skip not enough balance for execute know: ",
-                                uint2str(amount * denominator),
+                                uint2str(denormalizedAmount),
                                 " from ",
                                 toAsciiString(address(action.from)),
                                 " to ",
@@ -215,25 +252,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                     continue;
                 }
-                // move tokens to tokenExchange for executing action
-                // uint256 amount = action.amount * denominator;
-                require(
-                    action.from.balanceOf(address(vault)) >= amount * denominator,
-                    string(
-                        abi.encodePacked(
-                            uint2str(i),
-                            " Not enough balance for execute know: ",
-                            uint2str(amount * denominator),
-                            " from ",
-                            toAsciiString(address(action.from)),
-                            " to ",
-                            toAsciiString(address(action.to)),
-                            " current ",
-                            uint2str(action.from.balanceOf(address(vault)))
-                        )
-                    )
-                );
-                vault.transfer(action.from, address(action.tokenExchange), amount * denominator);
+
+                // move tokens to tokenExchange for executing action, amount - NOT normalized to 10**18
+                vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
                 // execute exchange
                 try
                     action.tokenExchange.exchange(
@@ -249,8 +270,11 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     emit ConsoleLog(
                         string(
                             abi.encodePacked(
-                                "Exchange ",
+                                uint2str(i),
+                                " Exchange ",
                                 uint2str(amount),
+                                " -> ",
+                                uint2str(denormalizedAmount),
                                 " from ",
                                 toAsciiString(address(action.from)),
                                 " to ",
@@ -259,11 +283,20 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                         )
                     );
                 } catch Error(string memory reason) {
-                    // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
-                    emit ConsoleLog(reason);
-                    revert(reason);
+                    revert(
+                        string(
+                            abi.encodePacked(
+                                reason,
+                                "\n+ action.tokenExchange.exchange: ",
+                                uint2str(amount),
+                                " from ",
+                                toAsciiString(address(action.from)),
+                                " to ",
+                                toAsciiString(address(action.to))
+                            )
+                        )
+                    );
                 } catch {
-                    emit ConsoleLog("action.tokenExchange.exchange: No reason");
                     revert(
                         string(
                             abi.encodePacked(

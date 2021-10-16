@@ -44,11 +44,13 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         uint256 diff = 0;
         int8 sign = 0;
+        bool targetIsZero = false;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             // here we need USDC diff to make action right
             if (assetPrices[i].asset == address(aUsdcToken)) {
                 diff = assetPrices[i].diffToTarget;
                 sign = assetPrices[i].diffToTargetSign;
+                targetIsZero = assetPrices[i].targetIsZero;
                 break;
             }
         }
@@ -91,6 +93,7 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
             from,
             to,
             diff,
+            false,
             false
         );
 

@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 
@@ -36,18 +37,30 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
             "Usdc2AUsdcTokenExchange: Some token not compatible"
         );
 
+        if (amount == 0) {
+            return;
+        }
+
         if (from == usdcToken && to == aUsdcToken) {
+            //TODO: denominator usage
+            uint256 denominator = 10**(18 - IERC20Metadata(address(usdcToken)).decimals());
+            amount = amount / denominator;
+
             require(
                 usdcToken.balanceOf(address(this)) >= amount,
-                "Usdc2AUsdcTokenExchange: Not enought usdcToken tokens"
+                "Usdc2AUsdcTokenExchange: Not enough usdcToken"
             );
 
             usdcToken.transfer(address(aaveConnector), amount);
             aaveConnector.stake(address(usdcToken), amount, receiver);
         } else {
+            //TODO: denominator usage
+            uint256 denominator = 10**(18 - IERC20Metadata(address(aUsdcToken)).decimals());
+            amount = amount / denominator;
+
             require(
                 aUsdcToken.balanceOf(address(this)) >= amount,
-                "Usdc2AUsdcTokenExchange: Not enought aUsdcToken tokens"
+                "Usdc2AUsdcTokenExchange: Not enough aUsdcToken"
             );
 
             aUsdcToken.transfer(address(aaveConnector), amount);

@@ -137,123 +137,147 @@ contract ConnectorCurve is IConnector, OwnableExt {
             if (coin == _asset) {
                 amounts[i] = _amount;
 
-                // uint256 onConnectorLpTokenAmount = iCurveToken(pool.lp_token()).balanceOf(
-                //     address(this)
+                uint256 onConnectorLpTokenAmount = iCurveToken(pool.lp_token()).balanceOf(
+                    address(this)
+                );
+
+                try pool.calc_token_amount(amounts, false) returns (uint256 lpTok) {
+                    // uint256 lpTok = pool.calc_token_amount(amounts, false);
+
+                    try pool.calc_withdraw_one_coin(lpTok, int128(uint128(i))) returns (
+                        uint256 withdrAmount
+                    ) {
+                        require(
+                            withdrAmount <= onConnectorLpTokenAmount,
+                            string(
+                                abi.encodePacked(
+                                    "Not enought lpToken own ",
+                                    " _amount ",
+                                    uint2str(_amount),
+                                    " lpTok ",
+                                    uint2str(lpTok),
+                                    " onConnectorLpTokenAmount ",
+                                    uint2str(onConnectorLpTokenAmount),
+                                    " withdrAmount ",
+                                    uint2str(withdrAmount),
+                                    " lpToken ",
+                                    toAsciiString(pool.lp_token())
+                                )
+                            )
+                        );
+
+                        try iCurveToken(pool.lp_token()).approve(address(pool), lpTok) {
+                            try
+                                pool.remove_liquidity_one_coin(lpTok, int128(uint128(i)), 0)
+                            returns (uint256 retAmount) {
+                                // IERC20(_asset).transfer(_beneficiar, retAmount);
+                                // iCurveToken(pool.lp_token()).transfer(
+                                //     _beneficiar,
+                                //     iCurveToken(pool.lp_token()).balanceOf(address(this))
+                                // );
+
+                                try IERC20(_asset).transfer(_beneficiar, retAmount) {
+                                    try
+                                        iCurveToken(pool.lp_token()).transfer(
+                                            _beneficiar,
+                                            iCurveToken(pool.lp_token()).balanceOf(address(this))
+                                        )
+                                    {
+                                        return retAmount;
+                                    } catch Error(string memory reason) {
+                                        revert(reason);
+                                    } catch {
+                                        revert("iCurveToken(pool.lp_token()).transfer");
+                                    }
+                                } catch Error(string memory reason) {
+                                    revert(reason);
+                                } catch {
+                                    revert("IERC20(_asset).transfer");
+                                }
+                            } catch Error(string memory reason) {
+                                revert(reason);
+                            } catch {
+                                revert(
+                                    string(
+                                        abi.encodePacked(
+                                            "pool.remove_liquidity_one_coin ",
+                                            " _amount ",
+                                            uint2str(_amount),
+                                            " lpTok ",
+                                            uint2str(lpTok),
+                                            " withdrAmount ",
+                                            uint2str(withdrAmount),
+                                            " balanceLpTok ",
+                                            uint2str(
+                                                iCurveToken(pool.lp_token()).balanceOf(
+                                                    address(this)
+                                                )
+                                            )
+                                        )
+                                    )
+                                );
+                            }
+                        } catch Error(string memory reason) {
+                            revert(reason);
+                        } catch {
+                            // revert("iCurveToken(pool.lp_token()).approve");
+                            revert(
+                                string(
+                                    abi.encodePacked(
+                                        "piCurveToken(pool.lp_token()).approve ",
+                                        " _amount ",
+                                        uint2str(_amount)
+                                    )
+                                )
+                            );
+                        }
+                    } catch Error(string memory reason) {
+                        revert(reason);
+                    } catch {
+                        // revert("pool.calc_withdraw_one_coin");
+                        revert(
+                            string(
+                                abi.encodePacked(
+                                    "pool.calc_withdraw_one_coin ",
+                                    " _amount ",
+                                    uint2str(_amount)
+                                )
+                            )
+                        );
+                    }
+                } catch Error(string memory reason) {
+                    revert(reason);
+                } catch {
+                    // revert("pool.calc_token_amount");
+                    revert(
+                        string(
+                            abi.encodePacked(
+                                "pool.calc_token_amount ",
+                                " _amount ",
+                                uint2str(_amount)
+                            )
+                        )
+                    );
+                }
+
+                //  uint256 lpTok = pool.calc_token_amount(amounts, false);
+                // // _one_coin для возврата конкретной монеты (_assest)
+                // uint256 withdrAmount = pool.calc_withdraw_one_coin(lpTok, int128(uint128(i)));
+
+                // iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
+
+                // uint256 retAmount = pool.remove_liquidity_one_coin(
+                //     lpTok,
+                //     int128(uint128(i)),
+                //     withdrAmount
                 // );
 
-                // // try pool.calc_token_amount(amounts, false) returns (uint256 lpTok) {
-                // uint256 lpTok = pool.calc_token_amount(amounts, false);
-
-
-                // try pool.calc_withdraw_one_coin(lpTok, int128(uint128(i))) returns (
-                //     uint256 withdrAmount
-                // ) {
-                //     require(
-                //         withdrAmount <= onConnectorLpTokenAmount,
-                //         string(
-                //             abi.encodePacked(
-                //                 "Not enought lpToken own ",
-                //                 " _amount ",
-                //                 uint2str(_amount),
-                //                 " lpTok ",
-                //                 uint2str(lpTok),
-                //                 " onConnectorLpTokenAmount ",
-                //                 uint2str(onConnectorLpTokenAmount),
-                //                 " withdrAmount ",
-                //                 uint2str(withdrAmount),
-                //                 " lpToken ",
-                //                 toAsciiString(pool.lp_token())
-                //             )
-                //         )
-                //     );
-
-                //     try iCurveToken(pool.lp_token()).approve(address(pool), lpTok) {
-                //         try pool.remove_liquidity_one_coin(lpTok, int128(uint128(i)), 0) returns (
-                //             uint256 retAmount
-                //         ) {
-                //             // IERC20(_asset).transfer(_beneficiar, retAmount);
-                //             // iCurveToken(pool.lp_token()).transfer(
-                //             //     _beneficiar,
-                //             //     iCurveToken(pool.lp_token()).balanceOf(address(this))
-                //             // );
-
-                //             try IERC20(_asset).transfer(_beneficiar, retAmount) {
-                //                 try
-                //                     iCurveToken(pool.lp_token()).transfer(
-                //                         _beneficiar,
-                //                         iCurveToken(pool.lp_token()).balanceOf(address(this))
-                //                     )
-                //                 {
-                //                     return retAmount;
-                //                 } catch Error(string memory reason) {
-                //                     revert(reason);
-                //                 } catch {
-                //                     revert("iCurveToken(pool.lp_token()).transfer");
-                //                 }
-                //             } catch Error(string memory reason) {
-                //                 revert(reason);
-                //             } catch {
-                //                 revert("IERC20(_asset).transfer");
-                //             }
-                //         } catch Error(string memory reason) {
-                //             revert(reason);
-                //         } catch {
-                //             revert(
-                //                 string(
-                //                     abi.encodePacked(
-                //                         "pool.remove_liquidity_one_coin ",
-                //                         " _amount ",
-                //                         uint2str(_amount),
-                //                         " lpTok ",
-                //                         uint2str(lpTok),
-                //                         " withdrAmount ",
-                //                         uint2str(withdrAmount),
-                //                         " balanceLpTok ",
-                //                         uint2str(
-                //                             iCurveToken(pool.lp_token()).balanceOf(address(this))
-                //                         )
-                //                     )
-                //                 )
-                //             );
-                //         }
-                //     } catch Error(string memory reason) {
-                //         revert(reason);
-                //     } catch {
-                //         revert("iCurveToken(pool.lp_token()).approve");
-                //     }
-                // } catch Error(string memory reason) {
-                //     revert(reason);
-                // } catch {
-                //     revert("pool.calc_withdraw_one_coin");
-                // }
-                // } catch Error(string memory reason) {
-                //     revert(reason);
-                // } catch {
-                //     revert("pool.calc_token_amount");
-                // }
-
-                 uint256 lpTok = pool.calc_token_amount(amounts, false);
-                // _one_coin для возврата конкретной монеты (_assest)
-                uint256 withdrAmount = pool.calc_withdraw_one_coin(lpTok, int128(uint128(i)));
-
-                iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
-
-                uint256 retAmount = pool.remove_liquidity_one_coin(
-                    lpTok,
-                    int128(uint128(i)),
-                    withdrAmount
-                );
-
-                IERC20(_asset).transfer(_beneficiar, retAmount);
-                iCurveToken(pool.lp_token()).transfer(
-                    _beneficiar,
-                    iCurveToken(pool.lp_token()).balanceOf(address(this))
-                );
-                // actList.changeBal(_asset, int128(uint128(retAmount)));
-
-                // actList.changeBal(pool.lp_token(), -int128(uint128(_amount)));
-
-                return retAmount; // amounts[i];
+                // IERC20(_asset).transfer(_beneficiar, retAmount);
+                // iCurveToken(pool.lp_token()).transfer(
+                //     _beneficiar,
+                //     iCurveToken(pool.lp_token()).balanceOf(address(this))
+                // );
+                // return retAmount; // amounts[i];
             } else {
                 amounts[i] = 0;
             }
@@ -282,7 +306,7 @@ contract ConnectorCurve is IConnector, OwnableExt {
         return string(bstr);
     }
 
-        //TODO: remove
+    //TODO: remove
     function toAsciiString(address x) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
         for (uint i = 0; i < 20; i++) {

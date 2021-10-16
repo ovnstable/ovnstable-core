@@ -109,32 +109,39 @@ module.exports = async function (callback) {
         targetWeight: 40000,
         maxWeight: 100000,
     }
+    let wMaticWeight = {
+        asset: wMatic.address,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
     let weights = [
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
-        a3CrvGaugeWeight
+        a3CrvGaugeWeight,
+        wMaticWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
-    console.log("set weights: 0/0/50/50");
+    console.log("set weights: 10/10/40/40/0");
 
 
     await printBalances("user", userAccount);
     await printBalances("vault", vault.address);
 
-    var userInversAmount = 100000 * 1000000;
+    var userInversAmount = 10 * 1000000;
 
     await usdc.approve(exchange.address, userInversAmount);
     console.log("user approve " + userInversAmount);
     callResult = await exchange.buy(usdc.address, userInversAmount);
     console.log("user buy " + userInversAmount);
     // console.log("user buy " + JSON.stringify(callResult, null, 2));
-    for(let rawLog of callResult.receipt.rawLogs) {
-        let data = rawLog.data;
-        data = data.replace("0x", "");
-        // data = data.replace("00", "");
-        console.log(hex2a(data));
-    }
+    // for(let rawLog of callResult.receipt.rawLogs) {
+    //     let data = rawLog.data;
+    //     data = data.replace("0x", "");
+    //     // data = data.replace("00", "");
+    //     console.log(hex2a(data));
+    // }
 
     
     await printBalances("user", userAccount);
@@ -158,17 +165,18 @@ module.exports = async function (callback) {
     callResult = await exchange.redeem(usdc.address, withdrawAmount);
 
     console.log("user redeem " + withdrawAmount + " of " + ovnBalance);
-    for(let rawLog of callResult.receipt.rawLogs) {
-        let data = rawLog.data;
-        data = data.replace("0x", "");
-        // data = data.replace("00", "");
-        console.log(hex2a(data));
-    }
+    // for(let rawLog of callResult.receipt.rawLogs) {
+    //     let data = rawLog.data;
+    //     data = data.replace("0x", "");
+    //     // data = data.replace("00", "");
+    //     console.log(hex2a(data));
+    // }
 
      
     await printBalances("user", userAccount);
     await printBalances("vault", vault.address);
   
+    // rewards
 
     await exchange.reward();
     console.log("reward");
@@ -177,14 +185,35 @@ module.exports = async function (callback) {
     await printBalances("vault", vault.address);
 
 
-    // ovnBalance = await ovn.balanceOf(userAccount);
-    // withdrawAmount = parseInt(ovnBalance * 0.96, 10);
-    // console.log("userAccount redeem: " + withdrawAmount + " of " + ovnBalance);
-    // await exchange.redeem(usdc.address, withdrawAmount);
+    ovnBalance = await ovn.balanceOf(userAccount);
+    withdrawAmount = parseInt(ovnBalance * 0.90, 10);
+    console.log("userAccount redeem: " + withdrawAmount + " of " + ovnBalance);
+    callResult = await exchange.redeem(usdc.address, withdrawAmount);
+    // for(let rawLog of callResult.receipt.rawLogs) {
+    //     let data = rawLog.data;
+    //     data = data.replace("0x", "");
+    //     // data = data.replace("00", "");
+    //     console.log(hex2a(data));
+    // }
 
      
-    // await printBalances("user", userAccount);
-    // await printBalances("vault", vault.address);
+    await printBalances("user", userAccount);
+    await printBalances("vault", vault.address);
+
+    ovnBalance = await ovn.balanceOf(userAccount);
+    withdrawAmount = parseInt(ovnBalance * 0.90, 10);
+    console.log("userAccount redeem: " + withdrawAmount + " of " + ovnBalance);
+    callResult = await exchange.redeem(usdc.address, withdrawAmount);
+    // for(let rawLog of callResult.receipt.rawLogs) {
+    //     let data = rawLog.data;
+    //     data = data.replace("0x", "");
+    //     // data = data.replace("00", "");
+    //     console.log(hex2a(data));
+    // }
+
+     
+    await printBalances("user", userAccount);
+    await printBalances("vault", vault.address);
   
     // callback();
 

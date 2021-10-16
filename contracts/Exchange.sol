@@ -25,6 +25,7 @@ contract Exchange is AccessControl {
         uint256 totallyAmountRewarded,
         uint256 totallySaved
     );
+    event NoEnoughForRewardEvent(uint256 totalOvn, uint256 totalUsdc);
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -108,25 +109,21 @@ contract Exchange is AccessControl {
     }
 
     function reward() external onlyAdmin {
+        // 0. call rebalancing
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
         // 3. calc difference between total count of OVN and USDC
         // 4. go through all OVN owners and mint to their addresses proportionally OVN
 
-        uint totalOvnSupply = ovn.totalSupply();
+        PM.balanceOnReward();
+
+        uint256 totalOvnSupply = ovn.totalSupply();
         IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
         uint256 totalUsdc = assetPrices.totalUsdcPrice;
-        require(
-            totalUsdc > totalOvnSupply,
-            string(
-                abi.encodePacked(
-                    "Nothing to reward: ",
-                    uint2str(totalUsdc),
-                    " <= ",
-                    uint2str(totalOvnSupply)
-                )
-            )
-        );
+        if (totalUsdc > totalOvnSupply) {
+            emit NoEnoughForRewardEvent(totalOvnSupply, totalUsdc);
+            return;
+        }
         uint difference = totalUsdc - totalOvnSupply;
 
         uint totallyAmountRewarded = 0;

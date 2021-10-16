@@ -12,6 +12,7 @@ interface IActionBuilder {
         IERC20 from;
         IERC20 to;
         uint256 amount; // amount at usdc with 6 digit fractions
+        bool exchangeAll; // mean that we should trade all tokens to zero ownership
         bool executed;
     }
 
