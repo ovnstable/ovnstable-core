@@ -120,7 +120,9 @@ contract Exchange is AccessControl {
         uint256 totalOvnSupply = ovn.totalSupply();
         IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
         uint256 totalUsdc = assetPrices.totalUsdcPrice;
-        if (totalUsdc > totalOvnSupply) {
+        // denormilize from 10**18 to 10**6 as OVN decimals
+        totalUsdc = totalUsdc / 10**12;
+        if (totalUsdc <= totalOvnSupply) {
             emit NoEnoughForRewardEvent(totalOvnSupply, totalUsdc);
             return;
         }

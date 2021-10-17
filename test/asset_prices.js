@@ -75,7 +75,7 @@ module.exports = async function (callback) {
         // await fsPromises.writeFile('test2.txt', JSON.stringify(totalPricesStruct, null, 2));
         await fsPromises.writeFile('test3.txt', JSON.stringify(totalAssetPrices, null, 2));
 
-       
+        console.log(`Total usdc: ${totalAssetPrices.totalUsdcPrice}`)
         for (let assetPrices of totalAssetPrices.assetPrices) {
             let p = assetPrices;
             console.log(`${p.symbol} amount: ${p.amountInVault}` +
