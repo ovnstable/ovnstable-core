@@ -39,7 +39,7 @@ module.exports = async function (deployer) {
  
     //TODO: move all deploy to its own scripts
     // vault
-    await deployer.deploy(Vault);
+    // await deployer.deploy(Vault);
     const vault = await Vault.deployed();
 
     // balancer

@@ -16,12 +16,13 @@ let a3CrvGauge
 let crv
 let wMatic
 
+
 function hex2a(hexx) {
     var hex = hexx.toString();//force conversion
     var str = '';
-    for (var i = 0; i < hex.length; i += 2){
+    for (var i = 0; i < hex.length; i += 2) {
         code = parseInt(hex.substr(i, 2), 16);
-        if(code == 0x20 
+        if (code == 0x20
             || (0x30 <= code && code <= 0x7A)
         )
             str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
@@ -31,11 +32,13 @@ function hex2a(hexx) {
 
 async function printBalances(name, address) {
     console.log("---  " + name + ":");
-    console.log("- usdcBalance: " + await usdc.balanceOf(address));
-    console.log("- ausdcBalance: " + await ausdc.balanceOf(address));
-    console.log("- a3CrvBalance: " + await a3Crv.balanceOf(address));
-    console.log("- a3CrvGaugeBalance: " + await a3CrvGauge.balanceOf(address));
-    console.log("- ovnBalance: " + await ovn.balanceOf(address));
+    console.log("- " + usdc.address + " | usdcBalance: " + await usdc.balanceOf(address));
+    console.log("- " + ausdc.address + " | ausdcBalance: " + await ausdc.balanceOf(address));
+    console.log("- " + a3Crv.address + " | a3CrvBalance: " + await a3Crv.balanceOf(address));
+    console.log("- " + a3CrvGauge.address + " | a3CrvGaugeBalance: " + await a3CrvGauge.balanceOf(address));
+    console.log("- " + crv.address + " | crvBalance: " + await crv.balanceOf(address));
+    console.log("- " + wMatic.address + " | wMaticBalance: " + await wMatic.balanceOf(address));
+    console.log("- " + ovn.address + " | ovnBalance: " + await ovn.balanceOf(address));
     console.log("---------------------");
 }
 

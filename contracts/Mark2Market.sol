@@ -85,15 +85,16 @@ contract Mark2Market is IMark2Market, OwnableExt {
     function assetPrices() public override returns (TotalAssetPrices memory) {
         InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssets();
 
-        // //TODO: remove
-        // log("assetInfos.length: ", assetInfos.length);
-
         uint256 totalUsdcPrice = 0;
         uint256 count = assetInfos.length;
         AssetPrices[] memory assetPrices = new AssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
             InvestmentPortfolio.AssetInfo memory assetInfo = assetInfos[i];
             uint256 amountInVault = IERC20(assetInfo.asset).balanceOf(address(vault));
+            // normilize amountInVault to 18 decimals
+            //TODO: denominator usage
+            uint256 amountDenominator = 10**(18 - IERC20Metadata(assetInfo.asset).decimals());
+            amountInVault = amountInVault * amountDenominator;
 
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
@@ -101,14 +102,8 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
             uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
 
-            //TODO: denominator usage
-            uint256 denominator = 10**(IERC20Metadata(assetInfo.asset).decimals() - 6);
-            uint256 usdcPriceInVault = (amountInVault * usdcPriceDenominator) /
-                usdcSellPrice /
-                denominator;
-
-            // //TODO: remove
-            // log("amountInVault: ", amountInVault);
+            // in decimals: 18 + 18 - 18 => 18
+            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
 
             totalUsdcPrice += usdcPriceInVault;
 
@@ -184,7 +179,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
             uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
 
-            // in decimals: 18 * 18 / 18 => 18
+            // in decimals: 18 + 18 - 18 => 18
             uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
 
             totalUsdcPrice += usdcPriceInVault;

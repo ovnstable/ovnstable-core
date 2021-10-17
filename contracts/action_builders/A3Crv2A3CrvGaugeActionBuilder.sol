@@ -38,27 +38,33 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        uint256 diff = 0;
-        int8 sign = 0;
-        bool targetIsZero = false;
+        IMark2Market.AssetPrices memory a3CrvPrices;
+        IMark2Market.AssetPrices memory a3CrvGaugePrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            // here we need a3CrvGauge diff to make action right
             if (assetPrices[i].asset == address(a3CrvGaugeToken)) {
-                diff = assetPrices[i].diffToTarget;
-                sign = assetPrices[i].diffToTargetSign;
-                targetIsZero = assetPrices[i].targetIsZero;
-                break;
+                a3CrvGaugePrices = assetPrices[i];
+                continue;
+            }
+            if (assetPrices[i].asset == address(a3CrvToken)) {
+                a3CrvPrices = assetPrices[i];
+                continue;
             }
         }
 
+        // because we know that a3Crv-gauge is leaf in tree and we can use this value
+        uint256 diff = a3CrvGaugePrices.diffToTarget;
+
         IERC20 from;
         IERC20 to;
-        if (sign > 0) {
-            from = a3CrvToken;
-            to = a3CrvGaugeToken;
-        } else {
+        bool targetIsZero;
+        if (a3CrvGaugePrices.targetIsZero || a3CrvGaugePrices.diffToTargetSign < 0) {
             from = a3CrvGaugeToken;
             to = a3CrvToken;
+            targetIsZero = a3CrvGaugePrices.targetIsZero;
+        } else {
+            from = a3CrvToken;
+            to = a3CrvGaugeToken;
+            targetIsZero = a3CrvPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(

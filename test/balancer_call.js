@@ -125,7 +125,7 @@ module.exports = async function (callback) {
 
         // let withdrawAmount = 2 * 10**6;
         // let withdrawAmount = 0 * 10**6;
-        let withdrawAmount = 18739200;
+        let withdrawAmount = 2000000;
         callResult = await balancer.buildBalanceActions(
             usdc.address,
             withdrawAmount

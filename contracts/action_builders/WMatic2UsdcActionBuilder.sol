@@ -38,27 +38,33 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
         IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        uint256 diff = 0;
-        int8 sign = 0;
-        bool targetIsZero = false;
+        IMark2Market.AssetPrices memory wMaticPrices;
+        IMark2Market.AssetPrices memory usdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            // here we need USDC diff to make action right
             if (assetPrices[i].asset == address(wMaticToken)) {
-                diff = assetPrices[i].diffToTarget;
-                sign = assetPrices[i].diffToTargetSign;
-                targetIsZero = assetPrices[i].targetIsZero;
-                break;
+                wMaticPrices = assetPrices[i];
+                continue;
+            }
+            if (assetPrices[i].asset == address(usdcToken)) {
+                usdcPrices = assetPrices[i];
+                continue;
             }
         }
 
+        // because we know that wMatic is leaf in tree and we can use this value
+        uint256 diff = wMaticPrices.diffToTarget;
+
         IERC20 from;
         IERC20 to;
-        if (sign > 0) {
+        bool targetIsZero;
+        if (wMaticPrices.targetIsZero || wMaticPrices.diffToTargetSign < 0) {
             from = wMaticToken;
             to = usdcToken;
+            targetIsZero = wMaticPrices.targetIsZero;
         } else {
             from = usdcToken;
             to = wMaticToken;
+            targetIsZero = usdcPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(

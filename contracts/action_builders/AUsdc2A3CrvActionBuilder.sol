@@ -42,16 +42,16 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        uint256 diff = 0;
-        int8 sign = 0;
-        bool targetIsZero = false;
+        IMark2Market.AssetPrices memory aUsdcPrices;
+        IMark2Market.AssetPrices memory a3CrvPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            // here we need USDC diff to make action right
             if (assetPrices[i].asset == address(aUsdcToken)) {
-                diff = assetPrices[i].diffToTarget;
-                sign = assetPrices[i].diffToTargetSign;
-                targetIsZero = assetPrices[i].targetIsZero;
-                break;
+                aUsdcPrices = assetPrices[i];
+                continue;
+            }
+            if (assetPrices[i].asset == address(a3CrvToken)) {
+                a3CrvPrices = assetPrices[i];
+                continue;
             }
         }
 
@@ -69,6 +69,11 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         }
         require(foundDependencyAction, "Required action not in action list, check calc ordering");
 
+        // use aUsdc diff to start calc diff
+        uint256 diff = aUsdcPrices.diffToTarget;
+        int8 sign = aUsdcPrices.diffToTargetSign;
+
+        // correct diff value by usdc2AUsdc diff
         if (address(aUsdcToken) == address(usdc2AUsdcAction.to)) {
             // if in action move aUsdc->usdc then we should decrease diff (sub)
             (diff, sign) = unsignSub(diff, sign, usdc2AUsdcAction.amount);
@@ -79,12 +84,16 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
 
         IERC20 from;
         IERC20 to;
-        if (sign > 0) {
-            from = a3CrvToken;
-            to = aUsdcToken;
-        } else {
+        bool targetIsZero;
+        //TODO: need to define needed of usage for targetIsZero
+        if (sign < 0) {
             from = aUsdcToken;
             to = a3CrvToken;
+            targetIsZero = aUsdcPrices.targetIsZero;
+        } else {
+            from = a3CrvToken;
+            to = aUsdcToken;
+            targetIsZero = a3CrvPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(
@@ -93,7 +102,7 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
             from,
             to,
             diff,
-            false,
+            targetIsZero,
             false
         );
 

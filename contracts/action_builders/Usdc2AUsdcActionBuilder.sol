@@ -38,27 +38,33 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        uint256 diff = 0;
-        int8 sign = 0;
-        bool targetIsZero = false;
+        IMark2Market.AssetPrices memory usdcPrices;
+        IMark2Market.AssetPrices memory aUsdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            // here we need USDC diff to make action right
             if (assetPrices[i].asset == address(usdcToken)) {
-                diff = assetPrices[i].diffToTarget;
-                sign = assetPrices[i].diffToTargetSign;
-                targetIsZero = assetPrices[i].targetIsZero;
-                break;
+                usdcPrices = assetPrices[i];
+                continue;
+            }
+            if (assetPrices[i].asset == address(aUsdcToken)) {
+                aUsdcPrices = assetPrices[i];
+                continue;
             }
         }
 
+        // because we know that usdc is leaf in tree and we can use this value
+        uint256 diff = usdcPrices.diffToTarget;
+
         IERC20 from;
         IERC20 to;
-        if (sign > 0) {
-            from = aUsdcToken;
-            to = usdcToken;
-        } else {
+        bool targetIsZero;
+        if (usdcPrices.targetIsZero || usdcPrices.diffToTargetSign < 0) {
             from = usdcToken;
             to = aUsdcToken;
+            targetIsZero = usdcPrices.targetIsZero;
+        } else {
+            from = aUsdcToken;
+            to = usdcToken;
+            targetIsZero = aUsdcPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(

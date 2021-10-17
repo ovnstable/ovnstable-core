@@ -52,11 +52,22 @@ contract WMatic2UsdcTokenExchange is ITokenExchange {
                 wMaticToken.balanceOf(address(this)) >= amount,
                 "WMatic2UsdcTokenExchange: Not enough wMaticToken"
             );
-            wMaticToken.approve(address(swapRouter), amount);
 
             address[] memory path = new address[](2);
             path[0] = address(wMaticToken);
             path[1] = address(usdcToken);
+
+            uint[] memory amountsOut = swapRouter.getAmountsOut(amount, path);
+            // 6 + 18 - 18 = 6 - not normilized USDC in native 6 decimals
+            uint256 estimateUsdcOut = (amountsOut[1] * (10**18)) / amountsOut[0];
+            // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
+            // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
+            if (estimateUsdcOut < 3) {
+                return;
+            }
+
+            wMaticToken.approve(address(swapRouter), amount);
+
             // TODO: use some calculation or Oracle call instead of usage '0' as amountOutMin
             swapRouter.swapExactTokensForTokens(
                 amount, //    uint amountIn,
