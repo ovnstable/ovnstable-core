@@ -15,26 +15,12 @@ let a3CrvGauge = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
 let crv = "0x172370d5Cd63279eFa6d502DAB29171933a610AF"
 let wMatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
 
+let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
-let swapRouterAddress = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
 
 
 module.exports = async function (deployer) {
-    
-    await deployer.deploy(UsdcPriceGetter);
-    await deployer.deploy(AUsdcPriceGetter);
-    await deployer.deploy(A3CrvPriceGetter);
-    await deployer.deploy(A3CrvGaugePriceGetter);
-    await deployer.deploy(CrvPriceGetter,
-        swapRouterAddress,
-        usdc,
-        crv
-    );
-    await deployer.deploy(WMaticPriceGetter,
-        swapRouterAddress,
-        usdc,
-        wMatic
-    );
 
     const usdcPriceGetter = await UsdcPriceGetter.deployed();
     const aUsdcPriceGetter = await AUsdcPriceGetter.deployed();
@@ -92,6 +78,5 @@ module.exports = async function (deployer) {
     ]
     let result = await investmentPortfolio.setAssetInfos(assetInfos);
     console.log("assetInfos: " + result);
-
 
 };
