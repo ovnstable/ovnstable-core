@@ -200,9 +200,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 " Skip executed: ",
                                 uint2str(action.amount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                IERC20Metadata(address(action.to)).symbol()
                             )
                         )
                     );
@@ -230,9 +230,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 " Skip zero amount action: ",
                                 uint2str(amount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                IERC20Metadata(address(action.to)).symbol()
                             )
                         )
                     );
@@ -249,9 +249,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 " Skip not enough balance for execute know: ",
                                 uint2str(denormalizedAmount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to)),
+                                IERC20Metadata(address(action.to)).symbol(),
                                 " current ",
                                 uint2str(action.from.balanceOf(address(vault)))
                             )
@@ -283,9 +283,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 " -> ",
                                 uint2str(denormalizedAmount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                IERC20Metadata(address(action.to)).symbol()
                             )
                         )
                     );
@@ -297,9 +297,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 "\n+ action.tokenExchange.exchange: ",
                                 uint2str(amount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                IERC20Metadata(address(action.to)).symbol()
                             )
                         )
                     );
@@ -310,9 +310,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                                 "action.tokenExchange.exchange: No reason ",
                                 uint2str(amount),
                                 " from ",
-                                toAsciiString(address(action.from)),
+                                IERC20Metadata(address(action.from)).symbol(),
                                 " to ",
-                                toAsciiString(address(action.to))
+                                IERC20Metadata(address(action.to)).symbol()
                             )
                         )
                     );
@@ -333,9 +333,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                             "Exchange ",
                             uint2str(amount),
                             " from ",
-                            toAsciiString(address(action.from)),
+                            IERC20Metadata(address(action.from)).symbol(),
                             " to ",
-                            toAsciiString(address(action.to))
+                            IERC20Metadata(address(action.to)).symbol()
                         )
                     )
                 );
