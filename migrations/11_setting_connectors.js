@@ -11,7 +11,6 @@ module.exports = async function (deployer) {
     await connAAVE.setAAVE(aave, usdc);
 
     const connCurve = await ConnectorCurve.deployed();
-
     await connCurve.setUSDC(usdc, aCurvepoolStake);
 
 };

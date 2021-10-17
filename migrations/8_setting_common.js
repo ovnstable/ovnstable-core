@@ -1,5 +1,4 @@
 const Exchange = artifacts.require("Exchange");
-const ActivesList = artifacts.require("./registres/ActivesList.sol");
 const Mark2Market = artifacts.require("./Mark2Market.sol");
 const PortfolioManager = artifacts.require("./PortfolioManager.sol")
 const OvernightToken = artifacts.require("OvernightToken");
@@ -70,13 +69,13 @@ module.exports = async function (deployer) {
     let a3CrvWeight = {
         asset: a3Crv,
         minWeight: 0,
-        targetWeight: 30000,
+        targetWeight: 40000,
         maxWeight: 100000,
     }
     let a3CrvGaugeWeight = {
         asset: a3CrvGauge,
         minWeight: 0,
-        targetWeight: 50000,
+        targetWeight: 40000,
         maxWeight: 100000,
     }
     let wMaticWeight = {
@@ -199,13 +198,11 @@ module.exports = async function (deployer) {
     const crv2UsdcActionBuilder = await Crv2UsdcActionBuilder.deployed();
     
 
-    const actList = await ActivesList.deployed();
     const ovn = await OvernightToken.deployed();
     const exchange = await Exchange.deployed();
     const m2m = await Mark2Market.deployed();
     const pm = await PortfolioManager.deployed();
 
-    await m2m.setAddr(actList.address, pm.address);
     await exchange.setAddr(pm.address, m2m.address);
 
     // set pm

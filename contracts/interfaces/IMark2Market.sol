@@ -3,16 +3,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 interface IMark2Market {
-    struct ActivesPrices {
-        address addr;
-        string name;
-        string symbol;
-        uint256 decimals;
-        uint256 price;
-        uint256 bookValue;
-        uint256 liquidationValue;
-    }
-
     struct AssetPrices {
         address asset;
         uint256 amountInVault; // balance on Vault
@@ -34,8 +24,6 @@ interface IMark2Market {
         AssetPrices[] assetPrices;
         uint256 totalUsdcPrice;
     }
-
-    function activesPrices() external view returns (ActivesPrices[] memory);
 
     function assetPrices() external returns (TotalAssetPrices memory);
 

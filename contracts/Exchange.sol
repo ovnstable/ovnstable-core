@@ -17,8 +17,6 @@ contract Exchange is AccessControl {
     IMark2Market m2m;
 
     event EventExchange(string label, uint256 amount);
-    event BusinessEvent(string label, uint256 beforeAmount, uint256 afterAmount);
-    event BusinessEventPrice(string label, IMark2Market.ActivesPrices prices);
     event RewardEvent(
         uint256 totalOvn,
         uint256 totalUsdc,

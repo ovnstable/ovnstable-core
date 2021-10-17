@@ -1,6 +1,5 @@
 pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IConnector.sol";
-import "../interfaces/IActivesList.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
 import "./curve/interfaces/iCurveToken.sol";
@@ -8,7 +7,6 @@ import "../OwnableExt.sol";
 
 contract ConnectorCurve is IConnector, OwnableExt {
     address USDC;
-    IActivesList actList;
     iCurvePool pool;
 
     function setUSDC(address _usdc, address _pool) public onlyOwner {
@@ -16,11 +14,6 @@ contract ConnectorCurve is IConnector, OwnableExt {
         require(_pool != address(0), "Zero address not allowed");
         USDC = _usdc;
         pool = iCurvePool(_pool);
-    }
-
-    function setAddr(address _addrAL) external onlyOwner {
-        require(_addrAL != address(0), "Zero address not allowed");
-        actList = IActivesList(_addrAL);
     }
 
     function stake(

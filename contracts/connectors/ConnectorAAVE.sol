@@ -5,7 +5,6 @@ import "../interfaces/IConnector.sol";
 import "./aave/interfaces/ILendingPool.sol";
 import "./aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "./aave/interfaces/IPriceOracleGetter.sol";
-import "../interfaces/IActivesList.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {WadRayMath} from "./aave/libraries/math/WadRayMath.sol";
@@ -14,7 +13,6 @@ import "../OwnableExt.sol";
 
 contract ConnectorAAVE is IConnector, OwnableExt {
     using WadRayMath for uint256;
-    IActivesList actList;
     address USDC;
     ILendingPoolAddressesProvider lpap;
 
@@ -23,11 +21,6 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         require(_USDC != address(0), "Zero address not allowed");
         lpap = ILendingPoolAddressesProvider(_LPAP);
         USDC = _USDC;
-    }
-
-    function setAddr(address _addrAL) external onlyOwner {
-        require(_addrAL != address(0), "Zero address not allowed");
-        actList = IActivesList(_addrAL);
     }
 
     function stake(

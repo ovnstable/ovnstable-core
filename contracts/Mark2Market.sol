@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.8.0 <0.9.0;
-import "./interfaces/IActivesList.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IMark2Market.sol";
-import "./interfaces/IConnector.sol";
 import "./interfaces/IPriceGetter.sol";
 import "./OwnableExt.sol";
 import "./registries/InvestmentPortfolio.sol";
@@ -12,74 +10,17 @@ import "./Vault.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
-    IActivesList private actListContr;
-
-    uint256 private testprice;
-    address private addrWault;
-
     Vault private vault;
     InvestmentPortfolio private investmentPortfolio;
 
     //TODO: remove
     event ConsoleLog(string str);
 
-    function setAddr(address _addrAL, address _addrWault) public onlyOwner {
-        require(_addrAL != address(0), "Zero address not allowed");
-        require(_addrWault != address(0), "Zero address not allowed");
-        actListContr = IActivesList(_addrAL);
-        addrWault = _addrWault;
-    }
-
     function init(address _vault, address _investmentPortfolio) public onlyOwner {
         require(_vault != address(0), "Zero address not allowed");
         require(_investmentPortfolio != address(0), "Zero address not allowed");
         vault = Vault(_vault);
         investmentPortfolio = InvestmentPortfolio(_investmentPortfolio);
-    }
-
-    function activesPrices() public view override returns (ActivesPrices[] memory) {
-        IActivesList.Active[] memory actives = actListContr.getAllActives();
-        //calculate total activites sum
-        //USDC price]
-        ActivesPrices[] memory ap = new ActivesPrices[](actives.length);
-        for (uint8 a = 0; a < actives.length && a < 100; a++) {
-            if (actives[a].isWork > 0) {
-                IERC20Metadata tokAct = IERC20Metadata(actives[a].actAddress);
-                uint256 price = IConnector(actives[a].connector).getPriceOffer(
-                    actives[a].actAddress,
-                    actives[a].poolPrice
-                );
-                // position
-                uint256 bookValue = IConnector(actives[a].connector).getBookValue(
-                    actives[a].actAddress,
-                    addrWault,
-                    actives[a].poolPrice
-                );
-                uint256 liqValue = IConnector(actives[a].connector).getLiqValue(
-                    actives[a].actAddress,
-                    addrWault,
-                    actives[a].poolPrice
-                );
-
-                ap[a] = ActivesPrices(
-                    actives[a].actAddress,
-                    tokAct.name(),
-                    tokAct.symbol(),
-                    tokAct.decimals(),
-                    price,
-                    bookValue,
-                    liqValue
-                );
-            }
-        }
-
-        return ap;
-    }
-
-    function tstPrice(uint256 _tst) public onlyOwner {
-        ActivesPrices[] memory ap = activesPrices();
-
-        testprice = _tst;
     }
 
     function assetPrices() public override returns (TotalAssetPrices memory) {
