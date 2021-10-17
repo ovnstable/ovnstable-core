@@ -36,15 +36,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         uint256 _amount,
         address _beneficiar
     ) public override {
-        ILendingPool pool = ILendingPool(lpap.getLendingPool());
-        //IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
-        IERC20(_asset).approve(address(pool), _amount);
-        //   DataTypes.ReserveData memory res = pool.getReserveData(_asset);
-
-        pool.deposit(_asset, _amount, _beneficiar, 0);
-        // actList.changeBal(_asset, -int128(uint128(_amount)));
-
-        // actList.changeBal(pool.lp_token(), int128(uint128(retAmount)));
+        revert("ConnectorAAVE: stake 4 not implemented");
     }
 
     function stake(
@@ -63,16 +55,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         uint256 _amount,
         address _to
     ) public override returns (uint256) {
-        ILendingPool pool = ILendingPool(lpap.getLendingPool());
-        // IERC20(_asset).transfer(address(pool), _amount);
-        uint256 w = pool.withdraw(_asset, _amount, _to);
-        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
-
-        IERC20(res.aTokenAddress).transfer(
-            msg.sender,
-            IERC20(res.aTokenAddress).balanceOf(address(this))
-        );
-        return w;
+        revert("ConnectorAAVE: unstake 4 not implemented");
     }
 
     function unstake(
@@ -93,17 +76,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
     }
 
     function getPriceOffer(address _asset, address _pool) public view override returns (uint256) {
-        IPriceOracleGetter oraclePrice = IPriceOracleGetter(lpap.getPriceOracle());
-
-        try oraclePrice.getAssetPrice(_asset) returns (uint256 price) {
-            try oraclePrice.getAssetPrice(USDC) returns (uint256 priceUSDC) {
-                return (price * 10**18) / priceUSDC;
-            } catch {
-                return 0;
-            }
-        } catch {
-            return 0;
-        }
+        revert("ConnectorAAVE: getPriceOffer not implemented");
     }
 
     function getBookValue(
@@ -111,7 +84,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         address _addrWault,
         address _pool
     ) external view override returns (uint256) {
-        return IERC20(_asset).balanceOf(_addrWault);
+        revert("ConnectorAAVE: getBookValue not implemented");
     }
 
     function getLiqValue(
@@ -119,12 +92,6 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         address _addrWault,
         address _pool
     ) external view override returns (uint256) {
-        uint256 balance = IERC20(_asset).balanceOf(_addrWault);
-        ILendingPool pool = ILendingPool(lpap.getLendingPool());
-        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
-        if (res.liquidityIndex > 0) {
-            balance = balance.rayDiv(res.liquidityIndex);
-        }
-        return balance;
+        revert("ConnectorAAVE: getLiqValue not implemented");
     }
 }
