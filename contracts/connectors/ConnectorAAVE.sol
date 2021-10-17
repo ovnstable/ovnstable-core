@@ -25,30 +25,12 @@ contract ConnectorAAVE is IConnector, OwnableExt {
 
     function stake(
         address _asset,
-        address _pool,
-        uint256 _amount,
-        address _beneficiar
-    ) public override {
-        revert("ConnectorAAVE: stake 4 not implemented");
-    }
-
-    function stake(
-        address _asset,
         uint256 _amount,
         address _beneficiar
     ) public override {
         ILendingPool pool = ILendingPool(lpap.getLendingPool());
         IERC20(_asset).approve(address(pool), _amount);
         pool.deposit(_asset, _amount, _beneficiar, 0);
-    }
-
-    function unstake(
-        address _asset,
-        address _pool,
-        uint256 _amount,
-        address _to
-    ) public override returns (uint256) {
-        revert("ConnectorAAVE: unstake 4 not implemented");
     }
 
     function unstake(
@@ -66,25 +48,5 @@ contract ConnectorAAVE is IConnector, OwnableExt {
             IERC20(res.aTokenAddress).balanceOf(address(this))
         );
         return w;
-    }
-
-    function getPriceOffer(address _asset, address _pool) public view override returns (uint256) {
-        revert("ConnectorAAVE: getPriceOffer not implemented");
-    }
-
-    function getBookValue(
-        address _asset,
-        address _addrWault,
-        address _pool
-    ) external view override returns (uint256) {
-        revert("ConnectorAAVE: getBookValue not implemented");
-    }
-
-    function getLiqValue(
-        address _asset,
-        address _addrWault,
-        address _pool
-    ) external view override returns (uint256) {
-        revert("ConnectorAAVE: getLiqValue not implemented");
     }
 }

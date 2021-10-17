@@ -18,15 +18,6 @@ contract ConnectorCurve is IConnector, OwnableExt {
 
     function stake(
         address _asset,
-        address _pool,
-        uint256 _amount,
-        address _beneficiar
-    ) public override {
-        revert("ConnectorCurve: stake 4 not implemented");
-    }
-
-    function stake(
-        address _asset,
         uint256 _amount,
         address _beneficiar
     ) public override {
@@ -52,15 +43,6 @@ contract ConnectorCurve is IConnector, OwnableExt {
             }
         }
         revert("can't find active for staking in pool");
-    }
-
-    function unstake(
-        address _asset,
-        address _pool,
-        uint256 _amount,
-        address _beneficiar
-    ) public override returns (uint256) {
-        revert("ConnectorCurve: unstake 4 not implemented");
     }
 
     function unstake(
@@ -278,24 +260,4 @@ contract ConnectorCurve is IConnector, OwnableExt {
     //     if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
     //     else return bytes1(uint8(b) + 0x57);
     // }
-
-    function getPriceOffer(address _asset, address _pool) public view override returns (uint256) {
-        revert("ConnectorCurve: getPriceOffer not implemented");
-    }
-
-    function getBookValue(
-        address _asset,
-        address _addrWault,
-        address _pool
-    ) external view override returns (uint256) {
-        revert("ConnectorCurve: getBookValue not implemented");
-    }
-
-    function getLiqValue(
-        address _asset,
-        address _addrWault,
-        address _pool
-    ) external view override returns (uint256) {
-        revert("ConnectorCurve: getLiqValue not implemented");
-    }
 }
