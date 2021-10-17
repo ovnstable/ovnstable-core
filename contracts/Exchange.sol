@@ -109,12 +109,13 @@ contract Exchange is AccessControl {
     }
 
     function reward() external onlyAdmin {
-        // 0. call rebalancing
+        // 0. call claiming reward and rebalancing on PM TODO: may be need move to another place
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
         // 3. calc difference between total count of OVN and USDC
         // 4. go through all OVN owners and mint to their addresses proportionally OVN
 
+        PM.claimRewards();
         PM.balanceOnReward();
 
         uint256 totalOvnSupply = ovn.totalSupply();

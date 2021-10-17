@@ -262,25 +262,25 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 }
             }
 
-            emit ConsoleLog(
-                string(
-                    abi.encodePacked(
-                        // uint2str(i),
-                        // " | ",
-                        IERC20Metadata(assetPrice.asset).symbol(),
-                        " | ",
-                        uint2str(assetPrice.amountInVault),
-                        // " | ",
-                        // uint2str(assetPrice.usdcPriceInVault),
-                        " | ",
-                        uint2str(assetPrice.diffToTarget),
-                        " | ",
-                        uint2str(assetPrice.usdcSellPrice),
-                        " | ",
-                        uint2str(assetPrice.usdcBuyPrice)
-                    )
-                )
-            );
+            // emit ConsoleLog(
+            //     string(
+            //         abi.encodePacked(
+            //             // uint2str(i),
+            //             // " | ",
+            //             IERC20Metadata(assetPrice.asset).symbol(),
+            //             " | ",
+            //             uint2str(assetPrice.amountInVault),
+            //             // " | ",
+            //             // uint2str(assetPrice.usdcPriceInVault),
+            //             " | ",
+            //             uint2str(assetPrice.diffToTarget),
+            //             " | ",
+            //             uint2str(assetPrice.usdcSellPrice),
+            //             " | ",
+            //             uint2str(assetPrice.usdcBuyPrice)
+            //         )
+            //     )
+            // );
         }
 
         TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);

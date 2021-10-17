@@ -8,6 +8,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
+import "./connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "./registries/InvestmentPortfolio.sol";
 
 import "./Vault.sol";
@@ -21,6 +22,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     Vault vault;
     Balancer balancer;
     address exchanger;
+    IRewardOnlyGauge rewardGauge;
 
     // ---  events
 
@@ -61,6 +63,11 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     function setBalancer(address _balancer) external onlyAdmin {
         require(_balancer != address(0), "Zero address not allowed");
         balancer = Balancer(_balancer);
+    }
+
+    function setRewardGauge(address _rewardGauge) external onlyAdmin {
+        require(_rewardGauge != address(0), "Zero address not allowed");
+        rewardGauge = IRewardOnlyGauge(_rewardGauge);
     }
 
     // ---  logic
@@ -118,7 +125,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
         //TODO: crunch to get logs, remove
         uint256 currentBalance = _token.balanceOf(address(vault));
-        if(_amount > currentBalance ){
+        if (_amount > currentBalance) {
             _amount = currentBalance;
         }
 
@@ -335,6 +342,14 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 someActionExecuted = true;
             }
         }
+    }
+
+    /**
+     * Claim rewards from Curve gauge where we have staked LP tokens
+     */
+    function claimRewards() external override {
+        //TODO: add event if gauge emit nothing
+        rewardGauge.claim_rewards(address(vault));
     }
 
     //TODO: remove

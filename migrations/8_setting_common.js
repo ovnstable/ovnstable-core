@@ -185,6 +185,7 @@ module.exports = async function (deployer) {
     await pm.setVault(vault.address);
     await pm.setBalancer(balancer.address);
     await pm.setExchanger(exchange.address);
+    await pm.setRewardGauge(curveGaugeAddress);
 
     await balancer.setMark2Market(m2m.address);
 

@@ -30,6 +30,16 @@ function hex2a(hexx) {
     return str;
 }
 
+function logEvents(callResult) {
+    console.log("---  EVENTS:")
+    for (let rawLog of callResult.receipt.rawLogs) {
+        let data = rawLog.data;
+        data = data.replace("0x", "");
+        console.log(hex2a(data));
+    }
+    console.log("---  EVENTS end")
+}
+
 async function printBalances(name, address) {
     console.log("---  " + name + ":");
     console.log("- " + usdc.address + " | usdcBalance: " + await usdc.balanceOf(address));
@@ -180,9 +190,10 @@ module.exports = async function (callback) {
     await printBalances("vault", vault.address);
   
     // rewards
-
-    await exchange.reward();
-    console.log("reward");
+    console.log("before reward");
+    callResult = await exchange.reward();
+    console.log("after reward");
+    logEvents(callResult);
 
     await printBalances("user", userAccount);
     await printBalances("vault", vault.address);

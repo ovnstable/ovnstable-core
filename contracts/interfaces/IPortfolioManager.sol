@@ -9,4 +9,6 @@ interface IPortfolioManager {
     function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);
 
     function balanceOnReward() external;
+
+    function claimRewards() external;
 }
