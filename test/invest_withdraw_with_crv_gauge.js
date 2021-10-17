@@ -128,15 +128,22 @@ module.exports = async function (callback) {
         targetWeight: 0,
         maxWeight: 100000,
     }
+    let crvWeight = {
+        asset: crv.address,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
     let weights = [
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
         a3CrvGaugeWeight,
-        wMaticWeight
+        wMaticWeight,
+        crvWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
-    console.log("set weights: 10/10/40/40/0");
+    console.log("set weights: 10/10/40/40/0/0");
 
 
     await printBalances("user", userAccount);

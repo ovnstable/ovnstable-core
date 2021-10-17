@@ -6,25 +6,25 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
-contract WMatic2UsdcActionBuilder is IActionBuilder {
-    bytes32 constant ACTION_CODE = keccak256("WMatic2Usdc");
+contract Crv2UsdcActionBuilder is IActionBuilder {
+    bytes32 constant ACTION_CODE = keccak256("Crv2Usdc");
 
     ITokenExchange tokenExchange;
     IERC20 usdcToken;
-    IERC20 wMaticToken;
+    IERC20 crvToken;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _wMaticToken
+        address _crvToken
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_wMaticToken != address(0), "Zero address not allowed");
+        require(_crvToken != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
-        wMaticToken = IERC20(_wMaticToken);
+        crvToken = IERC20(_crvToken);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -41,7 +41,7 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
         IMark2Market.AssetPrices memory wMaticPrices;
         IMark2Market.AssetPrices memory usdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            if (assetPrices[i].asset == address(wMaticToken)) {
+            if (assetPrices[i].asset == address(crvToken)) {
                 wMaticPrices = assetPrices[i];
                 continue;
             }
@@ -58,12 +58,12 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
         IERC20 to;
         bool targetIsZero;
         if (wMaticPrices.targetIsZero || wMaticPrices.diffToTargetSign < 0) {
-            from = wMaticToken;
+            from = crvToken;
             to = usdcToken;
             targetIsZero = wMaticPrices.targetIsZero;
         } else {
             from = usdcToken;
-            to = wMaticToken;
+            to = crvToken;
             targetIsZero = usdcPrices.targetIsZero;
         }
 

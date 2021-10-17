@@ -25,7 +25,11 @@ module.exports = async function (deployer) {
     await deployer.deploy(AUsdcPriceGetter);
     await deployer.deploy(A3CrvPriceGetter);
     await deployer.deploy(A3CrvGaugePriceGetter);
-    await deployer.deploy(CrvPriceGetter);
+    await deployer.deploy(CrvPriceGetter,
+        swapRouterAddress,
+        usdc,
+        crv
+    );
     await deployer.deploy(WMaticPriceGetter,
         swapRouterAddress,
         usdc,

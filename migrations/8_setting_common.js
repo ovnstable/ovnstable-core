@@ -23,6 +23,9 @@ const A3Crv2A3CrvGaugeTokenExchange = artifacts.require("./token_exchanges/A3Crv
 const WMatic2UsdcActionBuilder = artifacts.require("./action_builders/WMatic2UsdcActionBuilder.sol")
 const WMatic2UsdcTokenExchange = artifacts.require("./token_exchanges/WMatic2UsdcTokenExchange.sol")
 
+const Crv2UsdcActionBuilder = artifacts.require("./action_builders/Crv2UsdcActionBuilder.sol")
+const Crv2UsdcTokenExchange = artifacts.require("./token_exchanges/Crv2UsdcTokenExchange.sol")
+
 const ERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/ERC20.sol")
 
 module.exports = async function (deployer) {
@@ -33,7 +36,9 @@ module.exports = async function (deployer) {
     let a3CrvGauge = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
     let crv = "0x172370d5Cd63279eFa6d502DAB29171933a610AF"
     let wMatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
- 
+
+    let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+
     // let usdc = await ERC20.at('0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     // let aUsdc = await ERC20.at("0x1a13F4Ca1d028320A707D99520AbFefca3998b7F");
  
@@ -80,12 +85,19 @@ module.exports = async function (deployer) {
         targetWeight: 0,
         maxWeight: 100000,
     }
+    let crvWeight = {
+        asset: crv,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
     let weights = [
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
         a3CrvGaugeWeight,
-        wMaticWeight
+        wMaticWeight,
+        crvWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
     console.log("setWeights: " + result);
@@ -151,7 +163,6 @@ module.exports = async function (deployer) {
 
 
     // Wmatic token exchange
-    let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
     await deployer.deploy(
         WMatic2UsdcTokenExchange,
         swapRouter, // address _swapRouter
@@ -168,8 +179,25 @@ module.exports = async function (deployer) {
         wMatic, // address _wMaticToken
     );
     const wMatic2UsdcActionBuilder = await WMatic2UsdcActionBuilder.deployed();
- 
 
+    // CRV token exchange
+    await deployer.deploy(
+        Crv2UsdcTokenExchange,
+        swapRouter, // address _swapRouter
+        usdc, // address _usdcToken
+        crv, // address _crvToken
+    );
+    const crv2UsdcTokenExchange = await Crv2UsdcTokenExchange.deployed();
+
+    // CRV token exchange
+    await deployer.deploy(
+        Crv2UsdcActionBuilder,
+        crv2UsdcTokenExchange.address, // address _tokenExchange,
+        usdc, // address _usdcToken,
+        crv, // address _crvToken
+    );
+    const crv2UsdcActionBuilder = await Crv2UsdcActionBuilder.deployed();
+    
 
     const actList = await ActivesList.deployed();
     const ovn = await OvernightToken.deployed();
@@ -196,6 +224,7 @@ module.exports = async function (deployer) {
     await balancer.addActionBuilderAt(a3Crv2A3CrvGaugeActionBuilder.address, 1);
     await balancer.addActionBuilderAt(aUsdc2A3CrvActionBuilder.address, 2);
     await balancer.addActionBuilderAt(wMatic2UsdcActionBuilder.address, 3);
+    await balancer.addActionBuilderAt(crv2UsdcActionBuilder.address, 4);
 
 
     // Set role EX
