@@ -38,6 +38,7 @@ contract WMatic2UsdcTokenExchange is ITokenExchange {
         );
 
         if (amount == 0) {
+            from.transfer(spender, from.balanceOf(address(this)));
             return;
         }
 
@@ -53,6 +54,12 @@ contract WMatic2UsdcTokenExchange is ITokenExchange {
                 "WMatic2UsdcTokenExchange: Not enough wMaticToken"
             );
 
+            // check after denormilization
+            if (amount == 0) {
+                from.transfer(spender, from.balanceOf(address(this)));
+                return;
+            }
+
             address[] memory path = new address[](2);
             path[0] = address(wMaticToken);
             path[1] = address(usdcToken);
@@ -63,6 +70,7 @@ contract WMatic2UsdcTokenExchange is ITokenExchange {
             // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
             // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
             if (estimateUsdcOut < 3) {
+                from.transfer(spender, from.balanceOf(address(this)));
                 return;
             }
 

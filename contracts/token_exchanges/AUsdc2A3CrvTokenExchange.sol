@@ -38,6 +38,7 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
         );
 
         if (amount == 0) {
+            from.transfer(spender, from.balanceOf(address(this)));
             return;
         }
 
@@ -51,6 +52,12 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 "AUsdc2A3CrvTokenExchange: Not enough aUsdcToken tokens"
             );
 
+            // check after denormilization
+            if (amount == 0) {
+                from.transfer(spender, from.balanceOf(address(this)));
+                return;
+            }
+
             aUsdcToken.transfer(address(curveConnector), amount);
             curveConnector.stake(address(aUsdcToken), amount, receiver);
         } else {
@@ -62,6 +69,14 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 a3CrvToken.balanceOf(address(this)) >= amount,
                 "AUsdc2A3CrvTokenExchange: Not enough a3CrvToken"
             );
+
+            //TODO: add check that we can withdraw more than zero by call Curve pool and get estimate
+            //      aUsdc amount for our LP tokens
+            // check after denormilization
+            if (aUsdcAmount == 0) {
+                from.transfer(spender, from.balanceOf(address(this)));
+                return;
+            }
 
             try a3CrvToken.transfer(address(curveConnector), amount) {
                 try curveConnector.unstake(address(aUsdcToken), aUsdcAmount, receiver) returns (

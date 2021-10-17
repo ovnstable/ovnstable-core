@@ -38,6 +38,7 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         );
 
         if (amount == 0) {
+            from.transfer(spender, from.balanceOf(address(this)));
             return;
         }
 
@@ -51,6 +52,12 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
                 "Usdc2AUsdcTokenExchange: Not enough usdcToken"
             );
 
+            // check after denormilization
+            if (amount == 0) {
+                from.transfer(spender, from.balanceOf(address(this)));
+                return;
+            }
+
             usdcToken.transfer(address(aaveConnector), amount);
             aaveConnector.stake(address(usdcToken), amount, receiver);
         } else {
@@ -62,6 +69,12 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
                 aUsdcToken.balanceOf(address(this)) >= amount,
                 "Usdc2AUsdcTokenExchange: Not enough aUsdcToken"
             );
+
+            // check after denormilization
+            if (amount == 0) {
+                from.transfer(spender, from.balanceOf(address(this)));
+                return;
+            }
 
             aUsdcToken.transfer(address(aaveConnector), amount);
             uint256 withdrewAmount = aaveConnector.unstake(address(usdcToken), amount, receiver);
