@@ -4,8 +4,8 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "_asset",
+          "internalType": "contract IERC20",
+          "name": "_token",
           "type": "address"
         },
         {
@@ -14,7 +14,7 @@
           "type": "uint256"
         }
       ],
-      "name": "stake",
+      "name": "invest",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -22,8 +22,8 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "_asset",
+          "internalType": "contract IERC20",
+          "name": "_token",
           "type": "address"
         },
         {
@@ -32,7 +32,7 @@
           "type": "uint256"
         }
       ],
-      "name": "unstake",
+      "name": "withdraw",
       "outputs": [
         {
           "internalType": "uint256",
@@ -42,9 +42,23 @@
       ],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "balanceOnReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "claimRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"stake\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"unstake\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"@Stanta\",\"details\":\"Choosing of connector releasing by changing address of connector's contract\",\"kind\":\"dev\",\"methods\":{},\"title\":\"Common inrterface to DeFi protocol connectors\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Every connector have to implement this function\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IPortfolioManager.sol\":\"IPortfolioManager\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/IPortfolioManager.sol\":{\"keccak256\":\"0xf4dce6ca31887e9ca3ce47176816a1b30b933dd63ad4b33bd20cf6373261d0d8\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://59c83c37f5586b806ce066c2be72bfc7e1dca05a318823570c3e0161f3175f2a\",\"dweb:/ipfs/QmTDLv2EHuua76d62b4TQTQ5MgUC8Ud5WoxFJkuUky7sWG\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"balanceOnReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"claimRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"invest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IPortfolioManager.sol\":\"IPortfolioManager\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"project:/contracts/interfaces/IPortfolioManager.sol\":{\"keccak256\":\"0x08b90248525e894f764312bb27e7c4b380b1ce5773c82f7a39dea71e67f5a88e\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://40720609a5e754acfe81cd51ef01ce4c1e4a4cc49e15b37852ffb3126beaf79c\",\"dweb:/ipfs/QmWyWMj7s4T2de4EymFJybWCFYmKtLoyosigJBe7ouyaMt\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -52,21 +66,24 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "// SPDX-License-Identifier: MIT\npragma solidity >=0.8.0 <0.9.0;\n\n/// @title Common inrterface to DeFi protocol connectors\n/// @author @Stanta\n/// @notice Every connector have to implement this function\n/// @dev Choosing of connector releasing by changing address of connector's contract\ninterface IPortfolioManager {\n    function stake(address _asset, uint256 _amount) external;\n\n    function unstake(address _asset, uint256 _amount) external returns (uint256);\n}\n",
-  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/interfaces/IPortfolioManager.sol",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity >=0.8.0 <0.9.0;\r\n\r\nimport \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\r\n\r\ninterface IPortfolioManager {\r\n    function invest(IERC20 _token, uint256 _amount) external;\r\n\r\n    function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);\r\n\r\n    function balanceOnReward() external;\r\n\r\n    function claimRewards() external;\r\n}\r\n",
+  "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\interfaces\\IPortfolioManager.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/IPortfolioManager.sol",
     "exportedSymbols": {
+      "IERC20": [
+        1107
+      ],
       "IPortfolioManager": [
-        6217
+        10639
       ]
     },
-    "id": 6218,
+    "id": 10640,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6199,
+        "id": 10613,
         "literals": [
           "solidity",
           ">=",
@@ -77,78 +94,90 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "32:31:36"
+        "src": "33:31:47"
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "id": 10614,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 10640,
+        "sourceUnit": 1108,
+        "src": "68:56:47",
+        "symbolAliases": [],
+        "unitAlias": ""
       },
       {
         "abstract": false,
         "baseContracts": [],
         "contractDependencies": [],
         "contractKind": "interface",
-        "documentation": {
-          "id": 6200,
-          "nodeType": "StructuredDocumentation",
-          "src": "65:222:36",
-          "text": "@title Common inrterface to DeFi protocol connectors\n @author @Stanta\n @notice Every connector have to implement this function\n @dev Choosing of connector releasing by changing address of connector's contract"
-        },
         "fullyImplemented": false,
-        "id": 6217,
+        "id": 10639,
         "linearizedBaseContracts": [
-          6217
+          10639
         ],
         "name": "IPortfolioManager",
-        "nameLocation": "297:17:36",
+        "nameLocation": "138:17:47",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
-            "functionSelector": "adc9772e",
-            "id": 6207,
+            "functionSelector": "b9b8c246",
+            "id": 10622,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
-            "name": "stake",
-            "nameLocation": "330:5:36",
+            "name": "invest",
+            "nameLocation": "172:6:47",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6205,
+              "id": 10620,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6202,
+                  "id": 10617,
                   "mutability": "mutable",
-                  "name": "_asset",
-                  "nameLocation": "344:6:36",
+                  "name": "_token",
+                  "nameLocation": "186:6:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6207,
-                  "src": "336:14:36",
+                  "scope": 10622,
+                  "src": "179:13:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
+                    "typeIdentifier": "t_contract$_IERC20_$1107",
+                    "typeString": "contract IERC20"
                   },
                   "typeName": {
-                    "id": 6201,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "336:7:36",
-                    "stateMutability": "nonpayable",
+                    "id": 10616,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 10615,
+                      "name": "IERC20",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1107,
+                      "src": "179:6:47"
+                    },
+                    "referencedDeclaration": 1107,
+                    "src": "179:6:47",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
+                      "typeIdentifier": "t_contract$_IERC20_$1107",
+                      "typeString": "contract IERC20"
                     }
                   },
                   "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 6204,
+                  "id": 10619,
                   "mutability": "mutable",
                   "name": "_amount",
-                  "nameLocation": "360:7:36",
+                  "nameLocation": "202:7:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6207,
-                  "src": "352:15:36",
+                  "scope": 10622,
+                  "src": "194:15:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -156,10 +185,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6203,
+                    "id": 10618,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "352:7:36",
+                    "src": "194:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -168,70 +197,76 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "335:33:36"
+              "src": "178:32:47"
             },
             "returnParameters": {
-              "id": 6206,
+              "id": 10621,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "377:0:36"
+              "src": "219:0:47"
             },
-            "scope": 6217,
-            "src": "321:57:36",
+            "scope": 10639,
+            "src": "163:57:47",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "functionSelector": "c2a672e0",
-            "id": 6216,
+            "functionSelector": "f3fef3a3",
+            "id": 10632,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
-            "name": "unstake",
-            "nameLocation": "393:7:36",
+            "name": "withdraw",
+            "nameLocation": "237:8:47",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6212,
+              "id": 10628,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6209,
+                  "id": 10625,
                   "mutability": "mutable",
-                  "name": "_asset",
-                  "nameLocation": "409:6:36",
+                  "name": "_token",
+                  "nameLocation": "253:6:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "401:14:36",
+                  "scope": 10632,
+                  "src": "246:13:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
+                    "typeIdentifier": "t_contract$_IERC20_$1107",
+                    "typeString": "contract IERC20"
                   },
                   "typeName": {
-                    "id": 6208,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "401:7:36",
-                    "stateMutability": "nonpayable",
+                    "id": 10624,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 10623,
+                      "name": "IERC20",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1107,
+                      "src": "246:6:47"
+                    },
+                    "referencedDeclaration": 1107,
+                    "src": "246:6:47",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
+                      "typeIdentifier": "t_contract$_IERC20_$1107",
+                      "typeString": "contract IERC20"
                     }
                   },
                   "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 6211,
+                  "id": 10627,
                   "mutability": "mutable",
                   "name": "_amount",
-                  "nameLocation": "425:7:36",
+                  "nameLocation": "269:7:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "417:15:36",
+                  "scope": 10632,
+                  "src": "261:15:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -239,10 +274,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6210,
+                    "id": 10626,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "417:7:36",
+                    "src": "261:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -251,21 +286,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "400:33:36"
+              "src": "245:32:47"
             },
             "returnParameters": {
-              "id": 6215,
+              "id": 10631,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6214,
+                  "id": 10630,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "452:7:36",
+                  "scope": 10632,
+                  "src": "296:7:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -273,10 +308,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6213,
+                    "id": 10629,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "452:7:36",
+                    "src": "296:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -285,35 +320,92 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "451:9:36"
+              "src": "295:9:47"
             },
-            "scope": 6217,
-            "src": "384:77:36",
+            "scope": 10639,
+            "src": "228:77:47",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "b69f88c8",
+            "id": 10635,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "balanceOnReward",
+            "nameLocation": "322:15:47",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 10633,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "337:2:47"
+            },
+            "returnParameters": {
+              "id": 10634,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "348:0:47"
+            },
+            "scope": 10639,
+            "src": "313:36:47",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "372500ab",
+            "id": 10638,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "claimRewards",
+            "nameLocation": "366:12:47",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 10636,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "378:2:47"
+            },
+            "returnParameters": {
+              "id": 10637,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "389:0:47"
+            },
+            "scope": 10639,
+            "src": "357:33:47",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6218,
-        "src": "287:176:36",
+        "scope": 10640,
+        "src": "128:265:47",
         "usedErrors": []
       }
     ],
-    "src": "32:432:36"
+    "src": "33:362:47"
   },
   "legacyAST": {
     "absolutePath": "project:/contracts/interfaces/IPortfolioManager.sol",
     "exportedSymbols": {
+      "IERC20": [
+        1107
+      ],
       "IPortfolioManager": [
-        6217
+        10639
       ]
     },
-    "id": 6218,
+    "id": 10640,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6199,
+        "id": 10613,
         "literals": [
           "solidity",
           ">=",
@@ -324,78 +416,90 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "32:31:36"
+        "src": "33:31:47"
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "id": 10614,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 10640,
+        "sourceUnit": 1108,
+        "src": "68:56:47",
+        "symbolAliases": [],
+        "unitAlias": ""
       },
       {
         "abstract": false,
         "baseContracts": [],
         "contractDependencies": [],
         "contractKind": "interface",
-        "documentation": {
-          "id": 6200,
-          "nodeType": "StructuredDocumentation",
-          "src": "65:222:36",
-          "text": "@title Common inrterface to DeFi protocol connectors\n @author @Stanta\n @notice Every connector have to implement this function\n @dev Choosing of connector releasing by changing address of connector's contract"
-        },
         "fullyImplemented": false,
-        "id": 6217,
+        "id": 10639,
         "linearizedBaseContracts": [
-          6217
+          10639
         ],
         "name": "IPortfolioManager",
-        "nameLocation": "297:17:36",
+        "nameLocation": "138:17:47",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
-            "functionSelector": "adc9772e",
-            "id": 6207,
+            "functionSelector": "b9b8c246",
+            "id": 10622,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
-            "name": "stake",
-            "nameLocation": "330:5:36",
+            "name": "invest",
+            "nameLocation": "172:6:47",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6205,
+              "id": 10620,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6202,
+                  "id": 10617,
                   "mutability": "mutable",
-                  "name": "_asset",
-                  "nameLocation": "344:6:36",
+                  "name": "_token",
+                  "nameLocation": "186:6:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6207,
-                  "src": "336:14:36",
+                  "scope": 10622,
+                  "src": "179:13:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
+                    "typeIdentifier": "t_contract$_IERC20_$1107",
+                    "typeString": "contract IERC20"
                   },
                   "typeName": {
-                    "id": 6201,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "336:7:36",
-                    "stateMutability": "nonpayable",
+                    "id": 10616,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 10615,
+                      "name": "IERC20",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1107,
+                      "src": "179:6:47"
+                    },
+                    "referencedDeclaration": 1107,
+                    "src": "179:6:47",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
+                      "typeIdentifier": "t_contract$_IERC20_$1107",
+                      "typeString": "contract IERC20"
                     }
                   },
                   "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 6204,
+                  "id": 10619,
                   "mutability": "mutable",
                   "name": "_amount",
-                  "nameLocation": "360:7:36",
+                  "nameLocation": "202:7:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6207,
-                  "src": "352:15:36",
+                  "scope": 10622,
+                  "src": "194:15:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -403,10 +507,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6203,
+                    "id": 10618,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "352:7:36",
+                    "src": "194:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -415,70 +519,76 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "335:33:36"
+              "src": "178:32:47"
             },
             "returnParameters": {
-              "id": 6206,
+              "id": 10621,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "377:0:36"
+              "src": "219:0:47"
             },
-            "scope": 6217,
-            "src": "321:57:36",
+            "scope": 10639,
+            "src": "163:57:47",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "functionSelector": "c2a672e0",
-            "id": 6216,
+            "functionSelector": "f3fef3a3",
+            "id": 10632,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
-            "name": "unstake",
-            "nameLocation": "393:7:36",
+            "name": "withdraw",
+            "nameLocation": "237:8:47",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6212,
+              "id": 10628,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6209,
+                  "id": 10625,
                   "mutability": "mutable",
-                  "name": "_asset",
-                  "nameLocation": "409:6:36",
+                  "name": "_token",
+                  "nameLocation": "253:6:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "401:14:36",
+                  "scope": 10632,
+                  "src": "246:13:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
+                    "typeIdentifier": "t_contract$_IERC20_$1107",
+                    "typeString": "contract IERC20"
                   },
                   "typeName": {
-                    "id": 6208,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "401:7:36",
-                    "stateMutability": "nonpayable",
+                    "id": 10624,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 10623,
+                      "name": "IERC20",
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 1107,
+                      "src": "246:6:47"
+                    },
+                    "referencedDeclaration": 1107,
+                    "src": "246:6:47",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
+                      "typeIdentifier": "t_contract$_IERC20_$1107",
+                      "typeString": "contract IERC20"
                     }
                   },
                   "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 6211,
+                  "id": 10627,
                   "mutability": "mutable",
                   "name": "_amount",
-                  "nameLocation": "425:7:36",
+                  "nameLocation": "269:7:47",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "417:15:36",
+                  "scope": 10632,
+                  "src": "261:15:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -486,10 +596,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6210,
+                    "id": 10626,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "417:7:36",
+                    "src": "261:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -498,21 +608,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "400:33:36"
+              "src": "245:32:47"
             },
             "returnParameters": {
-              "id": 6215,
+              "id": 10631,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6214,
+                  "id": 10630,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6216,
-                  "src": "452:7:36",
+                  "scope": 10632,
+                  "src": "296:7:47",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -520,10 +630,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 6213,
+                    "id": 10629,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "452:7:36",
+                    "src": "296:7:47",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -532,41 +642,91 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "451:9:36"
+              "src": "295:9:47"
             },
-            "scope": 6217,
-            "src": "384:77:36",
+            "scope": 10639,
+            "src": "228:77:47",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "b69f88c8",
+            "id": 10635,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "balanceOnReward",
+            "nameLocation": "322:15:47",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 10633,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "337:2:47"
+            },
+            "returnParameters": {
+              "id": 10634,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "348:0:47"
+            },
+            "scope": 10639,
+            "src": "313:36:47",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "functionSelector": "372500ab",
+            "id": 10638,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "claimRewards",
+            "nameLocation": "366:12:47",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 10636,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "378:2:47"
+            },
+            "returnParameters": {
+              "id": 10637,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "389:0:47"
+            },
+            "scope": 10639,
+            "src": "357:33:47",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6218,
-        "src": "287:176:36",
+        "scope": 10640,
+        "src": "128:265:47",
         "usedErrors": []
       }
     ],
-    "src": "32:432:36"
+    "src": "33:362:47"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.6+commit.11564f7e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.1",
-  "updatedAt": "2021-09-12T09:02:17.362Z",
+  "schemaVersion": "3.4.2",
+  "updatedAt": "2021-10-18T00:18:03.051Z",
   "devdoc": {
-    "author": "@Stanta",
-    "details": "Choosing of connector releasing by changing address of connector's contract",
     "kind": "dev",
     "methods": {},
-    "title": "Common inrterface to DeFi protocol connectors",
     "version": 1
   },
   "userdoc": {
     "kind": "user",
     "methods": {},
-    "notice": "Every connector have to implement this function",
     "version": 1
   }
 }

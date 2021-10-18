@@ -21,7 +21,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"}],\"name\":\"getAssetPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"getAssetPrice(address)\":{\"details\":\"returns the asset price in ETH\",\"params\":{\"asset\":\"the address of the asset\"},\"returns\":{\"_0\":\"the ETH price of the asset*\"}}},\"title\":\"IPriceOracleGetter interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Interface for the Aave price oracle.*\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol\":\"IPriceOracleGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol\":{\"keccak256\":\"0x848507e335fbaa55c17b1656dfe14002e9af43827ba445b57215fca033131302\",\"license\":\"agpl-3.0\",\"urls\":[\"bzz-raw://52e2f183e60edd5bcef84eea65f558185a44b1d6354f7ba7f3b992aa25e38f80\",\"dweb:/ipfs/QmUcn6SgXHkSBcPArsL46E19H7qLaG3hGTynuSK4Xjndtf\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"}],\"name\":\"getAssetPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"getAssetPrice(address)\":{\"details\":\"returns the asset price in ETH\",\"params\":{\"asset\":\"the address of the asset\"},\"returns\":{\"_0\":\"the ETH price of the asset*\"}}},\"title\":\"IPriceOracleGetter interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Interface for the Aave price oracle.*\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol\":\"IPriceOracleGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol\":{\"keccak256\":\"0x62ef1f4a46a91d0e6e3493ccce77e5bb63971a15bc95b1231c17621a3f4e188e\",\"license\":\"agpl-3.0\",\"urls\":[\"bzz-raw://f99152fe7aef4e3a98a5075f4f0a656eae494b1cc0076beff33b12238e7c1700\",\"dweb:/ipfs/QmdHW8PKMGY3Jv2oRz7HYsVRgxseJkpd5rjbuxfbovEU2B\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -29,21 +29,21 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "// SPDX-License-Identifier: agpl-3.0\npragma solidity >= 0.8.0;\n\n/**\n * @title IPriceOracleGetter interface\n * @notice Interface for the Aave price oracle.\n **/\n\ninterface IPriceOracleGetter {\n  /**\n   * @dev returns the asset price in ETH\n   * @param asset the address of the asset\n   * @return the ETH price of the asset\n   **/\n  function getAssetPrice(address asset) external view returns (uint256);\n}\n",
-  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol",
+  "source": "// SPDX-License-Identifier: agpl-3.0\r\npragma solidity >= 0.8.0;\r\n\r\n/**\r\n * @title IPriceOracleGetter interface\r\n * @notice Interface for the Aave price oracle.\r\n **/\r\n\r\ninterface IPriceOracleGetter {\r\n  /**\r\n   * @dev returns the asset price in ETH\r\n   * @param asset the address of the asset\r\n   * @return the ETH price of the asset\r\n   **/\r\n  function getAssetPrice(address asset) external view returns (uint256);\r\n}\r\n",
+  "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\connectors\\aave\\interfaces\\IPriceOracleGetter.sol",
   "ast": {
     "absolutePath": "project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol",
     "exportedSymbols": {
       "IPriceOracleGetter": [
-        4669
+        9043
       ]
     },
-    "id": 4670,
+    "id": 9044,
     "license": "agpl-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4659,
+        "id": 9033,
         "literals": [
           "solidity",
           ">=",
@@ -51,7 +51,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "37:25:21"
+        "src": "38:25:31"
       },
       {
         "abstract": false,
@@ -59,48 +59,48 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "documentation": {
-          "id": 4660,
+          "id": 9034,
           "nodeType": "StructuredDocumentation",
-          "src": "64:95:21",
+          "src": "67:98:31",
           "text": " @title IPriceOracleGetter interface\n @notice Interface for the Aave price oracle.*"
         },
         "fullyImplemented": false,
-        "id": 4669,
+        "id": 9043,
         "linearizedBaseContracts": [
-          4669
+          9043
         ],
         "name": "IPriceOracleGetter",
-        "nameLocation": "171:18:21",
+        "nameLocation": "179:18:31",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "documentation": {
-              "id": 4661,
+              "id": 9035,
               "nodeType": "StructuredDocumentation",
-              "src": "194:134:21",
+              "src": "203:138:31",
               "text": " @dev returns the asset price in ETH\n @param asset the address of the asset\n @return the ETH price of the asset*"
             },
             "functionSelector": "b3596f07",
-            "id": 4668,
+            "id": 9042,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "getAssetPrice",
-            "nameLocation": "340:13:21",
+            "nameLocation": "354:13:31",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4664,
+              "id": 9038,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4663,
+                  "id": 9037,
                   "mutability": "mutable",
                   "name": "asset",
-                  "nameLocation": "362:5:21",
+                  "nameLocation": "376:5:31",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4668,
-                  "src": "354:13:21",
+                  "scope": 9042,
+                  "src": "368:13:31",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -108,10 +108,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4662,
+                    "id": 9036,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "354:7:21",
+                    "src": "368:7:31",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -121,21 +121,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "353:15:21"
+              "src": "367:15:31"
             },
             "returnParameters": {
-              "id": 4667,
+              "id": 9041,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4666,
+                  "id": 9040,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4668,
-                  "src": "392:7:21",
+                  "scope": 9042,
+                  "src": "406:7:31",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -143,10 +143,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 4665,
+                    "id": 9039,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "392:7:21",
+                    "src": "406:7:31",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -155,35 +155,35 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "391:9:21"
+              "src": "405:9:31"
             },
-            "scope": 4669,
-            "src": "331:70:21",
+            "scope": 9043,
+            "src": "345:70:31",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 4670,
-        "src": "161:242:21",
+        "scope": 9044,
+        "src": "169:249:31",
         "usedErrors": []
       }
     ],
-    "src": "37:367:21"
+    "src": "38:382:31"
   },
   "legacyAST": {
     "absolutePath": "project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol",
     "exportedSymbols": {
       "IPriceOracleGetter": [
-        4669
+        9043
       ]
     },
-    "id": 4670,
+    "id": 9044,
     "license": "agpl-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4659,
+        "id": 9033,
         "literals": [
           "solidity",
           ">=",
@@ -191,7 +191,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "37:25:21"
+        "src": "38:25:31"
       },
       {
         "abstract": false,
@@ -199,48 +199,48 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "documentation": {
-          "id": 4660,
+          "id": 9034,
           "nodeType": "StructuredDocumentation",
-          "src": "64:95:21",
+          "src": "67:98:31",
           "text": " @title IPriceOracleGetter interface\n @notice Interface for the Aave price oracle.*"
         },
         "fullyImplemented": false,
-        "id": 4669,
+        "id": 9043,
         "linearizedBaseContracts": [
-          4669
+          9043
         ],
         "name": "IPriceOracleGetter",
-        "nameLocation": "171:18:21",
+        "nameLocation": "179:18:31",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "documentation": {
-              "id": 4661,
+              "id": 9035,
               "nodeType": "StructuredDocumentation",
-              "src": "194:134:21",
+              "src": "203:138:31",
               "text": " @dev returns the asset price in ETH\n @param asset the address of the asset\n @return the ETH price of the asset*"
             },
             "functionSelector": "b3596f07",
-            "id": 4668,
+            "id": 9042,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "getAssetPrice",
-            "nameLocation": "340:13:21",
+            "nameLocation": "354:13:31",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4664,
+              "id": 9038,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4663,
+                  "id": 9037,
                   "mutability": "mutable",
                   "name": "asset",
-                  "nameLocation": "362:5:21",
+                  "nameLocation": "376:5:31",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4668,
-                  "src": "354:13:21",
+                  "scope": 9042,
+                  "src": "368:13:31",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -248,10 +248,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4662,
+                    "id": 9036,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "354:7:21",
+                    "src": "368:7:31",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -261,21 +261,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "353:15:21"
+              "src": "367:15:31"
             },
             "returnParameters": {
-              "id": 4667,
+              "id": 9041,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4666,
+                  "id": 9040,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4668,
-                  "src": "392:7:21",
+                  "scope": 9042,
+                  "src": "406:7:31",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -283,10 +283,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 4665,
+                    "id": 9039,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "392:7:21",
+                    "src": "406:7:31",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -295,29 +295,29 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "391:9:21"
+              "src": "405:9:31"
             },
-            "scope": 4669,
-            "src": "331:70:21",
+            "scope": 9043,
+            "src": "345:70:31",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 4670,
-        "src": "161:242:21",
+        "scope": 9044,
+        "src": "169:249:31",
         "usedErrors": []
       }
     ],
-    "src": "37:367:21"
+    "src": "38:382:31"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.6+commit.11564f7e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.1",
-  "updatedAt": "2021-09-12T09:02:17.343Z",
+  "schemaVersion": "3.4.2",
+  "updatedAt": "2021-10-18T00:18:03.015Z",
   "devdoc": {
     "kind": "dev",
     "methods": {

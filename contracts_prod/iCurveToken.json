@@ -221,7 +221,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"burnFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"details\":\"Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}. This is zero by default. This value changes when {approve} or {transferFrom} are called.\"},\"approve(address,uint256)\":{\"details\":\"Sets `amount` as the allowance of `spender` over the caller's tokens. Returns a boolean value indicating whether the operation succeeded. IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards: https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729 Emits an {Approval} event.\"},\"balanceOf(address)\":{\"details\":\"Returns the amount of tokens owned by `account`.\"},\"totalSupply()\":{\"details\":\"Returns the amount of tokens in existence.\"},\"transfer(address,uint256)\":{\"details\":\"Moves `amount` tokens from the caller's account to `recipient`. Returns a boolean value indicating whether the operation succeeded. Emits a {Transfer} event.\"},\"transferFrom(address,address,uint256)\":{\"details\":\"Moves `amount` tokens from `sender` to `recipient` using the allowance mechanism. `amount` is then deducted from the caller's allowance. Returns a boolean value indicating whether the operation succeeded. Emits a {Transfer} event.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/connectors/curve/interfaces/iCurveToken.sol\":\"iCurveToken\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"project:/contracts/connectors/curve/interfaces/iCurveToken.sol\":{\"keccak256\":\"0xec285140f0a15606303b5f2464a6d4a8c793a238c032d47a87a265679b57afaf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://aa756234e19b11c5c838d4824c6e9c6adb600908858daf87764f64252164685f\",\"dweb:/ipfs/QmbqeoFebx28DcM5KSCVdTJhM3v5CK5A5ABqk13z5eeF27\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"burnFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"allowance(address,address)\":{\"details\":\"Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}. This is zero by default. This value changes when {approve} or {transferFrom} are called.\"},\"approve(address,uint256)\":{\"details\":\"Sets `amount` as the allowance of `spender` over the caller's tokens. Returns a boolean value indicating whether the operation succeeded. IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards: https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729 Emits an {Approval} event.\"},\"balanceOf(address)\":{\"details\":\"Returns the amount of tokens owned by `account`.\"},\"totalSupply()\":{\"details\":\"Returns the amount of tokens in existence.\"},\"transfer(address,uint256)\":{\"details\":\"Moves `amount` tokens from the caller's account to `recipient`. Returns a boolean value indicating whether the operation succeeded. Emits a {Transfer} event.\"},\"transferFrom(address,address,uint256)\":{\"details\":\"Moves `amount` tokens from `sender` to `recipient` using the allowance mechanism. `amount` is then deducted from the caller's allowance. Returns a boolean value indicating whether the operation succeeded. Emits a {Transfer} event.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/connectors/curve/interfaces/iCurveToken.sol\":\"iCurveToken\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"project:/contracts/connectors/curve/interfaces/iCurveToken.sol\":{\"keccak256\":\"0x4ca174be9b0258a7e5341574802133e17749877ad8b2fb6117b516de00a124af\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://537df617333f1ac541545172b511e9baa990f8d9170407c6161f948bbc735527\",\"dweb:/ipfs/QmNgXrszmipMgG2CA74tX4XvEjeoLKLQohHpsHs5HUXfSH\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -229,24 +229,24 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "// SPDX-License-Identifier: MIT\npragma solidity >=0.5 <0.9.0;\n\nimport \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\n\ninterface iCurveToken is IERC20 {\n    function mint(address _sender, uint256 amount) external;\n\n    function burnFrom(address _sender, uint256 amount) external;\n}\n",
-  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/connectors/curve/interfaces/iCurveToken.sol",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity >=0.5 <0.9.0;\r\n\r\nimport \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\r\n\r\ninterface iCurveToken is IERC20 {\r\n    function mint(address _sender, uint256 amount) external;\r\n\r\n    function burnFrom(address _sender, uint256 amount) external;\r\n}\r\n",
+  "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\connectors\\curve\\interfaces\\iCurveToken.sol",
   "ast": {
     "absolutePath": "project:/contracts/connectors/curve/interfaces/iCurveToken.sol",
     "exportedSymbols": {
       "IERC20": [
-        1095
+        1107
       ],
       "iCurveToken": [
-        5147
+        9614
       ]
     },
-    "id": 5148,
+    "id": 9615,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5129,
+        "id": 9596,
         "literals": [
           "solidity",
           ">=",
@@ -256,17 +256,17 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "32:29:25"
+        "src": "33:29:36"
       },
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "id": 5130,
+        "id": 9597,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 5148,
-        "sourceUnit": 1096,
-        "src": "63:56:25",
+        "scope": 9615,
+        "sourceUnit": 1108,
+        "src": "66:56:36",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -275,51 +275,51 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 5131,
+              "id": 9598,
               "name": "IERC20",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 1095,
-              "src": "146:6:25"
+              "referencedDeclaration": 1107,
+              "src": "151:6:36"
             },
-            "id": 5132,
+            "id": 9599,
             "nodeType": "InheritanceSpecifier",
-            "src": "146:6:25"
+            "src": "151:6:36"
           }
         ],
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 5147,
+        "id": 9614,
         "linearizedBaseContracts": [
-          5147,
-          1095
+          9614,
+          1107
         ],
         "name": "iCurveToken",
-        "nameLocation": "131:11:25",
+        "nameLocation": "136:11:36",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "40c10f19",
-            "id": 5139,
+            "id": 9606,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "mint",
-            "nameLocation": "168:4:25",
+            "nameLocation": "174:4:36",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5137,
+              "id": 9604,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5134,
+                  "id": 9601,
                   "mutability": "mutable",
                   "name": "_sender",
-                  "nameLocation": "181:7:25",
+                  "nameLocation": "187:7:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5139,
-                  "src": "173:15:25",
+                  "scope": 9606,
+                  "src": "179:15:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -327,10 +327,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5133,
+                    "id": 9600,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "173:7:25",
+                    "src": "179:7:36",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -341,13 +341,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 5136,
+                  "id": 9603,
                   "mutability": "mutable",
                   "name": "amount",
-                  "nameLocation": "198:6:25",
+                  "nameLocation": "204:6:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5139,
-                  "src": "190:14:25",
+                  "scope": 9606,
+                  "src": "196:14:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -355,10 +355,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5135,
+                    "id": 9602,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "190:7:25",
+                    "src": "196:7:36",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -367,42 +367,42 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "172:33:25"
+              "src": "178:33:36"
             },
             "returnParameters": {
-              "id": 5138,
+              "id": 9605,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "214:0:25"
+              "src": "220:0:36"
             },
-            "scope": 5147,
-            "src": "159:56:25",
+            "scope": 9614,
+            "src": "165:56:36",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "79cc6790",
-            "id": 5146,
+            "id": 9613,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "burnFrom",
-            "nameLocation": "230:8:25",
+            "nameLocation": "238:8:36",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5144,
+              "id": 9611,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5141,
+                  "id": 9608,
                   "mutability": "mutable",
                   "name": "_sender",
-                  "nameLocation": "247:7:25",
+                  "nameLocation": "255:7:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5146,
-                  "src": "239:15:25",
+                  "scope": 9613,
+                  "src": "247:15:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -410,10 +410,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5140,
+                    "id": 9607,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "239:7:25",
+                    "src": "247:7:36",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -424,13 +424,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 5143,
+                  "id": 9610,
                   "mutability": "mutable",
                   "name": "amount",
-                  "nameLocation": "264:6:25",
+                  "nameLocation": "272:6:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5146,
-                  "src": "256:14:25",
+                  "scope": 9613,
+                  "src": "264:14:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -438,10 +438,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5142,
+                    "id": 9609,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "256:7:25",
+                    "src": "264:7:36",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -450,44 +450,44 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "238:33:25"
+              "src": "246:33:36"
             },
             "returnParameters": {
-              "id": 5145,
+              "id": 9612,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "280:0:25"
+              "src": "288:0:36"
             },
-            "scope": 5147,
-            "src": "221:60:25",
+            "scope": 9614,
+            "src": "229:60:36",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 5148,
-        "src": "121:162:25",
+        "scope": 9615,
+        "src": "126:166:36",
         "usedErrors": []
       }
     ],
-    "src": "32:252:25"
+    "src": "33:261:36"
   },
   "legacyAST": {
     "absolutePath": "project:/contracts/connectors/curve/interfaces/iCurveToken.sol",
     "exportedSymbols": {
       "IERC20": [
-        1095
+        1107
       ],
       "iCurveToken": [
-        5147
+        9614
       ]
     },
-    "id": 5148,
+    "id": 9615,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5129,
+        "id": 9596,
         "literals": [
           "solidity",
           ">=",
@@ -497,17 +497,17 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "32:29:25"
+        "src": "33:29:36"
       },
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "id": 5130,
+        "id": 9597,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 5148,
-        "sourceUnit": 1096,
-        "src": "63:56:25",
+        "scope": 9615,
+        "sourceUnit": 1108,
+        "src": "66:56:36",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -516,51 +516,51 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 5131,
+              "id": 9598,
               "name": "IERC20",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 1095,
-              "src": "146:6:25"
+              "referencedDeclaration": 1107,
+              "src": "151:6:36"
             },
-            "id": 5132,
+            "id": 9599,
             "nodeType": "InheritanceSpecifier",
-            "src": "146:6:25"
+            "src": "151:6:36"
           }
         ],
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 5147,
+        "id": 9614,
         "linearizedBaseContracts": [
-          5147,
-          1095
+          9614,
+          1107
         ],
         "name": "iCurveToken",
-        "nameLocation": "131:11:25",
+        "nameLocation": "136:11:36",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "40c10f19",
-            "id": 5139,
+            "id": 9606,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "mint",
-            "nameLocation": "168:4:25",
+            "nameLocation": "174:4:36",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5137,
+              "id": 9604,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5134,
+                  "id": 9601,
                   "mutability": "mutable",
                   "name": "_sender",
-                  "nameLocation": "181:7:25",
+                  "nameLocation": "187:7:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5139,
-                  "src": "173:15:25",
+                  "scope": 9606,
+                  "src": "179:15:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -568,10 +568,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5133,
+                    "id": 9600,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "173:7:25",
+                    "src": "179:7:36",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -582,13 +582,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 5136,
+                  "id": 9603,
                   "mutability": "mutable",
                   "name": "amount",
-                  "nameLocation": "198:6:25",
+                  "nameLocation": "204:6:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5139,
-                  "src": "190:14:25",
+                  "scope": 9606,
+                  "src": "196:14:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -596,10 +596,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5135,
+                    "id": 9602,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "190:7:25",
+                    "src": "196:7:36",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -608,42 +608,42 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "172:33:25"
+              "src": "178:33:36"
             },
             "returnParameters": {
-              "id": 5138,
+              "id": 9605,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "214:0:25"
+              "src": "220:0:36"
             },
-            "scope": 5147,
-            "src": "159:56:25",
+            "scope": 9614,
+            "src": "165:56:36",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "79cc6790",
-            "id": 5146,
+            "id": 9613,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "burnFrom",
-            "nameLocation": "230:8:25",
+            "nameLocation": "238:8:36",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5144,
+              "id": 9611,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5141,
+                  "id": 9608,
                   "mutability": "mutable",
                   "name": "_sender",
-                  "nameLocation": "247:7:25",
+                  "nameLocation": "255:7:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5146,
-                  "src": "239:15:25",
+                  "scope": 9613,
+                  "src": "247:15:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -651,10 +651,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5140,
+                    "id": 9607,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "239:7:25",
+                    "src": "247:7:36",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -665,13 +665,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 5143,
+                  "id": 9610,
                   "mutability": "mutable",
                   "name": "amount",
-                  "nameLocation": "264:6:25",
+                  "nameLocation": "272:6:36",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5146,
-                  "src": "256:14:25",
+                  "scope": 9613,
+                  "src": "264:14:36",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -679,10 +679,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 5142,
+                    "id": 9609,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "256:7:25",
+                    "src": "264:7:36",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -691,35 +691,35 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "238:33:25"
+              "src": "246:33:36"
             },
             "returnParameters": {
-              "id": 5145,
+              "id": 9612,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "280:0:25"
+              "src": "288:0:36"
             },
-            "scope": 5147,
-            "src": "221:60:25",
+            "scope": 9614,
+            "src": "229:60:36",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 5148,
-        "src": "121:162:25",
+        "scope": 9615,
+        "src": "126:166:36",
         "usedErrors": []
       }
     ],
-    "src": "32:252:25"
+    "src": "33:261:36"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.6+commit.11564f7e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.1",
-  "updatedAt": "2021-09-12T09:02:17.348Z",
+  "schemaVersion": "3.4.2",
+  "updatedAt": "2021-10-18T00:18:03.027Z",
   "devdoc": {
     "kind": "dev",
     "methods": {

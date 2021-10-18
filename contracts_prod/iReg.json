@@ -34,7 +34,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"gett\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"_out\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"sett\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/iReg.sol\":\"iReg\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/iReg.sol\":{\"keccak256\":\"0x1d4222714e5da33dcb1c5af243ad1e1b7c8e22078351b3e33ff76b14fd9a2970\",\"urls\":[\"bzz-raw://1236c1d67996ba59d84c4914380c6445f386e3d218fcb0b53d17c31fa1ccfa38\",\"dweb:/ipfs/QmWZiw1EjdSKzURkh8fgU7jXGPnDAXmdzBKZZHg8qwxW3j\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"gett\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"_out\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_in\",\"type\":\"bytes\"}],\"name\":\"sett\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/iReg.sol\":\"iReg\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/iReg.sol\":{\"keccak256\":\"0x1e61fcb85704afbc78a9d2d27fa748ed35531ccc3bc5240d7c9a9c815cfdc6b2\",\"urls\":[\"bzz-raw://dcd1f56dc725d84c3cf01ef20220fd44aa8a445f26e4737ea75f2cac99f9afb6\",\"dweb:/ipfs/QmfZR7VCbDwQ3J1hF3BmvxGzscnQRinnVGB44pDqy16G2L\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -42,20 +42,20 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity >=  0.8.0;\ninterface iReg {\n    function sett (bytes memory _in) external;\n    function gett (bytes memory _in) external returns (bytes memory _out);\n}",
-  "sourcePath": "/home/vorh/IdeaProjects/Projects-Work/overnight/ovngt-mvp/contracts/interfaces/iReg.sol",
+  "source": "pragma solidity >=  0.8.0;\r\ninterface iReg {\r\n    function sett (bytes memory _in) external;\r\n    function gett (bytes memory _in) external returns (bytes memory _out);\r\n}",
+  "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\interfaces\\iReg.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/iReg.sol",
     "exportedSymbols": {
       "iReg": [
-        4905
+        4713
       ]
     },
-    "id": 4906,
+    "id": 4714,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4892,
+        "id": 4700,
         "literals": [
           "solidity",
           ">=",
@@ -63,7 +63,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:26:31"
+        "src": "0:26:32"
       },
       {
         "abstract": false,
@@ -71,36 +71,36 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 4905,
+        "id": 4713,
         "linearizedBaseContracts": [
-          4905
+          4713
         ],
         "name": "iReg",
-        "nameLocation": "37:4:31",
+        "nameLocation": "38:4:32",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "ba938c3f",
-            "id": 4897,
+            "id": 4705,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "sett",
-            "nameLocation": "57:4:31",
+            "nameLocation": "59:4:32",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4895,
+              "id": 4703,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4894,
+                  "id": 4702,
                   "mutability": "mutable",
                   "name": "_in",
-                  "nameLocation": "76:3:31",
+                  "nameLocation": "78:3:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4897,
-                  "src": "63:16:31",
+                  "scope": 4705,
+                  "src": "65:16:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -108,10 +108,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4893,
+                    "id": 4701,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "63:5:31",
+                    "src": "65:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -120,42 +120,42 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "62:18:31"
+              "src": "64:18:32"
             },
             "returnParameters": {
-              "id": 4896,
+              "id": 4704,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "89:0:31"
+              "src": "91:0:32"
             },
-            "scope": 4905,
-            "src": "48:42:31",
+            "scope": 4713,
+            "src": "50:42:32",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "877b82de",
-            "id": 4904,
+            "id": 4712,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "gett",
-            "nameLocation": "104:4:31",
+            "nameLocation": "107:4:32",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4900,
+              "id": 4708,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4899,
+                  "id": 4707,
                   "mutability": "mutable",
                   "name": "_in",
-                  "nameLocation": "123:3:31",
+                  "nameLocation": "126:3:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4904,
-                  "src": "110:16:31",
+                  "scope": 4712,
+                  "src": "113:16:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -163,10 +163,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4898,
+                    "id": 4706,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "110:5:31",
+                    "src": "113:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -175,21 +175,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "109:18:31"
+              "src": "112:18:32"
             },
             "returnParameters": {
-              "id": 4903,
+              "id": 4711,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4902,
+                  "id": 4710,
                   "mutability": "mutable",
                   "name": "_out",
-                  "nameLocation": "159:4:31",
+                  "nameLocation": "162:4:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4904,
-                  "src": "146:17:31",
+                  "scope": 4712,
+                  "src": "149:17:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -197,10 +197,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4901,
+                    "id": 4709,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "146:5:31",
+                    "src": "149:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -209,34 +209,34 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "145:19:31"
+              "src": "148:19:32"
             },
-            "scope": 4905,
-            "src": "95:70:31",
+            "scope": 4713,
+            "src": "98:70:32",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 4906,
-        "src": "27:140:31",
+        "scope": 4714,
+        "src": "28:143:32",
         "usedErrors": []
       }
     ],
-    "src": "0:167:31"
+    "src": "0:171:32"
   },
   "legacyAST": {
     "absolutePath": "project:/contracts/interfaces/iReg.sol",
     "exportedSymbols": {
       "iReg": [
-        4905
+        4713
       ]
     },
-    "id": 4906,
+    "id": 4714,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4892,
+        "id": 4700,
         "literals": [
           "solidity",
           ">=",
@@ -244,7 +244,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:26:31"
+        "src": "0:26:32"
       },
       {
         "abstract": false,
@@ -252,36 +252,36 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 4905,
+        "id": 4713,
         "linearizedBaseContracts": [
-          4905
+          4713
         ],
         "name": "iReg",
-        "nameLocation": "37:4:31",
+        "nameLocation": "38:4:32",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "ba938c3f",
-            "id": 4897,
+            "id": 4705,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "sett",
-            "nameLocation": "57:4:31",
+            "nameLocation": "59:4:32",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4895,
+              "id": 4703,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4894,
+                  "id": 4702,
                   "mutability": "mutable",
                   "name": "_in",
-                  "nameLocation": "76:3:31",
+                  "nameLocation": "78:3:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4897,
-                  "src": "63:16:31",
+                  "scope": 4705,
+                  "src": "65:16:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -289,10 +289,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4893,
+                    "id": 4701,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "63:5:31",
+                    "src": "65:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -301,42 +301,42 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "62:18:31"
+              "src": "64:18:32"
             },
             "returnParameters": {
-              "id": 4896,
+              "id": 4704,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "89:0:31"
+              "src": "91:0:32"
             },
-            "scope": 4905,
-            "src": "48:42:31",
+            "scope": 4713,
+            "src": "50:42:32",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "877b82de",
-            "id": 4904,
+            "id": 4712,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "gett",
-            "nameLocation": "104:4:31",
+            "nameLocation": "107:4:32",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 4900,
+              "id": 4708,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4899,
+                  "id": 4707,
                   "mutability": "mutable",
                   "name": "_in",
-                  "nameLocation": "123:3:31",
+                  "nameLocation": "126:3:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4904,
-                  "src": "110:16:31",
+                  "scope": 4712,
+                  "src": "113:16:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -344,10 +344,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4898,
+                    "id": 4706,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "110:5:31",
+                    "src": "113:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -356,21 +356,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "109:18:31"
+              "src": "112:18:32"
             },
             "returnParameters": {
-              "id": 4903,
+              "id": 4711,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4902,
+                  "id": 4710,
                   "mutability": "mutable",
                   "name": "_out",
-                  "nameLocation": "159:4:31",
+                  "nameLocation": "162:4:32",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4904,
-                  "src": "146:17:31",
+                  "scope": 4712,
+                  "src": "149:17:32",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -378,10 +378,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 4901,
+                    "id": 4709,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "146:5:31",
+                    "src": "149:5:32",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -390,29 +390,29 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "145:19:31"
+              "src": "148:19:32"
             },
-            "scope": 4905,
-            "src": "95:70:31",
+            "scope": 4713,
+            "src": "98:70:32",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 4906,
-        "src": "27:140:31",
+        "scope": 4714,
+        "src": "28:143:32",
         "usedErrors": []
       }
     ],
-    "src": "0:167:31"
+    "src": "0:171:32"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.6+commit.11564f7e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.1",
-  "updatedAt": "2021-09-01T08:12:57.589Z",
+  "schemaVersion": "3.4.2",
+  "updatedAt": "2021-08-26T16:44:47.477Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

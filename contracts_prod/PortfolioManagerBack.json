@@ -1,0 +1,399 @@
+{
+  "contractName": "PortfolioManagerBack",
+  "abi": [],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/PortfolioManagerBack.sol\":\"PortfolioManagerBack\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/AccessControl.sol\":{\"keccak256\":\"0x183481af1c40d2efb26b86f63d6fe9e22f24c87e436d60a69f261b38500e7cd6\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f562746c399ae045994a88b2218d1238a349de07afbfb305aab0c7fdbc2954cc\",\"dweb:/ipfs/QmYoFrDD2c6fi9CpPz1bjCMAyketjZ3G7ByUSVQMntysms\"]},\"@openzeppelin/contracts/access/IAccessControl.sol\":{\"keccak256\":\"0xfe0edb09653ed10e8a1bfe03eb9b0ff06775666eee817a95bd3d0799f1ee2b44\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fbb9d503857eab98f87465df0f02fef03083f30c1dbec82f319f41aaadae19b4\",\"dweb:/ipfs/QmTxDshRAMtoeM45YrTzQZdpmy4mt4scCNHjfZiWSvdETF\"]},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"@openzeppelin/contracts/utils/Context.sol\":{\"keccak256\":\"0x90565a39ae45c80f0468dc96c7b20d0afc3055f344c8203a0c9258239f350b9f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://26e8b38a7ac8e7b4463af00cf7fff1bf48ae9875765bf4f7751e100124d0bc8c\",\"dweb:/ipfs/QmWcsmkVr24xmmjfnBQZoemFniXjj3vwT78Cz6uqZW1Hux\"]},\"@openzeppelin/contracts/utils/Strings.sol\":{\"keccak256\":\"0x391d3ba97ab6856a16b225d6ee29617ad15ff00db70f3b4df1ab5ea33aa47c9d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d636ba90bbbeed04a1ea7fe9ec2466757e30fd38ba2ca173636dbf69a518735e\",\"dweb:/ipfs/QmQwCB2BHnEuYR22PYt9HkpbgeFDhq4rHmaYqAZbX3WRC7\"]},\"@openzeppelin/contracts/utils/introspection/ERC165.sol\":{\"keccak256\":\"0x5718c5df9bd67ac68a796961df938821bb5dc0cd4c6118d77e9145afb187409b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d10e1d9b26042424789246603906ad06143bf9a928f4e99de8b5e3bdc662f549\",\"dweb:/ipfs/Qmejonoaj5MLekPus229rJQHcC6E9dz2xorjHJR84fMfmn\"]},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"keccak256\":\"0xa28007762d9da9db878dd421960c8cb9a10471f47ab5c1b3309bfe48e9e79ff4\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://796ab6e88af7bf0e78def0f059310c903af6a312b565344e0ff524a0f26e81c6\",\"dweb:/ipfs/QmcsVgLgzWdor3UnAztUkXKNGcysm1MPneWksF72AvnwBx\"]},\"project:/contracts/OwnableExt.sol\":{\"keccak256\":\"0x143370e3ab078cf2204270cb03b9bd6a64614e4e8b15956528560568473ad802\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://91de18f335dfe4ffaf052214bab2ae1ba2c747516b3e3f28066c6912f88cff0c\",\"dweb:/ipfs/QmQSVXi1yQzjH2nVUAfHnvfjSs7J5q94op1Hj3WjdF5ewA\"]},\"project:/contracts/PortfolioManagerBack.sol\":{\"keccak256\":\"0x2c5896946f1e66b8968842994b1be4a033d17ae016ecec0696cdbefb140ef070\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ee37181396a2daade119ae38cf1ecadafc338878156af4d635ebe633c1e8590a\",\"dweb:/ipfs/QmbLBjH715aD7eg7ir8436MH1q8hy2mydoNiJrKb9W9nu2\"]},\"project:/contracts/Vault.sol\":{\"keccak256\":\"0xd6542930f31137ffaf1c17f319768548baef807c2d3dac420158bf085d48f7fa\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://260086bf0c620b4413992880bb50928d5615eada696e21cd19fecda0aa896ce5\",\"dweb:/ipfs/Qmbu19wBtJpnjWWArz8KQVhZZhqZhaGE1cfR3rTQh76VBY\"]},\"project:/contracts/interfaces/IActivesList.sol\":{\"keccak256\":\"0xf4eddab5e100199cfcab0e4a1b01c73457a4b34bf85227b8251e96ff4da65222\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://69b5a1d6afa86b69cf1f5df9ae96c0724de18f96911bc1f91c24c6de69a868a8\",\"dweb:/ipfs/QmPsy3emrRzJ7faazpmvvpJfbgUs5ZikBaeuAK37Cugs4D\"]},\"project:/contracts/interfaces/IConnector.sol\":{\"keccak256\":\"0x03b8df30901ec2ed39907f889ab95a79c077666b5e4a028ca80a4b6c0484599a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3feaf0c4de064aa1e52f4c070b897b60983d8e39d7ca972b43372097d92df2a5\",\"dweb:/ipfs/QmfPx43cKVeRyccMSYEoeszL1rjbrnkhdiNK5uXppPpeSE\"]},\"project:/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0xbf67d8ddcc37cb14b45dc382e19db338899fbc46623595a6c7618e112c78a609\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://7642993c866b9f6c3ff69e6366e2bb09bd670c163179b7c9c2b1f1eb5d846251\",\"dweb:/ipfs/QmdQSZPbLqpEUwbVFGjbVQyLrF8dF33KTHnFPw79YvmsMQ\"]},\"project:/contracts/interfaces/IPortfolioManager.sol\":{\"keccak256\":\"0x48c3ddcaf8d498d92ab176bf39fb19aba120ee6ad0aa63ffa5c1ccf8591ed85c\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f4be12ccd6240d24430b591207d9cc28cd30f39544b123d2c398ce287134f598\",\"dweb:/ipfs/QmQ97fEC2xhYQgFLfhTtPdTZgRmVro5vfhgFyGvfhAVn36\"]},\"project:/contracts/registries/InvestmentPortfolio.sol\":{\"keccak256\":\"0x33bcc82737554a5ebfec95ab5cbb762536430c0cc91a5321e33852c0173b00d4\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://1593c57a00e1c4b0b4713d674c4d5e777e98f84786aced6ea3fb8d1bb8f97b9d\",\"dweb:/ipfs/QmPa8f8CHi4GrMTpJqiNoYZZ8YF5tUnW84qo7ppDqeWbFr\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220e6e774323752562a406d39ed589b2c624a903afa01f4db56767da473260525a264736f6c63430008060033",
+  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220e6e774323752562a406d39ed589b2c624a903afa01f4db56767da473260525a264736f6c63430008060033",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "624:12512:20:-:0;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "624:12512:20:-:0;;;;;",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity >=0.8.0 <0.9.0;\r\n\r\n/// @title Common inrterface to DeFi protocol connectors\r\n/// @author @Stanta\r\n/// @notice Every connector have to implement this function\r\n/// @dev Choosing of connector releasing by changing address of connector's contract\r\n\r\nimport \"./interfaces/IPortfolioManager.sol\";\r\nimport \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\r\nimport \"./interfaces/IActivesList.sol\";\r\nimport \"./interfaces/IConnector.sol\";\r\n\r\nimport \"./OwnableExt.sol\";\r\nimport \"./Vault.sol\";\r\nimport \"./interfaces/IMark2Market.sol\";\r\nimport \"./registries/InvestmentPortfolio.sol\";\r\n\r\ncontract PortfolioManagerBack \r\n// is IPortfolioManager, OwnableExt\r\n{\r\n    // IActivesList actList;\r\n    // Vault vault;\r\n    // IMark2Market m2m;\r\n    // InvestmentPortfolio investmentPortfolio;\r\n\r\n    // struct Action {\r\n    //     uint256 actionType;\r\n    //     uint256 amount;\r\n    // }\r\n\r\n    // event ConsoleLog(string str);\r\n\r\n    // event ConsoleLogNamed(string label, int256 num);\r\n    // event ConsoleLogNamed(string label, uint256 num);\r\n    // event ConsoleLogNamed(string label, string str);\r\n    // event ConsoleLogNamed(string label, address addr);\r\n\r\n    // function setAddr(address _addrAL) external onlyOwner {\r\n    //     actList = IActivesList(_addrAL);\r\n    // }\r\n\r\n    // function invest(IERC20 _token, uint256 _amount) external override {\r\n    //     // 1. put tokens into Vault\r\n    //     token.transfer(address(vault), _amount);\r\n\r\n    //     // 2. start rebalancing\r\n    //     balanceOnInvest();\r\n    // }\r\n    \r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n    // function rebalanceOnInvest() public {\r\n    //     // 1. get current prices from M2M\r\n    //     ActivesPrices[] activePrices = m2m.activesPrices();\r\n\r\n    //     // 2. calc total price\r\n    //     uint256 totalUsdcPrice = 0;\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         totalUsdcPrice += activePrices[i].price;\r\n    //     }\r\n\r\n    //     // // 3. calc weight of each active in total\r\n    //     // for (uint8 i = 0; i < actives.length; i++) {\r\n    //     //     // here we lose some precision but it doesn't affect out work\r\n    //     //     // NOTE: if it would be moved to M2M and could be used in fronts then\r\n    //     //     //       need to correct losses to get 100% at total\r\n    //     //     activePrices[i].weightInTotal = (TOTAL_WEIGHT * activePrices[i].price) / totalUsdcPrice;\r\n    //     // }\r\n\r\n    //     // 4. get action what to do:\r\n    //     //      1 - do nothing\r\n    //     //      2 - invest with some amount of tokens\r\n    //     //      3 - withdraw with some amount of tokens\r\n    //     Action[] actions = new Action[actives.length];\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         Active active = new Active();\r\n    //         ActiveInfo activeInfo = new ActiveInfo();\r\n    //         ActivePrice activePrice = activePrices[i];\r\n    //         uint256 currentPrice = activePrice.price;\r\n    //         uint256 targetPrice = (totalUsdcPrice * active.targetWeight) / TOTAL_WEIGHT;\r\n    //         uint256 minPrice = (totalUsdcPrice * active.minWeight) / TOTAL_WEIGHT;\r\n    //         uint256 maxPrice = (totalUsdcPrice * active.maxWeight) / TOTAL_WEIGHT;\r\n\r\n    //         if (currentPrice < minPrice) {\r\n    //             // here we always know that targetPrice is higher than currentPrice\r\n    //             uint256 difference = targetPrice - currentPrice;\r\n    //             actions.push(new Action(3, difference));\r\n    //         } else if (maxPrice < currentPrice) {\r\n    //             // here we always know that currentPrice is higher than targetPrice\r\n    //             uint256 difference = currentPrice - targetPrice;\r\n    //             actions.push(new Action(2, difference));\r\n    //         } else {\r\n    //             actions.push(new Action(1, 0));\r\n    //         }\r\n    //     }\r\n\r\n    //     // 5. do the things\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         ActiveInfo activeInfo = new ActiveInfo();\r\n    //         doAction(activeInfo, actions[i]);\r\n    //     }\r\n    // }\r\n\r\n    // function doAction(ActiveInfo activeInfo, Action action) internal returns (uint256) {\r\n    //     if (action.actionType == 1) {\r\n    //         return 0;\r\n    //     }\r\n\r\n    //     if (action.actionType == 2) {\r\n    //         // move from vault to some pool for investment\r\n    //         vault.transfer(IERC20(activeInfo.asset), activeInfo.investConnector, action.amount);\r\n    //         return IConnector(activeInfo.investConnector).invest(activeInfo.asset, action.amount);\r\n    //     } else {\r\n    //         // withdraw some value to vault\r\n    //         return\r\n    //         IConnector(activeInfo.investConnector).withdraw(\r\n    //             address(vault),\r\n    //             activeInfo.asset,\r\n    //             action.amount\r\n    //         );\r\n    //     }\r\n    // }\r\n\r\n    // function withdraw(IERC20 _token, uint256 _amount) {\r\n    //     // 0. TODO: check that _token is one off used\r\n\r\n    //     // 1. get current prices from M2M\r\n    //     ActivesPrices[] activePrices = m2m.activesPricess();\r\n\r\n    //     // 2. calc total price\r\n    //     uint256 totalUsdcPrice = 0;\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         totalUsdcPrice += activePrices[i].price;\r\n    //     }\r\n\r\n    //     address tokenAddress = address(_token);\r\n    //     uint256 currentUsdcBalanceAtVault = 0;\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         if (tokenAddress == activePrices[i].asset) {\r\n    //             // calc diff for\r\n    //             currentUsdcBalanceAtVault = activePrices[i].price;\r\n    //         }\r\n    //     }\r\n    //     // total sum of other tokens - need to calc target\r\n    //     uint256 otherTokensTotalUsdcPrice = totalUsdcPrice - currentUsdcBalanceAtVault;\r\n\r\n    //     required(totalUsdcPrice >= _amount);\r\n    //     // new total sum without withdrawed amount - need to calc target\r\n    //     uint256 newTotalUsdcPrice = totalUsdcPrice - _amount;\r\n\r\n\r\n    //     // 4. get action what to do:\r\n    //     //      1 - do nothing\r\n    //     //      2 - invest with some amount of tokens\r\n    //     //      3 - withdraw with some amount of tokens\r\n    //     Action[] actions = new Action[actives.length];\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         Active active = new Active();\r\n    //         ActiveInfo activeInfo = new ActiveInfo();\r\n    //         ActivePrice activePrice = activePrices[i];\r\n    //         uint256 currentPrice = activePrice.price;\r\n    //         uint256 targetPrice = (newTotalUsdcPrice * active.targetWeight) / TOTAL_WEIGHT;\r\n    //         uint256 minPrice = (newTotalUsdcPrice * active.minWeight) / TOTAL_WEIGHT;\r\n    //         uint256 maxPrice = (newTotalUsdcPrice * active.maxWeight) / TOTAL_WEIGHT;\r\n\r\n    //         if (currentPrice < minPrice) {\r\n    //             // here we always know that targetPrice is higher than currentPrice\r\n    //             uint256 difference = targetPrice - currentPrice;\r\n    //             actions.push(new Action(3, difference));\r\n    //         } else if (maxPrice < currentPrice) {\r\n    //             // here we always know that currentPrice is higher than targetPrice\r\n    //             uint256 difference = currentPrice - targetPrice;\r\n    //             actions.push(new Action(2, difference));\r\n    //         } else {\r\n    //             actions.push(new Action(1, 0));\r\n    //         }\r\n    //     }\r\n\r\n    //     // 5. do the things\r\n    //     for (uint8 i = 0; i < actives.length; i++) {\r\n    //         ActiveInfo activeInfo = new ActiveInfo();\r\n    //         doAction(activeInfo, actions[i]);\r\n    //     }\r\n\r\n    // }\r\n\r\n    // function stake(address _asset, uint256 _amount) external override {\r\n    //     // 1. get actives data from active list\r\n    //     IActivesList.Active memory active = actList.getActive(_asset);\r\n    //     IActivesList.Active memory active2 = actList.getActive(active.derivatives[0]);\r\n    //     //todo choosing active based on strategy\r\n    //     uint256 bal2 = IERC20(active2.actAddress).balanceOf(address(this));\r\n    //     // 2. sent liquidity to connector\r\n    //     // require(IERC20(_asset).balanceOf(address(this)) >= _amount, \"Not enough balance on PM\");\r\n\r\n    //     // emit ConsoleLogNamed(\"Before stake USDC \", IERC20(_asset).balanceOf(address(this)));\r\n    //     // emit ConsoleLogNamed(\"Before stake aUSDC \", IERC20(active.aTokenAddress).balanceOf(address(this)));\r\n    //     // 3. stake\r\n    //     // 3.1 act1\r\n    //     // IERC20(_asset).transfer(active.connector, (_amount * 2) / 3);\r\n\r\n    //     uint toAaveAmount = _amount / 2;\r\n    //     IERC20(_asset).transfer(active.connector, toAaveAmount);\r\n\r\n    //     // emit ConsoleLogNamed(\"Before stake USDC on Connector\", IERC20(_asset).balanceOf(active.connector));\r\n    //     // emit ConsoleLogNamed(\"Before stake aUSDC on Connector\", IERC20(active.aTokenAddress).balanceOf(active.connector));\r\n\r\n    //     IConnector(active.connector).stake(_asset, active.poolStake, toAaveAmount, address(this));\r\n    //     // 3.2 act2\r\n    //     // bal2 = IERC20(active2.actAddress).balanceOf(address(this)) - bal2;\r\n\r\n    //     // IERC20(active2.actAddress).transfer(active2.connector, bal2 / 2);\r\n\r\n    //     // IConnector(active2.connector).stake(\r\n    //     //     active2.actAddress,\r\n    //     //     active2.poolStake,\r\n    //     //     bal2 / 2,\r\n    //     //     address(this)\r\n    //     // );\r\n    // }\r\n\r\n    // function unstake(address _asset, uint256 _amount) external override returns (uint256) {\r\n    //     // 1. get actives data from active list\r\n    //     IActivesList.Active memory active = actList.getActive(_asset);\r\n    //     // IActivesList.Active memory der1 = actList.getActive(active.derivatives[1]);\r\n    //     IActivesList.Active memory der0 = actList.getActive(active.derivatives[0]);\r\n\r\n    //     //  calculate needing amount of asset to remove\r\n    //     //uint balDer0 = IERC20(der0.actAddress).balanceOf(address(this));\r\n    //     //        uint256 withdrAmount = _amount / 2; //* balDer0 / active.balance;\r\n\r\n    //     uint256 withdrawInAUsdc = _amount / 2;\r\n\r\n    //     // unstake derivatives\r\n    //     // IERC20(der1.actAddress).transfer(\r\n    //     //     der1.connector,\r\n    //     //     IERC20(der1.actAddress).balanceOf(address(this))\r\n    //     // );\r\n    //     // withdrAmount = IConnector(der1.connector).unstake(\r\n    //     //     active.derivatives[0], //derivatives[i],\r\n    //     //     der1.poolStake,\r\n    //     //     _amount / 3,\r\n    //     //     address(this)\r\n    //     // );\r\n\r\n    //     IERC20(der0.actAddress).transfer(\r\n    //         active.connector,\r\n    //         withdrawInAUsdc\r\n    //     //            IERC20(der0.actAddress).balanceOf(address(this))\r\n    //     );\r\n    //     withdrawInAUsdc = IConnector(active.connector).unstake(\r\n    //         active.actAddress, //derivatives[i],\r\n    //         active.poolStake,\r\n    //         withdrawInAUsdc,\r\n    //         address(this)\r\n    //     );\r\n    //     // 2. unstake\r\n\r\n    //     // emit ConsoleLogNamed(\"try unstake\", _amount);\r\n\r\n    //     // emit ConsoleLogNamed(\"Before unstake USDC \", IERC20(_asset).balanceOf(address(this)));\r\n    //     // emit ConsoleLogNamed(\"Before unstake aUSDC \", IERC20(active.aTokenAddress).balanceOf(address(this)));\r\n\r\n    //     // require(IERC20(active.aTokenAddress).balanceOf(address(this)) >= _amount, \"Not enough balance aToken on PM\");\r\n    //     // uint256 unstackedAmount;\r\n\r\n    //     /*   for (uint i=active.derivatives.length -1; i>=0 ; i--)\r\n    //     {       //todo calculate withdrAmount depends on strategy\r\n    //             // uint balAct1 = IERC20(_asset).balanceOf(address(this)) ;\r\n    //             // uint balAct2 = IERC20(active.derivatives[i]).balanceOf(address(this));\r\n\r\n    //             // uint withdrAmount = _amount * balAct2 / balAct1;\r\n\r\n    //             IERC20(active.derivatives[i]).transfer(active.connector, withdrAmount);\r\n\r\n    //             // emit ConsoleLogNamed(\"Before unstake USDC on Connector\", IERC20(_asset).balanceOf(active.connector));\r\n    //             // emit ConsoleLogNamed(\"Before unstake aUSDC on Connector\", IERC20(active.aTokenAddress).balanceOf(active.connector));\r\n    //              withdrAmount = IConnector(active.connector).unstake(\r\n    //                 active.actAddress, //derivatives[i],\r\n    //                 active.poolStake,\r\n    //                 withdrAmount,\r\n    //                 address(this));\r\n    //             // unstackedAmount =  unstackedAmount + withdrAmount;\r\n\r\n\r\n    //             // emit ConsoleLogNamed(\"Unstacked\", unstackedAmount);\r\n    //             // emit ConsoleLogNamed(\"After unstake USDC \", IERC20(_asset).balanceOf(address(this)));\r\n    //             // emit ConsoleLogNamed(\"After unstake aUSDC \", IERC20(active.aTokenAddress).balanceOf(address(this)));\r\n\r\n    //     } */\r\n\r\n    //     //3. transfer balance to calles\r\n    //     IERC20(_asset).transfer(msg.sender, _amount);\r\n    //     return _amount;\r\n    // }\r\n}\r\n",
+  "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\PortfolioManagerBack.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/PortfolioManagerBack.sol",
+    "exportedSymbols": {
+      "AccessControl": [
+        306
+      ],
+      "Context": [
+        1154
+      ],
+      "ERC165": [
+        1381
+      ],
+      "IAccessControl": [
+        379
+      ],
+      "IActivesList": [
+        9438
+      ],
+      "IConnector": [
+        9519
+      ],
+      "IERC165": [
+        1393
+      ],
+      "IERC20": [
+        1107
+      ],
+      "IMark2Market": [
+        9600
+      ],
+      "IPortfolioManager": [
+        9620
+      ],
+      "InvestmentPortfolio": [
+        10396
+      ],
+      "OwnableExt": [
+        4667
+      ],
+      "PortfolioManagerBack": [
+        5769
+      ],
+      "Strings": [
+        1357
+      ],
+      "Vault": [
+        5984
+      ]
+    },
+    "id": 5770,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5760,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "33:31:20"
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IPortfolioManager.sol",
+        "file": "./interfaces/IPortfolioManager.sol",
+        "id": 5761,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9621,
+        "src": "296:44:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "id": 5762,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 1108,
+        "src": "342:56:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IActivesList.sol",
+        "file": "./interfaces/IActivesList.sol",
+        "id": 5763,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9439,
+        "src": "400:39:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IConnector.sol",
+        "file": "./interfaces/IConnector.sol",
+        "id": 5764,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9520,
+        "src": "441:37:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/OwnableExt.sol",
+        "file": "./OwnableExt.sol",
+        "id": 5765,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 4668,
+        "src": "482:26:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/Vault.sol",
+        "file": "./Vault.sol",
+        "id": 5766,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 5985,
+        "src": "510:21:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
+        "file": "./interfaces/IMark2Market.sol",
+        "id": 5767,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9601,
+        "src": "533:39:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/registries/InvestmentPortfolio.sol",
+        "file": "./registries/InvestmentPortfolio.sol",
+        "id": 5768,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 10397,
+        "src": "574:46:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "id": 5769,
+        "linearizedBaseContracts": [
+          5769
+        ],
+        "name": "PortfolioManagerBack",
+        "nameLocation": "633:20:20",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 5770,
+        "src": "624:12512:20",
+        "usedErrors": []
+      }
+    ],
+    "src": "33:13105:20"
+  },
+  "legacyAST": {
+    "absolutePath": "project:/contracts/PortfolioManagerBack.sol",
+    "exportedSymbols": {
+      "AccessControl": [
+        306
+      ],
+      "Context": [
+        1154
+      ],
+      "ERC165": [
+        1381
+      ],
+      "IAccessControl": [
+        379
+      ],
+      "IActivesList": [
+        9438
+      ],
+      "IConnector": [
+        9519
+      ],
+      "IERC165": [
+        1393
+      ],
+      "IERC20": [
+        1107
+      ],
+      "IMark2Market": [
+        9600
+      ],
+      "IPortfolioManager": [
+        9620
+      ],
+      "InvestmentPortfolio": [
+        10396
+      ],
+      "OwnableExt": [
+        4667
+      ],
+      "PortfolioManagerBack": [
+        5769
+      ],
+      "Strings": [
+        1357
+      ],
+      "Vault": [
+        5984
+      ]
+    },
+    "id": 5770,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5760,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0",
+          "<",
+          "0.9",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "33:31:20"
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IPortfolioManager.sol",
+        "file": "./interfaces/IPortfolioManager.sol",
+        "id": 5761,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9621,
+        "src": "296:44:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "id": 5762,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 1108,
+        "src": "342:56:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IActivesList.sol",
+        "file": "./interfaces/IActivesList.sol",
+        "id": 5763,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9439,
+        "src": "400:39:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IConnector.sol",
+        "file": "./interfaces/IConnector.sol",
+        "id": 5764,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9520,
+        "src": "441:37:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/OwnableExt.sol",
+        "file": "./OwnableExt.sol",
+        "id": 5765,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 4668,
+        "src": "482:26:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/Vault.sol",
+        "file": "./Vault.sol",
+        "id": 5766,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 5985,
+        "src": "510:21:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
+        "file": "./interfaces/IMark2Market.sol",
+        "id": 5767,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 9601,
+        "src": "533:39:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "project:/contracts/registries/InvestmentPortfolio.sol",
+        "file": "./registries/InvestmentPortfolio.sol",
+        "id": 5768,
+        "nameLocation": "-1:-1:-1",
+        "nodeType": "ImportDirective",
+        "scope": 5770,
+        "sourceUnit": 10397,
+        "src": "574:46:20",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "id": 5769,
+        "linearizedBaseContracts": [
+          5769
+        ],
+        "name": "PortfolioManagerBack",
+        "nameLocation": "633:20:20",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 5770,
+        "src": "624:12512:20",
+        "usedErrors": []
+      }
+    ],
+    "src": "33:13105:20"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.6+commit.11564f7e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.2",
+  "updatedAt": "2021-09-26T22:06:40.887Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}
