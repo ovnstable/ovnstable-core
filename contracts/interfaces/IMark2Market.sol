@@ -25,7 +25,7 @@ interface IMark2Market {
         uint256 totalUsdcPrice;
     }
 
-    function assetPrices() external returns (TotalAssetPrices memory);
+    function assetPrices() external view returns (TotalAssetPrices memory);
 
     function assetPricesForBalance() external returns (TotalAssetPrices memory);
 

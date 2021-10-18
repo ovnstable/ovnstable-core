@@ -23,7 +23,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         investmentPortfolio = InvestmentPortfolio(_investmentPortfolio);
     }
 
-    function assetPrices() public override returns (TotalAssetPrices memory) {
+    function assetPrices() public view override returns (TotalAssetPrices memory) {
         InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssets();
 
         uint256 totalUsdcPrice = 0;
