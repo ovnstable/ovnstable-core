@@ -1,3 +1,5 @@
+const InvestmentPortfolio = artifacts.require("./regetries/InvestmentPortfolio.sol")
+
 const UsdcPriceGetter = artifacts.require("./price_getters/UsdcPriceGetter");
 const AUsdcPriceGetter = artifacts.require("./price_getters/AUsdcPriceGetter");
 const A3CrvPriceGetter = artifacts.require("./price_getters/A3CrvPriceGetter");
@@ -5,7 +7,6 @@ const A3CrvGaugePriceGetter = artifacts.require("./price_getters/A3CrvGaugePrice
 const CrvPriceGetter = artifacts.require("./price_getters/CrvPriceGetter");
 const WMaticPriceGetter = artifacts.require("./price_getters/WMaticPriceGetter");
 
-const InvestmentPortfolio = artifacts.require("./regetries/InvestmentPortfolio.sol")
 
 
 let usdc = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
@@ -31,10 +32,10 @@ module.exports = async function (deployer) {
 
     // setup price getters
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
-    console.log("Set pool done");
+    console.log("a3CrvPriceGetter.setPool done");
 
     await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
-    console.log("Set setA3CrvPriceGetter done");
+    console.log("a3CrvGaugePriceGetter.setA3CrvPriceGetter done");
 
     // link 
     const investmentPortfolio = await InvestmentPortfolio.deployed();
@@ -79,6 +80,6 @@ module.exports = async function (deployer) {
         wMaticAssetInfo
     ]
     let result = await investmentPortfolio.setAssetInfos(assetInfos);
-    console.log("Set assetInfos done");
+    console.log("investmentPortfolio.setAssetInfos done");
 
 };

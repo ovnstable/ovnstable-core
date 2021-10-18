@@ -1,5 +1,7 @@
-const OvernightToken = artifacts.require("OvernightToken");
 const Exchange = artifacts.require("Exchange");
+const PortfolioManager = artifacts.require("./PortfolioManager.sol")
+const Vault = artifacts.require("./Vault.sol")
+const Balancer = artifacts.require("./Balancer.sol")
 
 
 let usdc = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
@@ -14,16 +16,24 @@ let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
 
 module.exports = async function (deployer) {
+
     // get deployed contracts
-    const ovn = await OvernightToken.deployed();
     const exchange = await Exchange.deployed();
-    const m2m = await Mark2Market.deployed();
+    const vault = await Vault.deployed();
+    const balancer = await Balancer.deployed();
     const pm = await PortfolioManager.deployed();
 
-    await exchange.setTokens(ovn.address, usdc);
-    console.log("exchange.setTokens done");
+    // setup pm
+    await pm.setVault(vault.address);
+    console.log("pm.setVault done");
 
-    // setup exchange
-    await exchange.setAddr(pm.address, m2m.address);
-    console.log("exchange.setAddr done")
+    await pm.setBalancer(balancer.address);
+    console.log("pm.setBalancer done");
+
+    await pm.setExchanger(exchange.address);
+    console.log("pm.setExchanger done");
+
+    await pm.setRewardGauge(curveGaugeAddress);
+    console.log("pm.setRewardGauge done");
+
 };

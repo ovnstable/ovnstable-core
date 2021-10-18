@@ -61,5 +61,5 @@ module.exports = async function (deployer) {
         crvWeight
     ]
     let result = await investmentPortfolio.setWeights(weights);
-    console.log("setWeights: " + result);
+    console.log("investmentPortfolio.setWeights done");
 };
