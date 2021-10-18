@@ -31,8 +31,10 @@ module.exports = async function (deployer) {
 
     // setup price getters
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
+    console.log("Set pool done");
 
     await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
+    console.log("Set setA3CrvPriceGetter done");
 
     // link 
     const investmentPortfolio = await InvestmentPortfolio.deployed();
@@ -77,6 +79,6 @@ module.exports = async function (deployer) {
         wMaticAssetInfo
     ]
     let result = await investmentPortfolio.setAssetInfos(assetInfos);
-    console.log("assetInfos: " + result);
+    console.log("Set assetInfos done");
 
 };

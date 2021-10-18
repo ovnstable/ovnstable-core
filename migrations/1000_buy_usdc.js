@@ -1,7 +1,7 @@
 const router = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
 const BuyonSwap = artifacts.require("tests/BuyonSwap.sol");
 let USDC
-let test = true;
+let test = false;
 module.exports = async function (deployer) {
     const chainID = await web3.eth.net.getId();
 

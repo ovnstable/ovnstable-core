@@ -18,8 +18,10 @@ module.exports = async function (deployer) {
 
     const connAAVE = await ConnectorAAVE.deployed();
     await connAAVE.setAAVE(aaveAddress, usdc);
+    console.log("Setup AAVE done");
 
     const connCurve = await ConnectorCurve.deployed();
     await connCurve.setUSDC(usdc, aCurvepoolStake);
+    console.log("Setup Curve done");
 
 };

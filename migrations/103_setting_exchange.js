@@ -17,4 +17,5 @@ module.exports = async function (deployer) {
     const ovn = await OvernightToken.deployed();
     const exchange = await Exchange.deployed();
     await exchange.setTokens(ovn.address, usdc);
+    console.log("Set tokens done");
 };
