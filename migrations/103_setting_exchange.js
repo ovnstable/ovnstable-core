@@ -1,5 +1,7 @@
 const OvernightToken = artifacts.require("OvernightToken");
 const Exchange = artifacts.require("Exchange");
+const Mark2Market = artifacts.require("Mark2Market");
+const PortfolioManager = artifacts.require("PortfolioManager");
 
 
 let usdc = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
