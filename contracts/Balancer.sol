@@ -6,16 +6,14 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
-import "./registries/InvestmentPortfolio.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Balancer is AccessControl {
     // ---  fields
 
-    IMark2Market m2m;
-    InvestmentPortfolio investmentPortfolio;
-    address[] actionBuildersInOrder;
+    IMark2Market public m2m;
+    address[] public actionBuildersInOrder;
 
     // ---  events
 
@@ -111,14 +109,23 @@ contract Balancer is AccessControl {
                 returns (IActionBuilder.ExchangeAction memory action) {
                     actionOrder[i] = action;
                 } catch Error(string memory reason) {
-                    revert(reason);
+                    revert(
+                        string(
+                            abi.encodePacked(
+                                uint2str(i),
+                                " ",
+                                reason,
+                                "| IActionBuilder.buildAction: code: ",
+                                IActionBuilder(actionBuildersInOrder[i]).getActionCode()
+                            )
+                        )
+                    );
                 } catch {
                     revert(
                         string(
                             abi.encodePacked(
                                 uint2str(i),
-                                "buildAction: No reason ",
-                                " code: ",
+                                "| IActionBuilder.buildAction: code: ",
                                 IActionBuilder(actionBuildersInOrder[i]).getActionCode()
                             )
                         )
@@ -134,7 +141,18 @@ contract Balancer is AccessControl {
 
             return actionOrder;
         } catch Error(string memory reason) {
-            revert(reason);
+            revert(
+                string(
+                    abi.encodePacked(
+                        reason,
+                        "| m2m.assetPricesForBalance: No reason ",
+                        " withdrawToken ",
+                        toAsciiString(address(withdrawToken)),
+                        " withdrawAmount ",
+                        uint2str(withdrawAmount)
+                    )
+                )
+            );
         } catch {
             revert(
                 string(
@@ -148,6 +166,36 @@ contract Balancer is AccessControl {
                 )
             );
         }
+
+        // // 1. get current prices from M2M
+        // IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance(
+        //     address(withdrawToken),
+        //     withdrawAmount
+        // );
+
+        // // 2. calc total price
+        // uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+
+        // //TODO: remove
+        // log("totalUsdcPrice: ", totalUsdcPrice);
+
+        // // 3. make actions
+        // IActionBuilder.ExchangeAction[]
+        //     memory actionOrder = new IActionBuilder.ExchangeAction[](
+        //         actionBuildersInOrder.length
+        //     );
+        // //TODO: remove
+        // log("actionBuildersInOrder.length: ", actionBuildersInOrder.length);
+
+        // for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
+        //     IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
+        //         .buildAction(assetPrices, actionOrder);
+        //     actionOrder[i] = action;
+        // }
+        // //TODO: remove
+        // log("actionOrder.length: ", actionOrder.length);
+
+        // return actionOrder;
     }
 
     //TODO: remove
