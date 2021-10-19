@@ -12,7 +12,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -25,7 +26,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -38,7 +40,8 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -51,7 +54,8 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/price_getters/UsdcPriceGetter.sol\":\"UsdcPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/IPriceGetter.sol\":{\"keccak256\":\"0xefdd86ca2b7429fac5412d09c3c5767a3d3c1d1b99c625a39a3e70784071f51b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6eee22c69b8a488c7c6e643d1baaf11b949b53d1161ca751bcf676ad6c35524e\",\"dweb:/ipfs/QmaFzmWzxGMwBLYg3Nu9YB7Qi88Xp5a9Tq4v5mKm94M6tw\"]},\"project:/contracts/price_getters/AbstractPriceGetter.sol\":{\"keccak256\":\"0x317ce73173ee64c9f1491a06d8cd8357901142e9850e7997ab3d13786309a2cf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://054f057062199e7f151f84503ff8b0f6c6cc586643abb49cded5215876712358\",\"dweb:/ipfs/QmY75AC1ZbsAUVi6XLUxnTTq9d7DVhabGp8W3Sg3nvxajb\"]},\"project:/contracts/price_getters/UsdcPriceGetter.sol\":{\"keccak256\":\"0xfedfa70680b94e7e6bcc1bee60425db40d996c827e09791903fd4a2c86ae642a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://66be48477fb2f102697b65d2144f0fbcb0f22ce262fecbf76cb055549a1761ec\",\"dweb:/ipfs/QmYveRVrNYPZZALsYgKCMNDt178feErqzjJzKjBuTV5SXQ\"]}},\"version\":1}",
@@ -815,12 +819,13 @@
     "137": {
       "events": {},
       "links": {},
-      "address": "0x687a129e3Ed7145eB898fdF738c08E101300E81B",
-      "transactionHash": "0x3b7f65ab451d14181aab711a719d587c552d253a2b144c71b8e5c93d6d8537c7"
+      "address": "0x35b518c68aB9663F856ed21203f4428fF2EBa392",
+      "transactionHash": "0xa9e50b60321e295ecefe48cdcf721ea4e0f936e505d7fbce84d00b7f84976938"
     }
   },
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-18T00:18:03.068Z",
+  "updatedAt": "2021-10-19T06:43:46.241Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {},

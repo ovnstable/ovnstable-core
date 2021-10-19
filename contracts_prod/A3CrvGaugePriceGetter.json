@@ -31,7 +31,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -44,7 +45,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -57,7 +59,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -83,7 +86,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -140,7 +144,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -153,7 +158,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"rolemap\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_a3CrvPriceGetter\",\"type\":\"address\"}],\"name\":\"setA3CrvPriceGetter\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_actor\",\"type\":\"address\"}],\"name\":\"setRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/price_getters/A3CrvGaugePriceGetter.sol\":\"A3CrvGaugePriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"@openzeppelin/contracts/utils/Context.sol\":{\"keccak256\":\"0x90565a39ae45c80f0468dc96c7b20d0afc3055f344c8203a0c9258239f350b9f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://26e8b38a7ac8e7b4463af00cf7fff1bf48ae9875765bf4f7751e100124d0bc8c\",\"dweb:/ipfs/QmWcsmkVr24xmmjfnBQZoemFniXjj3vwT78Cz6uqZW1Hux\"]},\"project:/contracts/OwnableExt.sol\":{\"keccak256\":\"0x143370e3ab078cf2204270cb03b9bd6a64614e4e8b15956528560568473ad802\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://91de18f335dfe4ffaf052214bab2ae1ba2c747516b3e3f28066c6912f88cff0c\",\"dweb:/ipfs/QmQSVXi1yQzjH2nVUAfHnvfjSs7J5q94op1Hj3WjdF5ewA\"]},\"project:/contracts/connectors/curve/interfaces/iCurvePool.sol\":{\"keccak256\":\"0xa1bd5259a98be1d028c218d810702bfd3a6a1426f0c135893c090624b6967146\",\"urls\":[\"bzz-raw://6099fbb6437581f64d19ff9d8d1602be3fda9c2f2e520a21f2f6457b0cde7ec2\",\"dweb:/ipfs/QmXHoV9wjd4dZjLbEf7zmw8iJVSY1PaLPJwCNaGPE4XBjB\"]},\"project:/contracts/interfaces/IConnector.sol\":{\"keccak256\":\"0x5bfdb0e63214dfaa044b787b997f07573f0e8f11adf5ad6ef79b627f037f27b2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://2240ceff7f6e04198bab57eb04560e3cb815de2902e9b8dbb5603f3fb223e8f2\",\"dweb:/ipfs/QmdcCsDnKbx4RbXHm1VioryYMoC78TePuDpMJ1bnw4BqF7\"]},\"project:/contracts/interfaces/IPriceGetter.sol\":{\"keccak256\":\"0xefdd86ca2b7429fac5412d09c3c5767a3d3c1d1b99c625a39a3e70784071f51b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6eee22c69b8a488c7c6e643d1baaf11b949b53d1161ca751bcf676ad6c35524e\",\"dweb:/ipfs/QmaFzmWzxGMwBLYg3Nu9YB7Qi88Xp5a9Tq4v5mKm94M6tw\"]},\"project:/contracts/price_getters/A3CrvGaugePriceGetter.sol\":{\"keccak256\":\"0x3d62f89320f28a9d93e7adb747422b60d8a776f2328c3be47a1b3de2d3d3f7cf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://0d5a9b6c47b259641564550f2b85db0d5a16ca0ddd279676c5cbecedb7e28364\",\"dweb:/ipfs/QmRaQEVXQzrfg3BtqsJAKnkK5G6w24v5NfWA1sdPZqDPaK\"]},\"project:/contracts/price_getters/A3CrvPriceGetter.sol\":{\"keccak256\":\"0x5c373c5f9c279d27be6901b9f14c88f161517c433c535ab9f1c2c03f798246f1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f425ab5cf11dc4cfa513a5d9c7ea73d6b6859cdb364104eb0d7844a1c6b4a19d\",\"dweb:/ipfs/QmdTojd3wdNuNv66LFRHU6pC3Pxp4yoGTydL1fGLup1jtG\"]},\"project:/contracts/price_getters/AbstractPriceGetter.sol\":{\"keccak256\":\"0x317ce73173ee64c9f1491a06d8cd8357901142e9850e7997ab3d13786309a2cf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://054f057062199e7f151f84503ff8b0f6c6cc586643abb49cded5215876712358\",\"dweb:/ipfs/QmY75AC1ZbsAUVi6XLUxnTTq9d7DVhabGp8W3Sg3nvxajb\"]}},\"version\":1}",
@@ -4920,12 +4926,13 @@
         }
       },
       "links": {},
-      "address": "0xA834Bc749e055b05b3DF4AD8dBFF8B850F6965D1",
-      "transactionHash": "0x90146f225a0c7c273e72f4d01915d656c36631269d93e01c9707e0b07a438681"
+      "address": "0x8733D7b85A64d4fC88f1C0B31e972AA58E2eC89C",
+      "transactionHash": "0xa9495eaaa2e67b4972ded3105209055703ef0d8d34142fbe264fca5517c3bdf6"
     }
   },
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-18T00:18:03.054Z",
+  "updatedAt": "2021-10-19T06:43:46.248Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {

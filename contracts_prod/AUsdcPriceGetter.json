@@ -12,7 +12,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -25,7 +26,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -38,7 +40,8 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -51,7 +54,8 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/price_getters/AUsdcPriceGetter.sol\":\"AUsdcPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"project:/contracts/interfaces/IConnector.sol\":{\"keccak256\":\"0x5bfdb0e63214dfaa044b787b997f07573f0e8f11adf5ad6ef79b627f037f27b2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://2240ceff7f6e04198bab57eb04560e3cb815de2902e9b8dbb5603f3fb223e8f2\",\"dweb:/ipfs/QmdcCsDnKbx4RbXHm1VioryYMoC78TePuDpMJ1bnw4BqF7\"]},\"project:/contracts/interfaces/IPriceGetter.sol\":{\"keccak256\":\"0xefdd86ca2b7429fac5412d09c3c5767a3d3c1d1b99c625a39a3e70784071f51b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6eee22c69b8a488c7c6e643d1baaf11b949b53d1161ca751bcf676ad6c35524e\",\"dweb:/ipfs/QmaFzmWzxGMwBLYg3Nu9YB7Qi88Xp5a9Tq4v5mKm94M6tw\"]},\"project:/contracts/price_getters/AUsdcPriceGetter.sol\":{\"keccak256\":\"0x30c0440bb86df5fc7021a6bbbc0ceb8aab699449502ba4d7242e094fff88b35c\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a7f8d1e02279eb101f8ef938c676262c18e972ea32ece974dd31e6bbcb4c9997\",\"dweb:/ipfs/QmXd7EbSPv44q7YiN7UfbSkBy2zCd7m97GuRoGDKuizcw1\"]},\"project:/contracts/price_getters/AbstractPriceGetter.sol\":{\"keccak256\":\"0x317ce73173ee64c9f1491a06d8cd8357901142e9850e7997ab3d13786309a2cf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://054f057062199e7f151f84503ff8b0f6c6cc586643abb49cded5215876712358\",\"dweb:/ipfs/QmY75AC1ZbsAUVi6XLUxnTTq9d7DVhabGp8W3Sg3nvxajb\"]}},\"version\":1}",
@@ -875,12 +879,13 @@
     "137": {
       "events": {},
       "links": {},
-      "address": "0x0878cC2054474cD660Ef6bF0b4b3AB1b9a222390",
-      "transactionHash": "0x97d1fb07eccc25824b78d89c97e85709c5af03fc4eca433754f340628163d121"
+      "address": "0x686ed95eeCE1ebeF4E1249f8b741AB6Fa4C239d6",
+      "transactionHash": "0xaf8fbfee25105b4c8f070bd5679ddaf25518b45a798bfc534241c26a878204c8"
     }
   },
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-18T00:18:03.060Z",
+  "updatedAt": "2021-10-19T06:43:46.242Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {},

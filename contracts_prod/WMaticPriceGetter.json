@@ -33,7 +33,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -46,7 +47,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -59,7 +61,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -72,7 +75,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_swapRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_usdcToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_wMaticToken\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/price_getters/WMaticPriceGetter.sol\":\"WMaticPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://087318b21c528119f649899f5b5580566dd8d7b0303d4904bd0e8580c3545f14\",\"dweb:/ipfs/Qmbn5Mj7aUn8hJuQ8VrQjjEXRsXyJKykgnjR9p4C3nfLtL\"]},\"project:/contracts/connectors/swaps/interfaces/IUniswapV2Router01.sol\":{\"keccak256\":\"0x6e99a46e12d4bbf9708f87c03a6966f8f5850b08dcd07287881e184b05ada6a3\",\"urls\":[\"bzz-raw://d09c34991aec8bca14eca9a072a27d512b8ee1454d52e6a8dc3e07b83db82fd1\",\"dweb:/ipfs/QmW5RGNQF5fjW69X5V2KawyZBc7CW9KYGZbqbEUknxTGwv\"]},\"project:/contracts/connectors/swaps/interfaces/IUniswapV2Router02.sol\":{\"keccak256\":\"0x1d2731a4dc76caab66f765d5d821fc05db5db781075626c7ade41f22a23eb35f\",\"urls\":[\"bzz-raw://f31194ae00be0380f6587647860d5d3ef2ec6c7788310954a9af0bf63c6a8c04\",\"dweb:/ipfs/QmPiUkZxiQBYhYXCm7N3LUsfR19h2EBmNr89aUHVSkDUBL\"]},\"project:/contracts/interfaces/IPriceGetter.sol\":{\"keccak256\":\"0xefdd86ca2b7429fac5412d09c3c5767a3d3c1d1b99c625a39a3e70784071f51b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6eee22c69b8a488c7c6e643d1baaf11b949b53d1161ca751bcf676ad6c35524e\",\"dweb:/ipfs/QmaFzmWzxGMwBLYg3Nu9YB7Qi88Xp5a9Tq4v5mKm94M6tw\"]},\"project:/contracts/price_getters/AbstractPriceGetter.sol\":{\"keccak256\":\"0x317ce73173ee64c9f1491a06d8cd8357901142e9850e7997ab3d13786309a2cf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://054f057062199e7f151f84503ff8b0f6c6cc586643abb49cded5215876712358\",\"dweb:/ipfs/QmY75AC1ZbsAUVi6XLUxnTTq9d7DVhabGp8W3Sg3nvxajb\"]},\"project:/contracts/price_getters/WMaticPriceGetter.sol\":{\"keccak256\":\"0xfd9fa090bcbb11bd73f85fe8ee4cf28c822ab3a9f1685cc725f50207497b5dfd\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6fdcdd51a086577c3da5d802d7fcc3925340b20e097527ed10b7c2024777aa06\",\"dweb:/ipfs/Qmege4y9bBQaV2yGNXi7UK9ZHoRMk9HdDHEebecv4UUV8o\"]}},\"version\":1}",
@@ -10928,12 +10932,13 @@
     "137": {
       "events": {},
       "links": {},
-      "address": "0xb4493a7C35645Ef5c677688F92125ED6cedAB9E7",
-      "transactionHash": "0x711958ec7e65e3b47ba9d17dc0ae5d2922ab239372aaf10f11651a297fbb7021"
+      "address": "0x6f768b05A9f634358b8D6DCD07678795215b62B1",
+      "transactionHash": "0x3068aa43ea94238675b95a2762738784b9760300da62b08f33d0d2ae5998d92d"
     }
   },
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-18T00:18:03.071Z",
+  "updatedAt": "2021-10-19T06:43:46.257Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {},

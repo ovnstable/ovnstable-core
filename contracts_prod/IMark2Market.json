@@ -85,7 +85,7 @@
           "type": "tuple"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -274,7 +274,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"assetPrices\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"assetPricesForBalance\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"withdrawToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"assetPricesForBalance\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0xbefe5073f00bc74b81cf76857f012d3151c2e969b1622f1a185e9a8a35b2b1c3\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://a25748f94ca65f1c28e250b132aaedef9592d9c403c15703190bf48796cfb813\",\"dweb:/ipfs/QmSzTouCt8rqkvk6fk9vysuHFuEAtgC3FVRkCY9RXoBHMG\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"assetPrices\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"assetPricesForBalance\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"withdrawToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"withdrawAmount\",\"type\":\"uint256\"}],\"name\":\"assetPricesForBalance\",\"outputs\":[{\"components\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amountInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceInVault\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"diffToTarget\",\"type\":\"uint256\"},{\"internalType\":\"int8\",\"name\":\"diffToTargetSign\",\"type\":\"int8\"},{\"internalType\":\"bool\",\"name\":\"targetIsZero\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"usdcPriceDenominator\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcSellPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"usdcBuyPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"decimals\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"}],\"internalType\":\"struct IMark2Market.AssetPrices[]\",\"name\":\"assetPrices\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"totalUsdcPrice\",\"type\":\"uint256\"}],\"internalType\":\"struct IMark2Market.TotalAssetPrices\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/interfaces/IMark2Market.sol\":\"IMark2Market\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/interfaces/IMark2Market.sol\":{\"keccak256\":\"0x19813d4cd8c2ebbca15e6199ac344256b969373d1cee2eda1b0a3a19b7617e2a\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://327480887979587d2bd121aaa6c9b5535c3d90a07d903e3ff3dcffeeef12feb4\",\"dweb:/ipfs/QmR3XtC2CdHJ1U9n43ibrvwvcSNxn3kMkEnkETwZNkm2M8\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -282,7 +282,7 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "// SPDX-License-Identifier: GPL-3.0\r\n\r\npragma solidity >=0.8.0 <0.9.0;\r\n\r\ninterface IMark2Market {\r\n    struct AssetPrices {\r\n        address asset;\r\n        uint256 amountInVault; // balance on Vault\r\n        uint256 usdcPriceInVault; // current total price of balance at USDC\r\n        uint256 diffToTarget; // diff usdcPriceInVault to target in portfolio\r\n        int8 diffToTargetSign; // diff sign usdcPriceInVault to target in portfolio\r\n        bool targetIsZero; // mean that we should trade all tokens to zero ownership\r\n        //\r\n        uint256 usdcPriceDenominator;\r\n        uint256 usdcSellPrice;\r\n        uint256 usdcBuyPrice;\r\n        //\r\n        uint256 decimals;\r\n        string name;\r\n        string symbol;\r\n    }\r\n\r\n    struct TotalAssetPrices {\r\n        AssetPrices[] assetPrices;\r\n        uint256 totalUsdcPrice;\r\n    }\r\n\r\n    function assetPrices() external returns (TotalAssetPrices memory);\r\n\r\n    function assetPricesForBalance() external returns (TotalAssetPrices memory);\r\n\r\n    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)\r\n        external\r\n        returns (TotalAssetPrices memory);\r\n}\r\n",
+  "source": "// SPDX-License-Identifier: GPL-3.0\r\n\r\npragma solidity >=0.8.0 <0.9.0;\r\n\r\ninterface IMark2Market {\r\n    struct AssetPrices {\r\n        address asset;\r\n        uint256 amountInVault; // balance on Vault\r\n        uint256 usdcPriceInVault; // current total price of balance at USDC\r\n        uint256 diffToTarget; // diff usdcPriceInVault to target in portfolio\r\n        int8 diffToTargetSign; // diff sign usdcPriceInVault to target in portfolio\r\n        bool targetIsZero; // mean that we should trade all tokens to zero ownership\r\n        //\r\n        uint256 usdcPriceDenominator;\r\n        uint256 usdcSellPrice;\r\n        uint256 usdcBuyPrice;\r\n        //\r\n        uint256 decimals;\r\n        string name;\r\n        string symbol;\r\n    }\r\n\r\n    struct TotalAssetPrices {\r\n        AssetPrices[] assetPrices;\r\n        uint256 totalUsdcPrice;\r\n    }\r\n\r\n    function assetPrices() external view returns (TotalAssetPrices memory);\r\n\r\n    function assetPricesForBalance() external returns (TotalAssetPrices memory);\r\n\r\n    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)\r\n        external\r\n        returns (TotalAssetPrices memory);\r\n}\r\n",
   "sourcePath": "C:\\work\\overnight\\ovngt-mvp\\contracts\\interfaces\\IMark2Market.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
@@ -769,7 +769,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10594,
-                  "src": "891:23:46",
+                  "src": "896:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -784,10 +784,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "891:16:46"
+                      "src": "896:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "891:16:46",
+                    "src": "896:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -796,11 +796,11 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "890:25:46"
+              "src": "895:25:46"
             },
             "scope": 10611,
-            "src": "850:66:46",
-            "stateMutability": "nonpayable",
+            "src": "850:71:46",
+            "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
@@ -811,13 +811,13 @@
             "kind": "function",
             "modifiers": [],
             "name": "assetPricesForBalance",
-            "nameLocation": "933:21:46",
+            "nameLocation": "938:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
               "id": 10595,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "954:2:46"
+              "src": "959:2:46"
             },
             "returnParameters": {
               "id": 10599,
@@ -831,7 +831,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10600,
-                  "src": "975:23:46",
+                  "src": "980:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -846,10 +846,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "975:16:46"
+                      "src": "980:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "975:16:46",
+                    "src": "980:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -858,10 +858,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "974:25:46"
+              "src": "979:25:46"
             },
             "scope": 10611,
-            "src": "924:76:46",
+            "src": "929:76:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
@@ -873,7 +873,7 @@
             "kind": "function",
             "modifiers": [],
             "name": "assetPricesForBalance",
-            "nameLocation": "1017:21:46",
+            "nameLocation": "1022:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
               "id": 10605,
@@ -884,10 +884,10 @@
                   "id": 10602,
                   "mutability": "mutable",
                   "name": "withdrawToken",
-                  "nameLocation": "1047:13:46",
+                  "nameLocation": "1052:13:46",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1039:21:46",
+                  "src": "1044:21:46",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -898,7 +898,7 @@
                     "id": 10601,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1039:7:46",
+                    "src": "1044:7:46",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -912,10 +912,10 @@
                   "id": 10604,
                   "mutability": "mutable",
                   "name": "withdrawAmount",
-                  "nameLocation": "1070:14:46",
+                  "nameLocation": "1075:14:46",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1062:22:46",
+                  "src": "1067:22:46",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -926,7 +926,7 @@
                     "id": 10603,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1062:7:46",
+                    "src": "1067:7:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -935,7 +935,7 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1038:47:46"
+              "src": "1043:47:46"
             },
             "returnParameters": {
               "id": 10609,
@@ -949,7 +949,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1122:23:46",
+                  "src": "1127:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -964,10 +964,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "1122:16:46"
+                      "src": "1127:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "1122:16:46",
+                    "src": "1127:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -976,21 +976,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1121:25:46"
+              "src": "1126:25:46"
             },
             "scope": 10611,
-            "src": "1008:139:46",
+            "src": "1013:139:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
         "scope": 10612,
-        "src": "74:1076:46",
+        "src": "74:1081:46",
         "usedErrors": []
       }
     ],
-    "src": "39:1113:46"
+    "src": "39:1118:46"
   },
   "legacyAST": {
     "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
@@ -1477,7 +1477,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10594,
-                  "src": "891:23:46",
+                  "src": "896:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -1492,10 +1492,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "891:16:46"
+                      "src": "896:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "891:16:46",
+                    "src": "896:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -1504,11 +1504,11 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "890:25:46"
+              "src": "895:25:46"
             },
             "scope": 10611,
-            "src": "850:66:46",
-            "stateMutability": "nonpayable",
+            "src": "850:71:46",
+            "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           },
@@ -1519,13 +1519,13 @@
             "kind": "function",
             "modifiers": [],
             "name": "assetPricesForBalance",
-            "nameLocation": "933:21:46",
+            "nameLocation": "938:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
               "id": 10595,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "954:2:46"
+              "src": "959:2:46"
             },
             "returnParameters": {
               "id": 10599,
@@ -1539,7 +1539,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10600,
-                  "src": "975:23:46",
+                  "src": "980:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -1554,10 +1554,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "975:16:46"
+                      "src": "980:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "975:16:46",
+                    "src": "980:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -1566,10 +1566,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "974:25:46"
+              "src": "979:25:46"
             },
             "scope": 10611,
-            "src": "924:76:46",
+            "src": "929:76:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
@@ -1581,7 +1581,7 @@
             "kind": "function",
             "modifiers": [],
             "name": "assetPricesForBalance",
-            "nameLocation": "1017:21:46",
+            "nameLocation": "1022:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
               "id": 10605,
@@ -1592,10 +1592,10 @@
                   "id": 10602,
                   "mutability": "mutable",
                   "name": "withdrawToken",
-                  "nameLocation": "1047:13:46",
+                  "nameLocation": "1052:13:46",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1039:21:46",
+                  "src": "1044:21:46",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1606,7 +1606,7 @@
                     "id": 10601,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1039:7:46",
+                    "src": "1044:7:46",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -1620,10 +1620,10 @@
                   "id": 10604,
                   "mutability": "mutable",
                   "name": "withdrawAmount",
-                  "nameLocation": "1070:14:46",
+                  "nameLocation": "1075:14:46",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1062:22:46",
+                  "src": "1067:22:46",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -1634,7 +1634,7 @@
                     "id": 10603,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1062:7:46",
+                    "src": "1067:7:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -1643,7 +1643,7 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1038:47:46"
+              "src": "1043:47:46"
             },
             "returnParameters": {
               "id": 10609,
@@ -1657,7 +1657,7 @@
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
                   "scope": 10610,
-                  "src": "1122:23:46",
+                  "src": "1127:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -1672,10 +1672,10 @@
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
                       "referencedDeclaration": 10588,
-                      "src": "1122:16:46"
+                      "src": "1127:16:46"
                     },
                     "referencedDeclaration": 10588,
-                    "src": "1122:16:46",
+                    "src": "1127:16:46",
                     "typeDescriptions": {
                       "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
@@ -1684,21 +1684,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1121:25:46"
+              "src": "1126:25:46"
             },
             "scope": 10611,
-            "src": "1008:139:46",
+            "src": "1013:139:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
         "scope": 10612,
-        "src": "74:1076:46",
+        "src": "74:1081:46",
         "usedErrors": []
       }
     ],
-    "src": "39:1113:46"
+    "src": "39:1118:46"
   },
   "compiler": {
     "name": "solc",
@@ -1706,7 +1706,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-18T00:18:03.050Z",
+  "updatedAt": "2021-10-19T06:40:13.232Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},
