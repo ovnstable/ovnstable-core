@@ -17,11 +17,11 @@ let aaveAddress = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744";
 module.exports = async function (deployer) {
 
     const connAAVE = await ConnectorAAVE.deployed();
-    await connAAVE.setAAVE(aaveAddress, usdc);
-    console.log("connAAVE.setAAVE done");
+    await connAAVE.setLpap(aaveAddress);
+    console.log("connAAVE.setLpap done");
 
     const connCurve = await ConnectorCurve.deployed();
-    await connCurve.setUSDC(usdc, aCurvepoolStake);
-    console.log("connCurve.setUSDC done");
+    await connCurve.setPool(aCurvepoolStake);
+    console.log("connCurve.setPool done");
 
 };

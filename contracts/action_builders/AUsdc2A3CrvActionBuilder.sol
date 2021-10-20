@@ -9,10 +9,10 @@ import "../interfaces/IMark2Market.sol";
 contract AUsdc2A3CrvActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("AUsdc2A3Crv");
 
-    ITokenExchange tokenExchange;
-    IERC20 aUsdcToken;
-    IERC20 a3CrvToken;
-    IActionBuilder usdc2AUsdcActionBuilder;
+    ITokenExchange public tokenExchange;
+    IERC20 public aUsdcToken;
+    IERC20 public a3CrvToken;
+    IActionBuilder public usdc2AUsdcActionBuilder;
 
     constructor(
         address _tokenExchange,

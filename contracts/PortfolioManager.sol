@@ -19,10 +19,10 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
     // ---  fields
 
-    Vault vault;
-    Balancer balancer;
-    address exchanger;
-    IRewardOnlyGauge rewardGauge;
+    Vault public vault;
+    Balancer public balancer;
+    address public exchanger;
+    IRewardOnlyGauge public rewardGauge;
 
     // ---  events
 

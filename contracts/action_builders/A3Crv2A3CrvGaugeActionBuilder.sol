@@ -9,9 +9,9 @@ import "../interfaces/IMark2Market.sol";
 contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("A3Crv2A3CrvGauge");
 
-    ITokenExchange tokenExchange;
-    IERC20 a3CrvToken;
-    IERC20 a3CrvGaugeToken;
+    ITokenExchange public tokenExchange;
+    IERC20 public a3CrvToken;
+    IERC20 public a3CrvGaugeToken;
 
     constructor(
         address _tokenExchange,

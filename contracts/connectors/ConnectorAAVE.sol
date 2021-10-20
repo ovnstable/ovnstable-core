@@ -13,14 +13,14 @@ import "../OwnableExt.sol";
 
 contract ConnectorAAVE is IConnector, OwnableExt {
     using WadRayMath for uint256;
-    address USDC;
-    ILendingPoolAddressesProvider lpap;
+    ILendingPoolAddressesProvider public lpap;
+    
+    event UpdatedLpap(address lpap);
 
-    function setAAVE(address _LPAP, address _USDC) public onlyOwner {
-        require(_LPAP != address(0), "Zero address not allowed");
-        require(_USDC != address(0), "Zero address not allowed");
-        lpap = ILendingPoolAddressesProvider(_LPAP);
-        USDC = _USDC;
+    function setLpap(address _lpap) public onlyOwner {
+        require(_lpap != address(0), "Zero address not allowed");
+        lpap = ILendingPoolAddressesProvider(_lpap);
+        emit UpdatedLpap(_lpap);
     }
 
     function stake(

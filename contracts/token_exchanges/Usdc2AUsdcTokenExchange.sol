@@ -7,9 +7,9 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 
 contract Usdc2AUsdcTokenExchange is ITokenExchange {
-    IConnector aaveConnector;
-    IERC20 usdcToken;
-    IERC20 aUsdcToken;
+    IConnector public aaveConnector;
+    IERC20 public usdcToken;
+    IERC20 public aUsdcToken;
 
     constructor(
         address _aaveConnector,

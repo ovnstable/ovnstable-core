@@ -9,9 +9,9 @@ import "../interfaces/IMark2Market.sol";
 contract Crv2UsdcActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("Crv2Usdc");
 
-    ITokenExchange tokenExchange;
-    IERC20 usdcToken;
-    IERC20 crvToken;
+    ITokenExchange public tokenExchange;
+    IERC20 public usdcToken;
+    IERC20 public crvToken;
 
     constructor(
         address _tokenExchange,

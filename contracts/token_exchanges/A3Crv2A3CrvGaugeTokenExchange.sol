@@ -7,9 +7,9 @@ import "../interfaces/ITokenExchange.sol";
 import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 
 contract A3Crv2A3CrvGaugeTokenExchange is ITokenExchange {
-    IRewardOnlyGauge rewardGauge;
-    IERC20 a3CrvToken;
-    IERC20 a3CrvGaugeToken;
+    IRewardOnlyGauge public rewardGauge;
+    IERC20 public a3CrvToken;
+    IERC20 public a3CrvGaugeToken;
 
     constructor(address _curveGauge) {
         require(_curveGauge != address(0), "Zero address not allowed");

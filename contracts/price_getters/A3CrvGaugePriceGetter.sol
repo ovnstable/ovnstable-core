@@ -9,11 +9,14 @@ import "../connectors/curve/interfaces/iCurvePool.sol";
 import "../OwnableExt.sol";
 
 contract A3CrvGaugePriceGetter is AbstractPriceGetter, OwnableExt {
-    A3CrvPriceGetter a3CrvPriceGetter;
+    A3CrvPriceGetter public a3CrvPriceGetter;
+
+    event UpdatedA3CrvPriceGetter(address a3CrvPriceGetter);
 
     function setA3CrvPriceGetter(address _a3CrvPriceGetter) public onlyOwner {
         require(_a3CrvPriceGetter != address(0), "Zero address not allowed");
         a3CrvPriceGetter = A3CrvPriceGetter(_a3CrvPriceGetter);
+        emit UpdatedA3CrvPriceGetter(_a3CrvPriceGetter);
     }
 
     function getUsdcBuyPrice() external view override returns (uint256) {

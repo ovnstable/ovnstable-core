@@ -6,11 +6,14 @@ import "../connectors/curve/interfaces/iCurvePool.sol";
 import "../OwnableExt.sol";
 
 contract A3CrvPriceGetter is AbstractPriceGetter, OwnableExt {
-    iCurvePool pool;
+    iCurvePool public pool;
+
+    event UpdatedPool(address pool);
 
     function setPool(address _pool) public onlyOwner {
         require(_pool != address(0), "Zero address not allowed");
         pool = iCurvePool(_pool);
+        emit UpdatedPool(_pool);
     }
 
     function getUsdcBuyPrice() external view override returns (uint256) {

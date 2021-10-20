@@ -53,16 +53,6 @@ module.exports = async function (callback) {
 
         console.log("\n\nassetPrices\n\n")
 
-        callResult = await m2m.assetPrices();
-        console.log("--- Logs: ")
-        for (let rawLog of callResult.receipt.rawLogs) {
-            let data = rawLog.data;
-            data = data.replace("0x", "");
-            // data = data.replace("00", "");
-            console.log(hex2a(data));
-        }
-        console.log("--- Logs end")
-
         // const fsPromises = require('fs').promises
         // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
 

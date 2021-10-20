@@ -6,9 +6,9 @@ import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
 contract WMaticPriceGetter is AbstractPriceGetter {
-    IUniswapV2Router02 swapRouter;
-    IERC20 usdcToken;
-    IERC20 wMaticToken;
+    IUniswapV2Router02 public swapRouter;
+    IERC20 public usdcToken;
+    IERC20 public wMaticToken;
 
     constructor(
         address _swapRouter,

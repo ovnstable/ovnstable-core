@@ -11,10 +11,10 @@ import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 
 contract Exchange is AccessControl {
-    OvernightToken ovn;
-    IERC20 usdc;
-    PortfolioManager PM; //portfolio manager contract
-    IMark2Market m2m;
+    OvernightToken public ovn;
+    IERC20 public usdc;
+    PortfolioManager public pm; //portfolio manager contract
+    IMark2Market public m2m;
 
     event EventExchange(string label, uint256 amount);
     event RewardEvent(
@@ -44,7 +44,7 @@ contract Exchange is AccessControl {
     function setAddr(address _addrPM, address _addrM2M) external onlyAdmin {
         require(_addrPM != address(0), "Zero address not allowed");
         require(_addrM2M != address(0), "Zero address not allowed");
-        PM = PortfolioManager(_addrPM);
+        pm = PortfolioManager(_addrPM);
         m2m = IMark2Market(_addrM2M);
     }
 
@@ -64,8 +64,8 @@ contract Exchange is AccessControl {
         uint256 mintAmount = _amount;
         ovn.mint(msg.sender, mintAmount);
 
-        IERC20(_addrTok).transfer(address(PM), _amount);
-        PM.invest(IERC20(_addrTok), _amount);
+        IERC20(_addrTok).transfer(address(pm), _amount);
+        pm.invest(IERC20(_addrTok), _amount);
     }
 
     event ErrorLogging(string reason);
@@ -92,7 +92,7 @@ contract Exchange is AccessControl {
         //     // revert (string(buf.buf));
         // }
 
-        uint256 unstakedAmount = PM.withdraw(IERC20(_addrTok), _amount);
+        uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), _amount);
 
         // Or just burn from sender
         ovn.burn(msg.sender, _amount);
@@ -113,8 +113,8 @@ contract Exchange is AccessControl {
         // 3. calc difference between total count of OVN and USDC
         // 4. go through all OVN owners and mint to their addresses proportionally OVN
 
-        PM.claimRewards();
-        PM.balanceOnReward();
+        pm.claimRewards();
+        pm.balanceOnReward();
 
         uint256 totalOvnSupply = ovn.totalSupply();
         IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();

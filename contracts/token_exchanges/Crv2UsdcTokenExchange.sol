@@ -7,9 +7,9 @@ import "../interfaces/ITokenExchange.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
 contract Crv2UsdcTokenExchange is ITokenExchange {
-    IUniswapV2Router02 swapRouter;
-    IERC20 usdcToken;
-    IERC20 crvToken;
+    IUniswapV2Router02 public swapRouter;
+    IERC20 public usdcToken;
+    IERC20 public crvToken;
 
     constructor(
         address _swapRouter,

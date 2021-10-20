@@ -7,13 +7,19 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract InvestmentPortfolio is AccessControl {
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
-    mapping(address => uint256) private assetInfoPositions;
-    AssetInfo[] assetInfos;
-    mapping(address => uint256) private assetWeightPositions;
+    mapping(address => uint256) public assetInfoPositions;
+    AssetInfo[] public assetInfos;
+    mapping(address => uint256) public assetWeightPositions;
     AssetWeight[] public assetWeights;
 
-    //TODO: remove
-    event ConsoleLog(string str);
+    event UpdatedAssetWeight(
+        uint256 index,
+        address asset,
+        uint256 minWeight,
+        uint256 targetWeight,
+        uint256 maxWeight
+    );
+    event UpdatedAssetInfo(uint256 index, address asset, address priceGetter);
 
     struct AssetWeight {
         address asset;
@@ -65,14 +71,10 @@ contract InvestmentPortfolio is AccessControl {
         }
         assetInfos[index] = assetInfo;
         assetInfoPositions[assetInfo.asset] = index;
+        emit UpdatedAssetInfo(index, assetInfo.asset, assetInfo.priceGetter);
     }
 
     function setWeights(AssetWeight[] calldata _assetWeights) external onlyAdmin {
-        //TODO: remove
-        emit ConsoleLog(
-            string(abi.encodePacked("_assetWeights.length: ", uint2str(_assetWeights.length)))
-        );
-
         uint256 totalTarget = 0;
         for (uint8 i = 0; i < _assetWeights.length; i++) {
             AssetWeight memory assetWeight = _assetWeights[i];
@@ -88,8 +90,6 @@ contract InvestmentPortfolio is AccessControl {
             totalTarget += assetWeight.targetWeight;
         }
         require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
-        //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked("totalTarget: ", uint2str(totalTarget))));
 
         for (uint8 i = 0; i < _assetWeights.length; i++) {
             _addWeightAt(_assetWeights[i], i);
@@ -115,48 +115,28 @@ contract InvestmentPortfolio is AccessControl {
             }
         }
         assetWeights[index] = assetWeight;
-    }
-
-    function getAllAssets() external view returns (AssetInfo[] memory) {
-        return assetInfos;
+        emit UpdatedAssetWeight(
+            index,
+            assetWeight.asset,
+            assetWeight.minWeight,
+            assetWeight.targetWeight,
+            assetWeight.maxWeight
+        );
     }
 
     function getAssetInfo(address asset) external view returns (AssetInfo memory) {
         return assetInfos[assetInfoPositions[asset]];
     }
 
+    function getAllAssetInfos() external view returns (AssetInfo[] memory) {
+        return assetInfos;
+    }
+
     function getAssetWeight(address asset) external view returns (AssetWeight memory) {
         return assetWeights[assetWeightPositions[asset]];
     }
 
-    //TODO: add `view` after removing event emitting
-    function getAllAssetWeights() external returns (AssetWeight[] memory) {
-        //TODO: remove
-        emit ConsoleLog(
-            string(abi.encodePacked("assetWeights.length: ", uint2str(assetWeights.length)))
-        );
-
+    function getAllAssetWeights() external view returns (AssetWeight[] memory) {
         return assetWeights;
-    }
-
-    //TODO: remove
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
     }
 }

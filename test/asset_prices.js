@@ -53,22 +53,21 @@ module.exports = async function (callback) {
         console.log("userAccount: " + userAccount);
         const m2m = await Mark2Market.deployed();
 
-        // callResult = await m2m.assetPrices();
-        callResult = await m2m.assetPricesForBalance();
-        console.log("--- Logs: ")
-        for (let rawLog of callResult.receipt.rawLogs) {
-            let data = rawLog.data;
-            data = data.replace("0x", "");
-            // data = data.replace("00", "");
-            console.log(hex2a(data));
-        }
-        console.log("--- Logs end")
+        // callResult = await m2m.assetPricesForBalance();
+        // console.log("--- Logs: ")
+        // for (let rawLog of callResult.receipt.rawLogs) {
+        //     let data = rawLog.data;
+        //     data = data.replace("0x", "");
+        //     // data = data.replace("00", "");
+        //     console.log(hex2a(data));
+        // }
+        // console.log("--- Logs end")
 
         const fsPromises = require('fs').promises
         // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
 
-        // totalPricesStruct = await m2m.assetPrices.call();
-        totalPricesStruct = await m2m.assetPricesForBalance.call();
+        totalPricesStruct = await m2m.assetPrices.call();
+        // totalPricesStruct = await m2m.assetPricesForBalance.call();
         console.log("--- totalPrices: ")
         let totalAssetPrices = mapTotalAssetPrices(totalPricesStruct)
         console.log("--- totalPrices end")

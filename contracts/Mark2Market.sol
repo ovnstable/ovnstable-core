@@ -10,8 +10,8 @@ import "./Vault.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
-    Vault private vault;
-    InvestmentPortfolio private investmentPortfolio;
+    Vault public vault;
+    InvestmentPortfolio public investmentPortfolio;
 
     //TODO: remove
     event ConsoleLog(string str);
@@ -24,7 +24,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
     }
 
     function assetPrices() public view override returns (TotalAssetPrices memory) {
-        InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssets();
+        InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssetInfos();
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetInfos.length;

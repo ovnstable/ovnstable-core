@@ -6,14 +6,14 @@ import "./curve/interfaces/iCurveToken.sol";
 import "../OwnableExt.sol";
 
 contract ConnectorCurve is IConnector, OwnableExt {
-    address USDC;
-    iCurvePool pool;
+    iCurvePool public pool;
 
-    function setUSDC(address _usdc, address _pool) public onlyOwner {
-        require(_usdc != address(0), "Zero address not allowed");
+    event UpdatedPool(address pool);
+
+    function setPool(address _pool) public onlyOwner {
         require(_pool != address(0), "Zero address not allowed");
-        USDC = _usdc;
         pool = iCurvePool(_pool);
+        emit UpdatedPool(_pool);
     }
 
     function stake(
