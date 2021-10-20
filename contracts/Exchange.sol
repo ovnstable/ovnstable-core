@@ -16,6 +16,12 @@ contract Exchange is AccessControl {
     PortfolioManager public pm; //portfolio manager contract
     IMark2Market public m2m;
 
+    uint256 public buyFee = 40;
+    uint256 public buyFeeDenominator = 100000; // ~ 100 %
+
+    uint256 public redeemFee = 40;
+    uint256 public redeemFeeDenominator = 100000; // ~ 100 %
+
     event EventExchange(string label, uint256 amount);
     event RewardEvent(
         uint256 totalOvn,
@@ -24,6 +30,10 @@ contract Exchange is AccessControl {
         uint256 totallySaved
     );
     event NoEnoughForRewardEvent(uint256 totalOvn, uint256 totalUsdc);
+    event UpdatedBuyFee(uint256 fee, uint256 feeDenominator);
+    event UpdatedRedeemFee(uint256 fee, uint256 feeDenominator);
+    event PaidBuyFee(uint256 amount, uint256 feeAmount);
+    event PaidRedeemFee(uint256 amount, uint256 feeAmount);
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -48,11 +58,26 @@ contract Exchange is AccessControl {
         m2m = IMark2Market(_addrM2M);
     }
 
+    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        buyFee = _fee;
+        buyFeeDenominator = _feeDenominator;
+        emit UpdatedBuyFee(buyFee, buyFeeDenominator);
+    }
+
+    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        redeemFee = _fee;
+        redeemFeeDenominator = _feeDenominator;
+        emit UpdatedBuyFee(redeemFee, redeemFeeDenominator);
+    }
+
     function balance() public view returns (uint256) {
         return ovn.balanceOf(msg.sender);
     }
 
     function buy(address _addrTok, uint256 _amount) external {
+        require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
         emit EventExchange("buy", _amount);
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -60,9 +85,11 @@ contract Exchange is AccessControl {
 
         IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
 
-        // uint256 mintAmount = _amount - (_amount * 4) / 10000;
-        uint256 mintAmount = _amount;
-        ovn.mint(msg.sender, mintAmount);
+        uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
+        uint256 buyAmount = _amount - buyFeeAmount;
+        emit PaidBuyFee(buyAmount, buyFeeAmount);
+
+        ovn.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(pm), _amount);
         pm.invest(IERC20(_addrTok), _amount);
@@ -71,7 +98,12 @@ contract Exchange is AccessControl {
     event ErrorLogging(string reason);
 
     function redeem(address _addrTok, uint256 _amount) external {
+        require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
         emit EventExchange("redeem", _amount);
+
+        uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
+        uint256 redeemAmount = _amount - redeemFeeAmount;
+        emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
 
         //TODO: Real unstacke amount may be different to _amount
 
@@ -92,7 +124,7 @@ contract Exchange is AccessControl {
         //     // revert (string(buf.buf));
         // }
 
-        uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), _amount);
+        uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
         ovn.burn(msg.sender, _amount);
