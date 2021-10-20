@@ -33,77 +33,79 @@ module.exports = async function (callback) {
         let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
         const gauge = await IRewardOnlyGauge.at(curveGaugeAddress);
 
-        callResult = await m2m.assetPrices();
-        console.log("--- Logs: ")
-        for (let rawLog of callResult.receipt.rawLogs) {
-            let data = rawLog.data;
-            data = data.replace("0x", "");
-            // data = data.replace("00", "");
-            console.log(hex2a(data));
-        }
-        console.log("--- Logs end")
+        // callResult = await m2m.assetPrices();
+        // console.log("--- Logs: ")
+        // for (let rawLog of callResult.receipt.rawLogs) {
+        //     let data = rawLog.data;
+        //     data = data.replace("0x", "");
+        //     // data = data.replace("00", "");
+        //     console.log(hex2a(data));
+        // }
+        // console.log("--- Logs end")
 
-        // const fsPromises = require('fs').promises
-        // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
+        // // const fsPromises = require('fs').promises
+        // // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
 
-        totalPrices = await m2m.assetPrices.call();
-        console.log("--- totalPrices: ")
-        for (let balanceAction of totalPrices) {
-            console.log(balanceAction)
-        }
-        console.log("--- totalPrices end")
-        // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
+        // totalPrices = await m2m.assetPrices.call();
+        // console.log("--- totalPrices: ")
+        // for (let balanceAction of totalPrices) {
+        //     console.log(balanceAction)
+        // }
+        // console.log("--- totalPrices end")
+        // // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
 
 
         // crv = await USDC.at("0x172370d5Cd63279eFa6d502DAB29171933a610AF");
         // wMatic = await USDC.at("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270");
     
+        console.log("CRV:")
         res = await gauge.claimed_reward.call(
             vault.address,
             "0x172370d5Cd63279eFa6d502DAB29171933a610AF"
         )
-        console.log("claimed_reward: " + JSON.stringify(res, null, 2))
+        console.log("claimed_reward: " + res)
         res = await gauge.claimable_reward_write.call(
             vault.address,
             "0x172370d5Cd63279eFa6d502DAB29171933a610AF"
         )
-        console.log("claimable_reward: " + JSON.stringify(res, null, 2))
+        console.log("claimable_reward: " + res)
    
+        console.log("wMatic:")
         res = await gauge.claimed_reward.call(
             vault.address,
             "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
         )
-        console.log("claimed_reward: " + JSON.stringify(res, null, 2))
+        console.log("claimed_reward: " + res)
         res = await gauge.claimable_reward_write.call(
             vault.address,
             "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
         )
-        console.log("claimable_reward: " + JSON.stringify(res, null, 2))
+        console.log("claimable_reward: " + res)
 
 
-        await gauge.claim_rewards(vault.address);
+        // await gauge.claim_rewards(vault.address);
 
 
-        callResult = await m2m.assetPrices();
-        console.log("--- Logs: ")
-        for (let rawLog of callResult.receipt.rawLogs) {
-            let data = rawLog.data;
-            data = data.replace("0x", "");
-            // data = data.replace("00", "");
-            console.log(hex2a(data));
-        }
-        console.log("--- Logs end")
+        // callResult = await m2m.assetPrices();
+        // console.log("--- Logs: ")
+        // for (let rawLog of callResult.receipt.rawLogs) {
+        //     let data = rawLog.data;
+        //     data = data.replace("0x", "");
+        //     // data = data.replace("00", "");
+        //     console.log(hex2a(data));
+        // }
+        // console.log("--- Logs end")
 
-        // const fsPromises = require('fs').promises
-        // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
+        // // const fsPromises = require('fs').promises
+        // // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));
 
-        totalPrices = await m2m.assetPrices.call();
-        console.log("--- totalPrices: ")
-        for (let balanceAction of totalPrices) {
-            console.log(balanceAction)
-        }
-        console.log("--- totalPrices end")
-        // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
+        // totalPrices = await m2m.assetPrices.call();
+        // console.log("--- totalPrices: ")
+        // for (let balanceAction of totalPrices) {
+        //     console.log(balanceAction)
+        // }
+        // console.log("--- totalPrices end")
+        // // await fsPromises.writeFile('test2.txt', JSON.stringify(callResult, null, 2));
 
  
 

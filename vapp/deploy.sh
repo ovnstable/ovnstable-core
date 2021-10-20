@@ -1,8 +1,6 @@
 #!/bin/bash
 
 
-
-
 token=$1
 url=$2
 tag=1

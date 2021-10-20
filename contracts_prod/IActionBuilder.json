@@ -201,24 +201,24 @@
     "absolutePath": "project:/contracts/interfaces/IActionBuilder.sol",
     "exportedSymbols": {
       "IActionBuilder": [
-        10510
+        10673
       ],
       "IERC20": [
         1107
       ],
       "IMark2Market": [
-        10611
+        10774
       ],
       "ITokenExchange": [
-        10679
+        10842
       ]
     },
-    "id": 10511,
+    "id": 10674,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10470,
+        "id": 10633,
         "literals": [
           "solidity",
           ">=",
@@ -234,10 +234,10 @@
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "id": 10471,
+        "id": 10634,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
+        "scope": 10674,
         "sourceUnit": 1108,
         "src": "72:56:43",
         "symbolAliases": [],
@@ -246,11 +246,11 @@
       {
         "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
         "file": "./IMark2Market.sol",
-        "id": 10472,
+        "id": 10635,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
-        "sourceUnit": 10612,
+        "scope": 10674,
+        "sourceUnit": 10775,
         "src": "130:28:43",
         "symbolAliases": [],
         "unitAlias": ""
@@ -258,11 +258,11 @@
       {
         "absolutePath": "project:/contracts/interfaces/ITokenExchange.sol",
         "file": "./ITokenExchange.sol",
-        "id": 10473,
+        "id": 10636,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
-        "sourceUnit": 10680,
+        "scope": 10674,
+        "sourceUnit": 10843,
         "src": "160:30:43",
         "symbolAliases": [],
         "unitAlias": ""
@@ -273,9 +273,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10510,
+        "id": 10673,
         "linearizedBaseContracts": [
-          10510
+          10673
         ],
         "name": "IActionBuilder",
         "nameLocation": "204:14:43",
@@ -283,37 +283,37 @@
         "nodes": [
           {
             "canonicalName": "IActionBuilder.ExchangeAction",
-            "id": 10491,
+            "id": 10654,
             "members": [
               {
                 "constant": false,
-                "id": 10476,
+                "id": 10639,
                 "mutability": "mutable",
                 "name": "tokenExchange",
                 "nameLocation": "274:13:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "259:28:43",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_contract$_ITokenExchange_$10679",
+                  "typeIdentifier": "t_contract$_ITokenExchange_$10842",
                   "typeString": "contract ITokenExchange"
                 },
                 "typeName": {
-                  "id": 10475,
+                  "id": 10638,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10474,
+                    "id": 10637,
                     "name": "ITokenExchange",
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 10679,
+                    "referencedDeclaration": 10842,
                     "src": "259:14:43"
                   },
-                  "referencedDeclaration": 10679,
+                  "referencedDeclaration": 10842,
                   "src": "259:14:43",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_contract$_ITokenExchange_$10679",
+                    "typeIdentifier": "t_contract$_ITokenExchange_$10842",
                     "typeString": "contract ITokenExchange"
                   }
                 },
@@ -321,12 +321,12 @@
               },
               {
                 "constant": false,
-                "id": 10478,
+                "id": 10641,
                 "mutability": "mutable",
                 "name": "code",
                 "nameLocation": "306:4:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "298:12:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -335,7 +335,7 @@
                   "typeString": "bytes32"
                 },
                 "typeName": {
-                  "id": 10477,
+                  "id": 10640,
                   "name": "bytes32",
                   "nodeType": "ElementaryTypeName",
                   "src": "298:7:43",
@@ -348,12 +348,12 @@
               },
               {
                 "constant": false,
-                "id": 10481,
+                "id": 10644,
                 "mutability": "mutable",
                 "name": "from",
                 "nameLocation": "328:4:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "321:11:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -362,10 +362,10 @@
                   "typeString": "contract IERC20"
                 },
                 "typeName": {
-                  "id": 10480,
+                  "id": 10643,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10479,
+                    "id": 10642,
                     "name": "IERC20",
                     "nodeType": "IdentifierPath",
                     "referencedDeclaration": 1107,
@@ -382,12 +382,12 @@
               },
               {
                 "constant": false,
-                "id": 10484,
+                "id": 10647,
                 "mutability": "mutable",
                 "name": "to",
                 "nameLocation": "350:2:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "343:9:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -396,10 +396,10 @@
                   "typeString": "contract IERC20"
                 },
                 "typeName": {
-                  "id": 10483,
+                  "id": 10646,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10482,
+                    "id": 10645,
                     "name": "IERC20",
                     "nodeType": "IdentifierPath",
                     "referencedDeclaration": 1107,
@@ -416,12 +416,12 @@
               },
               {
                 "constant": false,
-                "id": 10486,
+                "id": 10649,
                 "mutability": "mutable",
                 "name": "amount",
                 "nameLocation": "371:6:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "363:14:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -430,7 +430,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10485,
+                  "id": 10648,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "363:7:43",
@@ -443,12 +443,12 @@
               },
               {
                 "constant": false,
-                "id": 10488,
+                "id": 10651,
                 "mutability": "mutable",
                 "name": "exchangeAll",
                 "nameLocation": "434:11:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "429:16:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -457,7 +457,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10487,
+                  "id": 10650,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "429:4:43",
@@ -470,12 +470,12 @@
               },
               {
                 "constant": false,
-                "id": 10490,
+                "id": 10653,
                 "mutability": "mutable",
                 "name": "executed",
                 "nameLocation": "519:8:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "514:13:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -484,7 +484,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10489,
+                  "id": 10652,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "514:4:43",
@@ -499,13 +499,13 @@
             "name": "ExchangeAction",
             "nameLocation": "233:14:43",
             "nodeType": "StructDefinition",
-            "scope": 10510,
+            "scope": 10673,
             "src": "226:309:43",
             "visibility": "public"
           },
           {
             "functionSelector": "18ad3088",
-            "id": 10496,
+            "id": 10659,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -513,23 +513,23 @@
             "nameLocation": "552:13:43",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10492,
+              "id": 10655,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "565:2:43"
             },
             "returnParameters": {
-              "id": 10495,
+              "id": 10658,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10494,
+                  "id": 10657,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10496,
+                  "scope": 10659,
                   "src": "591:7:43",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -538,7 +538,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10493,
+                    "id": 10656,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "591:7:43",
@@ -552,7 +552,7 @@
               ],
               "src": "590:9:43"
             },
-            "scope": 10510,
+            "scope": 10673,
             "src": "543:57:43",
             "stateMutability": "pure",
             "virtual": false,
@@ -560,7 +560,7 @@
           },
           {
             "functionSelector": "8a0aeb85",
-            "id": 10509,
+            "id": 10672,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -568,38 +568,38 @@
             "nameLocation": "617:11:43",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10504,
+              "id": 10667,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10499,
+                  "id": 10662,
                   "mutability": "mutable",
                   "name": "assetPrices",
                   "nameLocation": "676:11:43",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "639:48:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10498,
+                    "id": 10661,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10497,
+                      "id": 10660,
                       "name": "IMark2Market.TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "639:29:43"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "639:29:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -607,42 +607,42 @@
                 },
                 {
                   "constant": false,
-                  "id": 10503,
+                  "id": 10666,
                   "mutability": "mutable",
                   "name": "actions",
                   "nameLocation": "722:7:43",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "698:31:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10491_memory_ptr_$dyn_memory_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10654_memory_ptr_$dyn_memory_ptr",
                     "typeString": "struct IActionBuilder.ExchangeAction[]"
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 10501,
+                      "id": 10664,
                       "nodeType": "UserDefinedTypeName",
                       "pathNode": {
-                        "id": 10500,
+                        "id": 10663,
                         "name": "ExchangeAction",
                         "nodeType": "IdentifierPath",
-                        "referencedDeclaration": 10491,
+                        "referencedDeclaration": 10654,
                         "src": "698:14:43"
                       },
-                      "referencedDeclaration": 10491,
+                      "referencedDeclaration": 10654,
                       "src": "698:14:43",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_ExchangeAction_$10491_storage_ptr",
+                        "typeIdentifier": "t_struct$_ExchangeAction_$10654_storage_ptr",
                         "typeString": "struct IActionBuilder.ExchangeAction"
                       }
                     },
-                    "id": 10502,
+                    "id": 10665,
                     "nodeType": "ArrayTypeName",
                     "src": "698:16:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10491_storage_$dyn_storage_ptr",
+                      "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10654_storage_$dyn_storage_ptr",
                       "typeString": "struct IActionBuilder.ExchangeAction[]"
                     }
                   },
@@ -652,38 +652,38 @@
               "src": "628:108:43"
             },
             "returnParameters": {
-              "id": 10508,
+              "id": 10671,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10507,
+                  "id": 10670,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "760:21:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_ExchangeAction_$10491_memory_ptr",
+                    "typeIdentifier": "t_struct$_ExchangeAction_$10654_memory_ptr",
                     "typeString": "struct IActionBuilder.ExchangeAction"
                   },
                   "typeName": {
-                    "id": 10506,
+                    "id": 10669,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10505,
+                      "id": 10668,
                       "name": "ExchangeAction",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10491,
+                      "referencedDeclaration": 10654,
                       "src": "760:14:43"
                     },
-                    "referencedDeclaration": 10491,
+                    "referencedDeclaration": 10654,
                     "src": "760:14:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_ExchangeAction_$10491_storage_ptr",
+                      "typeIdentifier": "t_struct$_ExchangeAction_$10654_storage_ptr",
                       "typeString": "struct IActionBuilder.ExchangeAction"
                     }
                   },
@@ -692,14 +692,14 @@
               ],
               "src": "759:23:43"
             },
-            "scope": 10510,
+            "scope": 10673,
             "src": "608:175:43",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10511,
+        "scope": 10674,
         "src": "194:592:43",
         "usedErrors": []
       }
@@ -710,24 +710,24 @@
     "absolutePath": "project:/contracts/interfaces/IActionBuilder.sol",
     "exportedSymbols": {
       "IActionBuilder": [
-        10510
+        10673
       ],
       "IERC20": [
         1107
       ],
       "IMark2Market": [
-        10611
+        10774
       ],
       "ITokenExchange": [
-        10679
+        10842
       ]
     },
-    "id": 10511,
+    "id": 10674,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10470,
+        "id": 10633,
         "literals": [
           "solidity",
           ">=",
@@ -743,10 +743,10 @@
       {
         "absolutePath": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "id": 10471,
+        "id": 10634,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
+        "scope": 10674,
         "sourceUnit": 1108,
         "src": "72:56:43",
         "symbolAliases": [],
@@ -755,11 +755,11 @@
       {
         "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
         "file": "./IMark2Market.sol",
-        "id": 10472,
+        "id": 10635,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
-        "sourceUnit": 10612,
+        "scope": 10674,
+        "sourceUnit": 10775,
         "src": "130:28:43",
         "symbolAliases": [],
         "unitAlias": ""
@@ -767,11 +767,11 @@
       {
         "absolutePath": "project:/contracts/interfaces/ITokenExchange.sol",
         "file": "./ITokenExchange.sol",
-        "id": 10473,
+        "id": 10636,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 10511,
-        "sourceUnit": 10680,
+        "scope": 10674,
+        "sourceUnit": 10843,
         "src": "160:30:43",
         "symbolAliases": [],
         "unitAlias": ""
@@ -782,9 +782,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10510,
+        "id": 10673,
         "linearizedBaseContracts": [
-          10510
+          10673
         ],
         "name": "IActionBuilder",
         "nameLocation": "204:14:43",
@@ -792,37 +792,37 @@
         "nodes": [
           {
             "canonicalName": "IActionBuilder.ExchangeAction",
-            "id": 10491,
+            "id": 10654,
             "members": [
               {
                 "constant": false,
-                "id": 10476,
+                "id": 10639,
                 "mutability": "mutable",
                 "name": "tokenExchange",
                 "nameLocation": "274:13:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "259:28:43",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_contract$_ITokenExchange_$10679",
+                  "typeIdentifier": "t_contract$_ITokenExchange_$10842",
                   "typeString": "contract ITokenExchange"
                 },
                 "typeName": {
-                  "id": 10475,
+                  "id": 10638,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10474,
+                    "id": 10637,
                     "name": "ITokenExchange",
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 10679,
+                    "referencedDeclaration": 10842,
                     "src": "259:14:43"
                   },
-                  "referencedDeclaration": 10679,
+                  "referencedDeclaration": 10842,
                   "src": "259:14:43",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_contract$_ITokenExchange_$10679",
+                    "typeIdentifier": "t_contract$_ITokenExchange_$10842",
                     "typeString": "contract ITokenExchange"
                   }
                 },
@@ -830,12 +830,12 @@
               },
               {
                 "constant": false,
-                "id": 10478,
+                "id": 10641,
                 "mutability": "mutable",
                 "name": "code",
                 "nameLocation": "306:4:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "298:12:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -844,7 +844,7 @@
                   "typeString": "bytes32"
                 },
                 "typeName": {
-                  "id": 10477,
+                  "id": 10640,
                   "name": "bytes32",
                   "nodeType": "ElementaryTypeName",
                   "src": "298:7:43",
@@ -857,12 +857,12 @@
               },
               {
                 "constant": false,
-                "id": 10481,
+                "id": 10644,
                 "mutability": "mutable",
                 "name": "from",
                 "nameLocation": "328:4:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "321:11:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -871,10 +871,10 @@
                   "typeString": "contract IERC20"
                 },
                 "typeName": {
-                  "id": 10480,
+                  "id": 10643,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10479,
+                    "id": 10642,
                     "name": "IERC20",
                     "nodeType": "IdentifierPath",
                     "referencedDeclaration": 1107,
@@ -891,12 +891,12 @@
               },
               {
                 "constant": false,
-                "id": 10484,
+                "id": 10647,
                 "mutability": "mutable",
                 "name": "to",
                 "nameLocation": "350:2:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "343:9:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -905,10 +905,10 @@
                   "typeString": "contract IERC20"
                 },
                 "typeName": {
-                  "id": 10483,
+                  "id": 10646,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 10482,
+                    "id": 10645,
                     "name": "IERC20",
                     "nodeType": "IdentifierPath",
                     "referencedDeclaration": 1107,
@@ -925,12 +925,12 @@
               },
               {
                 "constant": false,
-                "id": 10486,
+                "id": 10649,
                 "mutability": "mutable",
                 "name": "amount",
                 "nameLocation": "371:6:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "363:14:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -939,7 +939,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10485,
+                  "id": 10648,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "363:7:43",
@@ -952,12 +952,12 @@
               },
               {
                 "constant": false,
-                "id": 10488,
+                "id": 10651,
                 "mutability": "mutable",
                 "name": "exchangeAll",
                 "nameLocation": "434:11:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "429:16:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -966,7 +966,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10487,
+                  "id": 10650,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "429:4:43",
@@ -979,12 +979,12 @@
               },
               {
                 "constant": false,
-                "id": 10490,
+                "id": 10653,
                 "mutability": "mutable",
                 "name": "executed",
                 "nameLocation": "519:8:43",
                 "nodeType": "VariableDeclaration",
-                "scope": 10491,
+                "scope": 10654,
                 "src": "514:13:43",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -993,7 +993,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10489,
+                  "id": 10652,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "514:4:43",
@@ -1008,13 +1008,13 @@
             "name": "ExchangeAction",
             "nameLocation": "233:14:43",
             "nodeType": "StructDefinition",
-            "scope": 10510,
+            "scope": 10673,
             "src": "226:309:43",
             "visibility": "public"
           },
           {
             "functionSelector": "18ad3088",
-            "id": 10496,
+            "id": 10659,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -1022,23 +1022,23 @@
             "nameLocation": "552:13:43",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10492,
+              "id": 10655,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "565:2:43"
             },
             "returnParameters": {
-              "id": 10495,
+              "id": 10658,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10494,
+                  "id": 10657,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10496,
+                  "scope": 10659,
                   "src": "591:7:43",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1047,7 +1047,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10493,
+                    "id": 10656,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "591:7:43",
@@ -1061,7 +1061,7 @@
               ],
               "src": "590:9:43"
             },
-            "scope": 10510,
+            "scope": 10673,
             "src": "543:57:43",
             "stateMutability": "pure",
             "virtual": false,
@@ -1069,7 +1069,7 @@
           },
           {
             "functionSelector": "8a0aeb85",
-            "id": 10509,
+            "id": 10672,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -1077,38 +1077,38 @@
             "nameLocation": "617:11:43",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10504,
+              "id": 10667,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10499,
+                  "id": 10662,
                   "mutability": "mutable",
                   "name": "assetPrices",
                   "nameLocation": "676:11:43",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "639:48:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10498,
+                    "id": 10661,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10497,
+                      "id": 10660,
                       "name": "IMark2Market.TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "639:29:43"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "639:29:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -1116,42 +1116,42 @@
                 },
                 {
                   "constant": false,
-                  "id": 10503,
+                  "id": 10666,
                   "mutability": "mutable",
                   "name": "actions",
                   "nameLocation": "722:7:43",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "698:31:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10491_memory_ptr_$dyn_memory_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10654_memory_ptr_$dyn_memory_ptr",
                     "typeString": "struct IActionBuilder.ExchangeAction[]"
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 10501,
+                      "id": 10664,
                       "nodeType": "UserDefinedTypeName",
                       "pathNode": {
-                        "id": 10500,
+                        "id": 10663,
                         "name": "ExchangeAction",
                         "nodeType": "IdentifierPath",
-                        "referencedDeclaration": 10491,
+                        "referencedDeclaration": 10654,
                         "src": "698:14:43"
                       },
-                      "referencedDeclaration": 10491,
+                      "referencedDeclaration": 10654,
                       "src": "698:14:43",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_ExchangeAction_$10491_storage_ptr",
+                        "typeIdentifier": "t_struct$_ExchangeAction_$10654_storage_ptr",
                         "typeString": "struct IActionBuilder.ExchangeAction"
                       }
                     },
-                    "id": 10502,
+                    "id": 10665,
                     "nodeType": "ArrayTypeName",
                     "src": "698:16:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10491_storage_$dyn_storage_ptr",
+                      "typeIdentifier": "t_array$_t_struct$_ExchangeAction_$10654_storage_$dyn_storage_ptr",
                       "typeString": "struct IActionBuilder.ExchangeAction[]"
                     }
                   },
@@ -1161,38 +1161,38 @@
               "src": "628:108:43"
             },
             "returnParameters": {
-              "id": 10508,
+              "id": 10671,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10507,
+                  "id": 10670,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10509,
+                  "scope": 10672,
                   "src": "760:21:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_ExchangeAction_$10491_memory_ptr",
+                    "typeIdentifier": "t_struct$_ExchangeAction_$10654_memory_ptr",
                     "typeString": "struct IActionBuilder.ExchangeAction"
                   },
                   "typeName": {
-                    "id": 10506,
+                    "id": 10669,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10505,
+                      "id": 10668,
                       "name": "ExchangeAction",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10491,
+                      "referencedDeclaration": 10654,
                       "src": "760:14:43"
                     },
-                    "referencedDeclaration": 10491,
+                    "referencedDeclaration": 10654,
                     "src": "760:14:43",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_ExchangeAction_$10491_storage_ptr",
+                      "typeIdentifier": "t_struct$_ExchangeAction_$10654_storage_ptr",
                       "typeString": "struct IActionBuilder.ExchangeAction"
                     }
                   },
@@ -1201,14 +1201,14 @@
               ],
               "src": "759:23:43"
             },
-            "scope": 10510,
+            "scope": 10673,
             "src": "608:175:43",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10511,
+        "scope": 10674,
         "src": "194:592:43",
         "usedErrors": []
       }
@@ -1221,7 +1221,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-19T06:40:13.229Z",
+  "updatedAt": "2021-10-20T11:25:52.753Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

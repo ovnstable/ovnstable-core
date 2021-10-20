@@ -55,15 +55,15 @@
     "absolutePath": "project:/contracts/interfaces/IPriceGetter.sol",
     "exportedSymbols": {
       "IPriceGetter": [
-        10660
+        10823
       ]
     },
-    "id": 10661,
+    "id": 10824,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10641,
+        "id": 10804,
         "literals": [
           "solidity",
           ">=",
@@ -82,9 +82,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10660,
+        "id": 10823,
         "linearizedBaseContracts": [
-          10660
+          10823
         ],
         "name": "IPriceGetter",
         "nameLocation": "78:12:48",
@@ -92,13 +92,13 @@
         "nodes": [
           {
             "documentation": {
-              "id": 10642,
+              "id": 10805,
               "nodeType": "StructuredDocumentation",
               "src": "98:238:48",
               "text": " Token buy price at USDC. Amount of USDC we should spend to buy one token.\n Returned value is [USDC/token]\n Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice()\n Normilized to 10**18"
             },
             "functionSelector": "ea249784",
-            "id": 10647,
+            "id": 10810,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -106,23 +106,23 @@
             "nameLocation": "351:15:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10643,
+              "id": 10806,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "366:2:48"
             },
             "returnParameters": {
-              "id": 10646,
+              "id": 10809,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10645,
+                  "id": 10808,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10647,
+                  "scope": 10810,
                   "src": "392:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -131,7 +131,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10644,
+                    "id": 10807,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "392:7:48",
@@ -145,7 +145,7 @@
               ],
               "src": "391:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "342:59:48",
             "stateMutability": "view",
             "virtual": false,
@@ -153,13 +153,13 @@
           },
           {
             "documentation": {
-              "id": 10648,
+              "id": 10811,
               "nodeType": "StructuredDocumentation",
               "src": "409:232:48",
               "text": " Token sell price at USDC. Amount of USDC we got if sell one token.\n Returned value is [USDC/token]\n Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator()\n Normilized to 10**18"
             },
             "functionSelector": "2b8455f1",
-            "id": 10653,
+            "id": 10816,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -167,23 +167,23 @@
             "nameLocation": "656:16:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10649,
+              "id": 10812,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "672:2:48"
             },
             "returnParameters": {
-              "id": 10652,
+              "id": 10815,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10651,
+                  "id": 10814,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10653,
+                  "scope": 10816,
                   "src": "698:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -192,7 +192,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10650,
+                    "id": 10813,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "698:7:48",
@@ -206,7 +206,7 @@
               ],
               "src": "697:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "647:60:48",
             "stateMutability": "view",
             "virtual": false,
@@ -214,13 +214,13 @@
           },
           {
             "documentation": {
-              "id": 10654,
+              "id": 10817,
               "nodeType": "StructuredDocumentation",
               "src": "715:67:48",
               "text": " Denominator for normalization. Default 10**18."
             },
             "functionSelector": "96ce0795",
-            "id": 10659,
+            "id": 10822,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -228,23 +228,23 @@
             "nameLocation": "797:11:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10655,
+              "id": 10818,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "808:2:48"
             },
             "returnParameters": {
-              "id": 10658,
+              "id": 10821,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10657,
+                  "id": 10820,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10659,
+                  "scope": 10822,
                   "src": "834:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -253,7 +253,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10656,
+                    "id": 10819,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "834:7:48",
@@ -267,14 +267,14 @@
               ],
               "src": "833:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "788:55:48",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10661,
+        "scope": 10824,
         "src": "68:778:48",
         "usedErrors": []
       }
@@ -285,15 +285,15 @@
     "absolutePath": "project:/contracts/interfaces/IPriceGetter.sol",
     "exportedSymbols": {
       "IPriceGetter": [
-        10660
+        10823
       ]
     },
-    "id": 10661,
+    "id": 10824,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10641,
+        "id": 10804,
         "literals": [
           "solidity",
           ">=",
@@ -312,9 +312,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10660,
+        "id": 10823,
         "linearizedBaseContracts": [
-          10660
+          10823
         ],
         "name": "IPriceGetter",
         "nameLocation": "78:12:48",
@@ -322,13 +322,13 @@
         "nodes": [
           {
             "documentation": {
-              "id": 10642,
+              "id": 10805,
               "nodeType": "StructuredDocumentation",
               "src": "98:238:48",
               "text": " Token buy price at USDC. Amount of USDC we should spend to buy one token.\n Returned value is [USDC/token]\n Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice()\n Normilized to 10**18"
             },
             "functionSelector": "ea249784",
-            "id": 10647,
+            "id": 10810,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -336,23 +336,23 @@
             "nameLocation": "351:15:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10643,
+              "id": 10806,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "366:2:48"
             },
             "returnParameters": {
-              "id": 10646,
+              "id": 10809,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10645,
+                  "id": 10808,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10647,
+                  "scope": 10810,
                   "src": "392:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -361,7 +361,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10644,
+                    "id": 10807,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "392:7:48",
@@ -375,7 +375,7 @@
               ],
               "src": "391:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "342:59:48",
             "stateMutability": "view",
             "virtual": false,
@@ -383,13 +383,13 @@
           },
           {
             "documentation": {
-              "id": 10648,
+              "id": 10811,
               "nodeType": "StructuredDocumentation",
               "src": "409:232:48",
               "text": " Token sell price at USDC. Amount of USDC we got if sell one token.\n Returned value is [USDC/token]\n Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator()\n Normilized to 10**18"
             },
             "functionSelector": "2b8455f1",
-            "id": 10653,
+            "id": 10816,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -397,23 +397,23 @@
             "nameLocation": "656:16:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10649,
+              "id": 10812,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "672:2:48"
             },
             "returnParameters": {
-              "id": 10652,
+              "id": 10815,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10651,
+                  "id": 10814,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10653,
+                  "scope": 10816,
                   "src": "698:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -422,7 +422,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10650,
+                    "id": 10813,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "698:7:48",
@@ -436,7 +436,7 @@
               ],
               "src": "697:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "647:60:48",
             "stateMutability": "view",
             "virtual": false,
@@ -444,13 +444,13 @@
           },
           {
             "documentation": {
-              "id": 10654,
+              "id": 10817,
               "nodeType": "StructuredDocumentation",
               "src": "715:67:48",
               "text": " Denominator for normalization. Default 10**18."
             },
             "functionSelector": "96ce0795",
-            "id": 10659,
+            "id": 10822,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -458,23 +458,23 @@
             "nameLocation": "797:11:48",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10655,
+              "id": 10818,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "808:2:48"
             },
             "returnParameters": {
-              "id": 10658,
+              "id": 10821,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10657,
+                  "id": 10820,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10659,
+                  "scope": 10822,
                   "src": "834:7:48",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -483,7 +483,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10656,
+                    "id": 10819,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "834:7:48",
@@ -497,14 +497,14 @@
               ],
               "src": "833:9:48"
             },
-            "scope": 10660,
+            "scope": 10823,
             "src": "788:55:48",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10661,
+        "scope": 10824,
         "src": "68:778:48",
         "usedErrors": []
       }
@@ -517,7 +517,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-19T06:40:13.234Z",
+  "updatedAt": "2021-10-20T11:25:52.757Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

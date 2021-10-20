@@ -20,12 +20,29 @@ module.exports = {
             provider: function() {
                 return new HDWalletProvider(
                     secrets.polygon.pk,
-                    secrets.polygon.infura
+                    secrets.polygon.polygon_public_gateway,
+                    // secrets.polygon.wss_polygon_public_gateway,
+                    // secrets.polygon.infura
                 )
             },
             network_id: 137,
-            gasPrice: 15000000000,
+            gasPrice: 40000000000,
             networkCheckTimeout: 1000000000,
+            timeoutBlocks: 200,
+            skipDryRun: true,
+        },
+        pl_pr: {
+            provider: function() {
+                return new HDWalletProvider(
+                    secrets.polygon.pk,
+                    "http://127.0.0.1:8555"
+                )
+            },
+            network_id: 137,
+            gasPrice: 40000000000,
+            networkCheckTimeout: 1000000000,
+            timeoutBlocks: 200,
+            skipDryRun: true,
         },
 
 

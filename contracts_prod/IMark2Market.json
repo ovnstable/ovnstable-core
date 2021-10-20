@@ -288,15 +288,15 @@
     "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
     "exportedSymbols": {
       "IMark2Market": [
-        10611
+        10774
       ]
     },
-    "id": 10612,
+    "id": 10775,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10556,
+        "id": 10719,
         "literals": [
           "solidity",
           ">=",
@@ -315,9 +315,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10611,
+        "id": 10774,
         "linearizedBaseContracts": [
-          10611
+          10774
         ],
         "name": "IMark2Market",
         "nameLocation": "84:12:46",
@@ -325,16 +325,16 @@
         "nodes": [
           {
             "canonicalName": "IMark2Market.AssetPrices",
-            "id": 10581,
+            "id": 10744,
             "members": [
               {
                 "constant": false,
-                "id": 10558,
+                "id": 10721,
                 "mutability": "mutable",
                 "name": "asset",
                 "nameLocation": "142:5:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "134:13:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -343,7 +343,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 10557,
+                  "id": 10720,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "134:7:46",
@@ -357,12 +357,12 @@
               },
               {
                 "constant": false,
-                "id": 10560,
+                "id": 10723,
                 "mutability": "mutable",
                 "name": "amountInVault",
                 "nameLocation": "166:13:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "158:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -371,7 +371,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10559,
+                  "id": 10722,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "158:7:46",
@@ -384,12 +384,12 @@
               },
               {
                 "constant": false,
-                "id": 10562,
+                "id": 10725,
                 "mutability": "mutable",
                 "name": "usdcPriceInVault",
                 "nameLocation": "218:16:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "210:24:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -398,7 +398,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10561,
+                  "id": 10724,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "210:7:46",
@@ -411,12 +411,12 @@
               },
               {
                 "constant": false,
-                "id": 10564,
+                "id": 10727,
                 "mutability": "mutable",
                 "name": "diffToTarget",
                 "nameLocation": "295:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "287:20:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -425,7 +425,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10563,
+                  "id": 10726,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "287:7:46",
@@ -438,12 +438,12 @@
               },
               {
                 "constant": false,
-                "id": 10566,
+                "id": 10729,
                 "mutability": "mutable",
                 "name": "diffToTargetSign",
                 "nameLocation": "371:16:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "366:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -452,7 +452,7 @@
                   "typeString": "int8"
                 },
                 "typeName": {
-                  "id": 10565,
+                  "id": 10728,
                   "name": "int8",
                   "nodeType": "ElementaryTypeName",
                   "src": "366:4:46",
@@ -465,12 +465,12 @@
               },
               {
                 "constant": false,
-                "id": 10568,
+                "id": 10731,
                 "mutability": "mutable",
                 "name": "targetIsZero",
                 "nameLocation": "456:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "451:17:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -479,7 +479,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10567,
+                  "id": 10730,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "451:4:46",
@@ -492,12 +492,12 @@
               },
               {
                 "constant": false,
-                "id": 10570,
+                "id": 10733,
                 "mutability": "mutable",
                 "name": "usdcPriceDenominator",
                 "nameLocation": "557:20:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "549:28:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -506,7 +506,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10569,
+                  "id": 10732,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "549:7:46",
@@ -519,12 +519,12 @@
               },
               {
                 "constant": false,
-                "id": 10572,
+                "id": 10735,
                 "mutability": "mutable",
                 "name": "usdcSellPrice",
                 "nameLocation": "596:13:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "588:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -533,7 +533,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10571,
+                  "id": 10734,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "588:7:46",
@@ -546,12 +546,12 @@
               },
               {
                 "constant": false,
-                "id": 10574,
+                "id": 10737,
                 "mutability": "mutable",
                 "name": "usdcBuyPrice",
                 "nameLocation": "628:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "620:20:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -560,7 +560,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10573,
+                  "id": 10736,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "620:7:46",
@@ -573,12 +573,12 @@
               },
               {
                 "constant": false,
-                "id": 10576,
+                "id": 10739,
                 "mutability": "mutable",
                 "name": "decimals",
                 "nameLocation": "671:8:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "663:16:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -587,7 +587,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10575,
+                  "id": 10738,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "663:7:46",
@@ -600,12 +600,12 @@
               },
               {
                 "constant": false,
-                "id": 10578,
+                "id": 10741,
                 "mutability": "mutable",
                 "name": "name",
                 "nameLocation": "697:4:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "690:11:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -614,7 +614,7 @@
                   "typeString": "string"
                 },
                 "typeName": {
-                  "id": 10577,
+                  "id": 10740,
                   "name": "string",
                   "nodeType": "ElementaryTypeName",
                   "src": "690:6:46",
@@ -627,12 +627,12 @@
               },
               {
                 "constant": false,
-                "id": 10580,
+                "id": 10743,
                 "mutability": "mutable",
                 "name": "symbol",
                 "nameLocation": "719:6:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "712:13:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -641,7 +641,7 @@
                   "typeString": "string"
                 },
                 "typeName": {
-                  "id": 10579,
+                  "id": 10742,
                   "name": "string",
                   "nodeType": "ElementaryTypeName",
                   "src": "712:6:46",
@@ -656,52 +656,52 @@
             "name": "AssetPrices",
             "nameLocation": "111:11:46",
             "nodeType": "StructDefinition",
-            "scope": 10611,
+            "scope": 10774,
             "src": "104:629:46",
             "visibility": "public"
           },
           {
             "canonicalName": "IMark2Market.TotalAssetPrices",
-            "id": 10588,
+            "id": 10751,
             "members": [
               {
                 "constant": false,
-                "id": 10585,
+                "id": 10748,
                 "mutability": "mutable",
                 "name": "assetPrices",
                 "nameLocation": "790:11:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10588,
+                "scope": 10751,
                 "src": "776:25:46",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10581_storage_$dyn_storage_ptr",
+                  "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10744_storage_$dyn_storage_ptr",
                   "typeString": "struct IMark2Market.AssetPrices[]"
                 },
                 "typeName": {
                   "baseType": {
-                    "id": 10583,
+                    "id": 10746,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10582,
+                      "id": 10745,
                       "name": "AssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10581,
+                      "referencedDeclaration": 10744,
                       "src": "776:11:46"
                     },
-                    "referencedDeclaration": 10581,
+                    "referencedDeclaration": 10744,
                     "src": "776:11:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_AssetPrices_$10581_storage_ptr",
+                      "typeIdentifier": "t_struct$_AssetPrices_$10744_storage_ptr",
                       "typeString": "struct IMark2Market.AssetPrices"
                     }
                   },
-                  "id": 10584,
+                  "id": 10747,
                   "nodeType": "ArrayTypeName",
                   "src": "776:13:46",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10581_storage_$dyn_storage_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10744_storage_$dyn_storage_ptr",
                     "typeString": "struct IMark2Market.AssetPrices[]"
                   }
                 },
@@ -709,12 +709,12 @@
               },
               {
                 "constant": false,
-                "id": 10587,
+                "id": 10750,
                 "mutability": "mutable",
                 "name": "totalUsdcPrice",
                 "nameLocation": "820:14:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10588,
+                "scope": 10751,
                 "src": "812:22:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -723,7 +723,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10586,
+                  "id": 10749,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "812:7:46",
@@ -738,13 +738,13 @@
             "name": "TotalAssetPrices",
             "nameLocation": "748:16:46",
             "nodeType": "StructDefinition",
-            "scope": 10611,
+            "scope": 10774,
             "src": "741:101:46",
             "visibility": "public"
           },
           {
             "functionSelector": "9a707d87",
-            "id": 10594,
+            "id": 10757,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -752,44 +752,44 @@
             "nameLocation": "859:11:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10589,
+              "id": 10752,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "870:2:46"
             },
             "returnParameters": {
-              "id": 10593,
+              "id": 10756,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10592,
+                  "id": 10755,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10594,
+                  "scope": 10757,
                   "src": "896:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10591,
+                    "id": 10754,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10590,
+                      "id": 10753,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "896:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "896:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -798,7 +798,7 @@
               ],
               "src": "895:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "850:71:46",
             "stateMutability": "view",
             "virtual": false,
@@ -806,7 +806,7 @@
           },
           {
             "functionSelector": "58a8316c",
-            "id": 10600,
+            "id": 10763,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -814,44 +814,44 @@
             "nameLocation": "938:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10595,
+              "id": 10758,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "959:2:46"
             },
             "returnParameters": {
-              "id": 10599,
+              "id": 10762,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10598,
+                  "id": 10761,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10600,
+                  "scope": 10763,
                   "src": "980:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10597,
+                    "id": 10760,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10596,
+                      "id": 10759,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "980:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "980:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -860,7 +860,7 @@
               ],
               "src": "979:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "929:76:46",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -868,7 +868,7 @@
           },
           {
             "functionSelector": "734bd75d",
-            "id": 10610,
+            "id": 10773,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -876,17 +876,17 @@
             "nameLocation": "1022:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10605,
+              "id": 10768,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10602,
+                  "id": 10765,
                   "mutability": "mutable",
                   "name": "withdrawToken",
                   "nameLocation": "1052:13:46",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1044:21:46",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -895,7 +895,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10601,
+                    "id": 10764,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1044:7:46",
@@ -909,12 +909,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 10604,
+                  "id": 10767,
                   "mutability": "mutable",
                   "name": "withdrawAmount",
                   "nameLocation": "1075:14:46",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1067:22:46",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -923,7 +923,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10603,
+                    "id": 10766,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1067:7:46",
@@ -938,38 +938,38 @@
               "src": "1043:47:46"
             },
             "returnParameters": {
-              "id": 10609,
+              "id": 10772,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10608,
+                  "id": 10771,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1127:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10607,
+                    "id": 10770,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10606,
+                      "id": 10769,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "1127:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "1127:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -978,14 +978,14 @@
               ],
               "src": "1126:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "1013:139:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10612,
+        "scope": 10775,
         "src": "74:1081:46",
         "usedErrors": []
       }
@@ -996,15 +996,15 @@
     "absolutePath": "project:/contracts/interfaces/IMark2Market.sol",
     "exportedSymbols": {
       "IMark2Market": [
-        10611
+        10774
       ]
     },
-    "id": 10612,
+    "id": 10775,
     "license": "GPL-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10556,
+        "id": 10719,
         "literals": [
           "solidity",
           ">=",
@@ -1023,9 +1023,9 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 10611,
+        "id": 10774,
         "linearizedBaseContracts": [
-          10611
+          10774
         ],
         "name": "IMark2Market",
         "nameLocation": "84:12:46",
@@ -1033,16 +1033,16 @@
         "nodes": [
           {
             "canonicalName": "IMark2Market.AssetPrices",
-            "id": 10581,
+            "id": 10744,
             "members": [
               {
                 "constant": false,
-                "id": 10558,
+                "id": 10721,
                 "mutability": "mutable",
                 "name": "asset",
                 "nameLocation": "142:5:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "134:13:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1051,7 +1051,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 10557,
+                  "id": 10720,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "134:7:46",
@@ -1065,12 +1065,12 @@
               },
               {
                 "constant": false,
-                "id": 10560,
+                "id": 10723,
                 "mutability": "mutable",
                 "name": "amountInVault",
                 "nameLocation": "166:13:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "158:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1079,7 +1079,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10559,
+                  "id": 10722,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "158:7:46",
@@ -1092,12 +1092,12 @@
               },
               {
                 "constant": false,
-                "id": 10562,
+                "id": 10725,
                 "mutability": "mutable",
                 "name": "usdcPriceInVault",
                 "nameLocation": "218:16:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "210:24:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1106,7 +1106,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10561,
+                  "id": 10724,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "210:7:46",
@@ -1119,12 +1119,12 @@
               },
               {
                 "constant": false,
-                "id": 10564,
+                "id": 10727,
                 "mutability": "mutable",
                 "name": "diffToTarget",
                 "nameLocation": "295:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "287:20:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1133,7 +1133,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10563,
+                  "id": 10726,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "287:7:46",
@@ -1146,12 +1146,12 @@
               },
               {
                 "constant": false,
-                "id": 10566,
+                "id": 10729,
                 "mutability": "mutable",
                 "name": "diffToTargetSign",
                 "nameLocation": "371:16:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "366:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1160,7 +1160,7 @@
                   "typeString": "int8"
                 },
                 "typeName": {
-                  "id": 10565,
+                  "id": 10728,
                   "name": "int8",
                   "nodeType": "ElementaryTypeName",
                   "src": "366:4:46",
@@ -1173,12 +1173,12 @@
               },
               {
                 "constant": false,
-                "id": 10568,
+                "id": 10731,
                 "mutability": "mutable",
                 "name": "targetIsZero",
                 "nameLocation": "456:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "451:17:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1187,7 +1187,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 10567,
+                  "id": 10730,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "451:4:46",
@@ -1200,12 +1200,12 @@
               },
               {
                 "constant": false,
-                "id": 10570,
+                "id": 10733,
                 "mutability": "mutable",
                 "name": "usdcPriceDenominator",
                 "nameLocation": "557:20:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "549:28:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1214,7 +1214,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10569,
+                  "id": 10732,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "549:7:46",
@@ -1227,12 +1227,12 @@
               },
               {
                 "constant": false,
-                "id": 10572,
+                "id": 10735,
                 "mutability": "mutable",
                 "name": "usdcSellPrice",
                 "nameLocation": "596:13:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "588:21:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1241,7 +1241,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10571,
+                  "id": 10734,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "588:7:46",
@@ -1254,12 +1254,12 @@
               },
               {
                 "constant": false,
-                "id": 10574,
+                "id": 10737,
                 "mutability": "mutable",
                 "name": "usdcBuyPrice",
                 "nameLocation": "628:12:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "620:20:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1268,7 +1268,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10573,
+                  "id": 10736,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "620:7:46",
@@ -1281,12 +1281,12 @@
               },
               {
                 "constant": false,
-                "id": 10576,
+                "id": 10739,
                 "mutability": "mutable",
                 "name": "decimals",
                 "nameLocation": "671:8:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "663:16:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1295,7 +1295,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10575,
+                  "id": 10738,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "663:7:46",
@@ -1308,12 +1308,12 @@
               },
               {
                 "constant": false,
-                "id": 10578,
+                "id": 10741,
                 "mutability": "mutable",
                 "name": "name",
                 "nameLocation": "697:4:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "690:11:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1322,7 +1322,7 @@
                   "typeString": "string"
                 },
                 "typeName": {
-                  "id": 10577,
+                  "id": 10740,
                   "name": "string",
                   "nodeType": "ElementaryTypeName",
                   "src": "690:6:46",
@@ -1335,12 +1335,12 @@
               },
               {
                 "constant": false,
-                "id": 10580,
+                "id": 10743,
                 "mutability": "mutable",
                 "name": "symbol",
                 "nameLocation": "719:6:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10581,
+                "scope": 10744,
                 "src": "712:13:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1349,7 +1349,7 @@
                   "typeString": "string"
                 },
                 "typeName": {
-                  "id": 10579,
+                  "id": 10742,
                   "name": "string",
                   "nodeType": "ElementaryTypeName",
                   "src": "712:6:46",
@@ -1364,52 +1364,52 @@
             "name": "AssetPrices",
             "nameLocation": "111:11:46",
             "nodeType": "StructDefinition",
-            "scope": 10611,
+            "scope": 10774,
             "src": "104:629:46",
             "visibility": "public"
           },
           {
             "canonicalName": "IMark2Market.TotalAssetPrices",
-            "id": 10588,
+            "id": 10751,
             "members": [
               {
                 "constant": false,
-                "id": 10585,
+                "id": 10748,
                 "mutability": "mutable",
                 "name": "assetPrices",
                 "nameLocation": "790:11:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10588,
+                "scope": 10751,
                 "src": "776:25:46",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10581_storage_$dyn_storage_ptr",
+                  "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10744_storage_$dyn_storage_ptr",
                   "typeString": "struct IMark2Market.AssetPrices[]"
                 },
                 "typeName": {
                   "baseType": {
-                    "id": 10583,
+                    "id": 10746,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10582,
+                      "id": 10745,
                       "name": "AssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10581,
+                      "referencedDeclaration": 10744,
                       "src": "776:11:46"
                     },
-                    "referencedDeclaration": 10581,
+                    "referencedDeclaration": 10744,
                     "src": "776:11:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_AssetPrices_$10581_storage_ptr",
+                      "typeIdentifier": "t_struct$_AssetPrices_$10744_storage_ptr",
                       "typeString": "struct IMark2Market.AssetPrices"
                     }
                   },
-                  "id": 10584,
+                  "id": 10747,
                   "nodeType": "ArrayTypeName",
                   "src": "776:13:46",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10581_storage_$dyn_storage_ptr",
+                    "typeIdentifier": "t_array$_t_struct$_AssetPrices_$10744_storage_$dyn_storage_ptr",
                     "typeString": "struct IMark2Market.AssetPrices[]"
                   }
                 },
@@ -1417,12 +1417,12 @@
               },
               {
                 "constant": false,
-                "id": 10587,
+                "id": 10750,
                 "mutability": "mutable",
                 "name": "totalUsdcPrice",
                 "nameLocation": "820:14:46",
                 "nodeType": "VariableDeclaration",
-                "scope": 10588,
+                "scope": 10751,
                 "src": "812:22:46",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1431,7 +1431,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 10586,
+                  "id": 10749,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "812:7:46",
@@ -1446,13 +1446,13 @@
             "name": "TotalAssetPrices",
             "nameLocation": "748:16:46",
             "nodeType": "StructDefinition",
-            "scope": 10611,
+            "scope": 10774,
             "src": "741:101:46",
             "visibility": "public"
           },
           {
             "functionSelector": "9a707d87",
-            "id": 10594,
+            "id": 10757,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -1460,44 +1460,44 @@
             "nameLocation": "859:11:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10589,
+              "id": 10752,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "870:2:46"
             },
             "returnParameters": {
-              "id": 10593,
+              "id": 10756,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10592,
+                  "id": 10755,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10594,
+                  "scope": 10757,
                   "src": "896:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10591,
+                    "id": 10754,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10590,
+                      "id": 10753,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "896:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "896:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -1506,7 +1506,7 @@
               ],
               "src": "895:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "850:71:46",
             "stateMutability": "view",
             "virtual": false,
@@ -1514,7 +1514,7 @@
           },
           {
             "functionSelector": "58a8316c",
-            "id": 10600,
+            "id": 10763,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -1522,44 +1522,44 @@
             "nameLocation": "938:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10595,
+              "id": 10758,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "959:2:46"
             },
             "returnParameters": {
-              "id": 10599,
+              "id": 10762,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10598,
+                  "id": 10761,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10600,
+                  "scope": 10763,
                   "src": "980:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10597,
+                    "id": 10760,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10596,
+                      "id": 10759,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "980:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "980:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -1568,7 +1568,7 @@
               ],
               "src": "979:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "929:76:46",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -1576,7 +1576,7 @@
           },
           {
             "functionSelector": "734bd75d",
-            "id": 10610,
+            "id": 10773,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -1584,17 +1584,17 @@
             "nameLocation": "1022:21:46",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10605,
+              "id": 10768,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10602,
+                  "id": 10765,
                   "mutability": "mutable",
                   "name": "withdrawToken",
                   "nameLocation": "1052:13:46",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1044:21:46",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1603,7 +1603,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10601,
+                    "id": 10764,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1044:7:46",
@@ -1617,12 +1617,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 10604,
+                  "id": 10767,
                   "mutability": "mutable",
                   "name": "withdrawAmount",
                   "nameLocation": "1075:14:46",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1067:22:46",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1631,7 +1631,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10603,
+                    "id": 10766,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1067:7:46",
@@ -1646,38 +1646,38 @@
               "src": "1043:47:46"
             },
             "returnParameters": {
-              "id": 10609,
+              "id": 10772,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10608,
+                  "id": 10771,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10610,
+                  "scope": 10773,
                   "src": "1127:23:46",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_memory_ptr",
+                    "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_memory_ptr",
                     "typeString": "struct IMark2Market.TotalAssetPrices"
                   },
                   "typeName": {
-                    "id": 10607,
+                    "id": 10770,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 10606,
+                      "id": 10769,
                       "name": "TotalAssetPrices",
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 10588,
+                      "referencedDeclaration": 10751,
                       "src": "1127:16:46"
                     },
-                    "referencedDeclaration": 10588,
+                    "referencedDeclaration": 10751,
                     "src": "1127:16:46",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10588_storage_ptr",
+                      "typeIdentifier": "t_struct$_TotalAssetPrices_$10751_storage_ptr",
                       "typeString": "struct IMark2Market.TotalAssetPrices"
                     }
                   },
@@ -1686,14 +1686,14 @@
               ],
               "src": "1126:25:46"
             },
-            "scope": 10611,
+            "scope": 10774,
             "src": "1013:139:46",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 10612,
+        "scope": 10775,
         "src": "74:1081:46",
         "usedErrors": []
       }
@@ -1706,7 +1706,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-19T06:40:13.232Z",
+  "updatedAt": "2021-10-20T11:25:52.755Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

@@ -149,7 +149,7 @@ module.exports = async function (callback) {
     await printBalances("user", userAccount);
     await printBalances("vault", vault.address);
 
-    var userInversAmount = 10 * 1000000;
+    var userInversAmount = 1000 * 1000000;
 
     await usdc.approve(exchange.address, userInversAmount);
     console.log("user approve " + userInversAmount);

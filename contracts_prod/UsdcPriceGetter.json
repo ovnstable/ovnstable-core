@@ -299,21 +299,21 @@
     "absolutePath": "project:/contracts/price_getters/UsdcPriceGetter.sol",
     "exportedSymbols": {
       "AbstractPriceGetter": [
-        10872
+        11051
       ],
       "IPriceGetter": [
-        10660
+        10823
       ],
       "UsdcPriceGetter": [
-        11101
+        11280
       ]
     },
-    "id": 11102,
+    "id": 11281,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11079,
+        "id": 11258,
         "literals": [
           "solidity",
           ">=",
@@ -329,11 +329,11 @@
       {
         "absolutePath": "project:/contracts/price_getters/AbstractPriceGetter.sol",
         "file": "../price_getters/AbstractPriceGetter.sol",
-        "id": 11080,
+        "id": 11259,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 11102,
-        "sourceUnit": 10873,
+        "scope": 11281,
+        "sourceUnit": 11052,
         "src": "68:50:55",
         "symbolAliases": [],
         "unitAlias": ""
@@ -343,13 +343,13 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 11081,
+              "id": 11260,
               "name": "AbstractPriceGetter",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 10872,
+              "referencedDeclaration": 11051,
               "src": "150:19:55"
             },
-            "id": 11082,
+            "id": 11261,
             "nodeType": "InheritanceSpecifier",
             "src": "150:19:55"
           }
@@ -357,11 +357,11 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "fullyImplemented": true,
-        "id": 11101,
+        "id": 11280,
         "linearizedBaseContracts": [
-          11101,
-          10872,
-          10660
+          11280,
+          11051,
+          10823
         ],
         "name": "UsdcPriceGetter",
         "nameLocation": "131:15:55",
@@ -369,35 +369,35 @@
         "nodes": [
           {
             "baseFunctions": [
-              10853
+              11032
             ],
             "body": {
-              "id": 11090,
+              "id": 11269,
               "nodeType": "Block",
               "src": "245:37:55",
               "statements": [
                 {
                   "expression": {
-                    "id": 11088,
+                    "id": 11267,
                     "name": "DENOMINATOR",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 10844,
+                    "referencedDeclaration": 11023,
                     "src": "263:11:55",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 11087,
-                  "id": 11089,
+                  "functionReturnParameters": 11266,
+                  "id": 11268,
                   "nodeType": "Return",
                   "src": "256:18:55"
                 }
               ]
             },
             "functionSelector": "ea249784",
-            "id": 11091,
+            "id": 11270,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -405,29 +405,29 @@
             "nameLocation": "186:15:55",
             "nodeType": "FunctionDefinition",
             "overrides": {
-              "id": 11084,
+              "id": 11263,
               "nodeType": "OverrideSpecifier",
               "overrides": [],
               "src": "218:8:55"
             },
             "parameters": {
-              "id": 11083,
+              "id": 11262,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "201:2:55"
             },
             "returnParameters": {
-              "id": 11087,
+              "id": 11266,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11086,
+                  "id": 11265,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11091,
+                  "scope": 11270,
                   "src": "236:7:55",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -436,7 +436,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11085,
+                    "id": 11264,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "236:7:55",
@@ -450,7 +450,7 @@
               ],
               "src": "235:9:55"
             },
-            "scope": 11101,
+            "scope": 11280,
             "src": "177:105:55",
             "stateMutability": "pure",
             "virtual": false,
@@ -458,35 +458,35 @@
           },
           {
             "baseFunctions": [
-              10862
+              11041
             ],
             "body": {
-              "id": 11099,
+              "id": 11278,
               "nodeType": "Block",
               "src": "359:37:55",
               "statements": [
                 {
                   "expression": {
-                    "id": 11097,
+                    "id": 11276,
                     "name": "DENOMINATOR",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 10844,
+                    "referencedDeclaration": 11023,
                     "src": "377:11:55",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 11096,
-                  "id": 11098,
+                  "functionReturnParameters": 11275,
+                  "id": 11277,
                   "nodeType": "Return",
                   "src": "370:18:55"
                 }
               ]
             },
             "functionSelector": "2b8455f1",
-            "id": 11100,
+            "id": 11279,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -494,29 +494,29 @@
             "nameLocation": "299:16:55",
             "nodeType": "FunctionDefinition",
             "overrides": {
-              "id": 11093,
+              "id": 11272,
               "nodeType": "OverrideSpecifier",
               "overrides": [],
               "src": "332:8:55"
             },
             "parameters": {
-              "id": 11092,
+              "id": 11271,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "315:2:55"
             },
             "returnParameters": {
-              "id": 11096,
+              "id": 11275,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11095,
+                  "id": 11274,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11100,
+                  "scope": 11279,
                   "src": "350:7:55",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -525,7 +525,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11094,
+                    "id": 11273,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "350:7:55",
@@ -539,14 +539,14 @@
               ],
               "src": "349:9:55"
             },
-            "scope": 11101,
+            "scope": 11280,
             "src": "290:106:55",
             "stateMutability": "pure",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 11102,
+        "scope": 11281,
         "src": "122:277:55",
         "usedErrors": []
       }
@@ -557,21 +557,21 @@
     "absolutePath": "project:/contracts/price_getters/UsdcPriceGetter.sol",
     "exportedSymbols": {
       "AbstractPriceGetter": [
-        10872
+        11051
       ],
       "IPriceGetter": [
-        10660
+        10823
       ],
       "UsdcPriceGetter": [
-        11101
+        11280
       ]
     },
-    "id": 11102,
+    "id": 11281,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11079,
+        "id": 11258,
         "literals": [
           "solidity",
           ">=",
@@ -587,11 +587,11 @@
       {
         "absolutePath": "project:/contracts/price_getters/AbstractPriceGetter.sol",
         "file": "../price_getters/AbstractPriceGetter.sol",
-        "id": 11080,
+        "id": 11259,
         "nameLocation": "-1:-1:-1",
         "nodeType": "ImportDirective",
-        "scope": 11102,
-        "sourceUnit": 10873,
+        "scope": 11281,
+        "sourceUnit": 11052,
         "src": "68:50:55",
         "symbolAliases": [],
         "unitAlias": ""
@@ -601,13 +601,13 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 11081,
+              "id": 11260,
               "name": "AbstractPriceGetter",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 10872,
+              "referencedDeclaration": 11051,
               "src": "150:19:55"
             },
-            "id": 11082,
+            "id": 11261,
             "nodeType": "InheritanceSpecifier",
             "src": "150:19:55"
           }
@@ -615,11 +615,11 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "fullyImplemented": true,
-        "id": 11101,
+        "id": 11280,
         "linearizedBaseContracts": [
-          11101,
-          10872,
-          10660
+          11280,
+          11051,
+          10823
         ],
         "name": "UsdcPriceGetter",
         "nameLocation": "131:15:55",
@@ -627,35 +627,35 @@
         "nodes": [
           {
             "baseFunctions": [
-              10853
+              11032
             ],
             "body": {
-              "id": 11090,
+              "id": 11269,
               "nodeType": "Block",
               "src": "245:37:55",
               "statements": [
                 {
                   "expression": {
-                    "id": 11088,
+                    "id": 11267,
                     "name": "DENOMINATOR",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 10844,
+                    "referencedDeclaration": 11023,
                     "src": "263:11:55",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 11087,
-                  "id": 11089,
+                  "functionReturnParameters": 11266,
+                  "id": 11268,
                   "nodeType": "Return",
                   "src": "256:18:55"
                 }
               ]
             },
             "functionSelector": "ea249784",
-            "id": 11091,
+            "id": 11270,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -663,29 +663,29 @@
             "nameLocation": "186:15:55",
             "nodeType": "FunctionDefinition",
             "overrides": {
-              "id": 11084,
+              "id": 11263,
               "nodeType": "OverrideSpecifier",
               "overrides": [],
               "src": "218:8:55"
             },
             "parameters": {
-              "id": 11083,
+              "id": 11262,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "201:2:55"
             },
             "returnParameters": {
-              "id": 11087,
+              "id": 11266,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11086,
+                  "id": 11265,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11091,
+                  "scope": 11270,
                   "src": "236:7:55",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -694,7 +694,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11085,
+                    "id": 11264,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "236:7:55",
@@ -708,7 +708,7 @@
               ],
               "src": "235:9:55"
             },
-            "scope": 11101,
+            "scope": 11280,
             "src": "177:105:55",
             "stateMutability": "pure",
             "virtual": false,
@@ -716,35 +716,35 @@
           },
           {
             "baseFunctions": [
-              10862
+              11041
             ],
             "body": {
-              "id": 11099,
+              "id": 11278,
               "nodeType": "Block",
               "src": "359:37:55",
               "statements": [
                 {
                   "expression": {
-                    "id": 11097,
+                    "id": 11276,
                     "name": "DENOMINATOR",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 10844,
+                    "referencedDeclaration": 11023,
                     "src": "377:11:55",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 11096,
-                  "id": 11098,
+                  "functionReturnParameters": 11275,
+                  "id": 11277,
                   "nodeType": "Return",
                   "src": "370:18:55"
                 }
               ]
             },
             "functionSelector": "2b8455f1",
-            "id": 11100,
+            "id": 11279,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -752,29 +752,29 @@
             "nameLocation": "299:16:55",
             "nodeType": "FunctionDefinition",
             "overrides": {
-              "id": 11093,
+              "id": 11272,
               "nodeType": "OverrideSpecifier",
               "overrides": [],
               "src": "332:8:55"
             },
             "parameters": {
-              "id": 11092,
+              "id": 11271,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "315:2:55"
             },
             "returnParameters": {
-              "id": 11096,
+              "id": 11275,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11095,
+                  "id": 11274,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11100,
+                  "scope": 11279,
                   "src": "350:7:55",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -783,7 +783,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11094,
+                    "id": 11273,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "350:7:55",
@@ -797,14 +797,14 @@
               ],
               "src": "349:9:55"
             },
-            "scope": 11101,
+            "scope": 11280,
             "src": "290:106:55",
             "stateMutability": "pure",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 11102,
+        "scope": 11281,
         "src": "122:277:55",
         "usedErrors": []
       }
@@ -819,12 +819,12 @@
     "137": {
       "events": {},
       "links": {},
-      "address": "0x35b518c68aB9663F856ed21203f4428fF2EBa392",
-      "transactionHash": "0xa9e50b60321e295ecefe48cdcf721ea4e0f936e505d7fbce84d00b7f84976938"
+      "address": "0x6648DCC7c3c498C97dA9EE8B901789f76c02edD0",
+      "transactionHash": "0x4edb5fdca198ab4573bd254cd418318ea086f4d2faa87e32913699ac030fa341"
     }
   },
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-19T06:43:46.241Z",
+  "updatedAt": "2021-10-20T11:29:18.974Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

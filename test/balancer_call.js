@@ -49,11 +49,14 @@ module.exports = async function (callback) {
 
         console.log("userAccount: " + userAccount);
         ovn = await OvernightToken.deployed();
+        console.log("ovn: " + ovn.address);
         // const pm = await PortfolioManager.deployed();
         // let exchange = await Exchange.deployed();
         let vault = await Vault.deployed();
+        console.log("vault: " + vault.address);
         // let investmentPortfolio = await InvestmentPortfolio.deployed();
         let balancer = await Balancer.deployed();
+        console.log("balancer: " + balancer.address);
 
 
         usdc = await IERC20.at("0x2791bca1f2de4661ed88a30c99a7a9449aa84174");
@@ -125,19 +128,19 @@ module.exports = async function (callback) {
 
         // let withdrawAmount = 2 * 10**6;
         // let withdrawAmount = 0 * 10**6;
-        let withdrawAmount = 2000000;
-        callResult = await balancer.buildBalanceActions(
-            usdc.address,
-            withdrawAmount
-        )
-        console.log("--- Logs: ")
-        for (let rawLog of callResult.receipt.rawLogs) {
-            let data = rawLog.data;
-            data = data.replace("0x", "");
-            // data = data.replace("00", "");
-            console.log(hex2a(data));
-        }
-        console.log("--- Logs end")
+        let withdrawAmount = 0;
+        // callResult = await balancer.buildBalanceActions(
+        //     usdc.address,
+        //     withdrawAmount
+        // )
+        // console.log("--- Logs: ")
+        // for (let rawLog of callResult.receipt.rawLogs) {
+        //     let data = rawLog.data;
+        //     data = data.replace("0x", "");
+        //     // data = data.replace("00", "");
+        //     console.log(hex2a(data));
+        // }
+        // console.log("--- Logs end")
 
         // const fsPromises = require('fs').promises
         // await fsPromises.writeFile('test.txt', JSON.stringify(callResult, null, 2));

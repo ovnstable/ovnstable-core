@@ -35,15 +35,15 @@
     "absolutePath": "project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol",
     "exportedSymbols": {
       "IPriceOracleGetter": [
-        9043
+        9206
       ]
     },
-    "id": 9044,
+    "id": 9207,
     "license": "agpl-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 9033,
+        "id": 9196,
         "literals": [
           "solidity",
           ">=",
@@ -59,15 +59,15 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "documentation": {
-          "id": 9034,
+          "id": 9197,
           "nodeType": "StructuredDocumentation",
           "src": "67:98:31",
           "text": " @title IPriceOracleGetter interface\n @notice Interface for the Aave price oracle.*"
         },
         "fullyImplemented": false,
-        "id": 9043,
+        "id": 9206,
         "linearizedBaseContracts": [
-          9043
+          9206
         ],
         "name": "IPriceOracleGetter",
         "nameLocation": "179:18:31",
@@ -75,13 +75,13 @@
         "nodes": [
           {
             "documentation": {
-              "id": 9035,
+              "id": 9198,
               "nodeType": "StructuredDocumentation",
               "src": "203:138:31",
               "text": " @dev returns the asset price in ETH\n @param asset the address of the asset\n @return the ETH price of the asset*"
             },
             "functionSelector": "b3596f07",
-            "id": 9042,
+            "id": 9205,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -89,17 +89,17 @@
             "nameLocation": "354:13:31",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 9038,
+              "id": 9201,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 9037,
+                  "id": 9200,
                   "mutability": "mutable",
                   "name": "asset",
                   "nameLocation": "376:5:31",
                   "nodeType": "VariableDeclaration",
-                  "scope": 9042,
+                  "scope": 9205,
                   "src": "368:13:31",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -108,7 +108,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 9036,
+                    "id": 9199,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "368:7:31",
@@ -124,17 +124,17 @@
               "src": "367:15:31"
             },
             "returnParameters": {
-              "id": 9041,
+              "id": 9204,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 9040,
+                  "id": 9203,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 9042,
+                  "scope": 9205,
                   "src": "406:7:31",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -143,7 +143,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 9039,
+                    "id": 9202,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "406:7:31",
@@ -157,14 +157,14 @@
               ],
               "src": "405:9:31"
             },
-            "scope": 9043,
+            "scope": 9206,
             "src": "345:70:31",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 9044,
+        "scope": 9207,
         "src": "169:249:31",
         "usedErrors": []
       }
@@ -175,15 +175,15 @@
     "absolutePath": "project:/contracts/connectors/aave/interfaces/IPriceOracleGetter.sol",
     "exportedSymbols": {
       "IPriceOracleGetter": [
-        9043
+        9206
       ]
     },
-    "id": 9044,
+    "id": 9207,
     "license": "agpl-3.0",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 9033,
+        "id": 9196,
         "literals": [
           "solidity",
           ">=",
@@ -199,15 +199,15 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "documentation": {
-          "id": 9034,
+          "id": 9197,
           "nodeType": "StructuredDocumentation",
           "src": "67:98:31",
           "text": " @title IPriceOracleGetter interface\n @notice Interface for the Aave price oracle.*"
         },
         "fullyImplemented": false,
-        "id": 9043,
+        "id": 9206,
         "linearizedBaseContracts": [
-          9043
+          9206
         ],
         "name": "IPriceOracleGetter",
         "nameLocation": "179:18:31",
@@ -215,13 +215,13 @@
         "nodes": [
           {
             "documentation": {
-              "id": 9035,
+              "id": 9198,
               "nodeType": "StructuredDocumentation",
               "src": "203:138:31",
               "text": " @dev returns the asset price in ETH\n @param asset the address of the asset\n @return the ETH price of the asset*"
             },
             "functionSelector": "b3596f07",
-            "id": 9042,
+            "id": 9205,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -229,17 +229,17 @@
             "nameLocation": "354:13:31",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 9038,
+              "id": 9201,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 9037,
+                  "id": 9200,
                   "mutability": "mutable",
                   "name": "asset",
                   "nameLocation": "376:5:31",
                   "nodeType": "VariableDeclaration",
-                  "scope": 9042,
+                  "scope": 9205,
                   "src": "368:13:31",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -248,7 +248,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 9036,
+                    "id": 9199,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "368:7:31",
@@ -264,17 +264,17 @@
               "src": "367:15:31"
             },
             "returnParameters": {
-              "id": 9041,
+              "id": 9204,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 9040,
+                  "id": 9203,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 9042,
+                  "scope": 9205,
                   "src": "406:7:31",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -283,7 +283,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 9039,
+                    "id": 9202,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "406:7:31",
@@ -297,14 +297,14 @@
               ],
               "src": "405:9:31"
             },
-            "scope": 9043,
+            "scope": 9206,
             "src": "345:70:31",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 9044,
+        "scope": 9207,
         "src": "169:249:31",
         "usedErrors": []
       }
@@ -317,7 +317,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.2",
-  "updatedAt": "2021-10-19T06:40:13.207Z",
+  "updatedAt": "2021-10-20T11:25:52.730Z",
   "devdoc": {
     "kind": "dev",
     "methods": {
