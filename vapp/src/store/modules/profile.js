@@ -169,7 +169,7 @@ const actions = {
 
 
                 let result = [];
-                for (let i = 1; i < value.data.result.length; i++) {
+                for (let i = 0; i < value.data.result.length; i++) {
 
                     let item = value.data.result[i];
                     let log = {}
