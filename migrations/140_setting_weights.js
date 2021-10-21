@@ -19,7 +19,7 @@ module.exports = async function (deployer) {
     let usdcWeight = {
         asset: usdc,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 5000,
         maxWeight: 100000,
     }
     let aUsdcWeight = {
@@ -31,13 +31,13 @@ module.exports = async function (deployer) {
     let a3CrvWeight = {
         asset: a3Crv,
         minWeight: 0,
-        targetWeight: 40000,
+        targetWeight: 5000,
         maxWeight: 100000,
     }
     let a3CrvGaugeWeight = {
         asset: a3CrvGauge,
         minWeight: 0,
-        targetWeight: 40000,
+        targetWeight: 80000,
         maxWeight: 100000,
     }
     let wMaticWeight = {
