@@ -221,6 +221,7 @@ export default {
 
       try {
         let sum = this.sum * 10 ** 6;
+        sum = Math.floor(sum);
 
         let contracts = this.contracts;
         let from = this.account;
@@ -262,6 +263,7 @@ export default {
         try {
           await this.refreshGasPrice();
           let buyParams = {gasPrice: this.gasPriceGwei, from: from};
+          console.log(`Try buy ${contracts.usdc.options.address} ${sum}`);
           let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).on('transactionHash', function (hash) {
             let tx = {
               text: `Minting ${self.sum} OVN`,

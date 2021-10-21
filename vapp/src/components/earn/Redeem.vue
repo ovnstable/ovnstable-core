@@ -218,6 +218,7 @@ export default {
       try {
 
         let sum = this.sum * 10 ** 6;
+        sum = Math.floor(sum);
         let self = this;
 
         let contracts = this.contracts;
@@ -248,6 +249,7 @@ export default {
         try {
           await this.refreshGasPrice();
           let buyParams = {gasPrice: this.gasPriceGwei, from: from};
+          console.log(`Try redeem ${contracts.usdc.options.address} ${sum}`);
           let redeemResult = await contracts.exchange.methods.redeem(contracts.usdc.options.address, sum).send(buyParams);
           this.showSuccessRedeemToast(self.sum, redeemResult.transactionHash)
         } catch (e) {
