@@ -131,8 +131,9 @@ export default {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
-          if (item.liquidationValue)
-            value = value.plus(new BigNumber(item.liquidationValue))
+          if (item.liquidationValue){
+            value = value.plus(new BigNumber(item.liquidationValue.replace(/[^\d.-]/g, '')))
+          }
         }
 
       }
@@ -148,8 +149,9 @@ export default {
 
         for (let key in this.currentTotalData) {
           let item = this.currentTotalData[key];
-          if (item.bookPrice)
-            value = value.plus(new BigNumber(item.bookPrice))
+          if (item.bookPrice){
+            value = value.plus(new BigNumber(item.bookPrice.replace(/[^\d.-]/g, '')))
+          }
         }
 
       }
