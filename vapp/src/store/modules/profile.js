@@ -211,7 +211,7 @@ const actions = {
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
         let rewarder = '0x5cb01385d3097b6a189d1ac8ba3364d900666445'.toLowerCase();
 
-        let response = await axios.get(`https://api.polygonscan.com/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=19999999&sort=desc&apikey=${token}`);
+        let response = await axios.get(`https://api.polygonscan.com/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=19999999999&sort=desc&apikey=${token}`);
         let result = response.data.result;
 
         let logs = [];
