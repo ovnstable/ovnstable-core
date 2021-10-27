@@ -4,7 +4,7 @@
       <v-img :src="require('../../assets/ovn.png')"></v-img>
     </div>
     <div class="logo-title ml-2 mt-0 hidden-md-and-down">OVERNIGHT</div>
-    <span>Alpha</span>
+    <span>Beta</span>
   </v-row>
 </template>
 
