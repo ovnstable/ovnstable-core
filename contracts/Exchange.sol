@@ -22,7 +22,7 @@ contract Exchange is AccessControl {
     uint256 public redeemFee = 40;
     uint256 public redeemFeeDenominator = 100000; // ~ 100 %
 
-    event EventExchange(string label, uint256 amount);
+    event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event RewardEvent(
         uint256 totalOvn,
         uint256 totalUsdc,
@@ -78,7 +78,6 @@ contract Exchange is AccessControl {
 
     function buy(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
-        emit EventExchange("buy", _amount);
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
@@ -89,7 +88,9 @@ contract Exchange is AccessControl {
         uint256 buyAmount = _amount - buyFeeAmount;
         emit PaidBuyFee(buyAmount, buyFeeAmount);
 
-        ovn.mint(msg.sender, buyAmount);
+        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
+
+    ovn.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(pm), _amount);
         pm.invest(IERC20(_addrTok), _amount);
@@ -99,11 +100,12 @@ contract Exchange is AccessControl {
 
     function redeem(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
-        emit EventExchange("redeem", _amount);
 
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
         uint256 redeemAmount = _amount - redeemFeeAmount;
         emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
+
+        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
         //TODO: Real unstacke amount may be different to _amount
 
