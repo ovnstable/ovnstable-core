@@ -162,39 +162,10 @@ const actions = {
 
     async refreshPayouts({commit, dispatch, getters, rootState}) {
         commit('setLoadingPayouts', true);
-        let web3 = rootState.web3.web3;
 
         axios.get(`/payouts`)
             .then(value => {
-
-
-                let result = [];
-                for (let i = 0; i < value.data.result.length; i++) {
-
-                    let item = value.data.result[i];
-                    let log = {}
-
-                    log.date = new Date(item.timeStamp * 1000);
-                    log.id = i;
-                    log.transactionHash = item.transactionHash;
-
-                    let params = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], item.data)
-                    log.totalOvn = params[0] / 10 ** 6;
-                    log.totalUsdc = params[1] / 10 ** 6;
-                    log.totallyAmountRewarded = params[2] / 10 ** 6;
-                    log.totallySaved = params[3] / 10 ** 6;
-                    log.dailyProfit = (log.totallyAmountRewarded / log.totalOvn);
-                    log.annualizedYield = (((log.dailyProfit + 1) ** 365) - 1) * 100
-
-                    result.push(log)
-                }
-
-                result.sort(function (a, b) {
-                    return new Date(b.date) - new Date(a.date);
-                });
-
-
-                commit('setPayouts', result);
+                commit('setPayouts', value.data);
                 commit('setLoadingPayouts', false);
             })
 

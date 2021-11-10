@@ -43,9 +43,9 @@
               </v-col>
             </v-row>
 
-            <v-row dense :key="item.id" v-for="item in payouts" class="row-item" justify="center">
+            <v-row dense :key="item.transactionHash" v-for="item in payouts" class="row-item" justify="center">
               <v-col lg="3" style="text-align: start">
-                {{ formatDate(item.date) }}
+                {{ formatDate(item.payableDate) }}
               </v-col>
               <v-col lg="3">
                 {{ $utils.formatMoney(item.dailyProfit, 6) }}$
