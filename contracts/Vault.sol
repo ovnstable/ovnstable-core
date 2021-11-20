@@ -3,6 +3,7 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
 
 /**
  * Vault address is used as owner for all tokens for Overnights.
@@ -15,6 +16,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 contract Vault is AccessControl {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
+    bytes32 public constant REWARD_MANAGER = keccak256("REWARD_MANAGER");
+
+    // Only Vault can claiming aave rewards
+    IAaveIncentivesController public aaveReward;
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -23,6 +28,11 @@ contract Vault is AccessControl {
 
     modifier onlyPortfolioManager() {
         require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Caller is not the PORTFOLIO_MANAGER");
+        _;
+    }
+
+    modifier onlyRewardManager() {
+        require(hasRole(REWARD_MANAGER, msg.sender), "Caller is not the REWARD_MANAGER");
         _;
     }
 
@@ -35,11 +45,31 @@ contract Vault is AccessControl {
         grantRole(PORTFOLIO_MANAGER, _portfolioManager);
     }
 
+    function setRewardManager(address _rewardManager) public onlyAdmin {
+        require(_rewardManager != address(0), "Zero address not allowed");
+        grantRole(REWARD_MANAGER, _rewardManager);
+    }
+
+
+    function setAaveReward(address _aaveReward) public onlyAdmin {
+        require(_aaveReward != address(0), "Zero address not allowed");
+        aaveReward = IAaveIncentivesController(_aaveReward);
+    }
+
+
+
     //TODO: do we really need this feature?
     function removePortfolioManager(address _portfolioManager) public onlyAdmin {
         require(_portfolioManager != address(0), "Zero address not allowed");
         revokeRole(PORTFOLIO_MANAGER, _portfolioManager);
     }
+
+
+    function claimRewardAave(address[] calldata assets) public onlyRewardManager {
+        uint256 balance = aaveReward.getRewardsBalance(assets, address(this));
+        aaveReward.claimRewards(assets, balance, address(this));
+    }
+
 
     /**
      * @dev proxy to IERC20().totalSupply();

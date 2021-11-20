@@ -13,6 +13,7 @@ import "./registries/InvestmentPortfolio.sol";
 
 import "./Vault.sol";
 import "./Balancer.sol";
+import "./interfaces/IRewardManager.sol";
 
 contract PortfolioManager is IPortfolioManager, AccessControl {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -22,7 +23,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     Vault public vault;
     Balancer public balancer;
     address public exchanger;
-    IRewardOnlyGauge public rewardGauge;
+    IRewardManager rewardManager;
 
     // ---  events
 
@@ -65,10 +66,11 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         balancer = Balancer(_balancer);
     }
 
-    function setRewardGauge(address _rewardGauge) external onlyAdmin {
-        require(_rewardGauge != address(0), "Zero address not allowed");
-        rewardGauge = IRewardOnlyGauge(_rewardGauge);
+    function setRewardManager(address _rewardManager) external onlyAdmin {
+        require(_rewardManager != address(0), "Zero address not allowed");
+        rewardManager = IRewardManager(_rewardManager);
     }
+
 
     // ---  logic
 
@@ -109,10 +111,10 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
     function withdraw(IERC20 _token, uint256 _amount)
-        external
-        override
-        onlyExchanger
-        returns (uint256)
+    external
+    override
+    onlyExchanger
+    returns (uint256)
     {
         // 0.1 TODO: check that _token is one off used
         // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
@@ -211,7 +213,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 uint256 amount = action.amount;
                 uint256 denormalizedAmount;
                 //TODO: denominator usage
-                uint256 denominator = 10**(18 - IERC20Metadata(address(action.from)).decimals());
+                uint256 denominator = 10 ** (18 - IERC20Metadata(address(action.from)).decimals());
                 if (action.exchangeAll) {
                     denormalizedAmount = action.from.balanceOf(address(vault));
                     // normalize denormalizedAmount to 10**18
@@ -264,13 +266,13 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
                 // execute exchange
                 try
-                    action.tokenExchange.exchange(
-                        address(vault),
-                        action.from,
-                        address(vault),
-                        action.to,
-                        amount
-                    )
+                action.tokenExchange.exchange(
+                    address(vault),
+                    action.from,
+                    address(vault),
+                    action.to,
+                    amount
+                )
                 {
                     action.executed = true;
                     //TODO: remove
@@ -291,30 +293,30 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     );
                 } catch Error(string memory reason) {
                     revert(
-                        string(
-                            abi.encodePacked(
-                                reason,
-                                "\n+ action.tokenExchange.exchange: ",
-                                uint2str(amount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol()
-                            )
+                    string(
+                        abi.encodePacked(
+                            reason,
+                            "\n+ action.tokenExchange.exchange: ",
+                            uint2str(amount),
+                            " from ",
+                            IERC20Metadata(address(action.from)).symbol(),
+                            " to ",
+                            IERC20Metadata(address(action.to)).symbol()
                         )
+                    )
                     );
                 } catch {
                     revert(
-                        string(
-                            abi.encodePacked(
-                                "action.tokenExchange.exchange: No reason ",
-                                uint2str(amount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol()
-                            )
+                    string(
+                        abi.encodePacked(
+                            "action.tokenExchange.exchange: No reason ",
+                            uint2str(amount),
+                            " from ",
+                            IERC20Metadata(address(action.from)).symbol(),
+                            " to ",
+                            IERC20Metadata(address(action.to)).symbol()
                         )
+                    )
                     );
                 }
 
@@ -348,9 +350,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
      * Claim rewards from Curve gauge where we have staked LP tokens
      */
     function claimRewards() external override {
-        //TODO: add event if gauge emit nothing
-        rewardGauge.claim_rewards(address(vault));
+        rewardManager.claimRewards();
     }
+
 
     //TODO: remove
     function toAsciiString(address x) internal pure returns (string memory) {
