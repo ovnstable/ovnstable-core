@@ -22,7 +22,7 @@ module.exports = async function (callback) {
         let amUSDC = await ERC20.at('0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
 
 
-        console.log('Balance wmatic: ' + (await wmatic.balanceOf(vault.address)/ 10 ** 18));
+        console.log('Balance wmatic: ' + (await wmatic.balanceOf(vault.address) / 10 ** 18));
         console.log('Balance amUSDC: ' + (await amUSDC.balanceOf(vault.address) / 10 ** 6));
 
         let assets = ['0x1a13F4Ca1d028320A707D99520AbFefca3998b7F'];
@@ -33,8 +33,6 @@ module.exports = async function (callback) {
         rewardBalance = await aave.getRewardsBalance(assets, vault.address);
         console.log('Reward balance: ' + rewardBalance.toString() / 10 ** 18);
 
-
-        console.log(await rm.amUSDC.call());
 
         // await pm.claimRewards();
         // await rm.claimRewardAave();

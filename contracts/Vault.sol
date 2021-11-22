@@ -65,9 +65,8 @@ contract Vault is AccessControl {
     }
 
 
-    function claimRewardAave(address[] calldata assets) public onlyRewardManager {
-        uint256 balance = aaveReward.getRewardsBalance(assets, address(this));
-        aaveReward.claimRewards(assets, balance, address(this));
+    function claimRewardAave(address[] calldata assets, uint256 amount) public onlyRewardManager {
+        aaveReward.claimRewards(assets, amount, address(this));
     }
 
 

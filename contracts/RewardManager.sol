@@ -56,8 +56,7 @@ contract RewardManager is IRewardManager, AccessControl {
 
         address[] memory assets = new address[](1);
         assets[0] = address(amUSDC);
-
-        vault.claimRewardAave(assets);
+        vault.claimRewardAave(assets, type(uint256).max);
     }
 
 }

@@ -1,0 +1,19 @@
+
+module.exports = async ({getNamedAccounts, deployments}) => {
+    const {deploy} = deployments;
+    const {deployer} = await getNamedAccounts();
+
+    await deploy('ConnectorAAVE', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+
+    await deploy('ConnectorCurve', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+};
+
+module.exports.tags = ['ConnectorAAVE', 'ConnectorCurve'];
