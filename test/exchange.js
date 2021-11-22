@@ -1,19 +1,30 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const {expect} = require("chai");
+const {ethers} = require("hardhat");
 
-describe("Greeter", function () {
-    it("Should return the new greeting once it's changed", async function () {
-        const Greeter = await ethers.getContractFactory("Greeter");
-        const greeter = await Greeter.deploy("Hello, world!");
-        await greeter.deployed();
+const fs = require("fs");
+let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-        expect(await greeter.greet()).to.equal("Hello, world!");
+const { waffle } = require("hardhat");
+const { deployContract } = waffle;
 
-        const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
 
-        // wait until the transaction is mined
-        await setGreetingTx.wait();
+describe("Exchange", function () {
+    it("Mint OVN", async function () {
 
-        expect(await greeter.greet()).to.equal("Hola, mundo!");
+        const account = (await ethers.getSigners())[0];
+        console.log('Signer ' + account)
+
+        console.log(deployContract)
+        const exchanger = await ethers.getContract("Exchanger");
+        const ovn = await ethers.getContract("OvernightToken");
+
+        const sum = 100 * 10 ** 6;
+
+        let buy = exchanger.buy(assets.usdc, sum);
+        buy.wait();
+
+        let balance = await ovn.balanceOf(account);
+        expect(balance).to.equal(10);
+
     });
 });
