@@ -16,3 +16,4 @@ secrets.json
 .run
 artifacts/
 cache/
+deployments/
