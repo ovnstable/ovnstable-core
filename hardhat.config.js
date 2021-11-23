@@ -45,6 +45,7 @@ module.exports = {
     hardhat: {
       forking: {
         url: "https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea",
+        blockNumber: 21675000,
       },
 
       accounts:{
@@ -72,6 +73,10 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
+
+  mocha: {
+    timeout: 200000
+  }
 
 
 };
