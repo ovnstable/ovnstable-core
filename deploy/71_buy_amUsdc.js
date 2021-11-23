@@ -16,10 +16,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let value = "500000000000000000000000";
 
     const buyonSwap = await ethers.getContract("BuyonSwap");
-    await buyonSwap.buy(assets.usdc, router, {value: value});
+    await buyonSwap.buy(assets.amUsdc, router, {value: value});
 
-    console.log('Buy usdc: ' + value);
+    console.log('Buy amUsdc: ' + value);
 
 };
 
-module.exports.tags = ['BuyUsdc'];
+module.exports.tags = ['BuyAmUsdc'];
