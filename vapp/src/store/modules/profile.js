@@ -255,13 +255,6 @@ const actions = {
 
             try {
 
-                // let symbol = element.symbol;
-                // let name = element.name;
-                // let bookValue = element.amountInVault / 10 ** element.decimals;
-                // let liquidationValue = element.usdcPriceInVault / 10 ** 6;
-                // let price = element.usdcBuyPrice/ element.usdcPriceDenominator;
-                // let liquidationPrice = element.usdcSellPrice / element.usdcPriceDenominator;
-                // let bookPrice = element.usdcPriceInVault / 10 ** 6 ;
                 let symbol = element.symbol;
                 let name = element.name;
                 let bookValue = element.amountInVault / element.usdcPriceDenominator;

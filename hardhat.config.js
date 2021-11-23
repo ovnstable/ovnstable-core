@@ -37,7 +37,10 @@ module.exports = {
 
 
   namedAccounts: {
-    deployer: 0,
+    deployer: {
+      default: 0,
+
+    },
   },
 
   networks: {
@@ -67,12 +70,6 @@ module.exports = {
   },
 
 
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts"
-  },
 
   mocha: {
     timeout: 200000

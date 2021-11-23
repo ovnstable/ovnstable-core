@@ -2,20 +2,15 @@ import detectEthereumProvider from "@metamask/detect-provider";
 import Web3 from "web3";
 import abiDecoder from "../../plugins/abiDecoder";
 import Exchange from "../../contracts/Exchange.json";
-import USDCtest from "../../contracts/USDCtest.json";
-import DAItest from "../../contracts/DAItest.json";
+import ERC20 from "../../contracts/ERC20.json";
 import OverNightToken from "../../contracts/OvernightToken.json";
-import Mark2Market from "../../contracts/Mark2Market.json";
 import PortfolioManager from "../../contracts/PortfolioManager.json";
-import ActivesList from "../../contracts/ActivesList.json";
 import ConnectorAAVE from "../../contracts/ConnectorAAVE.json";
 import ConnectorCurve from "../../contracts/ConnectorCurve.json";
-import IMark2Market from "../../contracts/IMark2Market.json";
+import Mark2Market from "../../contracts/Mark2Market.json";
 import contract from "@truffle/contract";
-import {axios} from "../../plugins/http-axios";
 
 import OvnImage from '../../assets/ovn.json';
-import { createAlchemyWeb3 } from "@alch/alchemy-web3";
 
 const state = {
     contracts: null,
@@ -98,7 +93,7 @@ const actions = {
             provider.on('networkChanged', function (networkId) {
                 networkId = parseInt(networkId)
                 commit('setNetworkId', networkId)
-                if (networkId === 137) {
+                if (networkId === 137 || networkId === 31337) {
                     dispatch('initPolygonData');
                 } else {
                     dispatch('profile/resetUserData', null, {root: true})
@@ -118,7 +113,7 @@ const actions = {
         dispatch('profile/refreshNotUserData', null, {root: true})
         dispatch('gasPrice/refreshGasPrice', null, {root: true})
 
-        if (networkId === 137) {
+        if (networkId === 137 || networkId === 31337) {
             dispatch('initPolygonData');
         }else {
             commit('setSwitchToPolygon', true)
@@ -146,16 +141,15 @@ const actions = {
         let contracts = {};
 
         contracts.exchange = _load(Exchange, web3);
-        contracts.usdc = _load(USDCtest, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-        contracts.dai = _load(DAItest, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
+        contracts.usdc = _load(ERC20, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+        contracts.dai = _load(ERC20, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
         contracts.ovn = _load(OverNightToken, web3);
         contracts.m2m = _load(Mark2Market, web3);
         contracts.pm = _load(PortfolioManager, web3);
-        contracts.activesList = _load(ActivesList, web3);
 
         _load(ConnectorAAVE, web3, '0xd05e3E715d945B59290df0ae8eF85c1BdB684744')
         _load(ConnectorCurve, web3)
-        _load(IMark2Market, web3)
+        _load(Mark2Market, web3)
 
         commit('setContracts', contracts)
     },
@@ -286,14 +280,10 @@ function _load(file, web3, address) {
     abiDecoder.addABI(file.abi);
 
 
-    const {abi, networks, deployedBytecode} = contractConfig
+    const {abi} = contractConfig
 
     if (!address) {
-        let network = networks[137];
-        if (network)
-            address = network.address
-        else
-            return;
+       address = file.address;
     }
 
     state.contractNames[address] = contractConfig.contractName;
@@ -301,22 +291,3 @@ function _load(file, web3, address) {
     return new web3.eth.Contract(abi, address);
 }
 
-function Web3RequestLogger(httpProvider) {
-    let handler = {
-        get(target, propKey, receiver) {
-            const origMethod = Reflect.get(target, propKey, receiver);
-            if (propKey === "send") {
-                return function (...args) {
-                    console.log(`Sent JSONRPC Request: ${JSON.stringify(args[0])}`);
-                    let responseCallback = function (err, result) {
-                        console.log(`Received JSONRPC Response: ${JSON.stringify(result)}`)
-                        args[1](err, result)
-                    };
-                    return origMethod.apply(this, [args[0], responseCallback]);
-                };
-            }
-            return origMethod;
-        }
-    };
-    return new Proxy(httpProvider, handler);
-}
