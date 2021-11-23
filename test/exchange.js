@@ -4,6 +4,7 @@ const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {FakeContract, smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
+const {toUSDC, fromOvn, toOvn} = require("../utils/decimals");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -36,13 +37,13 @@ describe("Exchange", function () {
     it("Mint OVN", async function () {
 
 
-        const sum = 100 * 10 ** 6;
+        const sum = toUSDC(100);
         await usdc.approve(exchange.address, sum);
 
         console.log("USDC: " + assets.usdc)
         await exchange.buy(assets.usdc, sum);
 
-        let balance = await ovn.balanceOf(account) / 10 ** 6;
+        let balance = fromOvn(await ovn.balanceOf(account));
         console.log('Balance ovn: ' + balance)
         expect(balance).to.equal(99.96);
 
@@ -51,11 +52,11 @@ describe("Exchange", function () {
 
     it("Redeem OVN", async function () {
 
-        const sum = 50.6 * 10 ** 6;
+        const sum = toOvn(50.6);
         await ovn.approve(exchange.address, sum);
         await exchange.redeem(assets.usdc, sum);
 
-        let balance = await ovn.balanceOf(account) / 10 ** 6;
+        let balance = fromOvn(await ovn.balanceOf(account));
         console.log('Balance ovn: ' + balance)
         expect(balance).to.equal(49.36);
 

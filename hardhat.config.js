@@ -49,7 +49,7 @@ module.exports = {
       },
 
       accounts:{
-        accountsBalance: "1000000000000000000000000"
+        accountsBalance: "100000000000000000000000000"
       }
 
     }
