@@ -32,7 +32,7 @@ MVP of OVNGT interest bearing stablecoin
 1. Starting hardhat node (local dev):
 
 `
-npx hardhat node
+npx hardhat node --show-accounts
 `
 
 2 . Run tests

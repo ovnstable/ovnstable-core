@@ -16,4 +16,5 @@ secrets.json
 .run
 artifacts/
 cache/
-deployments/
+deployments/localhost
+.env
