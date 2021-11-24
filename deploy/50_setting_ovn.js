@@ -11,4 +11,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['SettingOvn'];
+module.exports.tags = ['base','SettingOvn'];

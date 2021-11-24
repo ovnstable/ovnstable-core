@@ -10,4 +10,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['Vault'];
+module.exports.tags = ['base','Vault'];

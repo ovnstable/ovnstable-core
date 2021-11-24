@@ -10,4 +10,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['Mark2Market'];
+module.exports.tags = ['base','Mark2Market'];

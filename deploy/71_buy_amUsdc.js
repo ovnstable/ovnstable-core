@@ -22,4 +22,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['BuyAmUsdc'];
+module.exports.tags = ['test', 'BuyAmUsdc'];

@@ -10,4 +10,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['OvernightToken'];
+module.exports.tags = ['base','OvernightToken'];

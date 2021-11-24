@@ -12,4 +12,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['Balancer'];
+module.exports.tags = ['base','Balancer'];

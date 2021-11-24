@@ -12,4 +12,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['InvestmentPortfolio'];
+module.exports.tags = ['base','InvestmentPortfolio'];

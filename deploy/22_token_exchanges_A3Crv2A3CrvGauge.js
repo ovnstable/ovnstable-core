@@ -21,4 +21,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['A3Crv2A3CrvGaugeActionBuilder', 'A3Crv2A3CrvGaugeTokenExchange'];
+module.exports.tags = ['base','A3Crv2A3CrvGaugeActionBuilder', 'A3Crv2A3CrvGaugeTokenExchange'];

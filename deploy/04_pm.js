@@ -10,4 +10,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['PortfolioManager'];
+module.exports.tags = ['base','PortfolioManager'];

@@ -16,4 +16,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['Connectors'];
+module.exports.tags = ['base','Connectors'];

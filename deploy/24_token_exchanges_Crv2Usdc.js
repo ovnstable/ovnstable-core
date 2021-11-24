@@ -24,4 +24,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['Crv2UsdcActionBuilder', 'Crv2UsdcTokenExchange'];
+module.exports.tags = ['base','Crv2UsdcActionBuilder', 'Crv2UsdcTokenExchange'];

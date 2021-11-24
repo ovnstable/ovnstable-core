@@ -21,4 +21,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['SettingVault'];
+module.exports.tags = ['base','SettingVault'];
