@@ -2,18 +2,17 @@
   "name": "overnight",
   "version": "0.0.1",
   "description": "overnight superstable coin & dApp",
-  "main": "truffle-config.js",
+  "main": "hardhat.config",
   "directories": {
-    "test": "test_truffle"
+    "test": "test"
   },
   "scripts": {
-    "test": "echo \\\"Error: no test_truffle specified\\\" && exit 1"
+    "test": "echo \\\"Error: no test specified\\\" && exit 1"
   },
   "keywords": [],
   "author": {
-    "name": "Amal Sudama",
-    "email": "amal@trufflesuite.com",
-    "url": "http://github.com/truffle-box/drizzle-vue-box"
+    "name": "OVN",
+    "email": "ovnstable@gmail.com"
   },
   "license": "ISC",
   "dependencies": {
