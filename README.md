@@ -56,7 +56,7 @@ https://metamask.io/
 - Symbol: MATIC
 
 
-### Prettier
+### Upgrade VS Code
 
 To prettify solidity code install prettier plugin to VSCode:
 
@@ -67,6 +67,11 @@ code --install-extension esbenp.prettier-vscode
 (https://github.com/prettier-solidity/prettier-plugin-solidity#vscode)
 
 Params in `.prettierrc`
+
+### Upgrade IDEA
+
+Install plugin (https://plugins.jetbrains.com/plugin/9475-solidity)
+
 
 ### Build && Deploy DAPP
 
@@ -86,7 +91,7 @@ Run script and pass arguments:
 5) After polling it rum restart dapp
 
 
-### How to deploy to Polygon Mainnet? 
+### How to deploy to Polygon Mainnet? (need to update)
 
 1) Compile new version of Solidity contract: 
 `truffle compile `
