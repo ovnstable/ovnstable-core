@@ -5,6 +5,7 @@ const ethers = hre.ethers;
 
 
 let ERC20 = JSON.parse(fs.readFileSync('./deployments/old_polygon/ERC20.json'));
+let OVN = JSON.parse(fs.readFileSync('./deployments/old_polygon/OvernightToken.json'));
 let ERC20Metadata = JSON.parse(fs.readFileSync('./deployments/old_polygon/IERC20Metadata.json'));
 let OldVault = JSON.parse(fs.readFileSync('./deployments/old_polygon/Vault.json'));
 
@@ -21,6 +22,8 @@ async function main() {
 
     let newVault = await ethers.getContract("Vault");
     let portfolioManager = await ethers.getContract("PortfolioManager");
+    let exchange = await ethers.getContract("Exchange");
+    let ovn = await ethers.getContractAt(OVN.abi, "0xcE5bcF8816863A207BF1c0723B91aa8D5B9c6614", wallet);
 
     let oldVault = await ethers.getContractAt(OldVault.abi, "0xDfE7686F072013f78F94709DbBE528bFC864009C", wallet);
 
@@ -37,6 +40,13 @@ async function main() {
     let CRV = await ethers.getContractAt(ERC20.abi,'0x172370d5Cd63279eFa6d502DAB29171933a610AF');
 
     let assets = [USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic];
+
+
+    await exchange.setTokens(ovn.address, USDC.address);
+    console.log('Setting exchange done')
+
+    await ovn.setExchanger(exchange.address);
+    console.log('Setting ovn done')
 
 
     console.log('')
