@@ -2,7 +2,14 @@
 
 MVP of OVNGT interest bearing stablecoin
 
+
 ### Build Project
+
+##### Requirement:
+
+- Node v16
+
+##### How to install:
 
 1. Install root packages via npm
 
@@ -40,8 +47,6 @@ Open folder vapp and run command:
 
 `npm run serve`
 
-4. Connect to your MetaMask wallet
-
 ### How to set up MetaMask
 
 1. Install MetaMask
@@ -54,6 +59,13 @@ https://metamask.io/
 - URL: http://localhost:8545
 - Chain ID: 31337
 - Symbol: MATIC
+
+### Accounts for local development:
+
+- Account: **deployer**: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+- Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+Private key need to import to Metamask
 
 
 ### Upgrade VS Code
