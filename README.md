@@ -17,7 +17,7 @@ MVP of OVNGT interest bearing stablecoin
 
 2. Install NPX
 
-`npm install npx`
+`npm install -g npx`
 
 4. Open folder vapp
 
