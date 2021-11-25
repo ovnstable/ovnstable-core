@@ -58,16 +58,15 @@ module.exports = {
         },
 
         hardhat: {
-
             forking: {
-                url: "https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea",
+                url: "https://polygon-rpc.com/",
                 blockNumber: 21778409 ,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
-            }
-
-        }
+            },
+            timeout: 200000
+        },
 
     },
 
