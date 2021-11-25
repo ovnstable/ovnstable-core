@@ -9,7 +9,7 @@ const state = {
         ultra: 50,
     },
 
-    gasPriceType: 'fast',
+    gasPriceType: 'standard',
     gasPrice: 0,
     gasPriceGwei: '0',
 };

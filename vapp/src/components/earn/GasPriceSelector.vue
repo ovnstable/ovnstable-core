@@ -52,7 +52,7 @@ export default {
   data: () => ({
     open: false,
 
-    currentType: 'Top Speed (recommended)',
+    currentType: 'Normal',
   }),
   computed: {},
 
