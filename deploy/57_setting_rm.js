@@ -21,4 +21,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['base','SettingRewardManager'];
+module.exports.tags = ['setting','SettingRewardManager'];

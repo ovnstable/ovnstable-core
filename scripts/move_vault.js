@@ -15,7 +15,7 @@ async function main() {
 
     let provider = ethers.provider;
     console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet("pk", provider);
+    let wallet = await new ethers.Wallet("", provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('Balance wallet: ' + fromWmatic(balance))
@@ -42,11 +42,11 @@ async function main() {
     let assets = [USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic];
 
 
-    await exchange.setTokens(ovn.address, USDC.address);
-    console.log('Setting exchange done')
-
-    await ovn.setExchanger(exchange.address);
-    console.log('Setting ovn done')
+    // await exchange.setTokens(ovn.address, USDC.address);
+    // console.log('Setting exchange done')
+    //
+    // await ovn.setExchanger(exchange.address);
+    // console.log('Setting ovn done')
 
 
     console.log('')
@@ -59,7 +59,7 @@ async function main() {
 
     console.log('')
     console.log('Start transferring...')
-    await moveBalances(assets, oldVault, newVault, wallet.address, portfolioManager)
+    // await moveBalances(assets, oldVault, newVault, wallet.address, portfolioManager)
 
     console.log('')
     console.log('Finish transferring...')

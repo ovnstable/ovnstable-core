@@ -49,13 +49,19 @@ module.exports = {
         polygon: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
+
+        },
+
+        ganache:{
+            url: "http://127.0.0.1:8555",
+            chainId: 1337
         },
 
         hardhat: {
 
             forking: {
                 url: "https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea",
-                blockNumber: 21675000,
+                blockNumber: 21778409 ,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
