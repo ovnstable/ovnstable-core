@@ -1,0 +1,115 @@
+const hre = require("hardhat");
+const fs = require("fs");
+const {fromWmatic} = require("../utils/decimals");
+const ethers = hre.ethers;
+
+
+let ERC20 = JSON.parse(fs.readFileSync('./deployments/old_polygon/ERC20.json'));
+let ERC20Metadata = JSON.parse(fs.readFileSync('./deployments/old_polygon/IERC20Metadata.json'));
+
+let secrets = JSON.parse(fs.readFileSync('./secrets.json'));
+
+
+async function main() {
+
+    const [owner] = await ethers.getSigners();
+
+    let provider = ethers.provider;
+    console.log('Provider: ' + provider.connection.url);
+    let wallet = await new ethers.Wallet(secrets.polygon.pk_test, provider);
+    console.log('Wallet: ' + wallet.address);
+    const balance = await provider.getBalance(wallet.address);
+    console.log('Balance wallet: ' + fromWmatic(balance))
+
+    let ovn = await ethers.getContract("OvernightToken");
+    console.log("ovn: " + ovn.address);
+
+    let vault = await ethers.getContract("Vault");
+    let exchange = await ethers.getContract("Exchange");
+
+    let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+    let amUSDC = await ethers.getContractAt(ERC20.abi, '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
+    let am3CRV = await ethers.getContractAt(ERC20.abi, '0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
+    let am3CRVGauge = await ethers.getContractAt(ERC20.abi, '0x19793b454d3afc7b454f206ffe95ade26ca6912c');
+    let CRV = await ethers.getContractAt(ERC20.abi, '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
+    let wmatic = await ethers.getContractAt(ERC20.abi, '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
+
+    let assets = [USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+
+    console.log("---  " + "User" + owner.address + ":");
+    await showBalances(assets, owner.address);
+    console.log("---------------------");
+
+    console.log("---  " + "Vault" + vault.address + ":");
+    await showBalances(assets, vault.address);
+    console.log("---------------------");
+
+    // rewards
+    console.log("before reward");
+    callResult = await exchange.reward();
+    console.log("after reward");
+    // console.log(JSON.stringify(callResult, null, 2));
+    waitResult = await callResult.wait();
+    console.log(JSON.stringify(waitResult, null, 2));
+    logConsoleLogEvents(waitResult);
+
+}
+
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+
+// Convert a hex string to a byte array
+function hexToBytes(hex) {
+    let bytes = []
+    for (let c = 0; c < hex.length; c += 2) {
+        let str = hex.substr(c, 2);
+        if (str === "0x")
+            continue;
+        bytes.push(parseInt(str, 16));
+    }
+    return bytes;
+}
+
+
+function bin2String(array) {
+    let result = "";
+    for (let i = 0; i < array.length; i++) {
+        result += String.fromCharCode(array[i]);
+    }
+    return result;
+}
+
+function logConsoleLogEvents(waitResult) {
+    console.log("---  ConsoleLog events:")
+    for (let rawLog of waitResult.events) {
+        let data = rawLog.data;
+        let bytes = hexToBytes(data);
+        if (bytes.length < 63) {
+            console.log("No ConsoleLog event");
+            continue;
+        }
+        let length = bytes[63];
+        if (length === 0) {
+            console.log("No ConsoleLog event");
+            continue;
+        }
+        bytes.slice(64, 64 + length);
+        console.log(bin2String(bytes.slice(64, 64 + length)));
+    }
+    console.log("---  ConsoleLog events end")
+}
+
+
+async function showBalances(assets, ownerAddress) {
+    for (let i = 0; i < assets.length; i++) {
+        let asset = assets[i];
+        let meta = await ethers.getContractAt(ERC20Metadata.abi, asset.address);
+        let symbol = await meta.symbol();
+        console.log(`Balance: ${symbol}: ` + (await asset.balanceOf(ownerAddress) / 10 ** await meta.decimals()));
+    }
+}
