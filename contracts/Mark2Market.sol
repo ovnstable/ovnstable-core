@@ -142,17 +142,17 @@ contract Mark2Market is IMark2Market, OwnableExt {
         }
 
         // 3. validate withdrawAmount
-        require(
-            totalUsdcPrice >= withdrawAmount,
-            string(
+        // used if instead of require because better when need to build complex string for revert
+        if (totalUsdcPrice < withdrawAmount) {
+            revert(string(
                 abi.encodePacked(
                     "Withdraw more than total: ",
                     uint2str(withdrawAmount),
                     " > ",
                     uint2str(totalUsdcPrice)
                 )
-            )
-        );
+            ));
+        }
 
         // 4. correct total with withdrawAmount
         // //TODO: remove
@@ -302,7 +302,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
 
     //TODO: remove
     function log(string memory message, uint value) internal {
-        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
+//        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
     }
 }
 
