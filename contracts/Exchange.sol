@@ -22,6 +22,19 @@ contract Exchange is AccessControl {
     uint256 public redeemFee = 40;
     uint256 public redeemFeeDenominator = 100000; // ~ 100 %
 
+    // next payout time in epoch seconds
+    uint256 public nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+
+    // period between payouts in seconds, need to calc nextPayoutTime
+    uint256 public payoutPeriod = 24 * 60 * 60;
+
+    // range of time for starting near next payout time at seconds
+    // if time in [nextPayoutTime-payoutTimeRange;nextPayoutTime+payoutTimeRange]
+    //    then payouts can be started by payout() method anyone
+    // else if time more than nextPayoutTime+payoutTimeRange
+    //    then payouts started by any next buy/redeem
+    uint256 public payoutTimeRange = 15 * 60;
+
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event RewardEvent(
         uint256 totalOvn,
@@ -34,6 +47,9 @@ contract Exchange is AccessControl {
     event UpdatedRedeemFee(uint256 fee, uint256 feeDenominator);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
+    event UpdatedPayoutTimes(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
+    event NextPayoutTime(uint256 nextPayoutTime);
+    event ErrorLogging(string reason);
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -72,6 +88,20 @@ contract Exchange is AccessControl {
         emit UpdatedBuyFee(redeemFee, redeemFeeDenominator);
     }
 
+    function setPayoutTimes(
+        uint256 _nextPayoutTime,
+        uint256 _payoutPeriod,
+        uint256 _payoutTimeRange
+    ) external onlyAdmin {
+        require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
+        require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
+        require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
+        nextPayoutTime = _nextPayoutTime;
+        payoutPeriod = _payoutPeriod;
+        payoutTimeRange = _payoutTimeRange;
+        emit UpdatedPayoutTimes(nextPayoutTime, payoutPeriod, payoutTimeRange);
+    }
+
     function balance() public view returns (uint256) {
         return ovn.balanceOf(msg.sender);
     }
@@ -90,13 +120,16 @@ contract Exchange is AccessControl {
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
 
-    ovn.mint(msg.sender, buyAmount);
+        ovn.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(pm), _amount);
         pm.invest(IERC20(_addrTok), _amount);
-    }
 
-    event ErrorLogging(string reason);
+        // prevent stucked payout caller
+        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
+            _payout();
+        }
+    }
 
     function redeem(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
@@ -138,9 +171,27 @@ contract Exchange is AccessControl {
             "Not enough for transfer unstakedAmount"
         );
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+
+        // prevent stucked payout caller
+        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
+            _payout();
+        }
     }
 
+    //TODO: remove after moving to payout() usage
     function reward() external onlyAdmin {
+        _payout();
+    }
+
+    function payout() public onlyAdmin {
+        _payout();
+    }
+
+    function _payout() internal {
+        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
+            return;
+        }
+
         // 0. call claiming reward and rebalancing on PM TODO: may be need move to another place
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
@@ -179,6 +230,12 @@ contract Exchange is AccessControl {
             totallyAmountRewarded,
             difference - totallyAmountRewarded
         );
+
+        // update next payout time. Cycle for preventing gaps
+        for (; block.timestamp >= nextPayoutTime - payoutTimeRange; ) {
+            nextPayoutTime = nextPayoutTime + payoutPeriod;
+        }
+        emit NextPayoutTime(nextPayoutTime);
     }
 
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
