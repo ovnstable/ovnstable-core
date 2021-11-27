@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
 
 const fs = require("fs");
