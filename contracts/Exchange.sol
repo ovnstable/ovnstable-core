@@ -36,13 +36,13 @@ contract Exchange is AccessControl {
     uint256 public payoutTimeRange = 15 * 60;
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
-    event RewardEvent(
+    event PayoutEvent(
         uint256 totalOvn,
         uint256 totalUsdc,
-        uint256 totallyAmountRewarded,
+        uint256 totallyAmountPaid,
         uint256 totallySaved
     );
-    event NoEnoughForRewardEvent(uint256 totalOvn, uint256 totalUsdc);
+    event NoEnoughForPayoutEvent(uint256 totalOvn, uint256 totalUsdc);
     event UpdatedBuyFee(uint256 fee, uint256 feeDenominator);
     event UpdatedRedeemFee(uint256 fee, uint256 feeDenominator);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
@@ -207,28 +207,28 @@ contract Exchange is AccessControl {
         // denormilize from 10**18 to 10**6 as OVN decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalOvnSupply) {
-            emit NoEnoughForRewardEvent(totalOvnSupply, totalUsdc);
+            emit NoEnoughForPayoutEvent(totalOvnSupply, totalUsdc);
             return;
         }
         uint difference = totalUsdc - totalOvnSupply;
 
-        uint totallyAmountRewarded = 0;
+        uint totallyAmountPaid = 0;
         for (uint8 i = 0; i < ovn.ownerLength(); i++) {
             address ovnOwnerAddress = ovn.ownerAt(i);
             uint ovnBalance = ovn.balanceOf(ovnOwnerAddress);
             uint additionalMintAmount = (ovnBalance * difference) / totalOvnSupply;
             if (additionalMintAmount > 0) {
                 ovn.mint(ovnOwnerAddress, additionalMintAmount);
-                totallyAmountRewarded += additionalMintAmount;
+                totallyAmountPaid += additionalMintAmount;
             }
         }
         //TODO: what to do with saved usdc? Do we need to mint it to PM
 
-        emit RewardEvent(
+        emit PayoutEvent(
             totalOvnSupply,
             totalUsdc,
-            totallyAmountRewarded,
-            difference - totallyAmountRewarded
+            totallyAmountPaid,
+            difference - totallyAmountPaid
         );
 
         // update next payout time. Cycle for preventing gaps
