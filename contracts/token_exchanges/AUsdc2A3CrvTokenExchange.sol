@@ -82,9 +82,9 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
             curveConnector.stake(address(aUsdcToken), amount, receiver);
 
             // transfer back unused amount
-            uint256 unusedAUsdcBalance = aUsdcToken.balanceOf(address(this));
-            if (unusedAUsdcBalance > 0) {
-                aUsdcToken.transfer(spender, unusedAUsdcBalance);
+            uint256 unusedBalance = aUsdcToken.balanceOf(address(this));
+            if (unusedBalance > 0) {
+                aUsdcToken.transfer(spender, unusedBalance);
             }
         } else {
             // amount is in usdc, so we don't need correct price bacause of aUsdc:usdc is 1:1
