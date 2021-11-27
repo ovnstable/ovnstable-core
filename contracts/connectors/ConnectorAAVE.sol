@@ -7,14 +7,12 @@ import "./aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "./aave/interfaces/IPriceOracleGetter.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {WadRayMath} from "./aave/libraries/math/WadRayMath.sol";
 
 import "../OwnableExt.sol";
 
 contract ConnectorAAVE is IConnector, OwnableExt {
-    using WadRayMath for uint256;
     ILendingPoolAddressesProvider public lpap;
-    
+
     event UpdatedLpap(address lpap);
 
     function setLpap(address _lpap) public onlyOwner {
