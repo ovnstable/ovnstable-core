@@ -13,9 +13,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
     Vault public vault;
     InvestmentPortfolio public investmentPortfolio;
 
-    //TODO: remove
-    event ConsoleLog(string str);
-
     function init(address _vault, address _investmentPortfolio) public onlyOwner {
         require(_vault != address(0), "Zero address not allowed");
         require(_investmentPortfolio != address(0), "Zero address not allowed");
@@ -74,7 +71,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
 
     /**
      * @param withdrawToken Token to withdraw
-     * @param withdrawAmount Not normilized amount to withdraw
+     * @param withdrawAmount Not normalized amount to withdraw
      */
     function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
         public
@@ -82,19 +79,14 @@ contract Mark2Market is IMark2Market, OwnableExt {
         returns (TotalAssetPrices memory)
     {
         if (withdrawToken != address(0)) {
-            // normilize withdrawAmount to 18 decimals
+            // normalize withdrawAmount to 18 decimals
             //TODO: denominator usage
             uint256 withdrawAmountDenominator = 10**(18 - IERC20Metadata(withdrawToken).decimals());
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
-        // //TODO: remove
-        // log("withdrawAmount: ", withdrawAmount);
 
         InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
             .getAllAssetWeights();
-
-        // //TODO: remove
-        // log("assetWeights.length: ", assetWeights.length);
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
@@ -103,12 +95,10 @@ contract Mark2Market is IMark2Market, OwnableExt {
             InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
 
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
-            // normilize amountInVault to 18 decimals
+            // normalize amountInVault to 18 decimals
             //TODO: denominator usage
             uint256 amountDenominator = 10**(18 - IERC20Metadata(assetWeight.asset).decimals());
             amountInVault = amountInVault * amountDenominator;
-            // //TODO: remove
-            // log("amountInVault: ", amountInVault);
 
             InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(
                 assetWeight.asset
@@ -153,11 +143,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         }
 
         // 4. correct total with withdrawAmount
-        // //TODO: remove
-        // log("totalUsdcPrice before correction: ", totalUsdcPrice);
-
         totalUsdcPrice = totalUsdcPrice - withdrawAmount;
-        log("totalUsdcPrice after correction: ", totalUsdcPrice);
 
         for (uint8 i = 0; i < count; i++) {
             AssetPrices memory assetPrice = assetPrices[i];
@@ -166,50 +152,10 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 assetPrice.targetIsZero
             ) = diffToTarget(totalUsdcPrice, assetPrice.asset);
 
-            // emit ConsoleLog(
-            //     string(
-            //         abi.encodePacked(
-            //             uint2str(i),
-            //             " | ",
-            //             IERC20Metadata(assetPrice.asset).symbol(),
-            //             " | ",
-            //             uint2str(assetPrice.amountInVault),
-            //             " | ",
-            //             uint2str(assetPrice.usdcPriceInVault),
-            //             " | ",
-            //             uint2str(assetPrice.diffToTarget),
-            //             " | ",
-            //             uint2str(assetPrice.usdcSellPrice),
-            //             " | ",
-            //             uint2str(assetPrice.usdcBuyPrice)
-            //         )
-            //     )
-            // );
-
             // update diff for withdrawn token
             if (withdrawAmount > 0 && assetPrice.asset == withdrawToken) {
                 assetPrice.diffToTarget = assetPrice.diffToTarget + int256(withdrawAmount);
             }
-
-            // emit ConsoleLog(
-            //     string(
-            //         abi.encodePacked(
-            //             // uint2str(i),
-            //             // " | ",
-            //             IERC20Metadata(assetPrice.asset).symbol(),
-            //             " | ",
-            //             uint2str(assetPrice.amountInVault),
-            //             // " | ",
-            //             // uint2str(assetPrice.usdcPriceInVault),
-            //             " | ",
-            //             uint2str(assetPrice.diffToTarget),
-            //             " | ",
-            //             uint2str(assetPrice.usdcSellPrice),
-            //             " | ",
-            //             uint2str(assetPrice.usdcBuyPrice)
-            //         )
-            //     )
-            // );
         }
 
         TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
@@ -246,7 +192,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         // in decimals: 18 * 18 / 18 => 18
         uint256 targetTokenAmount = (targetUsdcAmount * usdcPriceDenominator) / usdcBuyPrice;
 
-        // normilize currentAmount to 18 decimals
+        // normalize currentAmount to 18 decimals
         uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
         //TODO: denominator usage
         uint256 denominator = 10**(18 - IERC20Metadata(asset).decimals());
@@ -284,8 +230,4 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return string(bstr);
     }
 
-    //TODO: remove
-    function log(string memory message, uint value) internal {
-//        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
-    }
 }
