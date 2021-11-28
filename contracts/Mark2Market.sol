@@ -289,15 +289,3 @@ contract Mark2Market is IMark2Market, OwnableExt {
 //        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
     }
 }
-
-/* // function m2m () {
-
-    // calculate proportions and changes value
-        for (uint8 a = 0; a<actives.length; a++) {
-                totalSum +=  (uint128 (actives[a].balance)) * priceAct;
-
-
-        }
-
-    }
- */
