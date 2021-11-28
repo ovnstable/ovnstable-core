@@ -52,16 +52,19 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         }
 
         // because we know that a3Crv-gauge is leaf in tree and we can use this value
-        uint256 diff = a3CrvGaugePrices.diffToTarget;
+        int256 diff = a3CrvGaugePrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (a3CrvGaugePrices.targetIsZero || a3CrvGaugePrices.diffToTargetSign < 0) {
+        if (a3CrvGaugePrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = a3CrvGaugeToken;
             to = a3CrvToken;
             targetIsZero = a3CrvGaugePrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = a3CrvToken;
             to = a3CrvGaugeToken;
             targetIsZero = a3CrvPrices.targetIsZero;
@@ -72,7 +75,7 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

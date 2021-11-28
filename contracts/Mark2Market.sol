@@ -53,7 +53,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 amountInVault,
                 usdcPriceInVault,
                 0,
-                int8(0),
                 false,
                 usdcPriceDenominator,
                 usdcSellPrice,
@@ -130,7 +129,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 amountInVault,
                 usdcPriceInVault,
                 0,
-                int8(0),
                 false,
                 usdcPriceDenominator,
                 usdcSellPrice,
@@ -165,7 +163,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
             AssetPrices memory assetPrice = assetPrices[i];
             (
                 assetPrice.diffToTarget,
-                assetPrice.diffToTargetSign,
                 assetPrice.targetIsZero
             ) = diffToTarget(totalUsdcPrice, assetPrice.asset);
 
@@ -191,16 +188,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
 
             // update diff for withdrawn token
             if (withdrawAmount > 0 && assetPrice.asset == withdrawToken) {
-                if (assetPrice.diffToTargetSign < 0) {
-                    if (assetPrice.diffToTarget > withdrawAmount) {
-                        assetPrice.diffToTarget = assetPrice.diffToTarget - withdrawAmount;
-                    } else {
-                        assetPrice.diffToTarget = withdrawAmount - assetPrice.diffToTarget;
-                        assetPrice.diffToTargetSign = int8(1);
-                    }
-                } else {
-                    assetPrice.diffToTarget = assetPrice.diffToTarget + withdrawAmount;
-                }
+                assetPrice.diffToTarget = assetPrice.diffToTarget + int256(withdrawAmount);
             }
 
             // emit ConsoleLog(
@@ -232,14 +220,13 @@ contract Mark2Market is IMark2Market, OwnableExt {
     /**
      * @param totalUsdcPrice - Total normilized to 10**18
      * @param asset - Token address to calc
-     * @return normilized to 10**18 diff amount, sign and mark that mean that need sell all
+     * @return normilized to 10**18 signed diff amount and mark that mean that need sell all
      */
     function diffToTarget(uint256 totalUsdcPrice, address asset)
         internal
         view
         returns (
-            uint256,
-            int8,
+            int256,
             bool
         )
     {
@@ -272,11 +259,8 @@ contract Mark2Market is IMark2Market, OwnableExt {
             targetIsZero = false;
         }
 
-        if (targetTokenAmount >= currentAmount) {
-            return (targetTokenAmount - currentAmount, int8(1), targetIsZero);
-        } else {
-            return (currentAmount - targetTokenAmount, int8(-1), targetIsZero);
-        }
+        int256 diff = int256(targetTokenAmount) - int256(currentAmount);
+        return (diff, targetIsZero);
     }
 
     //TODO: remove

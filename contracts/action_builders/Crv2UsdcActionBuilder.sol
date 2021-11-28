@@ -52,16 +52,19 @@ contract Crv2UsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that wMatic is leaf in tree and we can use this value
-        uint256 diff = wMaticPrices.diffToTarget;
+        int256 diff = wMaticPrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (wMaticPrices.targetIsZero || wMaticPrices.diffToTargetSign < 0) {
+        if (wMaticPrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = crvToken;
             to = usdcToken;
             targetIsZero = wMaticPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = usdcToken;
             to = crvToken;
             targetIsZero = usdcPrices.targetIsZero;
@@ -72,7 +75,7 @@ contract Crv2UsdcActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

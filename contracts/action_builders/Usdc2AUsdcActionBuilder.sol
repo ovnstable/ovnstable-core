@@ -52,16 +52,19 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that usdc is leaf in tree and we can use this value
-        uint256 diff = usdcPrices.diffToTarget;
+        int256 diff = usdcPrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (usdcPrices.targetIsZero || usdcPrices.diffToTargetSign < 0) {
+        if (usdcPrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = usdcToken;
             to = aUsdcToken;
             targetIsZero = usdcPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = aUsdcToken;
             to = usdcToken;
             targetIsZero = aUsdcPrices.targetIsZero;
@@ -72,7 +75,7 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

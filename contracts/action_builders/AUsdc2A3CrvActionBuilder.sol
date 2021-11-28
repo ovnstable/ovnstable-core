@@ -70,27 +70,29 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         require(foundDependencyAction, "Required action not in action list, check calc ordering");
 
         // use aUsdc diff to start calc diff
-        uint256 diff = aUsdcPrices.diffToTarget;
-        int8 sign = aUsdcPrices.diffToTargetSign;
+        int256 diff = aUsdcPrices.diffToTarget;
 
         // correct diff value by usdc2AUsdc diff
         if (address(aUsdcToken) == address(usdc2AUsdcAction.to)) {
             // if in action move aUsdc->usdc then we should decrease diff (sub)
-            (diff, sign) = unsignSub(diff, sign, usdc2AUsdcAction.amount);
+             diff = diff - int256(usdc2AUsdcAction.amount);
         } else {
-            // if in action move usdc->aUsdc then we should encrease diff (add)
-            (diff, sign) = unsignAdd(diff, sign, usdc2AUsdcAction.amount);
+            // if in action move usdc->aUsdc then we should increase diff (add)
+            diff = diff + int256(usdc2AUsdcAction.amount);
         }
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
         //TODO: need to define needed of usage for targetIsZero
-        if (sign < 0) {
+        if (diff < 0) {
+            amount = uint256(- diff);
             from = aUsdcToken;
             to = a3CrvToken;
             targetIsZero = aUsdcPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = a3CrvToken;
             to = aUsdcToken;
             targetIsZero = a3CrvPrices.targetIsZero;
@@ -101,49 +103,11 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );
 
         return action;
-    }
-
-    function unsignAdd(
-        uint256 value,
-        int8 sign,
-        uint256 addAmount
-    ) internal pure returns (uint256, int8) {
-        int8 resSign = sign;
-        if (sign < 0) {
-            if (value > addAmount) {
-                value = value - addAmount;
-            } else {
-                value = addAmount - value;
-                resSign = int8(1);
-            }
-        } else {
-            value = value + addAmount;
-        }
-        return (value, resSign);
-    }
-
-    function unsignSub(
-        uint256 value,
-        int8 sign,
-        uint256 subAmount
-    ) internal pure returns (uint256, int8) {
-        int8 resSign = sign;
-        if (sign > 0) {
-            if (value > subAmount) {
-                value = value - subAmount;
-            } else {
-                value = subAmount - value;
-                resSign = int8(-1);
-            }
-        } else {
-            value = value + subAmount;
-        }
-        return (value, resSign);
     }
 }
