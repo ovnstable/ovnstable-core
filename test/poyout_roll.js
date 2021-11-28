@@ -47,7 +47,7 @@ describe("Payout roll", function () {
         console.log("USDC: " + assets.usdc)
         let result = await exchange.buy(assets.usdc, sum);
         let waitResult = await result.wait();
-        console.log("Gas used for buy: " + waitResult.gasUsed);
+        console.log("Gas used for buy 1: " + waitResult.gasUsed);
 
         let balance = fromOvn(await ovn.balanceOf(account));
         console.log('Balance ovn: ' + balance)
@@ -58,11 +58,29 @@ describe("Payout roll", function () {
         console.log("USDC: " + assets.usdc)
         result = await exchange.buy(assets.usdc, sum);
         waitResult = await result.wait();
-        console.log("Gas used for buy: " + waitResult.gasUsed);
+        console.log("Gas used for buy 2: " + waitResult.gasUsed);
 
         balance = fromOvn(await ovn.balanceOf(account));
         console.log('Balance ovn: ' + balance)
+        balance = fromOvn(await usdc.balanceOf(account));
+        console.log('Balance usdc: ' + balance)
         // expect(balance).to.greaterThanOrEqual(99.96);
+
+        const ovnSumToRedeem = toOvn(100);
+        await ovn.approve(exchange.address, ovnSumToRedeem);
+
+        let ovnBalance = fromOvn(await ovn.balanceOf(account));
+        console.log('Balance ovn: ' + ovnBalance)
+        // expect(ovnBalance).to.equal(49.36);
+
+        result = await exchange.redeem(assets.usdc, ovnSumToRedeem);
+        waitResult = await result.wait();
+        console.log("Gas used for redeem: " + waitResult.gasUsed);
+
+        balance = fromOvn(await ovn.balanceOf(account));
+        console.log('Balance ovn: ' + balance)
+        balance = fromOvn(await usdc.balanceOf(account));
+        console.log('Balance usdc: ' + balance)
 
     });
 
