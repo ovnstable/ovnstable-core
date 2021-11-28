@@ -29,6 +29,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
     //TODO: remove
     event ConsoleLog(string str);
+    event Exchanged(uint256 amount, address from, address to);
 
     // ---  modifiers
 
@@ -88,7 +89,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
             IActionBuilder.ExchangeAction[] memory actionOrder
         ) {
             //TODO: remove
-            emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+//            emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
             // 2. execute them
             executeActions(actionOrder);
@@ -175,7 +176,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
             _amount
         );
         //TODO: remove
-        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
+//        emit ConsoleLog(string(abi.encodePacked(uint2str(actionOrder.length), " actions")));
 
         // 2. execute them
         executeActions(actionOrder);
@@ -183,9 +184,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
 
     function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
         //TODO: remove
-        emit ConsoleLog(
-            string(abi.encodePacked(uint2str(actionOrder.length), " actions to execute"))
-        );
+//        emit ConsoleLog(
+//            string(abi.encodePacked(uint2str(actionOrder.length), " actions to execute"))
+//        );
 
         bool someActionExecuted = true;
         while (someActionExecuted) {
@@ -195,19 +196,19 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 if (action.executed) {
                     // Skip executed
                     //TODO: remove
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip executed: ",
-                                uint2str(action.amount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol()
-                            )
-                        )
-                    );
+//                    emit ConsoleLog(
+//                        string(
+//                            abi.encodePacked(
+//                                uint2str(i),
+//                                " Skip executed: ",
+//                                uint2str(action.amount),
+//                                " from ",
+//                                IERC20Metadata(address(action.from)).symbol(),
+//                                " to ",
+//                                IERC20Metadata(address(action.to)).symbol()
+//                            )
+//                        )
+//                    );
                     continue;
                 }
                 uint256 amount = action.amount;
@@ -222,43 +223,45 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     // denormalize amount from 10**18 to token decimals
                     denormalizedAmount = amount / denominator;
                 }
+
+                //TODO: recheck, may be denormalizedAmount should be checked
                 if (amount == 0) {
                     // Skip zero amount action
                     //TODO: remove
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip zero amount action: ",
-                                uint2str(amount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol()
-                            )
-                        )
-                    );
+//                    emit ConsoleLog(
+//                        string(
+//                            abi.encodePacked(
+//                                uint2str(i),
+//                                " Skip zero amount action: ",
+//                                uint2str(amount),
+//                                " from ",
+//                                IERC20Metadata(address(action.from)).symbol(),
+//                                " to ",
+//                                IERC20Metadata(address(action.to)).symbol()
+//                            )
+//                        )
+//                    );
                     continue;
                 }
 
                 if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
                     // Skip not enough blance for execute know
                     //TODO: remove
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Skip not enough balance for execute know: ",
-                                uint2str(denormalizedAmount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol(),
-                                " current ",
-                                uint2str(action.from.balanceOf(address(vault)))
-                            )
-                        )
-                    );
+//                    emit ConsoleLog(
+//                        string(
+//                            abi.encodePacked(
+//                                uint2str(i),
+//                                " Skip not enough balance for execute know: ",
+//                                uint2str(denormalizedAmount),
+//                                " from ",
+//                                IERC20Metadata(address(action.from)).symbol(),
+//                                " to ",
+//                                IERC20Metadata(address(action.to)).symbol(),
+//                                " current ",
+//                                uint2str(action.from.balanceOf(address(vault)))
+//                            )
+//                        )
+//                    );
                     continue;
                 }
 
@@ -276,21 +279,21 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 {
                     action.executed = true;
                     //TODO: remove
-                    emit ConsoleLog(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " Exchange ",
-                                uint2str(amount),
-                                " -> ",
-                                uint2str(denormalizedAmount),
-                                " from ",
-                                IERC20Metadata(address(action.from)).symbol(),
-                                " to ",
-                                IERC20Metadata(address(action.to)).symbol()
-                            )
-                        )
-                    );
+//                    emit ConsoleLog(
+//                        string(
+//                            abi.encodePacked(
+//                                uint2str(i),
+//                                " Exchange ",
+//                                uint2str(amount),
+//                                " -> ",
+//                                uint2str(denormalizedAmount),
+//                                " from ",
+//                                IERC20Metadata(address(action.from)).symbol(),
+//                                " to ",
+//                                IERC20Metadata(address(action.to)).symbol()
+//                            )
+//                        )
+//                    );
                 } catch Error(string memory reason) {
                     revert(
                     string(
@@ -328,19 +331,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 //     amount
                 // );
                 // action.executed = true;
-                //TODO: remove
-                emit ConsoleLog(
-                    string(
-                        abi.encodePacked(
-                            "Exchange ",
-                            uint2str(amount),
-                            " from ",
-                            IERC20Metadata(address(action.from)).symbol(),
-                            " to ",
-                            IERC20Metadata(address(action.to)).symbol()
-                        )
-                    )
-                );
+
+                emit Exchanged(amount, address(action.from), address(action.to));
+
                 someActionExecuted = true;
             }
         }
