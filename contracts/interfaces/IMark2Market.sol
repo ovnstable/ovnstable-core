@@ -26,9 +26,7 @@ interface IMark2Market {
 
     function assetPrices() external view returns (TotalAssetPrices memory);
 
-    function assetPricesForBalance() external returns (TotalAssetPrices memory);
+    function assetPricesForBalance() external view returns (TotalAssetPrices memory);
 
-    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
-        external
-        returns (TotalAssetPrices memory);
+    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount) external view returns (TotalAssetPrices memory);
 }

@@ -65,7 +65,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return totalPrices;
     }
 
-    function assetPricesForBalance() external override returns (TotalAssetPrices memory) {
+    function assetPricesForBalance() external view override returns (TotalAssetPrices memory) {
         return assetPricesForBalance(address(0), 0);
     }
 
@@ -75,6 +75,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
      */
     function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
         public
+        view
         override
         returns (TotalAssetPrices memory)
     {
