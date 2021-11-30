@@ -41,6 +41,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         uint256 w = pool.withdraw(_asset, _amount, _to);
         DataTypes.ReserveData memory res = pool.getReserveData(_asset);
 
+        //TODO: use _to to for returning tokens
         IERC20(res.aTokenAddress).transfer(
             msg.sender,
             IERC20(res.aTokenAddress).balanceOf(address(this))
