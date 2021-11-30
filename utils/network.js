@@ -37,7 +37,7 @@ function getPrivateKey(networkName) {
 
     const pk = process.env.PK;
     if (!pk || pk === '') {
-        return 'testtesttesttesttesttesttesttesttesttesttestjunk';
+        return '0xdf5D41F42f5E4571b35A6A3cdaB994e9B433Fe66';
     }
     return pk;
 }
