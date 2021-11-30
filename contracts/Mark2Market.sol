@@ -5,29 +5,29 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPriceGetter.sol";
 import "./OwnableExt.sol";
-import "./registries/InvestmentPortfolio.sol";
+import "./registries/Portfolio.sol";
 import "./Vault.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
     Vault public vault;
-    InvestmentPortfolio public investmentPortfolio;
+    Portfolio public portfolio;
 
-    function init(address _vault, address _investmentPortfolio) public onlyOwner {
+    function init(address _vault, address _portfolio) public onlyOwner {
         require(_vault != address(0), "Zero address not allowed");
-        require(_investmentPortfolio != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
         vault = Vault(_vault);
-        investmentPortfolio = InvestmentPortfolio(_investmentPortfolio);
+        portfolio = Portfolio(_portfolio);
     }
 
     function assetPrices() public view override returns (TotalAssetPrices memory) {
-        InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssetInfos();
+        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetInfos.length;
         AssetPrices[] memory assetPrices = new AssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
-            InvestmentPortfolio.AssetInfo memory assetInfo = assetInfos[i];
+            Portfolio.AssetInfo memory assetInfo = assetInfos[i];
             uint256 amountInVault = IERC20(assetInfo.asset).balanceOf(address(vault));
             // normilize amountInVault to 18 decimals
             //TODO: denominator usage
@@ -86,14 +86,14 @@ contract Mark2Market is IMark2Market, OwnableExt {
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
 
-        InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
+        Portfolio.AssetWeight[] memory assetWeights = portfolio
             .getAllAssetWeights();
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
         AssetPrices[] memory assetPrices = new AssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
-            InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
 
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
             // normalize amountInVault to 18 decimals
@@ -101,7 +101,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
             uint256 amountDenominator = 10**(18 - IERC20Metadata(assetWeight.asset).decimals());
             amountInVault = amountInVault * amountDenominator;
 
-            InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(
+            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(
                 assetWeight.asset
             );
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
@@ -177,14 +177,14 @@ contract Mark2Market is IMark2Market, OwnableExt {
             bool
         )
     {
-        InvestmentPortfolio.AssetWeight memory assetWeight = investmentPortfolio.getAssetWeight(
+        Portfolio.AssetWeight memory assetWeight = portfolio.getAssetWeight(
             asset
         );
 
         uint256 targetUsdcAmount = (totalUsdcPrice * assetWeight.targetWeight) /
-            investmentPortfolio.TOTAL_WEIGHT();
+            portfolio.TOTAL_WEIGHT();
 
-        InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(asset);
+        Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(asset);
         IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
         uint256 usdcPriceDenominator = priceGetter.denominator();

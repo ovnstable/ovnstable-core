@@ -7,7 +7,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const investmentPortfolio = await ethers.getContract("InvestmentPortfolio");
+    const portfolio = await ethers.getContract("Portfolio");
 
     let usdcWeight = {
         asset: assets.usdc,
@@ -53,8 +53,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         wMaticWeight,
         crvWeight
     ]
-    let result = await investmentPortfolio.setWeights(weights);
-    console.log("investmentPortfolio.setWeights done");
+    let result = await portfolio.setWeights(weights);
+    console.log("portfolio.setWeights done");
 
 };
 

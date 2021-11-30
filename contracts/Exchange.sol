@@ -123,7 +123,7 @@ contract Exchange is AccessControl {
         ovn.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(pm), _amount);
-        pm.invest(IERC20(_addrTok), _amount);
+        pm.deposit(IERC20(_addrTok), _amount);
 
         // prevent stucked payout caller
         if (block.timestamp > nextPayoutTime + payoutTimeRange) {

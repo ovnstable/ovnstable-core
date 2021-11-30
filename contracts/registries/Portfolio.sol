@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract InvestmentPortfolio is AccessControl {
+contract Portfolio is AccessControl {
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
     mapping(address => uint256) public assetInfoPositions;

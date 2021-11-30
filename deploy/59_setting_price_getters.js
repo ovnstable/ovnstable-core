@@ -24,7 +24,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("a3CrvGaugePriceGetter.setA3CrvPriceGetter done");
 
     // link
-    const investmentPortfolio = await ethers.getContract('InvestmentPortfolio');
+    const portfolio = await ethers.getContract('Portfolio');
 
 
     // struct AssetInfo {
@@ -65,8 +65,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         crvAssetInfo,
         wMaticAssetInfo
     ]
-    let result = await investmentPortfolio.setAssetInfos(assetInfos);
-    console.log("investmentPortfolio.setAssetInfos done");
+    let result = await portfolio.setAssetInfos(assetInfos);
+    console.log("portfolio.setAssetInfos done");
 
 };
 

@@ -9,7 +9,7 @@ import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "./registries/InvestmentPortfolio.sol";
+import "./registries/Portfolio.sol";
 
 import "./Vault.sol";
 import "./Balancer.sol";
@@ -76,15 +76,15 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     // ---  logic
 
     //TODO: exchange only
-    function invest(IERC20 _token, uint256 _amount) external override onlyExchanger {
+    function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger {
         // 1. put tokens into Vault
         _token.transfer(address(vault), _amount);
 
         // 2. start balancing
-        balanceOnInvest();
+        balanceOnDeposit();
     }
 
-    function balanceOnInvest() internal {
+    function balanceOnDeposit() internal {
         try balancer.buildBalanceActions() returns (
             IActionBuilder.ExchangeAction[] memory actionOrder
         ) {
@@ -98,8 +98,8 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
             emit ConsoleLog(reason);
             revert(reason);
         } catch {
-            emit ConsoleLog("balanceOnInvest:buildBalanceActions: No reason");
-            revert("balanceOnInvest:buildBalanceActions: No reason");
+            emit ConsoleLog("balanceOnDeposit:buildBalanceActions: No reason");
+            revert("balanceOnDeposit:buildBalanceActions: No reason");
         }
 
         // // 1. got action to balance
@@ -149,7 +149,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
     function balanceOnReward() external override onlyExchanger {
-        balanceOnInvest();
+        balanceOnDeposit();
     }
 
     function balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
