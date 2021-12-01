@@ -106,24 +106,24 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
 
-        //TODO: crunch to get logs, remove
         uint256 currentBalance = _token.balanceOf(address(vault));
+
+        //TODO: crunch to get logs, remove
         if (_amount > currentBalance) {
             _amount = currentBalance;
         }
 
-        //TODO: use if-revert
-        require(
-            _token.balanceOf(address(vault)) >= _amount,
-            string(
+        if (currentBalance < _amount) {
+            revert(string(
                 abi.encodePacked(
                     "In vault not enough for transfer _amount: ",
                     uint2str(_token.balanceOf(address(vault))),
                     " < ",
                     uint2str(_amount)
                 )
-            )
-        );
+            ));
+        }
+
         vault.transfer(_token, msg.sender, _amount);
 
         return _amount;
