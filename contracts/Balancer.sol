@@ -8,7 +8,6 @@ import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
-//TODO: use AccessControl or Ownable from zeppelin
 contract Balancer is AccessControl {
     // ---  fields
 
