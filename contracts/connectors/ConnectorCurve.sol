@@ -1,4 +1,5 @@
 pragma solidity >=0.8.0 <0.9.0;
+
 import "../interfaces/IConnector.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
@@ -64,8 +65,7 @@ contract ConnectorCurve is IConnector, OwnableExt {
                 uint256 lpTok = pool.calc_token_amount(amounts, false);
                 // _one_coin для возврата конкретной монеты (_assest)
                 uint256 withdrawAmount = pool.calc_withdraw_one_coin(lpTok, int128(uint128(i)));
-                if(withdrawAmount > onConnectorLpTokenAmount)
-                {
+                if (withdrawAmount > onConnectorLpTokenAmount) {
                     revert(string(
                         abi.encodePacked(
                             "Not enough lpToken own ",
@@ -91,7 +91,7 @@ contract ConnectorCurve is IConnector, OwnableExt {
                     _beneficiar,
                     iCurveToken(pool.lp_token()).balanceOf(address(this))
                 );
-                return retAmount; // amounts[i];
+                return retAmount;
             } else {
                 amounts[i] = 0;
             }
