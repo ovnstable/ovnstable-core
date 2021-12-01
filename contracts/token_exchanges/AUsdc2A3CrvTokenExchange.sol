@@ -87,7 +87,7 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 aUsdcToken.transfer(spender, unusedBalance);
             }
         } else {
-            // amount is in usdc, so we don't need correct price bacause of aUsdc:usdc is 1:1
+            // amount is in usdc, so we don't need correct price because of aUsdc:usdc is 1:1
             // but may be should use PriceGetter with extra gas cost
             //TODO: denominator usage
             uint256 aUsdcAmount = amount / aUsdcDenominator;
@@ -101,36 +101,16 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 "AUsdc2A3CrvTokenExchange: Not enough a3CrvToken"
             );
 
-            //TODO: add check that we can withdraw more than zero by call Curve pool and get estimate
-            //      aUsdc amount for our LP tokens
-            // check after denormilization
+            // check after denormalization
             if (aUsdcAmount == 0) {
                 a3CrvToken.transfer(spender, a3CrvBalance);
                 return;
             }
 
-            try a3CrvToken.transfer(address(curveConnector), amount) {
-                try curveConnector.unstake(address(aUsdcToken), aUsdcAmount, receiver) returns (
-                    uint256 withdrewAmount
-                ) {} catch Error(string memory reason) {
-                    revert(reason);
-                } catch {
-                    revert(string(abi.encodePacked("curveConnector.unstake")));
-                }
-            } catch Error(string memory reason) {
-                revert(reason);
-            } catch {
-                revert(string(abi.encodePacked("a3CrvToken.transfer")));
-            }
-
-            // uint256 a3CrvAmount = amount;
-            // require(
-            //     a3CrvToken.balanceOf(address(this)) >= a3CrvAmount,
-            //     "AUsdc2A3CrvTokenExchange: Not enough a3CrvToken"
-            // );
-
-            // a3CrvToken.transfer(address(curveConnector), a3CrvAmount);
-            // uint256 withdrewAmount = curveConnector.unstake(address(aUsdcToken), amount, receiver);
+             a3CrvToken.transfer(address(curveConnector), amount);
+            //TODO: add check that we can withdraw more than zero by call Curve pool and get estimate
+            //      aUsdc amount for our LP tokens
+            uint256 withdrewAmount = curveConnector.unstake(address(aUsdcToken), aUsdcAmount, receiver);
 
             // transfer back unused tokens
             uint256 unusedA3CrvBalance = a3CrvToken.balanceOf(address(this));
