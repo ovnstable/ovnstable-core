@@ -140,25 +140,7 @@ contract Exchange is AccessControl {
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
-        //TODO: Real unstacke amount may be different to _amount
-
-        // try PM.withdraw(IERC20(_addrTok), _amount) returns (uint256 unstakedAmount) {
-
-        //     // Or just burn from sender
-        //     ovn.burn(msg.sender, _amount);
-
-        //     // TODO: correct amount by rates or oracles
-        //     // TODO: check threshhold limits to withdraw deposite
-        //     IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
-
-        // } catch Error(string memory reason) {
-        //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
-        //     emit ErrorLogging(reason);
-        // } catch {
-        //     emit ErrorLogging("No reason");
-        //     // revert (string(buf.buf));
-        // }
-
+        //TODO: Real unstacked amount may be different to _amount
         uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
@@ -236,25 +218,5 @@ contract Exchange is AccessControl {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
-    }
-
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
     }
 }
