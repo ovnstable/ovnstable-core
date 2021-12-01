@@ -106,10 +106,10 @@ contract Portfolio is AccessControl {
     }
 
     function _addWeightAt(AssetWeight memory assetWeight, uint256 index) internal {
-        uint256 currentlength = assetWeights.length;
+        uint256 currentLength = assetWeights.length;
         // expand if need
-        if (currentlength == 0 || currentlength - 1 < index) {
-            uint256 additionalCount = index - currentlength + 1;
+        if (currentLength == 0 || currentLength - 1 < index) {
+            uint256 additionalCount = index - currentLength + 1;
             for (uint8 i = 0; i < additionalCount; i++) {
                 assetWeights.push();
             }
