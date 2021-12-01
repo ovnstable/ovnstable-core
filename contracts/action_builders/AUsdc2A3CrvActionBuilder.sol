@@ -75,7 +75,7 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         // correct diff value by usdc2AUsdc diff
         if (address(aUsdcToken) == address(usdc2AUsdcAction.to)) {
             // if in action move aUsdc->usdc then we should decrease diff (sub)
-             diff = diff - int256(usdc2AUsdcAction.amount);
+            diff = diff - int256(usdc2AUsdcAction.amount);
         } else {
             // if in action move usdc->aUsdc then we should increase diff (add)
             diff = diff + int256(usdc2AUsdcAction.amount);
