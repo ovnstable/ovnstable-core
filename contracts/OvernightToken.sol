@@ -76,8 +76,6 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
     ) internal virtual override {
         super._beforeTokenTransfer(from, to, amount);
 
-        //TODO: add check for amount is greater than 0
-
         if (from == address(0)) {
             // mint
             _owners.add(to);
