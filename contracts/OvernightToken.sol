@@ -66,12 +66,17 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
         return balanceOf(_owners.at(index));
     }
 
+    //TODO: _beforeTokenTransfer wrong, should use _afterTokenTransfer because
+    //     on _beforeTokenTransfer balances are not changed yet and anyway
+    //     balances for burn and transfers would be greater than 0
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 amount
     ) internal virtual override {
         super._beforeTokenTransfer(from, to, amount);
+
+        //TODO: add check for amount is greater than 0
 
         if (from == address(0)) {
             // mint
