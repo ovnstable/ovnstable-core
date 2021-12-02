@@ -24,9 +24,17 @@ interface IMark2Market {
         uint256 totalUsdcPrice;
     }
 
+    struct BalanceAssetPrices {
+        address asset;
+        int256 diffToTarget; // diff usdcPriceInVault to target in portfolio
+        bool targetIsZero; // mean that we should trade all tokens to zero ownership
+    }
+
     function assetPrices() external view returns (TotalAssetPrices memory);
 
-    function assetPricesForBalance() external view returns (TotalAssetPrices memory);
+    function totalUsdcPrice() external view returns (uint256);
 
-    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount) external view returns (TotalAssetPrices memory);
+    function assetPricesForBalance() external view returns (BalanceAssetPrices[] memory);
+
+    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount) external view returns (BalanceAssetPrices[] memory);
 }

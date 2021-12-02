@@ -36,14 +36,12 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory aUsdcPrices;
-        IMark2Market.AssetPrices memory a3CrvPrices;
+        IMark2Market.BalanceAssetPrices memory aUsdcPrices;
+        IMark2Market.BalanceAssetPrices memory a3CrvPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(aUsdcToken)) {
                 aUsdcPrices = assetPrices[i];

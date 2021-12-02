@@ -32,14 +32,12 @@ contract Crv2UsdcActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory wMaticPrices;
-        IMark2Market.AssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory wMaticPrices;
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(crvToken)) {
                 wMaticPrices = assetPrices[i];

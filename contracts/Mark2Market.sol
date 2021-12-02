@@ -7,6 +7,7 @@ import "./interfaces/IPriceGetter.sol";
 import "./OwnableExt.sol";
 import "./registries/Portfolio.sol";
 import "./Vault.sol";
+import "hardhat/console.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
@@ -65,7 +66,42 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return totalPrices;
     }
 
-    function assetPricesForBalance() external view override returns (TotalAssetPrices memory) {
+    function totalUsdcPrice()
+    public
+    view
+    override
+    returns (uint256)
+    {
+        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
+
+        uint256 totalUsdcPrice = 0;
+        uint256 count = assetWeights.length;
+        for (uint8 i = 0; i < count; i++) {
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
+
+            uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
+            // normalize amountInVault to 18 decimals
+            //TODO: denominator usage
+            uint256 amountDenominator = 10**(18 - IERC20Metadata(assetWeight.asset).decimals());
+            amountInVault = amountInVault * amountDenominator;
+
+            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(assetWeight.asset);
+            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+
+            uint256 usdcPriceDenominator = priceGetter.denominator();
+            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
+
+            // in decimals: 18 + 18 - 18 => 18
+            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
+
+            totalUsdcPrice += usdcPriceInVault;
+        }
+
+        return totalUsdcPrice;
+    }
+
+
+    function assetPricesForBalance() external view override returns (BalanceAssetPrices[] memory) {
         return assetPricesForBalance(address(0), 0);
     }
 
@@ -77,8 +113,9 @@ contract Mark2Market is IMark2Market, OwnableExt {
         public
         view
         override
-        returns (TotalAssetPrices memory)
+        returns (BalanceAssetPrices[] memory)
     {
+        console.log("assetPricesForBalance: start\t%s", gasleft());
         if (withdrawToken != address(0)) {
             // normalize withdrawAmount to 18 decimals
             //TODO: denominator usage
@@ -88,11 +125,14 @@ contract Mark2Market is IMark2Market, OwnableExt {
 
         Portfolio.AssetWeight[] memory assetWeights = portfolio
             .getAllAssetWeights();
+        console.log("assetPricesForBalance: getAllAssetWeights\t%s", gasleft());
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
-        AssetPrices[] memory assetPrices = new AssetPrices[](count);
+//        BalanceAssetPrices[] memory assetPrices = new AssetPrices[](count);
+console.log("assetPricesForBalance: before loop\t%s", gasleft());
         for (uint8 i = 0; i < count; i++) {
+            console.log("assetPricesForBalance: new iteration\t%s", gasleft());
             Portfolio.AssetWeight memory assetWeight = assetWeights[i];
 
             uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
@@ -100,35 +140,45 @@ contract Mark2Market is IMark2Market, OwnableExt {
             //TODO: denominator usage
             uint256 amountDenominator = 10**(18 - IERC20Metadata(assetWeight.asset).decimals());
             amountInVault = amountInVault * amountDenominator;
+console.log("assetPricesForBalance: amountInVault\t%s", gasleft());
 
             Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(
                 assetWeight.asset
             );
+console.log("assetPricesForBalance: assetInfo\t%s", gasleft());
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+console.log("assetPricesForBalance: priceGetter\t%s", gasleft());
 
             uint256 usdcPriceDenominator = priceGetter.denominator();
+console.log("assetPricesForBalance: usdcPriceDenominator\t%s", gasleft());
             uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
-            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
+console.log("assetPricesForBalance: usdcSellPrice\t%s", gasleft());
+//            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
+console.log("assetPricesForBalance: usdcBuyPrice\t%s", gasleft());
 
             // in decimals: 18 + 18 - 18 => 18
             uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
 
             totalUsdcPrice += usdcPriceInVault;
+console.log("assetPricesForBalance: totalUsdcPrice\t%s", gasleft());
 
-            assetPrices[i] = AssetPrices(
-                assetWeight.asset,
-                amountInVault,
-                usdcPriceInVault,
-                0,
-                false,
-                usdcPriceDenominator,
-                usdcSellPrice,
-                usdcBuyPrice,
-                IERC20Metadata(assetWeight.asset).decimals(),
-                IERC20Metadata(assetWeight.asset).name(),
-                IERC20Metadata(assetWeight.asset).symbol()
-            );
+//            assetPrices[i] = AssetPrices(
+//                assetWeight.asset,
+//                amountInVault,
+//                usdcPriceInVault,
+//                0,
+//                false
+//            ,
+//                usdcPriceDenominator,
+//                usdcSellPrice,
+//                0,
+//                IERC20Metadata(assetWeight.asset).decimals(),
+//                IERC20Metadata(assetWeight.asset).name(),
+//                IERC20Metadata(assetWeight.asset).symbol()
+//            );
+console.log("assetPricesForBalance: assetPrices\t%s", gasleft());
         }
+console.log("assetPricesForBalance: end loop\t%s", gasleft());
 
         // 3. validate withdrawAmount
         // used if instead of require because better when need to build complex string for revert
@@ -142,34 +192,44 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 )
             ));
         }
+console.log("assetPricesForBalance: if\t%s", gasleft());
 
         // 4. correct total with withdrawAmount
         totalUsdcPrice = totalUsdcPrice - withdrawAmount;
+console.log("assetPricesForBalance: totalUsdcPrice corrected\t%s", gasleft());
 
+        BalanceAssetPrices[] memory assetPrices = new BalanceAssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
-            AssetPrices memory assetPrice = assetPrices[i];
-            (
-                assetPrice.diffToTarget,
-                assetPrice.targetIsZero
-            ) = diffToTarget(totalUsdcPrice, assetPrice.asset);
+            console.log("assetPricesForBalance: diff loop iteration\t%s", gasleft());
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
+            int256 diffToTarget = 0;
+            bool targetIsZero = false;
+            (diffToTarget, targetIsZero) = _diffToTarget(totalUsdcPrice, assetWeight);
 
             // update diff for withdrawn token
-            if (withdrawAmount > 0 && assetPrice.asset == withdrawToken) {
-                assetPrice.diffToTarget = assetPrice.diffToTarget + int256(withdrawAmount);
+            if (withdrawAmount > 0 && assetWeight.asset == withdrawToken) {
+                diffToTarget = diffToTarget + int256(withdrawAmount);
             }
+            assetPrices[i] = BalanceAssetPrices(
+                assetWeight.asset,
+                diffToTarget,
+                targetIsZero
+            );
+            console.log("assetPricesForBalance: assetPrice\t%s", gasleft());
         }
+console.log("assetPricesForBalance: diff loop end\t%s", gasleft());
 
-        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
+        console.log("assetPricesForBalance: totalPrices\t%s", gasleft());
 
-        return totalPrices;
+        return assetPrices;
     }
 
     /**
      * @param totalUsdcPrice - Total normilized to 10**18
-     * @param asset - Token address to calc
+     * @param assetWeight - Token address to calc
      * @return normilized to 10**18 signed diff amount and mark that mean that need sell all
      */
-    function diffToTarget(uint256 totalUsdcPrice, address asset)
+    function _diffToTarget(uint256 totalUsdcPrice, Portfolio.AssetWeight memory assetWeight)
         internal
         view
         returns (
@@ -177,18 +237,25 @@ contract Mark2Market is IMark2Market, OwnableExt {
             bool
         )
     {
-        Portfolio.AssetWeight memory assetWeight = portfolio.getAssetWeight(
-            asset
-        );
+console.log("diffToTarget: start\t%s", gasleft());
+//        Portfolio.AssetWeight memory assetWeight = portfolio.getAssetWeight(
+//            asset
+//        );
+        address asset = assetWeight.asset;
+console.log("diffToTarget: getAssetWeight\t%s", gasleft());
 
         uint256 targetUsdcAmount = (totalUsdcPrice * assetWeight.targetWeight) /
             portfolio.TOTAL_WEIGHT();
 
         Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(asset);
+        console.log("diffToTarget: assetInfo\t%s", gasleft());
         IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+console.log("diffToTarget: priceGetter\t%s", gasleft());
 
         uint256 usdcPriceDenominator = priceGetter.denominator();
+console.log("diffToTarget: usdcPriceDenominator\t%s", gasleft());
         uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
+console.log("diffToTarget: usdcBuyPrice\t%s", gasleft());
 
         // in decimals: 18 * 18 / 18 => 18
         uint256 targetTokenAmount = (targetUsdcAmount * usdcPriceDenominator) / usdcBuyPrice;
@@ -198,6 +265,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         //TODO: denominator usage
         uint256 denominator = 10**(18 - IERC20Metadata(asset).decimals());
         currentAmount = currentAmount * denominator;
+console.log("diffToTarget: currentAmount\t%s", gasleft());
 
         bool targetIsZero;
         if (targetTokenAmount == 0) {
@@ -207,6 +275,7 @@ contract Mark2Market is IMark2Market, OwnableExt {
         }
 
         int256 diff = int256(targetTokenAmount) - int256(currentAmount);
+        console.log("diffToTarget: end\t%s", gasleft());
         return (diff, targetIsZero);
     }
 

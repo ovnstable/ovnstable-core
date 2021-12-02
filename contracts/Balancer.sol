@@ -7,6 +7,7 @@ import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
+import "hardhat/console.sol";
 
 contract Balancer is AccessControl {
     // ---  fields
@@ -67,6 +68,7 @@ contract Balancer is AccessControl {
 
     function buildBalanceActions() public returns (IActionBuilder.ExchangeAction[] memory) {
         // Same to zero withdrawal balance
+        console.log("buildBalanceActions bo attr: start\t%s", gasleft());
         return buildBalanceActions(IERC20(address(0)), 0);
     }
 
@@ -74,27 +76,32 @@ contract Balancer is AccessControl {
         public
         returns (IActionBuilder.ExchangeAction[] memory)
     {
+        console.log("buildBalanceActions: start\t%s", gasleft());
          // 1. get current prices from M2M
-        IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance(
+        IMark2Market.BalanceAssetPrices[] memory assetPrices = m2m.assetPricesForBalance(
             address(withdrawToken),
             withdrawAmount
         );
+        console.log("buildBalanceActions: assetPricesForBalance\t%s", gasleft());
 
         // 2. calc total price
-        uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+//        uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+console.log("buildBalanceActions: totalUsdcPrice\t%s", gasleft());
 
         // 3. make actions
         IActionBuilder.ExchangeAction[]
         memory actionOrder = new IActionBuilder.ExchangeAction[](
             actionBuildersInOrder.length
         );
+console.log("buildBalanceActions: actionOrder\t%s", gasleft());
 
         for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
             IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
             .buildAction(assetPrices, actionOrder);
             actionOrder[i] = action;
+            console.log("buildBalanceActions: buildAction\t%s", gasleft());
         }
-
+        console.log("buildBalanceActions: end\t%s", gasleft());
         return actionOrder;
     }
 }

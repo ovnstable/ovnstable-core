@@ -14,7 +14,7 @@ import "./registries/Portfolio.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
 import "./interfaces/IRewardManager.sol";
-
+import "hardhat/console.sol";
 contract PortfolioManager is IPortfolioManager, AccessControl {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
@@ -145,11 +145,13 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
     function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
+console.log("executeActions: start\t%s", gasleft());
 
         bool someActionExecuted = true;
         while (someActionExecuted) {
             someActionExecuted = false;
             for (uint8 i = 0; i < actionOrder.length; i++) {
+console.log("executeActions: new iteration\t%s", gasleft());
                 IActionBuilder.ExchangeAction memory action = actionOrder[i];
                 if (action.executed) {
                     // Skip already executed
@@ -159,6 +161,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 uint256 denormalizedAmount;
                 //TODO: denominator usage
                 uint256 denominator = 10 ** (18 - IERC20Metadata(address(action.from)).decimals());
+console.log("executeActions: denominators\t%s", gasleft());
                 if (action.exchangeAll) {
                     denormalizedAmount = action.from.balanceOf(address(vault));
                     // normalize denormalizedAmount to 10**18
@@ -167,6 +170,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     // denormalize amount from 10**18 to token decimals
                     denormalizedAmount = amount / denominator;
                 }
+console.log("executeActions: denormalizedAmount\t%s", gasleft());
 
                 //TODO: recheck, may be denormalizedAmount should be checked
                 if (amount == 0) {
@@ -178,9 +182,11 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     // Skip not enough balance for execute know
                     continue;
                 }
+console.log("executeActions: balanceOf\t%s", gasleft());
 
                 // move tokens to tokenExchange for executing action, amount - NOT normalized to 10**18
                 vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
+console.log("executeActions: transfer\t%s", gasleft());
                 // execute exchange
                 action.tokenExchange.exchange(
                     address(vault),
@@ -190,12 +196,15 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     amount
                 );
                 action.executed = true;
+console.log("executeActions: tokenExchange.exchange\t%s", gasleft());
 
                 emit Exchanged(amount, address(action.from), address(action.to));
+console.log("executeActions: Exchanged\t%s", gasleft());
 
                 someActionExecuted = true;
             }
         }
+console.log("executeActions: end\t%s", gasleft());
     }
 
     /**
