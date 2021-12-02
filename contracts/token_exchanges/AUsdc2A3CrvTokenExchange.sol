@@ -107,7 +107,7 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 return;
             }
 
-             a3CrvToken.transfer(address(curveConnector), amount);
+            a3CrvToken.transfer(address(curveConnector), amount);
             //TODO: add check that we can withdraw more than zero by call Curve pool and get estimate
             //      aUsdc amount for our LP tokens
             uint256 withdrewAmount = curveConnector.unstake(address(aUsdcToken), aUsdcAmount, receiver);
