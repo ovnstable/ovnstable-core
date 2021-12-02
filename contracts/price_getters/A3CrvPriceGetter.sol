@@ -17,12 +17,10 @@ contract A3CrvPriceGetter is AbstractPriceGetter, OwnableExt {
     }
 
     function getUsdcBuyPrice() external view override returns (uint256) {
-        uint256 virtualPrice = pool.get_virtual_price();
-        return virtualPrice;
+        return pool.get_virtual_price();
     }
 
     function getUsdcSellPrice() external view override returns (uint256) {
-        uint256 virtualPrice = pool.get_virtual_price();
-        return virtualPrice;
+        return pool.get_virtual_price();
     }
 }

@@ -9,7 +9,7 @@ import "./OvernightToken.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
-import "hardhat/console.sol";
+
 contract Exchange is AccessControl {
     OvernightToken public ovn;
     IERC20 public usdc;
@@ -108,35 +108,27 @@ contract Exchange is AccessControl {
 
     function buy(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
-        console.log("buy: start\t%s", gasleft());
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
-        console.log("buy: balanceOf\t%s", gasleft());
 
         IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
-        console.log("buy: transferFrom\t%s", gasleft());
 
         uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
         uint256 buyAmount = _amount - buyFeeAmount;
         emit PaidBuyFee(buyAmount, buyFeeAmount);
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
-        console.log("buy: emit\t%s", gasleft());
 
         ovn.mint(msg.sender, buyAmount);
-        console.log("buy: mint\t%s", gasleft());
 
         IERC20(_addrTok).transfer(address(pm), _amount);
-        console.log("buy: transfer\t%s", gasleft());
         pm.deposit(IERC20(_addrTok), _amount);
-        console.log("buy: deposit\t%s", gasleft());
 
         // prevent stucked payout caller
         if (block.timestamp > nextPayoutTime + payoutTimeRange) {
             _payout();
         }
-        console.log("buy: end\t%s", gasleft());
     }
 
     function redeem(address _addrTok, uint256 _amount) external {
