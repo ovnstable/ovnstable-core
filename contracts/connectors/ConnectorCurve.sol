@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IConnector.sol";
 
 import "./curve/interfaces/iCurvePool.sol";
-import "./curve/interfaces/iCurveToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../OwnableExt.sol";
 
 contract ConnectorCurve is IConnector, OwnableExt {
@@ -26,17 +26,14 @@ contract ConnectorCurve is IConnector, OwnableExt {
         for (uint256 i = 0; i < 3; i++) {
             address coin = pool.coins(i);
             if (coin == _asset) {
-                iCurveToken(_asset).approve(address(pool), _amount);
+                IERC20(_asset).approve(address(pool), _amount);
                 // номер позиции в массиве (amounts) определяет какой актив (_asset) и в каком количестве (_amount)
                 // на стороне керва будет застейкано
                 amounts[uint256(i)] = _amount;
-                uint256 lpTok = pool.calc_token_amount(amounts, true);
-                //TODO: процентажи кудато вынести, slipage
-                uint256 retAmount = pool.add_liquidity(amounts, (lpTok * 99) / 100, false);
-                iCurveToken(pool.lp_token()).transfer(_beneficiar, retAmount);
-                // actList.changeBal(_asset, -int128(uint128(_amount)));
-
-                // actList.changeBal(pool.lp_token(), int128(uint128(retAmount)));
+                uint256 lpTokAmount = pool.calc_token_amount(amounts, true);
+                //TODO: процентажи кудато вынести, slippage
+                uint256 retAmount = pool.add_liquidity(amounts, (lpTokAmount * 99) / 100, false);
+                IERC20(pool.lp_token()).transfer(_beneficiar, retAmount);
 
                 return;
             } else {
@@ -58,13 +55,12 @@ contract ConnectorCurve is IConnector, OwnableExt {
             if (coin == _asset) {
                 amounts[i] = _amount;
 
-                uint256 onConnectorLpTokenAmount = iCurveToken(pool.lp_token()).balanceOf(
-                    address(this)
-                );
+                IERC20 lpToken = IERC20(pool.lp_token());
+                uint256 onConnectorLpTokenAmount = lpToken.balanceOf(address(this));
 
-                uint256 lpTok = pool.calc_token_amount(amounts, false);
+                uint256 lpTokAmount = pool.calc_token_amount(amounts, false);
                 // _one_coin для возврата конкретной монеты (_assest)
-                uint256 withdrawAmount = pool.calc_withdraw_one_coin(lpTok, int128(uint128(i)));
+                uint256 withdrawAmount = pool.calc_withdraw_one_coin(lpTokAmount, int128(uint128(i)));
                 if (withdrawAmount > onConnectorLpTokenAmount) {
                     revert(string(
                         abi.encodePacked(
@@ -72,7 +68,7 @@ contract ConnectorCurve is IConnector, OwnableExt {
                             " _amount: ",
                             uint2str(_amount),
                             " lpTok: ",
-                            uint2str(lpTok),
+                            uint2str(lpTokAmount),
                             " onConnectorLpTokenAmount: ",
                             uint2str(onConnectorLpTokenAmount),
                             " withdrawAmount: ",
@@ -81,15 +77,15 @@ contract ConnectorCurve is IConnector, OwnableExt {
                     ));
                 }
 
-                iCurveToken(pool.lp_token()).approve(address(pool), lpTok);
+                lpToken.approve(address(pool), lpTokAmount);
 
                 //TODO: use withdrawAmount?
-                uint256 retAmount = pool.remove_liquidity_one_coin(lpTok, int128(uint128(i)), 0);
+                uint256 retAmount = pool.remove_liquidity_one_coin(lpTokAmount, int128(uint128(i)), 0);
 
                 IERC20(_asset).transfer(_beneficiar, retAmount);
-                iCurveToken(pool.lp_token()).transfer(
+                lpToken.transfer(
                     _beneficiar,
-                    iCurveToken(pool.lp_token()).balanceOf(address(this))
+                    lpToken.balanceOf(address(this))
                 );
                 return retAmount;
             } else {
