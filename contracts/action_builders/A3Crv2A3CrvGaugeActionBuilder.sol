@@ -32,14 +32,12 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory a3CrvPrices;
-        IMark2Market.AssetPrices memory a3CrvGaugePrices;
+        IMark2Market.BalanceAssetPrices memory a3CrvPrices;
+        IMark2Market.BalanceAssetPrices memory a3CrvGaugePrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(a3CrvGaugeToken)) {
                 a3CrvGaugePrices = assetPrices[i];
@@ -52,16 +50,19 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         }
 
         // because we know that a3Crv-gauge is leaf in tree and we can use this value
-        uint256 diff = a3CrvGaugePrices.diffToTarget;
+        int256 diff = a3CrvGaugePrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (a3CrvGaugePrices.targetIsZero || a3CrvGaugePrices.diffToTargetSign < 0) {
+        if (a3CrvGaugePrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = a3CrvGaugeToken;
             to = a3CrvToken;
             targetIsZero = a3CrvGaugePrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = a3CrvToken;
             to = a3CrvGaugeToken;
             targetIsZero = a3CrvPrices.targetIsZero;
@@ -72,7 +73,7 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

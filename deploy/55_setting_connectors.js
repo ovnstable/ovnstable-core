@@ -1,3 +1,4 @@
+const { ethers } = require("hardhat");
 
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
 let aaveAddress = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744";

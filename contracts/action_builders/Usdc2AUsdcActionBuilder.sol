@@ -32,14 +32,12 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory usdcPrices;
-        IMark2Market.AssetPrices memory aUsdcPrices;
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory aUsdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
@@ -52,16 +50,19 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that usdc is leaf in tree and we can use this value
-        uint256 diff = usdcPrices.diffToTarget;
+        int256 diff = usdcPrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (usdcPrices.targetIsZero || usdcPrices.diffToTargetSign < 0) {
+        if (usdcPrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = usdcToken;
             to = aUsdcToken;
             targetIsZero = usdcPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = aUsdcToken;
             to = usdcToken;
             targetIsZero = aUsdcPrices.targetIsZero;
@@ -72,7 +73,7 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

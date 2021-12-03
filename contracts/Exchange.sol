@@ -22,18 +22,34 @@ contract Exchange is AccessControl {
     uint256 public redeemFee = 40;
     uint256 public redeemFeeDenominator = 100000; // ~ 100 %
 
+    // next payout time in epoch seconds
+    uint256 public nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+
+    // period between payouts in seconds, need to calc nextPayoutTime
+    uint256 public payoutPeriod = 24 * 60 * 60;
+
+    // range of time for starting near next payout time at seconds
+    // if time in [nextPayoutTime-payoutTimeRange;nextPayoutTime+payoutTimeRange]
+    //    then payouts can be started by payout() method anyone
+    // else if time more than nextPayoutTime+payoutTimeRange
+    //    then payouts started by any next buy/redeem
+    uint256 public payoutTimeRange = 15 * 60;
+
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
-    event RewardEvent(
+    event PayoutEvent(
         uint256 totalOvn,
         uint256 totalUsdc,
-        uint256 totallyAmountRewarded,
+        uint256 totallyAmountPaid,
         uint256 totallySaved
     );
-    event NoEnoughForRewardEvent(uint256 totalOvn, uint256 totalUsdc);
+    event NoEnoughForPayoutEvent(uint256 totalOvn, uint256 totalUsdc);
     event UpdatedBuyFee(uint256 fee, uint256 feeDenominator);
     event UpdatedRedeemFee(uint256 fee, uint256 feeDenominator);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
+    event UpdatedPayoutTimes(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
+    event NextPayoutTime(uint256 nextPayoutTime);
+    event ErrorLogging(string reason);
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -72,6 +88,20 @@ contract Exchange is AccessControl {
         emit UpdatedBuyFee(redeemFee, redeemFeeDenominator);
     }
 
+    function setPayoutTimes(
+        uint256 _nextPayoutTime,
+        uint256 _payoutPeriod,
+        uint256 _payoutTimeRange
+    ) external onlyAdmin {
+        require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
+        require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
+        require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
+        nextPayoutTime = _nextPayoutTime;
+        payoutPeriod = _payoutPeriod;
+        payoutTimeRange = _payoutTimeRange;
+        emit UpdatedPayoutTimes(nextPayoutTime, payoutPeriod, payoutTimeRange);
+    }
+
     function balance() public view returns (uint256) {
         return ovn.balanceOf(msg.sender);
     }
@@ -90,13 +120,16 @@ contract Exchange is AccessControl {
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
 
-    ovn.mint(msg.sender, buyAmount);
+        ovn.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(pm), _amount);
-        pm.invest(IERC20(_addrTok), _amount);
-    }
+        pm.deposit(IERC20(_addrTok), _amount);
 
-    event ErrorLogging(string reason);
+        // prevent stucked payout caller
+        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
+            _payout();
+        }
+    }
 
     function redeem(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
@@ -107,25 +140,7 @@ contract Exchange is AccessControl {
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
-        //TODO: Real unstacke amount may be different to _amount
-
-        // try PM.withdraw(IERC20(_addrTok), _amount) returns (uint256 unstakedAmount) {
-
-        //     // Or just burn from sender
-        //     ovn.burn(msg.sender, _amount);
-
-        //     // TODO: correct amount by rates or oracles
-        //     // TODO: check threshhold limits to withdraw deposite
-        //     IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
-
-        // } catch Error(string memory reason) {
-        //     // This may occur if there is an overflow with the two numbers and the `AddNumbers` contract explicitly fails with a `revert()`
-        //     emit ErrorLogging(reason);
-        // } catch {
-        //     emit ErrorLogging("No reason");
-        //     // revert (string(buf.buf));
-        // }
-
+        //TODO: Real unstacked amount may be different to _amount
         uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
@@ -138,9 +153,27 @@ contract Exchange is AccessControl {
             "Not enough for transfer unstakedAmount"
         );
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+
+        // prevent stucked payout caller
+        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
+            _payout();
+        }
     }
 
+    //TODO: remove after moving to payout() usage
     function reward() external onlyAdmin {
+        _payout();
+    }
+
+    function payout() public onlyAdmin {
+        _payout();
+    }
+
+    function _payout() internal {
+        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
+            return;
+        }
+
         // 0. call claiming reward and rebalancing on PM TODO: may be need move to another place
         // 1. get current amount of OVN
         // 2. get total sum of USDC we can get from any source
@@ -151,53 +184,38 @@ contract Exchange is AccessControl {
         pm.balanceOnReward();
 
         uint256 totalOvnSupply = ovn.totalSupply();
-        IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance();
-        uint256 totalUsdc = assetPrices.totalUsdcPrice;
+        uint256 totalUsdc = m2m.totalUsdcPrice();
         // denormilize from 10**18 to 10**6 as OVN decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalOvnSupply) {
-            emit NoEnoughForRewardEvent(totalOvnSupply, totalUsdc);
+            emit NoEnoughForPayoutEvent(totalOvnSupply, totalUsdc);
             return;
         }
         uint difference = totalUsdc - totalOvnSupply;
 
-        uint totallyAmountRewarded = 0;
+        uint totallyAmountPaid = 0;
         for (uint8 i = 0; i < ovn.ownerLength(); i++) {
             address ovnOwnerAddress = ovn.ownerAt(i);
             uint ovnBalance = ovn.balanceOf(ovnOwnerAddress);
             uint additionalMintAmount = (ovnBalance * difference) / totalOvnSupply;
             if (additionalMintAmount > 0) {
                 ovn.mint(ovnOwnerAddress, additionalMintAmount);
-                totallyAmountRewarded += additionalMintAmount;
+                totallyAmountPaid += additionalMintAmount;
             }
         }
         //TODO: what to do with saved usdc? Do we need to mint it to PM
 
-        emit RewardEvent(
+        emit PayoutEvent(
             totalOvnSupply,
             totalUsdc,
-            totallyAmountRewarded,
-            difference - totallyAmountRewarded
+            totallyAmountPaid,
+            difference - totallyAmountPaid
         );
-    }
 
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
+        // update next payout time. Cycle for preventing gaps
+        for (; block.timestamp >= nextPayoutTime - payoutTimeRange; ) {
+            nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
+        emit NextPayoutTime(nextPayoutTime);
     }
 }

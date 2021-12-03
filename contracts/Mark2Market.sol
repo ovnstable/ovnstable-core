@@ -5,37 +5,30 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPriceGetter.sol";
 import "./OwnableExt.sol";
-import "./registries/InvestmentPortfolio.sol";
+import "./registries/Portfolio.sol";
 import "./Vault.sol";
 
 //TODO: use AccessControl or Ownable from zeppelin
 contract Mark2Market is IMark2Market, OwnableExt {
     Vault public vault;
-    InvestmentPortfolio public investmentPortfolio;
+    Portfolio public portfolio;
 
-    //TODO: remove
-    event ConsoleLog(string str);
-
-    function init(address _vault, address _investmentPortfolio) public onlyOwner {
+    function init(address _vault, address _portfolio) public onlyOwner {
         require(_vault != address(0), "Zero address not allowed");
-        require(_investmentPortfolio != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
         vault = Vault(_vault);
-        investmentPortfolio = InvestmentPortfolio(_investmentPortfolio);
+        portfolio = Portfolio(_portfolio);
     }
 
     function assetPrices() public view override returns (TotalAssetPrices memory) {
-        InvestmentPortfolio.AssetInfo[] memory assetInfos = investmentPortfolio.getAllAssetInfos();
+        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetInfos.length;
         AssetPrices[] memory assetPrices = new AssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
-            InvestmentPortfolio.AssetInfo memory assetInfo = assetInfos[i];
-            uint256 amountInVault = IERC20(assetInfo.asset).balanceOf(address(vault));
-            // normilize amountInVault to 18 decimals
-            //TODO: denominator usage
-            uint256 amountDenominator = 10**(18 - IERC20Metadata(assetInfo.asset).decimals());
-            amountInVault = amountInVault * amountDenominator;
+            Portfolio.AssetInfo memory assetInfo = assetInfos[i];
+            uint256 amountInVault = _currentAmountInVault(assetInfo.asset);
 
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
@@ -53,7 +46,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 amountInVault,
                 usdcPriceInVault,
                 0,
-                int8(0),
                 false,
                 usdcPriceDenominator,
                 usdcSellPrice,
@@ -69,188 +61,138 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return totalPrices;
     }
 
-    function assetPricesForBalance() external override returns (TotalAssetPrices memory) {
+    function totalUsdcPrice()
+    public
+    view
+    override
+    returns (uint256)
+    {
+        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
+
+        uint256 totalUsdcPrice = 0;
+        uint256 count = assetWeights.length;
+        for (uint8 i = 0; i < count; i++) {
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
+
+            uint256 amountInVault = _currentAmountInVault(assetWeight.asset);
+
+            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(assetWeight.asset);
+            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
+
+            uint256 usdcPriceDenominator = priceGetter.denominator();
+            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
+
+            // in decimals: 18 + 18 - 18 => 18
+            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
+
+            totalUsdcPrice += usdcPriceInVault;
+        }
+
+        return totalUsdcPrice;
+    }
+
+
+    function assetPricesForBalance() external view override returns (BalanceAssetPrices[] memory) {
         return assetPricesForBalance(address(0), 0);
     }
 
     /**
      * @param withdrawToken Token to withdraw
-     * @param withdrawAmount Not normilized amount to withdraw
+     * @param withdrawAmount Not normalized amount to withdraw
      */
     function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
         public
+        view
         override
-        returns (TotalAssetPrices memory)
+        returns (BalanceAssetPrices[] memory)
     {
         if (withdrawToken != address(0)) {
-            // normilize withdrawAmount to 18 decimals
+            // normalize withdrawAmount to 18 decimals
             //TODO: denominator usage
             uint256 withdrawAmountDenominator = 10**(18 - IERC20Metadata(withdrawToken).decimals());
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
-        // //TODO: remove
-        // log("withdrawAmount: ", withdrawAmount);
 
-        InvestmentPortfolio.AssetWeight[] memory assetWeights = investmentPortfolio
+        Portfolio.AssetWeight[] memory assetWeights = portfolio
             .getAllAssetWeights();
-
-        // //TODO: remove
-        // log("assetWeights.length: ", assetWeights.length);
 
         uint256 totalUsdcPrice = 0;
         uint256 count = assetWeights.length;
-        AssetPrices[] memory assetPrices = new AssetPrices[](count);
+
         for (uint8 i = 0; i < count; i++) {
-            InvestmentPortfolio.AssetWeight memory assetWeight = assetWeights[i];
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
 
-            uint256 amountInVault = IERC20(assetWeight.asset).balanceOf(address(vault));
-            // normilize amountInVault to 18 decimals
-            //TODO: denominator usage
-            uint256 amountDenominator = 10**(18 - IERC20Metadata(assetWeight.asset).decimals());
-            amountInVault = amountInVault * amountDenominator;
-            // //TODO: remove
-            // log("amountInVault: ", amountInVault);
+            uint256 amountInVault = _currentAmountInVault(assetWeight.asset);
 
-            InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(
+            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(
                 assetWeight.asset
             );
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
             uint256 usdcPriceDenominator = priceGetter.denominator();
             uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
-            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
 
             // in decimals: 18 + 18 - 18 => 18
             uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
 
             totalUsdcPrice += usdcPriceInVault;
-
-            assetPrices[i] = AssetPrices(
-                assetWeight.asset,
-                amountInVault,
-                usdcPriceInVault,
-                0,
-                int8(0),
-                false,
-                usdcPriceDenominator,
-                usdcSellPrice,
-                usdcBuyPrice,
-                IERC20Metadata(assetWeight.asset).decimals(),
-                IERC20Metadata(assetWeight.asset).name(),
-                IERC20Metadata(assetWeight.asset).symbol()
-            );
         }
 
         // 3. validate withdrawAmount
-        require(
-            totalUsdcPrice >= withdrawAmount,
-            string(
+        // used if instead of require because better when need to build complex string for revert
+        if (totalUsdcPrice < withdrawAmount) {
+            revert(string(
                 abi.encodePacked(
                     "Withdraw more than total: ",
                     uint2str(withdrawAmount),
                     " > ",
                     uint2str(totalUsdcPrice)
                 )
-            )
-        );
-
-        // 4. correct total with withdrawAmount
-        // //TODO: remove
-        // log("totalUsdcPrice before correction: ", totalUsdcPrice);
-
-        totalUsdcPrice = totalUsdcPrice - withdrawAmount;
-        log("totalUsdcPrice after correction: ", totalUsdcPrice);
-
-        for (uint8 i = 0; i < count; i++) {
-            AssetPrices memory assetPrice = assetPrices[i];
-            (
-                assetPrice.diffToTarget,
-                assetPrice.diffToTargetSign,
-                assetPrice.targetIsZero
-            ) = diffToTarget(totalUsdcPrice, assetPrice.asset);
-
-            // emit ConsoleLog(
-            //     string(
-            //         abi.encodePacked(
-            //             uint2str(i),
-            //             " | ",
-            //             IERC20Metadata(assetPrice.asset).symbol(),
-            //             " | ",
-            //             uint2str(assetPrice.amountInVault),
-            //             " | ",
-            //             uint2str(assetPrice.usdcPriceInVault),
-            //             " | ",
-            //             uint2str(assetPrice.diffToTarget),
-            //             " | ",
-            //             uint2str(assetPrice.usdcSellPrice),
-            //             " | ",
-            //             uint2str(assetPrice.usdcBuyPrice)
-            //         )
-            //     )
-            // );
-
-            // update diff for withdrawn token
-            if (withdrawAmount > 0 && assetPrice.asset == withdrawToken) {
-                if (assetPrice.diffToTargetSign < 0) {
-                    if (assetPrice.diffToTarget > withdrawAmount) {
-                        assetPrice.diffToTarget = assetPrice.diffToTarget - withdrawAmount;
-                    } else {
-                        assetPrice.diffToTarget = withdrawAmount - assetPrice.diffToTarget;
-                        assetPrice.diffToTargetSign = int8(1);
-                    }
-                } else {
-                    assetPrice.diffToTarget = assetPrice.diffToTarget + withdrawAmount;
-                }
-            }
-
-            // emit ConsoleLog(
-            //     string(
-            //         abi.encodePacked(
-            //             // uint2str(i),
-            //             // " | ",
-            //             IERC20Metadata(assetPrice.asset).symbol(),
-            //             " | ",
-            //             uint2str(assetPrice.amountInVault),
-            //             // " | ",
-            //             // uint2str(assetPrice.usdcPriceInVault),
-            //             " | ",
-            //             uint2str(assetPrice.diffToTarget),
-            //             " | ",
-            //             uint2str(assetPrice.usdcSellPrice),
-            //             " | ",
-            //             uint2str(assetPrice.usdcBuyPrice)
-            //         )
-            //     )
-            // );
+            ));
         }
 
-        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
+        // 4. correct total with withdrawAmount
+        totalUsdcPrice = totalUsdcPrice - withdrawAmount;
 
-        return totalPrices;
+        BalanceAssetPrices[] memory assetPrices = new BalanceAssetPrices[](count);
+        for (uint8 i = 0; i < count; i++) {
+            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
+            int256 diffToTarget = 0;
+            bool targetIsZero = false;
+            (diffToTarget, targetIsZero) = _diffToTarget(totalUsdcPrice, assetWeight);
+            // update diff for withdrawn token
+            if (withdrawAmount > 0 && assetWeight.asset == withdrawToken) {
+                diffToTarget = diffToTarget + int256(withdrawAmount);
+            }
+            assetPrices[i] = BalanceAssetPrices(
+                assetWeight.asset,
+                diffToTarget,
+                targetIsZero
+            );
+        }
+
+        return assetPrices;
     }
 
     /**
      * @param totalUsdcPrice - Total normilized to 10**18
-     * @param asset - Token address to calc
-     * @return normilized to 10**18 diff amount, sign and mark that mean that need sell all
+     * @param assetWeight - Token address to calc
+     * @return normilized to 10**18 signed diff amount and mark that mean that need sell all
      */
-    function diffToTarget(uint256 totalUsdcPrice, address asset)
+    function _diffToTarget(uint256 totalUsdcPrice, Portfolio.AssetWeight memory assetWeight)
         internal
         view
         returns (
-            uint256,
-            int8,
+            int256,
             bool
         )
     {
-        InvestmentPortfolio.AssetWeight memory assetWeight = investmentPortfolio.getAssetWeight(
-            asset
-        );
+        address asset = assetWeight.asset;
 
         uint256 targetUsdcAmount = (totalUsdcPrice * assetWeight.targetWeight) /
-            investmentPortfolio.TOTAL_WEIGHT();
+            portfolio.TOTAL_WEIGHT();
 
-        InvestmentPortfolio.AssetInfo memory assetInfo = investmentPortfolio.getAssetInfo(asset);
+        Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(asset);
         IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
         uint256 usdcPriceDenominator = priceGetter.denominator();
@@ -259,11 +201,8 @@ contract Mark2Market is IMark2Market, OwnableExt {
         // in decimals: 18 * 18 / 18 => 18
         uint256 targetTokenAmount = (targetUsdcAmount * usdcPriceDenominator) / usdcBuyPrice;
 
-        // normilize currentAmount to 18 decimals
-        uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
-        //TODO: denominator usage
-        uint256 denominator = 10**(18 - IERC20Metadata(asset).decimals());
-        currentAmount = currentAmount * denominator;
+        // normalize currentAmount to 18 decimals
+        uint256 currentAmount = _currentAmountInVault(asset);
 
         bool targetIsZero;
         if (targetTokenAmount == 0) {
@@ -272,11 +211,17 @@ contract Mark2Market is IMark2Market, OwnableExt {
             targetIsZero = false;
         }
 
-        if (targetTokenAmount >= currentAmount) {
-            return (targetTokenAmount - currentAmount, int8(1), targetIsZero);
-        } else {
-            return (currentAmount - targetTokenAmount, int8(-1), targetIsZero);
-        }
+        int256 diff = int256(targetTokenAmount) - int256(currentAmount);
+        return (diff, targetIsZero);
+    }
+
+    function _currentAmountInVault(address asset) internal view returns (uint256){
+        // normalize currentAmount to 18 decimals
+        uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
+        //TODO: denominator usage
+        uint256 denominator = 10 ** (18 - IERC20Metadata(asset).decimals());
+        currentAmount = currentAmount * denominator;
+        return currentAmount;
     }
 
     //TODO: remove
@@ -300,20 +245,4 @@ contract Mark2Market is IMark2Market, OwnableExt {
         return string(bstr);
     }
 
-    //TODO: remove
-    function log(string memory message, uint value) internal {
-        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
-    }
 }
-
-/* // function m2m () {
-
-    // calculate proportions and changes value
-        for (uint8 a = 0; a<actives.length; a++) {
-                totalSum +=  (uint128 (actives[a].balance)) * priceAct;
-
-
-        }
-
-    }
- */

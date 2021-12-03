@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract InvestmentPortfolio is AccessControl {
+contract Portfolio is AccessControl {
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
     mapping(address => uint256) public assetInfoPositions;
@@ -106,10 +106,10 @@ contract InvestmentPortfolio is AccessControl {
     }
 
     function _addWeightAt(AssetWeight memory assetWeight, uint256 index) internal {
-        uint256 currentlength = assetWeights.length;
+        uint256 currentLength = assetWeights.length;
         // expand if need
-        if (currentlength == 0 || currentlength - 1 < index) {
-            uint256 additionalCount = index - currentlength + 1;
+        if (currentLength == 0 || currentLength - 1 < index) {
+            uint256 additionalCount = index - currentLength + 1;
             for (uint8 i = 0; i < additionalCount; i++) {
                 assetWeights.push();
             }

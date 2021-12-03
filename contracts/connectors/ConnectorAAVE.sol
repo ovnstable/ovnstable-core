@@ -7,14 +7,12 @@ import "./aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "./aave/interfaces/IPriceOracleGetter.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {WadRayMath} from "./aave/libraries/math/WadRayMath.sol";
 
 import "../OwnableExt.sol";
 
 contract ConnectorAAVE is IConnector, OwnableExt {
-    using WadRayMath for uint256;
     ILendingPoolAddressesProvider public lpap;
-    
+
     event UpdatedLpap(address lpap);
 
     function setLpap(address _lpap) public onlyOwner {
@@ -43,6 +41,7 @@ contract ConnectorAAVE is IConnector, OwnableExt {
         uint256 w = pool.withdraw(_asset, _amount, _to);
         DataTypes.ReserveData memory res = pool.getReserveData(_asset);
 
+        //TODO: use _to to for returning tokens
         IERC20(res.aTokenAddress).transfer(
             msg.sender,
             IERC20(res.aTokenAddress).balanceOf(address(this))

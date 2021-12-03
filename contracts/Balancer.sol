@@ -8,17 +8,11 @@ import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
-//TODO: use AccessControl or Ownable from zeppelin
 contract Balancer is AccessControl {
     // ---  fields
 
     IMark2Market public m2m;
     address[] public actionBuildersInOrder;
-
-    // ---  events
-
-    //TODO: remove
-    event ConsoleLog(string str);
 
     // ---  modifiers
 
@@ -80,166 +74,22 @@ contract Balancer is AccessControl {
         public
         returns (IActionBuilder.ExchangeAction[] memory)
     {
-        try m2m.assetPricesForBalance(address(withdrawToken), withdrawAmount) returns (
-            IMark2Market.TotalAssetPrices memory assetPrices
-        ) {
-            // // 1. get current prices from M2M
-            // IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance(
-            //     address(withdrawToken),
-            //     withdrawAmount
-            // );
+         // 1. get current prices from M2M
+        IMark2Market.BalanceAssetPrices[] memory assetPrices = m2m.assetPricesForBalance(
+            address(withdrawToken),
+            withdrawAmount
+        );
 
-            // 2. calc total price
-            uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
+        // 2. make actions
+        IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
+            actionBuildersInOrder.length
+        );
 
-            //TODO: remove
-            log("totalUsdcPrice: ", totalUsdcPrice);
-
-            // 3. make actions
-            IActionBuilder.ExchangeAction[]
-                memory actionOrder = new IActionBuilder.ExchangeAction[](
-                    actionBuildersInOrder.length
-                );
-            //TODO: remove
-            log("actionBuildersInOrder.length: ", actionBuildersInOrder.length);
-
-            for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
-                try
-                    IActionBuilder(actionBuildersInOrder[i]).buildAction(assetPrices, actionOrder)
-                returns (IActionBuilder.ExchangeAction memory action) {
-                    actionOrder[i] = action;
-                } catch Error(string memory reason) {
-                    revert(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                " ",
-                                reason,
-                                "| IActionBuilder.buildAction: code: ",
-                                IActionBuilder(actionBuildersInOrder[i]).getActionCode()
-                            )
-                        )
-                    );
-                } catch {
-                    revert(
-                        string(
-                            abi.encodePacked(
-                                uint2str(i),
-                                "| IActionBuilder.buildAction: code: ",
-                                IActionBuilder(actionBuildersInOrder[i]).getActionCode()
-                            )
-                        )
-                    );
-                }
-
-                // IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
-                //     .buildAction(assetPrices, actionOrder);
-                // actionOrder[i] = action;
-            }
-            //TODO: remove
-            log("actionOrder.length: ", actionOrder.length);
-
-            return actionOrder;
-        } catch Error(string memory reason) {
-            revert(
-                string(
-                    abi.encodePacked(
-                        reason,
-                        "| m2m.assetPricesForBalance: No reason ",
-                        " withdrawToken ",
-                        toAsciiString(address(withdrawToken)),
-                        " withdrawAmount ",
-                        uint2str(withdrawAmount)
-                    )
-                )
-            );
-        } catch {
-            revert(
-                string(
-                    abi.encodePacked(
-                        "m2m.assetPricesForBalance: No reason ",
-                        " withdrawToken ",
-                        toAsciiString(address(withdrawToken)),
-                        " withdrawAmount ",
-                        uint2str(withdrawAmount)
-                    )
-                )
-            );
+        for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
+            IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
+            .buildAction(assetPrices, actionOrder);
+            actionOrder[i] = action;
         }
-
-        // // 1. get current prices from M2M
-        // IMark2Market.TotalAssetPrices memory assetPrices = m2m.assetPricesForBalance(
-        //     address(withdrawToken),
-        //     withdrawAmount
-        // );
-
-        // // 2. calc total price
-        // uint256 totalUsdcPrice = assetPrices.totalUsdcPrice;
-
-        // //TODO: remove
-        // log("totalUsdcPrice: ", totalUsdcPrice);
-
-        // // 3. make actions
-        // IActionBuilder.ExchangeAction[]
-        //     memory actionOrder = new IActionBuilder.ExchangeAction[](
-        //         actionBuildersInOrder.length
-        //     );
-        // //TODO: remove
-        // log("actionBuildersInOrder.length: ", actionBuildersInOrder.length);
-
-        // for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
-        //     IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
-        //         .buildAction(assetPrices, actionOrder);
-        //     actionOrder[i] = action;
-        // }
-        // //TODO: remove
-        // log("actionOrder.length: ", actionOrder.length);
-
-        // return actionOrder;
-    }
-
-    //TODO: remove
-    function log(string memory message, uint value) internal {
-        emit ConsoleLog(string(abi.encodePacked(message, uint2str(value))));
-    }
-
-    //TODO: remove
-    function toAsciiString(address x) internal pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            bytes1 b = bytes1(uint8(uint(uint160(x)) / (2**(8 * (19 - i)))));
-            bytes1 hi = bytes1(uint8(b) / 16);
-            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
-            s[2 * i] = char(hi);
-            s[2 * i + 1] = char(lo);
-        }
-        return string(s);
-    }
-
-    //TODO: remove
-    function char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
-    }
-
-    //TODO: remove
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
+        return actionOrder;
     }
 }
