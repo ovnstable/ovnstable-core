@@ -12,7 +12,13 @@ contract Balancer is AccessControl {
     // ---  fields
 
     IMark2Market public m2m;
-    address[] public actionBuildersInOrder;
+    address[] public actionBuilders;
+
+    // ---  events
+
+    event Mark2MarketUpdated(address m2m);
+    event ActionBuilderUpdated(address actionBuilder, uint256 index);
+    event ActionBuilderRemoved(uint256 index);
 
     // ---  modifiers
 
@@ -32,6 +38,7 @@ contract Balancer is AccessControl {
     function setMark2Market(address _m2m) external onlyAdmin {
         require(_m2m != address(0), "Zero address not allowed");
         m2m = IMark2Market(_m2m);
+        emit Mark2MarketUpdated(_m2m);
     }
 
     function setActionBuilders(address[] calldata _actionBuildersInOrder) external onlyAdmin {
@@ -39,10 +46,11 @@ contract Balancer is AccessControl {
             _addActionBuilderAt(_actionBuildersInOrder[i], i);
         }
         // truncate array if needed
-        if (actionBuildersInOrder.length > _actionBuildersInOrder.length) {
-            uint256 removeCount = actionBuildersInOrder.length - _actionBuildersInOrder.length;
+        if (actionBuilders.length > _actionBuildersInOrder.length) {
+            uint256 removeCount = actionBuilders.length - _actionBuildersInOrder.length;
             for (uint8 i = 0; i < removeCount; i++) {
-                actionBuildersInOrder.pop();
+                actionBuilders.pop();
+                emit ActionBuilderRemoved(actionBuilders.length - i - 1);
             }
         }
     }
@@ -52,15 +60,17 @@ contract Balancer is AccessControl {
     }
 
     function _addActionBuilderAt(address actionBuilder, uint256 index) internal {
-        uint256 currentlength = actionBuildersInOrder.length;
+        uint256 currentLength = actionBuilders.length;
         // expand array id needed
-        if (currentlength == 0 || currentlength - 1 < index) {
-            uint256 additionalCount = index - currentlength + 1;
+        if (currentLength == 0 || currentLength - 1 < index) {
+            uint256 additionalCount = index - currentLength + 1;
             for (uint8 i = 0; i < additionalCount; i++) {
-                actionBuildersInOrder.push();
+                actionBuilders.push();
+                emit ActionBuilderUpdated(address(0), i);
             }
         }
-        actionBuildersInOrder[index] = actionBuilder;
+        actionBuilders[index] = actionBuilder;
+        emit ActionBuilderUpdated(actionBuilder, index);
     }
 
     // ---  logic
@@ -82,13 +92,11 @@ contract Balancer is AccessControl {
 
         // 2. make actions
         IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](
-            actionBuildersInOrder.length
+            actionBuilders.length
         );
 
-        for (uint8 i = 0; i < actionBuildersInOrder.length; i++) {
-            IActionBuilder.ExchangeAction memory action = IActionBuilder(actionBuildersInOrder[i])
-            .buildAction(assetPrices, actionOrder);
-            actionOrder[i] = action;
+        for (uint8 i = 0; i < actionBuilders.length; i++) {
+            actionOrder[i] = IActionBuilder(actionBuilders[i]).buildAction(assetPrices, actionOrder);
         }
         return actionOrder;
     }
