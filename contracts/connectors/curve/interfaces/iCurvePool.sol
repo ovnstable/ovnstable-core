@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
-/// @title Connector to curve->aave 
+
+/// @title Connector to curve->aave
 /// @notice from https://github.com/curvefi/curve-contract-polygon/blob/master/contracts/pools/aave/StableSwapAave.vy
-/// @dev check number of coins in pool and add functions  with nesessary  uint256[N_COINS]
+/// @dev check number of coins in pool and add functions  with necessary  uint256[N_COINS]
 
 interface iCurvePool {
 
