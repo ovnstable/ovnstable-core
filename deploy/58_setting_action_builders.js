@@ -5,6 +5,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const balancer = await  ethers.getContract('Balancer');
 
     // set actions builders in order
+    const usdc2IdleUsdcActionBuilder = await ethers.getContract('Usdc2IdleUsdcActionBuilder');
+    console.log("usdc2IdleUsdcActionBuilder");
+    await balancer.addActionBuilderAt(usdc2IdleUsdcActionBuilder.address, 0);
+    console.log("usdc2IdleUsdcActionBuilder added");
+
     const usdc2AUsdcActionBuilder = await ethers.getContract('Usdc2AUsdcActionBuilder');
     console.log("usdc2AUsdcActionBuilder");
     await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 0);

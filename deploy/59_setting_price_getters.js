@@ -7,6 +7,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
+    const idleUsdcPriceGetter = await ethers.getContract('IdleUsdcPriceGetter');
     const usdcPriceGetter = await ethers.getContract('UsdcPriceGetter');
     const aUsdcPriceGetter = await ethers.getContract('AUsdcPriceGetter');
     const a3CrvPriceGetter = await ethers.getContract('A3CrvPriceGetter');
@@ -31,6 +32,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // }
 
 
+    let idleUsdcAssetInfo = {
+        asset: assets.idleUsdc,
+        priceGetter: idleUsdcPriceGetter.address
+    }
     let usdcAssetInfo = {
         asset: assets.usdc,
         priceGetter: usdcPriceGetter.address
@@ -56,6 +61,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         priceGetter: wMaticPriceGetter.address
     }
     let assetInfos = [
+        idleUsdcAssetInfo,
         usdcAssetInfo,
         aUsdcAssetInfo,
         a3CrvAssetInfo,

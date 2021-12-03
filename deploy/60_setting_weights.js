@@ -7,6 +7,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const investmentPortfolio = await ethers.getContract("InvestmentPortfolio");
 
+    let idleUsdcWeight = {
+        asset: assets.idleUsdc,
+        minWeight: 0,
+        targetWeight: 2000,
+        maxWeight: 100000,
+    }
     let usdcWeight = {
         asset: assets.usdc,
         minWeight: 0,
@@ -16,7 +22,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let aUsdcWeight = {
         asset: assets.amUsdc,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 8000,
         maxWeight: 100000,
     }
     let a3CrvWeight = {
@@ -44,6 +50,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         maxWeight: 100000,
     }
     let weights = [
+        idleUsdcWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
