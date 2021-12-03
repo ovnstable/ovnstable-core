@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: GPL-3.0
-
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
+
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IMark2Market.sol";
@@ -9,15 +9,31 @@ import "./registries/Portfolio.sol";
 import "./Vault.sol";
 
 contract Mark2Market is IMark2Market, Ownable {
+    // ---  fields
+
     Vault public vault;
     Portfolio public portfolio;
 
-    function init(address _vault, address _portfolio) public onlyOwner {
+    // ---  events
+
+    event VaultUpdated(address vault);
+    event PortfolioUpdated(address portfolio);
+
+    // ---  setters
+
+    function setVault(address _vault) external onlyOwner {
         require(_vault != address(0), "Zero address not allowed");
-        require(_portfolio != address(0), "Zero address not allowed");
         vault = Vault(_vault);
-        portfolio = Portfolio(_portfolio);
+        emit VaultUpdated(_vault);
     }
+
+    function setPortfolio(address _portfolio) external onlyOwner {
+        require(_portfolio != address(0), "Zero address not allowed");
+        portfolio = Portfolio(_portfolio);
+        emit PortfolioUpdated(_portfolio);
+    }
+
+    // ---  logic
 
     function assetPrices() public view override returns (TotalAssetPrices memory) {
         Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
@@ -58,11 +74,7 @@ contract Mark2Market is IMark2Market, Ownable {
         return totalPrices;
     }
 
-    function totalUsdcPrice()
-    public
-    view
-    override
-    returns (uint256)
+    function totalUsdcPrice() public view override returns (uint256)
     {
         Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
 
@@ -154,7 +166,7 @@ contract Mark2Market is IMark2Market, Ownable {
     /**
      * @param totalUsdcPrice - Total normilized to 10**18
      * @param assetWeight - Token address to calc
-     * @return normilized to 10**18 signed diff amount and mark that mean that need sell all
+     * @return normalized to 10**18 signed diff amount and mark that mean that need sell all
      */
     function _diffToTarget(uint256 totalUsdcPrice, Portfolio.AssetWeight memory assetWeight)
         internal
@@ -201,7 +213,7 @@ contract Mark2Market is IMark2Market, Ownable {
         return currentAmount;
     }
 
-    //TODO: remove
+
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";

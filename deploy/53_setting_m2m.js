@@ -9,8 +9,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const m2m = await ethers.getContract("Mark2Market");
 
     // setup m2m
-    await m2m.init(vault.address, portfolio.address);
-    console.log("m2m.init done")
+    await m2m.setVault(vault.address);
+    console.log("m2m.setVault done")
+    await m2m.setPortfolio(portfolio.address);
+    console.log("m2m.setPortfolio done")
 
 };
 
