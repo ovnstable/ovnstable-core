@@ -1,12 +1,12 @@
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../interfaces/IConnector.sol";
-
-import "./curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../OwnableExt.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ConnectorCurve is IConnector, OwnableExt {
+import "../interfaces/IConnector.sol";
+import "./curve/interfaces/iCurvePool.sol";
+
+contract ConnectorCurve is IConnector, Ownable {
     iCurvePool public pool;
 
     event UpdatedPool(address pool);

@@ -2,14 +2,13 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPriceGetter.sol";
-import "./OwnableExt.sol";
 import "./registries/Portfolio.sol";
 import "./Vault.sol";
 
-//TODO: use AccessControl or Ownable from zeppelin
-contract Mark2Market is IMark2Market, OwnableExt {
+contract Mark2Market is IMark2Market, Ownable {
     Vault public vault;
     Portfolio public portfolio;
 

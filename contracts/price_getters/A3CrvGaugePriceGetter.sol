@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../price_getters/AbstractPriceGetter.sol";
 import "../price_getters/A3CrvPriceGetter.sol";
 import "../interfaces/IConnector.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
-import "../OwnableExt.sol";
 
-contract A3CrvGaugePriceGetter is AbstractPriceGetter, OwnableExt {
+contract A3CrvGaugePriceGetter is AbstractPriceGetter, Ownable {
     A3CrvPriceGetter public a3CrvPriceGetter;
 
     event UpdatedA3CrvPriceGetter(address a3CrvPriceGetter);
