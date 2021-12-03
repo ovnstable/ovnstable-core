@@ -2,33 +2,31 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IPortfolioManager.sol";
-import "./interfaces/IConnector.sol";
-import "./interfaces/IMark2Market.sol";
 import "./interfaces/IActionBuilder.sol";
-import "./connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "./registries/Portfolio.sol";
-
+import "./interfaces/IRewardManager.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
-import "./interfaces/IRewardManager.sol";
 
 contract PortfolioManager is IPortfolioManager, AccessControl {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
     // ---  fields
 
+    address public exchanger;
     Vault public vault;
     Balancer public balancer;
-    address public exchanger;
-    IRewardManager rewardManager;
+    IRewardManager public rewardManager;
 
     // ---  events
 
-    //TODO: remove
-    event ConsoleLog(string str);
+    event ExchangerUpdated(address exchanger);
+    event VaultUpdated(address vault);
+    event BalancerUpdated(address balancer);
+    event RewardManagerUpdated(address rewardManager);
+
     event Exchanged(uint256 amount, address from, address to);
 
     // ---  modifiers
@@ -55,21 +53,25 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         require(_exchanger != address(0), "Zero address not allowed");
         exchanger = _exchanger;
         grantRole(EXCHANGER, exchanger);
+        emit ExchangerUpdated(_exchanger);
     }
 
     function setVault(address _vault) external onlyAdmin {
         require(_vault != address(0), "Zero address not allowed");
         vault = Vault(_vault);
+        emit VaultUpdated(_vault);
     }
 
     function setBalancer(address _balancer) external onlyAdmin {
         require(_balancer != address(0), "Zero address not allowed");
         balancer = Balancer(_balancer);
+        emit BalancerUpdated(_balancer);
     }
 
     function setRewardManager(address _rewardManager) external onlyAdmin {
         require(_rewardManager != address(0), "Zero address not allowed");
         rewardManager = IRewardManager(_rewardManager);
+        emit RewardManagerUpdated(_rewardManager);
     }
 
 
@@ -205,7 +207,6 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
 
-    //TODO: remove
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
