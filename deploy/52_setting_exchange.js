@@ -16,8 +16,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("exchange.setTokens done");
 
     // setup exchange
-    await exchange.setAddr(pm.address, m2m.address);
-    console.log("exchange.setAddr done")
+    await exchange.setPortfolioManager(pm.address);
+    console.log("exchange.setPortfolioManager done")
+    await exchange.setMark2Market(m2m.address);
+    console.log("exchange.setMark2Market done")
 
 };
 

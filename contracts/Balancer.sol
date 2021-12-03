@@ -11,12 +11,12 @@ import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 contract Balancer is AccessControl {
     // ---  fields
 
-    IMark2Market public m2m;
+    IMark2Market public mark2market;
     address[] public actionBuilders;
 
     // ---  events
 
-    event Mark2MarketUpdated(address m2m);
+    event Mark2MarketUpdated(address mark2market);
     event ActionBuilderUpdated(address actionBuilder, uint256 index);
     event ActionBuilderRemoved(uint256 index);
 
@@ -35,10 +35,10 @@ contract Balancer is AccessControl {
 
     // ---  setters
 
-    function setMark2Market(address _m2m) external onlyAdmin {
-        require(_m2m != address(0), "Zero address not allowed");
-        m2m = IMark2Market(_m2m);
-        emit Mark2MarketUpdated(_m2m);
+    function setMark2Market(address _mark2market) external onlyAdmin {
+        require(_mark2market != address(0), "Zero address not allowed");
+        mark2market = IMark2Market(_mark2market);
+        emit Mark2MarketUpdated(_mark2market);
     }
 
     function setActionBuilders(address[] calldata _actionBuildersInOrder) external onlyAdmin {
@@ -85,7 +85,7 @@ contract Balancer is AccessControl {
         returns (IActionBuilder.ExchangeAction[] memory)
     {
          // 1. get current prices from M2M
-        IMark2Market.BalanceAssetPrices[] memory assetPrices = m2m.assetPricesForBalance(
+        IMark2Market.BalanceAssetPrices[] memory assetPrices = mark2market.assetPricesForBalance(
             address(withdrawToken),
             withdrawAmount
         );

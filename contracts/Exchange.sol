@@ -5,16 +5,19 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IERC20MintableBurnable.sol";
 import "./interfaces/IConnector.sol";
-import "./OvernightToken.sol";
-import "./interfaces/IPortfolioManager.sol";
-import "./PortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
+import "./interfaces/IPortfolioManager.sol";
+import "./OvernightToken.sol";
+import "./PortfolioManager.sol";
 
 contract Exchange is AccessControl {
+    // ---  fields
+
     OvernightToken public ovn;
     IERC20 public usdc;
-    PortfolioManager public pm; //portfolio manager contract
-    IMark2Market public m2m;
+
+    PortfolioManager public portfolioManager; //portfolio manager contract
+    IMark2Market public mark2market;
 
     uint256 public buyFee = 40;
     uint256 public buyFeeDenominator = 100000; // ~ 100 %
@@ -35,6 +38,15 @@ contract Exchange is AccessControl {
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange = 15 * 60;
 
+    // ---  events
+
+    event TokensUpdated(address ovn, address usdc);
+    event Mark2MarketUpdated(address mark2market);
+    event PortfolioManagerUpdated(address portfolioManager);
+    event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
+
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(
         uint256 totalOvn,
@@ -43,49 +55,57 @@ contract Exchange is AccessControl {
         uint256 totallySaved
     );
     event NoEnoughForPayoutEvent(uint256 totalOvn, uint256 totalUsdc);
-    event UpdatedBuyFee(uint256 fee, uint256 feeDenominator);
-    event UpdatedRedeemFee(uint256 fee, uint256 feeDenominator);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
-    event UpdatedPayoutTimes(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
     event NextPayoutTime(uint256 nextPayoutTime);
-    event ErrorLogging(string reason);
+
+    // ---  modifiers
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
     }
 
+    // ---  constructor
+
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
+
+    // ---  setters
 
     function setTokens(address _ovn, address _usdc) external onlyAdmin {
         require(_ovn != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         ovn = OvernightToken(_ovn);
         usdc = IERC20(_usdc);
+        emit TokensUpdated(_ovn, _usdc);
     }
 
-    function setAddr(address _addrPM, address _addrM2M) external onlyAdmin {
-        require(_addrPM != address(0), "Zero address not allowed");
-        require(_addrM2M != address(0), "Zero address not allowed");
-        pm = PortfolioManager(_addrPM);
-        m2m = IMark2Market(_addrM2M);
+    function setPortfolioManager(address _portfolioManager) external onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        portfolioManager = PortfolioManager(_portfolioManager);
+        emit PortfolioManagerUpdated(_portfolioManager);
+    }
+
+    function setMark2Market(address _mark2market) external onlyAdmin {
+        require(_mark2market != address(0), "Zero address not allowed");
+        mark2market = IMark2Market(_mark2market);
+        emit Mark2MarketUpdated(_mark2market);
     }
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         buyFee = _fee;
         buyFeeDenominator = _feeDenominator;
-        emit UpdatedBuyFee(buyFee, buyFeeDenominator);
+        emit BuyFeeUpdated(buyFee, buyFeeDenominator);
     }
 
     function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
-        emit UpdatedBuyFee(redeemFee, redeemFeeDenominator);
+        emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
     function setPayoutTimes(
@@ -99,8 +119,10 @@ contract Exchange is AccessControl {
         nextPayoutTime = _nextPayoutTime;
         payoutPeriod = _payoutPeriod;
         payoutTimeRange = _payoutTimeRange;
-        emit UpdatedPayoutTimes(nextPayoutTime, payoutPeriod, payoutTimeRange);
+        emit PayoutTimesUpdated(nextPayoutTime, payoutPeriod, payoutTimeRange);
     }
+
+    // ---  logic
 
     function balance() public view returns (uint256) {
         return ovn.balanceOf(msg.sender);
@@ -122,8 +144,8 @@ contract Exchange is AccessControl {
 
         ovn.mint(msg.sender, buyAmount);
 
-        IERC20(_addrTok).transfer(address(pm), _amount);
-        pm.deposit(IERC20(_addrTok), _amount);
+        IERC20(_addrTok).transfer(address(portfolioManager), _amount);
+        portfolioManager.deposit(IERC20(_addrTok), _amount);
 
         // prevent stucked payout caller
         if (block.timestamp > nextPayoutTime + payoutTimeRange) {
@@ -141,7 +163,7 @@ contract Exchange is AccessControl {
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
         //TODO: Real unstacked amount may be different to _amount
-        uint256 unstakedAmount = pm.withdraw(IERC20(_addrTok), redeemAmount);
+        uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
         ovn.burn(msg.sender, _amount);
@@ -180,11 +202,11 @@ contract Exchange is AccessControl {
         // 3. calc difference between total count of OVN and USDC
         // 4. go through all OVN owners and mint to their addresses proportionally OVN
 
-        pm.claimRewards();
-        pm.balanceOnReward();
+        portfolioManager.claimRewards();
+        portfolioManager.balanceOnReward();
 
         uint256 totalOvnSupply = ovn.totalSupply();
-        uint256 totalUsdc = m2m.totalUsdcPrice();
+        uint256 totalUsdc = mark2market.totalUsdcPrice();
         // denormilize from 10**18 to 10**6 as OVN decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalOvnSupply) {
@@ -203,7 +225,6 @@ contract Exchange is AccessControl {
                 totallyAmountPaid += additionalMintAmount;
             }
         }
-        //TODO: what to do with saved usdc? Do we need to mint it to PM
 
         emit PayoutEvent(
             totalOvnSupply,
