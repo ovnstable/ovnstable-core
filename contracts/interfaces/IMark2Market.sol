@@ -7,8 +7,6 @@ interface IMark2Market {
         address asset;
         uint256 amountInVault; // balance on Vault
         uint256 usdcPriceInVault; // current total price of balance at USDC
-        int256 diffToTarget; // diff usdcPriceInVault to target in portfolio
-        bool targetIsZero; // mean that we should trade all tokens to zero ownership
         //
         uint256 usdcPriceDenominator;
         uint256 usdcSellPrice;

@@ -45,8 +45,6 @@ contract Mark2Market is IMark2Market, OwnableExt {
                 assetInfo.asset,
                 amountInVault,
                 usdcPriceInVault,
-                0,
-                false,
                 usdcPriceDenominator,
                 usdcSellPrice,
                 usdcBuyPrice,
@@ -113,33 +111,10 @@ contract Mark2Market is IMark2Market, OwnableExt {
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
 
-        Portfolio.AssetWeight[] memory assetWeights = portfolio
-            .getAllAssetWeights();
-
-        uint256 totalUsdcPrice = 0;
-        uint256 count = assetWeights.length;
-
-        for (uint8 i = 0; i < count; i++) {
-            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
-
-            uint256 amountInVault = _currentAmountInVault(assetWeight.asset);
-
-            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(
-                assetWeight.asset
-            );
-            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
-
-            uint256 usdcPriceDenominator = priceGetter.denominator();
-            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
-
-            // in decimals: 18 + 18 - 18 => 18
-            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
-
-            totalUsdcPrice += usdcPriceInVault;
-        }
+        uint256 totalUsdcPrice = totalUsdcPrice();
 
         // 3. validate withdrawAmount
-        // used if instead of require because better when need to build complex string for revert
+        // use `if` instead of `require` because less gas when need to build complex string for revert
         if (totalUsdcPrice < withdrawAmount) {
             revert(string(
                 abi.encodePacked(
@@ -154,6 +129,9 @@ contract Mark2Market is IMark2Market, OwnableExt {
         // 4. correct total with withdrawAmount
         totalUsdcPrice = totalUsdcPrice - withdrawAmount;
 
+        // 5. calc diffs to target values
+        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
+        uint256 count = assetWeights.length;
         BalanceAssetPrices[] memory assetPrices = new BalanceAssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
             Portfolio.AssetWeight memory assetWeight = assetWeights[i];
