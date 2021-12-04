@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 const router = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));

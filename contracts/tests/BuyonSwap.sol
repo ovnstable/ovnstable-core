@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
+
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
 contract BuyonSwap {

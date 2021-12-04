@@ -11,6 +11,9 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
 
+    uint256 usdcDenominator;
+    uint256 aUsdcDenominator;
+
     constructor(
         address _aaveConnector,
         address _usdcToken,
@@ -23,6 +26,9 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         aaveConnector = IConnector(_aaveConnector);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
+
+        usdcDenominator = 10 ** (18 - IERC20Metadata(address(usdcToken)).decimals());
+        aUsdcDenominator = 10 ** (18 - IERC20Metadata(address(aUsdcToken)).decimals());
     }
 
     function exchange(
@@ -38,48 +44,79 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         );
 
         if (amount == 0) {
-            from.transfer(spender, from.balanceOf(address(this)));
+            uint256 fromBalance = from.balanceOf(address(this));
+            if (fromBalance > 0) {
+                from.transfer(spender, fromBalance);
+            }
             return;
         }
 
         if (from == usdcToken && to == aUsdcToken) {
             //TODO: denominator usage
-            uint256 denominator = 10**(18 - IERC20Metadata(address(usdcToken)).decimals());
-            amount = amount / denominator;
+            amount = amount / usdcDenominator;
+
+            // if amount eq 0 after normalization transfer back balance and skip staking
+            uint256 balance = usdcToken.balanceOf(address(this));
+            if (amount == 0) {
+                if (balance > 0) {
+                    usdcToken.transfer(spender, balance);
+                }
+                return;
+            }
 
             require(
-                usdcToken.balanceOf(address(this)) >= amount,
+                balance >= amount,
                 "Usdc2AUsdcTokenExchange: Not enough usdcToken"
             );
 
-            // check after denormilization
+            usdcToken.transfer(address(aaveConnector), amount);
+            aaveConnector.stake(address(usdcToken), amount, receiver);
+
+            // transfer back unused amount
+            uint256 unusedBalance = usdcToken.balanceOf(address(this));
+            if (unusedBalance > 0) {
+                usdcToken.transfer(spender, unusedBalance);
+            }
+        } else {
+            //TODO: denominator usage
+            amount = amount / aUsdcDenominator;
+
+            // if amount eq 0 after normalization transfer back balance and skip staking
+            uint256 balance = aUsdcToken.balanceOf(address(this));
             if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
+                if (balance > 0) {
+                    aUsdcToken.transfer(spender, balance);
+                }
                 return;
             }
 
-            usdcToken.transfer(address(aaveConnector), amount);
-            aaveConnector.stake(address(usdcToken), amount, receiver);
-        } else {
-            //TODO: denominator usage
-            uint256 denominator = 10**(18 - IERC20Metadata(address(aUsdcToken)).decimals());
-            amount = amount / denominator;
+            // aToken on transfer can lost/add 1 wei. On lost we need correct amount
+            if (balance + 1 == amount) {
+                amount = amount - 1;
+            }
 
             require(
-                aUsdcToken.balanceOf(address(this)) >= amount,
+                balance >= amount,
                 "Usdc2AUsdcTokenExchange: Not enough aUsdcToken"
             );
 
-            // check after denormilization
-            if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
-                return;
-            }
-
+            // move assets to connector
             aUsdcToken.transfer(address(aaveConnector), amount);
+
+            // correct exchangeAmount if we got diff on aToken transfer
+            uint256 onAaveConnectorBalance = aUsdcToken.balanceOf(address(aaveConnector));
+            if (onAaveConnectorBalance < amount) {
+                amount = onAaveConnectorBalance;
+            }
             uint256 withdrewAmount = aaveConnector.unstake(address(usdcToken), amount, receiver);
 
             //TODO: may be add some checks for withdrewAmount
+
+            // transfer back unused amount
+            uint256 unusedBalance = aUsdcToken.balanceOf(address(this));
+            if (unusedBalance > 0) {
+                aUsdcToken.transfer(spender, unusedBalance);
+            }
         }
     }
 }

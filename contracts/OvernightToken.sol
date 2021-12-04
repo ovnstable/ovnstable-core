@@ -3,19 +3,26 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import "./interfaces/IERC20MintableBurnable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint256 _totalMint;
-    uint256 _totalBurn;
+    // ---  fields
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
+    uint256 _totalMint;
+    uint256 _totalBurn;
+
     EnumerableSet.AddressSet _owners;
+
+    // ---  events
+
+    event ExchangerUpdated(address exchanger);
+
+    // ---  modifiers
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -27,23 +34,33 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
         _;
     }
 
+    // ---  setters
+
+    function setExchanger(address _exchanger) external onlyAdmin {
+        grantRole(EXCHANGER, _exchanger);
+        emit ExchangerUpdated(_exchanger);
+    }
+
+    // ---  constructor
+
     constructor() ERC20("OvernightToken", "OVN") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
+
+    // ---  logic
 
     function mint(address _sender, uint256 _amount) external override onlyExchanger {
         _mint(_sender, _amount);
         _totalMint += _amount;
     }
 
-    //TODO: check `virtual` usage
-    function decimals() public view virtual override returns (uint8) {
-        return 6;
-    }
-
     function burn(address _sender, uint256 _amount) external override onlyExchanger {
         _burn(_sender, _amount);
         _totalBurn += _amount;
+    }
+
+    function decimals() public view override returns (uint8) {
+        return 6;
     }
 
     function totalMint() external view returns (uint256) {
@@ -66,6 +83,9 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
         return balanceOf(_owners.at(index));
     }
 
+    //TODO: _beforeTokenTransfer wrong, should use _afterTokenTransfer because
+    //     on _beforeTokenTransfer balances are not changed yet and anyway
+    //     balances for burn and transfers would be greater than 0
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -90,13 +110,4 @@ contract OvernightToken is IERC20MintableBurnable, ERC20, AccessControl {
         }
     }
 
-    //TODO: check `virtual` usage
-    function setExchanger(address account) external virtual onlyAdmin {
-        grantRole(EXCHANGER, account);
-    }
-
-    //TODO: check `virtual` usage and do we really need remove*
-    function removeExchanger(address account) external virtual onlyAdmin {
-        revokeRole(EXCHANGER, account);
-    }
 }

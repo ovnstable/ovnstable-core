@@ -11,6 +11,8 @@ let secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 
 
 async function main() {
+    // need to run inside IDEA via node script running
+    await hre.run("compile");
 
     const [owner] = await ethers.getSigners();
 
@@ -37,11 +39,11 @@ async function main() {
 
     let assets = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
 
-    console.log("---  " + "User" + owner.address + ":");
+    console.log("---  " + "User " + owner.address + ":");
     await showBalances(assets, owner.address);
     console.log("---------------------");
 
-    console.log("---  " + "Vault" + vault.address + ":");
+    console.log("---  " + "Vault " + vault.address + ":");
     await showBalances(assets, vault.address);
     console.log("---------------------");
 
@@ -87,8 +89,14 @@ function bin2String(array) {
 
 function logConsoleLogEvents(waitResult) {
     console.log("---  ConsoleLog events:")
-    for (let rawLog of waitResult.events) {
-        let data = rawLog.data;
+    for (let event of waitResult.events) {
+        if (event.event) {
+            // for events which recognized by HH
+            console.log(event.event + "(" + event.args + ")");
+            continue;
+        }
+
+        let data = event.data;
         let bytes = hexToBytes(data);
         if (bytes.length < 63) {
             console.log("No ConsoleLog event");

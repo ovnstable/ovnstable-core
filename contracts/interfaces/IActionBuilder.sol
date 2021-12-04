@@ -19,7 +19,7 @@ interface IActionBuilder {
     function getActionCode() external pure returns (bytes32);
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory assetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view returns (ExchangeAction memory);
 }

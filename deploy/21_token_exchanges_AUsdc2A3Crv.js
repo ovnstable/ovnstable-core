@@ -1,3 +1,4 @@
+const { ethers } = require("hardhat");
 
 const fs = require('fs');
 let assets = JSON.parse(fs.readFileSync('./assets.json'));

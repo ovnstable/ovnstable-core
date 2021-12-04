@@ -15,11 +15,21 @@ import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
  * NOTE: not used SafeERC20 and it may be changed in future
  */
 contract Vault is AccessControl {
+    // ---  fields
+
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant REWARD_MANAGER = keccak256("REWARD_MANAGER");
 
     // Only Vault can claiming aave rewards
     IAaveIncentivesController public aaveReward;
+
+    // ---  events
+
+    event PortfolioManagerUpdated(address portfolioManager);
+    event RewardManagerUpdated(address rewardManager);
+    event AaveRewardRemoved(address aaveReward);
+
+    // ---  modifiers
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -36,34 +46,34 @@ contract Vault is AccessControl {
         _;
     }
 
+    // ---  constructor
+
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // ---  setters
+
     function setPortfolioManager(address _portfolioManager) public onlyAdmin {
         require(_portfolioManager != address(0), "Zero address not allowed");
         grantRole(PORTFOLIO_MANAGER, _portfolioManager);
+        emit PortfolioManagerUpdated(_portfolioManager);
     }
 
     function setRewardManager(address _rewardManager) public onlyAdmin {
         require(_rewardManager != address(0), "Zero address not allowed");
         grantRole(REWARD_MANAGER, _rewardManager);
+        emit RewardManagerUpdated(_rewardManager);
     }
 
 
     function setAaveReward(address _aaveReward) public onlyAdmin {
         require(_aaveReward != address(0), "Zero address not allowed");
         aaveReward = IAaveIncentivesController(_aaveReward);
+        emit AaveRewardRemoved(_aaveReward);
     }
 
-
-
-    //TODO: do we really need this feature?
-    function removePortfolioManager(address _portfolioManager) public onlyAdmin {
-        require(_portfolioManager != address(0), "Zero address not allowed");
-        revokeRole(PORTFOLIO_MANAGER, _portfolioManager);
-    }
-
+    // ---  logic
 
     function claimRewardAave(address[] calldata assets, uint256 amount) public onlyRewardManager {
         aaveReward.claimRewards(assets, amount, address(this));
