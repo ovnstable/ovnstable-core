@@ -36,56 +36,26 @@ describe("Idle", function () {
         vault.setPortfolioManager(vault.address);
     });
 
-    /*it("Staking USDC -> idleUSDC", async function () {
+    it("Staking/unstaking USDC", async function () {
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
+        let balance = await usdc.balanceOf(connectorIDLE.address);
+        console.log('Balance usdc: ' + balance);
         await connectorIDLE.stake(usdc.address, sum, vault.address);
-
-        let balance = await idleUsdc.balanceOf(vault.address);
-        console.log('Balance idleUsdc: ' + balance)
-        expect(balance).to.equal(100);
-    });*/
-
-    it("Staking/unstaking USDC", async function () {
-        const sum = toUSDC(1000000);
-        await usdc.transfer(connectorIDLE.address, sum);
-        await connectorIDLE.stake(usdc.address, sum, connectorIDLE.address);
-        let balance = await idleUsdc.balanceOf(connectorIDLE.address);
+        balance = await idleUsdc.balanceOf(connectorIDLE.address);
         console.log('Balance idleUsdc: ' + balance);
 
-        await network.provider.send("evm_increaseTime", [3600]);
-        await network.provider.send("evm_mine");
+        await ethers.provider.send("evm_mine", [1649121419]);
 
-//        await connectorIDLE.unstake(idleUsdc.address, 0, vault.address);
-//        let balance1 = await usdc.balanceOf(connectorIDLE.address);
-//        console.log('Balance usdc: ' + balance1);
-//        balance1 = await wMatic.balanceOf(connectorIDLE.address);
-//        console.log('Balance wMatic: ' + balance1);
-
-        await connectorIDLE.unstake(idleUsdc.address, balance, vault.address);
-        let balance1 = await usdc.balanceOf(connectorIDLE.address);
-        console.log('Balance usdc: ' + balance1);
-        balance1 = await wMatic.balanceOf(connectorIDLE.address);
-        console.log('Balance wMatic: ' + balance1);
+        await connectorIDLE.unstake(usdc.address, balance, vault.address);
+        balance = await usdc.balanceOf(connectorIDLE.address);
+        console.log('Balance usdc: ' + balance);
+        balance = await wMatic.balanceOf(connectorIDLE.address);
+        console.log('Balance wMatic: ' + balance);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance vault usdc: ' + balance);
+        balance = await wMatic.balanceOf(vault.address);
+        console.log('Balance vault wMatic: ' + balance);
     });
-
-    /*it("Claiming wMatic", async function () {
-        const sum = 100 * 10 ** 6;
-        await usdc.transfer(connectorIDLE.address, sum);
-        await connectorIDLE.stake(usdc.address, sum, vault.address);
-
-        let balance = fromWmatic(await wMatic.balanceOf(vault.address));
-        console.log('Balance wMatic: ' + balance)
-        //expect(balance).to.equal(0);
-
-        await usdc.transfer(connectorIDLE.address, sum);
-        await connectorIDLE.stake(usdc.address, sum, vault.address);
-
-        await rm.claimRewardAave();
-
-        balance = fromWmatic(await wMatic.balanceOf(vault.address));
-        console.log('Balance wMatic: ' + balance)
-        //expect(balance).to.be.above(0);
-    });*/
 
 });

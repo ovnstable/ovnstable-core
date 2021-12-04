@@ -7,7 +7,7 @@ import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
 contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
-    bytes32 constant ACTION_CODE = keccak256("Usdc2IdleUsdc");
+    bytes32 constant ACTION_CODE = keccak256("Usc2IdleUsdc");
 
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
@@ -32,14 +32,12 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory usdcPrices;
-        IMark2Market.AssetPrices memory idleUsdcPrices;
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory idleUsdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
@@ -52,16 +50,19 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that usdc is leaf in tree and we can use this value
-        uint256 diff = usdcPrices.diffToTarget;
+        int256 diff = usdcPrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (usdcPrices.targetIsZero || usdcPrices.diffToTargetSign < 0) {
+        if (usdcPrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = usdcToken;
             to = idleUsdcToken;
             targetIsZero = usdcPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = idleUsdcToken;
             to = usdcToken;
             targetIsZero = idleUsdcPrices.targetIsZero;
@@ -72,7 +73,7 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

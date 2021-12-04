@@ -11,6 +11,9 @@ contract Usdc2IdleUsdcTokenExchange is ITokenExchange {
     IERC20 public usdcToken;
     IERC20 public idleUsdcToken;
 
+    uint256 usdcDenominator;
+    uint256 idleUsdcDenominator;
+
     constructor(
         address _idleConnector,
         address _usdcToken,
@@ -23,6 +26,9 @@ contract Usdc2IdleUsdcTokenExchange is ITokenExchange {
         idleConnector = IConnector(_idleConnector);
         usdcToken = IERC20(_usdcToken);
         idleUsdcToken = IERC20(_idleUsdcToken);
+
+        usdcDenominator = 10 ** (18 - IERC20Metadata(address(usdcToken)).decimals());
+        idleUsdcDenominator = 10 ** (18 - IERC20Metadata(address(idleUsdcToken)).decimals());
     }
 
     function exchange(
@@ -38,48 +44,79 @@ contract Usdc2IdleUsdcTokenExchange is ITokenExchange {
         );
 
         if (amount == 0) {
-            from.transfer(spender, from.balanceOf(address(this)));
+            uint256 fromBalance = from.balanceOf(address(this));
+            if (fromBalance > 0) {
+                from.transfer(spender, fromBalance);
+            }
             return;
         }
 
         if (from == usdcToken && to == idleUsdcToken) {
             //TODO: denominator usage
-            uint256 denominator = 10**(18 - IERC20Metadata(address(usdcToken)).decimals());
-            amount = amount / denominator;
+            amount = amount / usdcDenominator;
+
+            // if amount eq 0 after normalization transfer back balance and skip staking
+            uint256 balance = usdcToken.balanceOf(address(this));
+            if (amount == 0) {
+                if (balance > 0) {
+                    usdcToken.transfer(spender, balance);
+                }
+                return;
+            }
 
             require(
-                usdcToken.balanceOf(address(this)) >= amount,
+                balance >= amount,
                 "Usdc2IdleUsdcTokenExchange: Not enough usdcToken"
             );
 
-            // check after denormalization
+            usdcToken.transfer(address(idleConnector), amount);
+            idleConnector.stake(address(usdcToken), amount, receiver);
+
+            // transfer back unused amount
+            uint256 unusedBalance = usdcToken.balanceOf(address(this));
+            if (unusedBalance > 0) {
+                usdcToken.transfer(spender, unusedBalance);
+            }
+        } else {
+            //TODO: denominator usage
+            amount = amount / idleUsdcDenominator;
+
+            // if amount eq 0 after normalization transfer back balance and skip staking
+            uint256 balance = idleUsdcToken.balanceOf(address(this));
             if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
+                if (balance > 0) {
+                    idleUsdcToken.transfer(spender, balance);
+                }
                 return;
             }
 
-            usdcToken.transfer(address(idleConnector), amount);
-            idleConnector.stake(address(usdcToken), amount, receiver);
-        } else {
-            //TODO: denominator usage
-            uint256 denominator = 10**(18 - IERC20Metadata(address(idleUsdcToken)).decimals());
-            amount = amount / denominator;
+            // aToken on transfer can lost/add 1 wei. On lost we need correct amount
+            if (balance + 1 == amount) {
+                amount = amount - 1;
+            }
 
             require(
-                idleUsdcToken.balanceOf(address(this)) >= amount,
+                balance >= amount,
                 "Usdc2IdleUsdcTokenExchange: Not enough idleUsdcToken"
             );
 
-            // check after denormalization
-            if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
-                return;
-            }
-
+            // move assets to connector
             idleUsdcToken.transfer(address(idleConnector), amount);
-            uint256 withdrawAmount = idleConnector.unstake(address(usdcToken), amount, receiver);
 
-            //TODO: may be add some checks for withdrawAmount
+            // correct exchangeAmount if we got diff on aToken transfer
+            uint256 onIdleConnectorBalance = idleUsdcToken.balanceOf(address(idleConnector));
+            if (onIdleConnectorBalance < amount) {
+                amount = onIdleConnectorBalance;
+            }
+            uint256 withdrewAmount = idleConnector.unstake(address(usdcToken), amount, receiver);
+
+            //TODO: may be add some checks for withdrewAmount
+
+            // transfer back unused amount
+            uint256 unusedBalance = idleUsdcToken.balanceOf(address(this));
+            if (unusedBalance > 0) {
+                idleUsdcToken.transfer(spender, unusedBalance);
+            }
         }
     }
 }
