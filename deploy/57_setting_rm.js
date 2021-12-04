@@ -18,8 +18,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await rm.setVault(vault.address);
     console.log("rm.setVault done");
 
-    await rm.setTokens(assets.amUsdc);
-    console.log("rm.setTokens done");
+    await rm.setAUsdcToken(assets.amUsdc);
+    console.log("rm.setAUsdcToken done");
 
 };
 
