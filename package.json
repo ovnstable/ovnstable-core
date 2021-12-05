@@ -18,7 +18,8 @@
   "dependencies": {
     "@aave/protocol-v2": "^1.0.1",
     "@defi-wonderland/smock": "^2.0.7",
-    "@openzeppelin/contracts": "^4.2.0",
+    "@openzeppelin/contracts": "^4.4.0",
+    "@openzeppelin/contracts-upgradeable": "^4.4.0",
     "@truffle/hdwallet-provider": "^1.5.0",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "bignumber.js": "^9.0.1",
