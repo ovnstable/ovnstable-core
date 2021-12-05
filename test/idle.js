@@ -40,22 +40,22 @@ describe("Idle", function () {
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
         let balance = await usdc.balanceOf(connectorIDLE.address);
-        console.log('Balance usdc: ' + balance);
+        console.log('Balance usdc: ' + fromUSDC(balance));
         await connectorIDLE.stake(usdc.address, sum, vault.address);
         balance = await idleUsdc.balanceOf(connectorIDLE.address);
-        console.log('Balance idleUsdc: ' + balance);
+        console.log('Balance idleUsdc: ' + fromIdle(balance));
 
         await ethers.provider.send("evm_mine", [1649121419]);
 
         await connectorIDLE.unstake(usdc.address, balance, vault.address);
         balance = await usdc.balanceOf(connectorIDLE.address);
-        console.log('Balance usdc: ' + balance);
+        console.log('Balance usdc: ' + fromUSDC(balance));
         balance = await wMatic.balanceOf(connectorIDLE.address);
-        console.log('Balance wMatic: ' + balance);
+        console.log('Balance wMatic: ' + fromWmatic(balance));
         balance = await usdc.balanceOf(vault.address);
-        console.log('Balance vault usdc: ' + balance);
+        console.log('Balance vault usdc: ' + fromUSDC(balance));
         balance = await wMatic.balanceOf(vault.address);
-        console.log('Balance vault wMatic: ' + balance);
+        console.log('Balance vault wMatic: ' + fromWmatic(balance));
     });
 
 });

@@ -7,6 +7,7 @@ import OverNightToken from "../../contracts/OvernightToken.json";
 import PortfolioManager from "../../contracts/PortfolioManager.json";
 import ConnectorAAVE from "../../contracts/ConnectorAAVE.json";
 import ConnectorCurve from "../../contracts/ConnectorCurve.json";
+import ConnectorIDLE from "../../contracts/ConnectorIDLE.json";
 import Mark2Market from "../../contracts/Mark2Market.json";
 import contract from "@truffle/contract";
 
@@ -149,6 +150,7 @@ const actions = {
 
         _load(ConnectorAAVE, web3, '0xd05e3E715d945B59290df0ae8eF85c1BdB684744')
         _load(ConnectorCurve, web3)
+        _load(ConnectorIDLE, web3)
         _load(Mark2Market, web3)
 
         commit('setContracts', contracts)

@@ -91,6 +91,15 @@
                       <p>Result: {{ item.am3CRV.result }}</p>
                     </div>
                   </template>
+
+                  <template v-slot:item.idleUSDC="{ item }">
+                    <div v-if="item.idleUSDC">
+                      <p>Before: {{ item.idleUSDC.before }}</p>
+                      <p>After: {{ item.idleUSDC.after }}</p>
+                      <p>Result: {{ item.idleUSDC.result }}</p>
+                    </div>
+                  </template>
+
                 </v-data-table>
               </v-card-text>
             </v-card>
@@ -152,6 +161,7 @@ export default {
       {text: "USDC", value: 'usdc'},
       {text: "amUSDC", value: 'amUSDC'},
       {text: "am3CRV", value: 'am3CRV'},
+      {text: "idleUSDC", value: 'idleUSDC'},
     ],
     logs: [],
     block: null,
@@ -195,6 +205,9 @@ export default {
 
     getContractName(address) {
 
+      if (address === '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1') {
+        return 'idleUSDC';
+      }
 
       if (address === '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174') {
         return 'USDC';
@@ -353,6 +366,23 @@ export default {
           item.amUSDC = amUSDC;
         }
 
+
+        event = log.events.find(value => value.value === 'idleUSDC');
+
+        if (event) {
+
+          let find = log.events.find(value => value.name === 'beforeAmount');
+
+          let idleUSDC = {}
+          idleUSDC.before = find.value / 10 ** 6;
+
+          find = log.events.find(value => value.name === 'afterAmount');
+          idleUSDC.after = find.value / 10 ** 6;
+
+          idleUSDC.result = idleUSDC.after - idleUSDC.before;
+
+          item.idleUSDC = idleUSDC;
+        }
 
       }
 
