@@ -24,6 +24,8 @@ describe("Governance", function () {
     let govToken;
     let account;
     let governator;
+    let timeLock;
+    let govTimeLock;
 
     beforeEach(async () => {
         await deployments.fixture(['Governance']);
@@ -34,6 +36,7 @@ describe("Governance", function () {
 
         govToken = await ethers.getContract('GovToken');
         governator = await ethers.getContract('OvnGovernorBravo');
+        timeLock = await ethers.getContract('TimelockController');
     });
 
 
@@ -81,7 +84,7 @@ describe("Governance", function () {
 
     it("Vote", async function () {
 
-        let votes = ethers.utils.parseUnits("10100.0", 18);
+        let votes = ethers.utils.parseUnits("100.0", 18);
         await govToken.mint(account, votes);
 
         await govToken.delegate(account)
@@ -145,17 +148,32 @@ describe("Governance", function () {
         let proposal =await governator.proposals(proposalId);
         console.log('Proposal: ' + JSON.stringify(proposal))
 
+
+        // let role = await  timeLock.PROPOSER_ROLE();
+        // console.log('PROPOSER_ROLE: ' + role)
+        // console.log('Governor: ' + governator.address)
+        // await timeLock.grantRole(role, governator.address)
+
         await governator.queueTest(proposalId);
-        // await governator.execute(
-        //     [govToken.address],
-        //     [0],
-        //     [newProposal.transferCalldata],
-        //     newProposal.descriptionHash,
-        // );
+        state =await governator.state(proposalId);
+        console.log('State: ' + proposalStates[state])
 
+        // role = await  timeLock.EXECUTOR_ROLE();
+        // console.log('EXECUTOR_ROLE: ' + role)
+        // console.log('Governor: ' + governator.address)
+        // await timeLock.grantRole(role, governator.address)
 
-        console.log('votes:             ' + await await govToken.getVotes(account))
+        for (let i = 0; i < 5; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
 
+        console.log('before votes:             ' + await govToken.getVotes(account))
+        await governator.executeTest(proposalId);
+        console.log('after votes:             ' + await govToken.getVotes(account))
+
+        let number = await govToken.getVotes(account) / 10 ** 18;
+        expect(number).to.eq(600)
     })
 
 });

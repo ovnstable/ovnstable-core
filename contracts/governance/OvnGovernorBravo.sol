@@ -115,6 +115,10 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
         return super.queue(proposalId);
     }
 
+    function executeTest(uint256 proposalId) public {
+        super.execute(proposalId);
+    }
+
     function _executor()
     internal
     view
