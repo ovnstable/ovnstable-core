@@ -30,6 +30,7 @@ describe("Governance", function () {
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
+        console.log('Account ' + account)
 
         govToken = await ethers.getContract('GovToken');
         governator = await ethers.getContract('OvnGovernorBravo');
@@ -80,12 +81,8 @@ describe("Governance", function () {
 
     it("Vote", async function () {
 
-        // Distribute governance tokens
         let votes = ethers.utils.parseUnits("10100.0", 18);
         await govToken.mint(account, votes);
-        // await govToken.connect(userA).mint(userA.address, votes);
-        // await govToken.connect(userB).mint(userB.address, votes);
-        // await govToken.connect(userC).mint(userC.address, votes);
 
         await govToken.delegate(account)
 
@@ -101,7 +98,8 @@ describe("Governance", function () {
             descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
         };
 
-        const proposeTx = await governator.propose(
+        console.log(governator)
+        const proposeTx = await governator.proposeTest(
             [govToken.address],
             [0],
             [newProposal.transferCalldata],
@@ -121,7 +119,6 @@ describe("Governance", function () {
         console.log('ProposalID ' + proposalId)
         await governator.castVote(proposalId, forVotes);
 
-        votes = await governator.proposalVotes(proposalId);
 
         console.log('Votes: ' + votes)
 
@@ -145,13 +142,20 @@ describe("Governance", function () {
         state =await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
 
+        let proposal =await governator.proposals(proposalId);
+        console.log('Proposal: ' + JSON.stringify(proposal))
 
-        await governator.execute(
-            [govToken.address],
-            [0],
-            [newProposal.transferCalldata],
-            newProposal.descriptionHash,
-        );
+        await governator.queueTest(proposalId);
+        // await governator.execute(
+        //     [govToken.address],
+        //     [0],
+        //     [newProposal.transferCalldata],
+        //     newProposal.descriptionHash,
+        // );
+
+
+        console.log('votes:             ' + await await govToken.getVotes(account))
+
     })
 
 });
