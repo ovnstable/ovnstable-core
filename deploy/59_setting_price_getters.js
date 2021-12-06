@@ -63,13 +63,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         priceGetter: wMaticPriceGetter.address
     }
     let assetInfos = [
-        idleUsdcAssetInfo,
         usdcAssetInfo,
         aUsdcAssetInfo,
         a3CrvAssetInfo,
         a3CrvGaugeAssetInfo,
         crvAssetInfo,
-        wMaticAssetInfo
+        wMaticAssetInfo,
+        idleUsdcAssetInfo,
     ]
     let result = await portfolio.setAssetInfos(assetInfos);
     console.log("portfolio.setAssetInfos done");
