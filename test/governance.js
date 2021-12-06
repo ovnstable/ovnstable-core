@@ -14,7 +14,7 @@ chai.use(smock.matchers);
 
 let againstVotes = 0;
 let forVotes = 1;
-let abstainVotes=2;
+let abstainVotes = 2;
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
@@ -40,60 +40,15 @@ describe("Governance", function () {
     });
 
 
-    // it("Test", async function () {
-    //
-    //     let tokenAddress = govToken.address;
-    //
-    //     console.log('Gov token address: ' + tokenAddress)
-    //     let transferCalldata = govToken.interface.encodeFunctionData('mint', [account, ethers.BigNumber.from('1000000000000000000000')])
-    //
-    //
-    //     await govToken.mint(account, ethers.BigNumber.from("1000000000000000000000"));
-    //     let balanceOf = await govToken.balanceOf(account);
-    //
-    //     await govToken.delegate(account)
-    //     console.log('Balance govToken: ' + balanceOf);
-    //     await ethers.provider.send("evm_mine")
-    //
-    //     let number = await ethers.provider.getBlockNumber();
-    //     console.log('Block number: ' + number)
-    //     await ethers.provider.send("evm_increaseTime", [3600])
-    //     await ethers.provider.send("evm_mine")
-    //     await ethers.provider.send("evm_mine")
-    //     await ethers.provider.send("evm_mine")
-    //
-    //     console.log('proposalThreshold: ' + await governator.proposalThreshold())
-    //
-    //     let votes = await governator.getVotes(account, number);
-    //     console.log('Votes: ' + votes)
-    //
-    //     votes = await govToken.getVotes(account);
-    //     console.log('Votes: ' + votes)
-    //
-    //
-    //     let id = await governator.propose([tokenAddress], [0], [transferCalldata], 'Proposal #1: Give grant to team');
-    //
-    //     let newVar = await id.wait();
-    //     balanceOf = await govToken.balanceOf(account);
-    //     console.log('Balance govToken: ' + balanceOf);
-    //
-    //     console.log('ProposeId ' + JSON.stringify(newVar))
-    //
-    //
-    // });
-
-    it("Vote", async function () {
+    it("Create propose -> voting -> success -> queue -> executed", async function () {
 
         let votes = ethers.utils.parseUnits("100.0", 18);
         await govToken.mint(account, votes);
-
         await govToken.delegate(account)
 
-       console.log('proposalThreshold: ' + await governator.proposalThreshold())
-       console.log('votes:             ' + await await govToken.getVotes(account))
+        console.log('proposalThreshold: ' + await governator.proposalThreshold())
+        console.log('votes:             ' + await await govToken.getVotes(account))
 
-
-// Create new proposal
         const grant = ethers.utils.parseUnits("500.0", 18);
         const newProposal = {
             grantAmount: grant,
@@ -101,7 +56,6 @@ describe("Governance", function () {
             descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
         };
 
-        console.log(governator)
         const proposeTx = await governator.proposeTest(
             [govToken.address],
             [0],
@@ -114,14 +68,13 @@ describe("Governance", function () {
         const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
 
 
-        let state =await governator.state(proposalId);
+        let state = await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
         console.log('Voting delay: ' + await governator.votingPeriod());
 
 
         console.log('ProposalID ' + proposalId)
         await governator.castVote(proposalId, forVotes);
-
 
         console.log('Votes: ' + votes)
 
@@ -132,7 +85,7 @@ describe("Governance", function () {
             await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
         }
 
-        state =await governator.state(proposalId);
+        state = await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
 
 
@@ -142,35 +95,25 @@ describe("Governance", function () {
         console.log('Current block:  ' + await ethers.provider.getBlockNumber())
         console.log('Deadline block: ' + await governator.proposalDeadline(proposalId))
 
-        state =await governator.state(proposalId);
+        state = await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
 
-        let proposal =await governator.proposals(proposalId);
+        let proposal = await governator.proposals(proposalId);
         console.log('Proposal: ' + JSON.stringify(proposal))
 
-
-        // let role = await  timeLock.PROPOSER_ROLE();
-        // console.log('PROPOSER_ROLE: ' + role)
-        // console.log('Governor: ' + governator.address)
-        // await timeLock.grantRole(role, governator.address)
-
         await governator.queueTest(proposalId);
-        state =await governator.state(proposalId);
+        state = await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
 
-        // role = await  timeLock.EXECUTOR_ROLE();
-        // console.log('EXECUTOR_ROLE: ' + role)
-        // console.log('Governor: ' + governator.address)
-        // await timeLock.grantRole(role, governator.address)
 
         for (let i = 0; i < 5; i++) {
             await ethers.provider.send("evm_increaseTime", [sevenDays])
             await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
         }
 
-        console.log('before votes:             ' + await govToken.getVotes(account))
+        console.log('before votes:' + await govToken.getVotes(account))
         await governator.executeTest(proposalId);
-        console.log('after votes:             ' + await govToken.getVotes(account))
+        console.log('after votes:' + await govToken.getVotes(account))
 
         let number = await govToken.getVotes(account) / 10 ** 18;
         expect(number).to.eq(600)
