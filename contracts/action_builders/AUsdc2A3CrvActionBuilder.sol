@@ -65,7 +65,7 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
                 break;
             }
         }
-        require(foundDependencyAction, "Required action not in action list, check calc ordering");
+        require(foundDependencyAction, "AUsdc2A3CrvActionBuilder: Required action not in action list, check calc ordering");
 
         // use aUsdc diff to start calc diff
         int256 diff = aUsdcPrices.diffToTarget;

@@ -50,22 +50,22 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that usdc is leaf in tree and we can use this value
-        int256 diff = usdcPrices.diffToTarget;
+        int256 diff = idleUsdcPrices.diffToTarget;
 
         uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (usdcPrices.targetIsZero || diff < 0) {
+        if (idleUsdcPrices.targetIsZero || diff < 0) {
             amount = uint256(- diff);
-            from = usdcToken;
-            to = idleUsdcToken;
-            targetIsZero = usdcPrices.targetIsZero;
-        } else {
-            amount = uint256(diff);
             from = idleUsdcToken;
             to = usdcToken;
             targetIsZero = idleUsdcPrices.targetIsZero;
+        } else {
+            amount = uint256(diff);
+            from = usdcToken;
+            to = idleUsdcToken;
+            targetIsZero = usdcPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(
