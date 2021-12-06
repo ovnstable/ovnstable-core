@@ -7,7 +7,7 @@ import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
 contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
-    bytes32 constant ACTION_CODE = keccak256("Usc2IdleUsdc");
+    bytes32 constant ACTION_CODE = keccak256("Usdc2IdleUsdc");
 
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
