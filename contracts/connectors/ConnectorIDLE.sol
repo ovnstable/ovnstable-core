@@ -21,10 +21,9 @@ contract ConnectorIDLE is IConnector, Ownable {
         uint256 _amount,
         address _beneficiar
     ) public override {
-        console.log("Trying to stake %s tokens with amount %s to %s", _asset, _amount, _beneficiar);
         IERC20(_asset).approve(address(idleToken), _amount);
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, _beneficiar);
-        console.log("mintedTokens %s", mintedTokens);
+        IERC20(address (idleToken)).transfer(_beneficiar, mintedTokens);
     }
 
     function unstake(
@@ -32,10 +31,8 @@ contract ConnectorIDLE is IConnector, Ownable {
         uint256 _amount,
         address _beneficiar
     ) public override returns (uint256) {
-        console.log("Trying to unstake %s tokens with amount %s to %s", _asset, _amount, _beneficiar);
         uint256 redeemedTokens = idleToken.redeemIdleToken(_amount);
         IERC20(_asset).transfer(_beneficiar, redeemedTokens);
-        console.log("redeemedTokens %s", redeemedTokens);
         return redeemedTokens;
     }
 
