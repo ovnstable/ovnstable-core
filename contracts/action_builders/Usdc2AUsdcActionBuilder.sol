@@ -12,19 +12,23 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
+    IActionBuilder public usdc2IdleUsdcActionBuilder;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _aUsdcToken
+        address _aUsdcToken,
+        address _usdc2IdleUsdcActionBuilder
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
+        require(_usdc2IdleUsdcActionBuilder != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
+        usdc2IdleUsdcActionBuilder = IActionBuilder(_usdc2IdleUsdcActionBuilder);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -49,8 +53,31 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
             }
         }
 
-        // because we know that usdc is leaf in tree and we can use this value
+        // get diffUsdc2IdleUsdc to correct current diff
+        ExchangeAction memory usdc2IdleUsdcAction;
+        bytes32 usdc2IdleUsdcActionCode = usdc2IdleUsdcActionBuilder.getActionCode();
+        bool foundDependencyAction = false;
+        for (uint8 i = 0; i < actions.length; i++) {
+            // here we need USDC diff to make action right
+            if (actions[i].code == usdc2IdleUsdcActionCode) {
+                usdc2IdleUsdcAction = actions[i];
+                foundDependencyAction = true;
+                break;
+            }
+        }
+        require(foundDependencyAction, "Usdc2AUsdcActionBuilder: Required action not in action list, check calc ordering");
+
+        // use usdc diff to start calc diff
         int256 diff = usdcPrices.diffToTarget;
+
+        // correct diff value by usdc2AUsdc diff
+        if (address(usdcToken) == address(usdc2IdleUsdcAction.to)) {
+            // if in action move usdc->usdcIdle then we should decrease diff (sub)
+            diff = diff - int256(usdc2IdleUsdcAction.amount);
+        } else {
+            // if in action move usdcIdle->usdc then we should increase diff (add)
+            diff = diff + int256(usdc2IdleUsdcAction.amount);
+        }
 
         uint256 amount;
         IERC20 from;

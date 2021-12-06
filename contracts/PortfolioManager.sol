@@ -9,6 +9,7 @@ import "./interfaces/IActionBuilder.sol";
 import "./interfaces/IRewardManager.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
+import "hardhat/console.sol";
 
 contract PortfolioManager is IPortfolioManager, AccessControl {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -152,8 +153,10 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
             someActionExecuted = false;
             for (uint8 i = 0; i < actionOrder.length; i++) {
                 IActionBuilder.ExchangeAction memory action = actionOrder[i];
+                console.log("from %s to %s amount %s", IERC20Metadata(address(action.from)).symbol(), IERC20Metadata(address(action.to)).symbol(), action.amount);
                 if (action.executed) {
                     // Skip already executed
+                    console.log("executed from %s to %s amount %s", IERC20Metadata(address(action.from)).symbol(), IERC20Metadata(address(action.to)).symbol(), action.amount);
                     continue;
                 }
                 uint256 amount = action.amount;
@@ -172,11 +175,14 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 //TODO: recheck, may be denormalizedAmount should be checked
                 if (amount == 0) {
                     // Skip zero amount action
+                    console.log("amount=0 from %s to %s amount %s", IERC20Metadata(address(action.from)).symbol(), IERC20Metadata(address(action.to)).symbol(), action.amount);
                     continue;
                 }
 
                 if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
                     // Skip not enough balance for execute know
+                    console.log("balanceOf from %s to %s amount %s", IERC20Metadata(address(action.from)).symbol(), IERC20Metadata(address(action.to)).symbol(), action.amount);
+                    console.log("balance %s denormalizedAmount %s amount %s", action.from.balanceOf(address(vault)), denormalizedAmount, action.amount);
                     continue;
                 }
 
@@ -191,6 +197,8 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                     amount
                 );
                 action.executed = true;
+
+                console.log("exchange from %s to %s amount %s", IERC20Metadata(address(action.from)).symbol(), IERC20Metadata(address(action.to)).symbol(), action.amount);
 
                 emit Exchanged(amount, address(action.from), address(action.to));
 

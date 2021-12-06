@@ -10,6 +10,16 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
+
+async function showBalances(assets, ownerAddress) {
+    for (let i = 0; i < assets.length; i++) {
+        let asset = assets[i];
+        // let meta = await ethers.getContractAt(ERC20Metadata.abi, asset.address);
+        // let symbol = await meta.symbol();
+        console.log(`Balance: ${asset.address}: ` + (await asset.balanceOf(ownerAddress) ));
+    }
+}
+
 describe("Payout roll", function () {
 
 
@@ -19,6 +29,7 @@ describe("Payout roll", function () {
     let account;
     let pm;
     let m2m;
+    let vault;
 
     before(async () => {
         // need to run inside IDEA via node script running
@@ -32,6 +43,7 @@ describe("Payout roll", function () {
         ovn = await ethers.getContract("OvernightToken");
         pm = await ethers.getContract("PortfolioManager");
         m2m = await ethers.getContract("Mark2Market");
+        vault = await ethers.getContract("Vault");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
         // const pmMock = await smock.fake(pm);
@@ -39,6 +51,25 @@ describe("Payout roll", function () {
     });
 
     it("Mint OVN and payout", async function () {
+
+        let idleUSDC = await ethers.getContractAt("ERC20", '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
+        let USDC = await ethers.getContractAt("ERC20", '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
+        let amUSDC = await ethers.getContractAt("ERC20", '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
+        let am3CRV = await ethers.getContractAt("ERC20", '0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
+        let am3CRVGauge = await ethers.getContractAt("ERC20", '0x19793b454d3afc7b454f206ffe95ade26ca6912c');
+        let CRV = await ethers.getContractAt("ERC20", '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
+        let wmatic = await ethers.getContractAt("ERC20", '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
+
+        let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+
+
+        console.log("---  " + "User " + account + ":");
+        await showBalances(assetsForLog, account);
+        console.log("---------------------");
+
+        console.log("---  " + "Vault " + vault.address + ":");
+        await showBalances(assetsForLog, vault.address);
+        console.log("---------------------");
 
 
         const sum = toUSDC(100);
@@ -54,12 +85,31 @@ describe("Payout roll", function () {
         console.log('Balance ovn: ' + balance)
         // expect(balance).to.greaterThanOrEqual(99.96);
 
+        console.log("---  " + "User " + account + ":");
+        await showBalances(assetsForLog, account);
+        console.log("---------------------");
+
+        console.log("---  " + "Vault " + vault.address + ":");
+        await showBalances(assetsForLog, vault.address);
+        console.log("---------------------");
+
+
         await usdc.approve(exchange.address, sum);
 
         result = await exchange.buy(assets.usdc, sum);
         console.log("Buy done, wait for result")
         waitResult = await result.wait();
         console.log("Gas used for buy 2: " + waitResult.gasUsed);
+
+
+        console.log("---  " + "User " + account + ":");
+        await showBalances(assetsForLog, account);
+        console.log("---------------------");
+
+        console.log("---  " + "Vault " + vault.address + ":");
+        await showBalances(assetsForLog, vault.address);
+        console.log("---------------------");
+
 
         balance = fromOvn(await ovn.balanceOf(account));
         console.log('Balance ovn: ' + balance)
@@ -83,6 +133,16 @@ describe("Payout roll", function () {
         console.log('Balance ovn: ' + balance)
         balance = fromOvn(await usdc.balanceOf(account));
         console.log('Balance usdc: ' + balance)
+
+
+        console.log("---  " + "User " + account + ":");
+        await showBalances(assetsForLog, account);
+        console.log("---------------------");
+
+        console.log("---  " + "Vault " + vault.address + ":");
+        await showBalances(assetsForLog, vault.address);
+        console.log("---------------------");
+
 
     });
 

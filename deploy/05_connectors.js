@@ -14,6 +14,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [],
         log: true,
     });
+
+    await deploy('ConnectorIDLE', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
 };
 
 module.exports.tags = ['base','Connectors'];
