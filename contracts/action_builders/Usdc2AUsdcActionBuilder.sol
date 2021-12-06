@@ -71,7 +71,7 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         int256 diff = usdcPrices.diffToTarget;
 
         // correct diff value by usdc2AUsdc diff
-        if (address(usdcToken) == address(usdc2IdleUsdcAction.from)) {
+        if (address(usdcToken) == address(usdc2IdleUsdcAction.to)) {
             // if in action move usdc->usdcIdle then we should decrease diff (sub)
             diff = diff - int256(usdc2IdleUsdcAction.amount);
         } else {
