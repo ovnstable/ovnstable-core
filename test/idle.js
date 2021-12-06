@@ -42,14 +42,15 @@ describe("Idle", function () {
 
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
-        let balance = await usdc.balanceOf(connectorIDLE.address);
-        console.log('Balance usdc: ' + fromUSDC(balance));
+        let balance = fromUSDC(await usdc.balanceOf(connectorIDLE.address));
+        console.log('Balance usdc: ' + balance);
+
         await connectorIDLE.stake(usdc.address, sum, vault.address);
         balance = fromIdle(await idleUsdc.balanceOf(vault.address));
-        console.log('Balance idleUsdc: ' + fromIdle(balance));
+        console.log('Balance idleUsdc: ' + balance);
 
         let fixedBalance = Number.parseFloat(balance).toFixed(0);
-        expect(fixedBalance).to.equal('96')
+        expect(fixedBalance).to.equal('98')
 
     });
 
@@ -57,7 +58,12 @@ describe("Idle", function () {
 
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
+        let balance = await usdc.balanceOf(connectorIDLE.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
         await connectorIDLE.stake(usdc.address, sum, vault.address);
+        balance = fromIdle(await idleUsdc.balanceOf(vault.address));
+        console.log('Balance idleUsdc: ' + balance);
 
         const sevenDays = 7 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [sevenDays])
@@ -71,9 +77,11 @@ describe("Idle", function () {
         expect(fromUSDC(await idleUsdc.balanceOf(vault.address))).to.equal(0);
 
         await connectorIDLE.unstake(usdc.address, (await idleUsdc.balanceOf(connectorIDLE.address)), vault.address);
+        balance = fromUSDC(await usdc.balanceOf(vault.address));
+        console.log('Balance usdc: ' + balance);
 
-        let balance = Number.parseFloat(fromUSDC(await usdc.balanceOf(vault.address))).toFixed(0);
-        expect(balance).to.equal('100')
+        let fixedBalance = Number.parseFloat(balance).toFixed(0);
+        expect(fixedBalance).to.equal('100')
 
 
     });
