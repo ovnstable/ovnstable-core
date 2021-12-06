@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
+let idleToken = "0x1ee6470CD75D5686d0b2b90C0305Fa46fb0C89A1";
 
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
@@ -18,6 +19,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const wMaticPriceGetter = await ethers.getContract('WMaticPriceGetter');
 
     // setup price getters
+    await idleUsdcPriceGetter.setIdleToken(idleToken);
+    console.log("idleUsdcPriceGetter.setIdleToken done");
+
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
     console.log("a3CrvPriceGetter.setPool done");
 
