@@ -4,6 +4,7 @@ const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {FakeContract, smock} = require("@defi-wonderland/smock");
 
 let decimals = require('../utils/decimals');
+const hre = require("hardhat");
 
 const fs = require("fs");
 const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
@@ -28,6 +29,8 @@ describe("Governance", function () {
     let govTimeLock;
 
     beforeEach(async () => {
+        await hre.run("compile");
+
         await deployments.fixture(['Governance']);
 
         const {deployer} = await getNamedAccounts();
