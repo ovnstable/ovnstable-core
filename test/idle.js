@@ -7,6 +7,7 @@ let decimals = require('../utils/decimals');
 
 const fs = require("fs");
 const {fromIdle, toIdle, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -22,7 +23,12 @@ describe("Idle", function () {
     let wMatic;
 
     beforeEach(async () => {
-        await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
+
+        await deployments.fixture(['Setting','setting','base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'OvernightToken', 'SettingExchange', 'SettingOvn', 'BuyUsdc']);
+
+        // await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -49,8 +55,7 @@ describe("Idle", function () {
         balance = fromIdle(await idleUsdc.balanceOf(vault.address));
         console.log('Balance idleUsdc: ' + balance);
 
-        let fixedBalance = Number.parseFloat(balance).toFixed(0);
-        expect(fixedBalance).to.equal('98')
+        expect(balance).to.greaterThanOrEqual(98);
 
     });
 
@@ -80,8 +85,7 @@ describe("Idle", function () {
         balance = fromUSDC(await usdc.balanceOf(vault.address));
         console.log('Balance usdc: ' + balance);
 
-        let fixedBalance = Number.parseFloat(balance).toFixed(0);
-        expect(fixedBalance).to.equal('100')
+        expect(balance).to.greaterThanOrEqual(100);
 
 
     });
