@@ -41,10 +41,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await controller.grantRole(role, governor.address)
     console.log('Grant executor role to governor - done');
 
-
-    let votes = ethers.utils.parseUnits("100.0", 18);
-    await token.mint(deployer, votes);
-
 };
 
 module.exports.tags = ['base','Governance'];

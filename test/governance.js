@@ -7,7 +7,7 @@ let decimals = require('../utils/decimals');
 const hre = require("hardhat");
 
 const fs = require("fs");
-const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic, fromOvnGov} = require("../utils/decimals");
 const {load} = require("dotenv");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
@@ -42,6 +42,47 @@ describe("Governance", function () {
     });
 
 
+    it("Overview", async function () {
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await govToken.mint(account, votes);
+
+        let totalSupply = fromOvnGov(await govToken.totalSupply());
+        expect(totalSupply).to.eq(100);
+
+        await govToken.delegate(account)
+        let totalDelegated = fromOvnGov(await govToken.getVotes(account))
+        expect(totalDelegated).to.eq(100);
+
+    });
+
+
+    it("Create propose -> call: proposals", async function () {
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await govToken.mint(account, votes);
+        await govToken.delegate(account)
+
+        const grant = ethers.utils.parseUnits("500.0", 18);
+        const newProposal = {
+            grantAmount: grant,
+            transferCalldata: govToken.interface.encodeFunctionData('mint', [account, grant]),
+            descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
+        };
+
+       await governator.proposeExec(
+            [govToken.address],
+            [0],
+            [newProposal.transferCalldata],
+            newProposal.descriptionHash,
+        );
+
+
+        let ids = await governator.getProposals();
+        expect(ids.length).to.eq(1)
+        console.log('ID: ' + ids[0])
+    });
+
     it("Create propose -> voting -> success -> queue -> executed", async function () {
 
         let votes = ethers.utils.parseUnits("100.0", 18);
@@ -49,7 +90,7 @@ describe("Governance", function () {
         await govToken.delegate(account)
 
         console.log('proposalThreshold: ' + await governator.proposalThreshold())
-        console.log('votes:             ' + await await govToken.getVotes(account))
+        console.log('votes:             ' + await govToken.getVotes(account))
 
         const grant = ethers.utils.parseUnits("500.0", 18);
         const newProposal = {

@@ -36,16 +36,29 @@ const getters = {
 
 const actions = {
 
+    async minting({commit, dispatch, getters, rootState}, request) {
+
+        let govToken = rootState.web3.contracts.govToken;
+        let account = rootState.web3.account;
+        let params = {from: account};
+        let result = await govToken.methods.mint(request.account, request.sum).send(params);
+    },
+
 
     async getOverview({commit, dispatch, getters, rootState}) {
 
         commit('setOverviewLoading', true);
 
         let govToken = rootState.web3.contracts.govToken;
+        let governor = rootState.web3.contracts.governor;
         let totalVotes = await govToken.methods.totalSupply().call() / 10 ** 18;
+        let totalDelegated = await govToken.methods.getVotes(rootState.web3.account).call() / 10 ** 18;
+        let totalProposals = await governor.methods.getProposals().call();
 
         let overview = {
             totalVotes: totalVotes,
+            totalDelegated: totalDelegated,
+            totalProposals: totalProposals.length
         }
         commit('setOverview', overview);
 

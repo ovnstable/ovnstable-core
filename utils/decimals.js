@@ -20,5 +20,8 @@ module.exports = {
     froAm3CRV: (value) => value / 10 ** 18,
 
     toIdle: (value) => value * 10 ** 18,
-    fromIdle: (value) => value / 10 ** 18
+    fromIdle: (value) => value / 10 ** 18,
+
+    toOvnGov: (value) => value * 10 ** 18,
+    fromOvnGov: (value) => value / 10 ** 18
 }

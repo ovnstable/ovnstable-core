@@ -17,7 +17,12 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     GovernorTimelockControl(_timelock)
     {}
 
-    // The following functions are overrides required by Solidity.
+
+    uint256[] private _proposalsIds;
+
+    function getProposals() public view returns (uint256[] memory){
+        return _proposalsIds;
+    }
 
     function votingDelay()
     public
@@ -68,7 +73,9 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     public
     returns (uint256)
     {
-        return super.propose(targets, values, calldatas, description);
+        uint256 id = super.propose(targets, values, calldatas, description);
+        _proposalsIds.push(id);
+        return id;
     }
 
     function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
