@@ -12,13 +12,21 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const m2m = await ethers.getContract("Mark2Market");
     const pm = await ethers.getContract("PortfolioManager");
 
-    await exchange.setTokens(ovn.address, assets.usdc);
+    console.log("exchange.setToken: ovn " + ovn.address + " usdc: " + assets.usdc);
+    let tx = await exchange.setTokens(ovn.address, assets.usdc);
+    await tx.wait();
     console.log("exchange.setTokens done");
 
     // setup exchange
-    await exchange.setPortfolioManager(pm.address);
+    console.log("exchange.setPortfolioManager: " + pm.address);
+    tx = await exchange.setPortfolioManager(pm.address);
+    await tx.wait();
     console.log("exchange.setPortfolioManager done")
-    await exchange.setMark2Market(m2m.address);
+
+
+    console.log("exchange.setMark2Market: " + m2m.address);
+    tx = await exchange.setMark2Market(m2m.address);
+    await tx.wait();
     console.log("exchange.setMark2Market done")
 
 };

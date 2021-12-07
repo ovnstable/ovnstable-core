@@ -12,13 +12,20 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const connCurve = await ethers.getContract("ConnectorCurve");
     const connIDLE = await ethers.getContract("ConnectorIDLE");
 
-    await connAAVE.setLpap(aaveAddress);
+
+    console.log("connAAVE.setLpap: " + aaveAddress);
+    let tx = await connAAVE.setLpap(aaveAddress);
+    await tx.wait();
     console.log("connAAVE.setLpap done");
 
-    await connCurve.setPool(aCurvepoolStake);
+    console.log("connCurve.setPool: " + aCurvepoolStake);
+    tx =await connCurve.setPool(aCurvepoolStake);
+    await tx.wait();
     console.log("connCurve.setPool done");
 
-    await connIDLE.setIdleToken(idleToken);
+    console.log("connIDLE.setIdleToken: " + idleToken);
+    tx = await connIDLE.setIdleToken(idleToken);
+    await tx.wait();
     console.log("connIDLE.setIdleToken done");
 };
 

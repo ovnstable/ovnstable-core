@@ -60,7 +60,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         wMaticWeight,
         crvWeight
     ]
-    let result = await portfolio.setWeights(weights);
+
+    console.log('portfolio.setWeights: ' + JSON.stringify(weights))
+    let tx = await portfolio.setWeights(weights);
+    await tx.wait();
     console.log("portfolio.setWeights done");
 
 };

@@ -75,7 +75,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         wMaticAssetInfo,
         idleUsdcAssetInfo,
     ]
-    let result = await portfolio.setAssetInfos(assetInfos);
+
+    console.log("portfolio.setAssetInfo: " + JSON.stringify(assetInfos));
+    let tx = await portfolio.setAssetInfos(assetInfos);
+    await tx.wait();
     console.log("portfolio.setAssetInfos done");
 
 };

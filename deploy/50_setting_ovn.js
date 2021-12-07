@@ -8,8 +8,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const ovn = await ethers.getContract("OvernightToken");
     const exchange = await ethers.getContract("Exchange");
 
+    console.log('ovn.setExchanger: ' + exchange.address)
     let tx = await ovn.setExchanger(exchange.address);
-    console.log("ovn.setExchanger done: " + JSON.stringify(tx))
+    await tx.wait();
+    console.log("ovn.setExchanger done")
 
 };
 
