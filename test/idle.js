@@ -6,7 +6,8 @@ const {FakeContract, smock} = require("@defi-wonderland/smock");
 let decimals = require('../utils/decimals');
 
 const fs = require("fs");
-const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const {fromIdle, toIdle, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -22,7 +23,12 @@ describe("Idle", function () {
     let wMatic;
 
     beforeEach(async () => {
-        await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
+
+        await deployments.fixture(['Setting','setting','base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'OvernightToken', 'SettingExchange', 'SettingOvn', 'BuyUsdc']);
+
+        // await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -33,56 +39,55 @@ describe("Idle", function () {
         idleUsdc = await ethers.getContractAt("ERC20", assets.idleUsdc);
         wMatic = await ethers.getContractAt("ERC20", assets.wMatic);
 
-        vault.setPortfolioManager(vault.address);
+        vault.setPortfolioManager(account);
     });
 
-    /*it("Staking USDC -> idleUSDC", async function () {
+
+
+    it("Staking USDC", async function () {
+
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
+        let balance = fromUSDC(await usdc.balanceOf(connectorIDLE.address));
+        console.log('Balance usdc: ' + balance);
+
         await connectorIDLE.stake(usdc.address, sum, vault.address);
+        balance = fromIdle(await idleUsdc.balanceOf(vault.address));
+        console.log('Balance idleUsdc: ' + balance);
 
-        let balance = await idleUsdc.balanceOf(vault.address);
-        console.log('Balance idleUsdc: ' + balance)
-        expect(balance).to.equal(100);
-    });*/
+        expect(balance).to.greaterThanOrEqual(98);
 
-    it("UnStaking idleUSDC -> USDC", async function () {
+    });
+
+    it("Unstaking USDC", async function () {
+
         const sum = toUSDC(100);
         await usdc.transfer(connectorIDLE.address, sum);
-        console.log('connectorIDLE.address: ' + connectorIDLE.address)
-        console.log('vault.address: ' + vault.address)
-        console.log('Balance usdc: ' + usdc.balanceOf(connectorIDLE.address))
-        let mintedTokens = await connectorIDLE.stake(usdc.address, sum, vault.address);
-        console.log('mintedTokens: ' + mintedTokens)
+        let balance = await usdc.balanceOf(connectorIDLE.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
 
-        let balance = fromAmUSDC(await usdc.balanceOf("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"));
-        console.log('Balance idleUsdc: ' + balance)
-        expect(balance).to.equal(100);
+        await connectorIDLE.stake(usdc.address, sum, vault.address);
+        balance = fromIdle(await idleUsdc.balanceOf(vault.address));
+        console.log('Balance idleUsdc: ' + balance);
 
-        await connectorIDLE.unstake(usdc.address, sum, vault.address);
+        const sevenDays = 7 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [sevenDays])
+        await ethers.provider.send('evm_mine');
 
+        expect(fromUSDC(await usdc.balanceOf(vault.address))).to.equal(0);
+        expect(fromUSDC(await idleUsdc.balanceOf(vault.address))).not.equal(0);
+
+        await vault.transfer(idleUsdc.address, connectorIDLE.address, await idleUsdc.balanceOf(vault.address))
+
+        expect(fromUSDC(await idleUsdc.balanceOf(vault.address))).to.equal(0);
+
+        await connectorIDLE.unstake(usdc.address, (await idleUsdc.balanceOf(connectorIDLE.address)), vault.address);
         balance = fromUSDC(await usdc.balanceOf(vault.address));
-        console.log('Balance usdc: ' + balance)
-        expect(balance).to.equal(100);
+        console.log('Balance usdc: ' + balance);
+
+        expect(balance).to.greaterThanOrEqual(100);
+
+
     });
-
-    /*it("Claiming wMatic", async function () {
-        const sum = 100 * 10 ** 6;
-        await usdc.transfer(connectorIDLE.address, sum);
-        await connectorIDLE.stake(usdc.address, sum, vault.address);
-
-        let balance = fromWmatic(await wMatic.balanceOf(vault.address));
-        console.log('Balance wMatic: ' + balance)
-        expect(balance).to.equal(0);
-
-        await usdc.transfer(connectorIDLE.address, sum);
-        await connectorIDLE.stake(usdc.address, sum, vault.address);
-
-        await rm.claimRewardAave();
-
-        balance = fromWmatic(await wMatic.balanceOf(vault.address));
-        console.log('Balance wMatic: ' + balance)
-        expect(balance).to.be.above(0);
-    });*/
 
 });

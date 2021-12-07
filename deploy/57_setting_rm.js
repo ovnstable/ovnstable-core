@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
@@ -10,14 +12,20 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const rm = await ethers.getContract("RewardManager");
     const vault = await ethers.getContract("Vault");
 
-    await rm.setRewardGauge(curveGaugeAddress);
+    console.log("rm.setRewardGauge: " + curveGaugeAddress);
+    let tx = await rm.setRewardGauge(curveGaugeAddress);
+    await tx.wait();
     console.log("rm.setRewardGauge done");
 
-    await rm.setVault(vault.address);
+    console.log("rm.setVault: " + vault.address);
+    tx = await rm.setVault(vault.address);
+    await tx.wait();
     console.log("rm.setVault done");
 
-    await rm.setTokens(assets.amUsdc);
-    console.log("rm.setTokens done");
+    console.log("rm.setAUsdcToke: " + assets.amUsdc);
+    tx = await rm.setAUsdcToken(assets.amUsdc);
+    await tx.wait();
+    console.log("rm.setAUsdcToken done");
 
 };
 

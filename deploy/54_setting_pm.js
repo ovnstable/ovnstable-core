@@ -1,3 +1,4 @@
+const { ethers } = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -10,16 +11,25 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const rm = await ethers.getContract("RewardManager");
 
     // setup pm
-    await pm.setVault(vault.address);
+
+    console.log('pm.setVault: ' + vault.address)
+    let tx = await pm.setVault(vault.address);
+    await tx.wait();
     console.log("pm.setVault done");
 
-    await pm.setBalancer(balancer.address);
+    console.log('pm.setBalancer: ' + balancer.address)
+    tx = await pm.setBalancer(balancer.address);
+    await tx.wait();
     console.log("pm.setBalancer done");
 
-    await pm.setExchanger(exchange.address);
+    console.log('pm.setExchanger: ' + exchange.address)
+    tx = await pm.setExchanger(exchange.address);
+    await tx.wait();
     console.log("pm.setExchanger done");
 
-    await pm.setRewardManager(rm.address);
+    console.log('pm.setRewardManager: ' + rm.address)
+    tx = await pm.setRewardManager(rm.address);
+    await tx.wait();
     console.log("pm.setRewardManager done");
 
 };

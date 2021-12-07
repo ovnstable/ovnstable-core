@@ -42,14 +42,15 @@ contract A3Crv2A3CrvGaugeTokenExchange is ITokenExchange {
             uint256 denominator = 10**(18 - IERC20Metadata(address(a3CrvToken)).decimals());
             amount = amount / denominator;
 
+            uint256 a3CrvBalance = a3CrvToken.balanceOf(address(this));
             require(
-                a3CrvToken.balanceOf(address(this)) >= amount,
+                a3CrvBalance >= amount,
                 "A3Crv2A3CrvGaugeTokenExchange: Not enough a3CrvToken"
             );
 
             // check after denormilization
             if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
+                a3CrvToken.transfer(spender, a3CrvBalance);
                 return;
             }
 
@@ -61,26 +62,29 @@ contract A3Crv2A3CrvGaugeTokenExchange is ITokenExchange {
             uint256 denominator = 10**(18 - IERC20Metadata(address(a3CrvGaugeToken)).decimals());
             amount = amount / denominator;
 
+            uint256 a3CrvGaugeBalance = a3CrvGaugeToken.balanceOf(address(this));
             require(
-                a3CrvGaugeToken.balanceOf(address(this)) >= amount,
+                a3CrvGaugeBalance >= amount,
                 "A3Crv2A3CrvGaugeTokenExchange: Not enough a3CrvGaugeToken"
             );
 
             // check after denormilization
             if (amount == 0) {
-                from.transfer(spender, from.balanceOf(address(this)));
+                a3CrvGaugeToken.transfer(spender, a3CrvGaugeBalance);
                 return;
             }
 
             // gauge doesn't need approve on withdraw, but we should have amount token
             // on tokenExchange
             rewardGauge.withdraw(amount, false);
+
+            uint256 a3CrvBalance = a3CrvToken.balanceOf(address(this));
             require(
-                a3CrvToken.balanceOf(address(this)) >= amount,
+                a3CrvBalance >= amount,
                 "A3Crv2A3CrvGaugeTokenExchange: Not enough a3CrvToken after withdraw"
             );
             // reward gauge transfer tokens to msg.sender, so transfer to receiver
-            a3CrvToken.transfer(receiver, a3CrvToken.balanceOf(address(this)));
+            a3CrvToken.transfer(receiver, a3CrvBalance);
         }
     }
 }

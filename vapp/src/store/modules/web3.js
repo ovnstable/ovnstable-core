@@ -4,10 +4,6 @@ import abiDecoder from "../../plugins/abiDecoder";
 import Exchange from "../../contracts/Exchange.json";
 import ERC20 from "../../contracts/ERC20.json";
 import OverNightToken from "../../contracts/OvernightToken.json";
-import PortfolioManager from "../../contracts/PortfolioManager.json";
-import ConnectorAAVE from "../../contracts/ConnectorAAVE.json";
-import ConnectorCurve from "../../contracts/ConnectorCurve.json";
-import Mark2Market from "../../contracts/Mark2Market.json";
 import contract from "@truffle/contract";
 
 import OvnImage from '../../assets/ovn.json';
@@ -144,12 +140,6 @@ const actions = {
         contracts.usdc = _load(ERC20, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
         contracts.dai = _load(ERC20, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
         contracts.ovn = _load(OverNightToken, web3);
-        contracts.m2m = _load(Mark2Market, web3);
-        contracts.pm = _load(PortfolioManager, web3);
-
-        _load(ConnectorAAVE, web3, '0xd05e3E715d945B59290df0ae8eF85c1BdB684744')
-        _load(ConnectorCurve, web3)
-        _load(Mark2Market, web3)
 
         commit('setContracts', contracts)
     },

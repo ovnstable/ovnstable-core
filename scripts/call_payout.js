@@ -11,6 +11,8 @@ let secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 
 
 async function main() {
+    // need to run inside IDEA via node script running
+    await hre.run("compile");
 
     const [owner] = await ethers.getSigners();
 
@@ -27,6 +29,7 @@ async function main() {
     let vault = await ethers.getContract("Vault");
     let exchange = await ethers.getContract("Exchange");
 
+    let idleUSDC = await ethers.getContractAt(ERC20.abi, '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     let amUSDC = await ethers.getContractAt(ERC20.abi, '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
     let am3CRV = await ethers.getContractAt(ERC20.abi, '0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
@@ -34,13 +37,13 @@ async function main() {
     let CRV = await ethers.getContractAt(ERC20.abi, '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
     let wmatic = await ethers.getContractAt(ERC20.abi, '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
 
-    let assets = [USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+    let assets = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
 
-    console.log("---  " + "User" + owner.address + ":");
+    console.log("---  " + "User " + owner.address + ":");
     await showBalances(assets, owner.address);
     console.log("---------------------");
 
-    console.log("---  " + "Vault" + vault.address + ":");
+    console.log("---  " + "Vault " + vault.address + ":");
     await showBalances(assets, vault.address);
     console.log("---------------------");
 
@@ -86,8 +89,14 @@ function bin2String(array) {
 
 function logConsoleLogEvents(waitResult) {
     console.log("---  ConsoleLog events:")
-    for (let rawLog of waitResult.events) {
-        let data = rawLog.data;
+    for (let event of waitResult.events) {
+        if (event.event) {
+            // for events which recognized by HH
+            console.log(event.event + "(" + event.args + ")");
+            continue;
+        }
+
+        let data = event.data;
         let bytes = hexToBytes(data);
         if (bytes.length < 63) {
             console.log("No ConsoleLog event");

@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GNU-3
 pragma solidity >=0.6.2;
 
 import './IUniswapV2Router01.sol';
 
+/**
+ * IUniswapV2Router02.sol is copy of https://github.com/Uniswap/v2-periphery/blob/master/contracts/interfaces/IUniswapV2Router02.sol
+ */
 interface IUniswapV2Router02 is IUniswapV2Router01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
@@ -20,7 +24,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint deadline,
         bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external returns (uint amountETH);
-    
+
 
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,

@@ -35,20 +35,6 @@ const routes = [
         ]
     },
 
-    {
-        path: '/admin',
-        name: 'Admin',
-        component: () => import('../Admin.vue'),
-        children: [
-            {
-                path: '/admin',
-                name: 'AdminView',
-                component: () => import('../views/AdminView.vue'),
-
-            },
-        ]
-    },
-
 
 ]
 

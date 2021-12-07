@@ -6,25 +6,25 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
-contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
-    bytes32 constant ACTION_CODE = keccak256("A3Crv2A3CrvGauge");
+contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
+    bytes32 constant ACTION_CODE = keccak256("Usdc2IdleUsdc");
 
     ITokenExchange public tokenExchange;
-    IERC20 public a3CrvToken;
-    IERC20 public a3CrvGaugeToken;
+    IERC20 public usdcToken;
+    IERC20 public idleUsdcToken;
 
     constructor(
         address _tokenExchange,
-        address _a3CrvToken,
-        address _a3CrvGaugeToken
+        address _usdcToken,
+        address _idleUsdcToken
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
-        require(_a3CrvToken != address(0), "Zero address not allowed");
-        require(_a3CrvGaugeToken != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_idleUsdcToken != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
-        a3CrvToken = IERC20(_a3CrvToken);
-        a3CrvGaugeToken = IERC20(_a3CrvGaugeToken);
+        usdcToken = IERC20(_usdcToken);
+        idleUsdcToken = IERC20(_idleUsdcToken);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -36,36 +36,36 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.BalanceAssetPrices memory a3CrvPrices;
-        IMark2Market.BalanceAssetPrices memory a3CrvGaugePrices;
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory idleUsdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
-            if (assetPrices[i].asset == address(a3CrvGaugeToken)) {
-                a3CrvGaugePrices = assetPrices[i];
+            if (assetPrices[i].asset == address(usdcToken)) {
+                usdcPrices = assetPrices[i];
                 continue;
             }
-            if (assetPrices[i].asset == address(a3CrvToken)) {
-                a3CrvPrices = assetPrices[i];
+            if (assetPrices[i].asset == address(idleUsdcToken)) {
+                idleUsdcPrices = assetPrices[i];
                 continue;
             }
         }
 
-        // because we know that a3Crv-gauge is leaf in tree and we can use this value
-        int256 diff = a3CrvGaugePrices.diffToTarget;
+        // because we know that usdc is leaf in tree and we can use this value
+        int256 diff = idleUsdcPrices.diffToTarget;
 
         uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (a3CrvGaugePrices.targetIsZero || diff < 0) {
+        if (idleUsdcPrices.targetIsZero || diff < 0) {
             amount = uint256(- diff);
-            from = a3CrvGaugeToken;
-            to = a3CrvToken;
-            targetIsZero = a3CrvGaugePrices.targetIsZero;
+            from = idleUsdcToken;
+            to = usdcToken;
+            targetIsZero = idleUsdcPrices.targetIsZero;
         } else {
             amount = uint256(diff);
-            from = a3CrvToken;
-            to = a3CrvGaugeToken;
-            targetIsZero = a3CrvPrices.targetIsZero;
+            from = usdcToken;
+            to = idleUsdcToken;
+            targetIsZero = usdcPrices.targetIsZero;
         }
 
         ExchangeAction memory action = ExchangeAction(

@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
@@ -5,8 +7,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const investmentPortfolio = await ethers.getContract("InvestmentPortfolio");
+    const portfolio = await ethers.getContract("Portfolio");
 
+    let idleUsdcWeight = {
+        asset: assets.idleUsdc,
+        minWeight: 0,
+        targetWeight: 2000,
+        maxWeight: 100000,
+    }
     let usdcWeight = {
         asset: assets.usdc,
         minWeight: 0,
@@ -16,7 +24,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let aUsdcWeight = {
         asset: assets.amUsdc,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 8000,
         maxWeight: 100000,
     }
     let a3CrvWeight = {
@@ -44,6 +52,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         maxWeight: 100000,
     }
     let weights = [
+        idleUsdcWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
@@ -51,8 +60,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         wMaticWeight,
         crvWeight
     ]
-    let result = await investmentPortfolio.setWeights(weights);
-    console.log("investmentPortfolio.setWeights done");
+
+    console.log('portfolio.setWeights: ' + JSON.stringify(weights))
+    let tx = await portfolio.setWeights(weights);
+    await tx.wait();
+    console.log("portfolio.setWeights done");
 
 };
 

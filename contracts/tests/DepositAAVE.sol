@@ -1,8 +1,13 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
+
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @dev Contract to learn how to deposit to AAVE
+ */
 contract DepositAAVE {
     function deposit(
         address _asset,

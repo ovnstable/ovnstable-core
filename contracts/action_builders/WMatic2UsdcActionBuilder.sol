@@ -32,14 +32,12 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
     }
 
     function buildAction(
-        IMark2Market.TotalAssetPrices memory totalAssetPrices,
+        IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        IMark2Market.AssetPrices[] memory assetPrices = totalAssetPrices.assetPrices;
-
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.AssetPrices memory wMaticPrices;
-        IMark2Market.AssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory wMaticPrices;
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(wMaticToken)) {
                 wMaticPrices = assetPrices[i];
@@ -52,16 +50,19 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
         }
 
         // because we know that wMatic is leaf in tree and we can use this value
-        uint256 diff = wMaticPrices.diffToTarget;
+        int256 diff = wMaticPrices.diffToTarget;
 
+        uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (wMaticPrices.targetIsZero || wMaticPrices.diffToTargetSign < 0) {
+        if (wMaticPrices.targetIsZero || diff < 0) {
+            amount = uint256(- diff);
             from = wMaticToken;
             to = usdcToken;
             targetIsZero = wMaticPrices.targetIsZero;
         } else {
+            amount = uint256(diff);
             from = usdcToken;
             to = wMaticToken;
             targetIsZero = usdcPrices.targetIsZero;
@@ -72,7 +73,7 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
             ACTION_CODE,
             from,
             to,
-            diff,
+            amount,
             targetIsZero,
             false
         );

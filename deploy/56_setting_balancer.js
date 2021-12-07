@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
@@ -6,7 +8,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const m2m = await ethers.getContract("Mark2Market");
 
     // setup balancer
-    await balancer.setMark2Market(m2m.address);
+    console.log("balancer.setMark2Market: " + m2m.address)
+    let tx = await balancer.setMark2Market(m2m.address);
+    await tx.wait();
     console.log("balancer.setMark2Market done")
 
 };

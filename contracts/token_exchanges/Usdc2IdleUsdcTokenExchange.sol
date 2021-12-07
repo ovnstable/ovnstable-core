@@ -6,29 +6,29 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 
-contract Usdc2AUsdcTokenExchange is ITokenExchange {
-    IConnector public aaveConnector;
+contract Usdc2IdleUsdcTokenExchange is ITokenExchange {
+    IConnector public idleConnector;
     IERC20 public usdcToken;
-    IERC20 public aUsdcToken;
+    IERC20 public idleUsdcToken;
 
     uint256 usdcDenominator;
-    uint256 aUsdcDenominator;
+    uint256 idleUsdcDenominator;
 
     constructor(
-        address _aaveConnector,
+        address _idleConnector,
         address _usdcToken,
-        address _aUsdcToken
+        address _idleUsdcToken
     ) {
-        require(_aaveConnector != address(0), "Zero address not allowed");
+        require(_idleConnector != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_aUsdcToken != address(0), "Zero address not allowed");
+        require(_idleUsdcToken != address(0), "Zero address not allowed");
 
-        aaveConnector = IConnector(_aaveConnector);
+        idleConnector = IConnector(_idleConnector);
         usdcToken = IERC20(_usdcToken);
-        aUsdcToken = IERC20(_aUsdcToken);
+        idleUsdcToken = IERC20(_idleUsdcToken);
 
         usdcDenominator = 10 ** (18 - IERC20Metadata(address(usdcToken)).decimals());
-        aUsdcDenominator = 10 ** (18 - IERC20Metadata(address(aUsdcToken)).decimals());
+        idleUsdcDenominator = 10 ** (18 - IERC20Metadata(address(idleUsdcToken)).decimals());
     }
 
     function exchange(
@@ -39,8 +39,8 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
         uint256 amount
     ) external override {
         require(
-            (from == usdcToken && to == aUsdcToken) || (from == aUsdcToken && to == usdcToken),
-            "Usdc2AUsdcTokenExchange: Some token not compatible"
+            (from == usdcToken && to == idleUsdcToken) || (from == idleUsdcToken && to == usdcToken),
+            "Usdc2IdleUsdcTokenExchange: Some token not compatible"
         );
 
         if (amount == 0) {
@@ -51,7 +51,7 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
             return;
         }
 
-        if (from == usdcToken && to == aUsdcToken) {
+        if (from == usdcToken && to == idleUsdcToken) {
             //TODO: denominator usage
             amount = amount / usdcDenominator;
 
@@ -66,11 +66,11 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
 
             require(
                 balance >= amount,
-                "Usdc2AUsdcTokenExchange: Not enough usdcToken"
+                "Usdc2IdleUsdcTokenExchange: Not enough usdcToken"
             );
 
-            usdcToken.transfer(address(aaveConnector), amount);
-            aaveConnector.stake(address(usdcToken), amount, receiver);
+            usdcToken.transfer(address(idleConnector), amount);
+            idleConnector.stake(address(usdcToken), amount, receiver);
 
             // transfer back unused amount
             uint256 unusedBalance = usdcToken.balanceOf(address(this));
@@ -79,13 +79,13 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
             }
         } else {
             //TODO: denominator usage
-            amount = amount / aUsdcDenominator;
+            amount = amount / idleUsdcDenominator;
 
             // if amount eq 0 after normalization transfer back balance and skip staking
-            uint256 balance = aUsdcToken.balanceOf(address(this));
+            uint256 balance = idleUsdcToken.balanceOf(address(this));
             if (amount == 0) {
                 if (balance > 0) {
-                    aUsdcToken.transfer(spender, balance);
+                    idleUsdcToken.transfer(spender, balance);
                 }
                 return;
             }
@@ -97,25 +97,25 @@ contract Usdc2AUsdcTokenExchange is ITokenExchange {
 
             require(
                 balance >= amount,
-                "Usdc2AUsdcTokenExchange: Not enough aUsdcToken"
+                "Usdc2IdleUsdcTokenExchange: Not enough idleUsdcToken"
             );
 
             // move assets to connector
-            aUsdcToken.transfer(address(aaveConnector), amount);
+            idleUsdcToken.transfer(address(idleConnector), amount);
 
             // correct exchangeAmount if we got diff on aToken transfer
-            uint256 onAaveConnectorBalance = aUsdcToken.balanceOf(address(aaveConnector));
-            if (onAaveConnectorBalance < amount) {
-                amount = onAaveConnectorBalance;
+            uint256 onIdleConnectorBalance = idleUsdcToken.balanceOf(address(idleConnector));
+            if (onIdleConnectorBalance < amount) {
+                amount = onIdleConnectorBalance;
             }
-            uint256 withdrewAmount = aaveConnector.unstake(address(usdcToken), amount, receiver);
+            uint256 withdrewAmount = idleConnector.unstake(address(usdcToken), amount, receiver);
 
             //TODO: may be add some checks for withdrewAmount
 
             // transfer back unused amount
-            uint256 unusedBalance = aUsdcToken.balanceOf(address(this));
+            uint256 unusedBalance = idleUsdcToken.balanceOf(address(this));
             if (unusedBalance > 0) {
-                aUsdcToken.transfer(spender, unusedBalance);
+                idleUsdcToken.transfer(spender, unusedBalance);
             }
         }
     }

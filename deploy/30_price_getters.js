@@ -10,6 +10,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
+    await deploy('IdleUsdcPriceGetter', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
 
     await deploy('UsdcPriceGetter', {
         from: deployer,
@@ -47,8 +52,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [swapRouter, assets.usdc, assets.wMatic],
         log: true,
     });
-
 };
 
-module.exports.tags = ['base', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter'];
+module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter'];
 

@@ -1,6 +1,11 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
+
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
+/**
+ * @dev Contract to learn how to swap on Uniswap
+ */
 contract BuyonSwap {
     function buy(address _addrActive2, address _router) public payable {
         IUniswapV2Router02 r2 = IUniswapV2Router02(_router);

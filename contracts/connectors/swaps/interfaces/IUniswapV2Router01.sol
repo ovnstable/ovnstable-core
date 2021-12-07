@@ -1,5 +1,9 @@
+// SPDX-License-Identifier: GNU-3
 pragma solidity >=0.6.2;
 
+/**
+ * IUniswapV2Router01.sol is copy of https://github.com/Uniswap/v2-periphery/blob/master/contracts/interfaces/IUniswapV2Router01.sol
+ */
 interface IUniswapV2Router01 {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
@@ -14,7 +18,7 @@ interface IUniswapV2Router01 {
         address to,
         uint deadline
     ) external returns (uint amountA, uint amountB, uint liquidity);
-    
+
     function addLiquidityETH(
         address token,
         uint amountTokenDesired,
@@ -93,6 +97,6 @@ interface IUniswapV2Router01 {
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
     function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
     function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
- 
+
 
 }

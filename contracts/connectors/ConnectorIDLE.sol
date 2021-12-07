@@ -1,11 +1,14 @@
 pragma solidity >=0.8.0 <0.9.0;
-import "../interfaces/IConnector.sol";
 
-import "../OwnableExt.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "../interfaces/IConnector.sol";
 import "./idle/interfaces/IIdleToken.sol";
 import "hardhat/console.sol";
 
-contract ConnectorIDLE is IConnector, OwnableExt {
+contract ConnectorIDLE is IConnector, Ownable {
+
     IIdleToken public idleToken;
 
     function setIdleToken(address _idleToken) public onlyOwner {
@@ -18,11 +21,9 @@ contract ConnectorIDLE is IConnector, OwnableExt {
         uint256 _amount,
         address _beneficiar
     ) public override {
-        console.log("Sender: %s", msg.sender);
-        console.log("Trying to stake %s tokens from %s to %s", _amount, _asset, _beneficiar);
         IERC20(_asset).approve(address(idleToken), _amount);
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, _beneficiar);
-        console.log("mintedTokens %s", mintedTokens);
+        IERC20(address (idleToken)).transfer(_beneficiar, mintedTokens);
     }
 
     function unstake(
@@ -30,10 +31,8 @@ contract ConnectorIDLE is IConnector, OwnableExt {
         uint256 _amount,
         address _beneficiar
     ) public override returns (uint256) {
-        console.log("Trying to unstake %s tokens from %s to %s", _amount, _asset, _beneficiar);
-        //IERC20(_asset).approve(address(idleToken), _amount);
         uint256 redeemedTokens = idleToken.redeemIdleToken(_amount);
-        console.log("redeemedTokens %s", redeemedTokens);
+        IERC20(_asset).transfer(_beneficiar, redeemedTokens);
         return redeemedTokens;
     }
 

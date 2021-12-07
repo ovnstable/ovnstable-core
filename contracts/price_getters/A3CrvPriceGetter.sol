@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
-import "../OwnableExt.sol";
 
-contract A3CrvPriceGetter is AbstractPriceGetter, OwnableExt {
+contract A3CrvPriceGetter is AbstractPriceGetter, Ownable {
     iCurvePool public pool;
 
     event UpdatedPool(address pool);
@@ -17,12 +17,10 @@ contract A3CrvPriceGetter is AbstractPriceGetter, OwnableExt {
     }
 
     function getUsdcBuyPrice() external view override returns (uint256) {
-        uint256 virtualPrice = pool.get_virtual_price();
-        return virtualPrice;
+        return pool.get_virtual_price();
     }
 
     function getUsdcSellPrice() external view override returns (uint256) {
-        uint256 virtualPrice = pool.get_virtual_price();
-        return virtualPrice;
+        return pool.get_virtual_price();
     }
 }
