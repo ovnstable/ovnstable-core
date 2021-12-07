@@ -14,6 +14,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         from: deployer,
         args: [10, [], []],
         log: true,
+        proxy: {
+            owner: deployer
+        },
     });
 
 
@@ -23,8 +26,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('OvnGovernorBravo', {
         from: deployer,
-        args: [token.address, controller.address ],
+        args: [],
         log: true,
+        proxy: {
+            proxyContract: 'OpenZeppelinTransparentProxy',
+            owner: deployer,
+            args: [token.address, controller.address ]
+        },
     });
 
 

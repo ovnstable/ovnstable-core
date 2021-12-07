@@ -1,20 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts/governance/Governor.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
-import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBravo.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
+import "@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/compatibility/GovernorCompatibilityBravoUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
-    constructor(ERC20Votes _token, TimelockController _timelock)
-    Governor("OvnGovernorBravo")
-    GovernorSettings(1 /* 1 block */, 5 /* 1 minute */, 0)
-    GovernorVotes(_token)
-    GovernorVotesQuorumFraction(4)
-    GovernorTimelockControl(_timelock)
+contract OvnGovernorBravo is Initializable, GovernorUpgradeable, GovernorSettingsUpgradeable, GovernorCompatibilityBravoUpgradeable, GovernorVotesUpgradeable, GovernorVotesQuorumFractionUpgradeable, GovernorTimelockControlUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize(ERC20VotesUpgradeable _token, TimelockControllerUpgradeable _timelock)
+    initializer public
+    {
+        __Governor_init("OvnGovernorBravo");
+        __GovernorSettings_init(1 /* 1 block */, 5 /* 1 minute */, 0);
+        __GovernorCompatibilityBravo_init();
+        __GovernorVotes_init(_token);
+        __GovernorVotesQuorumFraction_init(4);
+        __GovernorTimelockControl_init(_timelock);
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyOwner
+    override
     {}
 
     // The following functions are overrides required by Solidity.
@@ -22,7 +39,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function votingDelay()
     public
     view
-    override(IGovernor, GovernorSettings)
+    override(IGovernorUpgradeable, GovernorSettingsUpgradeable)
     returns (uint256)
     {
         return super.votingDelay();
@@ -31,7 +48,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function votingPeriod()
     public
     view
-    override(IGovernor, GovernorSettings)
+    override(IGovernorUpgradeable, GovernorSettingsUpgradeable)
     returns (uint256)
     {
         return super.votingPeriod();
@@ -40,7 +57,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function quorum(uint256 blockNumber)
     public
     view
-    override(IGovernor, GovernorVotesQuorumFraction)
+    override(IGovernorUpgradeable, GovernorVotesQuorumFractionUpgradeable)
     returns (uint256)
     {
         return super.quorum(blockNumber);
@@ -49,7 +66,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function getVotes(address account, uint256 blockNumber)
     public
     view
-    override(IGovernor, GovernorVotes)
+    override(IGovernorUpgradeable, GovernorVotesUpgradeable)
     returns (uint256)
     {
         return super.getVotes(account, blockNumber);
@@ -58,22 +75,15 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function state(uint256 proposalId)
     public
     view
-    override(Governor, IGovernor, GovernorTimelockControl)
+    override(GovernorUpgradeable, IGovernorUpgradeable, GovernorTimelockControlUpgradeable)
     returns (ProposalState)
     {
         return super.state(proposalId);
     }
 
-    function proposeTest(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
-    public
-    returns (uint256)
-    {
-        return super.propose(targets, values, calldatas, description);
-    }
-
     function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
     public
-    override(Governor, GovernorCompatibilityBravo, IGovernor)
+    override(GovernorUpgradeable, GovernorCompatibilityBravoUpgradeable, IGovernorUpgradeable)
     returns (uint256)
     {
         return super.propose(targets, values, calldatas, description);
@@ -82,7 +92,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function proposalThreshold()
     public
     view
-    override(Governor, GovernorSettings)
+    override(GovernorUpgradeable, GovernorSettingsUpgradeable)
     returns (uint256)
     {
         return super.proposalThreshold();
@@ -90,39 +100,23 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
 
     function _execute(uint256 proposalId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
     internal
-    override(Governor, GovernorTimelockControl)
+    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
     {
         super._execute(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     function _cancel(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
     internal
-    override(Governor, GovernorTimelockControl)
+    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
     returns (uint256)
     {
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    function voteSucceeded(uint256 proposalId) public view returns (bool){
-        return super._voteSucceeded(proposalId);
-    }
-
-    function quorumReached(uint256 proposalId) public view returns (bool){
-        return super._quorumReached(proposalId);
-    }
-
-    function queueTest(uint256 proposalId) public {
-        return super.queue(proposalId);
-    }
-
-    function executeTest(uint256 proposalId) public {
-        super.execute(proposalId);
-    }
-
     function _executor()
     internal
     view
-    override(Governor, GovernorTimelockControl)
+    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
     returns (address)
     {
         return super._executor();
@@ -131,7 +125,7 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
     function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(Governor, IERC165, GovernorTimelockControl)
+    override(GovernorUpgradeable, IERC165Upgradeable, GovernorTimelockControlUpgradeable)
     returns (bool)
     {
         return super.supportsInterface(interfaceId);
