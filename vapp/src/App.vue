@@ -20,16 +20,6 @@ export default {
   },
 
 
-  created() {
-
-    this.initWeb3();
-  },
-
-  methods: {
-
-    ...mapActions('web3', ['initWeb3'])
-  }
-
 
 };
 </script>

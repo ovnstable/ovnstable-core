@@ -6,6 +6,7 @@ import transaction from './modules/transaction'
 import gasPrice from './modules/gas-price';
 import web3 from "./modules/web3";
 import accountProfile from './modules/account-profile';
+import governance from './modules/governance';
 
 import createPersistedState from "vuex-persistedstate";
 
@@ -17,6 +18,7 @@ export default new Vuex.Store({
         gasPrice,
         showTransactions,
         transaction,
+        governance,
         web3,
         accountProfile
     },

@@ -4,6 +4,13 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
 
+import store from "../store";
+
+
+import getOverview from "./midleware/getOverview"
+import getDapp from "./midleware/getDapp"
+import middlewarePipeline from "./middlewarePipeline";
+
 const routes = [
 
     {
@@ -32,7 +39,32 @@ const routes = [
                 component: () => import('../views/StatsView.vue'),
 
             },
-        ]
+        ],
+        meta: {
+            middleware: [
+                getDapp,
+            ]
+        }
+    },
+
+
+    {
+        path: '/governance',
+        name: 'Governance',
+        component: () => import('../Governance.vue'),
+        children: [
+            {
+                path: '/',
+                name: 'Overview',
+                component: () => import('../views/governance/Overview.vue'),
+                meta: {
+                    middleware: [
+                        getOverview,
+                    ]
+                }
+            },
+
+        ],
     },
 
 
@@ -42,6 +74,29 @@ const router = new VueRouter({
     mode: 'history',
     base: process.env.BASE_URL,
     routes
+});
+
+router.beforeEach((to, from, next) => {
+
+    if (!to.meta.middleware || !to.meta.middleware.length) {
+        console.log(`root from:${from.path} to:${to.path} to.middleware:`, null);
+        return next();
+    }
+    const middleware = to.meta.middleware;
+    console.log(`root from:${from.path} to:${to.path} to.middleware:`, middleware);
+
+    const context = {
+        to,
+        from,
+        next,
+        store,
+    };
+
+    return middleware[0]({
+        context,
+        nextMiddleware: middlewarePipeline(context, middleware, 1)
+    });
+
 });
 
 

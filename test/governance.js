@@ -26,7 +26,6 @@ describe("Governance", function () {
     let account;
     let governator;
     let timeLock;
-    let govTimeLock;
 
     beforeEach(async () => {
         await hre.run("compile");
@@ -59,7 +58,7 @@ describe("Governance", function () {
             descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
         };
 
-        const proposeTx = await governator.proposeTest(
+        const proposeTx = await governator.proposeExec(
             [govToken.address],
             [0],
             [newProposal.transferCalldata],
@@ -104,7 +103,7 @@ describe("Governance", function () {
         let proposal = await governator.proposals(proposalId);
         console.log('Proposal: ' + JSON.stringify(proposal))
 
-        await governator.queueTest(proposalId);
+        await governator.queueExec(proposalId);
         state = await governator.state(proposalId);
         console.log('State: ' + proposalStates[state])
 
@@ -115,11 +114,11 @@ describe("Governance", function () {
         }
 
         console.log('before votes:' + await govToken.getVotes(account))
-        await governator.executeTest(proposalId);
+        await governator.executeExec(proposalId);
         console.log('after votes:' + await govToken.getVotes(account))
 
         let number = await govToken.getVotes(account) / 10 ** 18;
         expect(number).to.eq(600)
-    })
+    });
 
 });

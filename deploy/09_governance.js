@@ -14,9 +14,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         from: deployer,
         args: [10, [], []],
         log: true,
-        proxy: {
-            owner: deployer
-        },
     });
 
 
@@ -26,13 +23,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('OvnGovernorBravo', {
         from: deployer,
-        args: [],
+        args: [token.address, controller.address ],
         log: true,
-        proxy: {
-            proxyContract: 'OpenZeppelinTransparentProxy',
-            owner: deployer,
-            args: [token.address, controller.address ]
-        },
     });
 
 
@@ -48,6 +40,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('EXECUTOR_ROLE: ' + role)
     await controller.grantRole(role, governor.address)
     console.log('Grant executor role to governor - done');
+
+
+    let votes = ethers.utils.parseUnits("100.0", 18);
+    await token.mint(deployer, votes);
 
 };
 
