@@ -15,6 +15,8 @@ const state = {
     overview: {},
     overviewLoading: true,
     proposals: [],
+    proposalsLoading: true,
+
 
     assets: [
         {id: "idleUsdc", address: "0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1"},
@@ -39,6 +41,10 @@ const getters = {
 
     overviewLoading(state) {
         return state.overviewLoading;
+    },
+
+    proposalsLoading(state) {
+        return state.proposalsLoading;
     },
 
     proposals(state) {
@@ -72,6 +78,17 @@ const actions = {
         let account = rootState.web3.account;
         let params = {from: account};
         let result = await govToken.methods.delegate(address).send(params);
+    },
+
+    async getProposals({commit, dispatch, getters, rootState}) {
+
+        commit('setProposalsLoading', true);
+
+        let governor = rootState.web3.contracts.governor;
+        let proposals = await governor.methods.getProposals().call();
+        commit('setProposals', proposals);
+
+        commit('setProposalsLoading', false);
     },
 
     async getOverview({commit, dispatch, getters, rootState}) {
@@ -108,6 +125,10 @@ const mutations = {
 
     setProposals(state, value) {
         state.proposals = value;
+    },
+
+    setProposalsLoading(state, value) {
+        state.proposalsLoading = value;
     },
 
 

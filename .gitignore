@@ -19,3 +19,5 @@ cache/
 deployments/localhost
 .env
 deployments/ganache
+recreate-ganache.sh
+hardhat-ganache.sh

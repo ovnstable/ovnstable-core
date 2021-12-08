@@ -8,6 +8,7 @@ import store from "../store";
 
 
 import getOverview from "./midleware/getOverview"
+import getProposals from "./midleware/getProposals"
 import getDapp from "./midleware/getDapp"
 import middlewarePipeline from "./middlewarePipeline";
 
@@ -79,7 +80,17 @@ const routes = [
                 component: () => import('../views/governance/Proposals.vue'),
                 meta: {
                     middleware: [
-                        getOverview,
+                        getProposals,
+                    ]
+                }
+            },
+
+            {
+                path: '/governance/timelock',
+                name: 'Timelock',
+                component: () => import('../views/governance/TimeLock.vue'),
+                meta: {
+                    middleware: [
                     ]
                 }
             },
