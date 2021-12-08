@@ -63,6 +63,26 @@ const routes = [
                     ]
                 }
             },
+            {
+                path: '/governance/finance',
+                name: 'Finance',
+                component: () => import('../views/governance/Finance.vue'),
+                meta: {
+                    middleware: [
+                        getOverview,
+                    ]
+                }
+            },
+            {
+                path: '/governance/proposals',
+                name: 'Proposals',
+                component: () => import('../views/governance/Proposals.vue'),
+                meta: {
+                    middleware: [
+                        getOverview,
+                    ]
+                }
+            },
 
         ],
     },

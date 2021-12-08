@@ -37,10 +37,8 @@ const actions = {
                 continue;
             }
 
-            console.log('Pull tx ' + transaction)
             const transactionReceiptRetry = () => rootState.web3.web3.eth.getTransactionReceipt(transaction.hash)
                 .then((receipt) => {
-                    console.log('Check tx ')
                     if (receipt != null) {
                         return receipt;
                     } else {
@@ -49,7 +47,6 @@ const actions = {
                 });
 
             transactionReceiptRetry().then(value => {
-                console.log('GET TX ' + value)
                 let filter = getters.transactions.find(tx=> tx.hash === value.transactionHash);
                 filter.pending = false;
 

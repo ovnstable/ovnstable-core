@@ -19,7 +19,7 @@
             </v-col>
             <v-col lg="4">
                 <v-card>
-                    <v-card-title>Votes Delegated</v-card-title>
+                    <v-card-title>Delegated</v-card-title>
                     <v-card-actions>
                         <h2>{{ overview.totalDelegated }}</h2>
                     </v-card-actions>
@@ -40,6 +40,9 @@
             <v-col lg="3">
                 <GovTokenPanel/>
             </v-col>
+            <v-col lg="3">
+                <DelegatePanel/>
+            </v-col>
         </v-row>
 
     </v-container>
@@ -48,10 +51,12 @@
 <script>
 import {mapActions, mapGetters} from "vuex";
 import GovTokenPanel from "../../components/governance/GovTokenPanel";
+import DelegatePanel from "../../components/governance/DelegatePanel";
+import ChangeWeightPanel from "../../components/governance/ChangeWeightPanel";
 
 export default {
     name: "Overview",
-    components: {GovTokenPanel},
+    components: {ChangeWeightPanel, DelegatePanel, GovTokenPanel},
     computed: {
         ...mapGetters('governance', ['overview', 'overviewLoading'])
     },
