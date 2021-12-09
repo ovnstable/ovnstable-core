@@ -59,6 +59,15 @@ const getters = {
 
 const actions = {
 
+    async queue({commit, dispatch, getters, rootState}, id ) {
+
+        let governor = rootState.web3.contracts.governor;
+
+        let account = rootState.web3.account;
+        let params = {from: account};
+        await governor.methods.queueExec(id).send(params);
+    },
+
 
     async vote({commit, dispatch, getters, rootState}, request) {
 

@@ -12,7 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('TimelockController', {
         from: deployer,
-        args: [10, [], []],
+        args: [0, [], []],
         log: true,
     });
 
