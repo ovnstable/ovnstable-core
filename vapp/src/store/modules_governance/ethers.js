@@ -26,7 +26,7 @@ const actions = {
 
 
     async mineBlocks({commit, dispatch, getters, rootState}, count){
-       await getters.provider.send('evm_mine',  {blocks: count});
+       await getters.provider.send('evm_mine' );
     }
 
 };
