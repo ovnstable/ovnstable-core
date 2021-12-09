@@ -7,6 +7,7 @@ import gasPrice from './modules/gas-price';
 import web3 from "./modules/web3";
 import accountProfile from './modules/account-profile';
 import governance from './modules_governance/governance';
+import ethers from './modules_governance/ethers';
 
 import createPersistedState from "vuex-persistedstate";
 
@@ -22,6 +23,7 @@ export default new Vuex.Store({
         accountProfile,
 
         governance,
+        ethers
 
     },
     plugins: [createPersistedState({paths: ['transaction']})]

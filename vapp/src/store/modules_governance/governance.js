@@ -1,8 +1,6 @@
-let accounting = require("accounting-js")
 import {axios} from "../../plugins/http-axios";
 import utils from "../../plugins/utils";
 import abiDecoder from "../../plugins/abiDecoder";
-
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
@@ -62,6 +60,15 @@ const getters = {
 const actions = {
 
 
+    async vote({commit, dispatch, getters, rootState}, request) {
+
+        let governor = rootState.web3.contracts.governor;
+
+        let account = rootState.web3.account;
+        let params = {from: account};
+        await governor.methods.castVote(request.id, request.status).send(params);
+    },
+
     async getSettings({commit, dispatch, getters, rootState}) {
 
         commit('setSettingsLoading', true)
@@ -84,7 +91,7 @@ const actions = {
         commit('setSettingsLoading', false)
     },
 
-        async changeFeeBuy({commit, dispatch, getters, rootState}, request) {
+    async changeFeeBuy({commit, dispatch, getters, rootState}, request) {
 
         let contract = rootState.web3.contracts.exchange;
         let governor = rootState.web3.contracts.governor;
@@ -131,8 +138,7 @@ const actions = {
         let items = [];
         for (let i = 0; i < proposals.length; i++) {
             let id = proposals[i];
-            let item = await  governor.methods.proposals(id).call();
-
+            let item = await governor.methods.proposals(id).call();
             let status = await governor.methods.state(id).call();
             let proposal = {
                 id: item.id,
@@ -149,7 +155,7 @@ const actions = {
         }
 
 
-    commit('setProposals', items);
+        commit('setProposals', items);
         commit('setProposalsLoading', false);
     },
 

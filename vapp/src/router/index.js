@@ -25,27 +25,35 @@ const routes = [
                 path: '/',
                 name: 'EarnView',
                 component: () => import('../views/EarnView.vue'),
-
+                meta: {
+                    middleware: [
+                        getDapp,
+                    ]
+                }
             },
             {
                 path: '/fund',
                 name: 'DashboardView',
                 component: () => import('../views/DashboardView.vue'),
-
+                meta: {
+                    middleware: [
+                        getDapp,
+                    ]
+                }
             },
 
             {
                 path: '/stats',
                 name: 'StatsView',
                 component: () => import('../views/StatsView.vue'),
-
+                meta: {
+                    middleware: [
+                        getDapp,
+                    ]
+                }
             },
         ],
-        meta: {
-            middleware: [
-                getDapp,
-            ]
-        }
+
     },
 
 
