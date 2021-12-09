@@ -46,6 +46,7 @@ export default {
             { title: 'Proposals', icon: 'mdi-folder-table-outline' },
             { title: 'Finance', icon: 'mdi-chart-bar' },
             { title: 'Timelock', icon: 'mdi-sort-clock-descending' },
+            { title: 'Control', icon: 'mdi-clipboard-edit' },
         ],
     }),
 }

@@ -26,6 +26,9 @@
             <v-btn icon href="https://t.me/ovnstable" target="_blank">
               <img width="24" height="24" :src="require('../assets/resource/telegram.png')">
             </v-btn>
+              <v-btn icon @click="$router.push({name: 'Overview'})" >
+                  <v-icon>mdi-account-key</v-icon>
+              </v-btn>
           </v-col>
         </v-row>
       </v-card-text>

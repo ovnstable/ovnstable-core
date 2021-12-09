@@ -7,6 +7,7 @@ import OverNightToken from "../../contracts/OvernightToken.json";
 import GovToken from "../../contracts/GovToken.json";
 import Governor from "../../contracts/OvnGovernorBravo.json";
 import Portfolio from "../../contracts/Portfolio.json";
+import TimelockController from "../../contracts/TimelockController.json";
 import contract from "@truffle/contract";
 
 import OvnImage from '../../assets/ovn.json';
@@ -146,6 +147,7 @@ const actions = {
         contracts.govToken = _load(GovToken, web3);
         contracts.governor = _load(Governor, web3);
         contracts.portfolio = _load(Portfolio, web3);
+        contracts.timelockController= _load(TimelockController, web3);
 
         commit('setContracts', contracts)
     },

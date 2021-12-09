@@ -95,6 +95,17 @@ const routes = [
                 }
             },
 
+            {
+                path: '/governance/control',
+                name: 'Control',
+                component: () => import('../views/governance/Control.vue'),
+                meta: {
+                    middleware: [
+                        getOverview
+                    ]
+                }
+            },
+
         ],
     },
 

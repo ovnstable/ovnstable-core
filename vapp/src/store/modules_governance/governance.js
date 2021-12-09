@@ -3,12 +3,8 @@ import {axios} from "../../plugins/http-axios";
 import utils from "../../plugins/utils";
 import abiDecoder from "../../plugins/abiDecoder";
 
-let accountingConfig = {
-    symbol: "",
-    precision: 6,
-    thousand: " ",
-};
 
+const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
 const state = {
 
@@ -16,7 +12,8 @@ const state = {
     overviewLoading: true,
     proposals: [],
     proposalsLoading: true,
-
+    settings: {},
+    settingsLoading: true,
 
     assets: [
         {id: "idleUsdc", address: "0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1"},
@@ -39,12 +36,20 @@ const getters = {
         return state.assets;
     },
 
+    settings(state) {
+        return state.settings;
+    },
+
     overviewLoading(state) {
         return state.overviewLoading;
     },
 
     proposalsLoading(state) {
         return state.proposalsLoading;
+    },
+
+    settingsLoading(state) {
+        return state.settingsLoading;
     },
 
     proposals(state) {
@@ -55,6 +60,42 @@ const getters = {
 };
 
 const actions = {
+
+
+    async getSettings({commit, dispatch, getters, rootState}) {
+
+        commit('setSettingsLoading', true)
+        let governor = rootState.web3.contracts.governor;
+        let timelockController = rootState.web3.contracts.timelockController;
+
+        let timeLockItem = {};
+        timeLockItem.minDelay = await timelockController.methods.getMinDelay().call();
+
+        let governorItem = {};
+        governorItem.votingPeriod = await governor.methods.votingPeriod().call();
+        governorItem.votingDelay = await governor.methods.votingDelay().call();
+        governorItem.proposalThreshold = await governor.methods.proposalThreshold().call();
+
+        let settings = {};
+        settings.timeLock = timeLockItem;
+        settings.governor = governorItem;
+
+        commit('setSettings', settings);
+        commit('setSettingsLoading', false)
+    },
+
+        async changeFeeBuy({commit, dispatch, getters, rootState}, request) {
+
+        let contract = rootState.web3.contracts.exchange;
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+
+        let params = {from: account};
+
+        let abi = contract.methods.setBuyFee(request.fee, request.feeDenominator).encodeABI();
+        console.log('ABI ' + abi)
+        await governor.methods.proposeExec([contract.options.address], [0], [abi], 'Change set Buy Fee').send(params);
+    },
 
     async changeWeights({commit, dispatch, getters, rootState}, weights) {
 
@@ -86,8 +127,29 @@ const actions = {
 
         let governor = rootState.web3.contracts.governor;
         let proposals = await governor.methods.getProposals().call();
-        commit('setProposals', proposals);
 
+        let items = [];
+        for (let i = 0; i < proposals.length; i++) {
+            let id = proposals[i];
+            let item = await  governor.methods.proposals(id).call();
+
+            let status = await governor.methods.state(id).call();
+            let proposal = {
+                id: item.id,
+                proposer: item.proposer,
+                startBlock: item.startBlock,
+                endBlock: item.endBlock,
+                forVotes: item.forVotes,
+                againstVotes: item.againstVotes,
+                abstainVotes: item.abstainVotes,
+                status: status,
+                statusText: proposalStates[status],
+            }
+            items.push(proposal);
+        }
+
+
+    commit('setProposals', items);
         commit('setProposalsLoading', false);
     },
 
@@ -109,6 +171,8 @@ const actions = {
         commit('setOverview', overview);
 
         commit('setOverviewLoading', false);
+
+        dispatch('getSettings')
     }
 
 };
@@ -117,6 +181,14 @@ const mutations = {
 
     setOverview(state, value) {
         state.overview = value;
+    },
+
+    setSettings(state, value) {
+        state.settings = value;
+    },
+
+    setSettingsLoading(state, value) {
+        state.settingsLoading = value;
     },
 
     setOverviewLoading(state, value) {
