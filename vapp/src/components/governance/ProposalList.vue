@@ -66,6 +66,18 @@
                         </v-btn>
                     </template>
 
+                    <template v-if="item.statusText === 'Queued'">
+                        <v-btn color="green" style="color: white" rounded @click="sendToExecute(item.id)">
+                            <v-icon>mdi-alert-circle-check-outline</v-icon>Execute
+                        </v-btn>
+                    </template>
+
+                    <template v-if="item.statusText === 'Defeated'">
+                        <v-btn color="grey" style="color: white" rounded @click="sendToCancel(item.id)">
+                            <v-icon>mdi-cancel</v-icon>Cancel
+                        </v-btn>
+                    </template>
+
                 </v-card-actions>
             </v-card>
         </v-row>
@@ -92,8 +104,15 @@ export default {
 
     methods: {
 
-        ...mapActions('governance', ['vote', 'queue']),
+        ...mapActions('governance', ['vote', 'queue', 'execute', 'cancel']),
 
+        sendToExecute(id){
+            this.execute(id);
+        },
+
+        sendToCancel(id){
+            this.cancel(id);
+        },
 
         sendToQueue(id){
             this.queue(id);

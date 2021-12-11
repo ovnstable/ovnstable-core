@@ -21,23 +21,21 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const controller = await ethers.getContract("TimelockController");
 
 
-    await deploy('OvnGovernorBravo', {
+    await deploy('OvnGovernor', {
         from: deployer,
         args: [token.address, controller.address ],
         log: true,
     });
 
 
-    let governor = await ethers.getContract('OvnGovernorBravo');
+    let governor = await ethers.getContract('OvnGovernor');
 
     let role = await controller.PROPOSER_ROLE();
-    console.log('PROPOSER_ROLE: ' + role)
     await controller.grantRole(role, governor.address)
     console.log('Grant proposer role to governor - done');
 
 
     role = await  controller.EXECUTOR_ROLE();
-    console.log('EXECUTOR_ROLE: ' + role)
     await controller.grantRole(role, governor.address)
     console.log('Grant executor role to governor - done');
 

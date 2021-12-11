@@ -26,21 +26,48 @@ describe("Governance", function () {
     let account;
     let governator;
     let timeLock;
+    let exchange;
 
     beforeEach(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['Governance']);
+        await deployments.fixture(['Governance', 'Exchange']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         console.log('Account ' + account)
 
         govToken = await ethers.getContract('GovToken');
-        governator = await ethers.getContract('OvnGovernorBravo');
+        governator = await ethers.getContract('OvnGovernor');
         timeLock = await ethers.getContract('TimelockController');
+        exchange = await ethers.getContract('Exchange');
+
+        await govToken.grantRole(await govToken.DEFAULT_ADMIN_ROLE(), timeLock.address);
+
     });
 
+
+    it("GET Governor settings", async function () {
+
+        let votingDelay = await governator.votingDelay();
+        let votingPeriod = await governator.votingPeriod();
+        let proposalThreshold = await governator.proposalThreshold();
+
+        expect(votingDelay).to.eq(1);
+        expect(votingPeriod).to.eq(5);
+        expect(proposalThreshold).to.eq(0);
+    });
+
+
+    it("Change Governor settings -> throw only Governance", async  function (){
+
+        try {
+            await governator.setVotingDelay(5);
+            expect.fail("Exception not thrown");
+        } catch (e) {
+            expect(e.message).to.eq('VM Exception while processing transaction: reverted with reason string \'Governor: onlyGovernance\'');
+        }
+    });
 
     it("Overview", async function () {
 
@@ -70,7 +97,7 @@ describe("Governance", function () {
             descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
         };
 
-       await governator.proposeExec(
+        await governator.proposeExec(
             [govToken.address],
             [0],
             [newProposal.transferCalldata],
@@ -160,6 +187,45 @@ describe("Governance", function () {
 
         let number = await govToken.getVotes(account) / 10 ** 18;
         expect(number).to.eq(600)
+    });
+
+
+    it("Change state contract by Proposal", async function () {
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await govToken.mint(account, votes);
+        await govToken.delegate(account)
+
+        const proposeTx = await governator.proposeExec(
+            [exchange.address],
+            [0],
+            [exchange.interface.encodeFunctionData('setBuyFee', [25, 100000])],
+            ethers.utils.id("Proposal #3: Set Buy fee"),
+        );
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 66; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        await governator.queueExec(proposalId);
+
+        await exchange.grantRole(await exchange.DEFAULT_ADMIN_ROLE(), timeLock.address);
+
+        await governator.executeExec(proposalId);
+
+        let buyFee = await exchange.buyFee();
+        let buyFeeDenominator = await exchange.buyFeeDenominator();
+
+        expect(buyFee).to.eq(25);
+        expect(buyFeeDenominator).to.eq(100000);
     });
 
 });

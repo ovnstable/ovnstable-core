@@ -59,6 +59,24 @@ const getters = {
 
 const actions = {
 
+    async cancel({commit, dispatch, getters, rootState}, id ) {
+
+        let governor = rootState.web3.contracts.governor;
+
+        let account = rootState.web3.account;
+        let params = {from: account};
+        await governor.methods.cancel(id).send(params);
+    },
+
+    async execute({commit, dispatch, getters, rootState}, id ) {
+
+        let governor = rootState.web3.contracts.governor;
+
+        let account = rootState.web3.account;
+        let params = {from: account};
+        await governor.methods.executeExec(id).send(params);
+    },
+
     async queue({commit, dispatch, getters, rootState}, id ) {
 
         let governor = rootState.web3.contracts.governor;

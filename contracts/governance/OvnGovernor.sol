@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
+contract OvnGovernor is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
     constructor(ERC20Votes _token, TimelockController _timelock)
-    Governor("OvnGovernorBravo")
+    Governor("OvnGovernor")
     GovernorSettings(1 /* 1 block */, 5 /* 1 minute */, 0)
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(4)
@@ -24,23 +24,6 @@ contract OvnGovernorBravo is Governor, GovernorSettings, GovernorCompatibilityBr
         return _proposalsIds;
     }
 
-    function votingDelay()
-    public
-    view
-    override(IGovernor, GovernorSettings)
-    returns (uint256)
-    {
-        return super.votingDelay();
-    }
-
-    function votingPeriod()
-    public
-    view
-    override(IGovernor, GovernorSettings)
-    returns (uint256)
-    {
-        return super.votingPeriod();
-    }
 
     function quorum(uint256 blockNumber)
     public

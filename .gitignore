@@ -21,3 +21,4 @@ deployments/localhost
 deployments/ganache
 recreate-ganache.sh
 hardhat-ganache.sh
+hardhat-node.sh

@@ -5,7 +5,7 @@ import Exchange from "../../contracts/Exchange.json";
 import ERC20 from "../../contracts/ERC20.json";
 import OverNightToken from "../../contracts/OvernightToken.json";
 import GovToken from "../../contracts/GovToken.json";
-import Governor from "../../contracts/OvnGovernorBravo.json";
+import Governor from "../../contracts/OvnGovernor.json";
 import Portfolio from "../../contracts/Portfolio.json";
 import TimelockController from "../../contracts/TimelockController.json";
 import contract from "@truffle/contract";
