@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./interfaces/IRewardManager.sol";
+import "./registries/Portfolio.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
 import "hardhat/console.sol";
@@ -20,6 +21,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     Vault public vault;
     Balancer public balancer;
     IRewardManager public rewardManager;
+    Portfolio public portfolio;
 
     // ---  events
 
@@ -27,6 +29,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     event VaultUpdated(address vault);
     event BalancerUpdated(address balancer);
     event RewardManagerUpdated(address rewardManager);
+    event PortfolioUpdated(address portfolio);
 
     event Exchanged(uint256 amount, address from, address to);
 
@@ -75,6 +78,12 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         emit RewardManagerUpdated(_rewardManager);
     }
 
+    function setPortfolio(address _portfolio) external onlyAdmin {
+        require(_portfolio != address(0), "Zero address not allowed");
+        portfolio = Portfolio(_portfolio);
+        emit PortfolioUpdated(_portfolio);
+    }
+
 
     // ---  logic
 
@@ -83,16 +92,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         _token.transfer(address(vault), _amount);
 
         // 2. start balancing
-        balanceOnDeposit();
+        _balance();
     }
 
-    function balanceOnDeposit() internal {
-         // 1. got action to balance
-         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
-
-         // 2. execute them
-         executeActions(actionOrder);
-    }
 
     function withdraw(IERC20 _token, uint256 _amount)
     external
@@ -104,7 +106,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
 
         // 1. balance to needed amount
-        balanceOnWithdraw(_token, _amount);
+        _balanceOnWithdraw(_token, _amount);
 
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
@@ -132,11 +134,44 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         return _amount;
     }
 
-    function balanceOnReward() external override onlyExchanger {
-        balanceOnDeposit();
+    /**
+     * Make withdraw tokens from Vault by proportion
+     *
+     * @param _proportion Proportion for calc amount to transfers
+     * @param _proportionDenominator Proportion denominator
+     * @return List of tokens that have been transferred
+     */
+    function withdrawProportional(uint256 _proportion, uint256 _proportionDenominator)
+    external
+    override
+    onlyExchanger
+    returns (address[] memory)
+    {
+        // 1. balance
+        _balance();
+
+        // 2. transfer back tokens
+        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
+        address[] memory tokens = new address[](assetWeights.length);
+        // go through all assets and transfer proportions
+        for (uint8 i; i < assetWeights.length; i++) {
+            address asset = assetWeights[i].asset;
+            uint256 currentVaultTokenBalance = IERC20(asset).balanceOf(address(vault));
+            if (currentVaultTokenBalance > 0) {
+                uint256 transferAmount = currentVaultTokenBalance * _proportion / _proportionDenominator;
+                vault.transfer(IERC20(asset), msg.sender, transferAmount);
+            }
+            tokens[i] = asset;
+        }
+
+        return tokens;
     }
 
-    function balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
+    function balanceOnReward() external override onlyExchanger {
+        _balance();
+    }
+
+    function _balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
         // 1. got action to balance
         IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions(
             _token,
@@ -144,10 +179,18 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         );
 
         // 2. execute them
-        executeActions(actionOrder);
+        _executeActions(actionOrder);
     }
 
-    function executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
+    function _balance() internal {
+        // 1. got action to balance
+        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
+
+        // 2. execute them
+        _executeActions(actionOrder);
+    }
+
+    function _executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
         bool someActionExecuted = true;
         while (someActionExecuted) {
             someActionExecuted = false;

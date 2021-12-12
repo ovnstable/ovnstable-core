@@ -9,6 +9,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const balancer = await ethers.getContract("Balancer");
     const pm = await ethers.getContract("PortfolioManager");
     const rm = await ethers.getContract("RewardManager");
+    const portfolio = await ethers.getContract("Portfolio");
 
     // setup pm
 
@@ -31,6 +32,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     tx = await pm.setRewardManager(rm.address);
     await tx.wait();
     console.log("pm.setRewardManager done");
+
+    console.log('pm.setPortfolio: ' + portfolio.address)
+    tx = await pm.setPortfolio(portfolio.address);
+    await tx.wait();
+    console.log("pm.setPortfolio done");
 
 };
 

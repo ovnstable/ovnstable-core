@@ -25,6 +25,10 @@ contract Exchange is AccessControl {
     uint256 public redeemFee = 40;
     uint256 public redeemFeeDenominator = 100000; // ~ 100 %
 
+    // percent limit to start sending proportionally tokens from vault
+    uint256 public notEnoughLimit = 98000;
+    uint256 public notEnoughLimitDenominator = 100000; // ~ 100 %
+
     // next payout time in epoch seconds
     uint256 public nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
 
@@ -45,6 +49,7 @@ contract Exchange is AccessControl {
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event NotEnoughLimitUpdated(uint256 limit, uint256 denominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
@@ -58,6 +63,7 @@ contract Exchange is AccessControl {
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
+    event OnNotEnoughLimitRedeemed(address token, uint256 amount);
 
     // ---  modifiers
 
@@ -108,6 +114,13 @@ contract Exchange is AccessControl {
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
+    function setNotEnoughLimit(uint256 _limit, uint256 _limitDenominator) external onlyAdmin {
+        require(_limitDenominator != 0, "Zero denominator not allowed");
+        notEnoughLimit = _limit;
+        notEnoughLimitDenominator = _limitDenominator;
+        emit NotEnoughLimitUpdated(notEnoughLimit, notEnoughLimitDenominator);
+    }
+
     function setPayoutTimes(
         uint256 _nextPayoutTime,
         uint256 _payoutPeriod,
@@ -153,6 +166,10 @@ contract Exchange is AccessControl {
         }
     }
 
+    /**
+     * @param _addrTok Token to withdraw
+     * @param _amount Amount of OVN tokens to burn
+     */
     function redeem(address _addrTok, uint256 _amount) external {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
@@ -161,6 +178,39 @@ contract Exchange is AccessControl {
         emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
+
+        uint256 totalOvnSupply = ovn.totalSupply();
+        uint256 totalUsdc = mark2market.totalUsdcPrice();
+        // denormalize from 10**18 to 10**6 as OVN decimals
+        totalUsdc = totalUsdc / 10 ** 12;
+
+        uint256 totalOvnSupplyNotEnoughLimit = totalOvnSupply * notEnoughLimit / notEnoughLimitDenominator;
+        // check if we should return back to user proportionally tokens from Vault
+        if (totalUsdc < totalOvnSupplyNotEnoughLimit) {
+            // redeemAmount should be in OVN and or equivalent to USDC
+
+            // Calc user redeem shares
+            uint256 redeemProportionDenominator = 10 ** 18;
+            uint256 redeemProportion = redeemProportionDenominator * redeemAmount / totalOvnSupply;
+
+            // Burn OVN from sender
+            ovn.burn(msg.sender, _amount);
+
+            address[] memory withdrewTokens = portfolioManager.withdrawProportional(
+                redeemProportion,
+                redeemProportionDenominator
+            );
+            for (uint8 i; i < withdrewTokens.length; i++) {
+                address withdrewToken = withdrewTokens[i];
+                uint256 withdrewBalance = IERC20(withdrewToken).balanceOf(address(this));
+                if (withdrewBalance > 0) {
+                    IERC20(withdrewToken).transfer(msg.sender, withdrewBalance);
+                    emit OnNotEnoughLimitRedeemed(withdrewToken, withdrewBalance);
+                }
+            }
+            return;
+        }
+
 
         //TODO: Real unstacked amount may be different to _amount
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
