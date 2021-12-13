@@ -189,6 +189,54 @@ describe("Governance", function () {
         expect(number).to.eq(600)
     });
 
+    it("Multi calls in propose", async  function () {
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await govToken.mint(account, votes);
+        await govToken.delegate(account)
+
+        const proposeTx = await governator.proposeExec(
+            [exchange.address, exchange.address, govToken.address],
+            [0, 0, 0],
+            [exchange.interface.encodeFunctionData('setBuyFee', [25, 100000]),
+             exchange.interface.encodeFunctionData('setRedeemFee', [45, 1000000]),
+             govToken.interface.encodeFunctionData('mint', [account, votes])],
+            ethers.utils.id("Proposal #4: Multi proposals"),
+        );
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine');
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 66; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        await governator.queueExec(proposalId);
+
+        await exchange.grantRole(await exchange.DEFAULT_ADMIN_ROLE(), timeLock.address);
+
+        await governator.executeExec(proposalId);
+
+        let buyFee = await exchange.buyFee();
+        let buyFeeDenominator = await exchange.buyFeeDenominator();
+
+        expect(buyFee).to.eq(25);
+        expect(buyFeeDenominator).to.eq(100000);
+
+        let redeemFee = await exchange.redeemFee();
+        let redeemFeeDenominator = await exchange.redeemFeeDenominator();
+
+        expect(redeemFee).to.eq(45);
+        expect(redeemFeeDenominator).to.eq(1000000);
+
+        let balanceGovToken = fromOvnGov(await govToken.balanceOf(account));
+        expect(balanceGovToken).to.eq(200)
+    });
 
     it("Change state contract by Proposal", async function () {
 
