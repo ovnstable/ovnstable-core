@@ -12,6 +12,7 @@ import UsdPlusToken from "../../contracts/UsdPlusToken.json";
 import contract from "@truffle/contract";
 
 import OvnImage from '../../assets/ovn.json';
+import UsdPlusImage from '../../assets/usdPlus.json';
 
 const state = {
     contracts: null,
@@ -219,7 +220,7 @@ const actions = {
                         address: rootState.web3.contracts.usdPlus.options.address,
                         symbol: 'USD+',
                         decimals: 6,
-                        image: OvnImage.image,
+                        image: UsdPlusImage.image,
                     },
                 },
             })

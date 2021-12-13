@@ -12,7 +12,9 @@
           text
           :class="btnMainClass "
       >
-        <v-img :src="selectedItem.image"/>
+          <div class="image-icon">
+              <v-img :src="selectedItem.image"/>
+          </div>
         <span class="text-btn ml-2">{{ selectedItem.title }}</span>
         <v-icon v-if="!show && !readonly">mdi-arrow-down</v-icon>
         <v-icon v-if="show && !readonly">mdi-arrow-up</v-icon>
@@ -26,8 +28,10 @@
           link
           @click="setItem(item)"
       >
-        <v-list-item-avatar>
-          <v-img :src="item.image"/>
+          <v-list-item-avatar>
+              <div class="image-icon">
+                  <v-img :src="item.image"/>
+              </div>
         </v-list-item-avatar>
         <v-list-item-title class="text-btn" v-text="item.title"></v-list-item-title>
       </v-list-item>
@@ -84,6 +88,11 @@ export default {
 </script>
 
 <style scoped>
+
+.image-icon {
+    width: 40px;
+    height: 40px;
+}
 .text-btn{
   font-size: 1.125rem;
   color: rgb(37, 39, 45);
