@@ -4,21 +4,15 @@
         <v-card-title>Change Weight</v-card-title>
         <v-card-actions>
             <v-container>
-
-                <template v-for="asset in assets">
-                    <v-row>
-                        <v-col>
-                            <v-text-field  readonly v-model="asset.address" label="Address" outlined dense>
+                <v-data-table
+                :items="assets"
+                :headers="headers"
+                >
+                    <template v-slot:item.weight="{ item }">
+                            <v-text-field dense outlined v-model="item.weight">
                             </v-text-field>
-
-                            <v-text-field  readonly v-model="asset.id" label="Name" outlined dense>
-                            </v-text-field>
-
-                            <v-text-field v-model="asset.weight" label="Weight" outlined dense>
-                            </v-text-field>
-                        </v-col>
-                    </v-row>
-                </template>
+                    </template>
+                </v-data-table>
 
                 <v-row>
                     <v-col>
@@ -40,7 +34,11 @@ export default {
     name: "ChangeWeightPanel",
 
     data: () => ({
-
+        headers: [
+            {text: 'Address', value: 'address',},
+            {text: 'Name', value: 'id' },
+            {text: 'Weight', value: 'weight' },
+        ]
     }),
 
     computed: {

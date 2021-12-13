@@ -134,9 +134,13 @@ const actions = {
     async changeWeights({commit, dispatch, getters, rootState}, weights) {
 
         let portfolio = rootState.web3.contracts.portfolio;
+        let governor = rootState.web3.contracts.governor;
         let account = rootState.web3.account;
         let params = {from: account};
-        let result = await portfolio.methods.setWeights(weights).send(params);
+        let abi = await portfolio.methods.setWeights(weights).encodeABI();
+
+        await governor.methods.proposeExec([portfolio.options.address], [0], [abi], 'Change wights').send(params);
+
     },
 
     async minting({commit, dispatch, getters, rootState}, request) {
