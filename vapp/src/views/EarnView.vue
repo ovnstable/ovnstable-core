@@ -49,6 +49,7 @@
           <v-col lg="4">
             <v-row justify="end" class="mr-1 mt-1">
               <AddTokenBtn :add-token="addOvnToken" text="Add OVN to your browser wallet"/>
+              <AddTokenBtn :add-token="addUsdPlusToken" text="Add USD+ to your browser wallet"/>
             </v-row>
           </v-col>
           <v-col lg="4">
@@ -103,7 +104,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('web3', ['addOvnToken'])
+    ...mapActions('web3', ['addOvnToken', 'addUsdPlusToken'])
 
   }
 

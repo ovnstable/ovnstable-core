@@ -14,7 +14,7 @@
 
       >
         <v-row class="justify-center align-center pt-15">
-          <div class="swap-title ml-2">OVN Total Portfolio</div>
+          <div class="swap-title ml-2">USD+ Total Portfolio</div>
         </v-row>
 
         <v-row>

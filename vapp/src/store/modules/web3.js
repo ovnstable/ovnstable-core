@@ -4,6 +4,7 @@ import abiDecoder from "../../plugins/abiDecoder";
 import Exchange from "../../contracts/Exchange.json";
 import ERC20 from "../../contracts/ERC20.json";
 import OverNightToken from "../../contracts/OvernightToken.json";
+import UsdPlusToken from "../../contracts/UsdPlusToken.json";
 import contract from "@truffle/contract";
 
 import OvnImage from '../../assets/ovn.json';
@@ -140,6 +141,7 @@ const actions = {
         contracts.usdc = _load(ERC20, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
         contracts.dai = _load(ERC20, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
         contracts.ovn = _load(OverNightToken, web3);
+        contracts.usdPlus = _load(UsdPlusToken, web3);
 
         commit('setContracts', contracts)
     },
@@ -195,6 +197,32 @@ const actions = {
         }else {
             commit('setSwitchToPolygon', true)
         }
+
+    },
+
+    async addUsdPlusToken({commit, dispatch, getters, rootState}) {
+
+        await window.ethereum
+            .request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: rootState.web3.contracts.usdPlus.options.address,
+                        symbol: 'USD+',
+                        decimals: 6,
+                        image: OvnImage.image,
+                    },
+                },
+            })
+            .then((success) => {
+                if (success) {
+                    console.log('USD+ successfully added to wallet!')
+                } else {
+                    throw new Error('Something went wrong.')
+                }
+            })
+            .catch(console.error)
 
     },
 

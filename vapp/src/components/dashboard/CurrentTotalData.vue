@@ -88,10 +88,10 @@
 
             <v-row dense class="row font-weight-bold">
               <v-col lg="4" style="text-align: start">
-                Total OVN in circulation
+                Total USD+ in circulation
               </v-col>
               <v-col lg="4">
-                {{ totalOvn.totalSupply }}
+                  {{ totalUsdPlus.totalSupply }}
               </v-col>
               <v-col lg="1"></v-col>
             </v-row>
@@ -120,7 +120,7 @@ export default {
 
 
   computed: {
-    ...mapGetters("profile", ['currentTotalData', 'totalOvn', 'loadingCurrentTotalData']),
+    ...mapGetters("profile", ['currentTotalData', 'totalUsdPlus', 'loadingCurrentTotalData']),
     ...mapGetters("web3", ['web3']),
 
     liquidationValueTotal: function () {

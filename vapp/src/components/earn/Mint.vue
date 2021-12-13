@@ -70,7 +70,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <div class="balance">Balance: {{ $utils.formatMoney(balance.ovn, 2) }}</div>
+                  <div class="balance">Balance: {{ $utils.formatMoney(balance.usdPlus, 2) }}</div>
                 </template>
               </v-col>
               <v-col lg="4" cols="4" md="3" sm="3">
@@ -121,9 +121,9 @@ export default {
 
     buyCurrency: null,
     buyCurrencies: [{
-      id: 'ovn',
-      title: 'OVN',
-      image: require('../../assets/ovn.png')
+          id: 'usdPlus',
+          title: 'USD+',
+          image: require('../../assets/usdPlus.png')
     }],
 
 
@@ -256,8 +256,8 @@ export default {
           }
         }
 
-        self.addText(`Minting ${self.sum} OVN ......  done`);
-        self.addText(`Transferring ${self.sum} OVN to ${from.substring(1, 10)}  ......  done`);
+        self.addText(`Minting ${self.sum} USD+ ......  done`);
+        self.addText(`Transferring ${self.sum} USD+ to ${from.substring(1, 10)}  ......  done`);
 
 
         try {
@@ -266,7 +266,7 @@ export default {
           console.log(`Try buy ${contracts.usdc.options.address} ${sum}`);
           let buyResult = await contracts.exchange.methods.buy(contracts.usdc.options.address, sum).send(buyParams).on('transactionHash', function (hash) {
             let tx = {
-              text: `Minting ${self.sum} OVN`,
+              text: `Minting ${self.sum} USD+`,
               hash: hash,
               pending: true,
             };
@@ -299,7 +299,7 @@ export default {
       const content = {
         component: ToastTransaction,
         props: {
-          text: `Mint ${sum} OVN`,
+          text: `Mint ${sum} USD+`,
           tx: tx,
         },
       }
