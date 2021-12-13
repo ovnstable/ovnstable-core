@@ -8,6 +8,8 @@ interface IPortfolioManager {
 
     function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);
 
+    function withdrawProportional(uint256 _proportion, uint256 _proportionDenominator) external returns (address[] memory);
+
     function balanceOnReward() external;
 
     function claimRewards() external;

@@ -1,6 +1,13 @@
 
 
 module.exports = {
+
+    toE18: (value) => value * 10 ** 18,
+    fromE18: (value) => value / 10 ** 18,
+
+    toE6: (value) => value * 10 ** 6,
+    fromE6: (value) => value / 10 ** 6,
+
     toUSDC: (value) => value * 10 ** 6,
     fromUSDC: (value) => value / 10 ** 6,
 
