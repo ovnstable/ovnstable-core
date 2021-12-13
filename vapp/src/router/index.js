@@ -92,17 +92,6 @@ const routes = [
                     ]
                 }
             },
-
-            {
-                path: '/governance/timelock',
-                name: 'Timelock',
-                component: () => import('../views/governance/TimeLock.vue'),
-                meta: {
-                    middleware: [
-                    ]
-                }
-            },
-
             {
                 path: '/governance/control',
                 name: 'Control',

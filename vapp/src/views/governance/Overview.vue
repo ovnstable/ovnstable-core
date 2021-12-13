@@ -19,7 +19,7 @@
             </v-col>
             <v-col lg="4">
                 <v-card>
-                    <v-card-title>Delegated</v-card-title>
+                    <v-card-title>Your delegated</v-card-title>
                     <v-card-actions>
                         <h2>{{ overview.totalDelegated }}</h2>
                     </v-card-actions>

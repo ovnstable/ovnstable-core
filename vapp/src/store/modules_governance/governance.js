@@ -59,6 +59,18 @@ const getters = {
 
 const actions = {
 
+    async updateDelay({commit, dispatch, getters, rootState}, value) {
+
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+        let contract = rootState.web3.contracts.timelockController;
+        let params = {from: account};
+
+        let abi = contract.methods.updateDelay(value).encodeABI();
+        let name = 'Proposal #' + getters.proposals.length + 1 + 'Update delay';
+        await governor.methods.proposeExec([contract.options.address], [0], [abi], name).send(params);
+    },
+
     async cancel({commit, dispatch, getters, rootState}, id) {
 
         let governor = rootState.web3.contracts.governor;
@@ -127,8 +139,8 @@ const actions = {
         let params = {from: account};
 
         let abi = contract.methods.setBuyFee(request.fee, request.feeDenominator).encodeABI();
-        console.log('ABI ' + abi)
-        await governor.methods.proposeExec([contract.options.address], [0], [abi], 'Change set Buy Fee').send(params);
+        let name = 'Proposal #' + getters.proposals.length + 1 + 'Change set Buy Fee';
+        await governor.methods.proposeExec([contract.options.address], [0], [abi], name).send(params);
     },
 
     async changeWeights({commit, dispatch, getters, rootState}, weights) {
@@ -138,8 +150,8 @@ const actions = {
         let account = rootState.web3.account;
         let params = {from: account};
         let abi = await portfolio.methods.setWeights(weights).encodeABI();
-
-        await governor.methods.proposeExec([portfolio.options.address], [0], [abi], 'Change wights').send(params);
+        let name = 'Proposal #' + getters.proposals.length + 1 + 'Change wights';
+        await governor.methods.proposeExec([portfolio.options.address], [0], [abi], name).send(params);
 
     },
 
@@ -152,7 +164,8 @@ const actions = {
 
         let wei = rootState.web3.web3.utils.toWei(request.sum, 'gwei');
         let abi = await govToken.methods.mint(request.account, wei).encodeABI();
-        await governor.methods.proposeExec([govToken.options.address], [0], [abi], 'Mint gov tokens').send(params);
+        let name = 'Proposal #' + getters.proposals.length + 1 + 'Mint gov tokens';
+        await governor.methods.proposeExec([govToken.options.address], [0], [abi], name).send(params);
 
     },
 
@@ -176,6 +189,8 @@ const actions = {
             let id = proposals[i];
             let item = await governor.methods.proposals(id).call();
             let status = await governor.methods.state(id).call();
+
+            console.log(item)
             let proposal = {
                 id: item.id,
                 proposer: item.proposer,

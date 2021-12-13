@@ -10,6 +10,9 @@
             <v-col lg="4">
                 <GovTokenControl/>
             </v-col>
+            <v-col lg="4">
+                <TimelockControllerControl/>
+            </v-col>
         </v-row>
     </v-container>
 </template>
@@ -17,10 +20,11 @@
 <script>
 import ExchangeControl from "../../components/governance/control/ExchangeControl";
 import GovTokenControl from "../../components/governance/control/GovTokenControl";
+import TimelockControllerControl from "../../components/governance/control/TimelockControllerControl";
 
 export default {
     name: "Control",
-    components: {GovTokenControl, ExchangeControl }
+    components: {TimelockControllerControl, GovTokenControl, ExchangeControl }
 }
 </script>
 

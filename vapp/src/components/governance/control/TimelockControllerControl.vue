@@ -4,12 +4,12 @@
             <v-container>
                 <v-row>
                     <v-col>
-                        <h1>OVN Token</h1>
+                        <h1>Timelock Controller</h1>
                     </v-col>
                 </v-row>
                 <v-row>
                     <v-col>
-                        <h5>Current address: {{ contracts.govToken.options.address }}</h5>
+                        <h5>Current address: {{ contracts.timelockController.options.address }}</h5>
                     </v-col>
                 </v-row>
             </v-container>
@@ -18,13 +18,7 @@
         <v-card-text>
             <v-row>
                 <v-col>
-                    <v-text-field v-model="sum" label="Sum" outlined dense>
-                    </v-text-field>
-                </v-col>
-            </v-row>
-            <v-row>
-                <v-col>
-                    <v-text-field v-model="address" label="Address" outlined dense>
+                    <v-text-field v-model="value" label="Update delay" outlined dense>
                     </v-text-field>
                 </v-col>
             </v-row>
@@ -33,7 +27,7 @@
         <v-card-actions>
             <v-row>
                 <v-col>
-                    <v-btn @click="mintGovTokens">
+                    <v-btn @click="action">
                         Proposal
                     </v-btn>
                 </v-col>
@@ -46,11 +40,10 @@
 import {mapActions, mapGetters} from "vuex";
 
 export default {
-    name: "GovTokenControl",
+    name: "TimelockControllerControl",
 
     data: () => ({
-        sum: 0,
-        address: null,
+        value: 0,
     }),
 
     computed: {
@@ -59,10 +52,10 @@ export default {
 
     methods: {
 
-        ...mapActions('governance', ['minting']),
+        ...mapActions('governance', ['updateDelay']),
 
-        mintGovTokens() {
-            this.minting({sum: this.sum, account: this.address});
+        action() {
+            this.updateDelay(this.value);
         },
     }
 }

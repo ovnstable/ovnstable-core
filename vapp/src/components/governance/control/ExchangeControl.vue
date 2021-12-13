@@ -31,7 +31,7 @@
             <v-row dense>
                 <v-col>
                     <v-btn @click="changeFeeBuyAction">
-                        Change
+                        Proposal
                     </v-btn>
                 </v-col>
             </v-row>
