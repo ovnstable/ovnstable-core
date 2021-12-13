@@ -1,8 +1,8 @@
 <template>
 
     <v-container>
-        <v-row v-for="item in proposals">
-            <v-card>
+        <v-row >
+            <v-card v-for="item in proposals">
                 <v-card-title>
                     ID: {{ item.id }}
                 </v-card-title>
@@ -19,20 +19,23 @@
                     </v-row>
 
                     <v-row dense>
-
-                        <v-col>
+                        <v-col lg="4">
                             <v-text-field readonly v-model="item.forVotes" label="For Votes" outlined dense>
                             </v-text-field>
                         </v-col>
+                    </v-row>
 
-                        <v-col>
-                            <v-text-field readonly v-model="item.againstVotes" label="Against Votes" outlined dense>
-                            </v-text-field>
+                    <v-row dense>
+                        <v-col lg="4">
+                                <v-text-field readonly v-model="item.againstVotes" label="Against Votes" outlined dense>
+                                </v-text-field>
                         </v-col>
+                    </v-row>
 
-                        <v-col>
-                            <v-text-field readonly v-model="item.abstainVotes" label="Abstain Votes" outlined dense>
-                            </v-text-field>
+                    <v-row dense>
+                        <v-col lg="4">
+                                <v-text-field readonly v-model="item.abstainVotes" label="Abstain Votes" outlined dense>
+                                </v-text-field>
                         </v-col>
                     </v-row>
 

@@ -59,7 +59,7 @@ const getters = {
 
 const actions = {
 
-    async cancel({commit, dispatch, getters, rootState}, id ) {
+    async cancel({commit, dispatch, getters, rootState}, id) {
 
         let governor = rootState.web3.contracts.governor;
 
@@ -68,7 +68,7 @@ const actions = {
         await governor.methods.cancel(id).send(params);
     },
 
-    async execute({commit, dispatch, getters, rootState}, id ) {
+    async execute({commit, dispatch, getters, rootState}, id) {
 
         let governor = rootState.web3.contracts.governor;
 
@@ -77,7 +77,7 @@ const actions = {
         await governor.methods.executeExec(id).send(params);
     },
 
-    async queue({commit, dispatch, getters, rootState}, id ) {
+    async queue({commit, dispatch, getters, rootState}, id) {
 
         let governor = rootState.web3.contracts.governor;
 
@@ -143,8 +143,13 @@ const actions = {
 
         let govToken = rootState.web3.contracts.govToken;
         let account = rootState.web3.account;
+        let governor = rootState.web3.contracts.governor;
         let params = {from: account};
-        let result = await govToken.methods.mint(request.account, request.sum).send(params);
+
+        let wei = rootState.web3.web3.utils.toWei(request.sum, 'gwei');
+        let abi = await govToken.methods.mint(request.account, wei).encodeABI();
+        await governor.methods.proposeExec([govToken.options.address], [0], [abi], 'Mint gov tokens').send(params);
+
     },
 
     async delegate({commit, dispatch, getters, rootState}, address) {
@@ -172,9 +177,9 @@ const actions = {
                 proposer: item.proposer,
                 startBlock: item.startBlock,
                 endBlock: item.endBlock,
-                forVotes: item.forVotes,
-                againstVotes: item.againstVotes,
-                abstainVotes: item.abstainVotes,
+                forVotes: item.forVotes / 10 ** 18,
+                againstVotes: item.againstVotes / 10 ** 18,
+                abstainVotes: item.abstainVotes / 10 ** 18,
                 status: status,
                 statusText: proposalStates[status],
             }
@@ -197,8 +202,8 @@ const actions = {
         let totalProposals = await governor.methods.getProposals().call();
 
         let overview = {
-            totalVotes: totalVotes,
-            totalDelegated: totalDelegated,
+            totalVotes: totalVotes / 10 ** 18,
+            totalDelegated: totalDelegated / 10 ** 18,
             totalProposals: totalProposals.length
         }
         commit('setOverview', overview);

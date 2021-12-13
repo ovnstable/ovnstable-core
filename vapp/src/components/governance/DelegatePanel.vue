@@ -1,5 +1,5 @@
 <template>
-<v-container>
+<v-container class="pa-0 ma-0">
     <v-card>
         <v-card-title>Delegate</v-card-title>
         <v-card-actions>

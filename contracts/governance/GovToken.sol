@@ -11,6 +11,7 @@ contract GovToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
 
     constructor() ERC20("Overnight", "OVN") ERC20Permit("Overnight") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _mint(msg.sender, 10000 * 10 ** 18);
     }
 
     modifier onlyAdmin() {

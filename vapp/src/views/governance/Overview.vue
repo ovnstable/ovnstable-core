@@ -37,14 +37,11 @@
         </v-row>
 
         <v-row>
-            <v-col lg="3">
-                <GovTokenPanel/>
-            </v-col>
-            <v-col lg="3">
-                <DelegatePanel/>
-            </v-col>
             <v-col lg="4">
                 <GovSettings/>
+            </v-col>
+            <v-col lg="4">
+                <DelegatePanel/>
             </v-col>
         </v-row>
 
@@ -53,14 +50,13 @@
 
 <script>
 import {mapActions, mapGetters} from "vuex";
-import GovTokenPanel from "../../components/governance/GovTokenPanel";
 import DelegatePanel from "../../components/governance/DelegatePanel";
 import ChangeWeightPanel from "../../components/governance/ChangeWeightPanel";
 import GovSettings from "../../components/governance/GovSettings";
 
 export default {
     name: "Overview",
-    components: {GovSettings, ChangeWeightPanel, DelegatePanel, GovTokenPanel},
+    components: {GovSettings, ChangeWeightPanel, DelegatePanel},
     computed: {
         ...mapGetters('governance', ['overview', 'overviewLoading'])
     },

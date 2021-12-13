@@ -3,7 +3,7 @@
         <v-row justify="center">
             <h1>Proposals Overview</h1>
         </v-row>
-        <v-row justify="center">
+        <v-row class="mb-5" justify="center">
             <h2>Total count: {{proposals.length}}</h2>
         </v-row>
 

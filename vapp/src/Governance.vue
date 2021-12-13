@@ -5,9 +5,7 @@
             <v-app-bar app>
                 <v-btn icon @click="updateBlockNumber"><v-icon>mdi-refresh</v-icon></v-btn>
                 Current block: {{currentBlock}}
-
                 <v-btn icon @click="mineBlock"><v-icon>mdi-data-matrix-plus</v-icon></v-btn>
-
             </v-app-bar>
 
             <!-- Sizes your content based upon application components -->
