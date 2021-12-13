@@ -25,7 +25,7 @@ describe("Redeem on not enough liquidity", function () {
 
 
     let exchange;
-    let ovn;
+    let usdPlus;
     let usdc;
     let account;
     let pm;
@@ -36,12 +36,12 @@ describe("Redeem on not enough liquidity", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'OvernightToken', 'SettingExchange', 'SettingOvn', 'BuyUsdc']);
+        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         exchange = await ethers.getContract("Exchange");
-        ovn = await ethers.getContract("OvernightToken");
+        usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract("PortfolioManager");
         m2m = await ethers.getContract("Mark2Market");
         vault = await ethers.getContract("Vault");
@@ -59,7 +59,7 @@ describe("Redeem on not enough liquidity", function () {
         let CRV = await ethers.getContractAt("ERC20", '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
         let wmatic = await ethers.getContractAt("ERC20", '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
 
-        let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+        let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, usdPlus];
 
         let totalUsdcPrice = await m2m.totalUsdcPrice();
         console.log("totalUsdcPrice: " + fromE18(totalUsdcPrice));
@@ -111,7 +111,7 @@ describe("Redeem on not enough liquidity", function () {
 
 
         const ovnSumToRedeem = toOvn(90);
-        await ovn.approve(exchange.address, ovnSumToRedeem);
+        await usdPlus.approve(exchange.address, ovnSumToRedeem);
 
         result = await exchange.redeem(assets.usdc, ovnSumToRedeem);
         console.log("Redeem done, wait for result")

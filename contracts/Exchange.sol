@@ -181,22 +181,22 @@ contract Exchange is AccessControl {
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
-        uint256 totalOvnSupply = ovn.totalSupply();
+        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
         uint256 totalUsdc = mark2market.totalUsdcPrice();
         // denormalize from 10**18 to 10**6 as OVN decimals
         totalUsdc = totalUsdc / 10 ** 12;
 
-        uint256 totalOvnSupplyNotEnoughLimit = totalOvnSupply * notEnoughLimit / notEnoughLimitDenominator;
+        uint256 totalOvnSupplyNotEnoughLimit = totalUsdPlusSupply * notEnoughLimit / notEnoughLimitDenominator;
         // check if we should return back to user proportionally tokens from Vault
         if (totalUsdc < totalOvnSupplyNotEnoughLimit) {
             // redeemAmount should be in OVN and or equivalent to USDC
 
             // Calc user redeem shares
             uint256 redeemProportionDenominator = 10 ** 18;
-            uint256 redeemProportion = redeemProportionDenominator * redeemAmount / totalOvnSupply;
+            uint256 redeemProportion = redeemProportionDenominator * redeemAmount / totalUsdPlusSupply;
 
             // Burn OVN from sender
-            ovn.burn(msg.sender, _amount);
+            usdPlus.burn(msg.sender, _amount);
 
             address[] memory withdrewTokens = portfolioManager.withdrawProportional(
                 redeemProportion,
