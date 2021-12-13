@@ -27,14 +27,16 @@ describe("Governance", function () {
     let governator;
     let timeLock;
     let exchange;
+    let user1;
 
     beforeEach(async () => {
         await hre.run("compile");
 
         await deployments.fixture(['Governance', 'Exchange']);
 
-        const {deployer} = await getNamedAccounts();
+        const {deployer } = await getNamedAccounts();
         account = deployer;
+
         console.log('Account ' + account)
 
         govToken = await ethers.getContract('GovToken');
@@ -44,6 +46,8 @@ describe("Governance", function () {
 
         await govToken.grantRole(await govToken.DEFAULT_ADMIN_ROLE(), timeLock.address);
 
+        let addresses = await ethers.getSigners();
+        user1 = addresses[1];
     });
 
 
@@ -52,12 +56,23 @@ describe("Governance", function () {
         let votingDelay = await governator.votingDelay();
         let votingPeriod = await governator.votingPeriod();
         let proposalThreshold = await governator.proposalThreshold();
+        let quorumNumerator = await governator.quorumNumerator();
 
         expect(votingDelay).to.eq(1);
         expect(votingPeriod).to.eq(5);
         expect(proposalThreshold).to.eq(0);
+        expect(quorumNumerator).to.eq(75);
     });
 
+    it("Governor settings: updateQuorumNumerator -> throw only Governance", async  function (){
+
+        try {
+            await governator.updateQuorumNumerator(1);
+            expect.fail("Exception not thrown");
+        } catch (e) {
+            expect(e.message).to.eq('VM Exception while processing transaction: reverted with reason string \'Governor: onlyGovernance\'');
+        }
+    });
 
     it("Change Governor settings -> throw only Governance", async  function (){
 
@@ -81,6 +96,80 @@ describe("Governance", function () {
         let totalDelegated = fromOvnGov(await govToken.getVotes(account))
         expect(totalDelegated).to.eq(100);
 
+    });
+
+    it("Quorum -> sucess: 75%", async function () {
+
+        let votes = ethers.utils.parseUnits("15.0", 18);
+        let forVotesCount = "75.0";
+        await govToken.mint(account, ethers.utils.parseUnits(forVotesCount, 18));
+        await govToken.mint(user1.address, votes);
+        let walletGovToken = govToken.connect(user1);
+
+        await govToken.delegate(account)
+        await walletGovToken.delegate(user1.address);
+
+        const proposeTx = await governator.proposeExec(
+            [exchange.address],
+            [0],
+            [exchange.interface.encodeFunctionData('setBuyFee', [25, 100000])],
+            ethers.utils.id("Proposal #3: Set Buy fee"),
+        );
+
+        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+        console.log('Quorum: ' + quorum);
+        console.log('For votes: ' + forVotesCount)
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 10; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        let state = proposalStates[await governator.state(proposalId)];
+        expect(state).to.eq('Succeeded')
+    });
+
+    it("Quorum -> fail: 75%", async function () {
+
+        let votes = ethers.utils.parseUnits("35.0", 18);
+        let forVotesCount = "75.0";
+        await govToken.mint(account, ethers.utils.parseUnits(forVotesCount, 18));
+        await govToken.mint(user1.address, votes);
+        let walletGovToken = govToken.connect(user1);
+
+        await govToken.delegate(account)
+        await walletGovToken.delegate(user1.address);
+
+        const proposeTx = await governator.proposeExec(
+            [exchange.address],
+            [0],
+            [exchange.interface.encodeFunctionData('setBuyFee', [25, 100000])],
+            ethers.utils.id("Proposal #3: Set Buy fee"),
+        );
+
+        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+        console.log('Quorum: ' + quorum);
+        console.log('For votes: ' + forVotesCount)
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 10; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        let state = proposalStates[await governator.state(proposalId)];
+        expect(state).to.eq('Defeated')
     });
 
 

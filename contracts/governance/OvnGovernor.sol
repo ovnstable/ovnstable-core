@@ -13,7 +13,7 @@ contract OvnGovernor is Governor, GovernorSettings, GovernorCompatibilityBravo, 
     Governor("OvnGovernor")
     GovernorSettings(1 /* 1 block */, 5 /* 1 minute */, 0)
     GovernorVotes(_token)
-    GovernorVotesQuorumFraction(4)
+    GovernorVotesQuorumFraction(75)
     GovernorTimelockControl(_timelock)
     {}
 
