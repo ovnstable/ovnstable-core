@@ -24,7 +24,7 @@ describe("Payout roll", function () {
 
 
     let exchange;
-    let ovn;
+    let usdPlus;
     let usdc;
     let account;
     let pm;
@@ -35,12 +35,12 @@ describe("Payout roll", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'OvernightToken', 'SettingExchange', 'SettingOvn', 'BuyUsdc']);
+        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         exchange = await ethers.getContract("Exchange");
-        ovn = await ethers.getContract("OvernightToken");
+        usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract("PortfolioManager");
         m2m = await ethers.getContract("Mark2Market");
         vault = await ethers.getContract("Vault");
@@ -60,7 +60,7 @@ describe("Payout roll", function () {
         let CRV = await ethers.getContractAt("ERC20", '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
         let wmatic = await ethers.getContractAt("ERC20", '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
 
-        let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+        let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, usdPlus];
 
 
         console.log("---  " + "User " + account + ":");
@@ -71,6 +71,9 @@ describe("Payout roll", function () {
         await showBalances(assetsForLog, vault.address);
         console.log("---------------------");
 
+        console.log("---------------------");
+        console.log("usdPlus.getLiquidityIndex: " + await usdPlus.liquidityIndex());
+        console.log("---------------------");
 
         const sum = toUSDC(100);
         await usdc.approve(exchange.address, sum);
@@ -81,8 +84,12 @@ describe("Payout roll", function () {
         let waitResult = await result.wait();
         console.log("Gas used for buy 1: " + waitResult.gasUsed);
 
-        let balance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + balance)
+        console.log("---------------------");
+        console.log("usdPlus.getLiquidityIndex: " + await usdPlus.liquidityIndex());
+        console.log("---------------------");
+
+        let balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance)
         // expect(balance).to.greaterThanOrEqual(99.96);
 
         console.log("---  " + "User " + account + ":");
@@ -111,17 +118,17 @@ describe("Payout roll", function () {
         console.log("---------------------");
 
 
-        balance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + balance)
+        balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance)
         balance = fromOvn(await usdc.balanceOf(account));
         console.log('Balance usdc: ' + balance)
         // expect(balance).to.greaterThanOrEqual(99.96);
 
         const ovnSumToRedeem = toOvn(100);
-        await ovn.approve(exchange.address, ovnSumToRedeem);
+        await usdPlus.approve(exchange.address, ovnSumToRedeem);
 
-        let ovnBalance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + ovnBalance)
+        let ovnBalance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + ovnBalance)
         // expect(ovnBalance).to.equal(49.36);
 
         result = await exchange.redeem(assets.usdc, ovnSumToRedeem);
@@ -129,8 +136,8 @@ describe("Payout roll", function () {
         waitResult = await result.wait();
         console.log("Gas used for redeem: " + waitResult.gasUsed);
 
-        balance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + balance)
+        balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance)
         balance = fromOvn(await usdc.balanceOf(account));
         console.log('Balance usdc: ' + balance)
 

@@ -13,25 +13,25 @@ describe("Exchange", function () {
 
 
     let exchange;
-    let ovn;
+    let usdPlus;
     let usdc;
     let account;
     let pm;
     let m2m;
 
     before(async () => {
-        await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'OvernightToken', 'SettingExchange', 'SettingOvn', 'BuyUsdc']);
+        await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         exchange = await ethers.getContract("Exchange");
-        ovn = await ethers.getContract("OvernightToken");
+        usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract("PortfolioManager");
         m2m = await ethers.getContract("Mark2Market");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
         const pmMock = await smock.fake(pm);
-        exchange.setAddr(pmMock.address, m2m.address)
+        await exchange.setPortfolioManager(pmMock.address)
     });
 
     it("Mint OVN", async function () {
@@ -43,8 +43,8 @@ describe("Exchange", function () {
         console.log("USDC: " + assets.usdc)
         await exchange.buy(assets.usdc, sum);
 
-        let balance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + balance)
+        let balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance)
         expect(balance).to.equal(99.96);
 
     });
@@ -53,11 +53,11 @@ describe("Exchange", function () {
     it("Redeem OVN", async function () {
 
         const sum = toOvn(50.6);
-        await ovn.approve(exchange.address, sum);
+        await usdPlus.approve(exchange.address, sum);
         await exchange.redeem(assets.usdc, sum);
 
-        let balance = fromOvn(await ovn.balanceOf(account));
-        console.log('Balance ovn: ' + balance)
+        let balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance)
         expect(balance).to.equal(49.36);
 
     });

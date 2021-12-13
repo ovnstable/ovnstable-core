@@ -121,9 +121,9 @@ export default {
 
     buyCurrency: null,
     buyCurrencies: [{
-      id: 'ovn',
-      title: 'OVN',
-      image: require('../../assets/ovn.png')
+      id: 'usdPlus',
+      title: 'USD+',
+      image: require('../../assets/usdPlus.png')
     }],
 
 
@@ -156,14 +156,14 @@ export default {
 
       v = parseFloat(v);
 
-      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.ovn)) return true;
+      if (!isNaN(parseFloat(v)) && v >= 0 && v <= parseFloat(this.balance.usdPlus)) return true;
 
 
       return false;
     },
 
     maxResult() {
-      return this.$utils.formatMoney(this.balance.ovn, 2);
+      return this.$utils.formatMoney(this.balance.usdPlus, 2);
     },
 
     buttonLabel: function () {
@@ -172,7 +172,7 @@ export default {
         return ' You need to connect to a wallet';
       } else if (this.isBuy) {
         return 'Press to Withdraw'
-      } else if (this.sum > parseFloat(this.balance.ovn)) {
+      } else if (this.sum > parseFloat(this.balance.usdPlus)) {
         return 'Invalid amount'
       } else {
         return 'Enter the amount to Withdraw';
@@ -187,7 +187,6 @@ export default {
   created() {
 
     this.currencies.push({id: 'usdc', title: 'USDC', image: require('../../assets/currencies/usdc.png')});
-    // this.currencies.push({id: 'dai', title: 'DAI', image: require('../../assets/currencies/dai.svg')});
 
     this.currency = this.currencies[0];
 
@@ -208,7 +207,7 @@ export default {
     },
 
     max() {
-      let balanceElement = this.balance.ovn;
+      let balanceElement = this.balance.usdPlus;
       this.sum = balanceElement + "";
     },
 
@@ -226,16 +225,16 @@ export default {
 
 
         this.show('Processing...')
-        this.addText(`Locking ${this.sum} OVN ......  done`)
+        this.addText(`Locking ${this.sum} USD+ ......  done`)
 
-        let allowanceValue = await contracts.ovn.methods.allowance(from, contracts.exchange.options.address).call();
+        let allowanceValue = await contracts.usdPlus.methods.allowance(from, contracts.exchange.options.address).call();
         console.log('Allowance value ' + allowanceValue)
 
         if (allowanceValue < sum) {
           try {
             await this.refreshGasPrice();
             let approveParams = {gasPrice: this.gasPriceGwei, from: from};
-            await contracts.ovn.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935').send(approveParams);
+            await contracts.usdPlus.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935').send(approveParams);
           } catch (e) {
             console.log(e)
             this.failed();
@@ -243,7 +242,7 @@ export default {
           }
         }
 
-        self.addText(`Burning ${self.sum} OVN ......  done`);
+        self.addText(`Burning ${self.sum} USD+ ......  done`);
         self.addText(`Transferring ${self.sum} USDC to ${from.substring(1, 10)}  ......  done`);
 
         try {

@@ -8,6 +8,7 @@ import GovToken from "../../contracts/GovToken.json";
 import Governor from "../../contracts/OvnGovernor.json";
 import Portfolio from "../../contracts/Portfolio.json";
 import TimelockController from "../../contracts/TimelockController.json";
+import UsdPlusToken from "../../contracts/UsdPlusToken.json";
 import contract from "@truffle/contract";
 
 import OvnImage from '../../assets/ovn.json';
@@ -148,6 +149,7 @@ const actions = {
         contracts.governor = _load(Governor, web3);
         contracts.portfolio = _load(Portfolio, web3);
         contracts.timelockController= _load(TimelockController, web3);
+        contracts.usdPlus = _load(UsdPlusToken, web3);
 
         commit('setContracts', contracts)
     },
@@ -203,6 +205,32 @@ const actions = {
         }else {
             commit('setSwitchToPolygon', true)
         }
+
+    },
+
+    async addUsdPlusToken({commit, dispatch, getters, rootState}) {
+
+        await window.ethereum
+            .request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: rootState.web3.contracts.usdPlus.options.address,
+                        symbol: 'USD+',
+                        decimals: 6,
+                        image: OvnImage.image,
+                    },
+                },
+            })
+            .then((success) => {
+                if (success) {
+                    console.log('USD+ successfully added to wallet!')
+                } else {
+                    throw new Error('Something went wrong.')
+                }
+            })
+            .catch(console.error)
 
     },
 

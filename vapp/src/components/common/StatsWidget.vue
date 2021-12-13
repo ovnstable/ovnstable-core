@@ -3,33 +3,33 @@
     <v-col lg="12">
       <v-row dense class="row" align="center">
         <v-col lg="6">
-          Total OVN Minted:
+          Total USD+ Minted:
         </v-col>
 
         <v-col lg="4" md="8" class="number">
 
-          <template v-if="loadingTotalOvn">
+          <template v-if="loadingTotalUsdPlus">
             <v-skeleton-loader
                 type="text"
             ></v-skeleton-loader>
           </template>
           <template v-else>
-            {{ numberWithSpaces($utils.formatMoney(totalOvn.totalMint, 0)) }}
+            {{ numberWithSpaces($utils.formatMoney(totalUsdPlus.totalMint, 0)) }}
           </template>
         </v-col>
       </v-row>
       <v-row dense class="row fatty pt-2 pb-2" align="center">
         <v-col lg="6" md="2">
-          OVN in circulation:
+          USD+ in circulation:
         </v-col>
         <v-col lg="4" md="8" class="number">
-          <template v-if="loadingTotalOvn">
+          <template v-if="loadingTotalUsdPlus">
             <v-skeleton-loader
                 type="text"
             ></v-skeleton-loader>
           </template>
           <template v-else>
-            <strong>{{ numberWithSpaces($utils.formatMoney(totalOvn.totalSupply, 0)) }}</strong>
+            <strong>{{ numberWithSpaces($utils.formatMoney(totalUsdPlus.totalSupply, 0)) }}</strong>
           </template>
 
         </v-col>
@@ -39,17 +39,17 @@
 
       <v-row dense class="row" align="center">
         <v-col lg="6">
-          Total OVN Burnt:
+          Total USD+ Burnt:
         </v-col>
         <v-col lg="4" md="8" class="number">
 
-          <template v-if="loadingTotalOvn">
+          <template v-if="loadingTotalUsdPlus">
             <v-skeleton-loader
                 type="text"
             ></v-skeleton-loader>
           </template>
           <template v-else>
-            {{ numberWithSpaces($utils.formatMoney(totalOvn.totalBurn, 0)) }}
+            {{ numberWithSpaces($utils.formatMoney(totalUsdPlus.totalBurn, 0)) }}
           </template>
         </v-col>
 
@@ -83,7 +83,7 @@ export default {
 
 
   computed: {
-    ...mapGetters('profile', ['totalOvn', 'loadingTotalOvn'])
+    ...mapGetters('profile', ['totalUsdPlus', 'loadingTotalUsdPlus'])
   },
 
   methods: {

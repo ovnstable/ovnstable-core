@@ -32,7 +32,7 @@
               </v-col>
 
               <v-col lg="3">
-                Daily profit (USDC per OVN)
+                Daily profit (USDC per USD+)
               </v-col>
 
               <v-col lg="3">

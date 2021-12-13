@@ -10,7 +10,7 @@
       </v-col>
       <v-col lg="7" v-if="account" @click="showAccountProfile">
         <v-row class="account" style="height: 50px" align="center">
-          <div>OVN: <strong>{{ balance.ovn }}</strong></div>
+          <div>USD+: <strong>{{ balance.usdPlus}}</strong></div>
           <div class="pl-5"> {{ accountShort }}</div>
         </v-row>
       </v-col>

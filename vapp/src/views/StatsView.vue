@@ -20,7 +20,7 @@
             />
           </template>
           <template v-else>
-            <div class="swap-title ml-2">Your OVN balance is: {{ balance.ovn }}</div>
+            <div class="swap-title ml-2">Your USD+ balance is: {{ balance.usdPlus }}</div>
           </template>
         </v-row>
 

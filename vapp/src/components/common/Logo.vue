@@ -14,7 +14,7 @@ export default {
 
   methods:{
     clickLogo() {
-      window.open('https://ovnstable.io/', '_blank').focus();
+      window.open('https://overnight.fi/', '_blank').focus();
     },
   }
 }

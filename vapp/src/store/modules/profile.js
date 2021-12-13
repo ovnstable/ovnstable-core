@@ -1,7 +1,5 @@
 let accounting = require("accounting-js")
 import {axios} from "../../plugins/http-axios";
-import utils from "../../plugins/utils";
-import abiDecoder from "../../plugins/abiDecoder";
 
 let accountingConfig = {
     symbol: "",
@@ -15,16 +13,16 @@ const state = {
     currentTotalData: null,
     loadingCurrentTotalData: true,
 
-    totalOvn: {
+    totalUsdPlus: {
         totalMint: 0,
         totalBurn: 0,
         totalSupply: 0,
     },
 
-    loadingTotalOvn: true,
+    loadingTotalUsdPlus: true,
 
     balance: {
-        ovn: 0,
+        usdPlus: 0,
         usdc: 0,
     },
     loadingBalance: true,
@@ -58,12 +56,12 @@ const getters = {
         return state.gasPrice;
     },
 
-    totalOvn(state) {
-        return state.totalOvn;
+    totalUsdPlus(state) {
+        return state.totalUsdPlus;
     },
 
-    loadingTotalOvn(state) {
-        return state.loadingTotalOvn;
+    loadingTotalUsdPlus(state) {
+        return state.loadingTotalUsdPlus;
     },
 
     transactionLogs(state) {
@@ -92,7 +90,7 @@ const actions = {
         commit('setLoadingBalance', true)
         let web3 = rootState.web3;
 
-        let ovn;
+        let usdPlus;
         let usdc;
         try {
             usdc = await web3.contracts.usdc.methods.balanceOf(web3.account).call();
@@ -109,23 +107,23 @@ const actions = {
         }
 
         try {
-            ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+            usdPlus = await web3.contracts.usdPlus.methods.balanceOf(web3.account).call();
         } catch (e) {
             console.log('ERROR: ' + e)
             await new Promise(resolve => setTimeout(resolve, 2000));
             try {
-                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+                usdPlus = await web3.contracts.usdPlus.methods.balanceOf(web3.account).call();
             } catch (e) {
                 console.log('ERROR: ' + e)
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                ovn = await web3.contracts.ovn.methods.balanceOf(web3.account).call();
+                usdPlus = await web3.contracts.usdPlus.methods.balanceOf(web3.account).call();
             }
         }
 
-        ovn = ovn / 10 ** 6;
+        usdPlus = usdPlus / 10 ** 6;
         usdc = usdc / 10 ** 6;
         commit('setBalance', {
-            ovn: ovn,
+            usdPlus: usdPlus,
             usdc: usdc
         })
 
@@ -135,7 +133,7 @@ const actions = {
 
     async resetUserData({commit, dispatch, getters}) {
         commit('setBalance', {
-            ovn: 0,
+            usdPlus: 0,
             usdc: 0
         });
 
@@ -151,13 +149,13 @@ const actions = {
         dispatch('refreshBalance')
         dispatch('refreshTransactionLogs')
         dispatch('refreshCurrentTotalData')
-        dispatch('refreshTotalOvn')
+        dispatch('refreshTotalUsdPlus')
     },
 
     async refreshNotUserData({commit, dispatch, getters}) {
         dispatch('refreshPayouts')
         dispatch('refreshCurrentTotalData')
-        dispatch('refreshTotalOvn')
+        dispatch('refreshTotalUsdPlus')
     },
 
     async refreshPayouts({commit, dispatch, getters, rootState}) {
@@ -176,7 +174,7 @@ const actions = {
 
         commit('setTransactionLogsLoader', true)
         let exchange = rootState.web3.contracts.exchange.options.address.toLowerCase();
-        let ovn = rootState.web3.contracts.ovn.options.address.toLowerCase();
+        let usdPlus = rootState.web3.contracts.usdPlus.options.address.toLowerCase();
         let usdc = rootState.web3.contracts.usdc.options.address.toLowerCase();
         let account = rootState.web3.account.toLowerCase();
         let token = 'YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR';
@@ -197,23 +195,23 @@ const actions = {
 
             if (item.from === exchange && item.contractAddress === usdc) {
                 let sum = item.value / 10 ** 6;
-                log.name = `OVN Redeemed for ${sum} ${item.tokenSymbol}`;
+                log.name = `USD+ Redeemed for ${sum} ${item.tokenSymbol}`;
                 log.sum = sum;
                 logs.push(log);
                 id++;
             } else if (item.from === account && item.to === exchange && item.contractAddress === usdc) {
                 let sum = item.value / 10 ** 6;
-                log.name = `${item.tokenSymbol} Minting for ${sum} OVN`;
+                log.name = `${item.tokenSymbol} Minting for ${sum} USD+`;
                 log.sum = sum;
                 logs.push(log);
                 id++;
-            } else if (item.from === '0x0000000000000000000000000000000000000000' && item.to === account && item.contractAddress === ovn) {
+            } else if (item.from === '0x0000000000000000000000000000000000000000' && item.to === account && item.contractAddress === usdPlus) {
 
                 try {
                     let transaction = await rootState.web3.web3.eth.getTransactionReceipt(item.hash);
                     if (transaction.from === rewarder) {
                         let sum = item.value / 10 ** 6;
-                        log.name = `Rewarding ${sum} OVN`;
+                        log.name = `Rewarding ${sum} USD+`;
                         log.sum = sum;
                         logs.push(log);
                         id++;
@@ -233,11 +231,11 @@ const actions = {
     },
 
 
-    async refreshTotalOvn({commit, dispatch, getters}) {
-        commit('setLoadingTotalOvn', true)
+    async refreshTotalUsdPlus({commit, dispatch, getters}) {
+        commit('setLoadingTotalUsdPlus', true)
         axios.get('/total').then(value => {
-            commit('setTotalOvn', value.data);
-            commit('setLoadingTotalOvn', false)
+            commit('setTotalUsdPlus', value.data);
+            commit('setLoadingTotalUsdPlus', false)
         })
 
     },
@@ -309,8 +307,8 @@ const mutations = {
         state.gasPrice = price;
     },
 
-    setTotalOvn(state, totalOvn) {
-        state.totalOvn = totalOvn;
+    setTotalUsdPlus(state, value) {
+        state.totalUsdPlus = value;
     },
 
     setTransactionLogs(state, transactionLogs) {
@@ -325,8 +323,8 @@ const mutations = {
         state.transactionLogsLoader = transactionLogsLoader;
     },
 
-    setLoadingTotalOvn(state, value) {
-        state.loadingTotalOvn = value;
+    setLoadingTotalUsdPlus(state, value) {
+        state.loadingTotalUsdPlus = value;
     },
 
     setLoadingPayouts(state, value) {
