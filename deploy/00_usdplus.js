@@ -3,11 +3,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deploy('OvernightToken', {
+    await deploy('UsdPlusToken', {
         from: deployer,
         args: [],
         log: true,
     });
 };
 
-module.exports.tags = ['base','OvernightToken'];
+module.exports.tags = ['base','UsdPlusToken'];
