@@ -7,13 +7,16 @@ import "./interfaces/IERC20MintableBurnable.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
-import "./OvernightToken.sol";
+import "./libraries/math/WadRayMath.sol";
+import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
 
 contract Exchange is AccessControl {
+    using WadRayMath for uint256;
+
     // ---  fields
 
-    OvernightToken public ovn;
+    UsdPlusToken public usdPlus;
     IERC20 public usdc;
 
     PortfolioManager public portfolioManager; //portfolio manager contract
@@ -40,7 +43,7 @@ contract Exchange is AccessControl {
 
     // ---  events
 
-    event TokensUpdated(address ovn, address usdc);
+    event TokensUpdated(address usdPlus, address usdc);
     event Mark2MarketUpdated(address mark2market);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -49,12 +52,11 @@ contract Exchange is AccessControl {
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(
-        uint256 totalOvn,
+        uint256 totalUsdPlus,
         uint256 totalUsdc,
-        uint256 totallyAmountPaid,
-        uint256 totallySaved
+        uint256 totallyAmountPaid
     );
-    event NoEnoughForPayoutEvent(uint256 totalOvn, uint256 totalUsdc);
+    event NoEnoughForPayoutEvent(uint256 totalUsdPlus, uint256 totalUsdc);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
@@ -74,12 +76,12 @@ contract Exchange is AccessControl {
 
     // ---  setters
 
-    function setTokens(address _ovn, address _usdc) external onlyAdmin {
-        require(_ovn != address(0), "Zero address not allowed");
+    function setTokens(address _usdPlus, address _usdc) external onlyAdmin {
+        require(_usdPlus != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
-        ovn = OvernightToken(_ovn);
+        usdPlus = UsdPlusToken(_usdPlus);
         usdc = IERC20(_usdc);
-        emit TokensUpdated(_ovn, _usdc);
+        emit TokensUpdated(_usdPlus, _usdc);
     }
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
@@ -125,7 +127,7 @@ contract Exchange is AccessControl {
     // ---  logic
 
     function balance() public view returns (uint256) {
-        return ovn.balanceOf(msg.sender);
+        return usdPlus.balanceOf(msg.sender);
     }
 
     function buy(address _addrTok, uint256 _amount) external {
@@ -142,7 +144,7 @@ contract Exchange is AccessControl {
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
 
-        ovn.mint(msg.sender, buyAmount);
+        usdPlus.mint(msg.sender, buyAmount);
 
         IERC20(_addrTok).transfer(address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
@@ -166,7 +168,7 @@ contract Exchange is AccessControl {
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
-        ovn.burn(msg.sender, _amount);
+        usdPlus.burn(msg.sender, _amount);
 
         // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
@@ -196,41 +198,35 @@ contract Exchange is AccessControl {
             return;
         }
 
-        // 0. call claiming reward and rebalancing on PM TODO: may be need move to another place
-        // 1. get current amount of OVN
+        // 0. call claiming reward and balancing on PM
+        // 1. get current amount of USD+
         // 2. get total sum of USDC we can get from any source
-        // 3. calc difference between total count of OVN and USDC
-        // 4. go through all OVN owners and mint to their addresses proportionally OVN
+        // 3. calc difference between total count of USD+ and USDC
+        // 4. update USD+ liquidity index
 
         portfolioManager.claimRewards();
         portfolioManager.balanceOnReward();
 
-        uint256 totalOvnSupply = ovn.totalSupply();
+        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
         uint256 totalUsdc = mark2market.totalUsdcPrice();
-        // denormilize from 10**18 to 10**6 as OVN decimals
+        // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;
-        if (totalUsdc <= totalOvnSupply) {
-            emit NoEnoughForPayoutEvent(totalOvnSupply, totalUsdc);
+        if (totalUsdc <= totalUsdPlusSupply) {
+            emit NoEnoughForPayoutEvent(totalUsdPlusSupply, totalUsdc);
             return;
         }
-        uint difference = totalUsdc - totalOvnSupply;
+        uint difference = totalUsdc - totalUsdPlusSupply;
 
-        uint totallyAmountPaid = 0;
-        for (uint8 i = 0; i < ovn.ownerLength(); i++) {
-            address ovnOwnerAddress = ovn.ownerAt(i);
-            uint ovnBalance = ovn.balanceOf(ovnOwnerAddress);
-            uint additionalMintAmount = (ovnBalance * difference) / totalOvnSupply;
-            if (additionalMintAmount > 0) {
-                ovn.mint(ovnOwnerAddress, additionalMintAmount);
-                totallyAmountPaid += additionalMintAmount;
-            }
-        }
+        uint256 totalUsdPlusSupplyRay = totalUsdPlusSupply.wadToRay();
+        uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
+        // in ray
+        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+        usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         emit PayoutEvent(
-            totalOvnSupply,
+            totalUsdPlusSupply,
             totalUsdc,
-            totallyAmountPaid,
-            difference - totallyAmountPaid
+            difference
         );
 
         // update next payout time. Cycle for preventing gaps
