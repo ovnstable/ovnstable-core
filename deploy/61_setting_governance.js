@@ -15,5 +15,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('Mint 100 ovn token to ' + deployer + " done")
 };
 
-module.exports.tags = ['setting','Setting'];
+module.exports.tags = ['settingGovernance'];
 
