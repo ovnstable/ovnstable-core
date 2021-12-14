@@ -18,6 +18,7 @@ describe("Exchange", function () {
     let account;
     let pm;
     let m2m;
+    let pmMock;
 
     before(async () => {
         await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
@@ -30,12 +31,14 @@ describe("Exchange", function () {
         m2m = await ethers.getContract("Mark2Market");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
-        const pmMock = await smock.fake(pm);
-        await exchange.setPortfolioManager(pmMock.address)
+        pmMock = await smock.fake(pm);
+        m2m = await smock.fake(m2m);
+        await exchange.setPortfolioManager(pmMock.address);
+        await exchange.setMark2Market(m2m.address);
+
     });
 
     it("Mint OVN", async function () {
-
 
         const sum = toUSDC(100);
         await usdc.approve(exchange.address, sum);

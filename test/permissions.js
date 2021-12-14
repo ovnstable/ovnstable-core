@@ -24,8 +24,8 @@ describe("Permissions", function () {
     });
 
 
-    it("OvernightToken", async function () {
-        await hasRole(await ethers.getContract("OvernightToken"))
+    it("UsdPlusToken", async function () {
+        await hasRole(await ethers.getContract("UsdPlusToken"))
     });
 
     it("Exchange", async function () {
