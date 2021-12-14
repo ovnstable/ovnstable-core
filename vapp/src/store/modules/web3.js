@@ -235,31 +235,6 @@ const actions = {
 
     },
 
-    async addOvnToken({commit, dispatch, getters, rootState}) {
-
-        await window.ethereum
-            .request({
-                method: 'wallet_watchAsset',
-                params: {
-                    type: 'ERC20',
-                    options: {
-                        address: rootState.web3.contracts.ovn.options.address,
-                        symbol: 'OVN',
-                        decimals: 6,
-                        image: OvnImage.image,
-                    },
-                },
-            })
-            .then((success) => {
-                if (success) {
-                    console.log('FOO successfully added to wallet!')
-                } else {
-                    throw new Error('Something went wrong.')
-                }
-            })
-            .catch(console.error)
-
-    }
 
 
 };
