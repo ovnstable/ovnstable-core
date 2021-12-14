@@ -11,27 +11,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     }
 });
 
-
-const fsExtra = require('fs-extra')
-const readdirp = require('readdirp');
-const path = require('path');
 const {node_url, accounts} = require("./utils/network");
-
-task("compile:vue", "Compile and move .json to folder vapp", async (taskArgs, hre) => {
-
-    await hre.run('compile');
-    fsExtra.emptyDirSync('vapp/src/contracts');
-
-    let root = 'artifacts/contracts/';
-    for await (const entry of readdirp(root, {fileFilter: '*.json', alwaysStat: true})) {
-        let file = root + entry.path
-        let baseName = path.basename(file);
-        if (!baseName.includes('.dgb')) {
-            fsExtra.copy(file, 'vapp/src/contracts/' + baseName)
-        }
-    }
-
-});
 
 
 module.exports = {
