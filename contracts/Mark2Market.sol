@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPriceGetter.sol";
 import "./registries/Portfolio.sol";
@@ -130,9 +131,9 @@ contract Mark2Market is IMark2Market, Ownable {
             revert(string(
                 abi.encodePacked(
                     "Withdraw more than total: ",
-                    uint2str(withdrawAmount),
+                    Strings.toString(withdrawAmount),
                     " > ",
-                    uint2str(totalUsdcPrice)
+                    Strings.toString(totalUsdcPrice)
                 )
             ));
         }
@@ -214,24 +215,6 @@ contract Mark2Market is IMark2Market, Ownable {
     }
 
 
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
-    }
+
 
 }

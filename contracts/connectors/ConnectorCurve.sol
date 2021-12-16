@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../interfaces/IConnector.sol";
 import "./curve/interfaces/iCurvePool.sol";
@@ -67,13 +68,13 @@ contract ConnectorCurve is IConnector, Ownable {
                         abi.encodePacked(
                             "Not enough lpToken own ",
                             " _amount: ",
-                            uint2str(_amount),
+                            Strings.toString(_amount),
                             " lpTok: ",
-                            uint2str(lpTokAmount),
+                            Strings.toString(lpTokAmount),
                             " onConnectorLpTokenAmount: ",
-                            uint2str(onConnectorLpTokenAmount),
+                            Strings.toString(onConnectorLpTokenAmount),
                             " withdrawAmount: ",
-                            uint2str(withdrawAmount)
+                            Strings.toString(withdrawAmount)
                         )
                     ));
                 }
@@ -96,24 +97,5 @@ contract ConnectorCurve is IConnector, Ownable {
         revert("can't find active for withdraw from pool");
     }
 
-    //TODO: remove
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
-    }
+
 }

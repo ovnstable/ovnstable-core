@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IActionBuilder.sol";
 import "./interfaces/IRewardManager.sol";
@@ -122,9 +123,9 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
             revert(string(
                 abi.encodePacked(
                     "In vault not enough for transfer _amount: ",
-                    uint2str(_token.balanceOf(address(vault))),
+                    Strings.toString(_token.balanceOf(address(vault))),
                     " < ",
-                    uint2str(_amount)
+                    Strings.toString(_amount)
                 )
             ));
         }
@@ -251,23 +252,5 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     }
 
 
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            bstr[k] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
-    }
+
 }
