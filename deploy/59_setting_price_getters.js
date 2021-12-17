@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 
-let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351"
+let balancerVault = "0xba12222222228d8ba445958a75a0704d566bf2c8";
+let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351";
 let idleToken = "0x1ee6470CD75D5686d0b2b90C0305Fa46fb0C89A1";
 
 const fs = require("fs");
@@ -11,6 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const idleUsdcPriceGetter = await ethers.getContract('IdleUsdcPriceGetter');
+    const bpspTusdPriceGetter = await ethers.getContract('BpspTusdPriceGetter');
     const usdcPriceGetter = await ethers.getContract('UsdcPriceGetter');
     const aUsdcPriceGetter = await ethers.getContract('AUsdcPriceGetter');
     const a3CrvPriceGetter = await ethers.getContract('A3CrvPriceGetter');
@@ -21,6 +23,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // setup price getters
     await idleUsdcPriceGetter.setIdleToken(idleToken);
     console.log("idleUsdcPriceGetter.setIdleToken done");
+
+    await bpspTusdPriceGetter.setBalancerVault(balancerVault);
+    console.log("bpspTusdPriceGetter.setBalancerVault done");
 
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
     console.log("a3CrvPriceGetter.setPool done");
@@ -41,6 +46,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let idleUsdcAssetInfo = {
         asset: assets.idleUsdc,
         priceGetter: idleUsdcPriceGetter.address
+    }
+    let bpspTusdAssetInfo = {
+        asset: assets.bpspTusd,
+        priceGetter: bpspTusdPriceGetter.address
     }
     let usdcAssetInfo = {
         asset: assets.usdc,
@@ -74,6 +83,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         crvAssetInfo,
         wMaticAssetInfo,
         idleUsdcAssetInfo,
+        bpspTusdAssetInfo,
     ]
 
     console.log("portfolio.setAssetInfo: " + JSON.stringify(assetInfos));

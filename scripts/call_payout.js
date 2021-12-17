@@ -30,6 +30,7 @@ async function main() {
     let exchange = await ethers.getContract("Exchange");
 
     let idleUSDC = await ethers.getContractAt(ERC20.abi, '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
+    let bpspTusd = await ethers.getContractAt(ERC20.abi, '0x0d34e5dD4D8f043557145598E4e2dC286B35FD4f');
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
     let amUSDC = await ethers.getContractAt(ERC20.abi, '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
     let am3CRV = await ethers.getContractAt(ERC20.abi, '0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
@@ -37,7 +38,7 @@ async function main() {
     let CRV = await ethers.getContractAt(ERC20.abi, '0x172370d5Cd63279eFa6d502DAB29171933a610AF');
     let wmatic = await ethers.getContractAt(ERC20.abi, '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270');
 
-    let assets = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
+    let assets = [idleUSDC, bpspTusd, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, ovn];
 
     console.log("---  " + "User " + owner.address + ":");
     await showBalances(assets, owner.address);

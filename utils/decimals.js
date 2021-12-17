@@ -30,5 +30,9 @@ module.exports = {
     fromIdle: (value) => value / 10 ** 18,
 
     toOvnGov: (value) => value * 10 ** 18,
-    fromOvnGov: (value) => value / 10 ** 18
+    fromOvnGov: (value) => value / 10 ** 18,
+
+    //TODO balancer
+    toBpsp: (value) => value * 10 ** 18,
+    fromBpsp: (value) => value / 10 ** 18
 }

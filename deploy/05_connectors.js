@@ -9,6 +9,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         log: true,
     });
 
+    await deploy('ConnectorBalancer', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+
     await deploy('ConnectorCurve', {
         from: deployer,
         args: [],

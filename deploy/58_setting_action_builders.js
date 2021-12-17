@@ -13,6 +13,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("usdc2IdleUsdcActionBuilder added");
 
+    const usdc2BpspTusdActionBuilder = await ethers.getContract('Usdc2BpspTusdActionBuilder');
+    console.log("usdc2BpspTusdActionBuilder");
+    tx = await balancer.addActionBuilderAt(usdc2BpspTusdActionBuilder.address, 0);
+    await tx.wait();
+    console.log("usdc2BpspTusdActionBuilder added");
+
     const usdc2AUsdcActionBuilder = await ethers.getContract('Usdc2AUsdcActionBuilder');
     console.log("usdc2AUsdcActionBuilder");
     tx = await balancer.addActionBuilderAt(usdc2AUsdcActionBuilder.address, 1);

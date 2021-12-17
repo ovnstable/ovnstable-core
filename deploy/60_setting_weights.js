@@ -12,19 +12,25 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let idleUsdcWeight = {
         asset: assets.idleUsdc,
         minWeight: 0,
+        targetWeight: 10000,
+        maxWeight: 100000,
+    }
+    let bpspTusdWeight = {
+        asset: assets.usdc,
+        minWeight: 0,
         targetWeight: 2000,
         maxWeight: 100000,
     }
     let usdcWeight = {
         asset: assets.usdc,
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 0,
         maxWeight: 100000,
     }
     let aUsdcWeight = {
         asset: assets.amUsdc,
         minWeight: 0,
-        targetWeight: 8000,
+        targetWeight: 10000,
         maxWeight: 100000,
     }
     let a3CrvWeight = {
@@ -36,7 +42,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let a3CrvGaugeWeight = {
         asset: assets.am3CRVgauge,
         minWeight: 0,
-        targetWeight: 80000,
+        targetWeight: 73000,
         maxWeight: 100000,
     }
     let wMaticWeight = {
@@ -53,6 +59,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
     let weights = [
         idleUsdcWeight,
+        bpspTusdWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
