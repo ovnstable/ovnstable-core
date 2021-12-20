@@ -36,7 +36,8 @@ import VueYandexMetrika from 'vue-yandex-metrika'
 Vue.use(VueYandexMetrika, {
   id: 86928892,
   router: router,
-  env: process.env.NODE_ENV
+  env: process.env.NODE_ENV,
+  options: {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true}
 })
 
 new Vue({
