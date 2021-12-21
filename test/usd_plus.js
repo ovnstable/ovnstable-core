@@ -36,7 +36,6 @@ describe("Usd Plus", function () {
         let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
         await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
 
-        // const sum = toUSDC(1);
         await usdPlus.mint(account, 1);
         let scaledBalance = await usdPlus.scaledBalanceOf(account);
         console.log("ScaledBalance usdPlus: " + scaledBalance);
@@ -53,7 +52,6 @@ describe("Usd Plus", function () {
         let newLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
         await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
 
-        // const sum = toUSDC(1);
         await usdPlus.mint(account, 1);
 
         let scaledBalance = await usdPlus.scaledBalanceOf(account);
@@ -71,7 +69,6 @@ describe("Usd Plus", function () {
         let newLiquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
         await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
 
-        // const sum = toUSDC(1);
         await usdPlus.mint(account, 1);
 
         let scaledBalance = await usdPlus.scaledBalanceOf(account);
@@ -291,6 +288,62 @@ describe("Usd Plus", function () {
         ownerLength = await usdPlus.ownerLength();
         console.log("ownerLength usdPlus: " + ownerLength);
         expect(ownerLength).to.equals(0);
+
+    });
+
+    it("Token transfer", async function () {
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let firstLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
+        await usdPlus.setLiquidityIndex(firstLiquidityIndex.toString());
+
+        await usdPlus.mint(account, 16);
+
+        let balance = await usdPlus.balanceOf(account);
+        console.log("Balance usdPlus: " + balance);
+        expect(balance).to.equals(16)
+
+        await usdPlus.transfer(tmpUser.address, 10);
+
+        balance = await usdPlus.balanceOf(tmpUser.address);
+        console.log("tmpUser Balance usdPlus: " + balance);
+        expect(balance).to.equals(10);
+
+    });
+
+    it("Token transferFrom", async function () {
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1022809482605723771055655202");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        await usdPlus.mint(account, 93143413);
+
+        let balance = await usdPlus.balanceOf(account);
+        console.log("Balance usdPlus: " + balance);
+        expect(balance).to.equals(93143413)
+
+        await usdPlus.approve(tmpUser.address, 3143413);
+
+        let allowance = await usdPlus.allowance(account, tmpUser.address);
+        console.log("allowance usdPlus: " + allowance);
+        expect(allowance).to.equals(3143413)
+
+        await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 1143413);
+
+        balance = await usdPlus.balanceOf(tmpUser.address);
+        console.log("tmpUser Balance usdPlus: " + balance);
+        expect(balance).to.equals(1143413);
+
+        balance = await usdPlus.balanceOf(account);
+        console.log("account Balance usdPlus: " + balance);
+        expect(balance).to.equals(92000000);
+
+        allowance = await usdPlus.allowance(account, tmpUser.address);
+        console.log("allowance usdPlus: " + allowance);
+        expect(allowance).to.equals(2000000)
+
+        await expect(usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 2100000)).to.be.reverted;
 
     });
 });
