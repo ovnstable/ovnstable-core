@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
-import "./interfaces/IERC20MintableBurnable.sol";
 import "./libraries/math/WadRayMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-
-contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
+contract UsdPlusToken is Initializable, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     // ---  fields
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint256 public totalMint;
     uint256 public totalBurn;
 
     uint256 public liquidityIndexChangeTime;
-    uint256 public liquidityIndex = 10 ** 27; // as Ray
-    uint256 constant public liquidityIndexDenominator = 10 ** 27; // Ray
+    uint256 public liquidityIndex;
+    uint256 public liquidityIndexDenominator;
 
     EnumerableSet.AddressSet _owners;
 
@@ -56,16 +57,32 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
         emit LiquidityIndexUpdated(liquidityIndexChangeTime, liquidityIndex);
     }
 
-    // ---  constructor
 
-    constructor() ERC20("USD+", "USD+") {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
 
+    function initialize() initializer public {
+        __ERC20_init("USD+", "USD+");
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+
+        liquidityIndex  = 10 ** 27; // as Ray
+        liquidityIndexDenominator = 10 ** 27; // Ray
     }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
 
     // ---  logic
 
-    function mint(address _sender, uint256 _amount) external override onlyExchanger {
+    function mint(address _sender, uint256 _amount) external onlyExchanger {
         // up to ray
         uint256 mintAmount = _amount.wadToRay();
         mintAmount = mintAmount.rayDiv(liquidityIndex);
@@ -73,7 +90,7 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
         totalMint += _amount;
     }
 
-    function burn(address _sender, uint256 _amount) external override onlyExchanger {
+    function burn(address _sender, uint256 _amount) external onlyExchanger {
         // up to ray
         uint256 burnAmount = _amount.wadToRay();
         burnAmount = burnAmount.rayDiv(liquidityIndex);
@@ -94,7 +111,7 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
     function balanceOf(address user)
     public
     view
-    override (ERC20, IERC20)
+    override (ERC20Upgradeable)
     returns (uint256)
     {
         // stored balance is ray (27)
@@ -122,7 +139,7 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
      * does that too.
      * @return the current total supply
      **/
-    function totalSupply() public view override (ERC20, IERC20) returns (uint256) {
+    function totalSupply() public view override (ERC20Upgradeable) returns (uint256) {
         // stored totalSupply is ray (27)
         uint256 currentSupply = super.totalSupply();
         // ray -> ray
