@@ -1,4 +1,4 @@
-let {Claim, MerkleTree} = require('../test/merkleTree.ts');
+let { MerkleTree, Claim } = require('./merkleTree.js');
 
 const {expect} = require("chai");
 const chai = require("chai");
