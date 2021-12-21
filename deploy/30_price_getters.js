@@ -16,7 +16,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         log: true,
     });
 
-    await deploy('BpspTusdPriceGetter', {
+    await deploy('BpspTUsdPriceGetter', {
         from: deployer,
         args: [],
         log: true,
@@ -58,7 +58,19 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [swapRouter, assets.usdc, assets.wMatic],
         log: true,
     });
+
+    await deploy('TUsdPriceGetter', {
+        from: deployer,
+        args: [swapRouter, assets.usdc, assets.tUsd],
+        log: true,
+    });
+
+    await deploy('BalPriceGetter', {
+        from: deployer,
+        args: [swapRouter, assets.usdc, assets.bal],
+        log: true,
+    });
 };
 
-module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'BpspTusdPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter'];
+module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'BpspTUsdPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter', 'TUsdPriceGetter', 'BalPriceGetter'];
 

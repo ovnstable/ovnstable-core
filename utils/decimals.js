@@ -34,5 +34,11 @@ module.exports = {
 
     //TODO balancer
     toBpsp: (value) => value * 10 ** 18,
-    fromBpsp: (value) => value / 10 ** 18
+    fromBpsp: (value) => value / 10 ** 18,
+
+    toTUsd: (value) => value * 10 ** 18,
+    fromTUsd: (value) => value / 10 ** 18,
+
+    toBal: (value) => value * 10 ** 18,
+    fromBal: (value) => value / 10 ** 18
 }

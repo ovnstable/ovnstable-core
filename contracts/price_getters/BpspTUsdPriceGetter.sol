@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/balancer/interfaces/IVault.sol";
 
-contract BpspTusdPriceGetter is AbstractPriceGetter, Ownable {
+contract BpspTUsdPriceGetter is AbstractPriceGetter, Ownable {
 
     IVault public balancerVault;
 

@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "./interfaces/IRewardManager.sol";
 import "./Vault.sol";
+import "./connectors/balancer/MerkleOrchard.sol";
 
 contract RewardManager is IRewardManager, AccessControl {
 
@@ -15,12 +16,14 @@ contract RewardManager is IRewardManager, AccessControl {
     IRewardOnlyGauge public rewardGauge;
     Vault public vault;
     IERC20 public aUsdc;
+    MerkleOrchard public merkleOrchard;
 
     // ---  events
 
     event RewardGaugeUpdated(address rewardGauge);
     event VaultUpdated(address vault);
     event AUsdcTokenUpdated(address aUsdc);
+    event MerkleOrchardUpdated(address merkleOrchard);
 
     // ---  modifiers
 
@@ -55,16 +58,22 @@ contract RewardManager is IRewardManager, AccessControl {
         emit AUsdcTokenUpdated(_aUsdc);
     }
 
+    function setMerkleOrchard(address _merkleOrchard) external onlyAdmin {
+        require(_merkleOrchard != address(0), "Zero address not allowed");
+        merkleOrchard = MerkleOrchard(_merkleOrchard);
+        emit MerkleOrchardUpdated(_merkleOrchard);
+    }
 
     // ---  logic
 
     /**
-    * Claim rewards from Curve gauge, Aave where we have staked LP tokens
+    * Claim rewards from Curve gauge, Aave, Balancer where we have staked LP tokens
     */
     function claimRewards() external override {
         //TODO: add event if gauge emit nothing
         claimRewardCurve();
         claimRewardAave();
+        claimRewardBalancer();
     }
 
     function claimRewardCurve() public {
@@ -77,4 +86,8 @@ contract RewardManager is IRewardManager, AccessControl {
         vault.claimRewardAave(assets, type(uint256).max);
     }
 
+    function claimRewardBalancer() public {
+        //TODO balancer
+//        merkleOrchard.claimDistributions(claimer, claims, tokens);
+    }
 }

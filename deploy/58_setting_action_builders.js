@@ -13,11 +13,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("usdc2IdleUsdcActionBuilder added");
 
-    const usdc2BpspTusdActionBuilder = await ethers.getContract('Usdc2BpspTusdActionBuilder');
-    console.log("usdc2BpspTusdActionBuilder");
-    tx = await balancer.addActionBuilderAt(usdc2BpspTusdActionBuilder.address, 0);
+    const usdc2BpspTUsdActionBuilder = await ethers.getContract('Usdc2BpspTUsdActionBuilder');
+    console.log("usdc2BpspTUsdActionBuilder");
+    tx = await balancer.addActionBuilderAt(usdc2BpspTUsdActionBuilder.address, 0);
     await tx.wait();
-    console.log("usdc2BpspTusdActionBuilder added");
+    console.log("usdc2BpspTUsdActionBuilder added");
 
     const usdc2AUsdcActionBuilder = await ethers.getContract('Usdc2AUsdcActionBuilder');
     console.log("usdc2AUsdcActionBuilder");
@@ -49,6 +49,17 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("crv2UsdcActionBuilder added");
 
+    const tUsd2UsdcActionBuilder = await ethers.getContract('TUsd2UsdcActionBuilder');
+    console.log("tUsd2UsdcActionBuilder");
+    tx = await balancer.addActionBuilderAt(tUsd2UsdcActionBuilder.address, 4);
+    await tx.wait();
+    console.log("tUsd2UsdcActionBuilder added");
+
+    const bal2UsdcActionBuilder = await ethers.getContract('Bal2UsdcActionBuilder');
+    console.log("bal2UsdcActionBuilder");
+    tx = await balancer.addActionBuilderAt(bal2UsdcActionBuilder.address, 4);
+    await tx.wait();
+    console.log("bal2UsdcActionBuilder added");
 };
 
 module.exports.tags = ['setting', 'Setting'];

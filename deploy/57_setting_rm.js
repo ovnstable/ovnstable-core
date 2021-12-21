@@ -3,7 +3,8 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"
+let curveGaugeAddress = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c";
+let merkleOrchard = "0x0F3e0c4218b7b0108a3643cFe9D3ec0d4F57c54e";
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -26,6 +27,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     tx = await rm.setAUsdcToken(assets.amUsdc);
     await tx.wait();
     console.log("rm.setAUsdcToken done");
+
+    console.log("rm.setMerkleOrchard: " + merkleOrchard);
+    tx = await rm.setMerkleOrchard(merkleOrchard);
+    await tx.wait();
+    console.log("rm.setMerkleOrchard done");
 
 };
 

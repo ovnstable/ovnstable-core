@@ -6,25 +6,25 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
-contract Usdc2BpspTusdActionBuilder is IActionBuilder {
-    bytes32 constant ACTION_CODE = keccak256("Usdc2BpspTusd");
+contract Bal2UsdcActionBuilder is IActionBuilder {
+    bytes32 constant ACTION_CODE = keccak256("Bal2Usdc");
 
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
-    IERC20 public bpspTusdToken;
+    IERC20 public balToken;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _bpspTusdToken
+        address _balToken
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_bpspTusdToken != address(0), "Zero address not allowed");
+        require(_balToken != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
-        bpspTusdToken = IERC20(_bpspTusdToken);
+        balToken = IERC20(_balToken);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -36,35 +36,35 @@ contract Usdc2BpspTusdActionBuilder is IActionBuilder {
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
         // get diff from iteration over prices because can't use mapping in memory params to external functions
+        IMark2Market.BalanceAssetPrices memory balPrices;
         IMark2Market.BalanceAssetPrices memory usdcPrices;
-        IMark2Market.BalanceAssetPrices memory bpspTusdPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
+            if (assetPrices[i].asset == address(balToken)) {
+                balPrices = assetPrices[i];
+                continue;
+            }
             if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
                 continue;
             }
-            if (assetPrices[i].asset == address(bpspTusdToken)) {
-                bpspTusdPrices = assetPrices[i];
-                continue;
-            }
         }
 
-        // because we know that usdc is leaf in tree and we can use this value
-        int256 diff = bpspTusdPrices.diffToTarget;
+        // because we know that bal is leaf in tree and we can use this value
+        int256 diff = balPrices.diffToTarget;
 
         uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (bpspTusdPrices.targetIsZero || diff < 0) {
+        if (balPrices.targetIsZero || diff < 0) {
             amount = uint256(- diff);
-            from = bpspTusdToken;
+            from = balToken;
             to = usdcToken;
-            targetIsZero = bpspTusdPrices.targetIsZero;
+            targetIsZero = balPrices.targetIsZero;
         } else {
             amount = uint256(diff);
             from = usdcToken;
-            to = bpspTusdToken;
+            to = balToken;
             targetIsZero = usdcPrices.targetIsZero;
         }
 

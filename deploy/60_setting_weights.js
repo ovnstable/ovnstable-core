@@ -15,7 +15,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         targetWeight: 10000,
         maxWeight: 100000,
     }
-    let bpspTusdWeight = {
+    let bpspTUsdWeight = {
         asset: assets.usdc,
         minWeight: 0,
         targetWeight: 2000,
@@ -57,15 +57,29 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         targetWeight: 0,
         maxWeight: 100000,
     }
+    let tUsdWeight = {
+        asset: assets.tUsd,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
+    let balWeight = {
+        asset: assets.bal,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
     let weights = [
         idleUsdcWeight,
-        bpspTusdWeight,
+        bpspTUsdWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
         a3CrvGaugeWeight,
         wMaticWeight,
-        crvWeight
+        crvWeight,
+        tUsdWeight,
+        balWeight
     ]
 
     console.log('portfolio.setWeights: ' + JSON.stringify(weights))

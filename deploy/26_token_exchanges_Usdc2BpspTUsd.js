@@ -10,17 +10,17 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const connectorBalancer = await ethers.getContract("ConnectorBalancer");
 
-    let exchange = await deploy('Usdc2BpspTusdTokenExchange', {
+    let exchange = await deploy('Usdc2BpspTUsdTokenExchange', {
         from: deployer,
-        args: [connectorBalancer.address, assets.usdc, assets.bpspTusd],
+        args: [connectorBalancer.address, assets.usdc, assets.bpspTUsd],
         log: true,
     });
 
-    await deploy('Usdc2BpspTusdActionBuilder', {
+    await deploy('Usdc2BpspTUsdActionBuilder', {
         from: deployer,
-        args: [exchange.address, assets.usdc, assets.bpspTusd],
+        args: [exchange.address, assets.usdc, assets.bpspTUsd],
         log: true,
     });
 };
 
-module.exports.tags = ['base', 'Usdc2BpspTusdActionBuilder', 'Usdc2BpspTusdTokenExchange'];
+module.exports.tags = ['base', 'Usdc2BpspTUsdActionBuilder', 'Usdc2BpspTUsdTokenExchange'];

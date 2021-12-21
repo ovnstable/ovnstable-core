@@ -12,20 +12,22 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const idleUsdcPriceGetter = await ethers.getContract('IdleUsdcPriceGetter');
-    const bpspTusdPriceGetter = await ethers.getContract('BpspTusdPriceGetter');
+    const bpspTUsdPriceGetter = await ethers.getContract('BpspTUsdPriceGetter');
     const usdcPriceGetter = await ethers.getContract('UsdcPriceGetter');
     const aUsdcPriceGetter = await ethers.getContract('AUsdcPriceGetter');
     const a3CrvPriceGetter = await ethers.getContract('A3CrvPriceGetter');
     const a3CrvGaugePriceGetter = await ethers.getContract('A3CrvGaugePriceGetter');
     const crvPriceGetter = await ethers.getContract('CrvPriceGetter');
     const wMaticPriceGetter = await ethers.getContract('WMaticPriceGetter');
+    const tUsdPriceGetter = await ethers.getContract('TUsdPriceGetter');
+    const balPriceGetter = await ethers.getContract('BalPriceGetter');
 
     // setup price getters
     await idleUsdcPriceGetter.setIdleToken(idleToken);
     console.log("idleUsdcPriceGetter.setIdleToken done");
 
-    await bpspTusdPriceGetter.setBalancerVault(balancerVault);
-    console.log("bpspTusdPriceGetter.setBalancerVault done");
+    await bpspTUsdPriceGetter.setBalancerVault(balancerVault);
+    console.log("bpspTUsdPriceGetter.setBalancerVault done");
 
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
     console.log("a3CrvPriceGetter.setPool done");
@@ -47,9 +49,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         asset: assets.idleUsdc,
         priceGetter: idleUsdcPriceGetter.address
     }
-    let bpspTusdAssetInfo = {
-        asset: assets.bpspTusd,
-        priceGetter: bpspTusdPriceGetter.address
+    let bpspTUsdAssetInfo = {
+        asset: assets.bpspTUsd,
+        priceGetter: bpspTUsdPriceGetter.address
     }
     let usdcAssetInfo = {
         asset: assets.usdc,
@@ -75,6 +77,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         asset: assets.wMatic,
         priceGetter: wMaticPriceGetter.address
     }
+    let tUsdAssetInfo = {
+        asset: assets.tUsd,
+        priceGetter: tUsdPriceGetter.address
+    }
+    let balAssetInfo = {
+        asset: assets.bal,
+        priceGetter: balPriceGetter.address
+    }
     let assetInfos = [
         usdcAssetInfo,
         aUsdcAssetInfo,
@@ -83,7 +93,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         crvAssetInfo,
         wMaticAssetInfo,
         idleUsdcAssetInfo,
-        bpspTusdAssetInfo,
+        bpspTUsdAssetInfo,
+        tUsdAssetInfo,
+        balAssetInfo,
     ]
 
     console.log("portfolio.setAssetInfo: " + JSON.stringify(assetInfos));
