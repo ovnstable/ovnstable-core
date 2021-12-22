@@ -16,6 +16,9 @@ contract ConnectorBalancer is IConnector, Ownable {
     IAsset public constant dai = IAsset(address(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063));
     IAsset public constant usdt = IAsset(address(0xc2132D05D31c914a87C6611C10748AEb04B58e8F));
     address public constant bpspTUsd = address(0x0d34e5dD4D8f043557145598E4e2dC286B35FD4f);
+    IERC20 public constant bal1 = IERC20(address(0x2e1AD108fF1D8C782fcBbB89AAd783aC49586756));
+    IERC20 public constant tUsd1 = IERC20(address(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063));
+    IERC20 public constant wMatic1 = IERC20(address(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270));
 
     IVault public balancerVault;
     MerkleOrchard public merkleOrchard;
@@ -30,8 +33,8 @@ contract ConnectorBalancer is IConnector, Ownable {
         merkleOrchard = MerkleOrchard(_merkleOrchard);
     }
 
-//    function getMerkleOrchard() public onlyOwner returns (address) {
-//        return address(merkleOrchard);
+//    function getMerkleOrchard() public returns (MerkleOrchard) {
+//        return merkleOrchard;
 //    }
 
     function stake(
@@ -125,16 +128,35 @@ contract ConnectorBalancer is IConnector, Ownable {
     }
 
     function claim(
-        MerkleOrchard.Claim[] memory claims,
-        IERC20[] memory tokens
+//        MerkleOrchard.Claim[] memory claims,
+//        address[] memory _tokens
+        bytes32[] memory proof1,
+        bytes32[] memory proof2,
+        bytes32[] memory proof3
     ) public returns (uint256) {
-//        MerkleOrchard.Claim[] memory claims = new MerkleOrchard.Claim[](3);
-//        for (uint256 i = 0; i < tokens.length; i++) {
-//            uint256 distributionId = merkleOrchard.getNextDistributionId(tokens[i], address(this));
-//            uint256 balance = merkleOrchard.getRemainingBalance()(tokens[i], address(this));
-//            MerkleOrchard.Claim claim = MerkleOrchard.Claim(distributionId, balance, address(this), i, bytes32[] merkleProof);
-//            claims[i] = claim;
-//        }
+        IERC20[] memory tokens = new IERC20[](3);
+        tokens[0] = bal1;
+        tokens[1] = tUsd1;
+        tokens[2] = wMatic1;
+        console.log("Start claiming");
+        MerkleOrchard.Claim[] memory claims = new MerkleOrchard.Claim[](3);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            console.log("Token %s", address(tokens[i]));
+            uint256 distributionId = merkleOrchard.getNextDistributionId(tokens[i], address(this));
+            console.log("distributionId %s", distributionId);
+            uint256 balance = merkleOrchard.getRemainingBalance(tokens[i], address(this));
+            console.log("balance %s", balance);
+            bytes32[] memory proof;
+            if (i == 0) {
+                proof = proof1;
+            } else if (i == 1) {
+                proof = proof2;
+            } else if (i == 2) {
+                proof = proof3;
+            }
+            MerkleOrchard.Claim memory claim = MerkleOrchard.Claim(distributionId, balance, address(this), i, proof);
+            claims[i] = claim;
+        }
         merkleOrchard.claimDistributions(address(this), claims, tokens);
         return 0;
     }

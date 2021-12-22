@@ -14,6 +14,10 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
+function encodeElement(address, balance) {
+    return ethers.utils.solidityKeccak256(['address', 'uint'], [address, balance]);
+}
+
 describe("Balancer", function () {
 
     let vault;
@@ -21,7 +25,7 @@ describe("Balancer", function () {
     let usdc;
     let account;
     let connectorBalancer;
-    let merkleOrchard;
+//    let merkleOrchard;
     let bpspTUsd;
     let tUsd;
     let bal;
@@ -38,7 +42,7 @@ describe("Balancer", function () {
         vault = await ethers.getContract("Vault");
         rm = await ethers.getContract("RewardManager");
         connectorBalancer = await ethers.getContract("ConnectorBalancer");
-        merkleOrchard = await ethers.getContractAt("MerkleOrchard");
+//        merkleOrchard = await connectorBalancer.getMerkleOrchard();
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         bpspTUsd = await ethers.getContractAt("ERC20", assets.bpspTUsd);
         tUsd = await ethers.getContractAt("ERC20", assets.tUsd);
@@ -51,7 +55,8 @@ describe("Balancer", function () {
     //TODO balancer
     it("Staking USDC", async function () {
 
-        const sum = toUSDC(100);
+        //транзакция 1
+        const sum = toUSDC(100000);
         await usdc.transfer(connectorBalancer.address, sum);
         let balance = fromUSDC(await usdc.balanceOf(connectorBalancer.address));
         console.log('Balance usdc: ' + balance);
@@ -60,53 +65,65 @@ describe("Balancer", function () {
         balance = await bpspTUsd.balanceOf(connectorBalancer.address);
         console.log('Balance bpspTUsd: ' + balance);
 
+        //транзакция 2
+        await usdc.transfer(connectorBalancer.address, sum);
+        balance = fromUSDC(await usdc.balanceOf(connectorBalancer.address));
+        console.log('Balance usdc: ' + balance);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        balance = await bpspTUsd.balanceOf(connectorBalancer.address);
+        console.log('Balance bpspTUsd: ' + balance);
+
+//        await ethers.provider.send("evm_mine", [1649121419]);
+
         //CLAIMING
-        const distributionId1 = bn(merkleOrchard.getNextDistributionId(bal, connectorBalancer.address));
-        const distributionId2 = bn(merkleOrchard.getNextDistributionId(tUsd, connectorBalancer.address));
-        const distributionId3 = bn(merkleOrchard.getNextDistributionId(wMatic, connectorBalancer.address));
-
-        const claimedBalance1 = bn(merkleOrchard.getRemainingBalance(bal, connectorBalancer.address));
-        const claimedBalance2 = bn(merkleOrchard.getRemainingBalance(tUsd, connectorBalancer.address));
-        const claimedBalance3 = bn(merkleOrchard.getRemainingBalance(wMatic, connectorBalancer.address));
-
-        const elements1 = [encodeElement(connectorBalancer.address, claimBalance1)];
+//        let distributionId1 = await merkleOrchard.getNextDistributionId(bal, connectorBalancer.address);
+//        let distributionId2 = await merkleOrchard.getNextDistributionId(tUsd, connectorBalancer.address);
+//        let distributionId3 = await merkleOrchard.getNextDistributionId(wMatic, connectorBalancer.address);
+//
+//        let claimedBalance1 = await merkleOrchard.getRemainingBalance(bal, connectorBalancer.address);
+//        let claimedBalance2 = await merkleOrchard.getRemainingBalance(tUsd, connectorBalancer.address);
+//        let claimedBalance3 = await merkleOrchard.getRemainingBalance(wMatic, connectorBalancer.address);
+//
+        const elements1 = [encodeElement(connectorBalancer.address, 0)];
         const merkleTree1 = new MerkleTree(elements1);
-        const elements2 = [encodeElement(connectorBalancer.address, claimBalance2)];
+        const elements2 = [encodeElement(connectorBalancer.address, 0)];
         const merkleTree2 = new MerkleTree(elements2);
-        const elements3 = [encodeElement(connectorBalancer.address, claimBalance3)];
+        const elements3 = [encodeElement(connectorBalancer.address, 0)];
         const merkleTree3 = new MerkleTree(elements3);
 
         const proof1 = merkleTree1.getHexProof(elements1[0]);
         const proof2 = merkleTree2.getHexProof(elements2[0]);
         const proof3 = merkleTree3.getHexProof(elements3[0]);
-
-        const claims = [
-            {
-                distributionId: distributionId1,
-                balance: claimedBalance1,
-                distributor: connectorBalancer.address,
-                tokenIndex: 0,
-                merkleProof: proof1,
-            },
-            {
-                distributionId: distributionId2,
-                balance: claimedBalance2,
-                distributor: connectorBalancer.address,
-                tokenIndex: 1,
-                merkleProof: proof2,
-            },
-            {
-                distributionId: distributionId3,
-                balance: claimedBalance3,
-                distributor: connectorBalancer.address,
-                tokenIndex: 2,
-                merkleProof: proof3,
-            },
-        ];
-
-        let tokens = [bal, tUsd, wMatic];
-
-        connectorBalancer.claim(claims, tokens);
+//
+//        const claims = [
+//            {
+//                distributionId: distributionId1,
+//                balance: claimedBalance1,
+//                distributor: connectorBalancer.address,
+//                tokenIndex: 0,
+//                merkleProof: proof1,
+//            },
+//            {
+//                distributionId: distributionId2,
+//                balance: claimedBalance2,
+//                distributor: connectorBalancer.address,
+//                tokenIndex: 1,
+//                merkleProof: proof2,
+//            },
+//            {
+//                distributionId: distributionId3,
+//                balance: claimedBalance3,
+//                distributor: connectorBalancer.address,
+//                tokenIndex: 2,
+//                merkleProof: proof3,
+//            },
+//        ];
+//        let tokens = [bal, tUsd, wMatic];
+        console.log('proof1 %s', proof1);
+        console.log('proof2 %s', proof2);
+        console.log('proof3 %s', proof3);
+        connectorBalancer.claim(proof1, proof2, proof3);
 
         await connectorBalancer.unstake(usdc.address, balance, vault.address);
 
