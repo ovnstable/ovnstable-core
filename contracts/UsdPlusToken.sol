@@ -132,8 +132,8 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
     }
 
     /**
-     * @dev Returns the not scaled total supply of the variable debt token
-     * @return the not scaled total supply
+     * @dev Returns the scaled total supply of the variable debt token
+     * @return the scaled total supply
      **/
     function totalBalance() public view returns (uint256) {
         return super.totalSupply().rayToWad();
