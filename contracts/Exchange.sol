@@ -10,6 +10,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
+import "hardhat/console.sol";
 
 contract Exchange is AccessControl {
     using WadRayMath for uint256;
@@ -257,7 +258,7 @@ contract Exchange is AccessControl {
         portfolioManager.claimRewards();
         portfolioManager.balanceOnReward();
 
-        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
+        uint256 totalUsdPlusSupply = usdPlus.totalBalance();
         uint256 totalUsdc = mark2market.totalUsdcPrice();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;

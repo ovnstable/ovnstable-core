@@ -16,7 +16,7 @@ async function showBalances(assets, ownerAddress) {
         let asset = assets[i];
         // let meta = await ethers.getContractAt(ERC20Metadata.abi, asset.address);
         // let symbol = await meta.symbol();
-        console.log(`Balance: ${asset.address}: ` + (await asset.balanceOf(ownerAddress) ));
+        console.log(`Balance: ${asset.address}: ` + (await asset.balanceOf(ownerAddress)));
     }
 }
 
@@ -35,7 +35,7 @@ describe("Payout roll", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+        await deployments.fixture(['Setting', 'setting', 'base', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -46,9 +46,10 @@ describe("Payout roll", function () {
         vault = await ethers.getContract("Vault");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
-        // const pmMock = await smock.fake(pm);
+        m2m = await smock.fake(m2m);
         // exchange.setAddr(pmMock.address, m2m.address)
     });
+
 
     it("Mint OVN and payout", async function () {
 
@@ -152,5 +153,51 @@ describe("Payout roll", function () {
 
 
     });
+
+
+    it('should increase liquidity index', async function () {
+
+        let value = 100000;
+        const sum = toUSDC(value);
+        await usdc.approve(exchange.address, sum);
+
+
+        let result = await exchange.buy(assets.usdc, sum);
+        await result.wait();
+        console.log('Buy usdPlus: ' + value)
+
+
+        let balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance);
+        console.log('Liq index: ' + await usdPlus.liquidityIndex());
+
+        const time = 1 * 24 * 60 * 60; // 1 day
+        await ethers.provider.send("evm_increaseTime", [time])
+        await ethers.provider.send('evm_mine');
+
+        console.log('Execute payout ...')
+        result = await exchange.payout();
+        await result.wait();
+
+        balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance);
+        console.log('Liq index: ' + await usdPlus.liquidityIndex());
+
+        expect(balance).to.be.above(99988);
+
+        await ethers.provider.send("evm_increaseTime", [time])
+        await ethers.provider.send('evm_mine');
+
+        result = await exchange.reward();
+        await result.wait();
+
+        balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log('Balance usdPlus: ' + balance);
+        console.log('Liq index: ' + await usdPlus.liquidityIndex());
+
+        expect(balance).to.be.above(100010);
+
+    });
+
 
 });
