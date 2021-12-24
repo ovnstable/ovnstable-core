@@ -257,7 +257,8 @@ contract Exchange is AccessControl {
         portfolioManager.claimRewards();
         portfolioManager.balanceOnReward();
 
-        uint256 totalUsdPlusSupply = usdPlus.totalBalance().rayToWad();
+        uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+        uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
         uint256 totalUsdc = mark2market.totalUsdcPrice();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;
@@ -267,7 +268,6 @@ contract Exchange is AccessControl {
         }
         uint difference = totalUsdc - totalUsdPlusSupply;
 
-        uint256 totalUsdPlusSupplyRay = totalUsdPlusSupply.wadToRay();
         uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
         // in ray
         uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
