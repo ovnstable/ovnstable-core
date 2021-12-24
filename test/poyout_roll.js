@@ -45,8 +45,6 @@ describe("Payout roll", function () {
         m2m = await ethers.getContract("Mark2Market");
         vault = await ethers.getContract("Vault");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
-
-        m2m = await smock.fake(m2m);
         // exchange.setAddr(pmMock.address, m2m.address)
     });
 
