@@ -10,7 +10,6 @@ import "./interfaces/IPortfolioManager.sol";
 import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
-import "hardhat/console.sol";
 
 contract Exchange is AccessControl {
     using WadRayMath for uint256;
