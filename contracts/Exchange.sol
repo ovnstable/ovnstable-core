@@ -257,7 +257,7 @@ contract Exchange is AccessControl {
         portfolioManager.claimRewards();
         portfolioManager.balanceOnReward();
 
-        uint256 totalUsdPlusSupply = usdPlus.totalBalance();
+        uint256 totalUsdPlusSupply = usdPlus.totalBalance().rayToWad();
         uint256 totalUsdc = mark2market.totalUsdcPrice();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;

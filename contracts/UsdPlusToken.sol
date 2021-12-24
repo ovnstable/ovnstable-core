@@ -136,7 +136,7 @@ contract UsdPlusToken is IERC20MintableBurnable, ERC20, AccessControl {
      * @return the scaled total supply
      **/
     function totalBalance() public view returns (uint256) {
-        return super.totalSupply().rayToWad();
+        return super.totalSupply();
     }
 
 
