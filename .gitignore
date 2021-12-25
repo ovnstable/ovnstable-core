@@ -7,7 +7,8 @@ package-lock.json
 vapp/dist
 ganache_mumbai/
 /vapp/truffle-migrate.sh
-vapp/src/contracts
+vapp/src/contracts/*
+!vapp/src/contracts/ERC20.json
 ganache_poly
 
 recreate.sh

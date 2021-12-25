@@ -37,6 +37,12 @@ module.exports = {
             gasPrice: 70000000000
         },
 
+        polygon_dev: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            gasPrice: 70000000000
+        },
+
         ganache:{
             url: "http://127.0.0.1:8555",
             chainId: 1337
