@@ -39,8 +39,10 @@ async function main() {
     let am3CRV = await ethers.getContractAt(ERC20.abi,'0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
     let am3CRVGauge = await ethers.getContractAt(ERC20.abi,'0x19793b454d3afc7b454f206ffe95ade26ca6912c');
     let CRV = await ethers.getContractAt(ERC20.abi,'0x172370d5Cd63279eFa6d502DAB29171933a610AF');
+    let vimUsd = await ethers.getContractAt(ERC20.abi, '0x32aBa856Dc5fFd5A56Bcd182b13380e5C855aa29');
+    let mta = await ethers.getContractAt(ERC20.abi, '0xf501dd45a1198c2e1b5aef5314a68b9006d842e0');
 
-    let assets = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic];
+    let assets = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, vimUsd, mta];
 
 
     // await exchange.setTokens(ovn.address, USDC.address);

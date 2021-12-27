@@ -4,7 +4,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const balancer = await  ethers.getContract('Balancer');
+    const balancer = await ethers.getContract('Balancer');
 
     // set actions builders in order
     const usdc2IdleUsdcActionBuilder = await ethers.getContract('Usdc2IdleUsdcActionBuilder');
@@ -43,6 +43,17 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("crv2UsdcActionBuilder added");
 
+    const usdc2VimUsdActionBuilder = await ethers.getContract('Usdc2VimUsdActionBuilder');
+    console.log("usdc2VimUsdActionBuilder");
+    tx = await balancer.addActionBuilderAt(usdc2VimUsdActionBuilder.address, 6);
+    await tx.wait();
+    console.log("usdc2VimUsdActionBuilder added");
+
+    const mta2UsdcActionBuilder = await ethers.getContract('Mta2UsdcActionBuilder');
+    console.log("mta2UsdcActionBuilder");
+    tx = await balancer.addActionBuilderAt(mta2UsdcActionBuilder.address, 7);
+    await tx.wait();
+    console.log("mta2UsdcActionBuilder added");
 };
 
 module.exports.tags = ['setting', 'Setting'];

@@ -12,7 +12,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const connCurve = await ethers.getContract("ConnectorCurve");
     const connIDLE = await ethers.getContract("ConnectorIDLE");
 
-
     console.log("connAAVE.setLpap: " + aaveAddress);
     let tx = await connAAVE.setLpap(aaveAddress);
     await tx.wait();

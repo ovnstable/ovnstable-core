@@ -28,7 +28,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         log: true,
     });
 
-
     await deploy('A3CrvPriceGetter', {
         from: deployer,
         args: [],
@@ -52,7 +51,19 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [swapRouter, assets.usdc, assets.wMatic],
         log: true,
     });
+
+    await deploy('VimUsdPriceGetter', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+
+    await deploy('MtaPriceGetter', {
+        from: deployer,
+        args: [swapRouter, assets.usdc, assets.mta],
+        log: true,
+    });
 };
 
-module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter'];
+module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter', 'VimUsdPriceGetter', 'MtaPriceGetter'];
 
