@@ -25,8 +25,12 @@ module.exports = {
             ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
         },
 
-        test1: {
+        recipient: {
             default: 1,
+        },
+
+        anotherAccount: {
+            default: 2
         }
     },
 

@@ -1,22 +1,21 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require("hardhat");
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const { smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
+const {constants} = require('@openzeppelin/test-helpers');
+const {ZERO_ADDRESS} = constants;
 
-let decimals = require('../utils/decimals');
-
-const fs = require("fs");
-const {fromIdle, toIdle, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
 const hre = require("hardhat");
-let assets = JSON.parse(fs.readFileSync("./assets.json"));
+const expectRevert = require("../utils/expectRevert");
 
 chai.use(smock.matchers);
 
-describe("Usd Plus", function () {
+describe("Liquidity Index", function () {
 
     let account;
     let usdPlus;
+
 
     beforeEach(async () => {
         // need to run inside IDEA via node script running
@@ -347,3 +346,131 @@ describe("Usd Plus", function () {
 
     });
 });
+
+
+describe("ERC20", function () {
+
+    let account;
+    let usdPlus;
+    let recipient;
+
+
+    beforeEach(async () => {
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
+
+        await deployments.fixture(["UsdPlusToken"]);
+
+        const accounts = await getNamedAccounts();
+        account = accounts.deployer;
+        usdPlus = await ethers.getContract("UsdPlusToken");
+        usdPlus.setExchanger(account);
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        recipient = tmpUser;
+    });
+
+    it('has a name', async function () {
+        expect(await usdPlus.name()).to.equal('USD+');
+    });
+
+    it('has a symbol', async function () {
+        expect(await usdPlus.symbol()).to.equal('USD+');
+    });
+
+    it('has 6 decimals', async function () {
+        expect(await usdPlus.decimals()).to.equal(6);
+    });
+
+
+    describe("_transfer", function () {
+
+        it('transfer', async function () {
+
+            await usdPlus.mint(account, 50);
+            await usdPlus.transfer(recipient.address, 50);
+
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
+            expect(await usdPlus.balanceOf(account)).to.eq(0)
+        });
+
+        describe('when the sender is the zero address', function () {
+            it('reverts', async function () {
+                await expectRevert(usdPlus.transferFrom(ZERO_ADDRESS, recipient.address, 50),
+                    'ERC20: transfer from the zero address',
+                );
+            });
+        });
+
+        it('amount exceeds allowance', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            await usdPlus.mint(account, 50);
+            await expectRevert(usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50),
+                'UsdPlusToken: transfer amount exceeds allowance',
+            );
+        });
+
+    });
+
+    describe("approve", function () {
+
+        it('transfer', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            await usdPlus.mint(account, 50);
+            await usdPlus.approve(tmpUser.address, 50);
+
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
+            expect(await usdPlus.balanceOf(account)).to.eq(50)
+
+            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
+
+            expect(await usdPlus.balanceOf(account)).to.eq(0)
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
+        });
+
+        describe('when the owner is the zero address', function () {
+            it('reverts', async function () {
+                await expectRevert(usdPlus.approve(ZERO_ADDRESS,  50),
+                    'ERC20: approve to the zero address',
+                );
+            });
+        });
+
+
+
+
+    });
+
+
+    describe('_mint', function () {
+        const amount = 50;
+        it('rejects a null account', async function () {
+            await expectRevert(usdPlus.mint(ZERO_ADDRESS, amount), 'ERC20: mint to the zero address')
+        });
+
+        describe('for a non zero account', function () {
+            beforeEach('minting', async function () {
+                this.receipt = await usdPlus.mint(recipient.address, amount);
+            });
+
+            it('increments totalSupply', async function () {
+                await usdPlus.mint(recipient.address, 1);
+                expect(await usdPlus.totalSupply()).to.equal(amount+1);
+            });
+
+            it('increments recipient balance', async function () {
+                expect(await usdPlus.balanceOf(recipient.address)).to.equal(amount);
+            });
+
+            it('emits Transfer event', async function () {
+                let events = await usdPlus.queryFilter(usdPlus.filters.Transfer(ZERO_ADDRESS, recipient.address), this.receipt.blockNumber-1, this.receipt.blockNumber+1);
+                let value = events[0].args[2];
+                expect(value.toString()).to.equal("50000000000");
+            });
+        });
+    });
+});
+
