@@ -66,7 +66,6 @@ contract Vault is AccessControl {
         emit RewardManagerUpdated(_rewardManager);
     }
 
-
     function setAaveReward(address _aaveReward) public onlyAdmin {
         require(_aaveReward != address(0), "Zero address not allowed");
         aaveReward = IAaveIncentivesController(_aaveReward);

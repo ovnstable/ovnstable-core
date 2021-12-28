@@ -27,7 +27,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('ConnectorMStable', {
         from: deployer,
-        args: [saveWrapper, assets.mUsd, assets.imUsd, assets.vimUsd],
+        args: [saveWrapper, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic],
         log: true,
     });
 };

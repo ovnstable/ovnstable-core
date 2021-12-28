@@ -52,52 +52,32 @@ describe("MStable", function () {
 
     it("Staking USDC", async function () {
         const sum = toUSDC(100);
+
+        // 1 transaction
         await usdc.transfer(connectorMStable.address, sum);
-        let balance = fromUSDC(await usdc.balanceOf(connectorMStable.address));
-        console.log('Balance usdc: ' + balance);
-
-        await connectorMStable.stake(usdc.address, sum, vault.address);
-        balance = await vimUsd.balanceOf(connectorMStable.address);
-        console.log('Balance vimUsd: ' + fromVimUsd(balance));
-
-        const sevenDays = 7 * 24 * 60 * 60;
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
-        await ethers.provider.send('evm_mine');
-
-        await connectorMStable.unstake(usdc.address, balance, vault.address);
-        balance = fromUSDC(await usdc.balanceOf(connectorMStable.address));
-        console.log('Balance usdc: ' + balance);
-    });
-
-    /*it("Unstaking USDC", async function () {
-
-        const sum = toUSDC(100);
-        await usdc.transfer(connectorIDLE.address, sum);
-        let balance = await usdc.balanceOf(connectorIDLE.address);
+        let balance = await usdc.balanceOf(connectorMStable.address);
         console.log('Balance usdc: ' + fromUSDC(balance));
 
-        await connectorIDLE.stake(usdc.address, sum, vault.address);
-        balance = fromIdle(await idleUsdc.balanceOf(vault.address));
-        console.log('Balance idleUsdc: ' + balance);
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd: ' + fromVimUsd(balance));
 
-        const sevenDays = 7 * 24 * 60 * 60;
+        // wait 7 days
+        const sevenDays = 30 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [sevenDays])
         await ethers.provider.send('evm_mine');
 
-        expect(fromUSDC(await usdc.balanceOf(vault.address))).to.equal(0);
-        expect(fromUSDC(await idleUsdc.balanceOf(vault.address))).not.equal(0);
+        await connectorMStable.claimReward(vault.address);
+        let balanceMta = await mta.balanceOf(vault.address);
+        let balanceWMatic = await wMatic.balanceOf(vault.address);
+        console.log('Balance mta: ' + balanceMta);
+        console.log('Balance wMatic: ' + balanceWMatic);
 
-        await vault.transfer(idleUsdc.address, connectorIDLE.address, await idleUsdc.balanceOf(vault.address))
+        await vault.transfer(vimUsd.address, connectorMStable.address, await vimUsd.balanceOf(vault.address))
 
-        expect(fromUSDC(await idleUsdc.balanceOf(vault.address))).to.equal(0);
-
-        await connectorIDLE.unstake(usdc.address, (await idleUsdc.balanceOf(connectorIDLE.address)), vault.address);
-        balance = fromUSDC(await usdc.balanceOf(vault.address));
-        console.log('Balance usdc: ' + balance);
-
-        expect(balance).to.greaterThanOrEqual(100);
-
-
-    });*/
+        await connectorMStable.unstake(usdc.address, balance, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+    });
 
 });
