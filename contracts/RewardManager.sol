@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "./interfaces/IRewardManager.sol";
 import "./Vault.sol";
-import "./connectors/ConnectorMStable.sol";
 
 contract RewardManager is IRewardManager, AccessControl {
 
@@ -16,14 +15,12 @@ contract RewardManager is IRewardManager, AccessControl {
     IRewardOnlyGauge public rewardGauge;
     Vault public vault;
     IERC20 public aUsdc;
-    ConnectorMStable public connectorMStable;
 
     // ---  events
 
     event RewardGaugeUpdated(address rewardGauge);
     event VaultUpdated(address vault);
     event AUsdcTokenUpdated(address aUsdc);
-    event ConnectorMStableUpdated(address connectorMStable);
 
     // ---  modifiers
 
@@ -58,12 +55,6 @@ contract RewardManager is IRewardManager, AccessControl {
         emit AUsdcTokenUpdated(_aUsdc);
     }
 
-    function setConnectorMStable(address _connectorMStable) external onlyAdmin {
-        require(_connectorMStable != address(0), "Zero address not allowed");
-        connectorMStable = ConnectorMStable(_connectorMStable);
-        emit ConnectorMStableUpdated(_connectorMStable);
-    }
-
     // ---  logic
 
     /**
@@ -87,6 +78,6 @@ contract RewardManager is IRewardManager, AccessControl {
     }
 
     function claimRewardMStable() public {
-        connectorMStable.claimReward(address(vault));
+        vault.claimRewardMStable();
     }
 }

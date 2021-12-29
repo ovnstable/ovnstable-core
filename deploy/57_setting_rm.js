@@ -11,7 +11,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const rm = await ethers.getContract("RewardManager");
     const vault = await ethers.getContract("Vault");
-    const connectorMStable = await ethers.getContract("ConnectorMStable");
 
     console.log("rm.setRewardGauge: " + curveGaugeAddress);
     let tx = await rm.setRewardGauge(curveGaugeAddress);
@@ -27,11 +26,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     tx = await rm.setAUsdcToken(assets.amUsdc);
     await tx.wait();
     console.log("rm.setAUsdcToken done");
-
-    console.log("rm.setConnectorMStable: " + connectorMStable.address);
-    tx = await rm.setConnectorMStable(assets.vimUsd);
-    await tx.wait();
-    console.log("rm.setConnectorMStable done");
 };
 
 module.exports.tags = ['setting','SettingRewardManager'];

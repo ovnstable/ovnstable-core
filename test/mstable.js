@@ -31,8 +31,6 @@ describe("MStable", function () {
 
         await deployments.fixture(['Setting', 'setting', 'base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
-        // await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
-
         const {deployer} = await getNamedAccounts();
         account = deployer;
         vault = await ethers.getContract("Vault");
@@ -63,18 +61,18 @@ describe("MStable", function () {
         console.log('Balance vimUsd: ' + fromVimUsd(balance));
 
         // wait 7 days
-        const sevenDays = 30 * 24 * 60 * 60;
+        const sevenDays = 7 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [sevenDays])
         await ethers.provider.send('evm_mine');
+//        await ethers.provider.send("evm_mine", [1649121419]);
 
-        await connectorMStable.claimReward(vault.address);
+        await rm.claimRewardMStable();
         let balanceMta = await mta.balanceOf(vault.address);
         let balanceWMatic = await wMatic.balanceOf(vault.address);
         console.log('Balance mta: ' + balanceMta);
         console.log('Balance wMatic: ' + balanceWMatic);
 
-        await vault.transfer(vimUsd.address, connectorMStable.address, await vimUsd.balanceOf(vault.address))
-
+        balance = await vimUsd.balanceOf(vault.address);
         await connectorMStable.unstake(usdc.address, balance, vault.address);
         balance = await usdc.balanceOf(vault.address);
         console.log('Balance usdc: ' + fromUSDC(balance));
