@@ -4,11 +4,12 @@ pragma solidity >=0.5.0 <0.9.0;
 import "./libraries/math/WadRayMath.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -103,7 +104,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, A
         uint256 mintAmount = _amount.wadToRay();
         mintAmount = mintAmount.rayDiv(liquidityIndex);
         _mint(_sender, mintAmount);
-        totalMint += _amount;
+        _totalMint += _amount;
         emit Transfer(address(0), _sender, _amount);
     }
 
@@ -132,7 +133,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, A
         uint256 burnAmount = _amount.wadToRay();
         burnAmount = burnAmount.rayDiv(liquidityIndex);
         _burn(_sender, burnAmount);
-        totalBurn += _amount;
+        _totalBurn += _amount;
         emit Transfer(_sender, address(0), _amount);
     }
 
