@@ -8,6 +8,7 @@ const {ZERO_ADDRESS} = constants;
 
 const hre = require("hardhat");
 const expectRevert = require("../utils/expectRevert");
+const {toOvn, fromOvn} = require("../utils/decimals");
 
 chai.use(smock.matchers);
 
@@ -343,6 +344,26 @@ describe("Liquidity Index", function () {
         expect(allowance).to.equals(2000000)
 
         await expect(usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 2100000)).to.be.reverted;
+
+    });
+
+    it("Token approve", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1022809482605723771055655202");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+        await usdPlus.mint(account, toOvn(100));
+
+        let balance = fromOvn(await usdPlus.balanceOf(account));
+        console.log("Balance usdPlus: " + balance);
+        expect(balance).to.equals(100)
+
+        await usdPlus.approve(tmpUser.address, toOvn(100));
+
+        let allowance = fromOvn(await usdPlus.allowance(account, tmpUser.address));
+        console.log("allowance usdPlus: " + allowance);
+        expect(allowance).to.equals(100);
 
     });
 });

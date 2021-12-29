@@ -3,6 +3,7 @@ require("@nomiclabs/hardhat-ganache");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
 require('@openzeppelin/hardhat-upgrades');
+require("@nomiclabs/hardhat-etherscan");
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -79,6 +80,10 @@ module.exports = {
 
     mocha: {
         timeout: 200000
+    },
+
+    etherscan: {
+        apiKey: "YZPR4G2H7JSIIPXI5NTWN5G1HDX43GSUCR"
     }
 
 

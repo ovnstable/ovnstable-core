@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "hardhat/console.sol";
 
 contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
@@ -226,7 +227,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
     * @dev See {IERC20-allowance}.
      */
-    function _allowance(address owner, address spender) public view  returns (uint256) {
+    function _allowance(address owner, address spender) internal view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -234,7 +235,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev See {IERC20-approve}.
      */
-    function approve(address spender, uint256 amount) public override returns (bool) {
+    function approve(address spender, uint256 amount) external override returns (bool){
         // up to ray
         uint256 scaledAmount = amount.wadToRay();
         scaledAmount = scaledAmount.rayDiv(liquidityIndex);
@@ -259,13 +260,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address owner,
         address spender,
         uint256 amount
-    ) internal  {
+    ) internal virtual {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
+
 
 
     function transferFrom(
@@ -311,7 +313,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
     * @dev See {IERC20-balanceOf}.
      */
-    function _balanceOf(address account) public view  returns (uint256) {
+    function _balanceOf(address account) internal view  returns (uint256) {
         return _balances[account];
     }
 
