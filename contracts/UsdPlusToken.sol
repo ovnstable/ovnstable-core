@@ -4,12 +4,11 @@ pragma solidity >=0.5.0 <0.9.0;
 import "./libraries/math/WadRayMath.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -29,8 +28,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    uint256 public totalMint;
-    uint256 public totalBurn;
+    uint256 private _totalMint;
+    uint256 private _totalBurn;
 
     uint256 public liquidityIndexChangeTime;
     uint256 public liquidityIndex;
@@ -76,7 +75,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function initialize() initializer public {
         __Context_init_unchained();
 
-         _name = "USD+";
+        _name = "USD+";
         _symbol = "USD+";
 
         __AccessControl_init();
@@ -105,6 +104,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         mintAmount = mintAmount.rayDiv(liquidityIndex);
         _mint(_sender, mintAmount);
         totalMint += _amount;
+        emit Transfer(address(0), _sender, _amount);
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
@@ -116,14 +116,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      *
      * - `account` cannot be the zero address.
      */
-    function _mint(address account, uint256 amount) internal virtual {
+    function _mint(address account, uint256 amount) internal  {
         require(account != address(0), "ERC20: mint to the zero address");
 
         _beforeTokenTransfer(address(0), account, amount);
 
         _totalSupply += amount;
         _balances[account] += amount;
-        emit Transfer(address(0), account, amount);
 
         _afterTokenTransfer(address(0), account, amount);
     }
@@ -134,6 +133,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         burnAmount = burnAmount.rayDiv(liquidityIndex);
         _burn(_sender, burnAmount);
         totalBurn += _amount;
+        emit Transfer(_sender, address(0), _amount);
     }
 
     /**
@@ -147,19 +147,18 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens.
      */
-    function _burn(address account, uint256 amount) internal virtual {
+    function _burn(address account, uint256 amount) internal  {
         require(account != address(0), "ERC20: burn from the zero address");
 
         _beforeTokenTransfer(account, address(0), amount);
 
         uint256 accountBalance = _balances[account];
         require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
-        unchecked {
+    unchecked {
         _balances[account] = accountBalance - amount;
-        }
+    }
         _totalSupply -= amount;
 
-        emit Transfer(account, address(0), amount);
 
         _afterTokenTransfer(account, address(0), amount);
     }
@@ -184,7 +183,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address sender,
         address recipient,
         uint256 amount
-    ) internal virtual {
+    ) internal  {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
@@ -192,25 +191,24 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         uint256 senderBalance = _balances[sender];
         require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
-        unchecked {
+    unchecked {
         _balances[sender] = senderBalance - amount;
-        }
+    }
         _balances[recipient] += amount;
-
-        emit Transfer(sender, recipient, amount);
 
         _afterTokenTransfer(sender, recipient, amount);
     }
 
 
-        /**
-         * @dev See {IERC20-transfer}.
+    /**
+     * @dev See {IERC20-transfer}.
      */
     function transfer(address recipient, uint256 amount) public override returns (bool) {
         // up to ray
         uint256 transferAmount = amount.wadToRay();
         transferAmount = transferAmount.rayDiv(liquidityIndex);
         _transfer(_msgSender(), recipient, transferAmount);
+        emit Transfer(_msgSender(), recipient, amount);
         return true;
     }
 
@@ -227,7 +225,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
     * @dev See {IERC20-allowance}.
      */
-    function _allowance(address owner, address spender) public view virtual returns (uint256) {
+    function _allowance(address owner, address spender) public view  returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -260,7 +258,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address owner,
         address spender,
         uint256 amount
-    ) internal virtual {
+    ) internal  {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
@@ -282,8 +280,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 currentAllowance = _allowance(sender, _msgSender());
         require(currentAllowance >= scaledAmount, "UsdPlusToken: transfer amount exceeds allowance");
         unchecked {
-            _approve(sender, _msgSender(), currentAllowance - scaledAmount);
+        _approve(sender, _msgSender(), currentAllowance - scaledAmount);
         }
+        emit Transfer(sender, recipient, amount);
 
         return true;
     }
@@ -311,7 +310,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
     * @dev See {IERC20-balanceOf}.
      */
-    function _balanceOf(address account) public view virtual returns (uint256) {
+    function _balanceOf(address account) public view  returns (uint256) {
         return _balances[account];
     }
 
@@ -355,7 +354,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public  returns (bool) {
         _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
         return true;
     }
@@ -374,12 +373,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public  returns (bool) {
         uint256 currentAllowance = _allowances[_msgSender()][spender];
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
-    unchecked {
+        unchecked {
         _approve(_msgSender(), spender, currentAllowance - subtractedValue);
-    }
+        }
 
         return true;
     }
@@ -408,7 +407,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
    * @dev Returns the name of the token.
      */
-    function name() public view virtual override returns (string memory) {
+    function name() public view  override returns (string memory) {
         return _name;
     }
 
@@ -416,8 +415,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() public view  override returns (string memory) {
         return _symbol;
+    }
+
+    function totalMint() external view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function totalBurn() external view returns (uint256) {
+        return _totalBurn;
     }
 
     /**
@@ -456,7 +463,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address from,
         address to,
         uint256 amount
-    ) internal virtual {
+    ) internal  {
 
     }
 
@@ -465,7 +472,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address from,
         address to,
         uint256 amount
-    ) internal virtual {
+    ) internal  {
 
         if (from == address(0)) {
             // mint
@@ -484,5 +491,5 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
     }
 
-    uint256[45] private __gap;
+    uint256[50] private __gap;
 }

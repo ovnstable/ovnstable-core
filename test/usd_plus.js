@@ -348,6 +348,12 @@ describe("Liquidity Index", function () {
 });
 
 
+describe("Total Mint/Burn/Supply", function () {
+
+
+
+});
+
 describe("ERC20", function () {
 
     let account;
