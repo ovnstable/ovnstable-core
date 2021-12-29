@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ganache");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
+require('@openzeppelin/hardhat-upgrades');
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -24,8 +25,12 @@ module.exports = {
             ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
         },
 
-        test1: {
+        recipient: {
             default: 1,
+        },
+
+        anotherAccount: {
+            default: 2
         }
     },
 
