@@ -4,23 +4,24 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../interfaces/ITokenExchange.sol";
-import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
+import "../connectors/balancer/interfaces/IVault.sol";
 
 contract Mta2UsdcTokenExchange is ITokenExchange {
-    IUniswapV2Router02 public swapRouter;
+
+    IVault public balancerVault;
     IERC20 public usdcToken;
     IERC20 public mtaToken;
 
     constructor(
-        address _swapRouter,
+        address _balancerVault,
         address _usdcToken,
         address _mtaToken
     ) {
-        require(_swapRouter != address(0), "Zero address not allowed");
+        require(_balancerVault != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_mtaToken != address(0), "Zero address not allowed");
 
-        swapRouter = IUniswapV2Router02(_swapRouter);
+        balancerVault = IVault(_balancerVault);
         usdcToken = IERC20(_usdcToken);
         mtaToken = IERC20(_mtaToken);
     }
@@ -32,6 +33,7 @@ contract Mta2UsdcTokenExchange is ITokenExchange {
         IERC20 to,
         uint256 amount
     ) external override {
+        //TODO mstable
         require(
             (from == usdcToken && to == mtaToken) || (from == mtaToken && to == usdcToken),
             "Mta2UsdcTokenExchange: Some token not compatible"
@@ -64,7 +66,7 @@ contract Mta2UsdcTokenExchange is ITokenExchange {
             path[0] = address(mtaToken);
             path[1] = address(usdcToken);
 
-            uint[] memory amountsOut = swapRouter.getAmountsOut(amount, path);
+            uint[] memory amountsOut = balancerVault.getAmountsOut(amount, path);
             // 6 + 18 - 18 = 6 - not normilized USDC in native 6 decimals
             uint256 estimateUsdcOut = (amountsOut[1] * (10**18)) / amountsOut[0];
             // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
@@ -74,10 +76,10 @@ contract Mta2UsdcTokenExchange is ITokenExchange {
                 return;
             }
 
-            mtaToken.approve(address(swapRouter), amount);
+            mtaToken.approve(address(balancerVault), amount);
 
             // TODO: use some calculation or Oracle call instead of usage '0' as amountOutMin
-            swapRouter.swapExactTokensForTokens(
+            balancerVault.swapExactTokensForTokens(
                 amount, //    uint amountIn,
                 0, //          uint amountOutMin,
                 path,

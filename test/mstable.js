@@ -19,6 +19,8 @@ describe("MStable", function () {
     let usdc;
     let account;
     let connectorMStable;
+    let vimUsdPriceGetter;
+    let mtaPriceGetter;
     let mUsd;
     let imUsd;
     let vimUsd;
@@ -36,6 +38,8 @@ describe("MStable", function () {
         vault = await ethers.getContract("Vault");
         rm = await ethers.getContract("RewardManager");
         connectorMStable = await ethers.getContract("ConnectorMStable");
+        vimUsdPriceGetter = await ethers.getContract("VimUsdPriceGetter");
+        mtaPriceGetter = await ethers.getContract("MtaPriceGetter");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         mUsd = await ethers.getContractAt("ERC20", assets.mUsd);
         imUsd = await ethers.getContractAt("ERC20", assets.imUsd);
@@ -45,8 +49,6 @@ describe("MStable", function () {
 
         vault.setPortfolioManager(account);
     });
-
-
 
     it("Staking USDC", async function () {
         const sum = toUSDC(100);
@@ -64,7 +66,6 @@ describe("MStable", function () {
         const sevenDays = 7 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [sevenDays])
         await ethers.provider.send('evm_mine');
-//        await ethers.provider.send("evm_mine", [1649121419]);
 
         await rm.claimRewardMStable();
         let balanceMta = await mta.balanceOf(vault.address);
@@ -76,6 +77,16 @@ describe("MStable", function () {
         await connectorMStable.unstake(usdc.address, balance, vault.address);
         balance = await usdc.balanceOf(vault.address);
         console.log('Balance usdc: ' + fromUSDC(balance));
+
+        let buyPrice = await vimUsdPriceGetter.getUsdcBuyPrice();
+        console.log('buyPrice vimUsd in usdc: ' + buyPrice);
+        let sellPrice = await vimUsdPriceGetter.getUsdcSellPrice();
+        console.log('sellPrice vimUsd in usdc: ' + sellPrice);
+
+//        buyPrice = await mtaPriceGetter.getUsdcBuyPrice();
+//        console.log('buyPrice mta in usdc: ' + buyPrice);
+//        sellPrice = await mtaPriceGetter.getUsdcSellPrice();
+//        console.log('sellPrice mta in usdc: ' + sellPrice);
     });
 
 });

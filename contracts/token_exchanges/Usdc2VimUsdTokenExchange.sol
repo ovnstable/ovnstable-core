@@ -7,7 +7,8 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 
 contract Usdc2VimUsdTokenExchange is ITokenExchange {
-    IConnector public idleConnector;
+
+    IConnector public connectorMStable;
     IERC20 public usdcToken;
     IERC20 public vimUsdToken;
 
@@ -15,15 +16,15 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
     uint256 vimUsdDenominator;
 
     constructor(
-        address _idleConnector,
+        address _connectorMStable,
         address _usdcToken,
         address _vimUsdToken
     ) {
-        require(_idleConnector != address(0), "Zero address not allowed");
+        require(_connectorMStable != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_vimUsdToken != address(0), "Zero address not allowed");
 
-        idleConnector = IConnector(_idleConnector);
+        connectorMStable = IConnector(_connectorMStable);
         usdcToken = IERC20(_usdcToken);
         vimUsdToken = IERC20(_vimUsdToken);
 
@@ -69,8 +70,8 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
                 "Usdc2VimUsdTokenExchange: Not enough usdcToken"
             );
 
-            usdcToken.transfer(address(idleConnector), amount);
-            idleConnector.stake(address(usdcToken), amount, receiver);
+            usdcToken.transfer(address(connectorMStable), amount);
+            connectorMStable.stake(address(usdcToken), amount, receiver);
 
             // transfer back unused amount
             uint256 unusedBalance = usdcToken.balanceOf(address(this));
@@ -81,6 +82,7 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
             //TODO: denominator usage
             amount = amount / vimUsdDenominator;
 
+            //TODO mstable
             // if amount eq 0 after normalization transfer back balance and skip staking
             uint256 balance = vimUsdToken.balanceOf(address(this));
             if (amount == 0) {
@@ -100,15 +102,12 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
                 "Usdc2VimUsdTokenExchange: Not enough vimUsdToken"
             );
 
-            // move assets to connector
-            vimUsdToken.transfer(address(idleConnector), amount);
-
             // correct exchangeAmount if we got diff on aToken transfer
-            uint256 onIdleConnectorBalance = vimUsdToken.balanceOf(address(idleConnector));
-            if (onIdleConnectorBalance < amount) {
-                amount = onIdleConnectorBalance;
+            uint256 onVaultBalance = vimUsdToken.balanceOf(address(receiver));
+            if (onVaultBalance < amount) {
+                amount = onVaultBalance;
             }
-            uint256 withdrewAmount = idleConnector.unstake(address(usdcToken), amount, receiver);
+            uint256 withdrewAmount = connectorMStable.unstake(address(usdcToken), amount, receiver);
 
             //TODO: may be add some checks for withdrewAmount
 

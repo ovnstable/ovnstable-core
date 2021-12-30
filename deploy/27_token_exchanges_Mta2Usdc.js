@@ -1,7 +1,7 @@
 const fs = require('fs');
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+let balancerVault = "0xba12222222228d8ba445958a75a0704d566bf2c8";
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -9,7 +9,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let exchange = await deploy('Mta2UsdcTokenExchange', {
         from: deployer,
-        args: [swapRouter, assets.usdc, assets.mta],
+        args: [balancerVault, assets.usdc, assets.mta],
         log: true,
     });
 

@@ -1,10 +1,8 @@
-
 const fs = require('fs');
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-
-let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff"
-
+let swapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
+let balancerVault = "0xba12222222228d8ba445958a75a0704d566bf2c8";
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -54,13 +52,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('VimUsdPriceGetter', {
         from: deployer,
-        args: [],
+        args: [assets.usdc, assets.mUsd, assets.imUsd],
         log: true,
     });
 
     await deploy('MtaPriceGetter', {
         from: deployer,
-        args: [swapRouter, assets.usdc, assets.mta],
+        args: [balancerVault, assets.usdc, assets.mta],
         log: true,
     });
 };
