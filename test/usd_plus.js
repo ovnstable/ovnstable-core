@@ -371,7 +371,66 @@ describe("Liquidity Index", function () {
 
 describe("Total Mint/Burn/Supply", function () {
 
+    let usdPlus;
+    let account;
 
+    beforeEach(async () => {
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
+
+        await deployments.fixture(["UsdPlusToken"]);
+
+        const {deployer} = await getNamedAccounts();
+        account = deployer;
+        usdPlus = await ethers.getContract("UsdPlusToken");
+        usdPlus.setExchanger(account);
+    });
+
+
+    it("Total Supply", async function () {
+
+        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
+        await usdPlus.mint(account, toOvn(100));
+
+        let balance = fromOvn(await usdPlus.totalSupply());
+        expect(balance).to.equals(100)
+
+        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
+
+        balance = fromOvn(await usdPlus.totalSupply());
+        expect(balance).to.equals(100.977699)
+    });
+
+    it("Total Mint", async function () {
+
+        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
+        await usdPlus.mint(account, toOvn(100));
+
+        let balance = fromOvn(await usdPlus.totalMint());
+        expect(balance).to.equals(100);
+
+        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
+
+        balance = fromOvn(await usdPlus.totalMint());
+        expect(balance).to.equals(100.977699)
+
+    });
+
+    it("Total Burn", async function () {
+
+        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
+        await usdPlus.mint(account, toOvn(100));
+        await usdPlus.burn(account, toOvn(50));
+
+        let balance = fromOvn(await usdPlus.totalBurn());
+        expect(balance).to.equals(50);
+
+
+        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
+
+        balance = fromOvn(await usdPlus.totalBurn());
+        expect(balance).to.equals(50.48885)
+    });
 
 });
 

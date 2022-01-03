@@ -105,7 +105,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 mintAmount = _amount.wadToRay();
         mintAmount = mintAmount.rayDiv(liquidityIndex);
         _mint(_sender, mintAmount);
-        _totalMint += _amount;
+        _totalMint += mintAmount;
         emit Transfer(address(0), _sender, _amount);
     }
 
@@ -134,7 +134,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 burnAmount = _amount.wadToRay();
         burnAmount = burnAmount.rayDiv(liquidityIndex);
         _burn(_sender, burnAmount);
-        _totalBurn += _amount;
+        _totalBurn += burnAmount;
         emit Transfer(_sender, address(0), _amount);
     }
 
@@ -343,6 +343,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return currentSupplyRay.rayToWad();
     }
 
+    function totalMint() external view returns (uint256) {
+        uint256 totalMintRay = _totalMint.rayMul(liquidityIndex);
+        return totalMintRay.rayToWad();
+    }
+
+    function totalBurn() external view returns (uint256) {
+        uint256 totalBurnRay = _totalBurn.rayMul(liquidityIndex);
+        return totalBurnRay.rayToWad();
+    }
+
 
 
     /**
@@ -422,13 +432,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _symbol;
     }
 
-    function totalMint() external view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function totalBurn() external view returns (uint256) {
-        return _totalBurn;
-    }
 
     /**
    * @dev Returns the number of decimals used to get its user representation.
