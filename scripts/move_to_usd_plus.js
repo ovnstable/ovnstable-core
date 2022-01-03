@@ -1,11 +1,10 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic, toUSDC, fromOvn} = require("../utils/decimals");
+const {fromWmatic} = require("../utils/decimals");
 const ethers = hre.ethers;
 
-let OVN = JSON.parse(fs.readFileSync('./deployments/polygon/OvernightToken.json'));
+let USDPlusOld = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusTokenOld.json'));
 let USDPlus = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
-// let ERC20 = JSON.parse(fs.readFileSync('./deployments/polygon/ERC20.json'));
 
 async function main() {
 
@@ -16,27 +15,31 @@ async function main() {
     const balance = await provider.getBalance(wallet.address);
     console.log('Balance wallet: ' + fromWmatic(balance))
 
-    let ovn = await ethers.getContractAt(OVN.abi, "0xcE5bcF8816863A207BF1c0723B91aa8D5B9c6614", wallet);
-    let usdPlus = await ethers.getContractAt(USDPlus.abi, USDPlus.address, wallet);
+    let oldToken = await ethers.getContractAt(USDPlus.abi, USDPlus.address, wallet);
+    let usdPlus = await ethers.getContractAt(USDPlusOld.abi, USDPlusOld.address, wallet);
 
-    let count = await ovn.ownerLength();
+    let count = await oldToken.ownerLength();
+
+    let index = await oldToken.liquidityIndex();
+    await usdPlus.setExchanger(wallet.address);
+    await usdPlus.setLiquidityIndex(index);
 
     for (let i = 0; i < count; i++) {
 
-        let client = await ovn.ownerAt(i);
-        let balanceFull = await ovn.ownerBalanceAt(i);
-        let balance = balanceFull / 10 ** 6;
+        let client = await oldToken.ownerAt(i);
+        let balanceScaled = await oldToken.scaledBalanceOf(i);
+        let balance = balanceScaled / 10 ** 6;
 
         if (balance == 0){
             continue;
         }
 
-        let tx = await usdPlus.mint(client, balanceFull)
+        let tx = await usdPlus.mint(client, balanceScaled)
         await tx.wait();
 
         console.log('Client: ' + client);
-        console.log('Balance ovn: ' + balance);
-        console.log('Balance usdPlus: ' + await usdPlus.balanceOf(client)/ 10 ** 6);
+        console.log('Balance old usd+: ' + balance);
+        console.log('Balance new usd+: ' + await usdPlus.balanceOf(client)/ 10 ** 6);
     }
 }
 
