@@ -16,7 +16,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await grantRevokeRole(await ethers.getContract("Portfolio"), deployer, address);
     await grantRevokeRole(await ethers.getContract("RewardManager"), deployer, address);
     await grantRevokeRole(await ethers.getContract("Vault"), deployer, address);
-    await grantRevokeRole(await ethers.getContract("GovToken"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("OvnToken"), deployer, address);
 
     await transferOwnership(await ethers.getContract("Mark2Market"), address);
 

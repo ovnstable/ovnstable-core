@@ -29,7 +29,7 @@ echo "$deployments"
 
 cp  ../deployments/$deployments/OvnGovernor.json src/contracts/
 cp  ../deployments/$deployments/Exchange.json src/contracts/
-cp  ../deployments/$deployments/GovToken.json src/contracts/
+cp  ../deployments/$deployments/OvnToken.json src/contracts/
 cp  ../deployments/$deployments/Portfolio.json src/contracts/
 cp  ../deployments/$deployments/TimelockController.json src/contracts/
 cp  ../deployments/$deployments/UsdPlusToken.json src/contracts/
