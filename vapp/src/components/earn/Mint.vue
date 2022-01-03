@@ -237,7 +237,7 @@ export default {
           try {
             await this.refreshGasPrice();
             let approveParams = {gasPrice: this.gasPriceGwei, from: from};
-            await contracts.usdc.methods.approve(contracts.exchange.options.address, '115792089237316195423570985008687907853269984665640564039457584007913129639935')
+            await contracts.usdc.methods.approve(contracts.exchange.options.address, sum)
                 .send(approveParams)
                 .on('transactionHash', function (hash) {
 

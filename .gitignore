@@ -7,7 +7,8 @@ package-lock.json
 vapp/dist
 ganache_mumbai/
 /vapp/truffle-migrate.sh
-vapp/src/contracts
+vapp/src/contracts/*
+!vapp/src/contracts/ERC20.json
 ganache_poly
 
 recreate.sh
@@ -22,3 +23,6 @@ deployments/ganache
 recreate-ganache.sh
 hardhat-ganache.sh
 hardhat-node.sh
+
+solcInputs
+.openzeppelin
