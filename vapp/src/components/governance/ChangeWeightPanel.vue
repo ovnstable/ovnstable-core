@@ -57,7 +57,7 @@ export default {
                 weights.push({
                     asset: asset.address,
                     minWeight: 0,
-                    targetWeight: asset.weight,
+                    targetWeight: asset.weight * 1000,
                     maxWeight: 100000
                 })
             }

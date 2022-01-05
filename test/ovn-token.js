@@ -7,7 +7,7 @@ const hre = require("hardhat");
 
 chai.use(smock.matchers);
 
-describe("Gov Token", function () {
+describe("Ovn Token", function () {
 
 
     let govToken;
@@ -18,12 +18,12 @@ describe("Gov Token", function () {
     beforeEach(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['Governance']);
+        await deployments.fixture(['OvnToken', 'OvnGovernor']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        govToken = await ethers.getContract('GovToken');
+        govToken = await ethers.getContract('OvnToken');
         governator = await ethers.getContract('OvnGovernor');
         ROLE_ADMIN = await govToken.DEFAULT_ADMIN_ROLE();
     });

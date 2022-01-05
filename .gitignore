@@ -9,6 +9,7 @@ ganache_mumbai/
 /vapp/truffle-migrate.sh
 vapp/src/contracts/*
 !vapp/src/contracts/ERC20.json
+!vapp/src/contracts/IERC20Metadata.json
 ganache_poly
 
 recreate.sh
