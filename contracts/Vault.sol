@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 
 /**
  * Vault address is used as owner for all tokens for Overnights.
@@ -14,11 +17,12 @@ import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
  * NOTE: currently work with ETH/MATIC or other payments not realised.
  * NOTE: not used SafeERC20 and it may be changed in future
  */
-contract Vault is AccessControl {
+contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     // ---  fields
 
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant REWARD_MANAGER = keccak256("REWARD_MANAGER");
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     // Only Vault can claiming aave rewards
     IAaveIncentivesController public aaveReward;
@@ -48,9 +52,22 @@ contract Vault is AccessControl {
 
     // ---  constructor
 
-    constructor() {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize() initializer public {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
     }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
 
     // ---  setters
 

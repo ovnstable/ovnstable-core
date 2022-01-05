@@ -1,13 +1,8 @@
+const deployProxy = require('../utils/deployProxy');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
-
-    await deploy('Vault', {
-        from: deployer,
-        args: [],
-        log: true,
-    });
+    const {save} = deployments;
+    await deployProxy('Vault', deployments, save);
 };
 
-module.exports.tags = ['base','Vault'];
+module.exports.tags = ['base', 'Vault'];
