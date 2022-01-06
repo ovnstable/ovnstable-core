@@ -2,7 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
@@ -10,8 +12,9 @@ import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
 
-contract Exchange is AccessControl {
+contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     // ---  fields
 
@@ -21,28 +24,28 @@ contract Exchange is AccessControl {
     PortfolioManager public portfolioManager; //portfolio manager contract
     IMark2Market public mark2market;
 
-    uint256 public buyFee = 40;
-    uint256 public buyFeeDenominator = 100000; // ~ 100 %
+    uint256 public buyFee;
+    uint256 public buyFeeDenominator; // ~ 100 %
 
-    uint256 public redeemFee = 40;
-    uint256 public redeemFeeDenominator = 100000; // ~ 100 %
+    uint256 public redeemFee;
+    uint256 public redeemFeeDenominator; // ~ 100 %
 
     // percent limit to start sending proportionally tokens from vault
-    uint256 public notEnoughLimit = 98000;
-    uint256 public notEnoughLimitDenominator = 100000; // ~ 100 %
+    uint256 public notEnoughLimit;
+    uint256 public notEnoughLimitDenominator; // ~ 100 %
 
     // next payout time in epoch seconds
-    uint256 public nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+    uint256 public nextPayoutTime;
 
     // period between payouts in seconds, need to calc nextPayoutTime
-    uint256 public payoutPeriod = 24 * 60 * 60;
+    uint256 public payoutPeriod;
 
     // range of time for starting near next payout time at seconds
     // if time in [nextPayoutTime-payoutTimeRange;nextPayoutTime+payoutTimeRange]
     //    then payouts can be started by payout() method anyone
     // else if time more than nextPayoutTime+payoutTimeRange
     //    then payouts started by any next buy/redeem
-    uint256 public payoutTimeRange = 15 * 60;
+    uint256 public payoutTimeRange;
 
     // ---  events
 
@@ -75,9 +78,38 @@ contract Exchange is AccessControl {
 
     // ---  constructor
 
-    constructor() {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize() initializer public {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+
+        buyFee = 40;
+        buyFeeDenominator = 100000; // ~ 100 %
+
+        redeemFee = 40;
+        redeemFeeDenominator = 100000; // ~ 100 %
+
+        notEnoughLimit = 98000;
+        notEnoughLimitDenominator = 100000; // ~ 100 %
+
+        nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+
+        payoutPeriod = 24 * 60 * 60;
+
+        payoutTimeRange = 15 * 60;
     }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
 
     // ---  setters
 

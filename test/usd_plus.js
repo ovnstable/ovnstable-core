@@ -554,7 +554,7 @@ describe("ERC20", function () {
             it('emits Transfer event', async function () {
                 let events = await usdPlus.queryFilter(usdPlus.filters.Transfer(ZERO_ADDRESS, recipient.address), this.receipt.blockNumber-1, this.receipt.blockNumber+1);
                 let value = events[0].args[2];
-                expect(value.toString()).to.equal("50000000000");
+                expect(value.toString()).to.equal("50");
             });
         });
     });
