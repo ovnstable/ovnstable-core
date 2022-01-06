@@ -265,11 +265,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         }
     }
 
-    //TODO: remove after moving to payout() usage
-    function reward() external onlyAdmin {
-        _payout();
-    }
-
     function payout() public onlyAdmin {
         _payout();
     }
