@@ -77,14 +77,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
-    function pause() public onlyAdmin {
-        _pause();
-    }
-
-    function unpause() public onlyAdmin {
-        _unpause();
-    }
-
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -179,6 +171,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     // ---  logic
+
+    function pause() public onlyAdmin {
+        _pause();
+    }
+
+    function unpause() public onlyAdmin {
+        _unpause();
+    }
+
 
     function balance() public view returns (uint256) {
         return usdPlus.balanceOf(msg.sender);
@@ -275,11 +276,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
     }
 
-    function payout() public onlyAdmin {
+    function payout() public onlyAdmin whenNotPaused {
         _payout();
     }
 
-    function _payout() internal whenNotPaused {
+    function _payout() internal  {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
