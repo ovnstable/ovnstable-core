@@ -16,6 +16,7 @@ import "./PortfolioManager.sol";
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
 
     // ---  fields
 
@@ -77,6 +78,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
+    modifier onlyPausable() {
+        require(hasRole(PAUSABLE_ROLE, msg.sender), "Restricted to Pausable");
+        _;
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -89,6 +95,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(UPGRADER_ROLE, msg.sender);
+        _grantRole(PAUSABLE_ROLE, msg.sender);
 
         buyFee = 40;
         buyFeeDenominator = 100000; // ~ 100 %
@@ -172,11 +179,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  logic
 
-    function pause() public onlyAdmin {
+    function pause() public onlyPausable {
         _pause();
     }
 
-    function unpause() public onlyAdmin {
+    function unpause() public onlyPausable {
         _unpause();
     }
 

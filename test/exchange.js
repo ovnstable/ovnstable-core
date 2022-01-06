@@ -22,7 +22,7 @@ describe("Exchange", function () {
     let m2m;
     let pmMock;
 
-    before(async () => {
+    beforeEach(async () => {
         await hre.run("compile");
         await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
@@ -58,9 +58,15 @@ describe("Exchange", function () {
 
     it("Redeem OVN", async function () {
 
-        const sum = toOvn(50.6);
-        await usdPlus.approve(exchange.address, sum);
-        await exchange.redeem(assets.usdc, sum);
+        const sumBuy = toUSDC(100);
+        await usdc.approve(exchange.address, sumBuy);
+
+        console.log("USDC: " + assets.usdc)
+        await exchange.buy(assets.usdc, sumBuy);
+
+        const sumRedeem = toOvn(50.6);
+        await usdPlus.approve(exchange.address, sumRedeem);
+        await exchange.redeem(assets.usdc, sumRedeem);
 
         let balance = fromOvn(await usdPlus.balanceOf(account));
         console.log('Balance usdPlus: ' + balance)
