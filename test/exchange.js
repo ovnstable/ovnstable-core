@@ -5,6 +5,8 @@ const {FakeContract, smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
 const {toUSDC, fromOvn, toOvn} = require("../utils/decimals");
+const hre = require("hardhat");
+const expectRevert = require("../utils/expectRevert");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -21,6 +23,7 @@ describe("Exchange", function () {
     let pmMock;
 
     before(async () => {
+        await hre.run("compile");
         await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
@@ -64,4 +67,27 @@ describe("Exchange", function () {
         expect(balance).to.equal(49.36);
 
     });
+
+
+    it("Pausable Mint", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.buy(assets.usdc, toUSDC(100)),
+            'Pausable: paused',
+        );
+    });
+
+    it("Pausable Redeem", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.redeem(assets.usdc, toUSDC(100)),
+            'Pausable: paused',
+        );
+    });
+
+    it("Pausable Payout", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.payout(),
+            'Pausable: paused',
+        );
+    });
+
 });

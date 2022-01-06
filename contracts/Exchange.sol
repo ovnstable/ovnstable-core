@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
@@ -12,7 +13,7 @@ import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
 
-contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
@@ -76,6 +77,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         _;
     }
 
+    function pause() public onlyAdmin {
+        _pause();
+    }
+
+    function unpause() public onlyAdmin {
+        _unpause();
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -83,6 +92,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     function initialize() initializer public {
         __AccessControl_init();
+        __Pausable_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -174,7 +184,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         return usdPlus.balanceOf(msg.sender);
     }
 
-    function buy(address _addrTok, uint256 _amount) external {
+    function buy(address _addrTok, uint256 _amount) external whenNotPaused {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
 
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -203,7 +213,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @param _addrTok Token to withdraw
      * @param _amount Amount of OVN tokens to burn
      */
-    function redeem(address _addrTok, uint256 _amount) external {
+    function redeem(address _addrTok, uint256 _amount) external whenNotPaused {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
@@ -269,7 +279,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         _payout();
     }
 
-    function _payout() internal {
+    function _payout() internal whenNotPaused {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
