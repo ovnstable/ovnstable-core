@@ -40,13 +40,13 @@ module.exports = {
         polygon: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 800000000000
+            gasPrice: 70000000000
         },
 
         polygon_dev: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 440000000000
+            gasPrice: 70000000000,
         },
 
         ganache:{

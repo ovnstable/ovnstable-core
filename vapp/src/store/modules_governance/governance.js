@@ -58,6 +58,45 @@ const getters = {
 
 const actions = {
 
+    async updateGovernanceSettings({commit, dispatch, getters, rootState}, value) {
+
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+        let params = {from: account};
+
+        let name = 'Proposal #' + getters.proposals.length + 1 + ' Update Governance Settings';
+
+        let addresses = [];
+        let abis = [];
+        let values = [];
+
+        if (value.votingDelay){
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setVotingDelay(value.votingDelay).encodeABI());
+            values.push(0);
+        }
+
+        if (value.votingPeriod){
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setVotingPeriod(value.votingPeriod).encodeABI());
+            values.push(0);
+        }
+
+        if (value.setProposalThreshold){
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setProposalThreshold(value.proposalThreshold).encodeABI());
+            values.push(0);
+        }
+
+        if (value.updateQuorumNumerator){
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.updateQuorumNumerator(value.updateQuorumNumerator).encodeABI());
+            values.push(0);
+        }
+
+        await governor.methods.proposeExec(addresses, values, abis, name).send(params);
+    },
+
     async updateDelay({commit, dispatch, getters, rootState}, value) {
 
         let governor = rootState.web3.contracts.governor;
@@ -120,6 +159,7 @@ const actions = {
         governorItem.votingPeriod = await governor.methods.votingPeriod().call();
         governorItem.votingDelay = await governor.methods.votingDelay().call();
         governorItem.proposalThreshold = await governor.methods.proposalThreshold().call();
+        governorItem.quorumNumerator = await governor.methods.quorumNumerator().call();
 
         let settings = {};
         settings.timeLock = timeLockItem;
@@ -182,6 +222,8 @@ const actions = {
 
         let governor = rootState.web3.contracts.governor;
         let proposals = await governor.methods.getProposals().call();
+
+        proposals = [...proposals].reverse();
 
         let items = [];
         for (let i = 0; i < proposals.length; i++) {

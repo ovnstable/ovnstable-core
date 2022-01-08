@@ -13,8 +13,9 @@
             </v-text-field>
             <v-text-field  readonly v-model="settings.governor.votingPeriod" label="Voting Period (blocks)" outlined dense>
             </v-text-field>
-
             <v-text-field  readonly v-model="settings.governor.proposalThreshold" label="ProposalThreshold (votes)" outlined dense>
+            </v-text-field>
+            <v-text-field  readonly v-model="settings.governor.quorumNumerator" label="Quorum" outlined dense>
             </v-text-field>
         </v-card-actions>
 

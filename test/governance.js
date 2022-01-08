@@ -366,4 +366,51 @@ describe("Governance", function () {
         expect(buyFeeDenominator).to.eq(100000);
     });
 
+
+    it("Grant and revoke", async function () {
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await ovnToken.mint(account, votes);
+        await ovnToken.delegate(account);
+
+        let adminRole = await exchange.DEFAULT_ADMIN_ROLE();
+        await exchange.grantRole(adminRole, timeLock.address);
+        await exchange.revokeRole(adminRole, account);
+
+        let hasRole = await exchange.hasRole(adminRole, timeLock.address);
+        expect(hasRole).to.true;
+
+        hasRole = await exchange.hasRole(adminRole, account);
+        expect(hasRole).to.false;
+
+        const proposeTx = await governator.proposeExec(
+            [exchange.address, exchange.address],
+            [0,0],
+            [exchange.interface.encodeFunctionData('grantRole', [adminRole, account]),
+             exchange.interface.encodeFunctionData('revokeRole', [adminRole, timeLock.address])
+            ],
+            ethers.utils.id("Proposal #6: Return rules"),
+        );
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 200; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        await governator.queueExec(proposalId);
+        await governator.executeExec(proposalId);
+
+        hasRole = await exchange.hasRole(adminRole, timeLock.address);
+        expect(hasRole).to.false;
+
+        hasRole = await exchange.hasRole(adminRole, account);
+        expect(hasRole).to.true;
+    });
 });
