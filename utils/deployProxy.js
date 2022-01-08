@@ -18,7 +18,12 @@ async function deployProxy(contractName, deployments, save) {
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
     }
 
-    const impl = await upgrades.upgradeProxy(proxy, UsdPlusToken);
+    let impl;
+    try {
+        impl = await upgrades.upgradeProxy(proxy, UsdPlusToken);
+    } catch (e) {
+        impl = await upgrades.upgradeProxy(proxy, UsdPlusToken);
+    }
     console.log(`Deploy ${contractName} Impl  done -> ` + impl.address);
 
     const artifact = await deployments.getExtendedArtifact(contractName);
