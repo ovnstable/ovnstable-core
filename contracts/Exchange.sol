@@ -283,7 +283,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
     }
 
-    function payout() public onlyAdmin whenNotPaused {
+    function payout() public whenNotPaused {
         _payout();
     }
 

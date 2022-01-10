@@ -1,8 +1,11 @@
 import {axios} from "../../plugins/http-axios";
 import utils from "../../plugins/utils";
 import abiDecoder from "../../plugins/abiDecoder";
+import Web3Utils from 'web3-utils'
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+import BigNumber from "bignumber.js";
+
 
 const state = {
 
@@ -19,7 +22,7 @@ const state = {
         {id: "amUsdc", address: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F"},
         {id: "am3CRV", address: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"},
         {id: "am3CRVgauge", address: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"},
-        ]
+    ]
 
 };
 
@@ -58,6 +61,27 @@ const getters = {
 
 const actions = {
 
+    async upgradeToAction({commit, dispatch, getters, rootState}, request) {
+
+        let contract = rootState.web3.contracts[request.contract];
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+
+        let abi = contract.methods.upgradeTo(request.address).encodeABI();
+        let name = 'Proposal #' + getters.proposals.length + 1 + ' UpgradeTo ' + request.contract;
+        let params = {from: account};
+
+        await governor.methods.proposeExec([contract.options.address], [0], [abi], name).send(params);
+   },
+
+    async runPayoutAction({commit, dispatch, getters, rootState}) {
+
+        let contact= rootState.web3.contracts.exchange;
+
+        let params = {from: rootState.web3.account};
+        await contact.methods.payout().send(params);
+    },
+
     async updateGovernanceSettings({commit, dispatch, getters, rootState}, value) {
 
         let governor = rootState.web3.contracts.governor;
@@ -70,25 +94,25 @@ const actions = {
         let abis = [];
         let values = [];
 
-        if (value.votingDelay){
+        if (value.votingDelay) {
             addresses.push(governor.options.address);
             abis.push(governor.methods.setVotingDelay(value.votingDelay).encodeABI());
             values.push(0);
         }
 
-        if (value.votingPeriod){
+        if (value.votingPeriod) {
             addresses.push(governor.options.address);
             abis.push(governor.methods.setVotingPeriod(value.votingPeriod).encodeABI());
             values.push(0);
         }
 
-        if (value.setProposalThreshold){
+        if (value.setProposalThreshold) {
             addresses.push(governor.options.address);
             abis.push(governor.methods.setProposalThreshold(value.proposalThreshold).encodeABI());
             values.push(0);
         }
 
-        if (value.updateQuorumNumerator){
+        if (value.updateQuorumNumerator) {
             addresses.push(governor.options.address);
             abis.push(governor.methods.updateQuorumNumerator(value.updateQuorumNumerator).encodeABI());
             values.push(0);
@@ -201,7 +225,7 @@ const actions = {
         let governor = rootState.web3.contracts.governor;
         let params = {from: account};
 
-        let wei = rootState.web3.web3.utils.toWei(request.sum, 'gwei');
+        let wei = rootState.web3.web3.utils.toWei(request.sum, 'ether');
         let abi = await govToken.methods.mint(request.account, wei).encodeABI();
         let name = 'Proposal #' + getters.proposals.length + 1 + 'Mint gov tokens';
         await governor.methods.proposeExec([govToken.options.address], [0], [abi], name).send(params);

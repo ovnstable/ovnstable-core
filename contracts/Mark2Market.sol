@@ -70,6 +70,11 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
     // ---  logic
 
+
+    function assetPricesView() public view returns(AssetPrices[] memory){
+        return assetPrices().assetPrices;
+    }
+
     function assetPrices() public view override returns (TotalAssetPrices memory) {
         Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
 

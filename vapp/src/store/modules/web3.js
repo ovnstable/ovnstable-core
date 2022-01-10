@@ -7,6 +7,7 @@ import OverNightToken from "../../contracts/OvernightToken.json";
 import OvnToken from "../../contracts/OvnToken.json";
 import Governor from "../../contracts/OvnGovernor.json";
 import Portfolio from "../../contracts/Portfolio.json";
+import Mark2Market from "../../contracts/Mark2Market.json";
 import TimelockController from "../../contracts/TimelockController.json";
 import UsdPlusToken from "../../contracts/UsdPlusToken.json";
 import contract from "@truffle/contract";
@@ -148,6 +149,7 @@ const actions = {
         contracts.ovn = _load(OverNightToken, web3);
         contracts.govToken = _load(OvnToken, web3);
         contracts.governor = _load(Governor, web3);
+        contracts.mark2market = _load(Mark2Market, web3);
         contracts.portfolio = _load(Portfolio, web3);
         contracts.timelockController= _load(TimelockController, web3);
         contracts.usdPlus = _load(UsdPlusToken, web3);

@@ -37,8 +37,15 @@ async function transferOwnership(contract, newAdmin) {
 }
 
 async function grantRevokeRole(contract, oldAdmin, newAdmin) {
+    let tx = contract.grantRole(await contract.UPGRADER_ROLE(), newAdmin).encodeABI();
+    await tx.wait();
+    console.log('Contract:' + contract + '=> Grant role UPGRADER_ROLE to ' + newAdmin + '=> done')
 
-    let tx = await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAdmin);
+    tx = await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAdmin);
+    await tx.wait();
+    console.log('Contract:' + contract + '=> Revoke role UPGRADER_ROLE to ' + oldAdmin + '=> done')
+
+    tx = await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAdmin);
     await tx.wait();
     console.log('Contract:' + contract + '=> Grant role ADMIN to ' + newAdmin + '=> done')
 

@@ -7,7 +7,7 @@
                         <h1>Governor Controller</h1>
                     </v-col>
                 </v-row>
-                <v-row>
+                <v-row v-if="contracts">
                     <v-col>
                         <h5>Current address: {{ contracts.governor.options.address }}</h5>
                     </v-col>
