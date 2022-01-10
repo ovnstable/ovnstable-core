@@ -1,7 +1,7 @@
 const fs = require('fs');
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-let balancerVault = "0xba12222222228d8ba445958a75a0704d566bf2c8";
+let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;

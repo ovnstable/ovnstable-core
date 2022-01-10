@@ -62,9 +62,27 @@ describe("MStable", function () {
         balance = await vimUsd.balanceOf(vault.address);
         console.log('Balance vimUsd: ' + fromVimUsd(balance));
 
-        // wait 7 days
-        const sevenDays = 7 * 24 * 60 * 60;
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
+//        // 2 transaction
+//        await usdc.transfer(connectorMStable.address, sum);
+//        balance = await usdc.balanceOf(connectorMStable.address);
+//        console.log('Balance usdc: ' + fromUSDC(balance));
+//
+//        await connectorMStable.stake(usdc.address, sum, vault.address);
+//        balance = await vimUsd.balanceOf(vault.address);
+//        console.log('Balance vimUsd: ' + fromVimUsd(balance));
+//
+//        // 3 transaction
+//        await usdc.transfer(connectorMStable.address, sum);
+//        balance = await usdc.balanceOf(connectorMStable.address);
+//        console.log('Balance usdc: ' + fromUSDC(balance));
+//
+//        await connectorMStable.stake(usdc.address, sum, vault.address);
+//        balance = await vimUsd.balanceOf(vault.address);
+//        console.log('Balance vimUsd: ' + fromVimUsd(balance));
+
+        // wait 365 days
+        const days = 365 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [days])
         await ethers.provider.send('evm_mine');
 
         await rm.claimRewardMStable();
@@ -83,10 +101,20 @@ describe("MStable", function () {
         let sellPrice = await vimUsdPriceGetter.getUsdcSellPrice();
         console.log('sellPrice vimUsd in usdc: ' + sellPrice);
 
-//        buyPrice = await mtaPriceGetter.getUsdcBuyPrice();
-//        console.log('buyPrice mta in usdc: ' + buyPrice);
-//        sellPrice = await mtaPriceGetter.getUsdcSellPrice();
-//        console.log('sellPrice mta in usdc: ' + sellPrice);
+        // transfer mta
+        vault.transfer(mta.address, mtaPriceGetter.address, balanceMta);
+        balance = await mta.balanceOf(mtaPriceGetter.address);
+        console.log('Balance mta: ' + fromMta(balance));
+
+        // price getter
+//        await mtaPriceGetter.getBalancerPrice(balance);
+
+        // swap tokens
+        await mtaPriceGetter.swap(balance, mtaPriceGetter.address);
+        balance = await wMatic.balanceOf(mtaPriceGetter.address);
+        console.log('Balance wMatic: ' + balance);
+//        balance = await usdc.balanceOf(mtaPriceGetter.address);
+//        console.log('Balance usdc: ' + balance);
     });
 
 });

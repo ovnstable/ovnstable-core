@@ -66,26 +66,26 @@ contract Mta2UsdcTokenExchange is ITokenExchange {
             path[0] = address(mtaToken);
             path[1] = address(usdcToken);
 
-            uint[] memory amountsOut = balancerVault.getAmountsOut(amount, path);
-            // 6 + 18 - 18 = 6 - not normilized USDC in native 6 decimals
-            uint256 estimateUsdcOut = (amountsOut[1] * (10**18)) / amountsOut[0];
-            // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
-            // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
-            if (estimateUsdcOut < 3) {
-                from.transfer(spender, from.balanceOf(address(this)));
-                return;
-            }
-
-            mtaToken.approve(address(balancerVault), amount);
+//            uint[] memory amountsOut = balancerVault.getAmountsOut(amount, path);
+//            // 6 + 18 - 18 = 6 - not normilized USDC in native 6 decimals
+//            uint256 estimateUsdcOut = (amountsOut[1] * (10**18)) / amountsOut[0];
+//            // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
+//            // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
+//            if (estimateUsdcOut < 3) {
+//                from.transfer(spender, from.balanceOf(address(this)));
+//                return;
+//            }
+//
+//            mtaToken.approve(address(balancerVault), amount);
 
             // TODO: use some calculation or Oracle call instead of usage '0' as amountOutMin
-            balancerVault.swapExactTokensForTokens(
-                amount, //    uint amountIn,
-                0, //          uint amountOutMin,
-                path,
-                receiver,
-                block.timestamp + 600 // 10 mins
-            );
+//            balancerVault.swapExactTokensForTokens(
+//                amount, //    uint amountIn,
+//                0, //          uint amountOutMin,
+//                path,
+//                receiver,
+//                block.timestamp + 600 // 10 mins
+//            );
         }
     }
 }
