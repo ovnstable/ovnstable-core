@@ -3,7 +3,6 @@ import Web3 from "web3";
 import abiDecoder from "../../plugins/abiDecoder";
 import Exchange from "../../contracts/Exchange.json";
 import ERC20 from "../../contracts/ERC20.json";
-import OverNightToken from "../../contracts/OvernightToken.json";
 import OvnToken from "../../contracts/OvnToken.json";
 import Governor from "../../contracts/OvnGovernor.json";
 import Portfolio from "../../contracts/Portfolio.json";
@@ -146,7 +145,6 @@ const actions = {
         contracts.exchange = _load(Exchange, web3);
         contracts.usdc = _load(ERC20, web3, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
         contracts.dai = _load(ERC20, web3, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
-        contracts.ovn = _load(OverNightToken, web3);
         contracts.govToken = _load(OvnToken, web3);
         contracts.governor = _load(Governor, web3);
         contracts.mark2market = _load(Mark2Market, web3);

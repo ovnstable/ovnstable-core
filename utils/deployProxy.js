@@ -22,6 +22,7 @@ async function deployProxy(contractName, deployments, save) {
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
     }
 
+    await new Promise(r => setTimeout(r, 5000));
 
     let upgradeTo = true;
     let impl;
