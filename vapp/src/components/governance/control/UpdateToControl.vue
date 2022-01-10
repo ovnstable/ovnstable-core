@@ -4,12 +4,7 @@
             <v-container>
                 <v-row>
                     <v-col>
-                        <h1>Exchange</h1>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col>
-                        <h5>Current address: {{ contracts.exchange.options.address }}</h5>
+                        <h1>UpdateTo</h1>
                     </v-col>
                 </v-row>
             </v-container>
@@ -18,11 +13,11 @@
         <v-card-text>
             <v-row dense>
                 <v-col>
-                    <v-text-field v-model="buyFee" label="Buy Fee" outlined dense>
+                    <v-text-field v-model="request.contract" label="Contract Name" outlined dense>
                     </v-text-field>
                 </v-col>
                 <v-col>
-                    <v-text-field v-model="buyFeeDenominator" label="Buy fee denominator" outlined dense>
+                    <v-text-field v-model="request.address" label="New impl address" outlined dense>
                     </v-text-field>
                 </v-col>
             </v-row>
@@ -30,12 +25,10 @@
         <v-card-actions>
             <v-row dense>
                 <v-col>
-                    <v-btn @click="changeFeeBuyAction">
+                    <v-btn @click="updateTo">
                         Proposal
                     </v-btn>
-                    <v-btn @click="runPayout">
-                        Payout
-                    </v-btn>
+
                 </v-col>
             </v-row>
         </v-card-actions>
@@ -46,11 +39,13 @@
 import {mapActions, mapGetters} from "vuex";
 
 export default {
-    name: "ExchangeControl",
+    name: "UpdateToControl",
 
     data: () => ({
-        buyFee: null,
-        buyFeeDenominator: null,
+        request: {
+            contract: null,
+            address: null,
+        },
     }),
 
     computed: {
@@ -60,15 +55,12 @@ export default {
 
     methods: {
 
-        ...mapActions('governance', ['changeFeeBuy', 'runPayoutAction']),
+        ...mapActions('governance', ['upgradeToAction']),
 
-        runPayout(){
-            this.runPayoutAction();
+        updateTo(){
+            this.upgradeToAction(this.request);
         },
 
-        changeFeeBuyAction() {
-            this.changeFeeBuy({fee: this.buyFee, feeDenominator: this.buyFeeDenominator})
-        }
     }
 }
 </script>

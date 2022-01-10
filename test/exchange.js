@@ -5,6 +5,8 @@ const {FakeContract, smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
 const {toUSDC, fromOvn, toOvn} = require("../utils/decimals");
+const hre = require("hardhat");
+const expectRevert = require("../utils/expectRevert");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -20,7 +22,8 @@ describe("Exchange", function () {
     let m2m;
     let pmMock;
 
-    before(async () => {
+    beforeEach(async () => {
+        await hre.run("compile");
         await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
@@ -55,13 +58,42 @@ describe("Exchange", function () {
 
     it("Redeem OVN", async function () {
 
-        const sum = toOvn(50.6);
-        await usdPlus.approve(exchange.address, sum);
-        await exchange.redeem(assets.usdc, sum);
+        const sumBuy = toUSDC(100);
+        await usdc.approve(exchange.address, sumBuy);
+
+        console.log("USDC: " + assets.usdc)
+        await exchange.buy(assets.usdc, sumBuy);
+
+        const sumRedeem = toOvn(50.6);
+        await usdPlus.approve(exchange.address, sumRedeem);
+        await exchange.redeem(assets.usdc, sumRedeem);
 
         let balance = fromOvn(await usdPlus.balanceOf(account));
         console.log('Balance usdPlus: ' + balance)
         expect(balance).to.equal(49.36);
 
     });
+
+
+    it("Pausable Mint", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.buy(assets.usdc, toUSDC(100)),
+            'Pausable: paused',
+        );
+    });
+
+    it("Pausable Redeem", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.redeem(assets.usdc, toUSDC(100)),
+            'Pausable: paused',
+        );
+    });
+
+    it("Pausable Payout", async function () {
+        await exchange.pause();
+        await expectRevert(exchange.payout(),
+            'Pausable: paused',
+        );
+    });
+
 });
