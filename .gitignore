@@ -3,7 +3,6 @@ node_modules
 .idea/
 
 ganache_local/
-package-lock.json
 vapp/dist
 ganache_mumbai/
 /vapp/truffle-migrate.sh
