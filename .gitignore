@@ -10,7 +10,7 @@ vapp/src/contracts/*
 !vapp/src/contracts/ERC20.json
 !vapp/src/contracts/IERC20Metadata.json
 ganache_poly
-
+report.json
 recreate.sh
 truffle-migrate.sh
 secrets.json
@@ -26,3 +26,4 @@ hardhat-node.sh
 
 solcInputs
 .openzeppelin
+/test-results.json
