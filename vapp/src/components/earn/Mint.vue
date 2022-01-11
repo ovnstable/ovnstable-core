@@ -230,30 +230,12 @@ export default {
         this.show('Processing...')
         this.addText(`Locking ${this.sum} USDC ......  done`)
 
-        let allowanceValue = await contracts.usdc.methods.allowance(from, contracts.exchange.options.address).call();
-        console.log('Allowance value ' + allowanceValue)
-
-        if (allowanceValue < sum) {
-          try {
-            await this.refreshGasPrice();
-            let approveParams = {gasPrice: this.gasPriceGwei, from: from};
-            await contracts.usdc.methods.approve(contracts.exchange.options.address, sum)
-                .send(approveParams)
-                .on('transactionHash', function (hash) {
-
-                  let tx = {
-                    text: 'Approve USDC',
-                    hash: hash,
-                    pending: true,
-                  };
-
-                  self.putTransaction(tx);
-                });
-          } catch (e) {
-            console.log(e)
+        let allowApprove = await this.checkAllowance(sum);
+        if (!allowApprove){
             this.failed();
             return;
-          }
+        }else {
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
         self.addText(`Minting ${self.sum} USD+ ......  done`);
@@ -294,6 +276,40 @@ export default {
       }
     },
 
+    async checkAllowance(sum){
+
+        let contracts = this.contracts;
+        let from = this.account;
+        let self = this;
+
+        let allowanceValue = await contracts.usdc.methods.allowance(from, contracts.exchange.options.address).call();
+        console.log('Allowance value ' + allowanceValue)
+
+        if (allowanceValue < sum) {
+            try {
+                await this.refreshGasPrice();
+                let approveParams = {gasPrice: this.gasPriceGwei, from: from};
+                await contracts.usdc.methods.approve(contracts.exchange.options.address, sum)
+                    .send(approveParams)
+                    .on('transactionHash', function (hash) {
+
+                        let tx = {
+                            text: 'Approve USDC',
+                            hash: hash,
+                            pending: true,
+                        };
+
+                        self.putTransaction(tx);
+                    });
+                return true;
+            } catch (e) {
+                console.log(e)
+                this.failed();
+                return false;
+            }
+        }
+        return true;
+    },
 
     showSuccessMintToast(sum, tx) {
       const content = {
