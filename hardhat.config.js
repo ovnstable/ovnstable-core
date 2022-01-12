@@ -32,8 +32,7 @@ module.exports = {
     networks: {
 
         polygon: {
-            url: node_url('polygon'),
-            accounts: accounts('polygon'),
+            url: "https://polygon-rpc.com/",
             gasPrice: 70000000000
         },
 

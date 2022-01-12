@@ -1,4 +1,7 @@
 const { ethers } = require("hardhat");
+const fs = require('fs');
+
+let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -38,6 +41,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("pm.setPortfolio done");
 
+    console.log('pm.setVimUsdToken: ' + assets.vimUsd)
+    tx = await pm.setVimUsdToken(assets.vimUsd);
+    await tx.wait();
+    console.log("pm.setVimUsdToken done");
 };
 
 module.exports.tags = ['setting','Setting'];

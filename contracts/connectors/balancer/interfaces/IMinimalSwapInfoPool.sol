@@ -33,5 +33,5 @@ interface IMinimalSwapInfoPool is IBasePool {
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
-    ) external returns (uint256 amount);
+    ) external view returns (uint256 amount);
 }

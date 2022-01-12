@@ -23,6 +23,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     Balancer public balancer;
     IRewardManager public rewardManager;
     Portfolio public portfolio;
+    address public vimUsdToken;
 
     // ---  events
 
@@ -31,6 +32,7 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
     event BalancerUpdated(address balancer);
     event RewardManagerUpdated(address rewardManager);
     event PortfolioUpdated(address portfolio);
+    event VimUsdTokenUpdated(address vimUsdToken);
 
     event Exchanged(uint256 amount, address from, address to);
 
@@ -85,6 +87,11 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
         emit PortfolioUpdated(_portfolio);
     }
 
+    function setVimUsdToken(address _vimUsdToken) external onlyAdmin {
+        require(_vimUsdToken != address(0), "Zero address not allowed");
+        vimUsdToken = _vimUsdToken;
+        emit VimUsdTokenUpdated(_vimUsdToken);
+    }
 
     // ---  logic
 
@@ -226,7 +233,10 @@ contract PortfolioManager is IPortfolioManager, AccessControl {
                 }
 
                 // move tokens to tokenExchange for executing action, amount - NOT normalized to 10**18
-                vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
+                // except vimUSD tokens because they are not transferable
+                if (address(action.from) != vimUsdToken) {
+                    vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
+                }
                 // execute exchange
                 action.tokenExchange.exchange(
                     address(vault),

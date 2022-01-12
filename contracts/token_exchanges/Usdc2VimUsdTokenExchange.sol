@@ -81,20 +81,11 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
         } else {
             //TODO: denominator usage
             amount = amount / vimUsdDenominator;
-
-            //TODO mstable
-            // if amount eq 0 after normalization transfer back balance and skip staking
             uint256 balance = vimUsdToken.balanceOf(address(this));
-            if (amount == 0) {
-                if (balance > 0) {
-                    vimUsdToken.transfer(spender, balance);
-                }
-                return;
-            }
 
-            // aToken on transfer can lost/add 1 wei. On lost we need correct amount
-            if (balance + 1 == amount) {
-                amount = amount - 1;
+            // if amount eq 0 after normalization transfer back balance and skip staking
+            if (amount == 0) {
+                return;
             }
 
             require(
@@ -107,15 +98,9 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
             if (onVaultBalance < amount) {
                 amount = onVaultBalance;
             }
+
             uint256 withdrewAmount = connectorMStable.unstake(address(usdcToken), amount, receiver);
-
             //TODO: may be add some checks for withdrewAmount
-
-            // transfer back unused amount
-            uint256 unusedBalance = vimUsdToken.balanceOf(address(this));
-            if (unusedBalance > 0) {
-                vimUsdToken.transfer(spender, unusedBalance);
-            }
         }
     }
 }

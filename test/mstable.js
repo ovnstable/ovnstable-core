@@ -14,13 +14,13 @@ chai.use(smock.matchers);
 
 describe("MStable", function () {
 
+    let account;
     let vault;
     let rm;
-    let usdc;
-    let account;
     let connectorMStable;
     let vimUsdPriceGetter;
     let mtaPriceGetter;
+    let usdc;
     let mUsd;
     let imUsd;
     let vimUsd;
@@ -58,63 +58,189 @@ describe("MStable", function () {
         let balance = await usdc.balanceOf(connectorMStable.address);
         console.log('Balance usdc: ' + fromUSDC(balance));
 
+        // stake
         await connectorMStable.stake(usdc.address, sum, vault.address);
         balance = await vimUsd.balanceOf(vault.address);
-        console.log('Balance vimUsd: ' + fromVimUsd(balance));
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
 
-//        // 2 transaction
-//        await usdc.transfer(connectorMStable.address, sum);
-//        balance = await usdc.balanceOf(connectorMStable.address);
-//        console.log('Balance usdc: ' + fromUSDC(balance));
-//
-//        await connectorMStable.stake(usdc.address, sum, vault.address);
-//        balance = await vimUsd.balanceOf(vault.address);
-//        console.log('Balance vimUsd: ' + fromVimUsd(balance));
-//
-//        // 3 transaction
-//        await usdc.transfer(connectorMStable.address, sum);
-//        balance = await usdc.balanceOf(connectorMStable.address);
-//        console.log('Balance usdc: ' + fromUSDC(balance));
-//
-//        await connectorMStable.stake(usdc.address, sum, vault.address);
-//        balance = await vimUsd.balanceOf(vault.address);
-//        console.log('Balance vimUsd: ' + fromVimUsd(balance));
+        expect(fromUSDC(balance)).to.greaterThan(0);
+    });
+
+    it("Unstaking USDC", async function () {
+        const sum = toUSDC(100);
+
+        // 1 transaction
+        await usdc.transfer(connectorMStable.address, sum);
+        let balance = await usdc.balanceOf(connectorMStable.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
+        // stake
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
+
+        // unstake
+        balance = await vimUsd.balanceOf(vault.address);
+        await connectorMStable.unstake(usdc.address, balance, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + fromUSDC(balance));
+
+        expect(fromUSDC(balance)).to.greaterThan(99);
+    });
+
+    it("Unstaking USDC with timeout", async function () {
+        const sum = toUSDC(100);
+
+        // 1 transaction
+        await usdc.transfer(connectorMStable.address, sum);
+        let balance = await usdc.balanceOf(connectorMStable.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
+        // stake
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
 
         // wait 365 days
         const days = 365 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [days])
         await ethers.provider.send('evm_mine');
 
-        await rm.claimRewardMStable();
-        let balanceMta = await mta.balanceOf(vault.address);
-        let balanceWMatic = await wMatic.balanceOf(vault.address);
-        console.log('Balance mta: ' + balanceMta);
-        console.log('Balance wMatic: ' + balanceWMatic);
-
+        // unstake
         balance = await vimUsd.balanceOf(vault.address);
         await connectorMStable.unstake(usdc.address, balance, vault.address);
         balance = await usdc.balanceOf(vault.address);
-        console.log('Balance usdc: ' + fromUSDC(balance));
+        console.log('Balance usdc after unstake: ' + fromUSDC(balance));
 
-        let buyPrice = await vimUsdPriceGetter.getUsdcBuyPrice();
-        console.log('buyPrice vimUsd in usdc: ' + buyPrice);
-        let sellPrice = await vimUsdPriceGetter.getUsdcSellPrice();
-        console.log('sellPrice vimUsd in usdc: ' + sellPrice);
-
-        // transfer mta
-        vault.transfer(mta.address, mtaPriceGetter.address, balanceMta);
-        balance = await mta.balanceOf(mtaPriceGetter.address);
-        console.log('Balance mta: ' + fromMta(balance));
-
-        // price getter
-//        await mtaPriceGetter.getBalancerPrice(balance);
-
-        // swap tokens
-        await mtaPriceGetter.swap(balance, mtaPriceGetter.address);
-        balance = await wMatic.balanceOf(mtaPriceGetter.address);
-        console.log('Balance wMatic: ' + balance);
-//        balance = await usdc.balanceOf(mtaPriceGetter.address);
-//        console.log('Balance usdc: ' + balance);
+        expect(fromUSDC(balance)).to.greaterThan(99);
     });
 
+    it("Unstaking USDC by parts", async function () {
+        const sum = toUSDC(100);
+
+        // 1 unstake
+        await usdc.transfer(connectorMStable.address, sum);
+        let balance = await usdc.balanceOf(connectorMStable.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
+        // stake
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
+
+        // unstake
+        balance = await vimUsd.balanceOf(vault.address);
+        await connectorMStable.unstake(usdc.address, balance, vault.address);
+        let balanceFinal1 = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + fromUSDC(balanceFinal1));
+
+        // 5 unstakes
+        await vault.transfer(usdc.address, connectorMStable.address, balanceFinal1);
+        await usdc.transfer(connectorMStable.address, 100000000 - balanceFinal1);
+        balance = await usdc.balanceOf(connectorMStable.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
+        // stake
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
+
+        let balancePart = BigInt(await vimUsd.balanceOf(vault.address)) / 5n;
+        console.log('BalancePart: ' + balancePart);
+
+        // 1 unstake
+        await connectorMStable.unstake(usdc.address, balancePart, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 1 unstake: ' + fromUSDC(balance));
+
+        // 2 unstake
+        await connectorMStable.unstake(usdc.address, balancePart, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 2 unstake: ' + fromUSDC(balance));
+
+        // 3 unstake
+        await connectorMStable.unstake(usdc.address, balancePart, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 3 unstake: ' + fromUSDC(balance));
+
+        // 4 unstake
+        await connectorMStable.unstake(usdc.address, balancePart, vault.address);
+        balance = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 4 unstake: ' + fromUSDC(balance));
+
+        // 5 unstake
+        balance = await vimUsd.balanceOf(vault.address);
+        await connectorMStable.unstake(usdc.address, balance, vault.address);
+        balanceFinal2 = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 5 unstake: ' + fromUSDC(balanceFinal2));
+
+        expect(balanceFinal1).to.equal(balanceFinal2);
+
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after all: ' + fromVimUsd(balance));
+
+        expect(fromVimUsd(balance)).to.lessThan(1);
+    });
+
+    it("Claiming rewards", async function () {
+        const sum = toUSDC(100);
+
+        // 1 transaction
+        await usdc.transfer(connectorMStable.address, sum);
+        let balance = await usdc.balanceOf(connectorMStable.address);
+        console.log('Balance usdc: ' + fromUSDC(balance));
+
+        // stake
+        await connectorMStable.stake(usdc.address, sum, vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
+
+        // wait 365 days
+        const days = 365 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [days])
+        await ethers.provider.send('evm_mine');
+
+        // claim rewards
+        await rm.claimRewardMStable();
+        let balanceMta = await mta.balanceOf(vault.address);
+        let balanceWMatic = await wMatic.balanceOf(vault.address);
+        console.log('Balance mta after claim: ' + fromMta(balanceMta));
+        console.log('Balance wMatic after claim: ' + fromWmatic(balanceWMatic));
+
+        expect(fromMta(balanceMta)).to.greaterThan(0);
+    });
+
+    it("Get price vimUSD", async function () {
+        // vimUsdPriceGetter
+        let buyPrice = await vimUsdPriceGetter.getUsdcBuyPrice();
+        console.log('BuyPrice vimUsd in usdc: ' + fromUSDC(buyPrice));
+        let sellPrice = await vimUsdPriceGetter.getUsdcSellPrice();
+        console.log('SellPrice vimUsd in usdc: ' + fromUSDC(sellPrice));
+
+        let percent;
+        if (buyPrice > sellPrice) {
+            percent = (buyPrice - sellPrice) / sellPrice;
+        } else {
+            percent = (sellPrice - buyPrice) / buyPrice;
+        }
+
+        expect(percent).to.lessThan(20);
+    });
+
+    it("Get price MTA", async function () {
+        // mtaPriceGetter
+        let buyPrice = await mtaPriceGetter.getUsdcBuyPrice();
+        console.log('BuyPrice mta in usdc: ' + fromUSDC(buyPrice));
+        let sellPrice = await mtaPriceGetter.getUsdcSellPrice();
+        console.log('SellPrice mta in usdc: ' + fromUSDC(sellPrice));
+
+        let percent;
+        if (buyPrice > sellPrice) {
+            percent = (buyPrice - sellPrice) * 100 / sellPrice;
+        } else {
+            percent = (sellPrice - buyPrice) * 100 / buyPrice;
+        }
+
+        expect(percent).to.lessThan(20);
+    });
 });
