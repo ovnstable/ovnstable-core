@@ -1,14 +1,9 @@
-const { ethers } = require("hardhat");
+const { ethers, upgrades} = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
+    const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deploy('GovToken', {
-        from: deployer,
-        args: [],
-        log: true,
-    });
 
     await deploy('TimelockController', {
         from: deployer,
@@ -17,7 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 
 
-    const token = await ethers.getContract("GovToken");
+    const token = await ethers.getContract("OvnToken");
     const controller = await ethers.getContract("TimelockController");
 
 
@@ -41,4 +36,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['base','Governance'];
+module.exports.tags = ['base','OvnGovernor'];

@@ -1,0 +1,118 @@
+{
+  "address": "0xb9B0CF02Ec8F1813cdFDB8CAdf56092263e6d58F",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "DENOMINATOR",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "denominator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getUsdcBuyPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getUsdcSellPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x0e48183bf765159e72b5a1c8f28ac4a94b998f062cd3b8b557c4dfe323b57663",
+  "receipt": {
+    "to": null,
+    "from": "0x5CB01385d3097b6a189d1ac8BA3364D900666445",
+    "contractAddress": "0xb9B0CF02Ec8F1813cdFDB8CAdf56092263e6d58F",
+    "transactionIndex": 10,
+    "gasUsed": "90347",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000008000020000000000100000008000000000000000000000000000000080000000000000000000000000800010000000000000000100000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000080000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000100000",
+    "blockHash": "0xfabcb8969cc4399377e72780f3a7aca6088c48eafef724bcf7c45f3b399464cd",
+    "transactionHash": "0x0e48183bf765159e72b5a1c8f28ac4a94b998f062cd3b8b557c4dfe323b57663",
+    "logs": [
+      {
+        "transactionIndex": 10,
+        "blockNumber": 22940420,
+        "transactionHash": "0x0e48183bf765159e72b5a1c8f28ac4a94b998f062cd3b8b557c4dfe323b57663",
+        "address": "0x0000000000000000000000000000000000001010",
+        "topics": [
+          "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+          "0x0000000000000000000000000000000000000000000000000000000000001010",
+          "0x0000000000000000000000005cb01385d3097b6a189d1ac8ba3364d900666445",
+          "0x000000000000000000000000f0245f6251bef9447a08766b9da2b07b28ad80b0"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000000001677e882e814000000000000000000000000000000000000000000000000007625cbbf0dd68ee80000000000000000000000000000000000000000000001e10415f768c475d815000000000000000000000000000000000000000000000000760f53d68aee7ae80000000000000000000000000000000000000000000001e1042c6f51475dec15",
+        "logIndex": 64,
+        "blockHash": "0xfabcb8969cc4399377e72780f3a7aca6088c48eafef724bcf7c45f3b399464cd"
+      }
+    ],
+    "blockNumber": 22940420,
+    "cumulativeGasUsed": "2019812",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "a52a09ed2b2706cd99c66d36846223b4",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/price_getters/AUsdcPriceGetter.sol\":\"AUsdcPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xc1452b054778f1926419196ef12ae200758a4ee728df69ae1cd13e5c16ca7df7\",\"license\":\"MIT\"},\"contracts/interfaces/IConnector.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\n/// @title Common inrterface to DeFi protocol connectors\\n/// @author @Stanta\\n/// @notice Every connector have to implement this function\\n/// @dev Choosing of connector releasing by changing address of connector's contract\\ninterface IConnector {\\n    function stake(\\n        address _asset,\\n        uint256 _amount,\\n        address _beneficiar\\n    ) external;\\n\\n    function unstake(\\n        address _asset,\\n        uint256 _amount,\\n        address _to\\n    ) external returns (uint256);\\n}\\n\",\"keccak256\":\"0xf418605c420c689e5cdd7cf9a49d8906f8c5631a629a5d6eea6d9f2eba79fdb8\",\"license\":\"MIT\"},\"contracts/interfaces/IPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\ninterface IPriceGetter {\\n    /**\\n     * Token buy price at USDC. Amount of USDC we should spend to buy one token.\\n     * Returned value is [USDC/token]\\n     * Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcBuyPrice() external view returns (uint256);\\n\\n    /**\\n     * Token sell price at USDC. Amount of USDC we got if sell one token.\\n     * Returned value is [USDC/token]\\n     * Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcSellPrice() external view returns (uint256);\\n\\n    /**\\n     * Denominator for normalization. Default 10**18.\\n     */\\n    function denominator() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x2ffb91797f2de81cf176b8ebe0be12d7250279b61f1ee7f8d37ae41e00ecb04e\",\"license\":\"MIT\"},\"contracts/price_getters/AUsdcPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"../price_getters/AbstractPriceGetter.sol\\\";\\nimport \\\"../interfaces/IConnector.sol\\\";\\n\\ncontract AUsdcPriceGetter is AbstractPriceGetter {\\n    function getUsdcBuyPrice() external pure override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function getUsdcSellPrice() external pure override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n}\\n\\n\",\"keccak256\":\"0x4527ce79b0e225cd7bc91f9183b1f537604a3adc3eafbf500dd1262ca5ea0b38\",\"license\":\"MIT\"},\"contracts/price_getters/AbstractPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"../interfaces/IPriceGetter.sol\\\";\\n\\ncontract AbstractPriceGetter is IPriceGetter {\\n    uint256 public constant DENOMINATOR = 10**18;\\n\\n    function getUsdcBuyPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function getUsdcSellPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function denominator() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n}\\n\",\"keccak256\":\"0x71a4dc4a01bae2264bd097e07ea93ca929ca304390677644861fb8205cc0a705\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b5060ab8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060465760003560e01c80632b8455f114604b578063918f867414606757806396ce079514604b578063ea24978414604b575b600080fd5b670de0b6b3a76400005b60405190815260200160405180910390f35b6055670de0b6b3a76400008156fea264697066735822122021174ef95e3199e7428e73f33e481393b258b69e085d96dd4365872171c0a83e64736f6c63430008060033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060465760003560e01c80632b8455f114604b578063918f867414606757806396ce079514604b578063ea24978414604b575b600080fd5b670de0b6b3a76400005b60405190815260200160405180910390f35b6055670de0b6b3a76400008156fea264697066735822122021174ef95e3199e7428e73f33e481393b258b69e085d96dd4365872171c0a83e64736f6c63430008060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "denominator()": {
+        "notice": "Denominator for normalization. Default 10**18."
+      },
+      "getUsdcBuyPrice()": {
+        "notice": "Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18"
+      },
+      "getUsdcSellPrice()": {
+        "notice": "Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

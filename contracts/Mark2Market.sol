@@ -2,14 +2,21 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPriceGetter.sol";
 import "./registries/Portfolio.sol";
 import "./Vault.sol";
 
-contract Mark2Market is IMark2Market, Ownable {
+contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, UUPSUpgradeable{
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+
+
     // ---  fields
 
     Vault public vault;
@@ -20,21 +27,53 @@ contract Mark2Market is IMark2Market, Ownable {
     event VaultUpdated(address vault);
     event PortfolioUpdated(address portfolio);
 
+
+    // ---  modifiers
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize() initializer public {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
+
     // ---  setters
 
-    function setVault(address _vault) external onlyOwner {
+    function setVault(address _vault) external onlyAdmin {
         require(_vault != address(0), "Zero address not allowed");
         vault = Vault(_vault);
         emit VaultUpdated(_vault);
     }
 
-    function setPortfolio(address _portfolio) external onlyOwner {
+    function setPortfolio(address _portfolio) external onlyAdmin {
         require(_portfolio != address(0), "Zero address not allowed");
         portfolio = Portfolio(_portfolio);
         emit PortfolioUpdated(_portfolio);
     }
 
     // ---  logic
+
+
+    function assetPricesView() public view returns(AssetPrices[] memory){
+        return assetPrices().assetPrices;
+    }
 
     function assetPrices() public view override returns (TotalAssetPrices memory) {
         Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();

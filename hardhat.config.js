@@ -2,6 +2,8 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ganache");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
+require('@openzeppelin/hardhat-upgrades');
+require("@nomiclabs/hardhat-etherscan");
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -24,16 +26,27 @@ module.exports = {
             ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
         },
 
-        test1: {
+        recipient: {
             default: 1,
+        },
+
+        anotherAccount: {
+            default: 2
         }
     },
 
     networks: {
 
         polygon: {
-            url: "https://polygon-rpc.com/",
-            gasPrice: 70000000000
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            gasPrice: 100000000000
+        },
+
+        polygon_dev: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            gasPrice: 70000000000,
         },
 
         ganache:{
@@ -66,8 +79,8 @@ module.exports = {
 
 
     mocha: {
-        timeout: 200000
-    }
+        timeout: 600000
+    },
 
 
 };
