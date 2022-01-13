@@ -21,6 +21,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run test-github
+      - run: ls
 
       - name: Test Report
         uses: dorny/test-reporter@v1
