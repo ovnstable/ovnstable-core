@@ -31,12 +31,12 @@ jobs:
         run: npm ci
 
       - name: Run test
-        run: npm run test-github
+        run: npx hardhat test
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
         with:
-          name: mocha-json            # Name of the check run which will be created
+          name: Test Report   # Name of the check run which will be created
           path: report.json    # Path to test results
           reporter: mocha-json
