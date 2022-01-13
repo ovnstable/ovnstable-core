@@ -22,8 +22,8 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant REWARD_MANAGER = keccak256("REWARD_MANAGER");
-    bytes32 public constant CONNECTOR_MSTABLE = keccak256("CONNECTOR_MSTABLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant CONNECTOR_MSTABLE = keccak256("CONNECTOR_MSTABLE");
 
     // Only Vault can claiming aave rewards
     IAaveIncentivesController public aaveReward;

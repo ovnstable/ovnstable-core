@@ -6,8 +6,6 @@ import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/balancer/interfaces/IVault.sol";
 import "../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
 
-import "hardhat/console.sol";
-
 contract MtaPriceGetter is AbstractPriceGetter {
 
     IVault public balancerVault;
@@ -53,10 +51,6 @@ contract MtaPriceGetter is AbstractPriceGetter {
         uint256 balanceWmatic = _onSwap(balancerPool1, balancerPoolId1, IVault.SwapKind.GIVEN_OUT, wmaticToken, mtaToken, balanceMta);
         uint256 balanceUsdc = _onSwap(balancerPool2, balancerPoolId2, IVault.SwapKind.GIVEN_OUT, usdcToken, wmaticToken, balanceWmatic);
 
-        console.log("BuyPrice balance mta:    %s", balanceMta);
-        console.log("BuyPrice balance wmatic: %s", balanceWmatic);
-        console.log("BuyPrice balance usdc:   %s", balanceUsdc);
-
         return balanceUsdc * (10 ** 12);
     }
 
@@ -64,10 +58,6 @@ contract MtaPriceGetter is AbstractPriceGetter {
         uint256 balanceMta = 10 ** 18;
         uint256 balanceWmatic = _onSwap(balancerPool1, balancerPoolId1, IVault.SwapKind.GIVEN_IN, mtaToken, wmaticToken, balanceMta);
         uint256 balanceUsdc = _onSwap(balancerPool2, balancerPoolId2, IVault.SwapKind.GIVEN_IN, wmaticToken, usdcToken, balanceWmatic);
-
-        console.log("SellPrice balance mta:    %s", balanceMta);
-        console.log("SellPrice balance wmatic: %s", balanceWmatic);
-        console.log("SellPrice balance usdc:   %s", balanceUsdc);
 
         return balanceUsdc * (10 ** 12);
     }

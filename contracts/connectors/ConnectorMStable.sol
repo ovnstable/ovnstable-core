@@ -9,8 +9,6 @@ import "./mstable/interfaces/IMasset.sol";
 import "./mstable/interfaces/ISavingsContract.sol";
 import "./mstable/interfaces/IBoostedVaultWithLockup.sol";
 
-import "hardhat/console.sol";
-
 contract ConnectorMStable is IConnector, Ownable {
 
     Vault public vault;
@@ -50,13 +48,10 @@ contract ConnectorMStable is IConnector, Ownable {
     ) public override {
         IERC20(_asset).approve(address(mUsdToken), _amount);
         uint256 mintedTokens = mUsdToken.mint(_asset, _amount, 0, address(this));
-        console.log("mintedTokens: %s", mintedTokens);
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
-        console.log("savedTokens: %s", savedTokens);
         imUsdToken.approve(address(vimUsdToken), savedTokens);
         vimUsdToken.stake(_beneficiar, savedTokens);
-        console.log("stakedTokens: %s", vimUsdToken.balanceOf(_beneficiar));
     }
 
     function unstake(
@@ -64,15 +59,9 @@ contract ConnectorMStable is IConnector, Ownable {
         uint256 _amount,
         address _beneficiar
     ) public override returns (uint256) {
-        console.log("vimUsdToken balance before: %s", vimUsdToken.balanceOf(address(vault)));
         vault.unstakeMStable(address(imUsdToken), _amount, address(this));
-        console.log("vimUsdToken balance after: %s", vimUsdToken.balanceOf(address(vault)));
-        console.log("imUsdToken balance before: %s", imUsdToken.balanceOf(address(this)));
         imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
-        console.log("imUsdToken balance after: %s", imUsdToken.balanceOf(address(this)));
-        console.log("mUsdToken balance before: %s", mUsdToken.balanceOf(address(this)));
         mUsdToken.redeem(_asset, mUsdToken.balanceOf(address(this)), 0, address(this));
-        console.log("mUsdToken balance after: %s", mUsdToken.balanceOf(address(this)));
         uint256 redeemedTokens = IERC20(_asset).balanceOf(address(this));
         IERC20(_asset).transfer(_beneficiar, redeemedTokens);
         return redeemedTokens;

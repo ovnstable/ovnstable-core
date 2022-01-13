@@ -31,7 +31,7 @@ describe("MStable", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting', 'setting', 'base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+        await deployments.fixture(['Setting', 'setting', 'base', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
