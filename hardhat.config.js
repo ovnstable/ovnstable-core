@@ -79,7 +79,7 @@ module.exports = {
 
 
     mocha: {
-        timeout: 1200000,
+        timeout: 6200000,
         reporter:   "json",
     },
 
