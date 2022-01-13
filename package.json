@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "hardhat test",
-    "test-github": "mocha --timeout 600000 --require hardhat/register --parallel  --recursive  --exit  --reporter json > report.json"
+    "test-github": "mocha --timeout 1200000 --require hardhat/register  --recursive  --exit  --reporter json > report.json"
   },
   "keywords": [],
   "author": {
