@@ -33,6 +33,9 @@ jobs:
       - name: Run test
         run: npx hardhat test > report.json | ls
 
+      - name: Cat report.js
+        run: cat report.json
+
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
