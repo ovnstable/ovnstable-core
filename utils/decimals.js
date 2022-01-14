@@ -1,5 +1,3 @@
-
-
 module.exports = {
 
     toE18: (value) => value * 10 ** 18,
@@ -31,6 +29,12 @@ module.exports = {
 
     toOvnGov: (value) => value * 10 ** 18,
     fromOvnGov: (value) => value / 10 ** 18,
+
+    toVimUsd: (value) => value * 10 ** 18,
+    fromVimUsd: (value) => value / 10 ** 18,
+
+    toMta: (value) => value * 10 ** 18,
+    fromMta: (value) => value / 10 ** 18,
 
     //TODO balancer
     toBpsp: (value) => value * 10 ** 18,

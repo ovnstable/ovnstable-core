@@ -33,6 +33,9 @@
                     <v-btn @click="changeFeeBuyAction">
                         Proposal
                     </v-btn>
+                    <v-btn @click="runPayout">
+                        Payout
+                    </v-btn>
                 </v-col>
             </v-row>
         </v-card-actions>
@@ -51,13 +54,17 @@ export default {
     }),
 
     computed: {
-        ...mapGetters('web3', ['contracts'])
+        ...mapGetters('web3', ['contracts']),
+
     },
 
     methods: {
 
-        ...mapActions('governance', ['changeFeeBuy']),
+        ...mapActions('governance', ['changeFeeBuy', 'runPayoutAction']),
 
+        runPayout(){
+            this.runPayoutAction();
+        },
 
         changeFeeBuyAction() {
             this.changeFeeBuy({fee: this.buyFee, feeDenominator: this.buyFeeDenominator})

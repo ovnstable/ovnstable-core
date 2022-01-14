@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.so
 contract OvnGovernor is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
     constructor(ERC20Votes _token, TimelockController _timelock)
     Governor("OvnGovernor")
-    GovernorSettings(1 /* 1 block */, 5 /* 1 minute */, 0)
+    GovernorSettings(1 /* 1 block */, 200 /* 2 minute */, 0)
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(75)
     GovernorTimelockControl(_timelock)

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build-dev": "vue-cli-service build --mode dev",
+    "build-production": "vue-cli-service build --mode production",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "vue-gtag": "^1.16.1",
     "vue-router": "^3.0.3",
     "vue-toastification": "^1.7.11",
+    "vue-yandex-metrika": "^1.8.3",
     "vuetify": "^2.4.0",
     "vuex": "^3.1.1",
     "vuex-persistedstate": "^4.1.0",

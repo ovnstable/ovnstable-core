@@ -1,8 +1,11 @@
 import {axios} from "../../plugins/http-axios";
 import utils from "../../plugins/utils";
 import abiDecoder from "../../plugins/abiDecoder";
+import Web3Utils from 'web3-utils'
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+import BigNumber from "bignumber.js";
+
 
 const state = {
 
@@ -20,7 +23,8 @@ const state = {
         {id: "am3CRV", address: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171"},
         {id: "am3CRVgauge", address: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c"},
         {id: "wMatic", address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"},
-        {id: "crv", address: "0x172370d5Cd63279eFa6d502DAB29171933a610AF"}]
+        {id: "crv", address: "0x172370d5Cd63279eFa6d502DAB29171933a610AF"}
+    ]
 
 };
 
@@ -58,6 +62,66 @@ const getters = {
 };
 
 const actions = {
+
+    async upgradeToAction({commit, dispatch, getters, rootState}, request) {
+
+        let contract = rootState.web3.contracts[request.contract];
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+
+        let abi = contract.methods.upgradeTo(request.address).encodeABI();
+        let name = 'Proposal #' + getters.proposals.length + 1 + ' UpgradeTo ' + request.contract;
+        let params = {from: account};
+
+        await governor.methods.proposeExec([contract.options.address], [0], [abi], name).send(params);
+   },
+
+    async runPayoutAction({commit, dispatch, getters, rootState}) {
+
+        let contact= rootState.web3.contracts.exchange;
+
+        let params = {from: rootState.web3.account};
+        await contact.methods.payout().send(params);
+    },
+
+    async updateGovernanceSettings({commit, dispatch, getters, rootState}, value) {
+
+        let governor = rootState.web3.contracts.governor;
+        let account = rootState.web3.account;
+        let params = {from: account};
+
+        let name = 'Proposal #' + getters.proposals.length + 1 + ' Update Governance Settings';
+
+        let addresses = [];
+        let abis = [];
+        let values = [];
+
+        if (value.votingDelay) {
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setVotingDelay(value.votingDelay).encodeABI());
+            values.push(0);
+        }
+
+        if (value.votingPeriod) {
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setVotingPeriod(value.votingPeriod).encodeABI());
+            values.push(0);
+        }
+
+        if (value.setProposalThreshold) {
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.setProposalThreshold(value.proposalThreshold).encodeABI());
+            values.push(0);
+        }
+
+        if (value.updateQuorumNumerator) {
+            addresses.push(governor.options.address);
+            abis.push(governor.methods.updateQuorumNumerator(value.updateQuorumNumerator).encodeABI());
+            values.push(0);
+        }
+
+        await governor.methods.proposeExec(addresses, values, abis, name).send(params);
+    },
 
     async updateDelay({commit, dispatch, getters, rootState}, value) {
 
@@ -121,6 +185,7 @@ const actions = {
         governorItem.votingPeriod = await governor.methods.votingPeriod().call();
         governorItem.votingDelay = await governor.methods.votingDelay().call();
         governorItem.proposalThreshold = await governor.methods.proposalThreshold().call();
+        governorItem.quorumNumerator = await governor.methods.quorumNumerator().call();
 
         let settings = {};
         settings.timeLock = timeLockItem;
@@ -162,7 +227,7 @@ const actions = {
         let governor = rootState.web3.contracts.governor;
         let params = {from: account};
 
-        let wei = rootState.web3.web3.utils.toWei(request.sum, 'gwei');
+        let wei = rootState.web3.web3.utils.toWei(request.sum, 'ether');
         let abi = await govToken.methods.mint(request.account, wei).encodeABI();
         let name = 'Proposal #' + getters.proposals.length + 1 + 'Mint gov tokens';
         await governor.methods.proposeExec([govToken.options.address], [0], [abi], name).send(params);
@@ -183,6 +248,8 @@ const actions = {
 
         let governor = rootState.web3.contracts.governor;
         let proposals = await governor.methods.getProposals().call();
+
+        proposals = [...proposals].reverse();
 
         let items = [];
         for (let i = 0; i < proposals.length; i++) {

@@ -14,6 +14,14 @@
                 <TimelockControllerControl/>
             </v-col>
         </v-row>
+        <v-row>
+            <v-col lg="4">
+                <GovernorControl/>
+            </v-col>
+            <v-col lg="4">
+                <UpdateToControl/>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
@@ -21,10 +29,12 @@
 import ExchangeControl from "../../components/governance/control/ExchangeControl";
 import GovTokenControl from "../../components/governance/control/GovTokenControl";
 import TimelockControllerControl from "../../components/governance/control/TimelockControllerControl";
+import GovernorControl from "../../components/governance/control/GovernorControl";
+import UpdateToControl from "../../components/governance/control/UpdateToControl";
 
 export default {
     name: "Control",
-    components: {TimelockControllerControl, GovTokenControl, ExchangeControl }
+    components: {UpdateToControl, GovernorControl, TimelockControllerControl, GovTokenControl, ExchangeControl }
 }
 </script>
 

@@ -12,37 +12,31 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let idleUsdcWeight = {
         asset: assets.idleUsdc,
         minWeight: 0,
-        targetWeight: 10000,
-        maxWeight: 100000,
-    }
-    let bpspTUsdWeight = {
-        asset: assets.usdc,
-        minWeight: 0,
-        targetWeight: 2000,
+        targetWeight: 15000,
         maxWeight: 100000,
     }
     let usdcWeight = {
         asset: assets.usdc,
         minWeight: 0,
-        targetWeight: 0,
+        targetWeight: 1000,
         maxWeight: 100000,
     }
     let aUsdcWeight = {
         asset: assets.amUsdc,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 1000,
         maxWeight: 100000,
     }
     let a3CrvWeight = {
         asset: assets.am3CRV,
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 1000,
         maxWeight: 100000,
     }
     let a3CrvGaugeWeight = {
         asset: assets.am3CRVgauge,
         minWeight: 0,
-        targetWeight: 73000,
+        targetWeight: 75000,
         maxWeight: 100000,
     }
     let wMaticWeight = {
@@ -55,6 +49,24 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         asset: assets.crv,
         minWeight: 0,
         targetWeight: 0,
+        maxWeight: 100000,
+    }
+    let vimUsdWeight = {
+        asset: assets.vimUsd,
+        minWeight: 0,
+        targetWeight: 5000,
+        maxWeight: 100000,
+    }
+    let mtaWeight = {
+        asset: assets.mta,
+        minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+    }
+    let bpspTUsdWeight = {
+        asset: assets.usdc,
+        minWeight: 0,
+        targetWeight: 2000,
         maxWeight: 100000,
     }
     let tUsdWeight = {
@@ -71,13 +83,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
     let weights = [
         idleUsdcWeight,
-        bpspTUsdWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
         a3CrvGaugeWeight,
         wMaticWeight,
         crvWeight,
+        vimUsdWeight,
+        mtaWeight,
+        bpspTUsdWeight,
         tUsdWeight,
         balWeight
     ]

@@ -12,13 +12,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const idleUsdcPriceGetter = await ethers.getContract('IdleUsdcPriceGetter');
-    const bpspTUsdPriceGetter = await ethers.getContract('BpspTUsdPriceGetter');
     const usdcPriceGetter = await ethers.getContract('UsdcPriceGetter');
     const aUsdcPriceGetter = await ethers.getContract('AUsdcPriceGetter');
     const a3CrvPriceGetter = await ethers.getContract('A3CrvPriceGetter');
     const a3CrvGaugePriceGetter = await ethers.getContract('A3CrvGaugePriceGetter');
     const crvPriceGetter = await ethers.getContract('CrvPriceGetter');
     const wMaticPriceGetter = await ethers.getContract('WMaticPriceGetter');
+    const vimUsdPriceGetter = await ethers.getContract('VimUsdPriceGetter');
+    const mtaPriceGetter = await ethers.getContract('MtaPriceGetter');
+    const bpspTUsdPriceGetter = await ethers.getContract('BpspTUsdPriceGetter');
     const tUsdPriceGetter = await ethers.getContract('TUsdPriceGetter');
     const balPriceGetter = await ethers.getContract('BalPriceGetter');
 
@@ -26,14 +28,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await idleUsdcPriceGetter.setIdleToken(idleToken);
     console.log("idleUsdcPriceGetter.setIdleToken done");
 
-    await bpspTUsdPriceGetter.setBalancerVault(balancerVault);
-    console.log("bpspTUsdPriceGetter.setBalancerVault done");
-
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
     console.log("a3CrvPriceGetter.setPool done");
 
     await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
     console.log("a3CrvGaugePriceGetter.setA3CrvPriceGetter done");
+
+    await bpspTUsdPriceGetter.setBalancerVault(balancerVault);
+    console.log("bpspTUsdPriceGetter.setBalancerVault done");
 
     // link
     const portfolio = await ethers.getContract('Portfolio');
@@ -48,10 +50,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let idleUsdcAssetInfo = {
         asset: assets.idleUsdc,
         priceGetter: idleUsdcPriceGetter.address
-    }
-    let bpspTUsdAssetInfo = {
-        asset: assets.bpspTUsd,
-        priceGetter: bpspTUsdPriceGetter.address
     }
     let usdcAssetInfo = {
         asset: assets.usdc,
@@ -77,6 +75,18 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         asset: assets.wMatic,
         priceGetter: wMaticPriceGetter.address
     }
+    let vimUsdAssetInfo = {
+        asset: assets.vimUsd,
+        priceGetter: vimUsdPriceGetter.address
+    }
+    let mtaAssetInfo = {
+        asset: assets.mta,
+        priceGetter: mtaPriceGetter.address
+    }
+    let bpspTUsdAssetInfo = {
+        asset: assets.bpspTUsd,
+        priceGetter: bpspTUsdPriceGetter.address
+    }
     let tUsdAssetInfo = {
         asset: assets.tUsd,
         priceGetter: tUsdPriceGetter.address
@@ -93,6 +103,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         crvAssetInfo,
         wMaticAssetInfo,
         idleUsdcAssetInfo,
+        vimUsdAssetInfo,
+        mtaAssetInfo,
         bpspTUsdAssetInfo,
         tUsdAssetInfo,
         balAssetInfo,

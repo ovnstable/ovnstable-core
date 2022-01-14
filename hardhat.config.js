@@ -2,6 +2,8 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ganache");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
+require('@openzeppelin/hardhat-upgrades');
+require("@nomiclabs/hardhat-etherscan");
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -24,8 +26,12 @@ module.exports = {
             ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
         },
 
-        test1: {
+        recipient: {
             default: 1,
+        },
+
+        anotherAccount: {
+            default: 2
         }
     },
 
@@ -34,7 +40,13 @@ module.exports = {
         polygon: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 70000000000
+            gasPrice: 100000000000
+        },
+
+        polygon_dev: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            gasPrice: 70000000000,
         },
 
         ganache:{
@@ -45,7 +57,7 @@ module.exports = {
         hardhat: {
             forking: {
                 url: "https://polygon-rpc.com/",
-                blockNumber: 22791175 ,
+                blockNumber: 23554341 ,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
@@ -67,8 +79,8 @@ module.exports = {
 
 
     mocha: {
-        timeout: 200000
-    }
+        timeout: 600000
+    },
 
 
 };
