@@ -34,12 +34,12 @@ jobs:
         run: npx hardhat test
 
       - name: Cat report.js
-        run: cat test.json
+        run: cat report.json
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
         with:
           name: Test Report   # Name of the check run which will be created
-          path: test.json    # Path to test results
+          path: report.json    # Path to test results
           reporter: mocha-json
