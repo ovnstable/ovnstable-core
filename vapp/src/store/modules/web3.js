@@ -218,7 +218,7 @@ const actions = {
                     type: 'ERC20',
                     options: {
                         address: rootState.web3.contracts.usdPlus.options.address,
-                        symbol: 'USD+',
+                        symbol: process.env.VUE_APP_USD_TOKEN_NAME,
                         decimals: 6,
                         image: UsdPlusImage.image,
                     },
@@ -244,7 +244,7 @@ const actions = {
                     type: 'ERC20',
                     options: {
                         address: rootState.web3.contracts.govToken.options.address,
-                        symbol: 'OVN',
+                        symbol: process.env.VUE_APP_OVN_TOKEN_NAME,
                         decimals: 18,
                         image: OvnImage.image,
                     },

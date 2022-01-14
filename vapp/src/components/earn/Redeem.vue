@@ -133,7 +133,7 @@ export default {
   computed: {
 
     ...mapGetters("profile", ['balance', 'gasPrice', 'loadingBalance']),
-    ...mapGetters("web3", ["web3", 'account',  'contracts']),
+    ...mapGetters("web3", ["web3", 'account', 'contracts']),
     ...mapGetters("logTransactions", ["transactions"]),
     ...mapGetters("gasPrice", ["gasPriceGwei"]),
 
@@ -197,7 +197,7 @@ export default {
 
   methods: {
 
-    ...mapActions("profile", [ 'refreshAfterMintRedeem']),
+    ...mapActions("profile", ['refreshAfterMintRedeem']),
     ...mapActions("gasPrice", ['refreshGasPrice']),
     ...mapActions("showTransactions", ['show', 'hide', 'addText', 'failed']),
 
@@ -227,19 +227,13 @@ export default {
         this.show('Processing...')
         this.addText(`Locking ${this.sum} USD+ ......  done`)
 
-        let allowanceValue = await contracts.usdPlus.methods.allowance(from, contracts.exchange.options.address).call();
-        console.log('Allowance value ' + allowanceValue)
 
-        if (allowanceValue < sum) {
-          try {
-            await this.refreshGasPrice();
-            let approveParams = {gasPrice: this.gasPriceGwei, from: from};
-            await contracts.usdPlus.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
-          } catch (e) {
-            console.log(e)
-            this.failed();
-            return;
-          }
+        let allowApprove = await this.checkAllowance(sum);
+        if (!allowApprove) {
+          this.failed();
+          return;
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
         self.addText(`Burning ${self.sum} USD+ ......  done`);
@@ -270,7 +264,31 @@ export default {
       }
     },
 
-    showSuccessRedeemToast(sum, tx){
+    async checkAllowance(sum) {
+
+      let contracts = this.contracts;
+      let from = this.account;
+
+      let allowanceValue = await contracts.usdPlus.methods.allowance(from, contracts.exchange.options.address).call();
+      console.log('Allowance value ' + allowanceValue)
+
+      if (allowanceValue < sum) {
+        try {
+          await this.refreshGasPrice();
+          let approveParams = {gasPrice: this.gasPriceGwei, from: from};
+          await contracts.usdPlus.methods.approve(contracts.exchange.options.address, sum).send(approveParams);
+          return true;
+        } catch (e) {
+          console.log(e)
+          this.failed();
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    showSuccessRedeemToast(sum, tx) {
       const content = {
         component: ToastTransaction,
         props: {
@@ -278,7 +296,7 @@ export default {
           tx: tx,
         },
       }
-      this.$toast(content, { position: "top-right",  type: 'success', timeout: 10000} );
+      this.$toast(content, {position: "top-right", type: 'success', timeout: 10000});
     },
 
     selectItem(item) {
