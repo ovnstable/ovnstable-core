@@ -7,8 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "hardhat test",
-    "test-github": "hardhat test > report.json"
+    "test": "hardhat test"
   },
   "keywords": [],
   "author": {
