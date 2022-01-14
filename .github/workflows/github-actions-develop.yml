@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Run test
-        run: npx hardhat test > report.json
+        run: npx hardhat test > report.json | ls
 
       - name: Test Report
         uses: dorny/test-reporter@v1
