@@ -1,7 +1,7 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
 const {toUSDC, fromOvn, toOvn} = require("../utils/decimals");
@@ -35,7 +35,7 @@ describe("Payout roll", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting', 'setting', 'base', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+        await deployments.fixture([ 'setting', 'base', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -186,7 +186,7 @@ describe("Payout roll", function () {
         await ethers.provider.send("evm_increaseTime", [time])
         await ethers.provider.send('evm_mine');
 
-        result = await exchange.reward();
+        result = await exchange.payout();
         await result.wait();
 
         balance = fromOvn(await usdPlus.balanceOf(account));

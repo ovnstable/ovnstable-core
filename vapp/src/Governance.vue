@@ -6,6 +6,8 @@
                 <v-btn icon @click="updateBlockNumber"><v-icon>mdi-refresh</v-icon></v-btn>
                 Current block: {{currentBlock}}
                 <v-btn icon @click="mineBlock"><v-icon>mdi-data-matrix-plus</v-icon></v-btn>
+
+                <v-btn @click="addOvnTokenAction">Add ovn</v-btn>
             </v-app-bar>
 
             <!-- Sizes your content based upon application components -->
@@ -46,6 +48,11 @@ export default {
     methods:{
 
         ...mapActions('ethers', ['mineBlocks']),
+        ...mapActions('web3', ['addOvnToken']),
+
+        async addOvnTokenAction(){
+            this.addOvnToken();
+        },
 
         async mineBlock(){
             await this.mineBlocks(5);

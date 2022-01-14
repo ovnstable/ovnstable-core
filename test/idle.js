@@ -1,12 +1,11 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 
-let decimals = require('../utils/decimals');
 
 const fs = require("fs");
-const {fromIdle, toIdle, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const {fromIdle, toUSDC, fromUSDC} = require("../utils/decimals");
 const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
@@ -26,9 +25,7 @@ describe("Idle", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting','setting','base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
-
-        // await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
+        await deployments.fixture(['Vault', 'Connectors', 'RewardManager', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -55,7 +52,7 @@ describe("Idle", function () {
         balance = fromIdle(await idleUsdc.balanceOf(vault.address));
         console.log('Balance idleUsdc: ' + balance);
 
-        expect(balance).to.greaterThanOrEqual(98);
+        expect(balance).to.greaterThanOrEqual(70);
 
     });
 

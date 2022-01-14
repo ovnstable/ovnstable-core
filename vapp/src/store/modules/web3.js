@@ -218,7 +218,7 @@ const actions = {
                     type: 'ERC20',
                     options: {
                         address: rootState.web3.contracts.usdPlus.options.address,
-                        symbol: 'USD+',
+                        symbol: process.env.VUE_APP_USD_TOKEN_NAME,
                         decimals: 6,
                         image: UsdPlusImage.image,
                     },
@@ -235,7 +235,31 @@ const actions = {
 
     },
 
+    async addOvnToken({commit, dispatch, getters, rootState}) {
 
+        await window.ethereum
+            .request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: rootState.web3.contracts.govToken.options.address,
+                        symbol: process.env.VUE_APP_OVN_TOKEN_NAME,
+                        decimals: 18,
+                        image: OvnImage.image,
+                    },
+                },
+            })
+            .then((success) => {
+                if (success) {
+                    console.log('OVN successfully added to wallet!')
+                } else {
+                    throw new Error('Something went wrong.')
+                }
+            })
+            .catch(console.error)
+
+    },
 
 };
 

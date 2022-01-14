@@ -1,11 +1,11 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 const BN = require('bn.js');
 
 const fs = require("fs");
-const {toUSDC, fromOvn, toOvn, toE18, fromE18} = require("../utils/decimals");
+const {toUSDC, toOvn, toE18, fromE18} = require("../utils/decimals");
 const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
@@ -36,7 +36,7 @@ describe("Redeem on not enough liquidity", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting','setting','base','Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+        await deployments.fixture(['setting','base' , 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

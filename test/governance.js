@@ -1,15 +1,11 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 
-let decimals = require('../utils/decimals');
 const hre = require("hardhat");
 
-const fs = require("fs");
-const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic, fromOvnGov} = require("../utils/decimals");
-const {load} = require("dotenv");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+const {fromOvnGov} = require("../utils/decimals");
 
 chai.use(smock.matchers);
 
