@@ -34,7 +34,7 @@ jobs:
         run: npx hardhat test
 
       - name: Cat report.js
-        run: cat report.json
+        run: cat test.json
 
       - name: Test Report
         uses: dorny/test-reporter@v1
