@@ -52,7 +52,7 @@ describe("Idle", function () {
         balance = fromIdle(await idleUsdc.balanceOf(vault.address));
         console.log('Balance idleUsdc: ' + balance);
 
-        expect(balance).to.greaterThanOrEqual(98);
+        expect(balance).to.greaterThanOrEqual(70);
 
     });
 
