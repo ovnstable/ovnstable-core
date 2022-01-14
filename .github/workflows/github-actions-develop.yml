@@ -41,5 +41,5 @@ jobs:
         if: success() || failure()    # run this step even if previous step failed
         with:
           name: Test Report   # Name of the check run which will be created
-          path: report.json    # Path to test results
+          path: test.json    # Path to test results
           reporter: mocha-json
