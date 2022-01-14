@@ -80,7 +80,11 @@ module.exports = {
 
     mocha: {
         timeout: 16200000,
-        reporter:  "json",
+        reporter:  "@mochajs/json-file-reporter",
+        watch: true,
+        "reporter-option": [
+            "output=filename.json"
+        ]
     },
 
 
