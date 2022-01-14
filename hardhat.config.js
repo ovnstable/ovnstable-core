@@ -83,7 +83,7 @@ module.exports = {
         reporter:  "@mochajs/json-file-reporter",
         watch: true,
         "reporter-option": [
-            "output=filename.json"
+            "output=report.json"
         ]
     },
 
