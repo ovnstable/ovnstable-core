@@ -88,6 +88,7 @@ module.exports = {
     },
 
     gasReporter: {
+        enabled: false, // Gas Reporter hides unit-test-mocha report
         currency: 'MATIC',
         gasPrice: 70,
         outputFile: 'gas-report'
