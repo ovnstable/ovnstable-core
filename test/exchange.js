@@ -61,11 +61,11 @@ describe("Exchange", function () {
         });
 
 
-        it("total vault balance should equal 99.97", function () {
+        it("total vault balance (USDC) should equal 99.97 (USDC)", function () {
             expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.97")
         });
 
-        it("assets balances correlate assets weights", function () {
+        it("asset amounts match asset weights", function () {
 
             let totalValue = 100;
             for (let i = 0; i < weights.length; i++) {
@@ -76,8 +76,9 @@ describe("Exchange", function () {
                 let target = weight.targetWeight / 1000;
                 let balance = asset.amountInVault / asset.usdcPriceDenominator;
 
-                console.log('Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol);
-                expect(new BN(balance).toFixed(0)).to.eq(totalValue/100*target);
+                let targetValue = totalValue / 100 * target + "";
+                console.log('Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue);
+                expect(new BN(balance).toFixed(0)).to.eq(targetValue);
 
             }
         });
@@ -89,6 +90,6 @@ describe("Exchange", function () {
 });
 
 
-function findAssetPrice(address, assetPrices){
-    return assetPrices.find(value=> value.asset === address);
+function findAssetPrice(address, assetPrices) {
+    return assetPrices.find(value => value.asset === address);
 }
