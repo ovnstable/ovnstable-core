@@ -1,99 +1,95 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {FakeContract, smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
-const {toUSDC, fromOvn, toOvn} = require("../utils/decimals");
+const {toUSDC, fromE18} = require("../utils/decimals");
 const hre = require("hardhat");
-const expectRevert = require("../utils/expectRevert");
+const BN = require('bignumber.js');
+
+
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
 describe("Exchange", function () {
 
-
-    let exchange;
-    let usdPlus;
-    let usdc;
     let account;
-    let pm;
+    let exchange;
+    let vault;
+    let portfolio;
+    let usdc;
     let m2m;
-    let pmMock;
 
-    beforeEach(async () => {
+    before(async () => {
+        // need to run inside IDEA via node script running
         await hre.run("compile");
-        await deployments.fixture(['Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+
+        await deployments.fixture(['setting', 'base', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         exchange = await ethers.getContract("Exchange");
-        usdPlus = await ethers.getContract("UsdPlusToken");
-        pm = await ethers.getContract("PortfolioManager");
-        m2m = await ethers.getContract("Mark2Market");
+        vault = await ethers.getContract("Vault");
+        portfolio = await ethers.getContract('Portfolio');
+        m2m = await ethers.getContract('Mark2Market');
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
-        pmMock = await smock.fake(pm);
-        m2m = await smock.fake(m2m);
-        await exchange.setPortfolioManager(pmMock.address);
-        await exchange.setMark2Market(m2m.address);
-
-    });
-
-    it("Mint OVN", async function () {
-
-        const sum = toUSDC(100);
-        await usdc.approve(exchange.address, sum);
-
-        console.log("USDC: " + assets.usdc)
-        await exchange.buy(assets.usdc, sum);
-
-        let balance = fromOvn(await usdPlus.balanceOf(account));
-        console.log('Balance usdPlus: ' + balance)
-        expect(balance).to.equal(99.96);
-
     });
 
 
-    it("Redeem OVN", async function () {
+    describe("Mint 100 USD+ ", function () {
 
-        const sumBuy = toUSDC(100);
-        await usdc.approve(exchange.address, sumBuy);
+        let weights;
+        let assetPrices;
+        let totalUsdcPrice;
 
-        console.log("USDC: " + assets.usdc)
-        await exchange.buy(assets.usdc, sumBuy);
+        before(async () => {
+            const sum = toUSDC(100);
+            await usdc.approve(exchange.address, sum);
 
-        const sumRedeem = toOvn(50.6);
-        await usdPlus.approve(exchange.address, sumRedeem);
-        await exchange.redeem(assets.usdc, sumRedeem);
+            let result = await exchange.buy(assets.usdc, sum);
+            await result.wait();
 
-        let balance = fromOvn(await usdPlus.balanceOf(account));
-        console.log('Balance usdPlus: ' + balance)
-        expect(balance).to.equal(49.36);
+            let totalAssetPrices = await m2m.assetPrices();
+            weights = await portfolio.getAllAssetWeights();
+            assetPrices = await totalAssetPrices.assetPrices;
+            totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
+
+
+        });
+
+
+        it("total vault balance (USDC) should equal 99.97 (USDC)", function () {
+            expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.97")
+        });
+
+        it("asset amounts match asset weights", function () {
+
+            let totalValue = 100;
+            for (let i = 0; i < weights.length; i++) {
+
+                let weight = weights[i];
+                let asset = findAssetPrice(weight.asset, assetPrices);
+
+                let target = weight.targetWeight / 1000;
+                let balance = asset.amountInVault / asset.usdcPriceDenominator;
+
+                let targetValue = totalValue / 100 * target + "";
+                console.log('Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue);
+                expect(new BN(balance).toFixed(0)).to.eq(targetValue);
+
+            }
+        });
+
 
     });
 
-
-    it("Pausable Mint", async function () {
-        await exchange.pause();
-        await expectRevert(exchange.buy(assets.usdc, toUSDC(100)),
-            'Pausable: paused',
-        );
-    });
-
-    it("Pausable Redeem", async function () {
-        await exchange.pause();
-        await expectRevert(exchange.redeem(assets.usdc, toUSDC(100)),
-            'Pausable: paused',
-        );
-    });
-
-    it("Pausable Payout", async function () {
-        await exchange.pause();
-        await expectRevert(exchange.payout(),
-            'Pausable: paused',
-        );
-    });
 
 });
+
+
+function findAssetPrice(address, assetPrices) {
+    return assetPrices.find(value => value.asset === address);
+}
