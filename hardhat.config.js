@@ -4,6 +4,7 @@ require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -62,7 +63,7 @@ module.exports = {
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
-            timeout: 200000
+            timeout: 16200000
         },
 
     },
@@ -86,5 +87,10 @@ module.exports = {
         ]
     },
 
+    gasReporter: {
+        currency: 'MATIC',
+        gasPrice: 70,
+        outputFile: 'gas-report'
+    }
 
 };

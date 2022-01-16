@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { ethers } = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 module.exports = async ({getNamedAccounts, deployments}) => {
