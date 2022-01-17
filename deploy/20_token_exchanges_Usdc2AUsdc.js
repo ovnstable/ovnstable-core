@@ -7,8 +7,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-
     const connectorAAVE = await ethers.getContract("ConnectorAAVE");
+    const usdc2VimUsdActionBuilder = await ethers.getContract("Usdc2VimUsdActionBuilder");
     const usdc2IdleUsdcActionBuilder = await ethers.getContract("Usdc2IdleUsdcActionBuilder");
 
     let exchange = await deploy('Usdc2AUsdcTokenExchange', {
@@ -19,10 +19,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('Usdc2AUsdcActionBuilder', {
         from: deployer,
-        args: [exchange.address,assets.usdc, assets.amUsdc, usdc2IdleUsdcActionBuilder.address],
+        args: [exchange.address,assets.usdc, assets.amUsdc, usdc2VimUsdActionBuilder.address, usdc2IdleUsdcActionBuilder.address],
         log: true,
     });
 };
 
 module.exports.tags = ['base','Usdc2AUsdcActionBuilder', 'Usdc2AUsdcTokenExchange'];
-module.exports.dependencies = ['Usdc2IdleUsdcActionBuilder'];
+module.exports.dependencies = ['Usdc2IdleUsdcActionBuilder', 'Usdc2VimUsdActionBuilder'];

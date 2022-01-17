@@ -12,22 +12,26 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
+    IActionBuilder public usdc2VimUsdActionBuilder;
     IActionBuilder public usdc2IdleUsdcActionBuilder;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
         address _aUsdcToken,
+        address _usdc2VimUsdActionBuilder,
         address _usdc2IdleUsdcActionBuilder
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
+        require(_usdc2VimUsdActionBuilder != address(0), "Zero address not allowed");
         require(_usdc2IdleUsdcActionBuilder != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
+        usdc2VimUsdActionBuilder = IActionBuilder(_usdc2VimUsdActionBuilder);
         usdc2IdleUsdcActionBuilder = IActionBuilder(_usdc2IdleUsdcActionBuilder);
     }
 
@@ -54,21 +58,37 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         }
 
         // get diffUsdc2IdleUsdc to correct current diff
+        ExchangeAction memory usdc2VimUsdAction;
         ExchangeAction memory usdc2IdleUsdcAction;
+        bytes32 usdc2VimUsdActionCode = usdc2VimUsdActionBuilder.getActionCode();
         bytes32 usdc2IdleUsdcActionCode = usdc2IdleUsdcActionBuilder.getActionCode();
-        bool foundDependencyAction = false;
+        bool foundUsdc2VimUsdAction = false;
+        bool foundUsdc2IdleUsdcAction = false;
         for (uint8 i = 0; i < actions.length; i++) {
             // here we need USDC diff to make action right
+            if (actions[i].code == usdc2VimUsdActionCode) {
+                usdc2VimUsdAction = actions[i];
+                foundUsdc2VimUsdAction = true;
+            }
             if (actions[i].code == usdc2IdleUsdcActionCode) {
                 usdc2IdleUsdcAction = actions[i];
-                foundDependencyAction = true;
-                break;
+                foundUsdc2IdleUsdcAction = true;
             }
         }
-        require(foundDependencyAction, "Usdc2AUsdcActionBuilder: Required action not in action list, check calc ordering");
+        require(foundUsdc2VimUsdAction, "Usdc2AUsdcActionBuilder: Required usdc2VimUsd action not in action list, check calc ordering");
+        require(foundUsdc2IdleUsdcAction, "Usdc2AUsdcActionBuilder: Required usdc2IdleUsdc action not in action list, check calc ordering");
 
         // use usdc diff to start calc diff
         int256 diff = usdcPrices.diffToTarget;
+
+        // correct diff value by usdc2IdleUsdc diff
+        if (address(usdcToken) == address(usdc2VimUsdAction.to)) {
+            // if in action move usdc->vimUsdc then we should decrease diff (sub)
+            diff = diff - int256(usdc2VimUsdAction.amount);
+        } else {
+            // if in action move vimUsdc->usdc then we should increase diff (add)
+            diff = diff + int256(usdc2VimUsdAction.amount);
+        }
 
         // correct diff value by usdc2AUsdc diff
         if (address(usdcToken) == address(usdc2IdleUsdcAction.to)) {

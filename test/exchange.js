@@ -39,13 +39,13 @@ describe("Exchange", function () {
 
         hre.tracer.nameTags[portfolio.address] = "Portfolio";
         hre.tracer.nameTags[m2m.address] = "Mark2Market";
+        hre.tracer.nameTags[(await ethers.getContract('Usdc2VimUsdActionBuilder')).address] = "Usdc2VimUsdActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('Usdc2IdleUsdcActionBuilder')).address] = "Usdc2IdleUsdcActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('Usdc2AUsdcActionBuilder')).address] = "Usdc2AUsdcActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('A3Crv2A3CrvGaugeActionBuilder')).address] = "A3Crv2A3CrvGaugeActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('AUsdc2A3CrvActionBuilder')).address] = "AUsdc2A3CrvActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('WMatic2UsdcActionBuilder')).address] = "WMatic2UsdcActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('Crv2UsdcActionBuilder')).address] = "Crv2UsdcActionBuilder";
-        hre.tracer.nameTags[(await ethers.getContract('Usdc2VimUsdActionBuilder')).address] = "Usdc2VimUsdActionBuilder";
         hre.tracer.nameTags[(await ethers.getContract('Mta2UsdcActionBuilder')).address] = "Mta2UsdcActionBuilder";
 
 
