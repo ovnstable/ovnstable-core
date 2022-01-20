@@ -5,12 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
+import "../Vault.sol";
 
 contract Usdc2VimUsdTokenExchange is ITokenExchange {
 
     IConnector public connectorMStable;
     IERC20 public usdcToken;
     IERC20 public vimUsdToken;
+    Vault public vault;
 
     uint256 usdcDenominator;
     uint256 vimUsdDenominator;
@@ -18,15 +20,18 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
     constructor(
         address _connectorMStable,
         address _usdcToken,
-        address _vimUsdToken
+        address _vimUsdToken,
+        address _vault
     ) {
         require(_connectorMStable != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_vimUsdToken != address(0), "Zero address not allowed");
+        require(_vault != address(0), "Zero address not allowed");
 
         connectorMStable = IConnector(_connectorMStable);
         usdcToken = IERC20(_usdcToken);
         vimUsdToken = IERC20(_vimUsdToken);
+        vault = Vault(_vault);
 
         usdcDenominator = 10 ** (18 - IERC20Metadata(address(usdcToken)).decimals());
         vimUsdDenominator = 10 ** (18 - IERC20Metadata(address(vimUsdToken)).decimals());
@@ -87,10 +92,15 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
                 return;
             }
 
-            uint256 onVaultBalance = vimUsdToken.balanceOf(address(receiver));
-            if (onVaultBalance < amount) {
-                amount = onVaultBalance;
+            if (address(receiver) != address(vault)) {
+                return;
             }
+
+            uint256 onVaultBalance = vimUsdToken.balanceOf(address(receiver));
+            require(
+                onVaultBalance >= amount,
+                "Usdc2VimUsdTokenExchange: Not enough vimUsdToken"
+            );
 
             uint256 withdrewAmount = connectorMStable.unstake(address(usdcToken), amount, receiver);
             //TODO: may be add some checks for withdrewAmount

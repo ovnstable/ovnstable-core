@@ -42,14 +42,7 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
         // get idleUsdcPriceGetter
-        IPriceGetter idleUsdcPriceGetter;
-        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
-        for (uint8 i = 0; i < assetInfos.length; i++) {
-            if (assetInfos[i].asset == address(idleUsdcToken)) {
-                idleUsdcPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
-                break;
-            }
-        }
+        IPriceGetter idleUsdcPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(idleUsdcToken)).priceGetter);
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         IMark2Market.BalanceAssetPrices memory usdcPrices;
