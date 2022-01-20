@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../interfaces/IConnector.sol";
 import "./idle/interfaces/IIdleToken.sol";
-import "hardhat/console.sol";
 
 contract ConnectorIDLE is IConnector, Ownable {
 

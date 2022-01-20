@@ -24,7 +24,7 @@ interface IMark2Market {
 
     struct BalanceAssetPrices {
         address asset;
-        int256 diffToTarget; // diff usdcPriceInVault to target in portfolio
+        int256 diffToTarget; // diff token to target in portfolio
         bool targetIsZero; // mean that we should trade all tokens to zero ownership
     }
 

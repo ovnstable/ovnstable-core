@@ -13,6 +13,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const pm = await ethers.getContract("PortfolioManager");
     const rm = await ethers.getContract("RewardManager");
     const portfolio = await ethers.getContract("Portfolio");
+    const connectorMStable = await ethers.getContract("ConnectorMStable");
 
     // setup pm
 
@@ -45,6 +46,21 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     tx = await pm.setVimUsdToken(assets.vimUsd);
     await tx.wait();
     console.log("pm.setVimUsdToken done");
+
+    console.log('pm.setImUsdToken: ' + assets.imUsd)
+    tx = await pm.setImUsdToken(assets.imUsd);
+    await tx.wait();
+    console.log("pm.setImUsdToken done");
+
+    console.log('pm.setUsdcToken: ' + assets.usdc)
+    tx = await pm.setUsdcToken(assets.usdc);
+    await tx.wait();
+    console.log("pm.setUsdcToken done");
+
+    console.log("vault.setConnectorMStable: " + connectorMStable.address);
+    tx = await pm.setConnectorMStable(connectorMStable.address);
+    await tx.wait();
+    console.log("vault.setConnectorMStable done");
 };
 
 module.exports.tags = ['setting','Setting'];

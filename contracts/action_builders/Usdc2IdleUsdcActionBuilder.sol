@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
+import "../registries/Portfolio.sol";
+import "../interfaces/IPriceGetter.sol";
 
 contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("Usdc2IdleUsdc");
@@ -12,19 +14,23 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
     IERC20 public idleUsdcToken;
+    Portfolio public portfolio;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _idleUsdcToken
+        address _idleUsdcToken,
+        address _portfolio
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_idleUsdcToken != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         idleUsdcToken = IERC20(_idleUsdcToken);
+        portfolio = Portfolio(_portfolio);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -35,21 +41,28 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
         IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
+        // get idleUsdcPriceGetter
+        IPriceGetter idleUsdcPriceGetter;
+        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
+        for (uint8 i = 0; i < assetInfos.length; i++) {
+            if (assetInfos[i].asset == address(idleUsdcToken)) {
+                idleUsdcPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
+                break;
+            }
+        }
+
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         IMark2Market.BalanceAssetPrices memory usdcPrices;
         IMark2Market.BalanceAssetPrices memory idleUsdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(idleUsdcToken)) {
+            } else if (assetPrices[i].asset == address(idleUsdcToken)) {
                 idleUsdcPrices = assetPrices[i];
-                continue;
             }
         }
 
-        // because we know that usdc is leaf in tree and we can use this value
+        // because we know that idleUsdc is leaf in tree and we can use this value
         int256 diff = idleUsdcPrices.diffToTarget;
 
         uint256 amount;
@@ -62,7 +75,7 @@ contract Usdc2IdleUsdcActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = idleUsdcPrices.targetIsZero;
         } else {
-            amount = uint256(diff);
+            amount = uint256(diff * int256(idleUsdcPriceGetter.getUsdcBuyPrice()) / int256(idleUsdcPriceGetter.denominator()));
             from = usdcToken;
             to = idleUsdcToken;
             targetIsZero = usdcPrices.targetIsZero;

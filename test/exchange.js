@@ -53,6 +53,7 @@ describe("Exchange", function () {
             hre.tracer.nameTags[value] = key;
         }
 
+        await exchange.setPayoutTimes(1705569313, 86400, 900);
 
     });
 
@@ -80,6 +81,8 @@ describe("Exchange", function () {
 
 
         it("total vault balance (USDC) should equal 99.97 (USDC)", function () {
+            console.log("totalUsdcPrice " + totalUsdcPrice);
+
             expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.97")
         });
 
@@ -97,7 +100,8 @@ describe("Exchange", function () {
                 let targetValue = totalValue / 100 * target + "";
                 let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
                 console.log(message);
-                // expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+
+                expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
             }
         });
 

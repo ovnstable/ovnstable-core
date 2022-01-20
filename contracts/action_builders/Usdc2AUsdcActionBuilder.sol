@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
+import "../registries/Portfolio.sol";
+import "../interfaces/IPriceGetter.sol";
 
 contract Usdc2AUsdcActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("Usc2AUsdc");
@@ -12,27 +14,39 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
+    IERC20 public vimUsdToken;
+    IERC20 public idleUsdcToken;
     IActionBuilder public usdc2VimUsdActionBuilder;
     IActionBuilder public usdc2IdleUsdcActionBuilder;
+    Portfolio public portfolio;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
         address _aUsdcToken,
+        address _vimUsdToken,
+        address _idleUsdcToken,
         address _usdc2VimUsdActionBuilder,
-        address _usdc2IdleUsdcActionBuilder
+        address _usdc2IdleUsdcActionBuilder,
+        address _portfolio
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
+        require(_vimUsdToken != address(0), "Zero address not allowed");
+        require(_idleUsdcToken != address(0), "Zero address not allowed");
         require(_usdc2VimUsdActionBuilder != address(0), "Zero address not allowed");
         require(_usdc2IdleUsdcActionBuilder != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
+        vimUsdToken = IERC20(_vimUsdToken);
+        idleUsdcToken = IERC20(_idleUsdcToken);
         usdc2VimUsdActionBuilder = IActionBuilder(_usdc2VimUsdActionBuilder);
         usdc2IdleUsdcActionBuilder = IActionBuilder(_usdc2IdleUsdcActionBuilder);
+        portfolio = Portfolio(_portfolio);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -43,57 +57,69 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.BalanceAssetPrices memory usdcPrices;
-        IMark2Market.BalanceAssetPrices memory aUsdcPrices;
-        for (uint8 i = 0; i < assetPrices.length; i++) {
-            if (assetPrices[i].asset == address(usdcToken)) {
-                usdcPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(aUsdcToken)) {
-                aUsdcPrices = assetPrices[i];
-                continue;
-            }
-        }
+        // get vimUsdPriceGetter and idleUsdcPriceGetter
+//        IPriceGetter vimUsdPriceGetter;
+//        IPriceGetter idleUsdcPriceGetter;
+//        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
+//        for (uint8 i = 0; i < assetInfos.length; i++) {
+//            if (assetInfos[i].asset == address(vimUsdToken)) {
+//                vimUsdPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
+//            } else if (assetInfos[i].asset == address(idleUsdcToken)) {
+//                idleUsdcPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
+//            }
+//        }
+        (IPriceGetter vimUsdPriceGetter, IPriceGetter idleUsdcPriceGetter) = getPriceGetters(portfolio.getAllAssetInfos());
 
-        // get diffUsdc2IdleUsdc to correct current diff
-        ExchangeAction memory usdc2VimUsdAction;
-        ExchangeAction memory usdc2IdleUsdcAction;
-        bytes32 usdc2VimUsdActionCode = usdc2VimUsdActionBuilder.getActionCode();
-        bytes32 usdc2IdleUsdcActionCode = usdc2IdleUsdcActionBuilder.getActionCode();
-        bool foundUsdc2VimUsdAction = false;
-        bool foundUsdc2IdleUsdcAction = false;
-        for (uint8 i = 0; i < actions.length; i++) {
-            // here we need USDC diff to make action right
-            if (actions[i].code == usdc2VimUsdActionCode) {
-                usdc2VimUsdAction = actions[i];
-                foundUsdc2VimUsdAction = true;
-            }
-            if (actions[i].code == usdc2IdleUsdcActionCode) {
-                usdc2IdleUsdcAction = actions[i];
-                foundUsdc2IdleUsdcAction = true;
-            }
-        }
+        // get diff from iteration over prices because can't use mapping in memory params to external functions
+//        IMark2Market.BalanceAssetPrices memory usdcPrices;
+//        IMark2Market.BalanceAssetPrices memory aUsdcPrices;
+//        for (uint8 i = 0; i < assetPrices.length; i++) {
+//            if (assetPrices[i].asset == address(usdcToken)) {
+//                usdcPrices = assetPrices[i];
+//            } else if (assetPrices[i].asset == address(aUsdcToken)) {
+//                aUsdcPrices = assetPrices[i];
+//            }
+//        }
+        (IMark2Market.BalanceAssetPrices memory usdcPrices, IMark2Market.BalanceAssetPrices memory aUsdcPrices) = getBalanceAssetPrices(assetPrices);
+
+        // get diff usdc2VimUsd and usdc2IdleUsdc to correct current diff
+//        ExchangeAction memory usdc2VimUsdAction;
+//        ExchangeAction memory usdc2IdleUsdcAction;
+//        bytes32 usdc2VimUsdActionCode = usdc2VimUsdActionBuilder.getActionCode();
+//        bytes32 usdc2IdleUsdcActionCode = usdc2IdleUsdcActionBuilder.getActionCode();
+//        bool foundUsdc2VimUsdAction = false;
+//        bool foundUsdc2IdleUsdcAction = false;
+//        for (uint8 i = 0; i < actions.length; i++) {
+//            // here we need USDC diff to make action right
+//            if (actions[i].code == usdc2VimUsdActionCode) {
+//                usdc2VimUsdAction = actions[i];
+//                foundUsdc2VimUsdAction = true;
+//            } else if (actions[i].code == usdc2IdleUsdcActionCode) {
+//                usdc2IdleUsdcAction = actions[i];
+//                foundUsdc2IdleUsdcAction = true;
+//            }
+//        }
+        (ExchangeAction memory usdc2VimUsdAction, ExchangeAction memory usdc2IdleUsdcAction, bool foundUsdc2VimUsdAction, bool foundUsdc2IdleUsdcAction) = getExchangeActions(actions);
+
         require(foundUsdc2VimUsdAction, "Usdc2AUsdcActionBuilder: Required usdc2VimUsd action not in action list, check calc ordering");
         require(foundUsdc2IdleUsdcAction, "Usdc2AUsdcActionBuilder: Required usdc2IdleUsdc action not in action list, check calc ordering");
 
         // use usdc diff to start calc diff
         int256 diff = usdcPrices.diffToTarget;
 
-        // correct diff value by usdc2IdleUsdc diff
+        // correct diff value by usdc2VimUsd diff
         if (address(usdcToken) == address(usdc2VimUsdAction.to)) {
             // if in action move usdc->vimUsdc then we should decrease diff (sub)
-            diff = diff - int256(usdc2VimUsdAction.amount);
+            diff = diff - int256(usdc2VimUsdAction.amount * vimUsdPriceGetter.getUsdcBuyPrice() / vimUsdPriceGetter.denominator());
         } else {
             // if in action move vimUsdc->usdc then we should increase diff (add)
             diff = diff + int256(usdc2VimUsdAction.amount);
         }
 
-        // correct diff value by usdc2AUsdc diff
+        // correct diff value by usdc2IdleUsdc diff
         if (address(usdcToken) == address(usdc2IdleUsdcAction.to)) {
             // if in action move usdc->usdcIdle then we should decrease diff (sub)
-            diff = diff - int256(usdc2IdleUsdcAction.amount);
+            diff = diff - int256(usdc2IdleUsdcAction.amount * idleUsdcPriceGetter.getUsdcBuyPrice() / idleUsdcPriceGetter.denominator());
         } else {
             // if in action move usdcIdle->usdc then we should increase diff (add)
             diff = diff + int256(usdc2IdleUsdcAction.amount);
@@ -126,5 +152,54 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         );
 
         return action;
+    }
+
+    function getPriceGetters(Portfolio.AssetInfo[] memory assetInfos)
+    internal view returns (IPriceGetter, IPriceGetter) {
+        IPriceGetter vimUsdPriceGetter;
+        IPriceGetter idleUsdcPriceGetter;
+        for (uint8 i = 0; i < assetInfos.length; i++) {
+            if (assetInfos[i].asset == address(vimUsdToken)) {
+                vimUsdPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
+            } else if (assetInfos[i].asset == address(idleUsdcToken)) {
+                idleUsdcPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
+            }
+        }
+        return (vimUsdPriceGetter, idleUsdcPriceGetter);
+    }
+
+    function getBalanceAssetPrices(IMark2Market.BalanceAssetPrices[] memory assetPrices)
+    internal view returns (IMark2Market.BalanceAssetPrices memory, IMark2Market.BalanceAssetPrices memory) {
+        IMark2Market.BalanceAssetPrices memory usdcPrices;
+        IMark2Market.BalanceAssetPrices memory aUsdcPrices;
+        for (uint8 i = 0; i < assetPrices.length; i++) {
+            if (assetPrices[i].asset == address(usdcToken)) {
+                usdcPrices = assetPrices[i];
+            } else if (assetPrices[i].asset == address(aUsdcToken)) {
+                aUsdcPrices = assetPrices[i];
+            }
+        }
+        return (usdcPrices, aUsdcPrices);
+    }
+
+    function getExchangeActions(ExchangeAction[] memory actions)
+    internal view returns (ExchangeAction memory, ExchangeAction memory, bool, bool) {
+        ExchangeAction memory usdc2VimUsdAction;
+        ExchangeAction memory usdc2IdleUsdcAction;
+        bytes32 usdc2VimUsdActionCode = usdc2VimUsdActionBuilder.getActionCode();
+        bytes32 usdc2IdleUsdcActionCode = usdc2IdleUsdcActionBuilder.getActionCode();
+        bool foundUsdc2VimUsdAction = false;
+        bool foundUsdc2IdleUsdcAction = false;
+        for (uint8 i = 0; i < actions.length; i++) {
+            // here we need USDC diff to make action right
+            if (actions[i].code == usdc2VimUsdActionCode) {
+                usdc2VimUsdAction = actions[i];
+                foundUsdc2VimUsdAction = true;
+            } else if (actions[i].code == usdc2IdleUsdcActionCode) {
+                usdc2IdleUsdcAction = actions[i];
+                foundUsdc2IdleUsdcAction = true;
+            }
+        }
+        return (usdc2VimUsdAction, usdc2IdleUsdcAction, foundUsdc2VimUsdAction, foundUsdc2IdleUsdcAction);
     }
 }

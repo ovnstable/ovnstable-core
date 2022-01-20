@@ -81,19 +81,12 @@ contract Usdc2VimUsdTokenExchange is ITokenExchange {
         } else {
             //TODO: denominator usage
             amount = amount / vimUsdDenominator;
-            uint256 balance = vimUsdToken.balanceOf(address(this));
 
             // if amount eq 0 after normalization transfer back balance and skip staking
             if (amount == 0) {
                 return;
             }
 
-            require(
-                balance >= amount,
-                "Usdc2VimUsdTokenExchange: Not enough vimUsdToken"
-            );
-
-            // correct exchangeAmount if we got diff on aToken transfer
             uint256 onVaultBalance = vimUsdToken.balanceOf(address(receiver));
             if (onVaultBalance < amount) {
                 amount = onVaultBalance;

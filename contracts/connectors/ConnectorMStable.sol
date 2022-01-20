@@ -60,7 +60,7 @@ contract ConnectorMStable is IConnector, Ownable {
         uint256 _amount,
         address _beneficiar
     ) public override returns (uint256) {
-        vault.unstakeMStable(address(imUsdToken), _amount, address(this));
+        vault.unstakeVimUsd(address(imUsdToken), _amount, address(this));
         imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
         mUsdToken.redeem(_asset, mUsdToken.balanceOf(address(this)), 0, address(this));
         uint256 redeemedTokens = IERC20(_asset).balanceOf(address(this));
@@ -68,4 +68,11 @@ contract ConnectorMStable is IConnector, Ownable {
         return redeemedTokens;
     }
 
+    function unstakeVimUsd(
+        address _asset,
+        uint256 _amount,
+        address _beneficiar
+    ) external {
+        vault.unstakeVimUsd(_asset, _amount, _beneficiar);
+    }
 }
