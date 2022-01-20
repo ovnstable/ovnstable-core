@@ -9,10 +9,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const connectorMStable = await ethers.getContract("ConnectorMStable");
     const portfolio = await ethers.getContract('Portfolio');
+    const vault = await ethers.getContract("Vault");
 
     let exchange = await deploy('Usdc2VimUsdTokenExchange', {
         from: deployer,
-        args: [connectorMStable.address, assets.usdc, assets.vimUsd],
+        args: [connectorMStable.address, assets.usdc, assets.vimUsd, vault.address],
         log: true,
     });
 

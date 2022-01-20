@@ -46,14 +46,7 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
         // get a3CrvPriceGetter
-        IPriceGetter a3CrvPriceGetter;
-        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
-        for (uint8 i = 0; i < assetInfos.length; i++) {
-            if (assetInfos[i].asset == address(a3CrvToken)) {
-                a3CrvPriceGetter = IPriceGetter(assetInfos[i].priceGetter);
-                break;
-            }
-        }
+        IPriceGetter a3CrvPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(a3CrvToken)).priceGetter);
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         IMark2Market.BalanceAssetPrices memory aUsdcPrices;
@@ -68,11 +61,10 @@ contract AUsdc2A3CrvActionBuilder is IActionBuilder {
 
         // get diffUsdc2AUsdc to correct current diff
         ExchangeAction memory usdc2AUsdcAction;
-        bytes32 usdc2AUsdcActionCode = usdc2AUsdcActionBuilder.getActionCode();
         bool foundDependencyAction = false;
         for (uint8 i = 0; i < actions.length; i++) {
             // here we need USDC diff to make action right
-            if (actions[i].code == usdc2AUsdcActionCode) {
+            if (actions[i].code == usdc2AUsdcActionBuilder.getActionCode()) {
                 usdc2AUsdcAction = actions[i];
                 foundDependencyAction = true;
                 break;
