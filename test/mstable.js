@@ -186,15 +186,14 @@ describe("MStable", function () {
     });
 
     it("Claiming rewards", async function () {
-        const sum = toUSDC(100);
 
         // 1 transaction
-        await usdc.transfer(connectorMStable.address, sum);
+        await usdc.transfer(connectorMStable.address, toUSDC(200));
         let balance = await usdc.balanceOf(connectorMStable.address);
         console.log('Balance usdc: ' + fromUSDC(balance));
 
         // stake
-        await connectorMStable.stake(usdc.address, sum, vault.address);
+        await connectorMStable.stake(usdc.address, toUSDC(100), vault.address);
         balance = await vimUsd.balanceOf(vault.address);
         console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
 
@@ -202,6 +201,10 @@ describe("MStable", function () {
         const days = 7 * 24 * 60 * 60;
         await ethers.provider.send("evm_increaseTime", [days])
         await ethers.provider.send('evm_mine');
+
+        await connectorMStable.stake(usdc.address, toUSDC(100), vault.address);
+        balance = await vimUsd.balanceOf(vault.address);
+        console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
 
         // claim rewards
         await rm.claimRewardMStable();
