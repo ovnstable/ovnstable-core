@@ -4,9 +4,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IConnector.sol";
 import "./balancer/interfaces/IVault.sol";
-import "hardhat/console.sol";
 import "./balancer/interfaces/IAsset.sol";
 import "./balancer/MerkleOrchard.sol";
+
+import "hardhat/console.sol";
 
 contract ConnectorBalancer is IConnector, Ownable {
 
@@ -159,6 +160,27 @@ contract ConnectorBalancer is IConnector, Ownable {
         }
         merkleOrchard.claimDistributions(address(this), claims, tokens);
         return 0;
+    }
+
+    function createDistribution(
+        bytes32 root,
+        bytes32[] memory proof,
+        uint256 balance
+    ) public {
+        console.log("Start");
+        merkleOrchard.createDistribution(IERC20(bpspTUsd), root, balance, 1);
+        console.log("Finish");
+
+        bool result = merkleOrchard.verifyClaim(
+            IERC20(bpspTUsd),
+            address(this),
+            1,
+            address(this),
+            balance,
+            proof
+        );
+
+        console.log("Show result: %s", result);
     }
 
 }
