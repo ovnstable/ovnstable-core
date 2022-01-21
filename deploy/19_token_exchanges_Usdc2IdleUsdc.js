@@ -23,4 +23,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['base', 'Usdc2IdleUsdcActionBuilder', 'Usdc2IdleUsdcTokenExchange'];
+module.exports.tags = ['base', 'token-exchanger',  'Usdc2IdleUsdcTokenExchange'];

@@ -22,4 +22,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['base', 'Mta2UsdcActionBuilder', 'Mta2UsdcTokenExchange'];
+module.exports.tags = ['base','token-exchanger', 'Mta2UsdcTokenExchange'];

@@ -48,6 +48,9 @@ describe("MStable", function () {
         wMatic = await ethers.getContractAt("ERC20", assets.wMatic);
 
         vault.setPortfolioManager(account);
+
+        await connectorMStable.grantRole(await connectorMStable.PORTFOLIO_MANAGER(), account);
+        await connectorMStable.grantRole(await connectorMStable.TOKEN_EXCHANGER(), account);
     });
 
     it("Staking USDC", async function () {
@@ -205,6 +208,9 @@ describe("MStable", function () {
         await connectorMStable.stake(usdc.address, toUSDC(100), vault.address);
         balance = await vimUsd.balanceOf(vault.address);
         console.log('Balance vimUsd after stake: ' + fromVimUsd(balance));
+
+        await ethers.provider.send("evm_increaseTime", [days])
+        await ethers.provider.send('evm_mine');
 
         // claim rewards
         await rm.claimRewardMStable();

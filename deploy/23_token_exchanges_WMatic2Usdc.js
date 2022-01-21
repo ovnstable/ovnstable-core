@@ -24,4 +24,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['base','WMatic2UsdcActionBuilder', 'WMatic2UsdcTokenExchange'];
+module.exports.tags = ['base','token-exchanger', 'WMatic2UsdcTokenExchange'];
