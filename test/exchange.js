@@ -4,7 +4,7 @@ const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
-const {toUSDC, fromE18, fromOvn} = require("../utils/decimals");
+const {toUSDC, fromE18, fromOvn, fromUSDC} = require("../utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 
@@ -47,9 +47,13 @@ describe("Exchange", function () {
         let assetPrices;
         let totalUsdcPrice;
         let balanceUser;
+        let balanceUSDC;
 
         before(async () => {
             const sum = toUSDC(100);
+
+            balanceUSDC = fromUSDC(await usdc.balanceOf(account));
+
             await usdc.approve(exchange.address, sum);
 
             let result = await exchange.buy(assets.usdc, sum);
@@ -61,6 +65,10 @@ describe("Exchange", function () {
             totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
             balanceUser = fromOvn(await usdPlus.balanceOf(account));
 
+        });
+
+        it("balance USDC must be less than 100 ", async function () {
+            expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUSDC-100)
         });
 
         it("Balance USD+ should 99.96", function () {
@@ -112,6 +120,10 @@ describe("Exchange", function () {
 
                 balanceAccount = fromOvn(await usdPlus.balanceOf(account));
 
+            });
+
+            it("balance USDC must be more than 50", async function () {
+                expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUSDC-50)
             });
 
             it("Balance USD+ should 49.96", function () {
