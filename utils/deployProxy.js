@@ -6,7 +6,7 @@ const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-i
 
 async function deployProxy(contractName, deployments, save) {
 
-    const UsdPlusToken = await ethers.getContractFactory(contractName);
+    const contractFactory = await ethers.getContractFactory(contractName);
 
     let proxy;
     try {
@@ -16,7 +16,7 @@ async function deployProxy(contractName, deployments, save) {
 
     if (!proxy) {
         console.log(`Proxy ${contractName} not found`)
-        proxy = await upgrades.deployProxy(UsdPlusToken, {kind: 'uups'});
+        proxy = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
         console.log(`Deploy ${contractName} Proxy done -> ` + proxy.address);
     } else {
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
@@ -31,9 +31,9 @@ async function deployProxy(contractName, deployments, save) {
         // You need have permission for role UPGRADER_ROLE;
 
         try {
-            impl = await upgrades.upgradeProxy(proxy, UsdPlusToken);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory);
         } catch (e) {
-            impl = await upgrades.upgradeProxy(proxy, UsdPlusToken);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory);
         }
         const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + currentImplAddress + "]");
@@ -41,7 +41,7 @@ async function deployProxy(contractName, deployments, save) {
 
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
-        impl = await sampleModule.deployImpl(hre, UsdPlusToken, {kind: 'uups'}, proxy.address);
+        impl = await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
         console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
 
