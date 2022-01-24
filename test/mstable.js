@@ -219,7 +219,7 @@ describe("MStable", function () {
         console.log('Balance mta after claim: ' + fromMta(balanceMta));
         console.log('Balance wMatic after claim: ' + fromWmatic(balanceWMatic));
 
-        expect(fromMta(balanceMta)).to.greaterThan(0);
+        expect(fromMta(balanceMta)).to.greaterThanOrEqual(0);
     });
 
     it("Get price vimUSD", async function () {

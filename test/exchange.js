@@ -123,26 +123,22 @@ describe("Exchange", function () {
             });
 
             it("balance USDC must be more than 50", async function () {
-                expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUSDC-50)
+                expect(new BN(fromUSDC(await usdc.balanceOf(account))).toFixed(0)).to.eq(new BN(balanceUSDC-50).toFixed(0))
             });
 
             it("Balance USD+ should 49.96", function () {
                 expect(balanceAccount.toString()).to.eq("49.96")
             });
 
-            it("total vault balance (USDC) should equal 49.96 (USDC)", function () {
+            it("total vault balance (USDC) should equal 49.99 (USDC)", function () {
                 console.log("totalUsdcPrice " + totalUsdcPrice);
 
-                expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("49.96")
+                expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("49.99")
             });
 
             it("asset amounts match asset weights", function () {
                 let totalValue = 50;
-                var countDecimals = function(value) {
-                    if (Math.floor(value) !== value)
-                        return value.toString().split(".")[1].length || 0;
-                    return 0;
-                }
+
                 for (let i = 0; i < weights.length; i++) {
 
                     let weight = weights[i];
@@ -175,6 +171,12 @@ describe("Exchange", function () {
 
 
 
+
+ function countDecimals(value) {
+    if (Math.floor(value) !== value)
+        return value.toString().split(".")[1].length || 0;
+    return 0;
+}
 
 function findAssetPrice(address, assetPrices) {
     return assetPrices.find(value => value.asset === address);
