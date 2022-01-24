@@ -17,6 +17,8 @@ import "./Vault.sol";
 import "./Balancer.sol";
 import "./connectors/ConnectorMStable.sol";
 
+import "hardhat/console.sol";
+
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -254,11 +256,19 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function _executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
         bool someActionExecuted = true;
+        console.log("start");
         while (someActionExecuted) {
             someActionExecuted = false;
             for (uint8 i = 0; i < actionOrder.length; i++) {
                 IActionBuilder.ExchangeAction memory action = actionOrder[i];
+                console.log("action id: %s", i);
+                console.log("action from: %s", IERC20Metadata(address(action.from)).symbol());
+                console.log("action to: %s", IERC20Metadata(address(action.to)).symbol());
+                console.log("action amount:                %s", action.amount);
+                console.log("from balance on vault before: %s", action.from.balanceOf(address(vault)));
+                console.log("to balance on vault before:   %s", action.to.balanceOf(address(vault)));
                 if (action.executed) {
+                    console.log("skip action.executed");
                     // Skip already executed
                     continue;
                 }
@@ -277,11 +287,15 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
                 //TODO: recheck, may be denormalizedAmount should be checked
                 if (amount == 0) {
+                    console.log("skip amount == 0");
                     // Skip zero amount action
                     continue;
                 }
 
+                console.log("action denominator:           %s", denominator);
+                console.log("action denormalizedAmount:    %s", denormalizedAmount);
                 if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
+                    console.log("skip balanceOnVault < denormalizedAmount");
                     // Skip not enough balance for execute know
                     continue;
                 }
@@ -304,8 +318,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
                 emit Exchanged(amount, address(action.from), address(action.to));
 
                 someActionExecuted = true;
+                console.log("from balance on vault after:  %s", action.from.balanceOf(address(vault)));
+                console.log("to balance on vault after:    %s", action.to.balanceOf(address(vault)));
             }
         }
+        console.log("finish");
     }
 
     /**

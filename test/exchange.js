@@ -137,8 +137,12 @@ describe("Exchange", function () {
             });
 
             it("asset amounts match asset weights", function () {
-
                 let totalValue = 50;
+                var countDecimals = function(value) {
+                    if (Math.floor(value) !== value)
+                        return value.toString().split(".")[1].length || 0;
+                    return 0;
+                }
                 for (let i = 0; i < weights.length; i++) {
 
                     let weight = weights[i];
@@ -151,7 +155,13 @@ describe("Exchange", function () {
                     let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
                     console.log(message);
 
-                    // expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+                    let roundedNumber;
+                    if (balance > 0) {
+                        roundedNumber = new BN(balance).toFixed(countDecimals(targetValue))
+                    } else {
+                        roundedNumber = "0";
+                    }
+                    expect(roundedNumber).to.eq(targetValue, message);
                 }
             });
 

@@ -5,25 +5,34 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
+import "../registries/Portfolio.sol";
+import "../interfaces/IPriceGetter.sol";
+
+import "hardhat/console.sol";
 
 contract AUsdc2A3CrvTokenExchange is ITokenExchange {
+
     IConnector public curveConnector;
     IERC20 public aUsdcToken;
     IERC20 public a3CrvToken;
     uint256 aUsdcDenominator;
+    Portfolio public portfolio;
 
     constructor(
         address _curveConnector,
         address _aUsdcToken,
-        address _a3CrvToken
+        address _a3CrvToken,
+        address _portfolio
     ) {
         require(_curveConnector != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
         require(_a3CrvToken != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
 
         curveConnector = IConnector(_curveConnector);
         aUsdcToken = IERC20(_aUsdcToken);
         a3CrvToken = IERC20(_a3CrvToken);
+        portfolio = Portfolio(_portfolio);
 
         aUsdcDenominator = 10 ** (18 - IERC20Metadata(address(aUsdcToken)).decimals());
     }
@@ -87,10 +96,12 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
                 aUsdcToken.transfer(spender, unusedBalance);
             }
         } else {
-            // amount is in usdc, so we don't need correct price because of aUsdc:usdc is 1:1
+            // get a3CrvPriceGetter
+            IPriceGetter a3CrvPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(a3CrvToken)).priceGetter);
+            // amount is in curve, so we need correct price
             // but may be should use PriceGetter with extra gas cost
             //TODO: denominator usage
-            uint256 aUsdcAmount = amount / aUsdcDenominator;
+            uint256 aUsdcAmount = amount * a3CrvPriceGetter.getUsdcSellPrice() / a3CrvPriceGetter.denominator() / aUsdcDenominator;
 
             uint a3CrvBalance = a3CrvToken.balanceOf(address(this));
             //TODO: here we check expected amount of usdc equivalent - so that is wrong
