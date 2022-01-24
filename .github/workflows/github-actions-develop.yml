@@ -41,5 +41,3 @@ jobs:
           path: report.json    # Path to test results
           reporter: mocha-json
 
-      - name: Gas Report
-        run: cat gas-report
