@@ -17,6 +17,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const a3CrvGaugePriceGetter = await ethers.getContract('A3CrvGaugePriceGetter');
     const crvPriceGetter = await ethers.getContract('CrvPriceGetter');
     const wMaticPriceGetter = await ethers.getContract('WMaticPriceGetter');
+    const vimUsdPriceGetter = await ethers.getContract('VimUsdPriceGetter');
+    const mtaPriceGetter = await ethers.getContract('MtaPriceGetter');
 
     // setup price getters
     await idleUsdcPriceGetter.setIdleToken(idleToken);
@@ -66,6 +68,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         asset: assets.wMatic,
         priceGetter: wMaticPriceGetter.address
     }
+    let vimUsdAssetInfo = {
+        asset: assets.vimUsd,
+        priceGetter: vimUsdPriceGetter.address
+    }
+    let mtaAssetInfo = {
+        asset: assets.mta,
+        priceGetter: mtaPriceGetter.address
+    }
     let assetInfos = [
         usdcAssetInfo,
         aUsdcAssetInfo,
@@ -74,6 +84,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         crvAssetInfo,
         wMaticAssetInfo,
         idleUsdcAssetInfo,
+        vimUsdAssetInfo,
+        mtaAssetInfo
     ]
 
     console.log("portfolio.setAssetInfo: " + JSON.stringify(assetInfos));

@@ -3,6 +3,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
+
     await deploy('ConnectorAAVE', {
         from: deployer,
         args: [],
@@ -16,6 +17,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 
     await deploy('ConnectorIDLE', {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+
+    await deploy('ConnectorMStable', {
         from: deployer,
         args: [],
         log: true,

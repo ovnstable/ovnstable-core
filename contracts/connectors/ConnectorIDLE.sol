@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -5,7 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../interfaces/IConnector.sol";
 import "./idle/interfaces/IIdleToken.sol";
-import "hardhat/console.sol";
 
 contract ConnectorIDLE is IConnector, Ownable {
 

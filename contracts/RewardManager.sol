@@ -74,7 +74,6 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
         emit AUsdcTokenUpdated(_aUsdc);
     }
 
-
     // ---  logic
 
     /**
@@ -84,6 +83,7 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
         //TODO: add event if gauge emit nothing
         claimRewardCurve();
         claimRewardAave();
+        claimRewardMStable();
     }
 
     function claimRewardCurve() public {
@@ -96,4 +96,7 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
         vault.claimRewardAave(assets, type(uint256).max);
     }
 
+    function claimRewardMStable() public {
+        vault.claimRewardMStable();
+    }
 }

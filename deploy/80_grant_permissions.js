@@ -23,6 +23,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await transferOwnership(await ethers.getContract("ConnectorAAVE"), address);
     await transferOwnership(await ethers.getContract("ConnectorCurve"), address);
     await transferOwnership(await ethers.getContract("ConnectorIDLE"), address);
+    await transferOwnership(await ethers.getContract("ConnectorMStable"), address);
 
 };
 
@@ -52,7 +53,6 @@ async function grantRevokeRole(contract, oldAdmin, newAdmin) {
 
     tx = await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAdmin);
     await tx.wait();
-
     console.log('Contract:' + contract + '=> Revoke role ADMIN to ' + oldAdmin + '=> done')
 
 }

@@ -30,5 +30,11 @@ module.exports = {
     fromIdle: (value) => value / 10 ** 18,
 
     toOvnGov: (value) => value * 10 ** 18,
-    fromOvnGov: (value) => value / 10 ** 18
+    fromOvnGov: (value) => value / 10 ** 18,
+
+    toVimUsd: (value) => value * 10 ** 18,
+    fromVimUsd: (value) => value / 10 ** 18,
+
+    toMta: (value) => value * 10 ** 18,
+    fromMta: (value) => value / 10 ** 18
 }

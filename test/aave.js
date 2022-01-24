@@ -7,6 +7,7 @@ let decimals = require('../utils/decimals');
 
 const fs = require("fs");
 const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
+const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -23,7 +24,9 @@ describe("Aave", function () {
     let wMatcic;
 
     beforeEach(async () => {
-        await deployments.fixture(['PortfolioManager', 'Connectors', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
+        await hre.run("compile");
+
+        await deployments.fixture(['PortfolioManager', 'Connectors', 'Portfolio', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

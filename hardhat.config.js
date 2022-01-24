@@ -4,6 +4,9 @@ require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
+require("hardhat-tracer");
+
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -56,13 +59,13 @@ module.exports = {
 
         hardhat: {
             forking: {
-                url: "https://polygon-rpc.com/",
-                blockNumber: 23299229,
+                url: "https://polygon-mainnet.infura.io/v3/66f5eb50848f458cb0f0506cc1036fea",
+                blockNumber: 23554341 ,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
-            timeout: 200000
+            timeout: 36200000
         },
 
     },
@@ -79,12 +82,18 @@ module.exports = {
 
 
     mocha: {
-        timeout: 16200000,
+        timeout: 36200000,
         reporter:  "utils/reporter-mocha.js",
         "reporter-option": [
             "output=report.json"
         ]
     },
 
+    gasReporter: {
+        enabled: false, // Gas Reporter hides unit-test-mocha report
+        currency: 'MATIC',
+        gasPrice: 70,
+        outputFile: 'gas-report'
+    }
 
 };

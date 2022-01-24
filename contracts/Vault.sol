@@ -2,11 +2,11 @@
 pragma solidity >=0.5.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
+import "./connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
+import "./connectors/aave/interfaces/IAaveIncentivesController.sol";
 
 /**
  * Vault address is used as owner for all tokens for Overnights.
@@ -23,15 +23,21 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant REWARD_MANAGER = keccak256("REWARD_MANAGER");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant CONNECTOR_MSTABLE = keccak256("CONNECTOR_MSTABLE");
 
     // Only Vault can claiming aave rewards
     IAaveIncentivesController public aaveReward;
+
+    // Only Vault can unstaking and claiming mStable rewards
+    IBoostedVaultWithLockup public vimUsdToken;
 
     // ---  events
 
     event PortfolioManagerUpdated(address portfolioManager);
     event RewardManagerUpdated(address rewardManager);
+    event ConnectorMStableUpdated(address connectorMStable);
     event AaveRewardRemoved(address aaveReward);
+    event VimUsdTokenUpdated(address vimUsdToken);
 
     // ---  modifiers
 
@@ -47,6 +53,11 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     modifier onlyRewardManager() {
         require(hasRole(REWARD_MANAGER, msg.sender), "Caller is not the REWARD_MANAGER");
+        _;
+    }
+
+    modifier onlyConnectorMStable() {
+        require(hasRole(CONNECTOR_MSTABLE, msg.sender), "Caller is not the CONNECTOR_MSTABLE");
         _;
     }
 
@@ -83,11 +94,22 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         emit RewardManagerUpdated(_rewardManager);
     }
 
+    function setConnectorMStable(address _connectorMStable) public onlyAdmin {
+        require(_connectorMStable != address(0), "Zero address not allowed");
+        grantRole(CONNECTOR_MSTABLE, _connectorMStable);
+        emit ConnectorMStableUpdated(_connectorMStable);
+    }
 
     function setAaveReward(address _aaveReward) public onlyAdmin {
         require(_aaveReward != address(0), "Zero address not allowed");
         aaveReward = IAaveIncentivesController(_aaveReward);
         emit AaveRewardRemoved(_aaveReward);
+    }
+
+    function setVimUsdToken(address _vimUsdToken) public onlyAdmin {
+        require(_vimUsdToken != address(0), "Zero address not allowed");
+        vimUsdToken = IBoostedVaultWithLockup(_vimUsdToken);
+        emit VimUsdTokenUpdated(_vimUsdToken);
     }
 
     // ---  logic
@@ -96,6 +118,15 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         aaveReward.claimRewards(assets, amount, address(this));
     }
 
+    function claimRewardMStable() public onlyRewardManager {
+        vimUsdToken.claimReward();
+    }
+
+    function unstakeVimUsd(address asset, uint amount, address beneficiar) public onlyConnectorMStable {
+        vimUsdToken.withdraw(amount);
+        uint256 balance = IERC20(asset).balanceOf(address(this));
+        IERC20(asset).transfer(beneficiar, balance);
+    }
 
     /**
      * @dev proxy to IERC20().totalSupply();

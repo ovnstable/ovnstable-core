@@ -22,11 +22,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("rm.setVault done");
 
-    console.log("rm.setAUsdcToke: " + assets.amUsdc);
+    console.log("rm.setAUsdcToken: " + assets.amUsdc);
     tx = await rm.setAUsdcToken(assets.amUsdc);
     await tx.wait();
     console.log("rm.setAUsdcToken done");
-
 };
 
 module.exports.tags = ['setting','SettingRewardManager'];

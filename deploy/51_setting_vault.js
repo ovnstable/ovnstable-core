@@ -1,5 +1,8 @@
 const { ethers } = require("hardhat");
 
+const fs = require('fs');
+let assets = JSON.parse(fs.readFileSync('./assets.json'));
+
 let aaveIncentivesController = "0x357D51124f59836DeD84c8a1730D72B749d8BC23"
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -9,6 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const vault = await ethers.getContract("Vault");
     const pm = await ethers.getContract("PortfolioManager");
     const rm = await ethers.getContract("RewardManager");
+    const connectorMStable = await ethers.getContract("ConnectorMStable");
 
     // setup vault
     console.log("vault.setPortfolioManager: " + pm.address);
@@ -26,6 +30,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("vault.setAaveReward done");
 
+    console.log("vault.setConnectorMStable: " + connectorMStable.address);
+    tx = await vault.setConnectorMStable(connectorMStable.address);
+    await tx.wait();
+    console.log("vault.setConnectorMStable done");
+
+    console.log("vault.setVimUsdToken: " + assets.vimUsd);
+    tx = await vault.setVimUsdToken(assets.vimUsd);
+    await tx.wait();
+    console.log("vault.setVimUsdToken done");
 };
 
 module.exports.tags = ['setting','SettingVault'];

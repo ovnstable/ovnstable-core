@@ -210,11 +210,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         IERC20(_addrTok).transfer(address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
-
-        // prevent stucked payout caller
-        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
-            _payout();
-        }
     }
 
     /**
@@ -276,11 +271,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             "Not enough for transfer unstakedAmount"
         );
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
-
-        // prevent stucked payout caller
-        if (block.timestamp > nextPayoutTime + payoutTimeRange) {
-            _payout();
-        }
     }
 
     function payout() public whenNotPaused {
