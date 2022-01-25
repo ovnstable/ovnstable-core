@@ -41,11 +41,8 @@ contract Mta2UsdcActionBuilder is IActionBuilder {
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(mtaToken)) {
                 mtaPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(usdcToken)) {
+            } else if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
-                continue;
             }
         }
 

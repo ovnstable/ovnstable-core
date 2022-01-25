@@ -36,31 +36,28 @@ contract Crv2UsdcActionBuilder is IActionBuilder {
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
         // get diff from iteration over prices because can't use mapping in memory params to external functions
-        IMark2Market.BalanceAssetPrices memory wMaticPrices;
+        IMark2Market.BalanceAssetPrices memory crvPrices;
         IMark2Market.BalanceAssetPrices memory usdcPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(crvToken)) {
-                wMaticPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(usdcToken)) {
+                crvPrices = assetPrices[i];
+            } else if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
-                continue;
             }
         }
 
         // because we know that wMatic is leaf in tree and we can use this value
-        int256 diff = wMaticPrices.diffToTarget;
+        int256 diff = crvPrices.diffToTarget;
 
         uint256 amount;
         IERC20 from;
         IERC20 to;
         bool targetIsZero;
-        if (wMaticPrices.targetIsZero || diff < 0) {
+        if (crvPrices.targetIsZero || diff < 0) {
             amount = uint256(- diff);
             from = crvToken;
             to = usdcToken;
-            targetIsZero = wMaticPrices.targetIsZero;
+            targetIsZero = crvPrices.targetIsZero;
         } else {
             amount = uint256(diff);
             from = usdcToken;

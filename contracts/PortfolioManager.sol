@@ -15,6 +15,7 @@ import "./interfaces/IRewardManager.sol";
 import "./registries/Portfolio.sol";
 import "./Vault.sol";
 import "./Balancer.sol";
+import "./connectors/ConnectorMStable.sol";
 
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -28,6 +29,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     IRewardManager public rewardManager;
     Portfolio public portfolio;
     address public vimUsdToken;
+    address public imUsdToken;
+    address public usdcToken;
+    ConnectorMStable public connectorMStable;
 
     // ---  events
 
@@ -37,6 +41,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     event RewardManagerUpdated(address rewardManager);
     event PortfolioUpdated(address portfolio);
     event VimUsdTokenUpdated(address vimUsdToken);
+    event ImUsdTokenUpdated(address imUsdToken);
+    event UsdcTokenUpdated(address usdcToken);
+    event ConnectorMStableUpdated(address connectorMStable);
 
     event Exchanged(uint256 amount, address from, address to);
 
@@ -110,6 +117,24 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         emit VimUsdTokenUpdated(_vimUsdToken);
     }
 
+    function setImUsdToken(address _imUsdToken) external onlyAdmin {
+        require(_imUsdToken != address(0), "Zero address not allowed");
+        imUsdToken = _imUsdToken;
+        emit ImUsdTokenUpdated(_imUsdToken);
+    }
+
+    function setUsdcToken(address _usdcToken) external onlyAdmin {
+        require(_usdcToken != address(0), "Zero address not allowed");
+        usdcToken = _usdcToken;
+        emit UsdcTokenUpdated(_usdcToken);
+    }
+
+    function setConnectorMStable(address _connectorMStable) external onlyAdmin {
+        require(_connectorMStable != address(0), "Zero address not allowed");
+        connectorMStable = ConnectorMStable(_connectorMStable);
+        emit ConnectorMStableUpdated(_connectorMStable);
+    }
+
     // ---  logic
 
     function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger {
@@ -178,15 +203,27 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 2. transfer back tokens
         Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
         address[] memory tokens = new address[](assetWeights.length);
-        // go through all assets and transfer proportions
+        // go through all assets and transfer proportions except vimUsd
         for (uint8 i; i < assetWeights.length; i++) {
             address asset = assetWeights[i].asset;
+            if (asset == vimUsdToken) {
+                tokens[i] = imUsdToken;
+                continue;
+            }
             uint256 currentVaultTokenBalance = IERC20(asset).balanceOf(address(vault));
             if (currentVaultTokenBalance > 0) {
                 uint256 transferAmount = currentVaultTokenBalance * _proportion / _proportionDenominator;
                 vault.transfer(IERC20(asset), msg.sender, transferAmount);
             }
             tokens[i] = asset;
+        }
+
+        // because vimUsd is not ERC20 we need first unstake vimUsd to imUsd
+        // and then transfer to msg.sender imUsd
+        uint256 currentVaultVimUsdAmount = IERC20(vimUsdToken).balanceOf(address(vault));
+        if (currentVaultVimUsdAmount > 0) {
+            currentVaultVimUsdAmount = currentVaultVimUsdAmount * _proportion / _proportionDenominator;
+            connectorMStable.unstakeVimUsd(imUsdToken, currentVaultVimUsdAmount, msg.sender);
         }
 
         return tokens;
@@ -217,11 +254,19 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function _executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
         bool someActionExecuted = true;
+        console.log("start");
         while (someActionExecuted) {
             someActionExecuted = false;
             for (uint8 i = 0; i < actionOrder.length; i++) {
                 IActionBuilder.ExchangeAction memory action = actionOrder[i];
+                console.log("action id: %s", i);
+                console.log("action from: %s", IERC20Metadata(address(action.from)).symbol());
+                console.log("action to: %s", IERC20Metadata(address(action.to)).symbol());
+                console.log("action amount:                %s", action.amount);
+                console.log("from balance on vault before: %s", action.from.balanceOf(address(vault)));
+                console.log("to balance on vault before:   %s", action.to.balanceOf(address(vault)));
                 if (action.executed) {
+                    console.log("skip action.executed");
                     // Skip already executed
                     continue;
                 }
@@ -240,11 +285,15 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
                 //TODO: recheck, may be denormalizedAmount should be checked
                 if (amount == 0) {
+                    console.log("skip amount == 0");
                     // Skip zero amount action
                     continue;
                 }
 
+                console.log("action denominator:           %s", denominator);
+                console.log("action denormalizedAmount:    %s", denormalizedAmount);
                 if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
+                    console.log("skip balanceOnVault < denormalizedAmount");
                     // Skip not enough balance for execute know
                     continue;
                 }
@@ -267,8 +316,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
                 emit Exchanged(amount, address(action.from), address(action.to));
 
                 someActionExecuted = true;
+                console.log("from balance on vault after:  %s", action.from.balanceOf(address(vault)));
+                console.log("to balance on vault after:    %s", action.to.balanceOf(address(vault)));
             }
         }
+        console.log("finish");
     }
 
     /**
@@ -277,7 +329,5 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     function claimRewards() external override {
         rewardManager.claimRewards();
     }
-
-
 
 }

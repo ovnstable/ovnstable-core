@@ -41,11 +41,8 @@ contract A3Crv2A3CrvGaugeActionBuilder is IActionBuilder {
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(a3CrvGaugeToken)) {
                 a3CrvGaugePrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(a3CrvToken)) {
+            } else if (assetPrices[i].asset == address(a3CrvToken)) {
                 a3CrvPrices = assetPrices[i];
-                continue;
             }
         }
 

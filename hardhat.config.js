@@ -5,6 +5,8 @@ require("@nomiclabs/hardhat-ethers");
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
+require("hardhat-tracer");
+
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -63,7 +65,7 @@ module.exports = {
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
-            timeout: 16200000
+            timeout: 36200000
         },
 
     },
@@ -80,7 +82,7 @@ module.exports = {
 
 
     mocha: {
-        timeout: 16200000,
+        timeout: 36200000,
         reporter:  "utils/reporter-mocha.js",
         "reporter-option": [
             "output=report.json"

@@ -1,12 +1,8 @@
-const fs = require('fs');
-const { ethers } = require("hardhat");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const vault = await ethers.getContract("Vault");
 
     await deploy('ConnectorAAVE', {
         from: deployer,
@@ -34,7 +30,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('ConnectorMStable', {
         from: deployer,
-        args: [vault.address, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic],
+        args: [],
         log: true,
     });
 };

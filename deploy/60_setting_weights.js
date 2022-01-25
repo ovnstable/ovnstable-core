@@ -9,6 +9,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const portfolio = await ethers.getContract("Portfolio");
 
+    let vimUsdWeight = {
+        asset: assets.vimUsd,
+        minWeight: 0,
+        targetWeight: 5000,
+        maxWeight: 100000,
+    }
     let idleUsdcWeight = {
         asset: assets.idleUsdc,
         minWeight: 0,
@@ -51,12 +57,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         targetWeight: 0,
         maxWeight: 100000,
     }
-    let vimUsdWeight = {
-        asset: assets.vimUsd,
-        minWeight: 0,
-        targetWeight: 5000,
-        maxWeight: 100000,
-    }
     let mtaWeight = {
         asset: assets.mta,
         minWeight: 0,
@@ -82,6 +82,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         maxWeight: 100000,
     }
     let weights = [
+        vimUsdWeight,
         idleUsdcWeight,
         usdcWeight,
         aUsdcWeight,
@@ -89,7 +90,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         a3CrvGaugeWeight,
         wMaticWeight,
         crvWeight,
-        vimUsdWeight,
         mtaWeight,
         bpspTUsdWeight,
         tUsdWeight,

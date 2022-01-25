@@ -25,6 +25,5 @@ hardhat-ganache.sh
 hardhat-node.sh
 
 solcInputs
-.openzeppelin
 /test-results.json
 /gas-report

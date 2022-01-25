@@ -122,7 +122,7 @@ contract Vault is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         vimUsdToken.claimReward();
     }
 
-    function unstakeMStable(address asset, uint amount, address beneficiar) public onlyConnectorMStable {
+    function unstakeVimUsd(address asset, uint amount, address beneficiar) public onlyConnectorMStable {
         vimUsdToken.withdraw(amount);
         uint256 balance = IERC20(asset).balanceOf(address(this));
         IERC20(asset).transfer(beneficiar, balance);
