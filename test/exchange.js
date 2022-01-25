@@ -151,13 +151,8 @@ describe("Exchange", function () {
                     let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
                     console.log(message);
 
-                    let roundedNumber;
-                    if (balance > 0) {
-                        roundedNumber = new BN(balance).toFixed(countDecimals(targetValue))
-                    } else {
-                        roundedNumber = "0";
-                    }
-                    expect(roundedNumber).to.eq(targetValue, message);
+                    let delta = Math.abs(balance - target) * 100;
+                    expect(delta).to.lessThanOrEqual(10, "Error");
                 }
             });
 
@@ -168,15 +163,6 @@ describe("Exchange", function () {
 
 
 });
-
-
-
-
- function countDecimals(value) {
-    if (Math.floor(value) !== value)
-        return value.toString().split(".")[1].length || 0;
-    return 0;
-}
 
 function findAssetPrice(address, assetPrices) {
     return assetPrices.find(value => value.asset === address);
