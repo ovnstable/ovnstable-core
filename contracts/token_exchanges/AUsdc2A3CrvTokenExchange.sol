@@ -8,8 +8,6 @@ import "../interfaces/IConnector.sol";
 import "../registries/Portfolio.sol";
 import "../interfaces/IPriceGetter.sol";
 
-import "hardhat/console.sol";
-
 contract AUsdc2A3CrvTokenExchange is ITokenExchange {
 
     IConnector public curveConnector;
@@ -98,15 +96,12 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
         } else {
             // get a3CrvPriceGetter
             IPriceGetter a3CrvPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(a3CrvToken)).priceGetter);
-            // amount is in curve, so we need correct price
-            // but may be should use PriceGetter with extra gas cost
+
             //TODO: denominator usage
             uint256 aUsdcAmount = amount * a3CrvPriceGetter.getUsdcSellPrice() / a3CrvPriceGetter.denominator() / aUsdcDenominator;
 
             uint a3CrvBalance = a3CrvToken.balanceOf(address(this));
-            //TODO: here we check expected amount of usdc equivalent - so that is wrong
-            //      and we should use PriceGetter or another way to find equivalent for checking a3Crv
-            //      balance
+
             require(
                 a3CrvBalance >= amount,
                 "AUsdc2A3CrvTokenExchange: Not enough a3CrvToken"
@@ -120,7 +115,7 @@ contract AUsdc2A3CrvTokenExchange is ITokenExchange {
 
             a3CrvToken.transfer(address(curveConnector), amount);
             //TODO: add check that we can withdraw more than zero by call Curve pool and get estimate
-            //      aUsdc amount for our LP tokens
+            // aUsdc amount for our LP tokens
             uint256 withdrewAmount = curveConnector.unstake(address(aUsdcToken), aUsdcAmount, receiver);
 
             // transfer back unused tokens
