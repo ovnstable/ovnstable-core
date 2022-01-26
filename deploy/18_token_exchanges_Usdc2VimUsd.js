@@ -32,4 +32,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['base', 'token-exchanger',  'Usdc2VimUsdTokenExchange'];
-module.exports.dependencies = ['ConnectorMStable', 'Portfolio', 'PortfolioManager', 'Vault'];

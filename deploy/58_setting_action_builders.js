@@ -56,4 +56,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("mta2UsdcActionBuilder added");
 };
 
-module.exports.tags = ['setting', 'Setting'];
+module.exports.tags = ['setting', 'setting-action-builders'];

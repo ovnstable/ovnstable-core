@@ -82,5 +82,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['setting','Setting'];
+module.exports.tags = ['setting','setting-weights'];
 
