@@ -1,0 +1,248 @@
+{
+  "address": "0xCDD2DC754Bff065a059F1FC789615Ac11a175247",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DENOMINATOR",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "denominator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getUsdcBuyPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getUsdcSellPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "idleToken",
+      "outputs": [
+        {
+          "internalType": "contract IIdleToken",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_idleToken",
+          "type": "address"
+        }
+      ],
+      "name": "setIdleToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x018c07683980a3337a8e3d5c7aa6b173a38e582dd79adb34994301cbed648978",
+  "receipt": {
+    "to": null,
+    "from": "0x5CB01385d3097b6a189d1ac8BA3364D900666445",
+    "contractAddress": "0xCDD2DC754Bff065a059F1FC789615Ac11a175247",
+    "transactionIndex": 7,
+    "gasUsed": "325758",
+    "logsBloom": "0x00000000000000000020000000000000000000000020000000800000000000000000000000000000020000000000100000008000000000000000000000000000000004000000000000000000000000800011000000000000000100000000000000000000020000000000000000000800000000000000000080000000000000400000000000000000800000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004000000000000000400001000000000000001000000000000000100000000020000000000000000000000000000000000000000000000000000000000000100000",
+    "blockHash": "0x4483742f28e57126629cba86433d41a3117f456dffe5dc94be2a60ff133621ae",
+    "transactionHash": "0x018c07683980a3337a8e3d5c7aa6b173a38e582dd79adb34994301cbed648978",
+    "logs": [
+      {
+        "transactionIndex": 7,
+        "blockNumber": 24143193,
+        "transactionHash": "0x018c07683980a3337a8e3d5c7aa6b173a38e582dd79adb34994301cbed648978",
+        "address": "0xCDD2DC754Bff065a059F1FC789615Ac11a175247",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000005cb01385d3097b6a189d1ac8ba3364d900666445"
+        ],
+        "data": "0x",
+        "logIndex": 64,
+        "blockHash": "0x4483742f28e57126629cba86433d41a3117f456dffe5dc94be2a60ff133621ae"
+      },
+      {
+        "transactionIndex": 7,
+        "blockNumber": 24143193,
+        "transactionHash": "0x018c07683980a3337a8e3d5c7aa6b173a38e582dd79adb34994301cbed648978",
+        "address": "0x0000000000000000000000000000000000001010",
+        "topics": [
+          "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+          "0x0000000000000000000000000000000000000000000000000000000000001010",
+          "0x0000000000000000000000005cb01385d3097b6a189d1ac8ba3364d900666445",
+          "0x0000000000000000000000007b5000af8ab69fd59eb0d4f5762bff57c9c04385"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000050bcc02bcf4d3e0000000000000000000000000000000000000000000000059068753818b578b500000000000000000000000000000000000000000000884916188ff1eeda095c0000000000000000000000000000000000000000000000059017b877ece62b7700000000000000000000000000000000000000000000884916694cb21aa9569a",
+        "logIndex": 65,
+        "blockHash": "0x4483742f28e57126629cba86433d41a3117f456dffe5dc94be2a60ff133621ae"
+      }
+    ],
+    "blockNumber": 24143193,
+    "cumulativeGasUsed": "2274708",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "fe95cbbb2d97e4d95ece85093db98e18",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"idleToken\",\"outputs\":[{\"internalType\":\"contract IIdleToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_idleToken\",\"type\":\"address\"}],\"name\":\"setIdleToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/price_getters/IdleUsdcPriceGetter.sol\":\"IdleUsdcPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (access/Ownable.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * By default, the owner account will be the one that deploys the contract. This\\n * can later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() {\\n        _transferOwnership(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(owner() == _msgSender(), \\\"Ownable: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions anymore. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby removing any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xa1b27b3f44ff825974e5268e8f63ad3b03add5b464880d860fbb8cae043e17f7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC3156.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (interfaces/IERC3156.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC3156FlashBorrower.sol\\\";\\nimport \\\"./IERC3156FlashLender.sol\\\";\\n\",\"keccak256\":\"0xb267975f9ee2d8f5332d6bdc184f69af238ede84ea7159be3715a8901c6061ea\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (interfaces/IERC3156FlashBorrower.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC3156 FlashBorrower, as defined in\\n * https://eips.ethereum.org/EIPS/eip-3156[ERC-3156].\\n *\\n * _Available since v4.1._\\n */\\ninterface IERC3156FlashBorrower {\\n    /**\\n     * @dev Receive a flash loan.\\n     * @param initiator The initiator of the loan.\\n     * @param token The loan currency.\\n     * @param amount The amount of tokens lent.\\n     * @param fee The additional amount of tokens to repay.\\n     * @param data Arbitrary data structure, intended to contain user-defined parameters.\\n     * @return The keccak256 hash of \\\"ERC3156FlashBorrower.onFlashLoan\\\"\\n     */\\n    function onFlashLoan(\\n        address initiator,\\n        address token,\\n        uint256 amount,\\n        uint256 fee,\\n        bytes calldata data\\n    ) external returns (bytes32);\\n}\\n\",\"keccak256\":\"0xe576c20af21811d20f2b90ee02f3c7af7c590c504b623df217968a5ce5263b50\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (interfaces/IERC3156FlashLender.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC3156FlashBorrower.sol\\\";\\n\\n/**\\n * @dev Interface of the ERC3156 FlashLender, as defined in\\n * https://eips.ethereum.org/EIPS/eip-3156[ERC-3156].\\n *\\n * _Available since v4.1._\\n */\\ninterface IERC3156FlashLender {\\n    /**\\n     * @dev The amount of currency available to be lended.\\n     * @param token The loan currency.\\n     * @return The amount of `token` that can be borrowed.\\n     */\\n    function maxFlashLoan(address token) external view returns (uint256);\\n\\n    /**\\n     * @dev The fee to be charged for a given loan.\\n     * @param token The loan currency.\\n     * @param amount The amount of tokens lent.\\n     * @return The amount of `token` to be charged for the loan, on top of the returned principal.\\n     */\\n    function flashFee(address token, uint256 amount) external view returns (uint256);\\n\\n    /**\\n     * @dev Initiate a flash loan.\\n     * @param receiver The receiver of the tokens in the loan, and the receiver of the callback.\\n     * @param token The loan currency.\\n     * @param amount The amount of tokens lent.\\n     * @param data Arbitrary data structure, intended to contain user-defined parameters.\\n     */\\n    function flashLoan(\\n        IERC3156FlashBorrower receiver,\\n        address token,\\n        uint256 amount,\\n        bytes calldata data\\n    ) external returns (bool);\\n}\\n\",\"keccak256\":\"0xf5f1e7d1d9a90f10c0469ad217d44c4f65925fd670edc191dfd2fb13ac89bf15\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xc1452b054778f1926419196ef12ae200758a4ee728df69ae1cd13e5c16ca7df7\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.0 (utils/Context.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7736c187e6f1358c1ea9350a2a21aa8528dec1c2f43b374a9067465a3a51f5d3\",\"license\":\"MIT\"},\"contracts/connectors/idle/interfaces/IIdleToken.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.5 <0.9.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"@openzeppelin/contracts/interfaces/IERC3156.sol\\\";\\n\\ninterface IIdleToken is IERC20 {\\n    function token() external view returns (address underlying);\\n    function govTokens(uint256) external view returns (address govToken);\\n    function userAvgPrices(address) external view returns (uint256 avgPrice);\\n    function mintIdleToken(uint256 _amount, bool _skipWholeRebalance, address _referral) external returns (uint256 mintedTokens);\\n    function redeemIdleToken(uint256 _amount) external returns (uint256 redeemedTokens);\\n    function redeemInterestBearingTokens(uint256 _amount) external;\\n    function rebalance() external returns (bool);\\n    function tokenPrice() external view returns (uint256 price);\\n    function getAPRs() external view returns (address[] memory addresses, uint256[] memory aprs);\\n    function getAvgAPR() external view returns (uint256 avgApr);\\n    function getGovTokensAmounts(address _usr) external view returns (uint256[] memory _amounts);\\n    function flashLoanFee() external view returns (uint256 fee);\\n    function flashFee(address _token, uint256 _amount) external view returns (uint256);\\n    function maxFlashLoan(address _token) external view returns (uint256);\\n    function flashLoan(IERC3156FlashBorrower _receiver, address _token, uint256 _amount, bytes calldata _params) external returns (bool);\\n    function getAllocations() external view returns (uint256[] memory);\\n    function getGovTokens() external view returns (address[] memory);\\n    function getAllAvailableTokens() external view returns (address[] memory);\\n    function getProtocolTokenToGov(address _protocolToken) external view returns (address);\\n    function tokenPriceWithFee(address user) external view returns (uint256 priceWFee);\\n}\",\"keccak256\":\"0x183c7f55e06984a368a60e65f5fd2355e62b8af9e0349e8c1e4a42ab5fe9c3a5\",\"license\":\"MIT\"},\"contracts/interfaces/IPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\ninterface IPriceGetter {\\n    /**\\n     * Token buy price at USDC. Amount of USDC we should spend to buy one token.\\n     * Returned value is [USDC/token]\\n     * Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcBuyPrice() external view returns (uint256);\\n\\n    /**\\n     * Token sell price at USDC. Amount of USDC we got if sell one token.\\n     * Returned value is [USDC/token]\\n     * Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcSellPrice() external view returns (uint256);\\n\\n    /**\\n     * Denominator for normalization. Default 10**18.\\n     */\\n    function denominator() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x2ffb91797f2de81cf176b8ebe0be12d7250279b61f1ee7f8d37ae41e00ecb04e\",\"license\":\"MIT\"},\"contracts/price_getters/AbstractPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"../interfaces/IPriceGetter.sol\\\";\\n\\ncontract AbstractPriceGetter is IPriceGetter {\\n    uint256 public constant DENOMINATOR = 10**18;\\n\\n    function getUsdcBuyPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function getUsdcSellPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function denominator() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n}\\n\",\"keccak256\":\"0x71a4dc4a01bae2264bd097e07ea93ca929ca304390677644861fb8205cc0a705\",\"license\":\"MIT\"},\"contracts/price_getters/IdleUsdcPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport \\\"../price_getters/AbstractPriceGetter.sol\\\";\\nimport \\\"../connectors/idle/interfaces/IIdleToken.sol\\\";\\n\\ncontract IdleUsdcPriceGetter is AbstractPriceGetter, Ownable {\\n\\n    IIdleToken public idleToken;\\n\\n    function setIdleToken(address _idleToken) public onlyOwner {\\n        require(_idleToken != address(0), \\\"Zero address not allowed\\\");\\n        idleToken = IIdleToken(_idleToken);\\n    }\\n\\n    function getUsdcBuyPrice() external view override returns (uint256) {\\n        return idleToken.tokenPrice() * (10**12);\\n    }\\n\\n    function getUsdcSellPrice() external view override returns (uint256) {\\n        return idleToken.tokenPrice() * (10**12);\\n    }\\n}\\n\",\"keccak256\":\"0x2526b02d5cea9a2d683ca31c5c17764cdf550fb182b06fbfedde9841eb1fa357\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5061001a3361001f565b61006f565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b61047a8061007e6000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c8063918f867411610066578063918f8674146100f957806395e581911461010857806396ce07951461011b578063ea24978414610098578063f2fde38b1461012957600080fd5b80632b8455f1146100985780632dd60c5e146100b3578063715018a6146100de5780638da5cb5b146100e8575b600080fd5b6100a061013c565b6040519081526020015b60405180910390f35b6001546100c6906001600160a01b031681565b6040516001600160a01b0390911681526020016100aa565b6100e66101cd565b005b6000546001600160a01b03166100c6565b6100a0670de0b6b3a764000081565b6100e6610116366004610399565b61020c565b670de0b6b3a76400006100a0565b6100e6610137366004610399565b6102ae565b60015460408051633ffcdacb60e11b815290516000926001600160a01b031691637ff9b596916004808301926020929190829003018186803b15801561018157600080fd5b505afa158015610195573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101b991906103c9565b6101c89064e8d4a51000610417565b905090565b6000546001600160a01b031633146102005760405162461bcd60e51b81526004016101f7906103e2565b60405180910390fd5b61020a6000610349565b565b6000546001600160a01b031633146102365760405162461bcd60e51b81526004016101f7906103e2565b6001600160a01b03811661028c5760405162461bcd60e51b815260206004820152601860248201527f5a65726f2061646472657373206e6f7420616c6c6f776564000000000000000060448201526064016101f7565b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b031633146102d85760405162461bcd60e51b81526004016101f7906103e2565b6001600160a01b03811661033d5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016101f7565b61034681610349565b50565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b6000602082840312156103ab57600080fd5b81356001600160a01b03811681146103c257600080fd5b9392505050565b6000602082840312156103db57600080fd5b5051919050565b6020808252818101527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604082015260600190565b600081600019048311821515161561043f57634e487b7160e01b600052601160045260246000fd5b50029056fea2646970667358221220160241b00e2f0db56f74b4b0b360408b242631a901829e741c61c58779e1e7a464736f6c63430008060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100935760003560e01c8063918f867411610066578063918f8674146100f957806395e581911461010857806396ce07951461011b578063ea24978414610098578063f2fde38b1461012957600080fd5b80632b8455f1146100985780632dd60c5e146100b3578063715018a6146100de5780638da5cb5b146100e8575b600080fd5b6100a061013c565b6040519081526020015b60405180910390f35b6001546100c6906001600160a01b031681565b6040516001600160a01b0390911681526020016100aa565b6100e66101cd565b005b6000546001600160a01b03166100c6565b6100a0670de0b6b3a764000081565b6100e6610116366004610399565b61020c565b670de0b6b3a76400006100a0565b6100e6610137366004610399565b6102ae565b60015460408051633ffcdacb60e11b815290516000926001600160a01b031691637ff9b596916004808301926020929190829003018186803b15801561018157600080fd5b505afa158015610195573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101b991906103c9565b6101c89064e8d4a51000610417565b905090565b6000546001600160a01b031633146102005760405162461bcd60e51b81526004016101f7906103e2565b60405180910390fd5b61020a6000610349565b565b6000546001600160a01b031633146102365760405162461bcd60e51b81526004016101f7906103e2565b6001600160a01b03811661028c5760405162461bcd60e51b815260206004820152601860248201527f5a65726f2061646472657373206e6f7420616c6c6f776564000000000000000060448201526064016101f7565b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b031633146102d85760405162461bcd60e51b81526004016101f7906103e2565b6001600160a01b03811661033d5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b60648201526084016101f7565b61034681610349565b50565b600080546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b6000602082840312156103ab57600080fd5b81356001600160a01b03811681146103c257600080fd5b9392505050565b6000602082840312156103db57600080fd5b5051919050565b6020808252818101527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604082015260600190565b600081600019048311821515161561043f57634e487b7160e01b600052601160045260246000fd5b50029056fea2646970667358221220160241b00e2f0db56f74b4b0b360408b242631a901829e741c61c58779e1e7a464736f6c63430008060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "denominator()": {
+        "notice": "Denominator for normalization. Default 10**18."
+      },
+      "getUsdcBuyPrice()": {
+        "notice": "Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18"
+      },
+      "getUsdcSellPrice()": {
+        "notice": "Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 4749,
+        "contract": "contracts/price_getters/IdleUsdcPriceGetter.sol:IdleUsdcPriceGetter",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 24657,
+        "contract": "contracts/price_getters/IdleUsdcPriceGetter.sol:IdleUsdcPriceGetter",
+        "label": "idleToken",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(IIdleToken)22211"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IIdleToken)22211": {
+        "encoding": "inplace",
+        "label": "contract IIdleToken",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}
