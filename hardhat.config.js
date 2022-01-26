@@ -43,13 +43,19 @@ module.exports = {
         polygon: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 100000000000
+            timeout: 36200000,
         },
 
         polygon_dev: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: "auto",
+            timeout: 36200000,
+        },
+
+        polygon_dev_new: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            timeout: 36200000,
         },
 
         ganache:{
@@ -59,8 +65,8 @@ module.exports = {
 
         hardhat: {
             forking: {
-                url: "https://polygon-rpc.com/",
-                blockNumber: 23554341 ,
+                url: node_url('polygon'),
+                blockNumber: 24184798,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
