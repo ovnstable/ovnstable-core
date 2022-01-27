@@ -41,7 +41,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
         _burn(msg.sender, amount);
 
-        uint transferAmount = staticToDynamicAmount(amount);
+        uint256 transferAmount = staticToDynamicAmount(amount);
         _mainToken.transfer(recipient, transferAmount);
 
         return (amount, transferAmount);
