@@ -10,8 +10,6 @@ import "./interfaces/IActionBuilder.sol";
 import "./interfaces/ITokenExchange.sol";
 import "./token_exchanges/Usdc2AUsdcTokenExchange.sol";
 
-import "hardhat/console.sol";
-
 contract Balancer is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
@@ -108,15 +106,6 @@ contract Balancer is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             address(withdrawToken),
             withdrawAmount
         );
-
-        for (uint8 i = 0; i < assetPrices.length; i++) {
-            console.log("asset: %s", IERC20Metadata(assetPrices[i].asset).symbol());
-            if (assetPrices[i].diffToTarget < 0) {
-                console.log("diffToTarget: -%s", uint256(-assetPrices[i].diffToTarget));
-            } else {
-                console.log("diffToTarget: %s", uint256(assetPrices[i].diffToTarget));
-            }
-        }
 
         // 2. make actions
         IActionBuilder.ExchangeAction[] memory actionOrder = new IActionBuilder.ExchangeAction[](

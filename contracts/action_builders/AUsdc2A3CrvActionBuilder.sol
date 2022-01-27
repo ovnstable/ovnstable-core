@@ -6,8 +6,6 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
 
-import "hardhat/console.sol";
-
 contract AUsdc2A3CrvActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("AUsdc2A3Crv");
 
