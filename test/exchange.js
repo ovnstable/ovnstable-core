@@ -76,10 +76,10 @@ describe("Exchange", function () {
         });
 
 
-        it("total vault balance (USDC) should equal 99.97 (USDC)", function () {
+        it("total vault balance (USDC) should equal 99.95 (USDC)", function () {
             console.log("totalUsdcPrice " + totalUsdcPrice);
 
-            expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.97")
+            expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.95")
         });
 
         it("asset amounts match asset weights", function () {
@@ -130,10 +130,10 @@ describe("Exchange", function () {
                 expect(balanceAccount.toString()).to.eq("49.96")
             });
 
-            it("total vault balance (USDC) should equal 49.99 (USDC)", function () {
+            it("total vault balance (USDC) should equal 49.97 (USDC)", function () {
                 console.log("totalUsdcPrice " + totalUsdcPrice);
 
-                expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("49.99")
+                expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("49.97")
             });
 
             it("asset amounts match asset weights", function () {

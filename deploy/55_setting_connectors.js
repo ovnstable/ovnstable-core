@@ -51,5 +51,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['setting','Connectors'];
-module.exports.dependencies = ['Usdc2VimUsdTokenExchange'];
+module.exports.tags = ['setting','setting-connectors'];

@@ -44,7 +44,7 @@ module.exports = {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-
+            gasPrice: 80000000000,
         },
 
         polygon_dev: {
@@ -59,15 +59,19 @@ module.exports = {
             chainId: 1337
         },
 
+        localhost: {
+            timeout: 362000000
+        },
+
         hardhat: {
             forking: {
                 url: node_url('polygon'),
-                blockNumber: 24189454,
+                blockNumber: 24235029,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
-            timeout: 36200000
+            timeout: 362000000
         },
 
     },

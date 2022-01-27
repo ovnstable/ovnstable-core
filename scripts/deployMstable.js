@@ -30,47 +30,43 @@ async function main() {
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
 
 
-    const proposeTx = await governator.proposeExec(
-        [reward.address],
-        [0],
-        [reward.interface.encodeFunctionData('upgradeTo', ["0xdF211EA6783eD3Dc4ccc78D6Ce00dD31b84EC86d"])],
-        ethers.utils.id(new Date().toUTCString())
-    );
+    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+    console.log('Quorum: ' + quorum);
 
-    // let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
-    // console.log('Quorum: ' + quorum);
-    //
-    // const tx = await proposeTx.wait();
-    // await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    //
-    // let votes = ethers.utils.parseUnits("100000100", 9);
-    //
-    // console.log('Votes: ' + votes)
-    // await governator.castVote(proposalId, 1);
-    //
-    // let item = await governator.proposals(proposalId);
-    // console.log('Fotes for: ' + item.forVotes / 10 ** 18);
-    //
-    // let total = fromOvnGov(await ovn.getVotes(wallet.address));
-    // console.log('Deletegated ' + total)
-    //
-    // let waitBlock = 200;
-    // const sevenDays = 7 * 24 * 60 * 60;
-    // for (let i = 0; i < waitBlock; i++) {
-    //     await ethers.provider.send("evm_increaseTime", [sevenDays])
-    //     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    // }
-    //
-    // let state = proposalStates[await governator.state(proposalId)];
-    // expect(state).to.eq('Succeeded');
-    // await governator.queueExec(proposalId);
-    // await governator.executeExec(proposalId);
-    //
-    //
-    // console.log('Exec payout')
-    //
-    // await exchange.payout();
+    const proposalId = "87959442158342476488539525451864684949777127548068069626858436987653532573024";
+
+    let votes = ethers.utils.parseUnits("100000100", 9);
+
+    let state = proposalStates[await governator.state(proposalId)];
+    console.log('State status: ' + state)
+    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+
+    console.log('Votes: ' + votes)
+    await governator.castVote(proposalId, 1);
+
+    let item = await governator.proposals(proposalId);
+    console.log('Votes for: ' + item.forVotes / 10 ** 18);
+
+    let total = fromOvnGov(await ovn.getVotes(wallet.address));
+    console.log('Delegated ' + total)
+
+    let waitBlock = 200;
+    const sevenDays = 7 * 24 * 60 * 60;
+    for (let i = 0; i < waitBlock; i++) {
+        await ethers.provider.send("evm_increaseTime", [sevenDays])
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+    }
+
+    state = proposalStates[await governator.state(proposalId)];
+    expect(state).to.eq('Succeeded');
+    await governator.queueExec(proposalId);
+    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+    await governator.executeExec(proposalId);
+
+
+    state = proposalStates[await governator.state(proposalId)];
+    console.log('State status: ' + state)
+    expect(state).to.eq('Executed');
 
 }
 

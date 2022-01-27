@@ -24,7 +24,7 @@ async function deployProxy(contractName, deployments, save) {
     }
 
 
-    let upgradeTo = false;
+    let upgradeTo = true;
     let impl;
     if (upgradeTo) {
         // Deploy a new implementation and upgradeProxy to new;

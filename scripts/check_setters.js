@@ -23,12 +23,13 @@ async function main() {
 
     const usdc2VimUsdTokenExchange = await ethers.getContract("Usdc2VimUsdTokenExchange");
 
-    let admin = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-    let upgradeRole = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+    let admin = "0x6522C013a9e347BD0a271c6f95Ef6f919b6a0C51";
+    let upgradeRole = "0x6522C013a9e347BD0a271c6f95Ef6f919b6a0C51";
 
     await checkExchange();
     await checkUsdPlusToken();
     await checkVault();
+
     await checkM2M();
     await checkPM();
     await checkConnectors();
