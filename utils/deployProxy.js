@@ -2,7 +2,7 @@ const {ethers, upgrades} = require("hardhat");
 const hre = require("hardhat");
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
-
+const fs = require('fs');
 
 async function deployProxy(contractName, deployments, save) {
 
@@ -17,23 +17,23 @@ async function deployProxy(contractName, deployments, save) {
     if (!proxy) {
         console.log(`Proxy ${contractName} not found`)
         proxy = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
-        console.log(`Deploy ${contractName} Proxy done -> ` + proxy.address);
+        console.log(`Deploy ${contractName} Proxy progress -> ` + proxy.address + " tx: " + proxy.deployTransaction.hash);
+        await proxy.deployTransaction.wait();
     } else {
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
     }
 
-    await new Promise(r => setTimeout(r, 5000));
 
-    let upgradeTo = true;
+    let upgradeTo = false;
     let impl;
     if (upgradeTo) {
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
 
         try {
-            await upgrades.upgradeProxy(proxy, contractFactory);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory);
         } catch (e) {
-            await upgrades.upgradeProxy(proxy, contractFactory);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory);
         }
         const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + currentImplAddress + "]");
@@ -44,8 +44,24 @@ async function deployProxy(contractName, deployments, save) {
         impl = await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
         console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
+        let name = 'impls_' + new Date().getDay() + ".json";
+        let config;
+        try {
+            config = JSON.parse(fs.readFileSync('../' + name, 'utf8'));
+        } catch (e) {
+            config = [];
+        }
+        config.push({
+            contractName: contractName,
+            address: impl.impl
+        });
 
+        await fs.writeFile(name, JSON.stringify(config), 'utf8', ()=>{});
     }
+
+
+    if (impl && impl.deployTransaction)
+        await impl.deployTransaction.wait();
 
     const artifact = await deployments.getExtendedArtifact(contractName);
     let proxyDeployments = {

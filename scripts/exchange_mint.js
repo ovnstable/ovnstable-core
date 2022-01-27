@@ -24,8 +24,9 @@ async function main() {
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
 
-    await USDC.approve(exchange.address, 10);
-    await exchange.buy(USDC.address, 10);
+    // await USDC.approve(exchange.address, 10);
+    // await exchange.buy(USDC.address, 10);
+    await exchange.payout();
 }
 
 
