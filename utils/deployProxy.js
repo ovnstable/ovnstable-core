@@ -47,7 +47,7 @@ async function deployProxy(contractName, deployments, save) {
         let name = 'impls_' + new Date().getDay() + ".json";
         let config;
         try {
-            config = JSON.parse(fs.readFileSync('../' + name, 'utf8'));
+            config = JSON.parse(fs.readFileSync(name, 'utf8'));
         } catch (e) {
             config = [];
         }

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "hardhat test",
-    "dep": " npx hardhat deploy --network polygon --tags base  "
+    "dep": "npx hardhat deploy --network polygon_prod --tags OvnToken"
   },
   "keywords": [],
   "author": {

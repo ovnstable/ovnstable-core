@@ -44,14 +44,7 @@ module.exports = {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 250000000000
 
-        },
-
-        polygon_prod: {
-            url: node_url('polygon'),
-            accounts: accounts('polygon'),
-            timeout: 36200000,
         },
 
         polygon_dev: {
@@ -60,12 +53,6 @@ module.exports = {
             timeout: 36200000,
         },
 
-        polygon_dev_new: {
-            url: node_url('polygon'),
-            accounts: accounts('polygon'),
-            timeout: 36200000,
-            gasPrice: 100000000000
-        },
 
         ganache:{
             url: "http://127.0.0.1:8555",
