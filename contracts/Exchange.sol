@@ -214,7 +214,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     /**
      * @param _addrTok Token to withdraw
-     * @param _amount Amount of OVN tokens to burn
+     * @param _amount Amount of USD+ tokens to burn
      */
     function redeem(address _addrTok, uint256 _amount) external whenNotPaused {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
@@ -226,20 +226,20 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint256 totalUsdc = mark2market.totalUsdcPrice();
-        // denormalize from 10**18 to 10**6 as OVN decimals
+        uint256 totalUsdc = mark2market.totalSellAssets();
+        // denormalize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10 ** 12;
 
-        uint256 totalOvnSupplyNotEnoughLimit = totalUsdPlusSupply * notEnoughLimit / notEnoughLimitDenominator;
+        uint256 totalUsdPlusSupplyNotEnoughLimit = totalUsdPlusSupply * notEnoughLimit / notEnoughLimitDenominator;
         // check if we should return back to user proportionally tokens from Vault
-        if (totalUsdc < totalOvnSupplyNotEnoughLimit) {
-            // redeemAmount should be in OVN and or equivalent to USDC
+        if (totalUsdc < totalUsdPlusSupplyNotEnoughLimit) {
+            // redeemAmount should be in USD+ and or equivalent to USDC
 
             // Calc user redeem shares
             uint256 redeemProportionDenominator = 10 ** 18;
             uint256 redeemProportion = redeemProportionDenominator * redeemAmount / totalUsdPlusSupply;
 
-            // Burn OVN from sender
+            // Burn USD+ from sender
             usdPlus.burn(msg.sender, _amount);
 
             address[] memory withdrewTokens = portfolioManager.withdrawProportional(
@@ -293,7 +293,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
-        uint256 totalUsdc = mark2market.totalUsdcPrice();
+        uint256 totalUsdc = mark2market.totalBuyAssets();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalUsdPlusSupply) {
