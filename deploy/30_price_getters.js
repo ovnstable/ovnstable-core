@@ -67,5 +67,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter', 'VimUsdPriceGetter', 'MtaPriceGetter'];
+module.exports.tags = ['base', 'price-getters'];
 

@@ -26,7 +26,7 @@ describe("Aave", function () {
     beforeEach(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['PortfolioManager', 'Connectors', 'Portfolio', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', "Usdc2VimUsdTokenExchange", 'Connectors', "setting-connectors", 'Portfolio', 'Vault', 'SettingVault', 'RewardManager', 'SettingRewardManager', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -71,7 +71,8 @@ describe("Aave", function () {
 
     });
 
-    it("Claiming Wmatic", async function () {
+    // Rewards Wmatic are over
+    /* it("Claiming Wmatic", async function () {
 
         const sum = 100 * 10 ** 6;
         await usdc.transfer(connectorAave.address, sum);
@@ -89,7 +90,6 @@ describe("Aave", function () {
         balance = fromWmatic(await wMatcic.balanceOf(vault.address));
         console.log('Balance wMatic: ' + balance)
         expect(balance).to.be.above(0);
-    });
-
+    }); */
 
 });

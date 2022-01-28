@@ -12,13 +12,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let vimUsdWeight = {
         asset: assets.vimUsd,
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 60000,
         maxWeight: 100000,
     }
     let idleUsdcWeight = {
         asset: assets.idleUsdc,
         minWeight: 0,
-        targetWeight: 15000,
+        targetWeight: 0,
         maxWeight: 100000,
     }
     let usdcWeight = {
@@ -42,7 +42,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let a3CrvGaugeWeight = {
         asset: assets.am3CRVgauge,
         minWeight: 0,
-        targetWeight: 77000,
+        targetWeight: 37000,
         maxWeight: 100000,
     }
     let wMaticWeight = {
@@ -82,5 +82,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['setting','Setting'];
+module.exports.tags = ['setting','setting-weights'];
 

@@ -26,4 +26,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['base', 'token-exchanger', 'Usdc2AUsdcTokenExchange'];
-module.exports.dependencies = ['Usdc2IdleUsdcTokenExchange', 'Usdc2VimUsdTokenExchange'];
