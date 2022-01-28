@@ -29,6 +29,10 @@ MVP of OVNGT interest bearing stablecoin
 
 ### Run project
 
+Create .env file in root project.
+
+Pass env: **ETH_NODE_URI_POLYGON** - RPC connect to Polygon Node.
+
 1. Starting hardhat node (local dev):
 
 `
