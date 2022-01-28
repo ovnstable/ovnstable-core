@@ -226,7 +226,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint256 totalUsdc = mark2market.totalUsdcPrice();
+        uint256 totalUsdc = mark2market.totalSellAssets();
         // denormalize from 10**18 to 10**6 as OVN decimals
         totalUsdc = totalUsdc / 10 ** 12;
 
@@ -293,7 +293,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
-        uint256 totalUsdc = mark2market.totalUsdcPrice();
+        uint256 totalUsdc = mark2market.totalBuyAssets();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalUsdPlusSupply) {
