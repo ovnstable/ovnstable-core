@@ -176,7 +176,7 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
 
-        uint256 totalUsdcPrice = totalAssets(true);
+        uint256 totalUsdcPrice = totalSellAssets();
 
         // 3. validate withdrawAmount
         // use `if` instead of `require` because less gas when need to build complex string for revert
