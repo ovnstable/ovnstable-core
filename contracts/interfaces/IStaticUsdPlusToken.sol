@@ -45,8 +45,8 @@ interface IStaticUsdPlusToken is IERC20, IERC20Metadata {
     function dynamicToStaticAmount(uint256 amount) external view returns (uint256);
 
     /**
-     * @dev Returns UsdPlusToken liquidity index
-     * @return rate Rate between StaticUsdPlusToken and UsdPlusToken in e18
+     * @dev Returns UsdPlusToken liquidity index in e27 (ray)
+     * @return rate Rate between StaticUsdPlusToken and UsdPlusToken in e27 (ray)
      **/
     function rate() external view returns (uint256);
 
