@@ -36,7 +36,6 @@ module.exports = {
     toMta: (value) => value * 10 ** 18,
     fromMta: (value) => value / 10 ** 18,
 
-    //TODO balancer
     toBpsp: (value) => value * 10 ** 18,
     fromBpsp: (value) => value / 10 ** 18,
 

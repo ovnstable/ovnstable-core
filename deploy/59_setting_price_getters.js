@@ -2,7 +2,6 @@ const { ethers } = require("hardhat");
 
 let balancerVault = "0xba12222222228d8ba445958a75a0704d566bf2c8";
 let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351";
-let idleToken = "0x1ee6470CD75D5686d0b2b90C0305Fa46fb0C89A1";
 
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
@@ -25,7 +24,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const balPriceGetter = await ethers.getContract('BalPriceGetter');
 
     // setup price getters
-    await idleUsdcPriceGetter.setIdleToken(idleToken);
+    await idleUsdcPriceGetter.setIdleToken(assets.idleUsdc);
     console.log("idleUsdcPriceGetter.setIdleToken done");
 
     await a3CrvPriceGetter.setPool(aCurvepoolStake);
@@ -34,18 +33,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
     console.log("a3CrvGaugePriceGetter.setA3CrvPriceGetter done");
 
-    await bpspTUsdPriceGetter.setBalancerVault(balancerVault);
-    console.log("bpspTUsdPriceGetter.setBalancerVault done");
-
     // link
     const portfolio = await ethers.getContract('Portfolio');
-
-
-    // struct AssetInfo {
-    //     address asset;
-    //     address priceGetter;
-    // }
-
 
     let idleUsdcAssetInfo = {
         asset: assets.idleUsdc,
@@ -114,7 +103,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let tx = await portfolio.setAssetInfos(assetInfos);
     await tx.wait();
     console.log("portfolio.setAssetInfos done");
-
 };
 
 module.exports.tags = ['setting','Setting'];

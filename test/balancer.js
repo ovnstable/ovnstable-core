@@ -1,13 +1,9 @@
 let { MerkleTree, Claim } = require('./merkleTree.js');
-
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {FakeContract, smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
-
-let decimals = require('../utils/decimals');
-
 const fs = require("fs");
 const {fromBpsp, toBpsp, toUSDC, fromUSDC, fromWmatic} = require("../utils/decimals");
 const hre = require("hardhat");
@@ -27,6 +23,9 @@ describe("Balancer", function () {
     let account;
     let connectorBalancer;
 //    let merkleOrchard;
+    let balPriceGetter;
+    let tUsdPriceGetter;
+    let bpspTUsdPriceGetter;
     let bpspTUsd;
     let tUsd;
     let bal;
@@ -36,7 +35,7 @@ describe("Balancer", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['Setting', 'setting', 'base', 'Connectors', 'Mark2Market', 'PortfolioManager', 'Exchange', 'UsdPlusToken', 'SettingExchange', 'SettingUsdPlusToken', 'BuyUsdc']);
+        await deployments.fixture(['Setting', 'setting', 'base', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -44,6 +43,9 @@ describe("Balancer", function () {
         rm = await ethers.getContract("RewardManager");
         connectorBalancer = await ethers.getContract("ConnectorBalancer");
 //        merkleOrchard = await ethers.getContract("MerkleOrchard");
+        balPriceGetter = await ethers.getContract("BalPriceGetter");
+        tUsdPriceGetter = await ethers.getContract("TUsdPriceGetter");
+        bpspTUsdPriceGetter = await ethers.getContract("BpspTUsdPriceGetter");
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         bpspTUsd = await ethers.getContractAt("ERC20", assets.bpspTUsd);
         tUsd = await ethers.getContractAt("ERC20", assets.tUsd);
@@ -54,45 +56,236 @@ describe("Balancer", function () {
     });
 
     it("Staking USDC", async function () {
-
-        //транзакция 1
         const sum = toUSDC(100);
+
+        // stake
         await usdc.transfer(connectorBalancer.address, sum);
-        let balance = fromUSDC(await usdc.balanceOf(connectorBalancer.address));
-        console.log('Balance usdc: ' + balance);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
 
         await connectorBalancer.stake(usdc.address, sum, vault.address);
-        balance = await bpspTUsd.balanceOf(connectorBalancer.address);
-        console.log('Balance bpspTUsd: ' + balance);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
 
-//        //транзакция 2
+        expect(balanceBpspTUsd).not.equal(0);
+    });
+
+    it("Unstaking USDC", async function () {
+        const sum = toUSDC(100);
+
+        // stake
+        await usdc.transfer(connectorBalancer.address, sum);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        expect(balanceBpspTUsd).not.equal(0);
+
+        // unstake
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        await vault.transfer(bpspTUsd.address, connectorBalancer.address, balanceBpspTUsd)
+        console.log('Balance bpspTUsd before unstake: ' + balanceBpspTUsd);
+
+        await connectorBalancer.unstake(usdc.address, balanceBpspTUsd, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + balanceUsdc);
+
+        expect(balanceUsdc).not.equal(0);
+    });
+
+    it("Unstaking USDC with timeout", async function () {
+        const sum = toUSDC(100);
+
+        // stake
+        await usdc.transfer(connectorBalancer.address, sum);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        expect(balanceBpspTUsd).not.equal(0);
+
+        // timeout 7 days
+        const sevenDays = 7 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [sevenDays])
+        await ethers.provider.send('evm_mine');
+
+        // unstake
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        await vault.transfer(bpspTUsd.address, connectorBalancer.address, balanceBpspTUsd)
+        console.log('Balance bpspTUsd before unstake: ' + balanceBpspTUsd);
+
+        await connectorBalancer.unstake(usdc.address, balanceBpspTUsd, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + balanceUsdc);
+
+        expect(balanceUsdc).not.equal(0);
+    });
+
+    it("Unstaking USDC by parts", async function () {
+        const sum = toUSDC(100);
+
+        // stake
+        await usdc.transfer(connectorBalancer.address, sum);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        expect(balanceBpspTUsd).not.equal(0);
+
+        // unstake
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        await vault.transfer(bpspTUsd.address, connectorBalancer.address, balanceBpspTUsd)
+        console.log('Balance bpspTUsd before unstake: ' + balanceBpspTUsd);
+
+        await connectorBalancer.unstake(usdc.address, balanceBpspTUsd, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + balanceUsdc);
+
+        expect(balanceUsdc).not.equal(0);
+
+        // Balance after 1 unstake
+        let balanceFinal1 = balanceUsdc;
+
+        // stake
+        await vault.transfer(usdc.address, connectorBalancer.address, balanceFinal1);
+        await usdc.transfer(connectorBalancer.address, sum - balanceFinal1);
+        balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        expect(balanceBpspTUsd).not.equal(0);
+
+        // 5 unstakes
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        await vault.transfer(bpspTUsd.address, connectorBalancer.address, balanceBpspTUsd)
+        console.log('Balance bpspTUsd before unstake: ' + balanceBpspTUsd);
+
+        // Balance for part unstake
+        let balancePart = BigInt(balanceBpspTUsd) / 5n;
+        console.log('BalancePart: ' + balancePart);
+
+        // unstake 1
+        await connectorBalancer.unstake(usdc.address, balancePart, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 1 unstake: ' + balanceUsdc);
+
+        // unstake 2
+        await connectorBalancer.unstake(usdc.address, balancePart, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 2 unstake: ' + balanceUsdc);
+
+        // unstake 3
+        await connectorBalancer.unstake(usdc.address, balancePart, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 3 unstake: ' + balanceUsdc);
+
+        // unstake 4
+        await connectorBalancer.unstake(usdc.address, balancePart, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 4 unstake: ' + balanceUsdc);
+
+        // unstake 5
+        balanceBpspTUsd = await bpspTUsd.balanceOf(connectorBalancer.address);
+        await connectorBalancer.unstake(usdc.address, balanceBpspTUsd, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after 5 unstake: ' + balanceUsdc);
+
+        expect(balanceUsdc).not.equal(0);
+
+        // Balance after 5 unstakes
+        let balanceFinal2 = balanceUsdc;
+
+        // Delta after 1 unstake and 5 unstakes
+        let delta = Math.abs(balanceFinal1 - balanceFinal2);
+        console.log('delta: ' + delta);
+
+        expect(delta).to.greaterThanOrEqual(0);
+        expect(delta).to.lessThanOrEqual(5);
+
+        // Unstaked all bpspTUsd
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after 5 unstake: ' + balanceBpspTUsd);
+
+        expect(balanceBpspTUsd).equal(0);
+    });
+
+    it("Get price bal", async function () {
+        // balPriceGetter
+        let buyPrice = await balPriceGetter.getUsdcBuyPrice();
+        console.log('BuyPrice bal in usdc: ' + buyPrice);
+        let sellPrice = await balPriceGetter.getUsdcSellPrice();
+        console.log('SellPrice bal in usdc: ' + sellPrice);
+
+        let percent = Math.abs(buyPrice - sellPrice) / sellPrice;
+
+        expect(percent).to.lessThan(20);
+    });
+
+    it("Get price tUsd", async function () {
+        // tUsdPriceGetter
+        let buyPrice = await tUsdPriceGetter.getUsdcBuyPrice();
+        console.log('BuyPrice tUsd in usdc: ' + buyPrice);
+        let sellPrice = await tUsdPriceGetter.getUsdcSellPrice();
+        console.log('SellPrice tUsd in usdc: ' + sellPrice);
+
+        let percent = Math.abs(buyPrice - sellPrice) / sellPrice;
+
+        expect(percent).to.lessThan(20);
+    });
+
+    it("Get price bpspTUsd", async function () {
+        // bpspTUsdPriceGetter
+        let buyPrice = await bpspTUsdPriceGetter.getUsdcBuyPrice();
+        console.log('BuyPrice bpspTUsd in usdc: ' + buyPrice);
+        let sellPrice = await bpspTUsdPriceGetter.getUsdcSellPrice();
+        console.log('SellPrice bpspTUsd in usdc: ' + sellPrice);
+
+        let percent = Math.abs(buyPrice - sellPrice) / sellPrice;
+
+        expect(percent).to.lessThan(20);
+    });
+
+    //TODO: Balancer. FIX claiming
+//    it("Claiming rewards", async function () {
+//        const sum = toUSDC(100);
+//
+//        // stake
 //        await usdc.transfer(connectorBalancer.address, sum);
-//        balance = fromUSDC(await usdc.balanceOf(connectorBalancer.address));
-//        console.log('Balance usdc: ' + balance);
+//        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+//        console.log('Balance usdc before stake: ' + balanceUsdc);
 //
 //        await connectorBalancer.stake(usdc.address, sum, vault.address);
-//        balance = await bpspTUsd.balanceOf(connectorBalancer.address);
-//        console.log('Balance bpspTUsd: ' + balance);
-
-        let elements = [encodeElement(connectorBalancer.address, balance)];
-        let merkleTree = new MerkleTree(elements);
-        let root = merkleTree.getHexRoot();
-        let proof = merkleTree.getHexProof(elements[0]);
-
-        await connectorBalancer.createDistribution(root, proof, balance);
-
-        expect(result).to.equal(true);
-
-//        await ethers.provider.send("evm_mine", [1649121419]);
-
-        //CLAIMING
-//        let distributionId1 = await merkleOrchard.getNextDistributionId(bal, connectorBalancer.address);
-//        let distributionId2 = await merkleOrchard.getNextDistributionId(tUsd, connectorBalancer.address);
-//        let distributionId3 = await merkleOrchard.getNextDistributionId(wMatic, connectorBalancer.address);
+//        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+//        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
 //
-//        let claimedBalance1 = await merkleOrchard.getRemainingBalance(bal, connectorBalancer.address);
-//        let claimedBalance2 = await merkleOrchard.getRemainingBalance(tUsd, connectorBalancer.address);
-//        let claimedBalance3 = await merkleOrchard.getRemainingBalance(wMatic, connectorBalancer.address);
+//        // timeout 7 days
+//        const sevenDays = 7 * 24 * 60 * 60;
+//        await ethers.provider.send("evm_increaseTime", [sevenDays])
+//        await ethers.provider.send('evm_mine');
+//
+//        // claiming
+////        let distributionId1 = await merkleOrchard.getNextDistributionId(bal.address, vault.address);
+////        let distributionId2 = await merkleOrchard.getNextDistributionId(tUsd.address, vault.address);
+////        let distributionId3 = await merkleOrchard.getNextDistributionId(wMatic.address, vault.address);
+//
+//        let claimedBalance1 = await merkleOrchard.getRemainingBalance(bal.address, vault.address);
+//        let claimedBalance2 = await merkleOrchard.getRemainingBalance(tUsd.address, vault.address);
+//        let claimedBalance3 = await merkleOrchard.getRemainingBalance(wMatic.address, vault.address);
+//        console.log('claimedBalance1 on vault: ' + claimedBalance1);
+//        console.log('claimedBalance2 on vault: ' + claimedBalance2);
+//        console.log('claimedBalance3 on vault: ' + claimedBalance3);
 //
 //        const elements1 = [encodeElement(connectorBalancer.address, 0)];
 //        const merkleTree1 = new MerkleTree(elements1);
@@ -105,70 +298,34 @@ describe("Balancer", function () {
 //        const proof2 = merkleTree2.getHexProof(elements2[0]);
 //        const proof3 = merkleTree3.getHexProof(elements3[0]);
 //
-//        const claims = [
-//            {
-//                distributionId: distributionId1,
-//                balance: claimedBalance1,
-//                distributor: connectorBalancer.address,
-//                tokenIndex: 0,
-//                merkleProof: proof1,
-//            },
-//            {
-//                distributionId: distributionId2,
-//                balance: claimedBalance2,
-//                distributor: connectorBalancer.address,
-//                tokenIndex: 1,
-//                merkleProof: proof2,
-//            },
-//            {
-//                distributionId: distributionId3,
-//                balance: claimedBalance3,
-//                distributor: connectorBalancer.address,
-//                tokenIndex: 2,
-//                merkleProof: proof3,
-//            },
-//        ];
-//        let tokens = [bal, tUsd, wMatic];
-//        console.log('proof1 %s', proof1);
-//        console.log('proof2 %s', proof2);
-//        console.log('proof3 %s', proof3);
-//        connectorBalancer.claim(proof1, proof2, proof3);
+////        const claims = [
+////            {
+////                distributionId: distributionId1,
+////                balance: claimedBalance1,
+////                distributor: connectorBalancer.address,
+////                tokenIndex: 0,
+////                merkleProof: proof1,
+////            },
+////            {
+////                distributionId: distributionId2,
+////                balance: claimedBalance2,
+////                distributor: connectorBalancer.address,
+////                tokenIndex: 1,
+////                merkleProof: proof2,
+////            },
+////            {
+////                distributionId: distributionId3,
+////                balance: claimedBalance3,
+////                distributor: connectorBalancer.address,
+////                tokenIndex: 2,
+////                merkleProof: proof3,
+////            },
+////        ];
+////
+////        let tokens = [bal, tUsd, wMatic];
 //
-//        await connectorBalancer.unstake(usdc.address, balance, vault.address);
-
-//        expect(balance).to.greaterThanOrEqual(98);
-
-    });
-
-    /*it("Unstaking USDC", async function () {
-
-        const sum = toUSDC(100);
-        await usdc.transfer(connectorBalancer.address, sum);
-        let balance = await usdc.balanceOf(connectorBalancer.address);
-        console.log('Balance usdc: ' + fromUSDC(balance));
-
-        await connectorBalancer.stake(usdc.address, sum, vault.address);
-        balance = fromBal(await bpspTUsd.balanceOf(vault.address));
-        console.log('Balance bpspTUsd: ' + balance);
-
-        const sevenDays = 7 * 24 * 60 * 60;
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
-        await ethers.provider.send('evm_mine');
-
-        expect(fromUSDC(await usdc.balanceOf(vault.address))).to.equal(0);
-        expect(fromUSDC(await bpspTUsd.balanceOf(vault.address))).not.equal(0);
-
-        await vault.transfer(bpspTUsd.address, connectorBalancer.address, await bpspTUsd.balanceOf(vault.address))
-
-        expect(fromUSDC(await bpspTUsd.balanceOf(vault.address))).to.equal(0);
-
-        await connectorBalancer.unstake(usdc.address, (await bpspTUsd.balanceOf(connectorBalancer.address)), vault.address);
-        balance = fromUSDC(await usdc.balanceOf(vault.address));
-        console.log('Balance usdc: ' + balance);
-
-        expect(balance).to.greaterThanOrEqual(100);
-
-
-    });*/
+//        rm.claimRewardBalancer(proof1, proof2, proof3);
+//
+//    });
 
 });

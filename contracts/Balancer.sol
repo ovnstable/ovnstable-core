@@ -101,8 +101,7 @@ contract Balancer is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     function buildBalanceActions(IERC20 withdrawToken, uint256 withdrawAmount)
         public
-        returns (IActionBuilder.ExchangeAction[] memory)
-    {
+        returns (IActionBuilder.ExchangeAction[] memory) {
          // 1. get current prices from M2M
         IMark2Market.BalanceAssetPrices[] memory assetPrices = mark2market.assetPricesForBalance(
             address(withdrawToken),

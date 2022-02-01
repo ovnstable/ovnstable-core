@@ -59,6 +59,7 @@ contract Crv2UsdcActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = crvPrices.targetIsZero;
         } else {
+            // never comes because only allow exchange CRV to USDC
             amount = uint256(diff);
             from = usdcToken;
             to = crvToken;

@@ -59,6 +59,7 @@ contract Mta2UsdcActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = mtaPrices.targetIsZero;
         } else {
+            // never comes because only allow exchange MTA to USDC
             amount = uint256(diff);
             from = usdcToken;
             to = mtaToken;

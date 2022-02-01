@@ -50,7 +50,6 @@ contract MtaPriceGetter is AbstractPriceGetter {
         uint256 balanceMta = 10 ** 18;
         uint256 balanceWmatic = _onSwap(balancerPool1, balancerPoolId1, IVault.SwapKind.GIVEN_OUT, wmaticToken, mtaToken, balanceMta);
         uint256 balanceUsdc = _onSwap(balancerPool2, balancerPoolId2, IVault.SwapKind.GIVEN_OUT, usdcToken, wmaticToken, balanceWmatic);
-
         return balanceUsdc * (10 ** 12);
     }
 
@@ -58,7 +57,6 @@ contract MtaPriceGetter is AbstractPriceGetter {
         uint256 balanceMta = 10 ** 18;
         uint256 balanceWmatic = _onSwap(balancerPool1, balancerPoolId1, IVault.SwapKind.GIVEN_IN, mtaToken, wmaticToken, balanceMta);
         uint256 balanceUsdc = _onSwap(balancerPool2, balancerPoolId2, IVault.SwapKind.GIVEN_IN, wmaticToken, usdcToken, balanceWmatic);
-
         return balanceUsdc * (10 ** 12);
     }
 
@@ -90,5 +88,4 @@ contract MtaPriceGetter is AbstractPriceGetter {
 
         return balancerPool.onSwap(swapRequest, balanceIn, balanceOut);
     }
-
 }

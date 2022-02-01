@@ -41,11 +41,8 @@ contract Bal2UsdcActionBuilder is IActionBuilder {
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(balToken)) {
                 balPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(usdcToken)) {
+            } else if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
-                continue;
             }
         }
 
@@ -62,6 +59,7 @@ contract Bal2UsdcActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = balPrices.targetIsZero;
         } else {
+            // never comes because only allow exchange BAL to USDC
             amount = uint256(diff);
             from = usdcToken;
             to = balToken;

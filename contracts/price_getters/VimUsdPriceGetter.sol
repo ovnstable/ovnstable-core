@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/mstable/interfaces/IMasset.sol";
 import "../connectors/mstable/interfaces/ISavingsContract.sol";
 
-contract VimUsdPriceGetter is AbstractPriceGetter, Ownable {
+contract VimUsdPriceGetter is AbstractPriceGetter {
 
     address public usdcToken;
     IMasset public mUsdToken;

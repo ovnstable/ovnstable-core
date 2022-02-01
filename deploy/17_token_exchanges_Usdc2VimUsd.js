@@ -17,10 +17,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [connectorMStable.address, assets.usdc, assets.vimUsd, vault.address],
         log: true,
     });
+    console.log("Deploy Usdc2VimUsdTokenExchange done");
 
     const exchange = await ethers.getContract("Usdc2VimUsdTokenExchange");
 
-    let tx =  await exchange.grantRole(await exchange.PORTFOLIO_MANAGER(), pm.address);
+    let tx = await exchange.grantRole(await exchange.PORTFOLIO_MANAGER(), pm.address);
     await tx.wait();
     console.log("Usdc2VimUsdTokenExchange.grantRole(PORTFOLIO_MANAGER) done");
 
@@ -29,6 +30,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [exchange.address, assets.usdc, assets.vimUsd, portfolio.address],
         log: true,
     });
+    console.log("Deploy Usdc2VimUsdActionBuilder done");
 };
 
 module.exports.tags = ['base', 'token-exchanger',  'Usdc2VimUsdTokenExchange'];

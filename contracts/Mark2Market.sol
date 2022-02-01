@@ -253,7 +253,4 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
         return currentAmount;
     }
 
-
-
-
 }

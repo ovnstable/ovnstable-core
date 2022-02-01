@@ -17,12 +17,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [connectorCurve.address, assets.amUsdc, assets.am3CRV, portfolio.address],
         log: true,
     });
+    console.log("Deploy AUsdc2A3CrvTokenExchange done");
 
     await deploy('AUsdc2A3CrvActionBuilder', {
         from: deployer,
-        args: [exchange.address,assets.amUsdc, assets.am3CRV, usdc2AUsdcActionBuilder.address, a3Crv2A3CrvGaugeActionBuilder.address],
+        args: [exchange.address, assets.amUsdc, assets.am3CRV, usdc2AUsdcActionBuilder.address, a3Crv2A3CrvGaugeActionBuilder.address, portfolio.address],
         log: true,
     });
+    console.log("Deploy AUsdc2A3CrvActionBuilder done");
 };
 
 module.exports.tags = ['base', 'token-exchanger', 'AUsdc2A3CrvTokenExchange'];

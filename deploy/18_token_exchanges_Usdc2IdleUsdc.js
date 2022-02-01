@@ -15,12 +15,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [connectorIDLE.address, assets.usdc, assets.idleUsdc],
         log: true,
     });
+    console.log("Deploy Usdc2IdleUsdcTokenExchange done");
 
     await deploy('Usdc2IdleUsdcActionBuilder', {
         from: deployer,
         args: [exchange.address, assets.usdc, assets.idleUsdc, portfolio.address],
         log: true,
     });
+    console.log("Deploy Usdc2IdleUsdcActionBuilder done");
 };
 
 module.exports.tags = ['base', 'token-exchanger',  'Usdc2IdleUsdcTokenExchange'];

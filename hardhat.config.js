@@ -60,7 +60,7 @@ module.exports = {
         hardhat: {
             forking: {
                 url: "https://polygon-rpc.com/",
-                blockNumber: 23554341 ,
+                blockNumber: 24349061,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
@@ -83,10 +83,10 @@ module.exports = {
 
     mocha: {
         timeout: 36200000,
-        reporter:  "utils/reporter-mocha.js",
-        "reporter-option": [
-            "output=report.json"
-        ]
+//        reporter:  "utils/reporter-mocha.js",
+//        "reporter-option": [
+//            "output=report.json"
+//        ]
     },
 
     gasReporter: {

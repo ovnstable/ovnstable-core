@@ -11,8 +11,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("balancer.setMark2Market: " + m2m.address)
     let tx = await balancer.setMark2Market(m2m.address);
     await tx.wait();
-    console.log("balancer.setMark2Market done")
-
+    console.log("balancer.setMark2Market done");
 };
 
 module.exports.tags = ['setting','Setting'];

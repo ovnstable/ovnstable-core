@@ -17,6 +17,8 @@ import "./Vault.sol";
 import "./Balancer.sol";
 import "./connectors/ConnectorMStable.sol";
 
+import "hardhat/console.sol";
+
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");

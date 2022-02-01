@@ -21,14 +21,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("exchange.setPortfolioManager: " + pm.address);
     tx = await exchange.setPortfolioManager(pm.address);
     await tx.wait();
-    console.log("exchange.setPortfolioManager done")
-
+    console.log("exchange.setPortfolioManager done");
 
     console.log("exchange.setMark2Market: " + m2m.address);
     tx = await exchange.setMark2Market(m2m.address);
     await tx.wait();
-    console.log("exchange.setMark2Market done")
-
+    console.log("exchange.setMark2Market done");
 };
 
 module.exports.tags = ['setting','SettingExchange'];

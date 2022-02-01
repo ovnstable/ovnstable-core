@@ -12,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import "hardhat/console.sol";
 
 contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -86,14 +87,13 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
     // ---  logic
 
     /**
-    * Claim rewards from Curve gauge, Aave, MStable, Balancer where we have staked LP tokens
+    * Claim rewards from Curve gauge, Aave, MStable except Balancer where we have staked LP tokens
     */
     function claimRewards() external override {
         //TODO: add event if gauge emit nothing
         claimRewardCurve();
         claimRewardAave();
         claimRewardMStable();
-        claimRewardBalancer();
     }
 
     function claimRewardCurve() public {
@@ -110,8 +110,38 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
         vault.claimRewardMStable();
     }
 
-    function claimRewardBalancer() public {
-        //TODO balancer
-//        merkleOrchard.claimDistributions(claimer, claims, tokens);
-    }
+    //TODO: Balancer. FIX claiming
+//    function claimRewardBalancer(
+//    //        MerkleOrchard.Claim[] memory claims,
+//    //        address[] memory _tokens
+//        bytes32[] memory proof1,
+//        bytes32[] memory proof2,
+//        bytes32[] memory proof3
+//    ) public {
+//        console.log("Start claiming");
+//        IERC20[] memory tokens = new IERC20[](3);
+//        tokens[0] = IERC20(address(0x2e1AD108fF1D8C782fcBbB89AAd783aC49586756));
+//        tokens[1] = IERC20(address(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063));
+//        tokens[2] = IERC20(address(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270));
+//        MerkleOrchard.Claim[] memory claims = new MerkleOrchard.Claim[](3);
+//        for (uint256 i = 0; i < tokens.length; i++) {
+//            console.log("Token %s", address(tokens[i]));
+//            uint256 distributionId = merkleOrchard.getNextDistributionId(tokens[i], address(vault));
+//            console.log("distributionId %s", distributionId);
+//            uint256 balance = merkleOrchard.getRemainingBalance(tokens[i], address(vault));
+//            console.log("balance %s", balance);
+//            bytes32[] memory proof;
+//            if (i == 0) {
+//                proof = proof1;
+//            } else if (i == 1) {
+//                proof = proof2;
+//            } else if (i == 2) {
+//                proof = proof3;
+//            }
+//            MerkleOrchard.Claim memory claim = MerkleOrchard.Claim(distributionId, balance, address(vault), i, proof);
+//            claims[i] = claim;
+//        }
+//        merkleOrchard.claimDistributions(address(vault), claims, tokens);
+//        console.log("Finish claiming");
+//    }
 }

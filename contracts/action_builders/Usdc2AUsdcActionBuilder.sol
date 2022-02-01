@@ -16,8 +16,10 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
     IERC20 public aUsdcToken;
     IERC20 public vimUsdToken;
     IERC20 public idleUsdcToken;
+    IERC20 public bpspTUsdToken;
     IActionBuilder public usdc2VimUsdActionBuilder;
     IActionBuilder public usdc2IdleUsdcActionBuilder;
+    IActionBuilder public usdc2BpspTUsdActionBuilder;
     Portfolio public portfolio;
 
     constructor(
@@ -26,8 +28,10 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         address _aUsdcToken,
         address _vimUsdToken,
         address _idleUsdcToken,
+        address _bpspTUsdToken,
         address _usdc2VimUsdActionBuilder,
         address _usdc2IdleUsdcActionBuilder,
+        address _usdc2BpspTUsdActionBuilder,
         address _portfolio
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
@@ -35,8 +39,10 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         require(_aUsdcToken != address(0), "Zero address not allowed");
         require(_vimUsdToken != address(0), "Zero address not allowed");
         require(_idleUsdcToken != address(0), "Zero address not allowed");
+        require(_bpspTUsdToken != address(0), "Zero address not allowed");
         require(_usdc2VimUsdActionBuilder != address(0), "Zero address not allowed");
         require(_usdc2IdleUsdcActionBuilder != address(0), "Zero address not allowed");
+        require(_usdc2BpspTUsdActionBuilder != address(0), "Zero address not allowed");
         require(_portfolio != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
@@ -44,8 +50,10 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         aUsdcToken = IERC20(_aUsdcToken);
         vimUsdToken = IERC20(_vimUsdToken);
         idleUsdcToken = IERC20(_idleUsdcToken);
+        bpspTUsdToken = IERC20(_bpspTUsdToken);
         usdc2VimUsdActionBuilder = IActionBuilder(_usdc2VimUsdActionBuilder);
         usdc2IdleUsdcActionBuilder = IActionBuilder(_usdc2IdleUsdcActionBuilder);
+        usdc2BpspTUsdActionBuilder = IActionBuilder(_usdc2BpspTUsdActionBuilder);
         portfolio = Portfolio(_portfolio);
     }
 
@@ -57,9 +65,10 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
-        // get vimUsdPriceGetter and idleUsdcPriceGetter
+        // get vimUsdPriceGetter, idleUsdcPriceGetter, bpspTUsdPriceGetter
         IPriceGetter vimUsdPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(vimUsdToken)).priceGetter);
         IPriceGetter idleUsdcPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(idleUsdcToken)).priceGetter);
+        IPriceGetter bpspTUsdPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(bpspTUsdToken)).priceGetter);
 
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         IMark2Market.BalanceAssetPrices memory usdcPrices;
@@ -75,20 +84,20 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         // get diff usdc2VimUsd and usdc2IdleUsdc to correct current diff
         ExchangeAction memory usdc2VimUsdAction;
         ExchangeAction memory usdc2IdleUsdcAction;
-        bool foundUsdc2VimUsdAction = false;
-        bool foundUsdc2IdleUsdcAction = false;
+        ExchangeAction memory usdc2BpspTUsdAction;
         for (uint8 i = 0; i < actions.length; i++) {
             // here we need USDC diff to make action right
             if (actions[i].code == usdc2VimUsdActionBuilder.getActionCode()) {
                 usdc2VimUsdAction = actions[i];
-                foundUsdc2VimUsdAction = true;
             } else if (actions[i].code == usdc2IdleUsdcActionBuilder.getActionCode()) {
                 usdc2IdleUsdcAction = actions[i];
-                foundUsdc2IdleUsdcAction = true;
+            } else if (actions[i].code == usdc2BpspTUsdActionBuilder.getActionCode()) {
+                usdc2BpspTUsdAction = actions[i];
             }
         }
-        require(foundUsdc2VimUsdAction, "Usdc2AUsdcActionBuilder: Required usdc2VimUsd action not in action list, check calc ordering");
-        require(foundUsdc2IdleUsdcAction, "Usdc2AUsdcActionBuilder: Required usdc2IdleUsdc action not in action list, check calc ordering");
+        require(address(usdc2VimUsdAction.to) != address(0), "Usdc2AUsdcActionBuilder: Required usdc2VimUsdAction not in action list, check calc ordering");
+        require(address(usdc2IdleUsdcAction.to) != address(0), "Usdc2AUsdcActionBuilder: Required usdc2IdleUsdcAction not in action list, check calc ordering");
+        require(address(usdc2BpspTUsdAction.to) != address(0), "Usdc2AUsdcActionBuilder: Required usdc2BpspTUsdAction not in action list, check calc ordering");
 
         // use usdc diff to start calc diff
         int256 diff = usdcPrices.diffToTarget;
@@ -109,6 +118,15 @@ contract Usdc2AUsdcActionBuilder is IActionBuilder {
         } else {
             // if in action move usdcIdle->usdc then we should increase diff (add)
             diff = diff + int256(usdc2IdleUsdcAction.amount);
+        }
+
+        // correct diff value by usdc2BpspTUsd diff
+        if (address(usdcToken) == address(usdc2BpspTUsdAction.to)) {
+            // if in action move usdc->usdcIdle then we should decrease diff (sub)
+            diff = diff - int256(usdc2BpspTUsdAction.amount * bpspTUsdPriceGetter.getUsdcBuyPrice() / bpspTUsdPriceGetter.denominator());
+        } else {
+            // if in action move usdcIdle->usdc then we should increase diff (add)
+            diff = diff + int256(usdc2BpspTUsdAction.amount);
         }
 
         uint256 amount;

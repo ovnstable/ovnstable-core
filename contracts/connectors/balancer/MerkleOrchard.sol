@@ -19,7 +19,7 @@ import "./MerkleProof.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IDistributorCallback.sol";
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 contract MerkleOrchard {
     using SafeERC20 for IERC20;

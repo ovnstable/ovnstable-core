@@ -11,8 +11,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('usdPlus.setExchanger: ' + exchange.address)
     let tx = await usdPlus.setExchanger(exchange.address);
     await tx.wait();
-    console.log("usdPlus.setExchanger done")
-
+    console.log("usdPlus.setExchanger done");
 };
 
 module.exports.tags = ['setting','SettingUsdPlusToken'];

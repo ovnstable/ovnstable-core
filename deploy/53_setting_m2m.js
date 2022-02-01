@@ -17,8 +17,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("m2m.setPortfolio: " + portfolio.address);
     tx = await m2m.setPortfolio(portfolio.address);
     await tx.wait();
-    console.log("m2m.setPortfolio done")
-
+    console.log("m2m.setPortfolio done");
 };
 
 module.exports.tags = ['setting','Setting'];

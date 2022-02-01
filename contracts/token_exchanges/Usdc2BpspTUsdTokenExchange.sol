@@ -7,7 +7,8 @@ import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IConnector.sol";
 
 contract Usdc2BpspTUsdTokenExchange is ITokenExchange {
-    IConnector public balConnector;
+
+    IConnector public connectorBalancer;
     IERC20 public usdcToken;
     IERC20 public bpspTUsdToken;
 
@@ -15,21 +16,20 @@ contract Usdc2BpspTUsdTokenExchange is ITokenExchange {
     uint256 bpspTUsdDenominator;
 
     constructor(
-        address _balConnector,
+        address _connectorBalancer,
         address _usdcToken,
         address _bpspTUsdToken
     ) {
-        require(_balConnector != address(0), "Zero address not allowed");
+        require(_connectorBalancer != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_bpspTUsdToken != address(0), "Zero address not allowed");
 
-        balConnector = IConnector(_balConnector);
+        connectorBalancer = IConnector(_connectorBalancer);
         usdcToken = IERC20(_usdcToken);
         bpspTUsdToken = IERC20(_bpspTUsdToken);
 
         usdcDenominator = 10 ** (18 - IERC20Metadata(address(usdcToken)).decimals());
-        //TODO balancer
-        bpspTUsdDenominator = 10 ** 12;
+        bpspTUsdDenominator = 10 ** (18 - IERC20Metadata(address(bpspTUsdToken)).decimals());
     }
 
     function exchange(
@@ -70,8 +70,8 @@ contract Usdc2BpspTUsdTokenExchange is ITokenExchange {
                 "Usdc2BpspTUsdTokenExchange: Not enough usdcToken"
             );
 
-            usdcToken.transfer(address(balConnector), amount);
-            balConnector.stake(address(usdcToken), amount, receiver);
+            usdcToken.transfer(address(connectorBalancer), amount);
+            connectorBalancer.stake(address(usdcToken), amount, receiver);
 
             // transfer back unused amount
             uint256 unusedBalance = usdcToken.balanceOf(address(this));
@@ -102,14 +102,14 @@ contract Usdc2BpspTUsdTokenExchange is ITokenExchange {
             );
 
             // move assets to connector
-            bpspTUsdToken.transfer(address(balConnector), amount);
+            bpspTUsdToken.transfer(address(connectorBalancer), amount);
 
             // correct exchangeAmount if we got diff on aToken transfer
-            uint256 onBalConnectorBalance = bpspTUsdToken.balanceOf(address(balConnector));
-            if (onBalConnectorBalance < amount) {
-                amount = onBalConnectorBalance;
+            uint256 onConnectorBalance = bpspTUsdToken.balanceOf(address(connectorBalancer));
+            if (onConnectorBalance < amount) {
+                amount = onConnectorBalance;
             }
-            uint256 withdrewAmount = balConnector.unstake(address(usdcToken), amount, receiver);
+            uint256 withdrewAmount = connectorBalancer.unstake(address(usdcToken), amount, receiver);
 
             //TODO: may be add some checks for withdrewAmount
 

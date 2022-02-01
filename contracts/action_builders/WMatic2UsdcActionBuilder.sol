@@ -59,6 +59,7 @@ contract WMatic2UsdcActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = wMaticPrices.targetIsZero;
         } else {
+            // never comes because only allow exchange WMATIC to USDC
             amount = uint256(diff);
             from = usdcToken;
             to = wMaticToken;

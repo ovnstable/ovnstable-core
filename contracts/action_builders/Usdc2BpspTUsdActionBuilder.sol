@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/ITokenExchange.sol";
 import "../interfaces/IActionBuilder.sol";
 import "../interfaces/IMark2Market.sol";
+import "../registries/Portfolio.sol";
+import "../interfaces/IPriceGetter.sol";
 
 contract Usdc2BpspTUsdActionBuilder is IActionBuilder {
     bytes32 constant ACTION_CODE = keccak256("Usdc2BpspTUsd");
@@ -12,19 +14,23 @@ contract Usdc2BpspTUsdActionBuilder is IActionBuilder {
     ITokenExchange public tokenExchange;
     IERC20 public usdcToken;
     IERC20 public bpspTUsdToken;
+    Portfolio public portfolio;
 
     constructor(
         address _tokenExchange,
         address _usdcToken,
-        address _bpspTUsdToken
+        address _bpspTUsdToken,
+        address _portfolio
     ) {
         require(_tokenExchange != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_bpspTUsdToken != address(0), "Zero address not allowed");
+        require(_portfolio != address(0), "Zero address not allowed");
 
         tokenExchange = ITokenExchange(_tokenExchange);
         usdcToken = IERC20(_usdcToken);
         bpspTUsdToken = IERC20(_bpspTUsdToken);
+        portfolio = Portfolio(_portfolio);
     }
 
     function getActionCode() external pure override returns (bytes32) {
@@ -35,17 +41,17 @@ contract Usdc2BpspTUsdActionBuilder is IActionBuilder {
         IMark2Market.BalanceAssetPrices[] memory assetPrices,
         ExchangeAction[] memory actions
     ) external view override returns (ExchangeAction memory) {
+        // get bpspTUsdPriceGetter
+        IPriceGetter bpspTUsdPriceGetter = IPriceGetter(portfolio.getAssetInfo(address(bpspTUsdToken)).priceGetter);
+
         // get diff from iteration over prices because can't use mapping in memory params to external functions
         IMark2Market.BalanceAssetPrices memory usdcPrices;
         IMark2Market.BalanceAssetPrices memory bpspTUsdPrices;
         for (uint8 i = 0; i < assetPrices.length; i++) {
             if (assetPrices[i].asset == address(usdcToken)) {
                 usdcPrices = assetPrices[i];
-                continue;
-            }
-            if (assetPrices[i].asset == address(bpspTUsdToken)) {
+            } else if (assetPrices[i].asset == address(bpspTUsdToken)) {
                 bpspTUsdPrices = assetPrices[i];
-                continue;
             }
         }
 
@@ -62,7 +68,7 @@ contract Usdc2BpspTUsdActionBuilder is IActionBuilder {
             to = usdcToken;
             targetIsZero = bpspTUsdPrices.targetIsZero;
         } else {
-            amount = uint256(diff);
+            amount = uint256(diff * int256(bpspTUsdPriceGetter.getUsdcBuyPrice()) / int256(bpspTUsdPriceGetter.denominator()));
             from = usdcToken;
             to = bpspTUsdToken;
             targetIsZero = usdcPrices.targetIsZero;

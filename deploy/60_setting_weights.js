@@ -21,6 +21,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         targetWeight: 15000,
         maxWeight: 100000,
     }
+    let bpspTUsdWeight = {
+        asset: assets.bpspTUsd,
+        minWeight: 0,
+        targetWeight: 2000,
+        maxWeight: 100000,
+    }
     let usdcWeight = {
         asset: assets.usdc,
         minWeight: 0,
@@ -63,12 +69,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         targetWeight: 0,
         maxWeight: 100000,
     }
-    let bpspTUsdWeight = {
-        asset: assets.usdc,
-        minWeight: 0,
-        targetWeight: 2000,
-        maxWeight: 100000,
-    }
     let tUsdWeight = {
         asset: assets.tUsd,
         minWeight: 0,
@@ -84,6 +84,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let weights = [
         vimUsdWeight,
         idleUsdcWeight,
+        bpspTUsdWeight,
         usdcWeight,
         aUsdcWeight,
         a3CrvWeight,
@@ -91,7 +92,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         wMaticWeight,
         crvWeight,
         mtaWeight,
-        bpspTUsdWeight,
         tUsdWeight,
         balWeight
     ]
@@ -100,7 +100,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let tx = await portfolio.setWeights(weights);
     await tx.wait();
     console.log("portfolio.setWeights done");
-
 };
 
 module.exports.tags = ['setting','Setting'];

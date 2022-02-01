@@ -14,12 +14,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         args: [balancerVault, assets.usdc, assets.wMatic, assets.mta, balancerPoolId1, balancerPoolId2],
         log: true,
     });
+    console.log("Deploy Mta2UsdcTokenExchange done");
 
     await deploy('Mta2UsdcActionBuilder', {
         from: deployer,
         args: [exchange.address, assets.usdc, assets.mta],
         log: true,
     });
+    console.log("Deploy Mta2UsdcActionBuilder done");
 };
 
 module.exports.tags = ['base','token-exchanger', 'Mta2UsdcTokenExchange'];

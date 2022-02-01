@@ -7,18 +7,19 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-
     let exchange = await deploy('A3Crv2A3CrvGaugeTokenExchange', {
         from: deployer,
         args: [curveGaugeAddress],
         log: true,
     });
+    console.log("Deploy A3Crv2A3CrvGaugeTokenExchange done");
 
     await deploy('A3Crv2A3CrvGaugeActionBuilder', {
         from: deployer,
         args: [exchange.address, assets.am3CRV, assets.am3CRVgauge],
         log: true,
     });
+    console.log("Deploy A3Crv2A3CrvGaugeActionBuilder done");
 };
 
 module.exports.tags = ['base', 'token-exchanger', 'A3Crv2A3CrvGaugeTokenExchange'];
