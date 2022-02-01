@@ -114,7 +114,16 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
         return totalPrices;
     }
 
-    function totalUsdcPrice() public view override returns (uint256)
+
+    function totalSellAssets() public view override returns(uint256){
+        return totalAssets(true);
+    }
+
+    function totalBuyAssets() public view override returns(uint256){
+        return totalAssets(false);
+    }
+
+    function totalAssets(bool sell) internal view returns (uint256)
     {
         Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
 
@@ -129,10 +138,15 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
             IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
             uint256 usdcPriceDenominator = priceGetter.denominator();
-            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
+
+            uint256 usdcPrice;
+            if(sell)
+                usdcPrice = priceGetter.getUsdcSellPrice();
+            else
+                usdcPrice = priceGetter.getUsdcBuyPrice();
 
             // in decimals: 18 + 18 - 18 => 18
-            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
+            uint256 usdcPriceInVault = (amountInVault * usdcPrice) / usdcPriceDenominator;
 
             totalUsdcPrice += usdcPriceInVault;
         }
@@ -162,7 +176,7 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
             withdrawAmount = withdrawAmount * withdrawAmountDenominator;
         }
 
-        uint256 totalUsdcPrice = totalUsdcPrice();
+        uint256 totalUsdcPrice = totalSellAssets();
 
         // 3. validate withdrawAmount
         // use `if` instead of `require` because less gas when need to build complex string for revert

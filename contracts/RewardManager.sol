@@ -92,7 +92,7 @@ contract RewardManager is IRewardManager, Initializable, AccessControlUpgradeabl
     function claimRewards() external override {
         //TODO: add event if gauge emit nothing
         claimRewardCurve();
-        claimRewardAave();
+//        claimRewardAave();
         claimRewardMStable();
     }
 

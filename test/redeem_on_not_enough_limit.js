@@ -61,7 +61,7 @@ describe("Redeem on not enough liquidity", function () {
 
         let assetsForLog = [idleUSDC, USDC, amUSDC, am3CRV, am3CRVGauge, CRV, wmatic, usdPlus];
 
-        let totalUsdcPrice = await m2m.totalUsdcPrice();
+        let totalUsdcPrice = await m2m.totalSellAssets();
         console.log("totalUsdcPrice: " + fromE18(totalUsdcPrice));
 
         console.log("---  " + "User " + account + ":");
@@ -94,7 +94,7 @@ describe("Redeem on not enough liquidity", function () {
         console.log("User balance crv before redeem: " + crvBalance)
         expect(crvBalance).to.equal(0);
 
-        totalUsdcPrice = await m2m.totalUsdcPrice();
+        totalUsdcPrice = await m2m.totalSellAssets();
         console.log("totalUsdcPrice before mocking: " + fromE18(totalUsdcPrice));
 
         // set total price
@@ -102,9 +102,9 @@ describe("Redeem on not enough liquidity", function () {
         // let d =  toE18(90);
         let mockedTotalUsdcPrice =  new BN(90).mul(new BN(10).pow(new BN(18)));
         console.log("mockedTotalUsdcPrice: " + mockedTotalUsdcPrice);
-        m2mMock.totalUsdcPrice.returns(mockedTotalUsdcPrice.toString());
+        m2mMock.totalSellAssets.returns(mockedTotalUsdcPrice.toString());
         console.log("mock addr: " + m2mMock.address);
-        console.log("mock totalUsdcPrice: " + await m2mMock.totalUsdcPrice());
+        console.log("mock totalUsdcPrice: " + await m2mMock.totalSellAssets());
 
         await (await exchange.setMark2Market(m2mMock.address)).wait();
         console.log("Setup mock M2M: exchange.setMark2Market done");

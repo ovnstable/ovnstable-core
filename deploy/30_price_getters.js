@@ -101,5 +101,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("Deploy BalPriceGetter done");
 };
 
-module.exports.tags = ['base', 'IdleUsdcPriceGetter', 'UsdcPriceGetter', 'AUsdcPriceGetter', 'A3CrvPriceGetter', 'A3CrvGaugePriceGetter', 'CrvPriceGetter', 'WMaticPriceGetter', 'VimUsdPriceGetter', 'MtaPriceGetter', 'BpspTUsdPriceGetter', 'TUsdPriceGetter', 'BalPriceGetter'];
+module.exports.tags = ['base', 'price-getters'];
 

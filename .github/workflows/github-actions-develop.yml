@@ -32,6 +32,8 @@ jobs:
 
       - name: Run test
         run: npx hardhat test
+        env:
+          ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
 
       - name: Test Report
         uses: dorny/test-reporter@v1

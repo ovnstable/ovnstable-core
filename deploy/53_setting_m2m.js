@@ -20,4 +20,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("m2m.setPortfolio done");
 };
 
-module.exports.tags = ['setting','Setting'];
+module.exports.tags = ['setting','setting-m2m'];

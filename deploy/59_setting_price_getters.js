@@ -24,13 +24,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const balPriceGetter = await ethers.getContract('BalPriceGetter');
 
     // setup price getters
-    await idleUsdcPriceGetter.setIdleToken(assets.idleUsdc);
+    let tx = await idleUsdcPriceGetter.setIdleToken(assets.idleUsdc);
     console.log("idleUsdcPriceGetter.setIdleToken done");
 
-    await a3CrvPriceGetter.setPool(aCurvepoolStake);
+    tx = await a3CrvPriceGetter.setPool(aCurvepoolStake);
+    await tx.wait();
     console.log("a3CrvPriceGetter.setPool done");
 
-    await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
+    tx = await a3CrvGaugePriceGetter.setA3CrvPriceGetter(a3CrvPriceGetter.address);
+    await tx.wait();
     console.log("a3CrvGaugePriceGetter.setA3CrvPriceGetter done");
 
     // link
@@ -100,10 +102,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     ]
 
     console.log("portfolio.setAssetInfo: " + JSON.stringify(assetInfos));
-    let tx = await portfolio.setAssetInfos(assetInfos);
+    tx = await portfolio.setAssetInfos(assetInfos);
     await tx.wait();
     console.log("portfolio.setAssetInfos done");
 };
 
-module.exports.tags = ['setting','Setting'];
+module.exports.tags = ['setting', 'setting-price-getters'];
 

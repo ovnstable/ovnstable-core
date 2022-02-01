@@ -43,29 +43,35 @@ module.exports = {
         polygon: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 100000000000
+            timeout: 36200000,
+            gasPrice: 80000000000,
         },
 
         polygon_dev: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            gasPrice: 70000000000,
+            timeout: 36200000,
         },
+
 
         ganache:{
             url: "http://127.0.0.1:8555",
             chainId: 1337
         },
 
+        localhost: {
+            timeout: 362000000
+        },
+
         hardhat: {
             forking: {
-                url: "https://polygon-rpc.com/",
-                blockNumber: 24349061,
+                url: node_url('polygon'),
+                blockNumber: 24266285,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
-            timeout: 36200000
+            timeout: 362000000
         },
 
     },
@@ -83,10 +89,10 @@ module.exports = {
 
     mocha: {
         timeout: 36200000,
-//        reporter:  "utils/reporter-mocha.js",
-//        "reporter-option": [
-//            "output=report.json"
-//        ]
+        reporter:  "utils/reporter-mocha.js",
+        "reporter-option": [
+            "output=report.json"
+        ]
     },
 
     gasReporter: {

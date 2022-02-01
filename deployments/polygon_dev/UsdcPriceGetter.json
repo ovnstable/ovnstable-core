@@ -1,5 +1,5 @@
 {
-  "address": "0x1dBfDa73baf1c6A6a07DEdE82C04EEb98D46F82E",
+  "address": "0xB29a6152784b4172Ecc1ea4772D6D5491110445a",
   "abi": [
     {
       "inputs": [],
@@ -54,40 +54,40 @@
       "type": "function"
     }
   ],
-  "transactionHash": "0x30d989a6fae98467316a159ae92ff097882379a6f7c746e9610e3c94e2a2d644",
+  "transactionHash": "0x7fad268b85ad1a78ddd5918dcca6efbe2219f810699747c0f88a4b3197dafd99",
   "receipt": {
     "to": null,
     "from": "0x5CB01385d3097b6a189d1ac8BA3364D900666445",
-    "contractAddress": "0x1dBfDa73baf1c6A6a07DEdE82C04EEb98D46F82E",
-    "transactionIndex": 8,
+    "contractAddress": "0xB29a6152784b4172Ecc1ea4772D6D5491110445a",
+    "transactionIndex": 3,
     "gasUsed": "90347",
-    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000008000020000000000100000008000000000000000000000000000000080000000000000000000000000800010000000000000000100000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000080000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000100000",
-    "blockHash": "0x6cf3e1d58efb0f74a52dc9e651156f3f1fbe7c2798315d39f15f10ff79db94bb",
-    "transactionHash": "0x30d989a6fae98467316a159ae92ff097882379a6f7c746e9610e3c94e2a2d644",
+    "logsBloom": "0x00000000000000000000000000000000000000000020000000000000000000000000000000000000020000000000100000008000000000000000000000000000000004000000000000000000000000800010000000000000000100000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000800000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000100000",
+    "blockHash": "0xe46325f422c5f2b1469ff781c4c9af5c62822b6bbe34bb998699de82d3deb15a",
+    "transactionHash": "0x7fad268b85ad1a78ddd5918dcca6efbe2219f810699747c0f88a4b3197dafd99",
     "logs": [
       {
-        "transactionIndex": 8,
-        "blockNumber": 22940417,
-        "transactionHash": "0x30d989a6fae98467316a159ae92ff097882379a6f7c746e9610e3c94e2a2d644",
+        "transactionIndex": 3,
+        "blockNumber": 24143196,
+        "transactionHash": "0x7fad268b85ad1a78ddd5918dcca6efbe2219f810699747c0f88a4b3197dafd99",
         "address": "0x0000000000000000000000000000000000001010",
         "topics": [
           "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
           "0x0000000000000000000000000000000000000000000000000000000000001010",
           "0x0000000000000000000000005cb01385d3097b6a189d1ac8ba3364d900666445",
-          "0x000000000000000000000000f0245f6251bef9447a08766b9da2b07b28ad80b0"
+          "0x0000000000000000000000007b5000af8ab69fd59eb0d4f5762bff57c9c04385"
         ],
-        "data": "0x000000000000000000000000000000000000000000000000001677e882e81400000000000000000000000000000000000000000000000000763c43a790bea2e80000000000000000000000000000000000000000000001e0e26f125f5c6dd3ef0000000000000000000000000000000000000000000000007625cbbf0dd68ee80000000000000000000000000000000000000000000001e0e2858a47df55e7ef",
-        "logIndex": 33,
-        "blockHash": "0x6cf3e1d58efb0f74a52dc9e651156f3f1fbe7c2798315d39f15f10ff79db94bb"
+        "data": "0x00000000000000000000000000000000000000000000000000161832ef4d0a7800000000000000000000000000000000000000000000000590004c74102980b50000000000000000000000000000000000000000000088492a897276bed9a3090000000000000000000000000000000000000000000000058fea344120dc763d0000000000000000000000000000000000000000000088492a9f8aa9ae26ad81",
+        "logIndex": 10,
+        "blockHash": "0xe46325f422c5f2b1469ff781c4c9af5c62822b6bbe34bb998699de82d3deb15a"
       }
     ],
-    "blockNumber": 22940417,
-    "cumulativeGasUsed": "1114251",
+    "blockNumber": 24143196,
+    "cumulativeGasUsed": "265510",
     "status": 1,
     "byzantium": true
   },
   "args": [],
-  "solcInputHash": "a52a09ed2b2706cd99c66d36846223b4",
+  "solcInputHash": "fe95cbbb2d97e4d95ece85093db98e18",
   "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"DENOMINATOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"denominator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcBuyPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getUsdcSellPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"denominator()\":{\"notice\":\"Denominator for normalization. Default 10**18.\"},\"getUsdcBuyPrice()\":{\"notice\":\"Token buy price at USDC. Amount of USDC we should spend to buy one token. Returned value is [USDC/token] Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice() Normilized to 10**18\"},\"getUsdcSellPrice()\":{\"notice\":\"Token sell price at USDC. Amount of USDC we got if sell one token. Returned value is [USDC/token] Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator() Normilized to 10**18\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/price_getters/UsdcPriceGetter.sol\":\"UsdcPriceGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/interfaces/IPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\ninterface IPriceGetter {\\n    /**\\n     * Token buy price at USDC. Amount of USDC we should spend to buy one token.\\n     * Returned value is [USDC/token]\\n     * Usage: tokenAmount = usdcAmount * denominator() / getUsdcBuyPrice()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcBuyPrice() external view returns (uint256);\\n\\n    /**\\n     * Token sell price at USDC. Amount of USDC we got if sell one token.\\n     * Returned value is [USDC/token]\\n     * Usage: usdcAmount = tokenAmount * getUsdcSellPrice() / denominator()\\n     * Normilized to 10**18\\n     */\\n    function getUsdcSellPrice() external view returns (uint256);\\n\\n    /**\\n     * Denominator for normalization. Default 10**18.\\n     */\\n    function denominator() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x2ffb91797f2de81cf176b8ebe0be12d7250279b61f1ee7f8d37ae41e00ecb04e\",\"license\":\"MIT\"},\"contracts/price_getters/AbstractPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"../interfaces/IPriceGetter.sol\\\";\\n\\ncontract AbstractPriceGetter is IPriceGetter {\\n    uint256 public constant DENOMINATOR = 10**18;\\n\\n    function getUsdcBuyPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function getUsdcSellPrice() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function denominator() external view virtual override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n}\\n\",\"keccak256\":\"0x71a4dc4a01bae2264bd097e07ea93ca929ca304390677644861fb8205cc0a705\",\"license\":\"MIT\"},\"contracts/price_getters/UsdcPriceGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"../price_getters/AbstractPriceGetter.sol\\\";\\n\\ncontract UsdcPriceGetter is AbstractPriceGetter {\\n    function getUsdcBuyPrice() external pure override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n\\n    function getUsdcSellPrice() external pure override returns (uint256) {\\n        return DENOMINATOR;\\n    }\\n}\\n\",\"keccak256\":\"0xca2928f6020733ccccf495abe8a3aafcc8570f327714c205e565a399332e201c\",\"license\":\"MIT\"}},\"version\":1}",
   "bytecode": "0x6080604052348015600f57600080fd5b5060ab8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060465760003560e01c80632b8455f114604b578063918f867414606757806396ce079514604b578063ea24978414604b575b600080fd5b670de0b6b3a76400005b60405190815260200160405180910390f35b6055670de0b6b3a76400008156fea26469706673582212200f8708b75ed1c89b74b002fc2ad7b001d44be383193694c494ad0aa25a91b1a064736f6c63430008060033",
   "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060465760003560e01c80632b8455f114604b578063918f867414606757806396ce079514604b578063ea24978414604b575b600080fd5b670de0b6b3a76400005b60405190815260200160405180910390f35b6055670de0b6b3a76400008156fea26469706673582212200f8708b75ed1c89b74b002fc2ad7b001d44be383193694c494ad0aa25a91b1a064736f6c63430008060033",
