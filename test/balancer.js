@@ -257,6 +257,61 @@ describe("Balancer", function () {
         expect(percent).to.lessThan(20);
     });
 
+    it("Compare with stake price bpspTUsd", async function () {
+        const sum = toUSDC(1);
+
+        // stake
+        await usdc.transfer(connectorBalancer.address, sum);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        // get prices
+        let priceOnStake = (10 ** 30) * balanceUsdc / balanceBpspTUsd;
+        console.log('Price on stake: ' + priceOnStake);
+
+        let buyPrice = Number(await bpspTUsdPriceGetter.getUsdcBuyPrice());
+        console.log('BuyPrice bpspTUsd in usdc: ' + buyPrice);
+
+        let delta = Math.abs(priceOnStake - buyPrice) / priceOnStake * 100;
+        expect(delta).to.lessThanOrEqual(0.04);
+    });
+
+    it("Compare with unstake price bpspTUsd", async function () {
+        const sum = toUSDC(1);
+
+        // stake
+        await usdc.transfer(connectorBalancer.address, sum);
+        let balanceUsdc = await usdc.balanceOf(connectorBalancer.address);
+        console.log('Balance usdc before stake: ' + balanceUsdc);
+
+        await connectorBalancer.stake(usdc.address, sum, vault.address);
+        let balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        console.log('Balance bpspTUsd after stake: ' + balanceBpspTUsd);
+
+        // unstake
+        balanceBpspTUsd = await bpspTUsd.balanceOf(vault.address);
+        await vault.transfer(bpspTUsd.address, connectorBalancer.address, balanceBpspTUsd)
+        console.log('Balance bpspTUsd before unstake: ' + balanceBpspTUsd);
+
+        await connectorBalancer.unstake(usdc.address, balanceBpspTUsd, vault.address);
+        balanceUsdc = await usdc.balanceOf(vault.address);
+        console.log('Balance usdc after unstake: ' + balanceUsdc);
+
+        // get prices
+        let priceOnUnstake = (10 ** 30) * balanceUsdc / balanceBpspTUsd;
+        console.log('Price on unstake: ' + priceOnUnstake);
+
+        let sellPrice = Number(await bpspTUsdPriceGetter.getUsdcSellPrice());
+        console.log('SellPrice bpspTUsd in usdc: ' + sellPrice);
+
+        let delta = Math.abs(priceOnUnstake - sellPrice) / priceOnUnstake * 100;
+        expect(delta).to.lessThanOrEqual(0.04);
+    });
+
     //TODO: Balancer. FIX claiming
 //    it("Claiming rewards", async function () {
 //        const sum = toUSDC(100);

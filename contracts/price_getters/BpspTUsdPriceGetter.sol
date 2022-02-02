@@ -2,15 +2,17 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../price_getters/AbstractPriceGetter.sol";
 import "../connectors/balancer/interfaces/IVault.sol";
+import "../connectors/balancer/interfaces/IGeneralPool.sol";
 
 contract BpspTUsdPriceGetter is AbstractPriceGetter {
 
     IVault public balancerVault;
     IERC20 public usdcToken;
     IERC20 public bpspTUsdToken;
-    IERC20 public balancerPool;
+    IGeneralPool public balancerPool;
     bytes32 public balancerPoolId;
 
     constructor(
@@ -29,29 +31,78 @@ contract BpspTUsdPriceGetter is AbstractPriceGetter {
         balancerVault = IVault(_balancerVault);
         usdcToken = IERC20(_usdcToken);
         bpspTUsdToken = IERC20(_bpspTUsdToken);
-        balancerPool = IERC20(_balancerPool);
+        balancerPool = IGeneralPool(_balancerPool);
         balancerPoolId = _balancerPoolId;
     }
 
     function getUsdcBuyPrice() external view override returns (uint256) {
-        return _getUsdcPrice();
+        uint256 totalBalanceUsdc;
+        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId);
+        for (uint256 i; i < tokens.length; i++) {
+            if (tokens[i] != usdcToken) {
+                uint256 oneToken = 10 ** (IERC20Metadata(address(tokens[i])).decimals());
+                totalBalanceUsdc += balances[i] * _getUsdcTokenBuyPrice(tokens[i], oneToken) / oneToken;
+            } else {
+                totalBalanceUsdc += balances[i] * (10 ** 12);
+            }
+        }
+        uint256 totalSupply = IERC20(address(balancerPool)).totalSupply();
+
+        return (10 ** 18) * totalBalanceUsdc / totalSupply;
     }
 
     function getUsdcSellPrice() external view override returns (uint256) {
-        return _getUsdcPrice();
-    }
-
-    function _getUsdcPrice() internal view returns (uint256) {
-        uint256 balanceUsdc;
+        uint256 totalBalanceUsdc;
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId);
         for (uint256 i; i < tokens.length; i++) {
-            if (tokens[i] == usdcToken) {
-                balanceUsdc = balances[i] * (10 ** 12);
+            if (tokens[i] != usdcToken) {
+                uint256 oneToken = 10 ** (IERC20Metadata(address(tokens[i])).decimals());
+                totalBalanceUsdc += balances[i] * _getUsdcTokenSellPrice(tokens[i], oneToken) / oneToken;
+            } else {
+                totalBalanceUsdc += balances[i] * (10 ** 12);
             }
         }
-        uint256 totalSupply = balancerPool.totalSupply();
+        uint256 totalSupply = IERC20(address(balancerPool)).totalSupply();
 
-        //TODO: Balancer. Hardcode for swap fee
-        return (10 ** 18) * balanceUsdc * 4 / totalSupply * 994 / 1000;
+        return (10 ** 18) * totalBalanceUsdc / totalSupply;
+    }
+
+    function _getUsdcTokenBuyPrice(IERC20 token, uint256 oneToken) internal view returns (uint256) {
+        uint256 balanceUsdc = _onSwap(balancerPool, balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdcToken, token, oneToken);
+        return balanceUsdc * (10 ** 12);
+    }
+
+    function _getUsdcTokenSellPrice(IERC20 token, uint256 oneToken) internal view returns (uint256) {
+        uint256 balanceUsdc = _onSwap(balancerPool, balancerPoolId, IVault.SwapKind.GIVEN_IN, token, usdcToken, oneToken);
+        return balanceUsdc * (10 ** 12);
+    }
+
+    function _onSwap(IGeneralPool balancerPool,
+        bytes32 balancerPoolId,
+        IVault.SwapKind kind,
+        IERC20 tokenIn,
+        IERC20 tokenOut,
+        uint256 balance
+    ) internal view returns (uint256) {
+
+        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId);
+
+        uint256 indexIn;
+        uint256 indexOut;
+        for (uint8 i = 0; i < tokens.length; i++) {
+            if (tokens[i] == tokenIn) {
+                indexIn = i;
+            } else if (tokens[i] == tokenOut) {
+                indexOut = i;
+            }
+        }
+
+        IPoolSwapStructs.SwapRequest memory swapRequest;
+        swapRequest.kind = kind;
+        swapRequest.tokenIn = tokenIn;
+        swapRequest.tokenOut = tokenOut;
+        swapRequest.amount = balance;
+
+        return balancerPool.onSwap(swapRequest, balances, indexIn, indexOut);
     }
 }

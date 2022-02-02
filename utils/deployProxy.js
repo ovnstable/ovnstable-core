@@ -23,7 +23,7 @@ async function deployProxy(contractName, deployments, save) {
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
     }
 
-
+    // set false for local testing
     let upgradeTo = true;
     let impl;
     if (upgradeTo) {

@@ -371,7 +371,7 @@ describe("Rebalance", function () {
         console.log('Balance usdc on connectorAAVE: ' + fromUSDC(balance));
 
         // stake USDC
-        await connectorAave.stake(usdc.address, sum, vault.address);
+        await connectorAAVE.stake(usdc.address, sum, vault.address);
         balance = await amUsdc.balanceOf(vault.address);
         console.log('Balance amUsdc on vault: ' + fromAmUSDC(balance))
 
@@ -381,7 +381,7 @@ describe("Rebalance", function () {
         console.log('Balance amUsdc on connectorCurve: ' + fromAmUSDC(balance));
 
         // stake amUSDC
-        await connectorCurve.stake(aUsdcToken.address, balance, vault.address);
+        await connectorCurve.stake(amUsdc.address, balance, vault.address);
         balance = await am3CRV.balanceOf(vault.address);
         console.log('Balance am3CRV on vault: ' + froAm3CRV(balance));
 

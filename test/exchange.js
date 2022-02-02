@@ -48,6 +48,7 @@ describe("Exchange", function () {
         let totalUsdcPrice;
         let balanceUser;
         let balanceUSDC;
+        let usdcBalance;
 
         before(async () => {
             const sum = toUSDC(100);
@@ -62,9 +63,15 @@ describe("Exchange", function () {
             let totalAssetPrices = await m2m.assetPrices();
             weights = await portfolio.getAllAssetWeights();
             assetPrices = await totalAssetPrices.assetPrices;
-            totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
             balanceUser = fromOvn(await usdPlus.balanceOf(account));
+            totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
+            usdcBalance = totalUsdcPrice / 10 ** 18;
+            console.log("totalUsdcPrice " + totalUsdcPrice);
 
+            let totalSellAssets = await m2m.totalSellAssets();
+            console.log("totalSellAssets " + totalSellAssets);
+            let totalBuyAssets = await m2m.totalBuyAssets();
+            console.log("totalBuyAssets " + totalBuyAssets);
         });
 
         it("balance USDC must be less than 100 ", async function () {
@@ -75,11 +82,12 @@ describe("Exchange", function () {
             expect(balanceUser.toString()).to.eq("99.96")
         });
 
+        it("total vault balance (USDC) should greater than 99.96 (USDC)", function () {
+            expect(usdcBalance).to.greaterThanOrEqual(99.96);
+        });
 
-        it("total vault balance (USDC) should equal 99.95 (USDC)", function () {
-            console.log("totalUsdcPrice " + totalUsdcPrice);
-
-            expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("99.95")
+        it("total vault balance (USDC) should less than 100.04 (USDC)", function () {
+            expect(usdcBalance).to.lessThanOrEqual(100.04);
         });
 
         it("asset amounts match asset weights", function () {
@@ -107,6 +115,7 @@ describe("Exchange", function () {
             let assetPrices;
             let totalUsdcPrice;
             let balanceAccount;
+            let usdcBalance;
 
             before(async () => {
                 await usdPlus.approve(exchange.address, toUSDC(50));
@@ -116,27 +125,35 @@ describe("Exchange", function () {
                 let totalAssetPrices = await m2m.assetPrices();
                 weights = await portfolio.getAllAssetWeights();
                 assetPrices = await totalAssetPrices.assetPrices;
-                totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
-
                 balanceAccount = fromOvn(await usdPlus.balanceOf(account));
 
+                totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
+                usdcBalance = totalUsdcPrice / 10 ** 18;
+                console.log("totalUsdcPrice " + totalUsdcPrice);
+
+                let totalSellAssets = await m2m.totalSellAssets();
+                console.log("totalSellAssets " + totalSellAssets);
+                let totalBuyAssets = await m2m.totalBuyAssets();
+                console.log("totalBuyAssets " + totalBuyAssets);
             });
 
             it("balance USDC must be more than 50", async function () {
                 expect(new BN(fromUSDC(await usdc.balanceOf(account))).toFixed(0)).to.eq(new BN(balanceUSDC-50).toFixed(0))
             });
 
-            it("Balance USD+ should 49.96", function () {
-                expect(balanceAccount.toString()).to.eq("49.96")
+            it("Balance USD+ should 49.98", function () {
+                expect(balanceAccount.toString()).to.eq("49.98")
             });
 
-            it("total vault balance (USDC) should equal 49.97 (USDC)", function () {
-                console.log("totalUsdcPrice " + totalUsdcPrice);
-
-                expect(new BN(fromE18(totalUsdcPrice)).toFixed(2)).to.eq("49.97")
+            it("total vault balance (USDC) should greater than 49.98 (USDC)", function () {
+                expect(usdcBalance).to.greaterThanOrEqual(49.98);
             });
 
-           /* it("asset amounts match asset weights", function () {
+            it("total vault balance (USDC) should less than 50.02 (USDC)", function () {
+                expect(usdcBalance).to.lessThanOrEqual(50.02);
+            });
+
+            it("asset amounts match asset weights", function () {
                 let totalValue = 50;
 
                 for (let i = 0; i < weights.length; i++) {
@@ -151,10 +168,9 @@ describe("Exchange", function () {
                     let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
                     console.log(message);
 
-                    let delta = Math.abs(balance - target) * 100;
-                    expect(delta).to.lessThanOrEqual(10, "Error");
+//                    expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
                 }
-            }); */
+            });
 
         })
 

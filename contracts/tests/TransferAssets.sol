@@ -4,7 +4,6 @@ import "../Vault.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../registries/Portfolio.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 
 contract TransferAssets is AccessControl {
 
@@ -32,7 +31,6 @@ contract TransferAssets is AccessControl {
 
     function move() external onlyAdmin {
         Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
-        console.log("AssetInfo %s", assetInfos.length);
         uint256 count = assetInfos.length;
         for (uint8 i = 0; i < count; i++) {
             Portfolio.AssetInfo memory assetInfo = assetInfos[i];
@@ -40,7 +38,6 @@ contract TransferAssets is AccessControl {
             IERC20 asset = IERC20(assetInfo.asset);
 
             uint256 balance = asset.balanceOf(address(oldVault));
-            console.log("Transfer %s , %s, balance %s", address(oldVault), address(newVault), balance);
 
             if(balance > 0){
                 oldVault.transfer(asset, address(newVault), balance);
