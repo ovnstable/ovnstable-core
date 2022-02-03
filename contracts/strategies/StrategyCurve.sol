@@ -234,4 +234,9 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         }
         revert("can't find active for withdraw from curve");
     }
+
+    function claimRewards(address _beneficiary) external override returns (uint256){
+        return 0;
+    }
+
 }

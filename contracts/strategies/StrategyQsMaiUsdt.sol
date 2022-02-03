@@ -267,7 +267,9 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         return  0;
     }
 
-
+    function claimRewards(address _beneficiary) external override returns (uint256){
+        return 0;
+    }
 
 
 }

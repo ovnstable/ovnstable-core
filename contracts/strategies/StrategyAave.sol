@@ -123,7 +123,8 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         return  result;
     }
 
-
-
+    function claimRewards(address _beneficiary) external override returns (uint256){
+        return 0;
+    }
 
 }
