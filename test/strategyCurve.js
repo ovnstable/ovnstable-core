@@ -51,28 +51,28 @@ describe("StrategyCurve", function () {
         it("LiquidationValue should be 100", async function () {
             expect(fromUSDC(await strategy.liquidationValue(account))).to.greaterThan(99);
         });
+
+
+        describe("Unstake 50 USDC", function () {
+
+            before(async () => {
+                await strategy.unstake(usdc.address, toUSDC(50), account);
+            });
+
+
+            it("Balance Am3CrvGauge should be greater than 45", async function () {
+                expect(fromE18(await am3CrvGauge.balanceOf(account))).to.greaterThan(45);
+            });
+
+            it("NetAssetValue should be 45", async function () {
+                expect(fromUSDC(await strategy.netAssetValue(account))).to.greaterThan(45);
+            });
+
+            it("LiquidationValue should be 45", async function () {
+                expect(fromUSDC(await strategy.liquidationValue(account))).to.greaterThan(45);
+            });
+        });
+
     });
-
-
-
-    it("UnStacking 100$", async function () {
-
-        const sum = toUSDC(100);
-        await usdc.transfer(connectorAave.address, sum);
-        await connectorAave.stake(usdc.address, sum, connectorAave.address);
-
-        let balance = fromAmUSDC(await amUsdc.balanceOf(connectorAave.address));
-        console.log('Balance amUsdc: ' + balance)
-        expect(balance).to.equal(100);
-
-        await connectorAave.unstake(usdc.address, sum, vault.address);
-
-        balance = fromUSDC(await usdc.balanceOf(vault.address));
-        console.log('Balance usdc: ' + balance)
-        expect(balance).to.equal(100);
-
-    });
-
-
 
 });

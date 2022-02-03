@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "../interfaces/IStrategy.sol";
 import "../connectors/balancer/interfaces/IVault.sol";
@@ -20,7 +21,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
     // --- events
 
-    event StrategyBalancerUpdate(address balancerVault, address balancerPoolId);
+    event StrategyBalancerUpdate(address balancerVault, bytes32 balancerPoolId);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -33,16 +34,23 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
+    // ---  modifiers
 
-    // --- Setters
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+
+        // --- Setters
 
     function setParams(
         address _balancerVault,
-        address _balancerPoolId
+        bytes32 _balancerPoolId
     ) external onlyAdmin {
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_balancerPoolId != "", "Empty pool id not allowed");
-        
+
         balancerVault = IVault(_balancerVault);
         balancerPoolId = _balancerPoolId;
 
@@ -118,6 +126,14 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
         balancerVault.exitPool(balancerPoolId, address(this), payable(_beneficiary), request);
         return IERC20(_asset).balanceOf(_beneficiary);
+    }
+
+    function liquidationValue(address _holder) external override view returns (uint256) {
+        return 0;
+    }
+
+    function netAssetValue(address _holder) external override view returns (uint256){
+        return 0;
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){

@@ -37,8 +37,14 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
+    // ---  modifiers
 
-    // --- Setters
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+        // --- Setters
 
     function setParams(
         address _vault,
@@ -72,7 +78,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override onlyTokenExchanger {
+    ) public override {
         IERC20(_asset).approve(mUsdToken, _amount);
         uint256 mintedTokens = IMasset(mUsdToken).mint(_asset, _amount, 0, address(this));
         IERC20(mUsdToken).approve(imUsdToken, mintedTokens);
@@ -85,7 +91,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override onlyTokenExchanger returns (uint256) {
+    ) public override returns (uint256) {
         vault.unstakeVimUsd(imUsdToken, _amount, address(this));
         ISavingsContractV2(imUsdToken).redeem(IERC20(imUsdToken).balanceOf(address(this)));
         IMasset(mUsdToken).redeem(_asset, IERC20(mUsdToken).balanceOf(address(this)), 0, address(this));
@@ -98,8 +104,16 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) external onlyPortfolioManager {
+    ) external {
         vault.unstakeVimUsd(_asset, _amount, _beneficiary);
+    }
+
+    function liquidationValue(address _holder) external override view returns (uint256) {
+        return 0;
+    }
+
+    function netAssetValue(address _holder) external override view returns (uint256){
+        return 0;
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){

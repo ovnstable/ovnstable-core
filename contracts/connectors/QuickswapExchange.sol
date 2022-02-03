@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 abstract contract QuickswapExchange {
 
@@ -29,7 +30,7 @@ abstract contract QuickswapExchange {
         // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
         if (estimateUsdcOut < 3) {
             IERC20(token).transfer(sender, IERC20(token).balanceOf(address(this)));
-            return;
+            return new uint[](0);
         }
 
         return swapRouter.swapExactTokensForTokens(

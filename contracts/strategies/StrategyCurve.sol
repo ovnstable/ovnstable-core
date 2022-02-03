@@ -96,7 +96,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         require(_asset == address(usdc) , "Some token not compatible" );
 
         address current = address(this);
-        console.log("Balance usdc %s", IERC20(_asset).balanceOf(current));
 
         _stakeAave(address(usdc), _amount, current);
         _stakeCurve(address(aUsdc), _amount, current);
@@ -105,11 +104,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         a3CrvToken.approve(address(rewardGauge), a3CrvBalance);
         rewardGauge.deposit(a3CrvBalance, current, false);
 
-        console.log("Balance a3CrvGauge %s", a3CrvGaugeToken.balanceOf(current));
-
         a3CrvGaugeToken.transfer(_beneficiary, a3CrvGaugeToken.balanceOf(current));
-
-        console.log("Balance a3CrvGauge %s", a3CrvGaugeToken.balanceOf(current));
     }
 
     function unstake(
@@ -117,8 +112,17 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         uint256 _amount,
         address _beneficiary
     ) override external returns (uint256) {
+        require(_asset == address(usdc), "Some token not compatible" );
 
+        address current = address(this);
+        // gauge doesn't need approve on withdraw, but we should have amount token
+        // on tokenExchange
+        rewardGauge.withdraw(_amount, false);
 
+        uint256 withdrewAmount = _unstakeCurve(address(aUsdc), aUsdc.balanceOf(current),current);
+        withdrewAmount = _unstakeAave(_asset, withdrewAmount, current);
+
+        return withdrewAmount;
     }
 
     function netAssetValue(address _holder) external view override returns (uint256){
@@ -149,11 +153,29 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
     function _stakeAave(
         address _asset,
         uint256 _amount,
-        address _beneficiar
+        address _beneficiary
     ) internal {
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         IERC20(_asset).approve(address(pool), _amount);
-        pool.deposit(_asset, _amount, _beneficiar, 0);
+        pool.deposit(_asset, _amount, _beneficiary, 0);
+    }
+
+    function _unstakeAave(
+        address _asset,
+        uint256 _amount,
+        address _to
+    ) internal returns (uint256) {
+        ILendingPool pool = ILendingPool(aave.getLendingPool());
+
+        uint256 w = pool.withdraw(_asset, _amount, _to);
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+
+        //TODO: use _to to for returning tokens
+        IERC20(res.aTokenAddress).transfer(
+            msg.sender,
+            IERC20(res.aTokenAddress).balanceOf(address(this))
+        );
+        return w;
     }
 
     function _stakeCurve(

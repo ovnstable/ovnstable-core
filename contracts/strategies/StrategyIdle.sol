@@ -33,8 +33,14 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
+    // ---  modifiers
 
-    // --- Setters
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+        // --- Setters
 
     function setParams(address _idleToken) external onlyAdmin {
         require(_idleToken != address(0), "Zero address not allowed");
@@ -69,6 +75,14 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 redeemedTokens = IIdleToken(idleToken).redeemIdleToken(_amount);
         IERC20(_asset).transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;
+    }
+
+    function liquidationValue(address _holder) external override view returns (uint256) {
+        return 0;
+    }
+
+    function netAssetValue(address _holder) external override view returns (uint256){
+        return 0;
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){
