@@ -16,13 +16,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
     console.log("Deploy ConnectorBalancer done");
 
-    await deploy('ConnectorCurve', {
-        from: deployer,
-        args: [],
-        log: true,
-    });
-    console.log("Deploy ConnectorCurve done");
-
     await deploy('ConnectorIDLE', {
         from: deployer,
         args: [],

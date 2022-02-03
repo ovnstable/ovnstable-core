@@ -17,9 +17,8 @@ interface IStrategy {
         address _beneficiary
     ) external returns (uint256); // Real unstake value
 
-    function claimRewards(
-        address _beneficiary
-    ) external returns (uint256); // Return received amount in USDC
+    function netAssetValue(address _holder) external view returns (uint256);
+    function liquidationValue(address _holder) external view returns (uint256);
 }
 
 
