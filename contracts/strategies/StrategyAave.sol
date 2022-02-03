@@ -37,6 +37,12 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
     // ---  modifiers
 
     modifier onlyAdmin() {
@@ -62,11 +68,7 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         aUsdc = IERC20(_aUsdc);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
+
 
 
     // --- logic

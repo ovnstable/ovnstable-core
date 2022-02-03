@@ -41,6 +41,12 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
     // ---  modifiers
 
     modifier onlyAdmin() {
@@ -77,11 +83,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         a3CrvGaugeToken = IERC20(_a3CrvGaugeToken);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
 
 
     // --- logic
@@ -122,13 +123,14 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
 
     function netAssetValue(address _holder) external view override returns (uint256){
 
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder)/ 10 ** 12;
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
         uint256 price = curve.get_virtual_price();
         console.log('Gauge balance %s', balance);
         console.log('Gauge price %s', price);
 
-        uint256 result = (balance  * price) / 10 ** 6;
+        uint256 result = (balance  * price) / 10 ** 12;
         console.log('Gauge result %s', result);
+        console.log('Gauge result %s', result / 10 ** 6);
         return  result;
 
     }
