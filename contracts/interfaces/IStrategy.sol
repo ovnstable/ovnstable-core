@@ -8,19 +8,14 @@ interface IStrategy {
     function stake(
         address _asset,
         uint256 _amount,
-        address _beneficiar
+        address _beneficiary
     ) external;
 
     function unstake(
         address _asset,
-        uint256 _amount,
-        address _to
-    ) external returns (uint256);
-
-    function balance(
-        address _holder
-    ) external returns (uint256);
-
+        uint256 _amount, // minimum expected value for returning
+        address _beneficiary
+    ) external returns (uint256); // Real unstake value
 
 }
 

@@ -105,11 +105,6 @@ contract CurveStrategy is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
 
     }
 
-    function balance(
-        address _holder
-    ) external returns (uint256){
 
-
-    }
 
 }
