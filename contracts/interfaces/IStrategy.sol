@@ -17,6 +17,9 @@ interface IStrategy {
         address _beneficiary
     ) external returns (uint256); // Real unstake value
 
+    function claimRewards(
+        address _beneficiary
+    ) external returns (uint256); // Return received amount in USDC
 }
 
 
