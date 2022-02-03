@@ -13,8 +13,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    address public idleToken;
-
+    IIdleToken public idleToken;
 
     // --- events
 
@@ -44,7 +43,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function setParams(address _idleToken) external onlyAdmin {
         require(_idleToken != address(0), "Zero address not allowed");
-        idleToken = _idleToken;
+        idleToken = IIdleToken(_idleToken);
         emit StrategyIdleUpdate(_idleToken);
     }
 

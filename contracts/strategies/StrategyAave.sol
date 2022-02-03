@@ -14,7 +14,7 @@ import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 
 
-contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
+contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
@@ -54,9 +54,9 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
     // --- Setters
 
     function setParams(address _aave,
-                       address _usdc,
-                       address _aUsdc
-                       ) external onlyAdmin {
+        address _usdc,
+        address _aUsdc
+    ) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
@@ -78,15 +78,15 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         uint256 _amount,
         address _beneficiary
     ) override external {
-        require(_asset == address(usdc) , "Some token not compatible" );
+        require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
-        console.log("Balance usdc %s", IERC20(_asset).balanceOf(current));
+
+        usdc.transferFrom(_beneficiary, address(this), _amount);
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         IERC20(_asset).approve(address(pool), _amount);
         pool.deposit(_asset, _amount, _beneficiary, 0);
-
     }
 
     function unstake(
@@ -94,33 +94,33 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         uint256 _amount,
         address _beneficiary
     ) override external returns (uint256) {
+        require(_asset == address(usdc), "Some token not compatible");
 
+        aUsdc.transferFrom(_beneficiary, address(this), _amount);
 
+        ILendingPool pool = ILendingPool(aave.getLendingPool());
+        aUsdc.approve(address(pool), _amount);
+
+        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+
+        DataTypes.ReserveData memory res = pool.getReserveData(_asset);
+        IERC20(res.aTokenAddress).transfer(
+            _beneficiary,
+            IERC20(res.aTokenAddress).balanceOf(address(this))
+        );
+
+        usdc.transfer(_beneficiary, withdrawAmount);
+        return withdrawAmount;
     }
 
 
     function netAssetValue(address _holder) external view override returns (uint256){
-
-        uint256 balance = aUsdc.balanceOf(_holder);
-        uint256 price = 1;
-        console.log('Gauge balance %s', balance);
-        console.log('Gauge price %s', price);
-
-        uint256 result = (balance / (10 ** 12)) * price;
-        console.log('Gauge result %s', result);
-        return  result;
+        return aUsdc.balanceOf(_holder);
 
     }
 
     function liquidationValue(address _holder) external view override returns (uint256){
-        uint256 balance = aUsdc.balanceOf(_holder);
-        uint256 price = 1;
-        console.log('Gauge balance %s', balance);
-        console.log('Gauge price %s', price);
-
-        uint256 result = (balance / (10 ** 12)) * price;
-        console.log('Gauge result %s', result);
-        return  result;
+        return aUsdc.balanceOf(_holder);
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){

@@ -55,10 +55,16 @@ describe("StrategyCurve", function () {
 
         describe("Unstake 50 USDC", function () {
 
+            let unstakeValue;
+
             before(async () => {
-                await strategy.unstake(usdc.address, toUSDC(50), account);
+                await am3CrvGauge.approve(strategy.address, await am3CrvGauge.balanceOf(account));
+                unstakeValue = await strategy.unstake(usdc.address, toUSDC(50), account);
             });
 
+            it("Unstake value should be eq 50 USDC", async function () {
+                expect(fromUSDC(unstakeValue)).to.greaterThan(50);
+            });
 
             it("Balance Am3CrvGauge should be greater than 45", async function () {
                 expect(fromE18(await am3CrvGauge.balanceOf(account))).to.greaterThan(45);

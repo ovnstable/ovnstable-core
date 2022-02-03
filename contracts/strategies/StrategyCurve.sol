@@ -15,7 +15,7 @@ import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 
 
-contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
+contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
@@ -59,12 +59,12 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
     // --- Setters
 
     function setParams(address _aave,
-                       address _curve,
-                       address _rewardGauge,
-                       address _usdc,
-                       address _aUsdc,
-                       address _a3CrvToken,
-                       address _a3CrvGaugeToken) external onlyAdmin {
+        address _curve,
+        address _rewardGauge,
+        address _usdc,
+        address _aUsdc,
+        address _a3CrvToken,
+        address _a3CrvGaugeToken) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
         require(_rewardGauge != address(0), "Zero address not allowed");
@@ -93,7 +93,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         uint256 _amount,
         address _beneficiary
     ) override external {
-        require(_asset == address(usdc) , "Some token not compatible" );
+        require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
 
@@ -112,41 +112,54 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         uint256 _amount,
         address _beneficiary
     ) override external returns (uint256) {
-        require(_asset == address(usdc), "Some token not compatible" );
+        require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on tokenExchange
-        rewardGauge.withdraw(_amount, false);
 
-        uint256 withdrewAmount = _unstakeCurve(address(aUsdc), aUsdc.balanceOf(current),current);
-        withdrewAmount = _unstakeAave(_asset, withdrewAmount, current);
+        uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
+        console.log('Token amount %s', tokenAmount);
+
+        a3CrvGaugeToken.transferFrom(_beneficiary, current, tokenAmount);
+
+        rewardGauge.withdraw(tokenAmount, false);
+        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
+
+        uint256 withdrewAmount = _unstakeCurve(address(aUsdc), a3CrvToken.balanceOf(current), current);
+
+        console.log('aUsdc %s', aUsdc.balanceOf(current));
+        withdrewAmount = _unstakeAave(_asset, aUsdc.balanceOf(current), current);
 
         return withdrewAmount;
     }
 
     function netAssetValue(address _holder) external view override returns (uint256){
 
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
-        uint256 price = curve.get_virtual_price(); // 18
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
+        // 18
+        uint256 price = curve.get_virtual_price();
+        // 18
 
         // 18 + 18 = 36
-        uint256 result = (balance  * price);
+        uint256 result = (balance * price);
 
         // 36 - 18 - 12 = 6
-        return  (result / (10 ** 18)) / 10 ** 12;
+        return (result / (10 ** 18)) / 10 ** 12;
 
     }
 
     function liquidationValue(address _holder) external view override returns (uint256){
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
-        uint256 price = curve.get_virtual_price(); // 18
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
+        // 18
+        uint256 price = curve.get_virtual_price();
+        // 18
 
         // 18 + 18 = 36
-        uint256 result = (balance  * price);
+        uint256 result = (balance * price);
 
         // 36 - 18 - 12 = 6
-        return  (result / (10 ** 18)) / 10 ** 12;
+        return (result / (10 ** 18)) / 10 ** 12;
     }
 
 
@@ -182,7 +195,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
         address _asset,
         uint256 _amount,
         address _beneficiar
-    ) internal  {
+    ) internal {
         uint256[3] memory amounts;
         for (uint256 i = 0; i < 3; i++) {
             address coin = curve.coins(i);
