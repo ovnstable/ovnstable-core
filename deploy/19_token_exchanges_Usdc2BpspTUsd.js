@@ -25,4 +25,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("Deploy Usdc2BpspTUsdActionBuilder done");
 };
 
-module.exports.tags = ['base', 'Usdc2BpspTUsdActionBuilder', 'Usdc2BpspTUsdTokenExchange'];
+module.exports.tags = ['base', 'token-exchanger', 'Usdc2BpspTUsdActionBuilder', 'Usdc2BpspTUsdTokenExchange'];
