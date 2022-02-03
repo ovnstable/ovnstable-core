@@ -14,6 +14,8 @@ contract Portfolio is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     AssetInfo[] public assetInfos;
     mapping(address => uint256) public assetWeightPositions;
     AssetWeight[] public assetWeights;
+    mapping(address => uint256) public strategyWeightPositions;
+    StrategyWeight[] public strategyWeights;
 
     event UpdatedAssetWeight(
         uint256 index,
@@ -24,8 +26,23 @@ contract Portfolio is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     );
     event UpdatedAssetInfo(uint256 index, address asset, address priceGetter);
 
+    event UpdatedStrategyWeight(
+        uint256 index,
+        address strategy,
+        uint256 minWeight,
+        uint256 targetWeight,
+        uint256 maxWeight
+    );
+
     struct AssetWeight {
         address asset;
+        uint256 minWeight;
+        uint256 targetWeight;
+        uint256 maxWeight;
+    }
+
+    struct StrategyWeight {
+        address strategy;
         uint256 minWeight;
         uint256 targetWeight;
         uint256 maxWeight;
@@ -140,6 +157,56 @@ contract Portfolio is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         );
     }
 
+    function setStrategyWeights(StrategyWeight[] calldata _strategyWeights) external onlyAdmin {
+        uint256 totalTarget = 0;
+        for (uint8 i = 0; i < _strategyWeights.length; i++) {
+            StrategyWeight memory strategyWeight = _strategyWeights[i];
+            require(strategyWeight.strategy != address(0), "weight without strategy");
+            require(
+                strategyWeight.minWeight <= strategyWeight.targetWeight,
+                "minWeight shouldn't higher than targetWeight"
+            );
+            require(
+                strategyWeight.targetWeight <= strategyWeight.maxWeight,
+                "targetWeight shouldn't higher than maxWeight"
+            );
+            totalTarget += strategyWeight.targetWeight;
+        }
+        require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
+
+        for (uint8 i = 0; i < _strategyWeights.length; i++) {
+            _addStrategyWeightAt(_strategyWeights[i], i);
+            strategyWeightPositions[strategyWeights[i].strategy] = i;
+        }
+
+        // truncate if need
+        if (strategyWeights.length > _strategyWeights.length) {
+            uint256 removeCount = strategyWeights.length - _strategyWeights.length;
+            for (uint8 i = 0; i < removeCount; i++) {
+                strategyWeights.pop();
+            }
+        }
+    }
+
+    function _addStrategyWeightAt(StrategyWeight memory strategyWeight, uint256 index) internal {
+        uint256 currentLength = strategyWeights.length;
+        // expand if need
+        if (currentLength == 0 || currentLength - 1 < index) {
+            uint256 additionalCount = index - currentLength + 1;
+            for (uint8 i = 0; i < additionalCount; i++) {
+                strategyWeights.push();
+            }
+        }
+        strategyWeights[index] = strategyWeight;
+        emit UpdatedStrategyWeight(
+            index,
+            strategyWeight.strategy,
+            strategyWeight.minWeight,
+            strategyWeight.targetWeight,
+            strategyWeight.maxWeight
+        );
+    }
+
     function getAssetInfo(address asset) external view returns (AssetInfo memory) {
         return assetInfos[assetInfoPositions[asset]];
     }
@@ -155,4 +222,13 @@ contract Portfolio is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     function getAllAssetWeights() external view returns (AssetWeight[] memory) {
         return assetWeights;
     }
+
+    function getStrategyWeight(address strategy) external view returns (StrategyWeight memory) {
+        return strategyWeights[strategyWeightPositions[strategy]];
+    }
+
+    function getAllStrategyWeights() external view returns (StrategyWeight[] memory) {
+        return strategyWeights;
+    }
+
 }
