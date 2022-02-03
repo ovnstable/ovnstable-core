@@ -3,10 +3,9 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {FakeContract, smock} = require("@defi-wonderland/smock");
 
-let decimals = require('../utils/decimals');
 
 const fs = require("fs");
-const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = require("../utils/decimals");
+const {fromAmUSDC, fromE6, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 const BN = require('bignumber.js');
