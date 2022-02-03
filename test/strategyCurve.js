@@ -45,13 +45,11 @@ describe("StrategyCurve", function () {
         });
 
         it("NetAssetValue should be 100", async function () {
-            let res = await strategy.netAssetValue(account);
-            console.log('NetAssetValue ' + JSON.stringify(res))
-            expect(fromUSDC(res)).to.equal(100);
+            expect(fromUSDC(await strategy.netAssetValue(account))).to.greaterThan(99);
         });
 
-        it("liquidationValue should be 100", async function () {
-            expect(fromUSDC(await strategy.liquidationValue(account))).to.equal(100);
+        it("LiquidationValue should be 100", async function () {
+            expect(fromUSDC(await strategy.liquidationValue(account))).to.greaterThan(99);
         });
     });
 

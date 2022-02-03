@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -120,23 +121,28 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
 
     }
 
-
     function netAssetValue(address _holder) external view override returns (uint256){
 
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
-        uint256 price = curve.get_virtual_price();
-        console.log('Gauge balance %s', balance);
-        console.log('Gauge price %s', price);
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
+        uint256 price = curve.get_virtual_price(); // 18
 
-        uint256 result = (balance  * price) / 10 ** 12;
-        console.log('Gauge result %s', result);
-        console.log('Gauge result %s', result / 10 ** 6);
-        return  result;
+        // 18 + 18 = 36
+        uint256 result = (balance  * price);
+
+        // 36 - 18 - 12 = 6
+        return  (result / (10 ** 18)) / 10 ** 12;
 
     }
 
     function liquidationValue(address _holder) external view override returns (uint256){
-        return a3CrvGaugeToken.balanceOf(_holder) * curve.get_virtual_price();
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
+        uint256 price = curve.get_virtual_price(); // 18
+
+        // 18 + 18 = 36
+        uint256 result = (balance  * price);
+
+        // 36 - 18 - 12 = 6
+        return  (result / (10 ** 18)) / 10 ** 12;
     }
 
 
