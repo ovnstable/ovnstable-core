@@ -135,11 +135,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     }
 
     function netAssetValue(address _holder) external view override returns (uint256){
-
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
-        // 18
-        uint256 price = curve.get_virtual_price();
-        // 18
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
+        uint256 price = curve.get_virtual_price(); // 18
 
         // 18 + 18 = 36
         uint256 result = (balance * price);
@@ -150,10 +147,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     }
 
     function liquidationValue(address _holder) external view override returns (uint256){
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
-        // 18
-        uint256 price = curve.get_virtual_price();
-        // 18
+        uint256 balance = a3CrvGaugeToken.balanceOf(_holder); // 18
+        uint256 price = curve.get_virtual_price(); // 18
 
         // 18 + 18 = 36
         uint256 result = (balance * price);

@@ -3,8 +3,6 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-let aCurvepoolStake = "0x445FE580eF8d70FF569aB36e80c647af338db351";
-let aaveAddress = "0xd05e3E715d945B59290df0ae8eF85c1BdB684744";
 
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -12,7 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyIdle");
-    // await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc)).wait();
+    await (await strategy.setParams(assets.idleUsdc, assets.usdc)).wait();
     console.log('StrategyIdle setting done')
 };
 
