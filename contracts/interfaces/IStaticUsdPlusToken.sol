@@ -51,8 +51,20 @@ interface IStaticUsdPlusToken is IERC20, IERC20Metadata {
     function rate() external view returns (uint256);
 
     /**
+     * @dev ERC4626 method. Returns UsdPlusToken liquidity index scaled to e6
+     * @return rate Rate between StaticUsdPlusToken and UsdPlusToken in e6 (ray)
+     **/
+    function assetsPerShare() external view returns (uint256);
+
+    /**
      * @dev Returns UsdPlusToken address
      * @return address The address of UsdPlusToken
      **/
     function mainToken() external view returns (address);
+
+    /**
+     * @dev ERC4626 method. Returns wrapped token address
+     * @return address The address of the wrapped token
+     **/
+    function underlying() external view returns (address);
 }

@@ -59,7 +59,7 @@ module.exports = {
 
         hardhat: {
             forking: {
-                url: "https://polygon-rpc.com/",
+                url: node_url('polygon'),
                 blockNumber: 23554341 ,
             },
             accounts: {

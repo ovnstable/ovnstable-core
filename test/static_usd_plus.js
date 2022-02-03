@@ -39,6 +39,13 @@ describe("StaticUsdPlusToken", function () {
 
     });
 
+    it("underlying token is usdToken", async function () {
+
+        let underlyingToken = await staticUsdPlus.underlying();
+        expect(underlyingToken.toString()).to.equals(usdPlus.address);
+
+    });
+
     it("rate same to usdPlus liquidity index", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
@@ -50,6 +57,20 @@ describe("StaticUsdPlusToken", function () {
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
         rate = await staticUsdPlus.rate();
         expect(rate.toString()).to.equals(liquidityIndex.toString());
+
+    });
+
+    it("assetsPerShare correspond to usdPlus liquidity index", async function () {
+
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        let assetsPerShare = await staticUsdPlus.assetsPerShare();
+        expect(assetsPerShare.toString()).to.equals(new BN(10).pow(new BN(6)).toString());
+
+        liquidityIndex = new BN(10).pow(new BN(27)).muln(2);
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        assetsPerShare = await staticUsdPlus.assetsPerShare();
+        expect(assetsPerShare.toString()).to.equals(new BN(10).pow(new BN(6)).muln(2).toString());
 
     });
 
