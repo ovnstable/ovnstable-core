@@ -68,7 +68,17 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     }
 
     ///@inheritdoc IStaticUsdPlusToken
+    function assetsPerShare() external view override returns (uint256){
+        return _mainToken.liquidityIndex() / 10 ** 21;
+    }
+
+    ///@inheritdoc IStaticUsdPlusToken
     function mainToken() external view override returns (address){
+        return address(_mainToken);
+    }
+
+    ///@inheritdoc IStaticUsdPlusToken
+    function underlying() external view override returns (address){
         return address(_mainToken);
     }
 }
