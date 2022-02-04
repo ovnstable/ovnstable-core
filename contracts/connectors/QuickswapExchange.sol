@@ -5,10 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-abstract contract QuickswapExchange {
+contract QuickswapExchange {
+
+    IUniswapV2Router02 public swapRouter;
 
     function swap(
-        IUniswapV2Router02 swapRouter,
         address token,
         address usdcToken,
         address sender,
@@ -43,7 +44,6 @@ abstract contract QuickswapExchange {
     }
 
     function getUsdcBuyPrice(
-        IUniswapV2Router02 swapRouter,
         address usdcToken,
         address token
     ) public view returns (uint256) {
