@@ -61,7 +61,7 @@ describe("Exchange", function () {
             await result.wait();
 
             let totalAssetPrices = await m2m.assetPrices();
-            weights = await portfolio.getAllAssetWeights();
+            weights = await portfolio.getAllStrategyWeights();
             assetPrices = await totalAssetPrices.assetPrices;
             balanceUser = fromOvn(await usdPlus.balanceOf(account));
             totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
