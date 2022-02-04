@@ -22,7 +22,7 @@ describe("StrategyCurve", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyCurve', 'StrategyCurveSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyCurve', 'Vault', 'StrategyCurveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

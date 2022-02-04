@@ -226,7 +226,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
         uint256 totalUsdc = mark2market.totalLiquidationAssets();
         // denormalize from 10**18 to 10**6 as USD+ decimals
-        totalUsdc = totalUsdc / 10 ** 12;
+        // new: totalLiquidationAssets return value as 10**6
+//        totalUsdc = totalUsdc / 10 ** 12;
 
         uint256 totalUsdPlusSupplyNotEnoughLimit = totalUsdPlusSupply * notEnoughLimit / notEnoughLimitDenominator;
         // check if we should return back to user proportionally tokens from Vault

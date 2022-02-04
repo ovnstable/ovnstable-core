@@ -21,7 +21,7 @@ describe("StrategyAave", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyAave', 'StrategyAaveSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyAave', 'Vault', 'StrategyAaveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

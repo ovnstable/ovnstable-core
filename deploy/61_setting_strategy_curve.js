@@ -13,8 +13,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyCurve");
+    const vault = await ethers.getContract("Vault");
     await (await strategy.setParams(aaveAddress,
                                     aCurvepoolStake,
+                                    vault.address,
                                     assets.am3CRVgauge,
                                     swapRouter,
                                     assets.usdc,

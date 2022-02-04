@@ -42,14 +42,14 @@ describe("Mark2Market", function () {
     });
 
 
-    it("totalSellAssets should be eq 100", async function () {
-        let value  = await m2m.totalSellAssets();
+    it("totalNetAssets should be eq 100", async function () {
+        let value  = await m2m.totalNetAssets();
         expect(fromE18(value)).to.equal(100);
 
     });
 
-    it("totalBuyAssets should be eq 100", async function () {
-        let value  =await m2m.totalBuyAssets();
+    it("totalLiquidationAssets should be eq 100", async function () {
+        let value  =await m2m.totalLiquidationAssets();
         expect(fromE18(value)).to.equal(100);
     });
 

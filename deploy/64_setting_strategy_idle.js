@@ -10,7 +10,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyIdle");
-    await (await strategy.setParams(assets.idleUsdc, assets.usdc)).wait();
+    const vault = await ethers.getContract("Vault");
+    await (await strategy.setParams(assets.idleUsdc, assets.usdc, vault.address)).wait();
     console.log('StrategyIdle setting done')
 };
 

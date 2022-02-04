@@ -9,11 +9,12 @@ import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "hardhat/console.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/QuickswapExchange.sol";
+import "../Vault.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -31,6 +32,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     IERC20 public wMatic;
     IERC20 public crv;
 
+    Vault public vault;
 
 
     // ---  constructor
@@ -64,6 +66,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function setParams(address _aave,
         address _curve,
+        address _vault,
         address _rewardGauge,
         address _exchange,
         address _usdc,
@@ -74,6 +77,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _crv) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
+        require(_vault != address(0), "Zero address not allowed");
         require(_rewardGauge != address(0), "Zero address not allowed");
         require(_exchange != address(0), "Zero address not allowed");
         require(_curve != address(0), "Zero address not allowed");
@@ -86,6 +90,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         rewardGauge = IRewardOnlyGauge(_rewardGauge);
         curve = iCurvePool(_curve);
+        vault = Vault(_vault);
         aave = ILendingPoolAddressesProvider(_aave);
         exchange = QuickswapExchange(_exchange);
 
@@ -110,6 +115,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         address current = address(this);
 
+        vault.transfer(usdc, current, _amount);
+
         _stakeAave(address(usdc), _amount, current);
         _stakeCurve(address(aUsdc), _amount, current);
 
@@ -130,15 +137,14 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on tokenExchange
-
         uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
+
+        vault.transfer(a3CrvGaugeToken, current, tokenAmount);
 
         console.log('usdc %s', usdc.balanceOf(current));
         console.log('aUsdc %s', aUsdc.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
-        a3CrvGaugeToken.transferFrom(_beneficiary, current, tokenAmount);
 
         rewardGauge.withdraw(tokenAmount, false);
         console.log('usdc %s', usdc.balanceOf(current));
@@ -161,6 +167,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
+
+        require(withdrewAmount >= _amount, 'Returned value less than requested amount');
         return withdrewAmount;
     }
 
@@ -250,7 +258,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount = a3CrvToken.balanceOf(address(this));
         a3CrvToken.approve(address(curve), _amount);
 
-        uint256 index = 1; // index got from curve.coins(i);
+        uint256 index = 1;
+        // index got from curve.coins(i);
         amounts[index] = _amount;
 
         uint256 onConnectorLpTokenAmount = a3CrvToken.balanceOf(address(this));

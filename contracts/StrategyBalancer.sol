@@ -150,6 +150,7 @@ contract StrategyBalancer is Initializable, AccessControlUpgradeable, UUPSUpgrad
 
         // 4.  make staking
         for (uint8 i; i < stakeOrdersCount; i++) {
+
             IStrategy(stakeOrders[i].strategy).stake(
                 address(usdc),
                 stakeOrders[i].amount,
