@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
+import "../Vault.sol";
 
 
 contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
@@ -18,7 +19,7 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     ILendingPoolAddressesProvider public aave;
-
+    Vault public vault;
     IERC20 public usdc;
     IERC20 public aUsdc;
 
@@ -54,14 +55,17 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function setParams(address _aave,
         address _usdc,
-        address _aUsdc
+        address _aUsdc,
+        address _vault
     ) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         require(_aUsdc != address(0), "Zero address not allowed");
+        require(_vault != address(0), "Zero address not allowed");
 
         aave = ILendingPoolAddressesProvider(_aave);
+        vault = Vault(_vault);
 
         usdc = IERC20(_usdc);
         aUsdc = IERC20(_aUsdc);
@@ -80,8 +84,7 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
-
-        usdc.transferFrom(_beneficiary, address(this), _amount);
+        vault.transfer(usdc, current, _amount);
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         IERC20(_asset).approve(address(pool), _amount);
@@ -95,7 +98,7 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) override external returns (uint256) {
         require(_asset == address(usdc), "Some token not compatible");
 
-        aUsdc.transferFrom(_beneficiary, address(this), _amount);
+        vault.transfer(aUsdc, address(this), _amount);
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         aUsdc.approve(address(pool), _amount);
@@ -109,6 +112,8 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         );
 
         usdc.transfer(_beneficiary, withdrawAmount);
+
+        require(withdrawAmount >= _amount, 'Returned value less than _amount');
         return withdrawAmount;
     }
 

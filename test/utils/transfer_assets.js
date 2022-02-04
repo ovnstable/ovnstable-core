@@ -47,7 +47,8 @@ describe("TransferAssets", function () {
     });
 
 
-    it("Move balances", async function () {
+    // TODO Update logic transfer.move();
+    /* it("Move balances", async function () {
 
         expect(await usdc.balanceOf(oldVault.address)).to.eq(1000)
         expect(await usdc.balanceOf(vault.address)).to.eq(0)
@@ -58,7 +59,7 @@ describe("TransferAssets", function () {
         expect(await usdc.balanceOf(oldVault.address)).to.eq(0)
         expect(await usdc.balanceOf(vault.address)).to.eq(1000)
 
-    });
+    }); */
 
 
 });

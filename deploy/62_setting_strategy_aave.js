@@ -12,8 +12,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyAave");
-    await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc)).wait();
-    console.log('StrategyAave setting done')
+    const vault = await ethers.getContract("Vault");
+    await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc, vault.address)).wait();
+    console.log('StrategyAave setting done');
+
+    await (await vault.setPortfolioManager((await ethers.getContract("StrategyAave")).address)).wait();
+    console.log("vault.setPortfolioManager done");
 };
 
 module.exports.tags = ['setting','StrategyAaveSetting'];

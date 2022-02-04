@@ -9,6 +9,7 @@ import "../interfaces/IStrategy.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
 
 import "hardhat/console.sol";
+import "../Vault.sol";
 
 contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -16,6 +17,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     IIdleToken public idleToken;
     IERC20 public usdc;
+    Vault public vault;
 
     // --- events
 
@@ -43,11 +45,18 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- Setters
 
-    function setParams(address _idleToken,
-        address _usdc) external onlyAdmin {
+    function setParams(
+        address _idleToken,
+        address _usdc,
+        address _vault) external onlyAdmin {
+
         require(_idleToken != address(0), "Zero address not allowed");
+        require(_usdc != address(0), "Zero address not allowed");
+        require(_vault != address(0), "Zero address not allowed");
         idleToken = IIdleToken(_idleToken);
+        vault = Vault(_vault);
         usdc = IERC20(_usdc);
+
         emit StrategyIdleUpdate(_idleToken);
     }
 
@@ -67,10 +76,9 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) public override {
         require(_asset == address(usdc), "Some token not compatible");
 
-        usdc.transferFrom(_beneficiary, address(this), _amount);
+        vault.transfer(usdc, address(this), _amount);
 
         usdc.approve(address(idleToken), _amount);
-
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, _beneficiary);
         idleToken.transfer(_beneficiary, idleToken.balanceOf(address(this)));
     }
@@ -84,13 +92,19 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         address current = address(this);
 
-        //TODO  add fee value
-        uint256 tokenAmount =  _amount * (10**18) / idleToken.tokenPrice();
-        idleToken.transferFrom(_beneficiary, current , tokenAmount);
+        uint256 tokenAmount = _amount + (_amount / 100 * 1);
+        // fee 5% - misinformation
+        tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
+
+        vault.transfer(idleToken, address(this), tokenAmount);
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
         usdc.transfer(_beneficiary, usdc.balanceOf(current));
 
+        console.log('Redeem %s', redeemedTokens / 10 ** 6);
+        console.log('Amount %s', _amount / 10 ** 6);
+
+        require(redeemedTokens >= _amount, 'Returned value less than requested amount');
         return redeemedTokens;
     }
 
@@ -98,14 +112,14 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 balance = idleToken.balanceOf(_holder) / 10 ** 12;
         uint256 price = idleToken.tokenPrice();
         uint256 result = (balance * price);
-        return result;
+        return result / 10 ** 6;
     }
 
     function netAssetValue(address _holder) external override view returns (uint256){
         uint256 balance = idleToken.balanceOf(_holder) / 10 ** 12;
         uint256 price = idleToken.tokenPrice();
         uint256 result = (balance * price);
-        return result;
+        return result / 10 ** 6;
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){

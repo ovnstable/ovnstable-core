@@ -17,17 +17,19 @@ describe("StrategyAave", function () {
     let strategy;
     let usdc;
     let amUsdc;
+    let vault;
 
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyAave', 'StrategyAaveSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyAave', 'Vault', 'StrategyAaveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
         strategy = await ethers.getContract('StrategyAave');
+        vault = await ethers.getContract('Vault');
     });
 
 
@@ -37,7 +39,7 @@ describe("StrategyAave", function () {
 
         before(async () => {
 
-            await usdc.approve(strategy.address, toUSDC(100));
+            await usdc.approve(vault.address, toUSDC(100));
             let balanceUsdcBefore = await usdc.balanceOf(account);
             await strategy.stake(usdc.address, toUSDC(100), account);
             let balanceUsdcAfter = await usdc.balanceOf(account);
