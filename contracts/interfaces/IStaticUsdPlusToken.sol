@@ -3,8 +3,9 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "./IERC4626.sol";
 
-interface IStaticUsdPlusToken is IERC20, IERC20Metadata {
+interface IStaticUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
 
     /**
      * @dev Wrap UsdPlusToken. Caller should approve `amount` for transferFrom
@@ -51,20 +52,9 @@ interface IStaticUsdPlusToken is IERC20, IERC20Metadata {
     function rate() external view returns (uint256);
 
     /**
-     * @dev ERC4626 method. Returns UsdPlusToken liquidity index scaled to e6
-     * @return rate Rate between StaticUsdPlusToken and UsdPlusToken in e6 (ray)
-     **/
-    function assetsPerShare() external view returns (uint256);
-
-    /**
      * @dev Returns UsdPlusToken address
      * @return address The address of UsdPlusToken
      **/
     function mainToken() external view returns (address);
 
-    /**
-     * @dev ERC4626 method. Returns wrapped token address
-     * @return address The address of the wrapped token
-     **/
-    function asset() external view returns (address);
 }

@@ -14,6 +14,7 @@ chai.use(smock.matchers);
 describe("StaticUsdPlusToken", function () {
 
     let account;
+    let secondAccount;
     let usdPlus;
     let staticUsdPlus;
 
@@ -24,8 +25,9 @@ describe("StaticUsdPlusToken", function () {
 
         await deployments.fixture(["UsdPlusToken", "StaticUsdPlusToken"]);
 
-        const {deployer} = await getNamedAccounts();
+        const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;
+        secondAccount = anotherAccount;
         usdPlus = await ethers.getContract("UsdPlusToken");
         usdPlus.setExchanger(account);
         staticUsdPlus = await ethers.getContract("StaticUsdPlusToken");
@@ -153,13 +155,13 @@ describe("StaticUsdPlusToken", function () {
 
 
         await expectRevert(
-            staticUsdPlus.callStatic.wrap(ZERO_ADDRESS, 0),
-            'Zero address for recipient not allowed',
+            staticUsdPlus.callStatic.wrap(ZERO_ADDRESS, 1),
+            'Zero address for receiver not allowed',
         );
 
         await expectRevert(
             staticUsdPlus.callStatic.wrap(account, 0),
-            'Zero amount not allowed',
+            'Zero assets not allowed',
         );
 
         let usdPlusAmountToWrap = 250;
@@ -288,13 +290,13 @@ describe("StaticUsdPlusToken", function () {
 
 
         await expectRevert(
-            staticUsdPlus.callStatic.unwrap(ZERO_ADDRESS, 0),
-            'Zero address for recipient not allowed',
+            staticUsdPlus.callStatic.unwrap(ZERO_ADDRESS, 1),
+            'Zero address for receiver not allowed',
         );
 
         await expectRevert(
             staticUsdPlus.callStatic.unwrap(account, 0),
-            'Zero amount not allowed',
+            'Zero shares not allowed',
         );
 
         let staticUsdPlusAmountToUnwrap = 250;
@@ -442,6 +444,46 @@ describe("StaticUsdPlusToken", function () {
         expect(await staticUsdPlus.dynamicBalanceOf(account)).to.equals(usdPlusAmountToWrap);
 
     });
+
+    it("redeem another owner", async function () {
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+
+        let staticUsdPlusAmountToRedeem = 250;
+        await expectRevert(
+            staticUsdPlus.callStatic.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address),
+            'Redeem amount exceeds allowance',
+        );
+
+        let startUsdPlusBalance = 1000;
+        await usdPlus.mint(account, startUsdPlusBalance);
+        await usdPlus.approve(staticUsdPlus.address, staticUsdPlusAmountToRedeem);
+        await staticUsdPlus.wrap(tmpUser.address, staticUsdPlusAmountToRedeem);
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(staticUsdPlusAmountToRedeem);
+        expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance - staticUsdPlusAmountToRedeem);
+        expect(await staticUsdPlus.balanceOf(tmpUser.address)).to.equals(staticUsdPlusAmountToRedeem);
+
+
+        await staticUsdPlus.connect(tmpUser).approve(account, staticUsdPlusAmountToRedeem);
+
+        // callStatic doesn't change state but return value
+        let transferredDynamicAmount = await staticUsdPlus.callStatic.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address);
+        expect(transferredDynamicAmount.toString()).to.equals(String(staticUsdPlusAmountToRedeem));
+
+        // call again to change state
+        let receipt = await (await staticUsdPlus.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address)).wait();
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
+        expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(tmpUser.address)).to.equals(0);
+        expect(await staticUsdPlus.allowance(tmpUser.address, account)).to.equals(0);
+
+    });
+
 
 });
 
