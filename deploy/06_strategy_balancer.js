@@ -2,7 +2,7 @@ const deployProxy = require('../utils/deployProxy');
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    await deployProxy('RewardManager', deployments, save);
+    await deployProxy('StrategyBalancer', deployments, save);
 };
 
-module.exports.tags = ['base','RewardManager'];
+module.exports.tags = ['base','StrategyBalancer'];

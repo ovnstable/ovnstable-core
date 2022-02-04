@@ -10,12 +10,8 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interfaces/IPortfolioManager.sol";
-import "./interfaces/IActionBuilder.sol";
-import "./interfaces/IRewardManager.sol";
-import "./registries/Portfolio.sol";
 import "./Vault.sol";
-import "./Balancer.sol";
-import "./connectors/ConnectorMStable.sol";
+import "./StrategyBalancer.sol";
 
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -25,26 +21,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     address public exchanger;
     Vault public vault;
-    Balancer public balancer;
-    IRewardManager public rewardManager;
-    Portfolio public portfolio;
-    address public vimUsdToken;
-    address public imUsdToken;
-    address public usdcToken;
-    ConnectorMStable public connectorMStable;
+    StrategyBalancer balancer;
 
     // ---  events
 
-    event ExchangerUpdated(address exchanger);
-    event VaultUpdated(address vault);
-    event BalancerUpdated(address balancer);
-    event RewardManagerUpdated(address rewardManager);
-    event PortfolioUpdated(address portfolio);
-    event VimUsdTokenUpdated(address vimUsdToken);
-    event ImUsdTokenUpdated(address imUsdToken);
-    event UsdcTokenUpdated(address usdcToken);
-    event ConnectorMStableUpdated(address connectorMStable);
-
+    event ExchangerUpdated(address value);
+    event VaultUpdated(address value);
+    event BalancerUpdated(address value);
     event Exchanged(uint256 amount, address from, address to);
 
     // ---  modifiers
@@ -95,45 +78,10 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function setBalancer(address _balancer) external onlyAdmin {
         require(_balancer != address(0), "Zero address not allowed");
-        balancer = Balancer(_balancer);
+        balancer = StrategyBalancer(_balancer);
         emit BalancerUpdated(_balancer);
     }
 
-    function setRewardManager(address _rewardManager) external onlyAdmin {
-        require(_rewardManager != address(0), "Zero address not allowed");
-        rewardManager = IRewardManager(_rewardManager);
-        emit RewardManagerUpdated(_rewardManager);
-    }
-
-    function setPortfolio(address _portfolio) external onlyAdmin {
-        require(_portfolio != address(0), "Zero address not allowed");
-        portfolio = Portfolio(_portfolio);
-        emit PortfolioUpdated(_portfolio);
-    }
-
-    function setVimUsdToken(address _vimUsdToken) external onlyAdmin {
-        require(_vimUsdToken != address(0), "Zero address not allowed");
-        vimUsdToken = _vimUsdToken;
-        emit VimUsdTokenUpdated(_vimUsdToken);
-    }
-
-    function setImUsdToken(address _imUsdToken) external onlyAdmin {
-        require(_imUsdToken != address(0), "Zero address not allowed");
-        imUsdToken = _imUsdToken;
-        emit ImUsdTokenUpdated(_imUsdToken);
-    }
-
-    function setUsdcToken(address _usdcToken) external onlyAdmin {
-        require(_usdcToken != address(0), "Zero address not allowed");
-        usdcToken = _usdcToken;
-        emit UsdcTokenUpdated(_usdcToken);
-    }
-
-    function setConnectorMStable(address _connectorMStable) external onlyAdmin {
-        require(_connectorMStable != address(0), "Zero address not allowed");
-        connectorMStable = ConnectorMStable(_connectorMStable);
-        emit ConnectorMStableUpdated(_connectorMStable);
-    }
 
     // ---  logic
 
@@ -142,7 +90,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         _token.transfer(address(vault), _amount);
 
         // 2. start balancing
-        _balance();
+        balancer.balance();
     }
 
 
@@ -156,7 +104,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
 
         // 1. balance to needed amount
-        _balanceOnWithdraw(_token, _amount);
+//        _balanceOnWithdraw(_token, _amount);
 
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
@@ -197,122 +145,42 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     onlyExchanger
     returns (address[] memory)
     {
-        // 1. balance
-        _balance();
-
-        // 2. transfer back tokens
-        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
-        address[] memory tokens = new address[](assetWeights.length);
-        // go through all assets and transfer proportions except vimUsd
-        for (uint8 i; i < assetWeights.length; i++) {
-            address asset = assetWeights[i].asset;
-            if (asset == vimUsdToken) {
-                tokens[i] = imUsdToken;
-                continue;
-            }
-            uint256 currentVaultTokenBalance = IERC20(asset).balanceOf(address(vault));
-            if (currentVaultTokenBalance > 0) {
-                uint256 transferAmount = currentVaultTokenBalance * _proportion / _proportionDenominator;
-                vault.transfer(IERC20(asset), msg.sender, transferAmount);
-            }
-            tokens[i] = asset;
-        }
-
-        // because vimUsd is not ERC20 we need first unstake vimUsd to imUsd
-        // and then transfer to msg.sender imUsd
-        uint256 currentVaultVimUsdAmount = IERC20(vimUsdToken).balanceOf(address(vault));
-        if (currentVaultVimUsdAmount > 0) {
-            currentVaultVimUsdAmount = currentVaultVimUsdAmount * _proportion / _proportionDenominator;
-            connectorMStable.unstakeVimUsd(imUsdToken, currentVaultVimUsdAmount, msg.sender);
-        }
-
-        return tokens;
+        //        // 1. balance
+        //        _balance();
+        //
+        //        // 2. transfer back tokens
+        //        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
+        //        address[] memory tokens = new address[](assetWeights.length);
+        //        // go through all assets and transfer proportions except vimUsd
+        //        for (uint8 i; i < assetWeights.length; i++) {
+        //            address asset = assetWeights[i].asset;
+        //            if (asset == vimUsdToken) {
+        //                tokens[i] = imUsdToken;
+        //                continue;
+        //            }
+        //            uint256 currentVaultTokenBalance = IERC20(asset).balanceOf(address(vault));
+        //            if (currentVaultTokenBalance > 0) {
+        //                uint256 transferAmount = currentVaultTokenBalance * _proportion / _proportionDenominator;
+        //                vault.transfer(IERC20(asset), msg.sender, transferAmount);
+        //            }
+        //            tokens[i] = asset;
+        //        }
+        //
+        //        // because vimUsd is not ERC20 we need first unstake vimUsd to imUsd
+        //        // and then transfer to msg.sender imUsd
+        //        uint256 currentVaultVimUsdAmount = IERC20(vimUsdToken).balanceOf(address(vault));
+        //        if (currentVaultVimUsdAmount > 0) {
+        //            currentVaultVimUsdAmount = currentVaultVimUsdAmount * _proportion / _proportionDenominator;
+        //            connectorMStable.unstakeVimUsd(imUsdToken, currentVaultVimUsdAmount, msg.sender);
+        //        }
+        //
+        //        return tokens;
     }
 
-    function balanceOnReward() external override onlyExchanger {
-        _balance();
+    function claimAndBalance() external override onlyExchanger {
+        balancer.claimRewards();
+        balancer.balance();
     }
 
-    function _balanceOnWithdraw(IERC20 _token, uint256 _amount) internal {
-        // 1. got action to balance
-        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions(
-            _token,
-            _amount
-        );
-
-        // 2. execute them
-        _executeActions(actionOrder);
-    }
-
-    function _balance() internal {
-        // 1. got action to balance
-        IActionBuilder.ExchangeAction[] memory actionOrder = balancer.buildBalanceActions();
-
-        // 2. execute them
-        _executeActions(actionOrder);
-    }
-
-    function _executeActions(IActionBuilder.ExchangeAction[] memory actionOrder) internal {
-        bool someActionExecuted = true;
-        while (someActionExecuted) {
-            someActionExecuted = false;
-            for (uint8 i = 0; i < actionOrder.length; i++) {
-                IActionBuilder.ExchangeAction memory action = actionOrder[i];
-                if (action.executed) {
-                    // Skip already executed
-                    continue;
-                }
-                uint256 amount = action.amount;
-                uint256 denormalizedAmount;
-                //TODO: denominator usage
-                uint256 denominator = 10 ** (18 - IERC20Metadata(address(action.from)).decimals());
-                if (action.exchangeAll) {
-                    denormalizedAmount = action.from.balanceOf(address(vault));
-                    // normalize denormalizedAmount to 10**18
-                    amount = denormalizedAmount * denominator;
-                } else {
-                    // denormalize amount from 10**18 to token decimals
-                    denormalizedAmount = amount / denominator;
-                }
-
-                //TODO: recheck, may be denormalizedAmount should be checked
-                if (amount == 0) {
-                    // Skip zero amount action
-                    continue;
-                }
-
-                if (action.from.balanceOf(address(vault)) < denormalizedAmount) {
-                    // Skip not enough balance for execute know
-                    continue;
-                }
-
-                // move tokens to tokenExchange for executing action, amount - NOT normalized to 10**18
-                // except vimUSD tokens because they are not transferable
-                if (address(action.from) != vimUsdToken) {
-                    vault.transfer(action.from, address(action.tokenExchange), denormalizedAmount);
-                }
-                // execute exchange
-                action.tokenExchange.exchange(
-                    address(vault),
-                    action.from,
-                    address(vault),
-                    action.to,
-                    amount
-                );
-                action.executed = true;
-
-                emit Exchanged(amount, address(action.from), address(action.to));
-
-                someActionExecuted = true;
-            }
-        }
-    }
-
-    /**
-     * Claim rewards from Curve gauge where we have staked LP tokens
-     */
-    function claimRewards() external override {
-        rewardManager.claimRewards();
-    }
 
 }

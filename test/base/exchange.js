@@ -4,7 +4,7 @@ const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
-const {toUSDC, fromE18, fromOvn, fromUSDC} = require("../utils/decimals");
+const {toUSDC, fromE18, fromOvn, fromUSDC} = require("../../utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 
@@ -44,7 +44,7 @@ describe("Exchange", function () {
     describe("Mint 100 USD+ ", function () {
 
         let weights;
-        let assetPrices;
+        let strategyAssets;
         let totalUsdcPrice;
         let balanceUser;
         let balanceUSDC;
@@ -60,11 +60,15 @@ describe("Exchange", function () {
             let result = await exchange.buy(assets.usdc, sum);
             await result.wait();
 
-            let totalAssetPrices = await m2m.assetPrices();
+            let strategyAssets = await m2m.strategyAssets();
+
+            for (let i = 0; i <strategyAssets.length ; i++) {
+                totalUsdcPrice += strategyAssets[i].netAssetValue;
+            }
+
             weights = await portfolio.getAllStrategyWeights();
-            assetPrices = await totalAssetPrices.assetPrices;
             balanceUser = fromOvn(await usdPlus.balanceOf(account));
-            totalUsdcPrice = await totalAssetPrices.totalUsdcPrice;
+            totalUsdcPrice =
             usdcBalance = totalUsdcPrice / 10 ** 18;
             console.log("totalUsdcPrice " + totalUsdcPrice);
 
@@ -96,13 +100,13 @@ describe("Exchange", function () {
             for (let i = 0; i < weights.length; i++) {
 
                 let weight = weights[i];
-                let asset = findAssetPrice(weight.asset, assetPrices);
+                let asset = findAssetPrice(weight.strategy, strategyAssets);
 
                 let target = weight.targetWeight / 1000;
-                let balance = (asset.amountInVault / asset.usdcPriceDenominator) * (asset.usdcSellPrice / asset.usdcPriceDenominator);
+                let balance = fromUSDC(asset.netAssetValue)
 
                 let targetValue = totalValue / 100 * target + "";
-                let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
+                let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " symbol " + asset.symbol + " target value " + targetValue;
                 console.log(message);
 
                 expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
@@ -159,13 +163,13 @@ describe("Exchange", function () {
                 for (let i = 0; i < weights.length; i++) {
 
                     let weight = weights[i];
-                    let asset = findAssetPrice(weight.asset, assetPrices);
+                    let asset = findAssetPrice(weight.strategy, assetPrices);
 
                     let target = weight.targetWeight / 1000;
                     let balance = (asset.amountInVault / asset.usdcPriceDenominator) * (asset.usdcSellPrice / asset.usdcPriceDenominator);
 
                     let targetValue = totalValue / 100 * target + "";
-                    let message = 'Balance ' + balance + " weight " + target + " asset " + weight.asset + " symbol " + asset.symbol + " target value " + targetValue;
+                    let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " symbol " + asset.symbol + " target value " + targetValue;
                     console.log(message);
 
 //                    expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
@@ -179,6 +183,6 @@ describe("Exchange", function () {
 
 });
 
-function findAssetPrice(address, assetPrices) {
-    return assetPrices.find(value => value.asset === address);
+function findAssetPrice(address, assets) {
+    return assets.find(value => value.strategy === address);
 }

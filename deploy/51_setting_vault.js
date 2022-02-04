@@ -11,8 +11,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const vault = await ethers.getContract("Vault");
     const pm = await ethers.getContract("PortfolioManager");
-    const rm = await ethers.getContract("RewardManager");
-    const connectorMStable = await ethers.getContract("ConnectorMStable");
 
     // setup vault
     console.log("vault.setPortfolioManager: " + pm.address);
@@ -20,20 +18,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("vault.setPortfolioManager done");
 
-    console.log("vault.setRewardManager: " + rm.address);
-    tx = await vault.setRewardManager(rm.address);
-    await tx.wait();
-    console.log("vault.setRewardManager done");
-
     console.log("vault.setAaveReward: " + aaveIncentivesController);
     tx = await vault.setAaveReward(aaveIncentivesController);
     await tx.wait();
     console.log("vault.setAaveReward done");
-
-    console.log("vault.setConnectorMStable: " + connectorMStable.address);
-    tx = await vault.setConnectorMStable(connectorMStable.address);
-    await tx.wait();
-    console.log("vault.setConnectorMStable done");
 
     console.log("vault.setVimUsdToken: " + assets.vimUsd);
     tx = await vault.setVimUsdToken(assets.vimUsd);

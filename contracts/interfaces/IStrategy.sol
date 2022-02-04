@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IStrategy {
 
+    event Reward(uint256 amount);
+
     function stake(
         address _asset,
         uint256 _amount,

@@ -6,9 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "./interfaces/IConnector.sol";
 import "./interfaces/IMark2Market.sol";
-import "./interfaces/IPortfolioManager.sol";
 import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
 import "./PortfolioManager.sol";
@@ -226,7 +224,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint256 totalUsdc = mark2market.totalSellAssets();
+        uint256 totalUsdc = mark2market.totalLiquidationAssets();
         // denormalize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10 ** 12;
 
@@ -288,12 +286,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // 3. calc difference between total count of USD+ and USDC
         // 4. update USD+ liquidity index
 
-        portfolioManager.claimRewards();
-        portfolioManager.balanceOnReward();
+        portfolioManager.claimAndBalance();
 
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
-        uint256 totalUsdc = mark2market.totalBuyAssets();
+        uint256 totalUsdc = mark2market.totalNetAssets();
         // denormilize from 10**18 to 10**6 as USD+ decimals
         totalUsdc = totalUsdc / 10**12;
         if (totalUsdc <= totalUsdPlusSupply) {

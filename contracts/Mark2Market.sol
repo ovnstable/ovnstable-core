@@ -9,11 +9,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IMark2Market.sol";
-import "./interfaces/IPriceGetter.sol";
-import "./registries/Portfolio.sol";
+import "./Portfolio.sol";
 import "./Vault.sol";
+import "./interfaces/IStrategy.sol";
 
-contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, UUPSUpgradeable{
+contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
 
@@ -70,201 +70,61 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
     // ---  logic
 
+    function strategyAssets() public view override returns (StrategyAsset[] memory) {
 
-    function assetPricesView() public view returns(AssetPrices[] memory){
-        return assetPrices().assetPrices;
-    }
+        Portfolio.StrategyWeight[] memory weights = portfolio.getAllStrategyWeights();
+        uint256 count = weights.length;
 
-    function assetPrices() public view override returns (TotalAssetPrices memory) {
-        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
+        StrategyAsset[] memory assets = new StrategyAsset[](count);
 
-        uint256 totalUsdcPrice = 0;
-        uint256 count = assetInfos.length;
-        AssetPrices[] memory assetPrices = new AssetPrices[](count);
         for (uint8 i = 0; i < count; i++) {
-            Portfolio.AssetInfo memory assetInfo = assetInfos[i];
-            uint256 amountInVault = _currentAmountInVault(assetInfo.asset);
+            Portfolio.StrategyWeight memory weight = weights[i];
+            IStrategy item = IStrategy(weight.strategy);
 
-            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
 
-            uint256 usdcPriceDenominator = priceGetter.denominator();
-            uint256 usdcSellPrice = priceGetter.getUsdcSellPrice();
-            uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
-
-            // in decimals: 18 + 18 - 18 => 18
-            uint256 usdcPriceInVault = (amountInVault * usdcSellPrice) / usdcPriceDenominator;
-
-            totalUsdcPrice += usdcPriceInVault;
-
-            assetPrices[i] = AssetPrices(
-                assetInfo.asset,
-                amountInVault,
-                usdcPriceInVault,
-                usdcPriceDenominator,
-                usdcSellPrice,
-                usdcBuyPrice,
-                IERC20Metadata(assetInfo.asset).decimals(),
-                IERC20Metadata(assetInfo.asset).name(),
-                IERC20Metadata(assetInfo.asset).symbol()
+            assets[i] = StrategyAsset(
+                weight.strategy,
+                item.netAssetValue(address(vault)),
+                item.liquidationValue(address(vault))
             );
         }
 
-        TotalAssetPrices memory totalPrices = TotalAssetPrices(assetPrices, totalUsdcPrice);
-
-        return totalPrices;
+        return assets;
     }
 
 
-    function totalSellAssets() public view override returns(uint256){
-        return totalAssets(true);
-    }
-
-    function totalBuyAssets() public view override returns(uint256){
+    function totalNetAssets() public view override returns (uint256){
         return totalAssets(false);
     }
 
-    function totalAssets(bool sell) internal view returns (uint256)
+    function totalLiquidationAssets() public view override returns (uint256){
+        return totalAssets(true);
+    }
+
+    function totalAssets(bool liq) internal view returns (uint256)
     {
-        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
-
         uint256 totalUsdcPrice = 0;
-        uint256 count = assetWeights.length;
+        Portfolio.StrategyWeight[] memory weights = portfolio.getAllStrategyWeights();
+        uint256 count = weights.length;
+
+        StrategyAsset[] memory assets = new StrategyAsset[](count);
+
         for (uint8 i = 0; i < count; i++) {
-            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
+            Portfolio.StrategyWeight memory weight = weights[i];
+            IStrategy item = IStrategy(weight.strategy);
 
-            uint256 amountInVault = _currentAmountInVault(assetWeight.asset);
-
-            Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(assetWeight.asset);
-            IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
-
-            uint256 usdcPriceDenominator = priceGetter.denominator();
-
-            uint256 usdcPrice;
-            if(sell)
-                usdcPrice = priceGetter.getUsdcSellPrice();
-            else
-                usdcPrice = priceGetter.getUsdcBuyPrice();
-
-            // in decimals: 18 + 18 - 18 => 18
-            uint256 usdcPriceInVault = (amountInVault * usdcPrice) / usdcPriceDenominator;
-
-            totalUsdcPrice += usdcPriceInVault;
+            if (liq) {
+                totalUsdcPrice += item.liquidationValue(address(vault));
+            } else {
+                totalUsdcPrice += item.netAssetValue(address(vault));
+            }
         }
 
         return totalUsdcPrice;
     }
 
 
-    function assetPricesForBalance() external view override returns (BalanceAssetPrices[] memory) {
-        return assetPricesForBalance(address(0), 0);
-    }
 
-    /**
-     * @param withdrawToken Token to withdraw
-     * @param withdrawAmount Not normalized amount to withdraw
-     */
-    function assetPricesForBalance(address withdrawToken, uint256 withdrawAmount)
-        public
-        view
-        override
-        returns (BalanceAssetPrices[] memory)
-    {
-        if (withdrawToken != address(0)) {
-            // normalize withdrawAmount to 18 decimals
-            //TODO: denominator usage
-            uint256 withdrawAmountDenominator = 10**(18 - IERC20Metadata(withdrawToken).decimals());
-            withdrawAmount = withdrawAmount * withdrawAmountDenominator;
-        }
 
-        uint256 totalUsdcPrice = totalSellAssets();
-
-        // 3. validate withdrawAmount
-        // use `if` instead of `require` because less gas when need to build complex string for revert
-        if (totalUsdcPrice < withdrawAmount) {
-            revert(string(
-                abi.encodePacked(
-                    "Withdraw more than total: ",
-                    Strings.toString(withdrawAmount),
-                    " > ",
-                    Strings.toString(totalUsdcPrice)
-                )
-            ));
-        }
-
-        // 4. correct total with withdrawAmount
-        totalUsdcPrice = totalUsdcPrice - withdrawAmount;
-
-        // 5. calc diffs to target values
-        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
-        uint256 count = assetWeights.length;
-        BalanceAssetPrices[] memory assetPrices = new BalanceAssetPrices[](count);
-        for (uint8 i = 0; i < count; i++) {
-            Portfolio.AssetWeight memory assetWeight = assetWeights[i];
-            int256 diffToTarget = 0;
-            bool targetIsZero = false;
-            (diffToTarget, targetIsZero) = _diffToTarget(totalUsdcPrice, assetWeight);
-            // update diff for withdrawn token
-            if (withdrawAmount > 0 && assetWeight.asset == withdrawToken) {
-                diffToTarget = diffToTarget + int256(withdrawAmount);
-            }
-            assetPrices[i] = BalanceAssetPrices(
-                assetWeight.asset,
-                diffToTarget,
-                targetIsZero
-            );
-        }
-
-        return assetPrices;
-    }
-
-    /**
-     * @param totalUsdcPrice - Total normilized to 10**18
-     * @param assetWeight - Token address to calc
-     * @return normalized to 10**18 signed diff amount and mark that mean that need sell all
-     */
-    function _diffToTarget(uint256 totalUsdcPrice, Portfolio.AssetWeight memory assetWeight)
-        internal
-        view
-        returns (
-            int256,
-            bool
-        )
-    {
-        address asset = assetWeight.asset;
-
-        uint256 targetUsdcAmount = (totalUsdcPrice * assetWeight.targetWeight) /
-            portfolio.TOTAL_WEIGHT();
-
-        Portfolio.AssetInfo memory assetInfo = portfolio.getAssetInfo(asset);
-        IPriceGetter priceGetter = IPriceGetter(assetInfo.priceGetter);
-
-        uint256 usdcPriceDenominator = priceGetter.denominator();
-        uint256 usdcBuyPrice = priceGetter.getUsdcBuyPrice();
-
-        // in decimals: 18 * 18 / 18 => 18
-        uint256 targetTokenAmount = (targetUsdcAmount * usdcPriceDenominator) / usdcBuyPrice;
-
-        // normalize currentAmount to 18 decimals
-        uint256 currentAmount = _currentAmountInVault(asset);
-
-        bool targetIsZero;
-        if (targetTokenAmount == 0) {
-            targetIsZero = true;
-        } else {
-            targetIsZero = false;
-        }
-
-        int256 diff = int256(targetTokenAmount) - int256(currentAmount);
-        return (diff, targetIsZero);
-    }
-
-    function _currentAmountInVault(address asset) internal view returns (uint256){
-        // normalize currentAmount to 18 decimals
-        uint256 currentAmount = IERC20(asset).balanceOf(address(vault));
-        //TODO: denominator usage
-        uint256 denominator = 10 ** (18 - IERC20Metadata(asset).decimals());
-        currentAmount = currentAmount * denominator;
-        return currentAmount;
-    }
 
 }
