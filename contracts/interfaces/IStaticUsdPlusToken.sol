@@ -66,5 +66,5 @@ interface IStaticUsdPlusToken is IERC20, IERC20Metadata {
      * @dev ERC4626 method. Returns wrapped token address
      * @return address The address of the wrapped token
      **/
-    function underlying() external view returns (address);
+    function asset() external view returns (address);
 }

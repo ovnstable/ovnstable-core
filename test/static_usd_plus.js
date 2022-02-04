@@ -39,10 +39,10 @@ describe("StaticUsdPlusToken", function () {
 
     });
 
-    it("underlying token is usdToken", async function () {
+    it("asset token is usdToken", async function () {
 
-        let underlyingToken = await staticUsdPlus.underlying();
-        expect(underlyingToken.toString()).to.equals(usdPlus.address);
+        let assetToken = await staticUsdPlus.asset();
+        expect(assetToken.toString()).to.equals(usdPlus.address);
 
     });
 

@@ -78,7 +78,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     }
 
     ///@inheritdoc IStaticUsdPlusToken
-    function underlying() external view override returns (address){
+    function asset() external view override returns (address){
         return address(_mainToken);
     }
 }
