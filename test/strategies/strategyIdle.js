@@ -11,7 +11,7 @@ const BN = require('bignumber.js');
 
 chai.use(smock.matchers);
 
-describe("StrategyAave", function () {
+describe("StrategyIdle", function () {
 
     let account;
     let strategy;
