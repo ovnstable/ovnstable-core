@@ -230,16 +230,29 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         //TODO: Balancer. Claiming
 //        claimRewards();
 
-        uint256 balUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(balToken)),
-            IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), balToken.balanceOf(address(_beneficiary)));
+        uint256 totalUsdc;
 
-        uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-            address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+        uint256 balBalance = balToken.balanceOf(address(_beneficiary));
+        if (balBalance != 0) {
+            uint256 balUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(balToken)),
+                IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), balToken.balanceOf(address(_beneficiary)));
+            totalUsdc += balUsdc;
+        }
 
-        uint256 tusdUsdc = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(tusdToken)),
-            IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), tusdToken.balanceOf(address(_beneficiary)));
+        uint256 wmaticBalance = wMatic.balanceOf(address(_beneficiary));
+        if (wmaticBalance != 0) {
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
+                address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+            totalUsdc += wmaticUsdc;
+        }
 
-        uint256 totalUsdc = balUsdc + wmaticUsdc + tusdUsdc;
+        uint256 tusdBalance = tusdToken.balanceOf(address(_beneficiary));
+        if (tusdBalance != 0) {
+            uint256 tusdUsdc = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(tusdToken)),
+                IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), tusdToken.balanceOf(address(_beneficiary)));
+            totalUsdc += tusdUsdc;
+        }
+
         return totalUsdc;
     }
 }

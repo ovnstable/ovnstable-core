@@ -3,15 +3,13 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
-
-
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyIdle");
     const vault = await ethers.getContract("Vault");
-    await (await strategy.setParams(assets.idleUsdc, assets.usdc, vault.address)).wait();
+    await (await strategy.setParams(vault.address, assets.usdc, assets.idleUsdc)).wait();
     console.log('StrategyIdle setting done')
 };
 

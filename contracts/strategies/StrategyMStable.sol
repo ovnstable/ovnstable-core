@@ -198,14 +198,23 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
     function claimRewards(address _beneficiary) external override returns (uint256) {
         vault.claimRewardMStable();
 
-        uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
-            IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(_beneficiary),
-            address(_beneficiary), mtaToken.balanceOf(address(_beneficiary)));
+        uint256 totalUsdc;
 
-        uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-            address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+        uint256 mtaBalance = mtaToken.balanceOf(address(_beneficiary));
+        if (mtaBalance != 0) {
+            uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
+                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(_beneficiary),
+                address(_beneficiary), mtaToken.balanceOf(address(_beneficiary)));
+            totalUsdc += mtaUsdc;
+        }
 
-        uint256 totalUsdc = mtaUsdc + wmaticUsdc;
+        uint256 wmaticBalance = wMatic.balanceOf(address(_beneficiary));
+        if (wmaticBalance != 0) {
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
+                address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+            totalUsdc += wmaticUsdc;
+        }
+
         return totalUsdc;
     }
 }
