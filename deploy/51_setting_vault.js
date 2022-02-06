@@ -10,34 +10,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const vault = await ethers.getContract("Vault");
-    const pm = await ethers.getContract("PortfolioManager");
-    const rm = await ethers.getContract("RewardManager");
-    const connectorMStable = await ethers.getContract("ConnectorMStable");
 
     // setup vault
-    console.log("vault.setPortfolioManager: " + pm.address);
-    let tx = await vault.setPortfolioManager(pm.address);
-    await tx.wait();
+    await (await vault.setPortfolioManager((await ethers.getContract("StrategyIdle")).address)).wait();
+    await (await vault.setPortfolioManager((await ethers.getContract("StrategyAave")).address)).wait();
     console.log("vault.setPortfolioManager done");
 
-    console.log("vault.setRewardManager: " + rm.address);
-    tx = await vault.setRewardManager(rm.address);
-    await tx.wait();
-    console.log("vault.setRewardManager done");
-
-    console.log("vault.setAaveReward: " + aaveIncentivesController);
-    tx = await vault.setAaveReward(aaveIncentivesController);
-    await tx.wait();
+    await (await vault.setAaveReward(aaveIncentivesController)).wait();
     console.log("vault.setAaveReward done");
 
-    console.log("vault.setConnectorMStable: " + connectorMStable.address);
-    tx = await vault.setConnectorMStable(connectorMStable.address);
-    await tx.wait();
-    console.log("vault.setConnectorMStable done");
-
-    console.log("vault.setVimUsdToken: " + assets.vimUsd);
-    tx = await vault.setVimUsdToken(assets.vimUsd);
-    await tx.wait();
+    await (await vault.setVimUsdToken(assets.vimUsd)).wait();
     console.log("vault.setVimUsdToken done");
 };
 

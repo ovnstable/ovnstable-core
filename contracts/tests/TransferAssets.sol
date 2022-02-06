@@ -2,7 +2,7 @@ pragma solidity ^0.8.6;
 
 import "../Vault.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../registries/Portfolio.sol";
+import "../Portfolio.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TransferAssets is AccessControl {
@@ -30,12 +30,12 @@ contract TransferAssets is AccessControl {
 
 
     function move() external onlyAdmin {
-        Portfolio.AssetInfo[] memory assetInfos = portfolio.getAllAssetInfos();
+        Portfolio.StrategyWeight[] memory assetInfos = portfolio.getAllStrategyWeights();
         uint256 count = assetInfos.length;
         for (uint8 i = 0; i < count; i++) {
-            Portfolio.AssetInfo memory assetInfo = assetInfos[i];
+            Portfolio.StrategyWeight memory assetInfo = assetInfos[i];
 
-            IERC20 asset = IERC20(assetInfo.asset);
+            IERC20 asset = IERC20(assetInfo.strategy);
 
             uint256 balance = asset.balanceOf(address(oldVault));
 

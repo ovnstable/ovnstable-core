@@ -12,7 +12,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyAave");
-    await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc)).wait();
+    const vault = await ethers.getContract("Vault");
+    await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc, vault.address)).wait();
     console.log('StrategyAave setting done')
 };
 

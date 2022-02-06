@@ -9,7 +9,6 @@ import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "hardhat/console.sol";
-import "../interfaces/IPriceGetter.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router01.sol";

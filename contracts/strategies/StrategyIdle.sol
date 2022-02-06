@@ -3,18 +3,22 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "../interfaces/IStrategy.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
 
 import "hardhat/console.sol";
+import "../Vault.sol";
 
 contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    IERC20 public usdcToken;
     IIdleToken public idleToken;
+    IERC20 public usdcToken;
+    Vault public vault;
     uint256 public usdcTokenDenominator;
     uint256 public idleTokenDenominator;
 
@@ -45,14 +49,17 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     // --- Setters
 
     function setParams(
+        address _idleToken,
         address _usdcToken,
-        address _idleToken
+        address _vault
     ) external onlyAdmin {
-        require(_usdcToken != address(0), "Zero address not allowed");
-        require(_idleToken != address(0), "Zero address not allowed");
 
-        usdcToken = IERC20(_usdcToken);
+        require(_idleToken != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_vault != address(0), "Zero address not allowed");
         idleToken = IIdleToken(_idleToken);
+        vault = Vault(_vault);
+        usdcToken = IERC20(_usdcToken);
         usdcTokenDenominator = 10 ** IERC20Metadata(address(_usdcToken)).decimals();
         idleTokenDenominator = 10 ** IERC20Metadata(address(_idleToken)).decimals();
 
@@ -75,7 +82,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) public override {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
-        usdcToken.transferFrom(_beneficiary, address(this), _amount);
+        vault.transfer(usdcToken, address(this), _amount);
 
         usdcToken.approve(address(idleToken), _amount);
 
@@ -92,25 +99,19 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         address current = address(this);
 
-        uint256 tokenAmount = idleTokenDenominator * _amount / idleToken.tokenPrice();
-        console.log('Token amount %s', tokenAmount);
+        uint256 tokenAmount = _amount * 101 / 100;
+        // fee 5% - misinformation
+        tokenAmount = idleTokenDenominator * tokenAmount / idleToken.tokenPrice();
 
-        idleToken.transferFrom(_beneficiary, current, tokenAmount);
+        vault.transfer(idleToken, address(this), tokenAmount);
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
-        console.log('Redeem tokens %s', redeemedTokens);
-        console.log('USDC  %s', usdcToken.balanceOf(current));
-        console.log('USDC  %s', usdcToken.balanceOf(_beneficiary));
-        console.log('IDLE %s', idleToken.balanceOf(_beneficiary));
-        console.log('IDLE %s', idleToken.balanceOf(current));
+        usdcToken.transfer(_beneficiary, usdcToken.balanceOf(current));
 
-        usdc.transfer(_beneficiary, usdcToken.balanceOf(current));
+        console.log('Redeem %s', redeemedTokens / 10 ** 6);
+        console.log('Amount %s', _amount / 10 ** 6);
 
-        console.log('USDC  %s', usdcToken.balanceOf(current));
-        console.log('USDC  %s', usdcToken.balanceOf(_beneficiary));
-        console.log('IDLE %s', idleToken.balanceOf(_beneficiary));
-        console.log('IDLE %s', idleToken.balanceOf(current));
-
+        require(redeemedTokens >= _amount, 'Returned value less than requested amount');
         return redeemedTokens;
     }
 

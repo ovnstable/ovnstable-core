@@ -1,4 +1,4 @@
-const { ethers } = require("hardhat");
+const {ethers} = require("hardhat");
 
 const fs = require("fs");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
@@ -9,98 +9,37 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const portfolio = await ethers.getContract("Portfolio");
 
-    let vimUsdWeight = {
-        asset: assets.vimUsd,
+
+
+    let aave = {
+        strategy: (await ethers.getContract("StrategyAave")).address,
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 50000,
         maxWeight: 100000,
     }
-    let idleUsdcWeight = {
-        asset: assets.idleUsdc,
+    // let curve = {
+    //     strategy: (await ethers.getContract("StrategyCurve")).address,
+    //     minWeight: 0,
+    //     targetWeight: 20000,
+    //     maxWeight: 100000,
+    // }
+    let idle = {
+        strategy: (await ethers.getContract("StrategyIdle")).address,
         minWeight: 0,
-        targetWeight: 15000,
+        targetWeight: 50000,
         maxWeight: 100000,
     }
-    let bpspTUsdWeight = {
-        asset: assets.bpspTUsd,
-        minWeight: 0,
-        targetWeight: 2000,
-        maxWeight: 100000,
-    }
-    let usdcWeight = {
-        asset: assets.usdc,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let aUsdcWeight = {
-        asset: assets.amUsdc,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let a3CrvWeight = {
-        asset: assets.am3CRV,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let a3CrvGaugeWeight = {
-        asset: assets.am3CRVgauge,
-        minWeight: 0,
-        targetWeight: 75000,
-        maxWeight: 100000,
-    }
-    let wMaticWeight = {
-        asset: assets.wMatic,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let crvWeight = {
-        asset: assets.crv,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let mtaWeight = {
-        asset: assets.mta,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let tUsdWeight = {
-        asset: assets.tUsd,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let balWeight = {
-        asset: assets.bal,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
+
     let weights = [
-        vimUsdWeight,
-        idleUsdcWeight,
-        bpspTUsdWeight,
-        usdcWeight,
-        aUsdcWeight,
-        a3CrvWeight,
-        a3CrvGaugeWeight,
-        wMaticWeight,
-        crvWeight,
-        mtaWeight,
-        tUsdWeight,
-        balWeight
+        aave,
+        idle
     ]
 
     console.log('portfolio.setWeights: ' + JSON.stringify(weights))
-    let tx = await portfolio.setWeights(weights);
+    let tx = await portfolio.setStrategyWeights(weights);
     await tx.wait();
     console.log("portfolio.setWeights done");
 };
 
-module.exports.tags = ['setting','setting-weights'];
+module.exports.tags = ['setting', 'setting-weights'];
 

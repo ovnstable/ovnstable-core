@@ -3,10 +3,9 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {FakeContract, smock} = require("@defi-wonderland/smock");
 
-let decimals = require('../utils/decimals');
 
 const fs = require("fs");
-const {fromAmUSDC, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = require("../utils/decimals");
+const {fromAmUSDC, fromE6, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 const BN = require('bignumber.js');
@@ -23,7 +22,7 @@ describe("StrategyCurve", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyCurve', 'StrategyCurveSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyCurve', 'Vault', 'StrategyCurveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -81,4 +80,21 @@ describe("StrategyCurve", function () {
 
     });
 
+
+    it("ClaimRewards should return 0", async function () {
+        // let balanceUsdcBefore = await usdc.balanceOf(account);
+        //
+        // await usdc.transfer(strategy.address, toUSDC(100));
+        // await strategy.stake(usdc.address, toUSDC(100), account);
+        //
+        // const days = 365 * 24 * 60 * 60;
+        // await ethers.provider.send("evm_increaseTime", [days])
+        // await ethers.provider.send('evm_mine');
+        //
+        // await strategy.claimRewards(account);
+        // let balanceUsdcAfter = await usdc.balanceOf(account);
+        //
+        // let balanceUSDC = fromUSDC(balanceUsdcBefore-balanceUsdcAfter);
+        // expect(balanceUSDC).to.greaterThanOrEqual(1);
+    });
 });

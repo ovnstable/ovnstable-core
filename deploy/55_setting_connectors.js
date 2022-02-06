@@ -55,4 +55,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("connMStable.grantRole(PORTFOLIO_MANAGER) done");
 };
 
-module.exports.tags = ['setting','setting-connectors'];
+module.exports.tags = ['setting-connectors'];

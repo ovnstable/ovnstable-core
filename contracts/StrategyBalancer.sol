@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "./interfaces/IMark2Market.sol";
-import "./interfaces/ITokenExchange.sol";
 import "./interfaces/IStrategy.sol";
-import "./registries/Portfolio.sol";
+import "./Portfolio.sol";
 import "./Vault.sol";
 
 contract StrategyBalancer is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -95,17 +95,19 @@ contract StrategyBalancer is Initializable, AccessControlUpgradeable, UUPSUpgrad
         balance(IERC20(address(0)), 0);
     }
 
+    function claimRewards() public {
+        Portfolio.StrategyWeight[] memory strategies = portfolio.getAllStrategyWeights();
+
+        for (uint8 i; i < strategies.length; i++) {
+            IStrategy(strategies[i].strategy).claimRewards(address(vault));
+        }
+    }
+
     function balance(IERC20 withdrawToken, uint256 withdrawAmount) public {
 
         Portfolio.StrategyWeight[] memory strategies = portfolio.getAllStrategyWeights();
 
-        // 1. call rewards
-        //TODO: make to claim only on balance before payout
-        for (uint8 i; i < strategies.length; i++) {
-            IStrategy(strategies[i].strategy).claimRewards(address(vault));
-        }
-
-        // 2. calc total USDC equivalent
+        // 1. calc total USDC equivalent
         uint256 totalUsdc = usdc.balanceOf(address(vault));
         for (uint8 i; i < strategies.length; i++) {
             IStrategy(strategies[i].strategy).netAssetValue(address(vault));
@@ -148,6 +150,7 @@ contract StrategyBalancer is Initializable, AccessControlUpgradeable, UUPSUpgrad
 
         // 4.  make staking
         for (uint8 i; i < stakeOrdersCount; i++) {
+
             IStrategy(stakeOrders[i].strategy).stake(
                 address(usdc),
                 stakeOrders[i].amount,

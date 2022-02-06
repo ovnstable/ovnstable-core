@@ -10,7 +10,6 @@ interface IPortfolioManager {
 
     function withdrawProportional(uint256 _proportion, uint256 _proportionDenominator) external returns (address[] memory);
 
-    function balanceOnReward() external;
+    function claimAndBalance() external;
 
-    function claimRewards() external;
 }
