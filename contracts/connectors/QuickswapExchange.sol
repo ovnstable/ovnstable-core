@@ -2,75 +2,78 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract QuickswapExchange {
 
     IUniswapV2Router02 public swapRouter;
 
-    function swap(
-        address token,
+    constructor(address _swapRouter) {
+        require(_swapRouter != address(0), "Zero address not allowed");
+        swapRouter = IUniswapV2Router02(_swapRouter);
+    }
+
+    function swapTokenToUsdc(
+        address swapToken,
         address usdcToken,
+        uint256 swapTokenDenominator,
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (uint[] memory) {
+    ) public returns (uint256) {
 
-        uint256 denominator = 10 ** IERC20Metadata(token).decimals();
-
-        address[] memory path = new address[](2);
-        path[0] = token;
-        path[1] = usdcToken;
-
-        uint[] memory amountsOut = swapRouter.getAmountsOut(amount, path);
-
-        uint256 estimateUsdcOut = denominator * amountsOut[1] / amountsOut[0];
+        uint256 estimateUsdcOut = getUsdcSellPrice(swapToken, usdcToken, swapTokenDenominator, amount);
 
         // skip exchange if estimate USDC less than 3 shares to prevent INSUFFICIENT_OUTPUT_AMOUNT error
         // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
         if (estimateUsdcOut < 3) {
-            IERC20(token).transfer(sender, IERC20(token).balanceOf(address(this)));
+            IERC20(swapToken).transfer(sender, IERC20(swapToken).balanceOf(recipient));
             return new uint[](0);
         }
 
-        return swapRouter.swapExactTokensForTokens(
-            amount,
-            0,
-            path,
-            recipient,
-            block.timestamp + 600
-        );
+        uint256 amountOutMin = 0;
+
+        address[] memory path = new address[](2);
+        path[0] = swapToken;
+        path[1] = usdcToken;
+
+        uint[] memory amounts = swapRouter.swapExactTokensForTokens(amount, amountOutMin, path, recipient, block.timestamp + 600);
+
+        return amounts[1];
     }
 
     function getUsdcBuyPrice(
+        address swapToken,
         address usdcToken,
-        address token
+        uint256 swapTokenDenominator,
+        uint256 usdcAmount
     ) public view returns (uint256) {
-        uint256 denominator = 10 ** IERC20Metadata(token).decimals();
 
         address[] memory path = new address[](2);
         path[0] = usdcToken;
-        path[1] = token;
+        path[1] = swapToken;
 
-        uint[] memory amountsOut = swapRouter.getAmountsOut(10 ** 6, path);
+        uint[] memory amountsOut = swapRouter.getAmountsOut(usdcAmount, path);
 
-        return (10 ** 12) * denominator * amountsOut[0] / amountsOut[1];
+        // x + 6 - x = 6
+        return swapTokenDenominator * amountsOut[0] / amountsOut[1];
     }
 
     function getUsdcSellPrice(
-        IUniswapV2Router02 swapRouter,
-        address token,
-        address usdcToken
+        address swapToken,
+        address usdcToken,
+        uint256 swapTokenDenominator,
+        uint256 tokenAmount
     ) public view returns (uint256) {
-        uint256 denominator = 10 ** IERC20Metadata(token).decimals();
 
         address[] memory path = new address[](2);
-        path[0] = token;
+        path[0] = swapToken;
         path[1] = usdcToken;
 
-        uint[] memory amountsOut = swapRouter.getAmountsOut(denominator, path);
+        uint[] memory amountsOut = swapRouter.getAmountsOut(tokenAmount, path);
 
-        return (10 ** 12) * denominator * amountsOut[1] / amountsOut[0];
+        // x + 6 - x = 6
+        return swapTokenDenominator * amountsOut[1] / amountsOut[0];
     }
 }

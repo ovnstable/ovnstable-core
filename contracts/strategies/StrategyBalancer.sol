@@ -95,11 +95,11 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         quickswapExchange = QuickswapExchange(_quickswapExchange);
         balancerPoolId1 = _balancerPoolId1;
         balancerPoolId2 = _balancerPoolId2;
-        usdcTokenDenominator = 10 ** IERC20Metadata(address(_usdcToken)).decimals();
-        bpspTUsdTokenDenominator = 10 ** IERC20Metadata(address(_bpspTUsdToken)).decimals();
-        balTokenDenominator = 10 ** IERC20Metadata(address(_balToken)).decimals();
-        wmaticTokenDenominator = 10 ** IERC20Metadata(address(_wmaticToken)).decimals();
-        tusdTokenDenominator = 10 ** IERC20Metadata(address(_tusdToken)).decimals();
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        bpspTUsdTokenDenominator = 10 ** IERC20Metadata(_bpspTUsdToken).decimals();
+        balTokenDenominator = 10 ** IERC20Metadata(_balToken).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
+        tusdTokenDenominator = 10 ** IERC20Metadata(_tusdToken).decimals();
 
         emit StrategyBalancerUpdate(_balancerVault, _usdcToken, _bpspTUsdToken, _balToken, _wmaticToken, _tusdToken,
             _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
@@ -117,13 +117,10 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
     function stake(
         address _asset,
-        uint256 _amount,
-        address _beneficiary
+        uint256 _amount
     ) public override {
 
         require(_asset == address(usdcToken), "Stake only in usdc");
-
-        Vault(_beneficiary).transfer(usdcToken, address(this), _amount);
 
         usdcToken.approve(address(balancerVault), _amount);
 
@@ -149,7 +146,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
 
-        balancerVault.joinPool(balancerPoolId1, address(this), _beneficiary, request);
+        balancerVault.joinPool(balancerPoolId1, address(this), address(this), request);
     }
 
     function unstake(
@@ -158,10 +155,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         address _beneficiary
     ) public override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Stake only in usdc");
-
-        //TODO: not necessary after delete Vault
-        Vault(_beneficiary).transfer(bpspTUsdToken, address(this), _amount);
+        require(_asset == address(usdcToken), "Unstake only in usdc");
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
 
@@ -184,11 +178,11 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
 
         balancerVault.exitPool(balancerPoolId1, address(this), payable(_beneficiary), request);
-        return IERC20(_asset).balanceOf(_beneficiary);
+        return usdcToken.balanceOf(_beneficiary);
     }
 
-    function netAssetValue(address _holder) external override view returns (uint256) {
-        uint256 balance = bpspTUsdToken.balanceOf(_holder);
+    function netAssetValue() external override view returns (uint256) {
+        uint256 balance = bpspTUsdToken.balanceOf(address(this));
 
         uint256 totalBalanceUsdc;
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
@@ -207,8 +201,8 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         return bpspTUsdTokenDenominator * totalBalanceUsdc / totalSupply;
     }
 
-    function liquidationValue(address _holder) external override view returns (uint256) {
-        uint256 balance = bpspTUsdToken.balanceOf(_holder);
+    function liquidationValue() external override view returns (uint256) {
+        uint256 balance = bpspTUsdToken.balanceOf(address(this));
 
         uint256 totalBalanceUsdc;
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
@@ -227,7 +221,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         return bpspTUsdTokenDenominator * totalBalanceUsdc / totalSupply;
     }
 
-    function claimRewards(address _beneficiary) external override returns (uint256) {
+    function claimRewards(address _to) external override returns (uint256) {
         //TODO: Balancer. Claiming
 //        claimRewards();
 
@@ -236,21 +230,21 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         uint256 balBalance = balToken.balanceOf(address(this));
         if (balBalance != 0) {
             uint256 balUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(balToken)),
-                IAsset(address(usdcToken)), address(this), address(_beneficiary), balToken.balanceOf(address(_beneficiary)));
+                IAsset(address(usdcToken)), address(this), address(_to), balBalance);
             totalUsdc += balUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(_beneficiary), wmaticToken.balanceOf(address(_beneficiary)));
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken),
+                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
         if (tusdBalance != 0) {
             uint256 tusdUsdc = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(tusdToken)),
-                IAsset(address(usdcToken)), address(this), address(_beneficiary), tusdToken.balanceOf(address(_beneficiary)));
+                IAsset(address(usdcToken)), address(this), address(_to), tusdBalance);
             totalUsdc += tusdUsdc;
         }
 

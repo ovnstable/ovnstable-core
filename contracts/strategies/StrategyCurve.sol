@@ -22,7 +22,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     iCurvePool public curve;
     ILendingPoolAddressesProvider public aave;
     IRewardOnlyGauge public rewardGauge;
-    QuickswapExchange public exchange;
+    QuickswapExchange public quickswapExchange;
 
     IERC20 public usdc;
     IERC20 public aUsdc;
@@ -31,6 +31,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     IERC20 public wMatic;
     IERC20 public crv;
 
+    uint256 public crvTokenDenominator;
+    uint256 public wmaticTokenDenominator;
 
     // ---  constructor
 
@@ -61,10 +63,11 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- Setters
 
-    function setParams(address _aave,
+    function setParams(
+        address _aave,
         address _curve,
         address _rewardGauge,
-        address _exchange,
+        address _quickswapExchange,
         address _usdc,
         address _aUsdc,
         address _a3CrvToken,
@@ -73,9 +76,9 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _crv) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
-        require(_rewardGauge != address(0), "Zero address not allowed");
-        require(_exchange != address(0), "Zero address not allowed");
         require(_curve != address(0), "Zero address not allowed");
+        require(_rewardGauge != address(0), "Zero address not allowed");
+        require(_quickswapExchange != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         require(_aUsdc != address(0), "Zero address not allowed");
         require(_a3CrvToken != address(0), "Zero address not allowed");
@@ -86,7 +89,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         rewardGauge = IRewardOnlyGauge(_rewardGauge);
         curve = iCurvePool(_curve);
         aave = ILendingPoolAddressesProvider(_aave);
-        exchange = QuickswapExchange(_exchange);
+        quickswapExchange = QuickswapExchange(_quickswapExchange);
 
         usdc = IERC20(_usdc);
         wMatic = IERC20(_wMatic);
@@ -94,6 +97,9 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         aUsdc = IERC20(_aUsdc);
         a3CrvToken = IERC20(_a3CrvToken);
         a3CrvGaugeToken = IERC20(_a3CrvGaugeToken);
+
+        crvTokenDenominator = 10 ** IERC20Metadata(_crv).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(_wMatic).decimals();
     }
 
 
@@ -279,11 +285,23 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function claimRewards(address _to) external override returns (uint256){
         rewardGauge.claim_rewards(address(this));
 
-        uint256 wmaticUsdc = exchange.swap(address(wMatic), address(usdc), address(this), address(this), wMatic.balanceOf(address(this)))[1];
-        uint256 crvUsdc = exchange.swap(address(crv), address(usdc), address(this), address(this), wMatic.balanceOf(address(this)))[1];
+        uint256 totalUsdc;
 
-        uint256 total = wmaticUsdc + crvUsdc;
-        return total;
+        uint256 crvBalance = crv.balanceOf(address(this));
+        if (crvBalance != 0) {
+            uint256 crvUsdc = quickswapExchange.swapTokenToUsdc(address(crv), address(usdcToken), crvTokenDenominator,
+                address(this), address(_to), crvBalance);
+            totalUsdc += crvUsdc;
+        }
+
+        uint256 wmaticBalance = wMatic.balanceOf(address(this));
+        if (wmaticBalance != 0) {
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wMatic), address(usdcToken),
+                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            totalUsdc += wmaticUsdc;
+        }
+
+        return totalUsdc;
     }
 
 }

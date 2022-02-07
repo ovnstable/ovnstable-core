@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "../interfaces/IStrategy.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
+import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
@@ -16,14 +17,16 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     IERC20 public usdcToken;
     IIdleToken public idleToken;
+    IERC20 public wmaticToken;
+    QuickswapExchange public quickswapExchange;
     uint256 public usdcTokenDenominator;
     uint256 public idleTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
     // --- events
 
-    event StrategyIdleUpdate(address usdcToken, address idleToken, uint256 usdcTokenDenominator,
-        uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
+    event StrategyIdleUpdate(address usdcToken, address idleToken, address wmaticToken, address quickswapExchange,
+        uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
 
     // ---  constructor
 
@@ -50,21 +53,25 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function setParams(
         address _usdcToken,
         address _idleToken,
-        address _wmaticToken
+        address _wmaticToken,
+        address _quickswapExchange
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_idleToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
+        require(_quickswapExchange != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         idleToken = IIdleToken(_idleToken);
         wmaticToken = IERC20(_wmaticToken);
-        usdcTokenDenominator = 10 ** IERC20Metadata(address(_usdcToken)).decimals();
-        idleTokenDenominator = 10 ** IERC20Metadata(address(_idleToken)).decimals();
-        wmaticTokenDenominator = 10 ** IERC20Metadata(address(_wmaticToken)).decimals();
+        quickswapExchange = QuickswapExchange(_quickswapExchange);
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        idleTokenDenominator = 10 ** IERC20Metadata(_idleToken).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
-        emit StrategyIdleUpdate(_usdcToken, _idleToken, usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
+        emit StrategyIdleUpdate(_usdcToken, _idleToken, _wmaticToken, _quickswapExchange,
+            usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -91,7 +98,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount,
         address _beneficiary
     ) public override returns (uint256) {
-        require(_asset == address(usdcToken), "Stake only in usdc");
+        require(_asset == address(usdcToken), "Unstake only in usdc");
 
         uint256 tokenAmount = _amount + (_amount / 100 * 1);
         // fee 5% - misinformation
@@ -107,27 +114,27 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return redeemedTokens;
     }
 
-    function netAssetValue(address _holder) external override view returns (uint256) {
-        uint256 balance = idleToken.balanceOf(_holder);
+    function netAssetValue() external override view returns (uint256) {
+        uint256 balance = idleToken.balanceOf(address(this));
         uint256 price = idleToken.tokenPrice();
         // 18 + 6 - 18 = 6
         return balance * price / idleTokenDenominator;
     }
 
-    function liquidationValue(address _holder) external override view returns (uint256) {
-        uint256 balance = idleToken.balanceOf(_holder);
+    function liquidationValue() external override view returns (uint256) {
+        uint256 balance = idleToken.balanceOf(address(this));
         uint256 price = idleToken.tokenPrice();
         // 18 + 6 - 18 = 6
         return balance * price / idleTokenDenominator;
     }
 
-    function claimRewards(address _beneficiary) external override returns (uint256) {
+    function claimRewards(address _to) external override returns (uint256) {
         uint256 totalUsdc;
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(_beneficiary), wmaticToken.balanceOf(address(_beneficiary)));
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken),
+                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 
