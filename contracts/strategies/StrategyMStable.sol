@@ -125,10 +125,10 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
     ) public override {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
-        usdcToken.transferFrom(_beneficiary, address(this), _amount);
+        vault.transfer(usdcToken, address(this), _amount);
 
-        IERC20(_asset).approve(address(mUsdToken), _amount);
-        uint256 mintedTokens = mUsdToken.mint(_asset, _amount, 0, address(this));
+        usdcToken.approve(address(mUsdToken), _amount);
+        uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
 
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
@@ -147,16 +147,14 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         // 18 = 18 + 6 - 6
         uint256 tokenAmount = vimUsdTokenDenominator * _amount / _getVimUsdBuyPrice();
 
-        idleToken.transferFrom(_beneficiary, current , tokenAmount);
-
-        vault.unstakeVimUsd(address(imUsdToken), _amount, address(this));
+        vault.unstakeVimUsd(address(imUsdToken), tokenAmount, address(this));
 
         imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
 
-        mUsdToken.redeem(_asset, mUsdToken.balanceOf(address(this)), 0, address(this));
+        mUsdToken.redeem(address(usdcToken), mUsdToken.balanceOf(address(this)), 0, address(this));
 
-        uint256 redeemedTokens = IERC20(_asset).balanceOf(address(this));
-        IERC20(_asset).transfer(_beneficiary, redeemedTokens);
+        uint256 redeemedTokens = usdcToken.balanceOf(address(this));
+        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         return redeemedTokens;
     }
@@ -200,18 +198,18 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
         uint256 totalUsdc;
 
-        uint256 mtaBalance = mtaToken.balanceOf(address(_beneficiary));
+        uint256 mtaBalance = mtaToken.balanceOf(address(this));
         if (mtaBalance != 0) {
             uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
-                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(_beneficiary),
+                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this),
                 address(_beneficiary), mtaToken.balanceOf(address(_beneficiary)));
             totalUsdc += mtaUsdc;
         }
 
-        uint256 wmaticBalance = wMatic.balanceOf(address(_beneficiary));
+        uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+                address(this), address(_beneficiary), wmaticToken.balanceOf(address(_beneficiary)));
             totalUsdc += wmaticUsdc;
         }
 

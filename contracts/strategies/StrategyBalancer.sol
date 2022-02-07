@@ -123,9 +123,9 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
         require(_asset == address(usdcToken), "Stake only in usdc");
 
-        usdcToken.transferFrom(_beneficiary, address(this), _amount);
+        Vault(_beneficiary).transfer(usdcToken, address(this), _amount);
 
-        IERC20(_asset).approve(address(balancerVault), _amount);
+        usdcToken.approve(address(balancerVault), _amount);
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
 
@@ -134,7 +134,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         uint256[] memory amountsIn = new uint256[](4);
         for (uint256 i; i < tokens.length; i++) {
             assets[i] = IAsset(address(tokens[i]));
-            if (address(tokens[i]) == _asset) {
+            if (tokens[i] == usdcToken) {
                 maxAmountsIn[i] = _amount;
                 amountsIn[i] = _amount;
             } else {
@@ -160,7 +160,8 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
         require(_asset == address(usdcToken), "Stake only in usdc");
 
-        usdcToken.transferFrom(_beneficiary, address(this), _amount);
+        //TODO: not necessary after delete Vault
+        Vault(_beneficiary).transfer(bpspTUsdToken, address(this), _amount);
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
 
@@ -168,7 +169,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         uint256[] memory minAmountsOut = new uint256[](4);
         for (uint256 i; i < tokens.length; i++) {
             assets[i] = IAsset(address(tokens[i]));
-            if (address(tokens[i]) == _asset) {
+            if (tokens[i] == usdcToken) {
                 //TODO: Balancer. FIX if big slippage
                 minAmountsOut[i] = _amount;
             } else {
@@ -232,24 +233,24 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
         uint256 totalUsdc;
 
-        uint256 balBalance = balToken.balanceOf(address(_beneficiary));
+        uint256 balBalance = balToken.balanceOf(address(this));
         if (balBalance != 0) {
             uint256 balUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(balToken)),
-                IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), balToken.balanceOf(address(_beneficiary)));
+                IAsset(address(usdcToken)), address(this), address(_beneficiary), balToken.balanceOf(address(_beneficiary)));
             totalUsdc += balUsdc;
         }
 
-        uint256 wmaticBalance = wMatic.balanceOf(address(_beneficiary));
+        uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(_beneficiary), address(_beneficiary), wMatic.balanceOf(address(_beneficiary)));
+                address(this), address(_beneficiary), wmaticToken.balanceOf(address(_beneficiary)));
             totalUsdc += wmaticUsdc;
         }
 
-        uint256 tusdBalance = tusdToken.balanceOf(address(_beneficiary));
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
         if (tusdBalance != 0) {
             uint256 tusdUsdc = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(tusdToken)),
-                IAsset(address(usdcToken)), address(_beneficiary), address(_beneficiary), tusdToken.balanceOf(address(_beneficiary)));
+                IAsset(address(usdcToken)), address(this), address(_beneficiary), tusdToken.balanceOf(address(_beneficiary)));
             totalUsdc += tusdUsdc;
         }
 

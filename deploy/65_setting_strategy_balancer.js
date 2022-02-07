@@ -7,15 +7,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyIdle");
+    const strategy = await ethers.getContract("StrategyBalancer");
     const vault = await ethers.getContract("Vault");
     await (await strategy.setParams(vault.address, assets.usdc, assets.idleUsdc, assets.wMatic)).wait();
-    console.log('StrategyIdle setting done');
+    console.log('StrategyBalancer setting done');
 
-    await (await vault.setPortfolioManager((await ethers.getContract("StrategyIdle")).address)).wait();
+    await (await vault.setPortfolioManager((await ethers.getContract("StrategyBalancer")).address)).wait();
     console.log("vault.setPortfolioManager done");
 
 };
 
-module.exports.tags = ['setting','StrategyIdleSetting'];
+module.exports.tags = ['setting', 'StrategyBalancerSetting'];
 

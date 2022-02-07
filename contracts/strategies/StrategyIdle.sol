@@ -15,13 +15,17 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    IIdleToken public idleToken;
-    IERC20 public usdc;
     Vault public vault;
+    IERC20 public usdcToken;
+    IIdleToken public idleToken;
+    uint256 public usdcTokenDenominator;
+    uint256 public idleTokenDenominator;
+    uint256 public wmaticTokenDenominator;
 
     // --- events
 
-    event StrategyIdleUpdate(address idleToken);
+    event StrategyIdleUpdate(address vault, address usdcToken, address idleToken, uint256 usdcTokenDenominator,
+        uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
 
     // ---  constructor
 
@@ -46,18 +50,26 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     // --- Setters
 
     function setParams(
+        address _vault,
+        address _usdcToken,
         address _idleToken,
-        address _usdc,
-        address _vault) external onlyAdmin {
+        address _wmaticToken
+    ) external onlyAdmin {
 
-        require(_idleToken != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
         require(_vault != address(0), "Zero address not allowed");
-        idleToken = IIdleToken(_idleToken);
-        vault = Vault(_vault);
-        usdc = IERC20(_usdc);
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_idleToken != address(0), "Zero address not allowed");
+        require(_wmaticToken != address(0), "Zero address not allowed");
 
-        emit StrategyIdleUpdate(_idleToken);
+        vault = Vault(_vault);
+        usdcToken = IERC20(_usdcToken);
+        idleToken = IIdleToken(_idleToken);
+        wmaticToken = IERC20(_wmaticToken);
+        usdcTokenDenominator = 10 ** IERC20Metadata(address(_usdcToken)).decimals();
+        idleTokenDenominator = 10 ** IERC20Metadata(address(_idleToken)).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(address(_wmaticToken)).decimals();
+
+        emit StrategyIdleUpdate(_vault, _usdcToken, _idleToken, usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -74,11 +86,12 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount,
         address _beneficiary
     ) public override {
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Stake only in usdc");
 
-        vault.transfer(usdc, address(this), _amount);
+        vault.transfer(usdcToken, address(this), _amount);
 
-        usdc.approve(address(idleToken), _amount);
+        usdcToken.approve(address(idleToken), _amount);
+
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, _beneficiary);
         idleToken.transfer(_beneficiary, idleToken.balanceOf(address(this)));
     }
@@ -88,18 +101,15 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount,
         address _beneficiary
     ) public override returns (uint256) {
-        require(_asset == address(usdc), "Some token not compatible");
-
-        address current = address(this);
+        require(_asset == address(usdcToken), "Stake only in usdc");
 
         uint256 tokenAmount = _amount + (_amount / 100 * 1);
         // fee 5% - misinformation
         tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
-
         vault.transfer(idleToken, address(this), tokenAmount);
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
-        usdc.transfer(_beneficiary, usdc.balanceOf(current));
+        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         console.log('Redeem %s', redeemedTokens / 10 ** 6);
         console.log('Amount %s', _amount / 10 ** 6);
@@ -108,21 +118,30 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return redeemedTokens;
     }
 
+    function netAssetValue(address _holder) external override view returns (uint256) {
+        uint256 balance = idleToken.balanceOf(_holder);
+        uint256 price = idleToken.tokenPrice();
+        // 18 + 6 - 18 = 6
+        return balance * price / idleTokenDenominator;
+    }
+
     function liquidationValue(address _holder) external override view returns (uint256) {
-        uint256 balance = idleToken.balanceOf(_holder) / 10 ** 12;
+        uint256 balance = idleToken.balanceOf(_holder);
         uint256 price = idleToken.tokenPrice();
-        uint256 result = (balance * price);
-        return result / 10 ** 6;
+        // 18 + 6 - 18 = 6
+        return balance * price / idleTokenDenominator;
     }
 
-    function netAssetValue(address _holder) external override view returns (uint256){
-        uint256 balance = idleToken.balanceOf(_holder) / 10 ** 12;
-        uint256 price = idleToken.tokenPrice();
-        uint256 result = (balance * price);
-        return result / 10 ** 6;
-    }
+    function claimRewards(address _beneficiary) external override returns (uint256) {
+        uint256 totalUsdc;
 
-    function claimRewards(address _beneficiary) external override returns (uint256){
-        return 0;
+        uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
+        if (wmaticBalance != 0) {
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
+                address(this), address(_beneficiary), wmaticToken.balanceOf(address(_beneficiary)));
+            totalUsdc += wmaticUsdc;
+        }
+
+        return totalUsdc;
     }
 }
