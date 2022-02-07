@@ -7,9 +7,9 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/IMark2Market.sol";
+import "./interfaces/IPortfolioManager.sol";
 import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
-import "./PortfolioManager.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -21,7 +21,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     UsdPlusToken public usdPlus;
     IERC20 public usdc;
 
-    PortfolioManager public portfolioManager; //portfolio manager contract
+    IPortfolioManager public portfolioManager; //portfolio manager contract
     IMark2Market public mark2market;
 
     uint256 public buyFee;
@@ -130,7 +130,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
         require(_portfolioManager != address(0), "Zero address not allowed");
-        portfolioManager = PortfolioManager(_portfolioManager);
+        portfolioManager = IPortfolioManager(_portfolioManager);
         emit PortfolioManagerUpdated(_portfolioManager);
     }
 
@@ -225,37 +225,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
         uint256 totalUsdc = mark2market.totalLiquidationAssets();
-        // denormalize from 10**18 to 10**6 as USD+ decimals
-        // new: totalLiquidationAssets return value as 10**6
-//        totalUsdc = totalUsdc / 10 ** 12;
-
-        uint256 totalUsdPlusSupplyNotEnoughLimit = totalUsdPlusSupply * notEnoughLimit / notEnoughLimitDenominator;
-        // check if we should return back to user proportionally tokens from Vault
-        if (totalUsdc < totalUsdPlusSupplyNotEnoughLimit) {
-            // redeemAmount should be in USD+ and or equivalent to USDC
-
-            // Calc user redeem shares
-            uint256 redeemProportionDenominator = 10 ** 18;
-            uint256 redeemProportion = redeemProportionDenominator * redeemAmount / totalUsdPlusSupply;
-
-            // Burn USD+ from sender
-            usdPlus.burn(msg.sender, _amount);
-
-            address[] memory withdrewTokens = portfolioManager.withdrawProportional(
-                redeemProportion,
-                redeemProportionDenominator
-            );
-            for (uint8 i; i < withdrewTokens.length; i++) {
-                address withdrewToken = withdrewTokens[i];
-                uint256 withdrewBalance = IERC20(withdrewToken).balanceOf(address(this));
-                if (withdrewBalance > 0) {
-                    IERC20(withdrewToken).transfer(msg.sender, withdrewBalance);
-                    emit OnNotEnoughLimitRedeemed(withdrewToken, withdrewBalance);
-                }
-            }
-            return;
-        }
-
 
         //TODO: Real unstacked amount may be different to _amount
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);

@@ -10,25 +10,46 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interfaces/IPortfolioManager.sol";
-import "./Vault.sol";
-import "./StrategyBalancer.sol";
+import "./interfaces/IMark2Market.sol";
+import "./interfaces/IStrategy.sol";
 
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
     // ---  fields
 
     address public exchanger;
-    Vault public vault;
-    StrategyBalancer balancer;
+    IERC20 usdc;
+    mapping(address => uint256) public strategyWeightPositions;
+    StrategyWeight[] public strategyWeights;
+
+
 
     // ---  events
 
     event ExchangerUpdated(address value);
-    event VaultUpdated(address value);
-    event BalancerUpdated(address value);
+    event UsdcUpdate(address value);
     event Exchanged(uint256 amount, address from, address to);
+    event UpdatedAssetInfo(uint256 index, address asset, address priceGetter);
+
+    event UpdatedAssetWeight(
+        uint256 index,
+        address asset,
+        uint256 minWeight,
+        uint256 targetWeight,
+        uint256 maxWeight
+    );
+
+    event UpdatedStrategyWeight(
+        uint256 index,
+        address strategy,
+        uint256 minWeight,
+        uint256 targetWeight,
+        uint256 maxWeight
+    );
+
 
     // ---  modifiers
 
@@ -65,32 +86,27 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function setExchanger(address _exchanger) public onlyAdmin {
         require(_exchanger != address(0), "Zero address not allowed");
+
+        revokeRole(EXCHANGER, exchanger);
+        grantRole(EXCHANGER, _exchanger);
+
         exchanger = _exchanger;
-        grantRole(EXCHANGER, exchanger);
         emit ExchangerUpdated(_exchanger);
     }
 
-    function setVault(address _vault) external onlyAdmin {
-        require(_vault != address(0), "Zero address not allowed");
-        vault = Vault(_vault);
-        emit VaultUpdated(_vault);
+    function setUsdc(address _usdc) public onlyAdmin {
+        require(_usdc != address(0), "Zero address not allowed");
+
+        usdc = IERC20(_usdc);
+        emit UsdcUpdate(_usdc);
     }
 
-    function setBalancer(address _balancer) external onlyAdmin {
-        require(_balancer != address(0), "Zero address not allowed");
-        balancer = StrategyBalancer(_balancer);
-        emit BalancerUpdated(_balancer);
-    }
 
 
     // ---  logic
 
     function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger {
-        // 1. put tokens into Vault
-        _token.transfer(address(vault), _amount);
-
-        // 2. start balancing
-        balancer.balance();
+        balance();
     }
 
 
@@ -100,16 +116,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     onlyExchanger
     returns (uint256)
     {
-        // 0.1 TODO: check that _token is one off used
-        // 0.2 TODO: check total balance would be in balancer where wi will correct total price, is enough?
-
         // 1. balance to needed amount
-//        _balanceOnWithdraw(_token, _amount);
+        balance(_token, _amount);
 
         // 2. transfer back tokens
         // TODO: transfer amount should be reduced by fees
 
-        uint256 currentBalance = _token.balanceOf(address(vault));
+        uint256 currentBalance = _token.balanceOf(address(this));
 
         //TODO: crunch to get logs, remove
         if (_amount > currentBalance) {
@@ -120,67 +133,152 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             revert(string(
                 abi.encodePacked(
                     "In vault not enough for transfer _amount: ",
-                    Strings.toString(_token.balanceOf(address(vault))),
+                    Strings.toString(_token.balanceOf(address(this))),
                     " < ",
                     Strings.toString(_amount)
                 )
             ));
         }
 
-        vault.transfer(_token, msg.sender, _amount);
-
         return _amount;
     }
 
-    /**
-     * Make withdraw tokens from Vault by proportion
-     *
-     * @param _proportion Proportion for calc amount to transfers
-     * @param _proportionDenominator Proportion denominator
-     * @return List of tokens that have been transferred
-     */
-    function withdrawProportional(uint256 _proportion, uint256 _proportionDenominator)
-    external
-    override
-    onlyExchanger
-    returns (address[] memory)
-    {
-        //        // 1. balance
-        //        _balance();
-        //
-        //        // 2. transfer back tokens
-        //        Portfolio.AssetWeight[] memory assetWeights = portfolio.getAllAssetWeights();
-        //        address[] memory tokens = new address[](assetWeights.length);
-        //        // go through all assets and transfer proportions except vimUsd
-        //        for (uint8 i; i < assetWeights.length; i++) {
-        //            address asset = assetWeights[i].asset;
-        //            if (asset == vimUsdToken) {
-        //                tokens[i] = imUsdToken;
-        //                continue;
-        //            }
-        //            uint256 currentVaultTokenBalance = IERC20(asset).balanceOf(address(vault));
-        //            if (currentVaultTokenBalance > 0) {
-        //                uint256 transferAmount = currentVaultTokenBalance * _proportion / _proportionDenominator;
-        //                vault.transfer(IERC20(asset), msg.sender, transferAmount);
-        //            }
-        //            tokens[i] = asset;
-        //        }
-        //
-        //        // because vimUsd is not ERC20 we need first unstake vimUsd to imUsd
-        //        // and then transfer to msg.sender imUsd
-        //        uint256 currentVaultVimUsdAmount = IERC20(vimUsdToken).balanceOf(address(vault));
-        //        if (currentVaultVimUsdAmount > 0) {
-        //            currentVaultVimUsdAmount = currentVaultVimUsdAmount * _proportion / _proportionDenominator;
-        //            connectorMStable.unstakeVimUsd(imUsdToken, currentVaultVimUsdAmount, msg.sender);
-        //        }
-        //
-        //        return tokens;
-    }
-
     function claimAndBalance() external override onlyExchanger {
-        balancer.claimRewards();
-        balancer.balance();
+        claimRewards();
+        balance();
     }
 
+    function balance() internal {
+        // Same to zero withdrawal balance
+        balance(IERC20(address(0)), 0);
+    }
+
+    function claimRewards() internal {
+        StrategyWeight[] memory strategies = getAllStrategyWeights();
+
+        for (uint8 i; i < strategies.length; i++) {
+            IStrategy(strategies[i].strategy).claimRewards(address(this));
+        }
+    }
+
+    function balance(IERC20 withdrawToken, uint256 withdrawAmount) internal {
+
+        StrategyWeight[] memory strategies = getAllStrategyWeights();
+
+        // 1. calc total USDC equivalent
+        uint256 totalUsdc = usdc.balanceOf(address(this));
+        for (uint8 i; i < strategies.length; i++) {
+            IStrategy(strategies[i].strategy).netAssetValue();
+        }
+
+        if (address(withdrawToken) == address(usdc)) {
+            require(totalUsdc >= withdrawAmount, "Trying withdraw more than liquidity available");
+            // it make to move to PortfolioManager extra USDC to withdraw
+            totalUsdc = totalUsdc - withdrawAmount;
+        }
+
+        // 3. calc diffs for strategies liquidity
+        Order[] memory stakeOrders = new Order[](strategies.length);
+        uint8 stakeOrdersCount = 0;
+        for (uint8 i; i < strategies.length; i++) {
+            uint256 targetLiquidity = (totalUsdc * strategies[i].targetWeight) / TOTAL_WEIGHT;
+            uint256 currentLiquidity = IStrategy(strategies[i].strategy).netAssetValue();
+            if (targetLiquidity == currentLiquidity) {
+                // skip already at target strategies
+                continue;
+            }
+
+            if (targetLiquidity < currentLiquidity) {
+                // unstake now
+                IStrategy(strategies[i].strategy).unstake(
+                    address(usdc),
+                    currentLiquidity - targetLiquidity,
+                    address(this)
+                );
+            } else {
+                // save to stake later
+                stakeOrders[stakeOrdersCount] = Order(
+                    true,
+                    strategies[i].strategy,
+                    targetLiquidity - currentLiquidity
+                );
+                stakeOrdersCount++;
+            }
+        }
+
+        // 4.  make staking
+        for (uint8 i; i < stakeOrdersCount; i++) {
+
+            address strategy = stakeOrders[i].strategy;
+            uint256 amount = stakeOrders[i].amount;
+
+            usdc.transfer(strategy, amount);
+
+            IStrategy(strategy).stake(
+                address(usdc),
+                amount
+            );
+        }
+
+    }
+
+    function setStrategyWeights(StrategyWeight[] calldata _strategyWeights) external onlyAdmin {
+        uint256 totalTarget = 0;
+        for (uint8 i = 0; i < _strategyWeights.length; i++) {
+            StrategyWeight memory strategyWeight = _strategyWeights[i];
+            require(strategyWeight.strategy != address(0), "weight without strategy");
+            require(
+                strategyWeight.minWeight <= strategyWeight.targetWeight,
+                "minWeight shouldn't higher than targetWeight"
+            );
+            require(
+                strategyWeight.targetWeight <= strategyWeight.maxWeight,
+                "targetWeight shouldn't higher than maxWeight"
+            );
+            totalTarget += strategyWeight.targetWeight;
+        }
+        require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
+
+        for (uint8 i = 0; i < _strategyWeights.length; i++) {
+            _addStrategyWeightAt(_strategyWeights[i], i);
+            strategyWeightPositions[strategyWeights[i].strategy] = i;
+        }
+
+        // truncate if need
+        if (strategyWeights.length > _strategyWeights.length) {
+            uint256 removeCount = strategyWeights.length - _strategyWeights.length;
+            for (uint8 i = 0; i < removeCount; i++) {
+                strategyWeights.pop();
+            }
+        }
+    }
+
+    function _addStrategyWeightAt(StrategyWeight memory strategyWeight, uint256 index) internal {
+        uint256 currentLength = strategyWeights.length;
+        // expand if need
+        if (currentLength == 0 || currentLength - 1 < index) {
+            uint256 additionalCount = index - currentLength + 1;
+            for (uint8 i = 0; i < additionalCount; i++) {
+                strategyWeights.push();
+            }
+        }
+        strategyWeights[index] = strategyWeight;
+        emit UpdatedStrategyWeight(
+            index,
+            strategyWeight.strategy,
+            strategyWeight.minWeight,
+            strategyWeight.targetWeight,
+            strategyWeight.maxWeight
+        );
+    }
+
+
+    function getStrategyWeight(address strategy) public override view returns (StrategyWeight memory) {
+        return strategyWeights[strategyWeightPositions[strategy]];
+    }
+
+    function getAllStrategyWeights() public override view returns (StrategyWeight[] memory) {
+        return strategyWeights;
+    }
 
 }

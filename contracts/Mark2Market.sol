@@ -9,23 +9,19 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IMark2Market.sol";
-import "./Portfolio.sol";
-import "./Vault.sol";
 import "./interfaces/IStrategy.sol";
+import "./interfaces/IPortfolioManager.sol";
 
 contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-
     // ---  fields
 
-    Vault public vault;
-    Portfolio public portfolio;
+    IPortfolioManager public portfolioManager;
 
     // ---  events
 
-    event VaultUpdated(address vault);
-    event PortfolioUpdated(address portfolio);
+    event PortfolioManagerUpdated(address portfolio);
 
 
     // ---  modifiers
@@ -56,36 +52,30 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
     // ---  setters
 
-    function setVault(address _vault) external onlyAdmin {
-        require(_vault != address(0), "Zero address not allowed");
-        vault = Vault(_vault);
-        emit VaultUpdated(_vault);
-    }
-
-    function setPortfolio(address _portfolio) external onlyAdmin {
-        require(_portfolio != address(0), "Zero address not allowed");
-        portfolio = Portfolio(_portfolio);
-        emit PortfolioUpdated(_portfolio);
+    function setPortfolio(address _value) external onlyAdmin {
+        require(_value != address(0), "Zero address not allowed");
+        portfolioManager = IPortfolioManager(_value);
+        emit PortfolioManagerUpdated(_value);
     }
 
     // ---  logic
 
     function strategyAssets() public view override returns (StrategyAsset[] memory) {
 
-        Portfolio.StrategyWeight[] memory weights = portfolio.getAllStrategyWeights();
+        IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
         uint256 count = weights.length;
 
         StrategyAsset[] memory assets = new StrategyAsset[](count);
 
         for (uint8 i = 0; i < count; i++) {
-            Portfolio.StrategyWeight memory weight = weights[i];
+            IPortfolioManager.StrategyWeight memory weight = weights[i];
             IStrategy item = IStrategy(weight.strategy);
 
 
             assets[i] = StrategyAsset(
                 weight.strategy,
-                item.netAssetValue(address(vault)),
-                item.liquidationValue(address(vault))
+                item.netAssetValue(),
+                item.liquidationValue()
             );
         }
 
@@ -104,27 +94,23 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
     function totalAssets(bool liq) internal view returns (uint256)
     {
         uint256 totalUsdcPrice = 0;
-        Portfolio.StrategyWeight[] memory weights = portfolio.getAllStrategyWeights();
+        IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
         uint256 count = weights.length;
 
         StrategyAsset[] memory assets = new StrategyAsset[](count);
 
         for (uint8 i = 0; i < count; i++) {
-            Portfolio.StrategyWeight memory weight = weights[i];
+            IPortfolioManager.StrategyWeight memory weight = weights[i];
             IStrategy item = IStrategy(weight.strategy);
 
             if (liq) {
-                totalUsdcPrice += item.liquidationValue(address(vault));
+                totalUsdcPrice += item.liquidationValue();
             } else {
-                totalUsdcPrice += item.netAssetValue(address(vault));
+                totalUsdcPrice += item.netAssetValue();
             }
         }
 
         return totalUsdcPrice;
     }
-
-
-
-
 
 }

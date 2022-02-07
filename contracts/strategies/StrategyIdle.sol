@@ -9,13 +9,11 @@ import "../interfaces/IStrategy.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
 
 import "hardhat/console.sol";
-import "../Vault.sol";
 
 contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    Vault public vault;
     IERC20 public usdcToken;
     IIdleToken public idleToken;
     uint256 public usdcTokenDenominator;
@@ -24,7 +22,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- events
 
-    event StrategyIdleUpdate(address vault, address usdcToken, address idleToken, uint256 usdcTokenDenominator,
+    event StrategyIdleUpdate(address usdcToken, address idleToken, uint256 usdcTokenDenominator,
         uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
 
     // ---  constructor
@@ -50,18 +48,15 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     // --- Setters
 
     function setParams(
-        address _vault,
         address _usdcToken,
         address _idleToken,
         address _wmaticToken
     ) external onlyAdmin {
 
-        require(_vault != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_idleToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
 
-        vault = Vault(_vault);
         usdcToken = IERC20(_usdcToken);
         idleToken = IIdleToken(_idleToken);
         wmaticToken = IERC20(_wmaticToken);
@@ -69,7 +64,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         idleTokenDenominator = 10 ** IERC20Metadata(address(_idleToken)).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(address(_wmaticToken)).decimals();
 
-        emit StrategyIdleUpdate(_vault, _usdcToken, _idleToken, usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
+        emit StrategyIdleUpdate(_usdcToken, _idleToken, usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -83,17 +78,12 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function stake(
         address _asset,
-        uint256 _amount,
-        address _beneficiary
+        uint256 _amount
     ) public override {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
-        vault.transfer(usdcToken, address(this), _amount);
-
         usdcToken.approve(address(idleToken), _amount);
-
-        uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, _beneficiary);
-        idleToken.transfer(_beneficiary, idleToken.balanceOf(address(this)));
+        uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, address(this));
     }
 
     function unstake(
@@ -106,7 +96,6 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 tokenAmount = _amount + (_amount / 100 * 1);
         // fee 5% - misinformation
         tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
-        vault.transfer(idleToken, address(this), tokenAmount);
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
         usdcToken.transfer(_beneficiary, redeemedTokens);
