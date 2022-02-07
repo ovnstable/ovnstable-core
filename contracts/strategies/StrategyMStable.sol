@@ -37,7 +37,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
     // --- events
 
-    event StrategyMStableUpdate(address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken,
+    event StrategyMStableUpdate(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken,
         address wmaticToken, address balancerExchange, address quickswapExchange, bytes32 balancerPoolId1, bytes32 balancerPoolId2,
         uint256 usdcTokenDenominator, uint256 vimUsdTokenDenominator, uint256 mtaTokenDenominator, uint256 wmaticTokenDenominator);
 
@@ -167,7 +167,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
     }
 
     function _getVimUsdBuyPrice() internal view returns (uint256) {
-        uint256 mintOutput = mUsdToken.getMintOutput(usdcToken, usdcTokenDenominator);
+        uint256 mintOutput = mUsdToken.getMintOutput(address(usdcToken), usdcTokenDenominator);
         // 6 + 18 - 18 = 6
         return usdcTokenDenominator * vimUsdTokenDenominator / imUsdToken.underlyingToCredits(mintOutput);
     }
@@ -175,7 +175,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
     function _getVimUsdSellPrice() internal view returns (uint256) {
         uint256 underlying = imUsdToken.creditsToUnderlying(vimUsdTokenDenominator);
         // 6 = 6
-        return mUsdToken.getRedeemOutput(usdcToken, underlying);
+        return mUsdToken.getRedeemOutput(address(usdcToken), underlying);
     }
 
     function claimRewards(address _to) external override returns (uint256) {

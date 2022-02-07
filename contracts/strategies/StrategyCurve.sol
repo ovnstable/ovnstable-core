@@ -294,15 +294,15 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 crvBalance = crv.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = quickswapExchange.swapTokenToUsdc(address(crv), address(usdcToken), crvTokenDenominator,
+            uint256 crvUsdc = quickswapExchange.swapTokenToUsdc(address(crv), address(usdc), crvTokenDenominator,
                 address(this), address(_to), crvBalance);
             totalUsdc += crvUsdc;
         }
 
         uint256 wmaticBalance = wMatic.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wMatic), address(usdcToken),
-                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wMatic), address(usdc), wmaticTokenDenominator,
+                address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 

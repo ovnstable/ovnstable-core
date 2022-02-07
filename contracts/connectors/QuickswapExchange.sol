@@ -29,7 +29,7 @@ contract QuickswapExchange {
         // TODO: may be enough 2 or insert check ratio IN/OUT to make decision
         if (estimateUsdcOut < 3) {
             IERC20(swapToken).transfer(sender, IERC20(swapToken).balanceOf(recipient));
-            return new uint[](0);
+            return 0;
         }
 
         uint256 amountOutMin = 0;

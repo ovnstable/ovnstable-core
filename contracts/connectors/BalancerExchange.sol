@@ -10,7 +10,7 @@ import "../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
 
 contract BalancerExchange {
 
-    uint256 public constant MAX_VALUE = 10 ** 27;
+    int256 public constant MAX_VALUE = 10 ** 27;
 
     IVault public balancerVault;
 
@@ -42,7 +42,7 @@ contract BalancerExchange {
         fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
-        return balancerVault.swap(singleSwap, fundManagement, MAX_VALUE, block.timestamp + 600);
+        return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
     }
 
     function batchSwap(
@@ -55,7 +55,7 @@ contract BalancerExchange {
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (int256[] memory) {
+    ) public returns (uint256) {
 
         IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
 
@@ -89,7 +89,9 @@ contract BalancerExchange {
         limits[1] = MAX_VALUE;
         limits[2] = MAX_VALUE;
 
-        return balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600);
+        int256[] memory amounts = balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600);
+
+        return uint256(amounts[2]);
     }
 
     function onSwap(
