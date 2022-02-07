@@ -13,10 +13,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyCurve");
-    const vault = await ethers.getContract("Vault");
     await (await strategy.setParams(aaveAddress,
                                     aCurvepoolStake,
-                                    vault.address,
                                     assets.am3CRVgauge,
                                     swapRouter,
                                     assets.usdc,
@@ -26,9 +24,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
                                     assets.wMatic,
                                     assets.crv)).wait();
     console.log('StrategyCurve setting done');
-
-    await (await vault.setPortfolioManager((await ethers.getContract("StrategyCurve")).address)).wait();
-    console.log("vault.setPortfolioManager done");
 
 };
 

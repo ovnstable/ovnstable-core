@@ -9,8 +9,7 @@ interface IStrategy {
 
     function stake(
         address _asset, // USDC
-        uint256 _amount, // value for staking in USDC
-        address _beneficiary // Vault
+        uint256 _amount // value for staking in USDC
     ) external;
 
     function unstake(
@@ -19,11 +18,11 @@ interface IStrategy {
         address _beneficiary // Vault
     ) external returns (uint256); // Real unstake value
 
-    function netAssetValue(address _holder) external view returns (uint256); // Return value in USDC - denominator 6
+    function netAssetValue() external view returns (uint256); // Return value in USDC - denominator 6
 
-    function liquidationValue(address _holder) external view returns (uint256); // Return value in USDC - denominator 6
+    function liquidationValue() external view returns (uint256); // Return value in USDC - denominator 6
 
-    function claimRewards(address _beneficiary) external returns (uint256); // Return received amount in USDC - denominator 6
+    function claimRewards(address _to) external returns (uint256); // Return received amount in USDC - denominator 6
 
 }
 

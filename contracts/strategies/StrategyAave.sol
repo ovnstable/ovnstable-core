@@ -8,18 +8,15 @@ import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "hardhat/console.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
-import "../Vault.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
-
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     ILendingPoolAddressesProvider public aave;
-    Vault public vault;
     IERC20 public usdc;
     IERC20 public aUsdc;
 
@@ -55,17 +52,14 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function setParams(address _aave,
         address _usdc,
-        address _aUsdc,
-        address _vault
+        address _aUsdc
     ) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         require(_aUsdc != address(0), "Zero address not allowed");
-        require(_vault != address(0), "Zero address not allowed");
 
         aave = ILendingPoolAddressesProvider(_aave);
-        vault = Vault(_vault);
 
         usdc = IERC20(_usdc);
         aUsdc = IERC20(_aUsdc);
@@ -78,17 +72,15 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function stake(
         address _asset,
-        uint256 _amount,
-        address _beneficiary
+        uint256 _amount
     ) override external {
         require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
-        vault.transfer(usdc, current, _amount);
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
-        IERC20(_asset).approve(address(pool), _amount);
-        pool.deposit(_asset, _amount, _beneficiary, 0);
+        IERC20(usdc).approve(address(pool), _amount);
+        pool.deposit(address(usdc), _amount, current, 0);
     }
 
     function unstake(
@@ -97,8 +89,6 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _beneficiary
     ) override external returns (uint256) {
         require(_asset == address(usdc), "Some token not compatible");
-
-        vault.transfer(aUsdc, address(this), _amount);
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         aUsdc.approve(address(pool), _amount);
@@ -118,16 +108,17 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     }
 
 
-    function netAssetValue(address _holder) external view override returns (uint256){
-        return aUsdc.balanceOf(_holder);
+    function netAssetValue() external view override returns (uint256){
+        return aUsdc.balanceOf(address(this));
 
     }
 
-    function liquidationValue(address _holder) external view override returns (uint256){
-        return aUsdc.balanceOf(_holder);
+    function liquidationValue() external view override returns (uint256){
+        return aUsdc.balanceOf(address(this));
     }
 
     function claimRewards(address _beneficiary) external override returns (uint256){
+        emit Reward(0);
         return 0;
     }
 

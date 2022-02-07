@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/QuickswapExchange.sol";
-import "../Vault.sol";
 
 import "hardhat/console.sol";
 
@@ -31,8 +30,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     IERC20 public a3CrvGaugeToken;
     IERC20 public wMatic;
     IERC20 public crv;
-
-    Vault public vault;
 
 
     // ---  constructor
@@ -66,7 +63,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function setParams(address _aave,
         address _curve,
-        address _vault,
         address _rewardGauge,
         address _exchange,
         address _usdc,
@@ -77,7 +73,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _crv) external onlyAdmin {
 
         require(_aave != address(0), "Zero address not allowed");
-        require(_vault != address(0), "Zero address not allowed");
         require(_rewardGauge != address(0), "Zero address not allowed");
         require(_exchange != address(0), "Zero address not allowed");
         require(_curve != address(0), "Zero address not allowed");
@@ -90,7 +85,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         rewardGauge = IRewardOnlyGauge(_rewardGauge);
         curve = iCurvePool(_curve);
-        vault = Vault(_vault);
         aave = ILendingPoolAddressesProvider(_aave);
         exchange = QuickswapExchange(_exchange);
 
@@ -108,14 +102,11 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     function stake(
         address _asset,
-        uint256 _amount,
-        address _beneficiary
+        uint256 _amount
     ) override external {
         require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
-
-        vault.transfer(usdc, current, _amount);
 
         _stakeAave(address(usdc), _amount, current);
         _stakeCurve(address(aUsdc), _amount, current);
@@ -124,7 +115,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         a3CrvToken.approve(address(rewardGauge), a3CrvBalance);
         rewardGauge.deposit(a3CrvBalance, current, false);
 
-        a3CrvGaugeToken.transfer(_beneficiary, a3CrvGaugeToken.balanceOf(current));
     }
 
     function unstake(
@@ -138,8 +128,6 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on tokenExchange
         uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
-
-        vault.transfer(a3CrvGaugeToken, current, tokenAmount);
 
         console.log('usdc %s', usdc.balanceOf(current));
         console.log('aUsdc %s', aUsdc.balanceOf(current));
@@ -172,8 +160,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return withdrewAmount;
     }
 
-    function netAssetValue(address _holder) external view override returns (uint256){
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
+    function netAssetValue() external view override returns (uint256){
+        uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
         // 18
         uint256 price = curve.get_virtual_price();
         // 18
@@ -186,8 +174,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     }
 
-    function liquidationValue(address _holder) external view override returns (uint256){
-        uint256 balance = a3CrvGaugeToken.balanceOf(_holder);
+    function liquidationValue() external view override returns (uint256){
+        uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
         // 18
         uint256 price = curve.get_virtual_price();
         // 18
@@ -288,7 +276,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return retAmount;
     }
 
-    function claimRewards(address _beneficiary) external override returns (uint256){
+    function claimRewards(address _to) external override returns (uint256){
         rewardGauge.claim_rewards(address(this));
 
         uint256 wmaticUsdc = exchange.swap(address(wMatic), address(usdc), address(this), address(this), wMatic.balanceOf(address(this)))[1];

@@ -8,13 +8,13 @@ import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "hardhat/console.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Router01.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Pair.sol";
 import "../libraries/math/LowGasSafeMath.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -92,8 +92,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
 
     function stake(
         address _asset,
-        uint256 _amount,
-        address _beneficiary
+        uint256 _amount
     ) override external {
         require(address(usdc) == _asset, 'ConnectorQuickswapUsdtMai: can work only with USDC');
 
@@ -122,7 +121,6 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
         console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
 
-        pair.transfer(_beneficiary, pair.balanceOf(address(this)));
 
     }
 
@@ -258,15 +256,15 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     }
 
 
-    function netAssetValue(address _holder) external view override returns (uint256){
+    function netAssetValue() external view override returns (uint256){
         return 0;
     }
 
-    function liquidationValue(address _holder) external view override returns (uint256){
+    function liquidationValue() external view override returns (uint256){
         return  0;
     }
 
-    function claimRewards(address _beneficiary) external override returns (uint256){
+    function claimRewards(address _to) external override returns (uint256){
         return 0;
     }
 

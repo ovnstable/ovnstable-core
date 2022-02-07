@@ -4,11 +4,30 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IPortfolioManager {
+
+
+    // --- structs
+
+    struct Order {
+        bool stake;
+        address strategy;
+        uint256 amount;
+    }
+
+    struct StrategyWeight {
+        address strategy;
+        uint256 minWeight;
+        uint256 targetWeight;
+        uint256 maxWeight;
+    }
+
     function deposit(IERC20 _token, uint256 _amount) external;
 
     function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);
 
-    function withdrawProportional(uint256 _proportion, uint256 _proportionDenominator) external returns (address[] memory);
+    function getStrategyWeight(address strategy) external view returns (StrategyWeight memory);
+
+    function getAllStrategyWeights() external view returns (StrategyWeight[] memory);
 
     function claimAndBalance() external;
 
