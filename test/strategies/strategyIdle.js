@@ -11,7 +11,7 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
-describe("StrategyAave", function () {
+describe("StrategyIdle", function () {
 
     let account;
     let strategy;

@@ -2,21 +2,30 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "../connectors/balancer/interfaces/IVault.sol";
 import "../connectors/balancer/interfaces/IAsset.sol";
 import "../connectors/balancer/interfaces/IGeneralPool.sol";
 import "../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
 
-abstract contract BalancerExchange {
+contract BalancerExchange {
+
+    uint256 public constant MAX_VALUE = 10 ** 27;
+
+    IVault public balancerVault;
+
+    constructor(address _balancerVault) {
+        require(_balancerVault != address(0), "Zero address not allowed");
+        balancerVault = IVault(_balancerVault);
+    }
 
     function swap(
-        IVault balancerVault,
         bytes32 poolId,
         IVault.SwapKind kind,
         IAsset tokenIn,
         IAsset tokenOut,
         address sender,
-        address payable recipient,
+        address recipient,
         uint256 amount
     ) public returns (uint256) {
 
@@ -30,14 +39,13 @@ abstract contract BalancerExchange {
         IVault.FundManagement memory fundManagement;
         fundManagement.sender = sender;
         fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = recipient;
+        fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
-        return balancerVault.swap(singleSwap, fundManagement, 10 ** 27, block.timestamp + 600);
+        return balancerVault.swap(singleSwap, fundManagement, MAX_VALUE, block.timestamp + 600);
     }
 
     function batchSwap(
-        IVault balancerVault,
         bytes32 poolId1,
         bytes32 poolId2,
         IVault.SwapKind kind,
@@ -45,7 +53,7 @@ abstract contract BalancerExchange {
         IAsset tokenMid,
         IAsset tokenOut,
         address sender,
-        address payable recipient,
+        address recipient,
         uint256 amount
     ) public returns (int256[] memory) {
 
@@ -73,19 +81,18 @@ abstract contract BalancerExchange {
         IVault.FundManagement memory fundManagement;
         fundManagement.sender = sender;
         fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = recipient;
+        fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
         int256[] memory limits = new int256[](3);
-        limits[0] = (10 ** 27);
-        limits[1] = (10 ** 27);
-        limits[2] = (10 ** 27);
+        limits[0] = MAX_VALUE;
+        limits[1] = MAX_VALUE;
+        limits[2] = MAX_VALUE;
 
         return balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600);
     }
 
     function onSwap(
-        IVault balancerVault,
         bytes32 poolId,
         IVault.SwapKind kind,
         IERC20 tokenIn,

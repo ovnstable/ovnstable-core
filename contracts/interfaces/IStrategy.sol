@@ -8,15 +8,15 @@ interface IStrategy {
     event Reward(uint256 amount);
 
     function stake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
+        address _asset, // USDC
+        uint256 _amount, // value for staking in USDC
+        address _beneficiary // Vault
     ) external;
 
     function unstake(
-        address _asset,
-        uint256 _amount, // minimum expected value for returning
-        address _beneficiary
+        address _asset, // USDC
+        uint256 _amount, // minimum expected value for unstaking in USDC
+        address _beneficiary // Vault
     ) external returns (uint256); // Real unstake value
 
     function netAssetValue(address _holder) external view returns (uint256); // Return value in USDC - denominator 6
