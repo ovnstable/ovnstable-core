@@ -261,8 +261,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
         uint256 totalUsdc = mark2market.totalNetAssets();
-        // denormilize from 10**18 to 10**6 as USD+ decimals
-        totalUsdc = totalUsdc / 10**12;
+
         if (totalUsdc <= totalUsdPlusSupply) {
             emit NoEnoughForPayoutEvent(totalUsdPlusSupply, totalUsdc);
             return;
