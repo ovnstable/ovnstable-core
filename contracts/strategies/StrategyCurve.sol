@@ -16,8 +16,8 @@ import "../connectors/QuickswapExchange.sol";
 import "hardhat/console.sol";
 
 contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
-
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
 
     iCurvePool public curve;
     ILendingPoolAddressesProvider public aave;
@@ -55,6 +55,11 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyPortfolioManager() {
+        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
         _;
     }
 
@@ -103,7 +108,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function stake(
         address _asset,
         uint256 _amount
-    ) override external {
+    ) override external onlyPortfolioManager {
         require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
@@ -121,7 +126,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) override external returns (uint256) {
+    ) override external onlyPortfolioManager returns (uint256) {
         require(_asset == address(usdc), "Some token not compatible");
 
         address current = address(this);
@@ -276,7 +281,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return retAmount;
     }
 
-    function claimRewards(address _to) external override returns (uint256){
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
         rewardGauge.claim_rewards(address(this));
 
         uint256 wmaticUsdc = exchange.swap(address(wMatic), address(usdc), address(this), address(this), wMatic.balanceOf(address(this)))[1];

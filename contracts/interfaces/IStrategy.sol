@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface IStrategy {
 
     event Reward(uint256 amount);
+    event PortfolioManagerUpdated(address value);
 
     function stake(
         address _asset, // USDC
@@ -15,7 +16,7 @@ interface IStrategy {
     function unstake(
         address _asset, // USDC
         uint256 _amount, // minimum expected value for unstaking in USDC
-        address _beneficiary // Vault
+        address _beneficiary // PortfolioManager
     ) external returns (uint256); // Real unstake value
 
     function netAssetValue() external view returns (uint256); // Return value in USDC - denominator 6

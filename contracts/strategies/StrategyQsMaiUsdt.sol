@@ -18,6 +18,8 @@ import "hardhat/console.sol";
 
 contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
+
 
     using LowGasSafeMath for uint256;
     uint256 public constant minimumAmount = 1000;
@@ -62,6 +64,12 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         _;
     }
 
+    modifier onlyPortfolioManager() {
+        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
+        _;
+    }
+
+
 
     // --- setters
 
@@ -93,7 +101,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     function stake(
         address _asset,
         uint256 _amount
-    ) override external {
+    ) override external onlyPortfolioManager {
         require(address(usdc) == _asset, 'ConnectorQuickswapUsdtMai: can work only with USDC');
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();
@@ -128,7 +136,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) override external returns (uint256) {
+    ) override external onlyPortfolioManager returns (uint256) {
 
         console.log('Unstake amount before');
         console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
@@ -264,7 +272,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         return  0;
     }
 
-    function claimRewards(address _to) external override returns (uint256){
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
         return 0;
     }
 

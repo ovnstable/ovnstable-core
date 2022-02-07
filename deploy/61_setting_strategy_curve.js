@@ -25,6 +25,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
                                     assets.crv)).wait();
     console.log('StrategyCurve setting done');
 
+
 };
 
 module.exports.tags = ['setting','StrategyCurveSetting'];

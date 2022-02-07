@@ -17,7 +17,6 @@ describe("StrategyIdle", function () {
     let strategy;
     let usdc;
     let idleUsdc;
-    let vault;
 
     before(async () => {
         await hre.run("compile");
@@ -29,7 +28,7 @@ describe("StrategyIdle", function () {
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         idleUsdc = await ethers.getContractAt("ERC20", assets.idleUsdc);
         strategy = await ethers.getContract('StrategyIdle');
-        vault = await ethers.getContract('Vault');
+        await strategy.setPortfolioManager(account);
     });
 
 
@@ -39,9 +38,9 @@ describe("StrategyIdle", function () {
 
         before(async () => {
 
-            await usdc.approve(vault.address, toUSDC(100));
             let balanceUsdcBefore = await usdc.balanceOf(account);
-            await strategy.stake(usdc.address, toUSDC(100), account);
+            await usdc.transfer(strategy.address, toUSDC(100));
+            await strategy.stake(usdc.address, toUSDC(100) );
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;
@@ -52,15 +51,15 @@ describe("StrategyIdle", function () {
         });
 
         it("Balance idleUsdc should be greater than 99", async function () {
-            greatLess(fromE18(await idleUsdc.balanceOf(account)), 99);
+            greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 99);
         });
 
         it("NetAssetValue should be greater than 99 less than 100", async function () {
-            greatLess(fromUSDC(await strategy.netAssetValue(account)), 100);
+            greatLess(fromUSDC(await strategy.netAssetValue()), 100);
         });
 
         it("LiquidationValue should  be greater than 99 less than 100", async function () {
-            greatLess(fromUSDC(await strategy.liquidationValue(account)), 100);
+            greatLess(fromUSDC(await strategy.liquidationValue()), 100);
         });
 
 
@@ -69,7 +68,6 @@ describe("StrategyIdle", function () {
             let balanceUSDC;
 
             before(async () => {
-                await idleUsdc.approve(strategy.address, await idleUsdc.balanceOf(account));
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
                 await strategy.unstake(usdc.address, toUSDC(50), account);
@@ -82,15 +80,15 @@ describe("StrategyIdle", function () {
             });
 
             it("Balance idleUsdc should be eq 48", async function () {
-                greatLess(fromE18(await idleUsdc.balanceOf(account)), 48);
+                greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 48);
             });
 
             it("NetAssetValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.netAssetValue(account)), 49);
+                greatLess(fromUSDC(await strategy.netAssetValue()), 49);
             });
 
             it("LiquidationValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.liquidationValue(account)), 49);
+                greatLess(fromUSDC(await strategy.liquidationValue()), 49);
             });
         });
 

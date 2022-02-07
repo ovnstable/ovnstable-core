@@ -17,19 +17,20 @@ describe("StrategyAave", function () {
     let strategy;
     let usdc;
     let amUsdc;
-    let vault;
 
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyAave', 'Vault', 'StrategyAaveSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyAave', , 'StrategyAaveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
         strategy = await ethers.getContract('StrategyAave');
-        vault = await ethers.getContract('Vault');
+
+        await strategy.setPortfolioManager(account);
+
     });
 
 
@@ -39,9 +40,9 @@ describe("StrategyAave", function () {
 
         before(async () => {
 
-            await usdc.approve(vault.address, toUSDC(100));
             let balanceUsdcBefore = await usdc.balanceOf(account);
-            await strategy.stake(usdc.address, toUSDC(100), account);
+            await usdc.transfer(strategy.address, toUSDC(100));
+            await strategy.stake(usdc.address, toUSDC(100));
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore-balanceUsdcAfter)-100;
@@ -52,15 +53,15 @@ describe("StrategyAave", function () {
         });
 
         it("Balance Am3CrvGauge should be eq 100", async function () {
-            expect(fromE6(await amUsdc.balanceOf(account))).to.eq(100);
+            expect(fromE6(await amUsdc.balanceOf(strategy.address))).to.eq(100);
         });
 
         it("NetAssetValue should be 100", async function () {
-            expect(fromUSDC(await strategy.netAssetValue(account))).to.eq(100);
+            expect(fromUSDC(await strategy.netAssetValue())).to.eq(100);
         });
 
         it("LiquidationValue should be 100", async function () {
-            expect(fromUSDC(await strategy.liquidationValue(account))).to.eq(100);
+            expect(fromUSDC(await strategy.liquidationValue())).to.eq(100);
         });
 
 
@@ -69,8 +70,6 @@ describe("StrategyAave", function () {
             let balanceUSDC;
 
             before(async () => {
-                await amUsdc.approve(strategy.address, await amUsdc.balanceOf(account));
-
                 let balanceUsdcBefore = await usdc.balanceOf(account);
                 await strategy.unstake(usdc.address, toUSDC(50), account);
                 let balanceUsdcAfter = await usdc.balanceOf(account);
@@ -82,15 +81,15 @@ describe("StrategyAave", function () {
             });
 
             it("Balance AmUsdc should be eq 50", async function () {
-                expect(fromE6(await amUsdc.balanceOf(account))).to.greaterThanOrEqual(50);
+                expect(fromE6(await amUsdc.balanceOf(strategy.address))).to.greaterThanOrEqual(50);
             });
 
             it("NetAssetValue should be eq 50", async function () {
-                expect(fromUSDC(await strategy.netAssetValue(account))).to.greaterThanOrEqual(50);
+                expect(fromUSDC(await strategy.netAssetValue())).to.greaterThanOrEqual(50);
             });
 
             it("LiquidationValue should be eq 50", async function () {
-                expect(fromUSDC(await strategy.liquidationValue(account))).to.greaterThanOrEqual(50);
+                expect(fromUSDC(await strategy.liquidationValue())).to.greaterThanOrEqual(50);
             });
         });
 
