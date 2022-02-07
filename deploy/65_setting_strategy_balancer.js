@@ -16,7 +16,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const strategy = await ethers.getContract("StrategyBalancer");
     await (await strategy.setParams(balancerVault, assets.usdc, assets.bpspTUsd, assets.bal, assets.wMatic, assets.tUsd,
-            balancerExchange, quickswapExchange, balancerPoolId1, balancerPoolId2)).wait();
+            balancerExchange.address, quickswapExchange.address, balancerPoolId1, balancerPoolId2)).wait();
     console.log('StrategyBalancer setting done');
 };
 
