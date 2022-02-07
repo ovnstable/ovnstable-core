@@ -11,10 +11,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyAave");
+    const pm = await ethers.getContract("PortfolioManager");
     await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc )).wait();
+
+    await (await strategy.setPortfolioManager(pm.address)).wait();
+
     console.log('StrategyAave setting done');
 
 };
 
 module.exports.tags = ['setting','StrategyAaveSetting'];
-
+module.exports.dependencies = ["PortfolioManager"];

@@ -7,9 +7,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const portfolio = await ethers.getContract("Portfolio");
-
-
+    const pm = await ethers.getContract("PortfolioManager");
+    const exchange = await ethers.getContract("Exchange");
 
     let aave = {
         strategy: (await ethers.getContract("StrategyAave")).address,
@@ -23,6 +22,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     //     targetWeight: 20000,
     //     maxWeight: 100000,
     // }
+
     let idle = {
         strategy: (await ethers.getContract("StrategyIdle")).address,
         minWeight: 0,
@@ -35,10 +35,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         idle
     ]
 
-    console.log('portfolio.setWeights: ' + JSON.stringify(weights))
-    let tx = await portfolio.setStrategyWeights(weights);
-    await tx.wait();
+    await (await pm.setStrategyWeights(weights)).wait();
     console.log("portfolio.setWeights done");
+
+    await (await pm.setExchanger(exchange.address)).wait();
+    await (await pm.setUsdc(assets.usdc)).wait();
 };
 
 module.exports.tags = ['setting', 'setting-weights'];

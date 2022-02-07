@@ -132,13 +132,16 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         if (currentBalance < _amount) {
             revert(string(
                 abi.encodePacked(
-                    "In vault not enough for transfer _amount: ",
+                    "In portfolioManager not enough for transfer _amount: ",
                     Strings.toString(_token.balanceOf(address(this))),
                     " < ",
                     Strings.toString(_amount)
                 )
             ));
         }
+
+        // 4. Transfer unstacked amount to exchange
+        _token.transfer(exchanger, _amount);
 
         return _amount;
     }
@@ -168,7 +171,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 1. calc total USDC equivalent
         uint256 totalUsdc = usdc.balanceOf(address(this));
         for (uint8 i; i < strategies.length; i++) {
-            IStrategy(strategies[i].strategy).netAssetValue();
+            totalUsdc += IStrategy(strategies[i].strategy).netAssetValue();
         }
 
         if (address(withdrawToken) == address(usdc)) {

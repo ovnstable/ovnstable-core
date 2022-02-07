@@ -18,8 +18,7 @@ describe("Exchange", function () {
 
     let account;
     let exchange;
-    let vault;
-    let portfolio;
+    let pm;
     let usdc;
     let usdPlus;
     let m2m;
@@ -34,8 +33,7 @@ describe("Exchange", function () {
         account = deployer;
         exchange = await ethers.getContract("Exchange");
         usdPlus = await ethers.getContract("UsdPlusToken");
-        vault = await ethers.getContract("Vault");
-        portfolio = await ethers.getContract('Portfolio');
+        pm = await ethers.getContract('PortfolioManager');
         m2m = await ethers.getContract('Mark2Market');
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
 
@@ -68,7 +66,7 @@ describe("Exchange", function () {
 
             console.log('Vault balance ' + vaultBalance);
 
-            weights = await portfolio.getAllStrategyWeights();
+            weights = await pm.getAllStrategyWeights();
             balanceUserUsdPlus = fromOvn(await usdPlus.balanceOf(account));
 
             let totalSellAssets = await m2m.totalNetAssets();
@@ -108,7 +106,7 @@ describe("Exchange", function () {
                 let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
                 console.log(message);
 
-                // expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+                expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
             }
         });
 
@@ -118,7 +116,7 @@ describe("Exchange", function () {
             let strategyAssets;
             let balanceUserUsdPlus;
             let balanceUserUSDC;
-            let vaultBalance;
+            let totalBalance;
 
             before(async () => {
                 balanceUserUSDC = fromUSDC(await usdc.balanceOf(account));
@@ -128,14 +126,14 @@ describe("Exchange", function () {
 
                 strategyAssets = await m2m.strategyAssets();
 
-                vaultBalance = 0;
+                totalBalance = 0;
                 for (let i = 0; i <strategyAssets.length ; i++) {
-                    vaultBalance += fromUSDC(strategyAssets[i].netAssetValue);
+                    totalBalance += fromUSDC(strategyAssets[i].netAssetValue);
                 }
 
-                console.log('Vault balance ' + vaultBalance);
+                console.log('Vault balance ' + totalBalance);
 
-                weights = await portfolio.getAllStrategyWeights();
+                weights = await pm.getAllStrategyWeights();
                 balanceUserUsdPlus = fromOvn(await usdPlus.balanceOf(account));
 
                 let totalSellAssets = await m2m.totalNetAssets();
@@ -152,12 +150,12 @@ describe("Exchange", function () {
                 expect(balanceUserUsdPlus.toString()).to.eq("49.96")
             });
 
-            it("total vault balance (USDC) should greater than 49.98 (USDC)", function () {
-                expect(vaultBalance).to.greaterThanOrEqual(49.98);
+            it("total vault balance (USDC) should be 50 (USDC)", function () {
+                expect(new BN(totalBalance).toFixed(0)).to.eq("50");
             });
 
-            it("total vault balance (USDC) should less than 50.02 (USDC)", function () {
-                expect(vaultBalance).to.lessThanOrEqual(50.02);
+            it("total vault balance (USDC) should eq 50 (USDC)", function () {
+                expect(new BN(totalBalance).toFixed(0)).to.eq("50");
             });
 
             it("asset amounts match asset weights", function () {
@@ -175,7 +173,7 @@ describe("Exchange", function () {
                     let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
                     console.log(message);
 
-                    // expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+                    expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
                 }
             });
 

@@ -12,8 +12,10 @@ import "../connectors/QuickswapExchange.sol";
 import "hardhat/console.sol";
 
 contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
-
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
+
+    address public portfolioManager;
 
     IERC20 public usdcToken;
     IIdleToken public idleToken;
@@ -48,6 +50,12 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         _;
     }
 
+    modifier onlyPortfolioManager() {
+        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
+        _;
+    }
+
+
     // --- Setters
 
     function setParams(
@@ -74,6 +82,17 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
             usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
     }
 
+    function setPortfolioManager(address _value) public onlyAdmin {
+        require(_value != address(0), "Zero address not allowed");
+
+        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
+        grantRole(PORTFOLIO_MANAGER, _value);
+
+        portfolioManager = _value;
+        emit PortfolioManagerUpdated(_value);
+    }
+
+
     function _authorizeUpgrade(address newImplementation)
     internal
     onlyRole(UPGRADER_ROLE)
@@ -86,7 +105,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function stake(
         address _asset,
         uint256 _amount
-    ) public override {
+    ) public override onlyPortfolioManager {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
         usdcToken.approve(address(idleToken), _amount);
@@ -97,7 +116,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override returns (uint256) {
+    ) public override onlyPortfolioManager returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
         uint256 tokenAmount = _amount + (_amount / 100 * 1);
@@ -128,7 +147,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         return balance * price / idleTokenDenominator;
     }
 
-    function claimRewards(address _to) external override returns (uint256) {
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
         uint256 totalUsdc;
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
