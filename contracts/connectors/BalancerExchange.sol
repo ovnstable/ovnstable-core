@@ -45,54 +45,54 @@ contract BalancerExchange {
         return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
     }
 
-    function batchSwap(
-        bytes32 poolId1,
-        bytes32 poolId2,
-        IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenMid,
-        IAsset tokenOut,
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public returns (uint256) {
-
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
-
-        IVault.BatchSwapStep memory batchSwap1;
-        batchSwap1.poolId = poolId1;
-        batchSwap1.assetInIndex = 0;
-        batchSwap1.assetOutIndex = 1;
-        batchSwap1.amount = amount;
-        swaps[0] = batchSwap1;
-
-        IVault.BatchSwapStep memory batchSwap2;
-        batchSwap2.poolId = poolId2;
-        batchSwap2.assetInIndex = 1;
-        batchSwap2.assetOutIndex = 2;
-        batchSwap2.amount = 0;
-        swaps[1] = batchSwap2;
-
-        IAsset[] memory assets = new IAsset[](3);
-        assets[0] = tokenIn;
-        assets[1] = tokenMid;
-        assets[2] = tokenOut;
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = sender;
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(recipient);
-        fundManagement.toInternalBalance = false;
-
-        int256[] memory limits = new int256[](3);
-        limits[0] = MAX_VALUE;
-        limits[1] = MAX_VALUE;
-        limits[2] = MAX_VALUE;
-
-        int256[] memory amounts = balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600);
-
-        return uint256(amounts[2]);
-    }
+//    function batchSwap(
+//        bytes32 poolId1,
+//        bytes32 poolId2,
+//        IVault.SwapKind kind,
+//        IAsset tokenIn,
+//        IAsset tokenMid,
+//        IAsset tokenOut,
+//        address sender,
+//        address recipient,
+//        uint256 amount
+//    ) public returns (uint256) {
+//
+//        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
+//
+//        IVault.BatchSwapStep memory batchSwap1;
+//        batchSwap1.poolId = poolId1;
+//        batchSwap1.assetInIndex = 0;
+//        batchSwap1.assetOutIndex = 1;
+//        batchSwap1.amount = amount;
+//        swaps[0] = batchSwap1;
+//
+//        IVault.BatchSwapStep memory batchSwap2;
+//        batchSwap2.poolId = poolId2;
+//        batchSwap2.assetInIndex = 1;
+//        batchSwap2.assetOutIndex = 2;
+//        batchSwap2.amount = 0;
+//        swaps[1] = batchSwap2;
+//
+//        IAsset[] memory assets = new IAsset[](3);
+//        assets[0] = tokenIn;
+//        assets[1] = tokenMid;
+//        assets[2] = tokenOut;
+//
+//        IVault.FundManagement memory fundManagement;
+//        fundManagement.sender = sender;
+//        fundManagement.fromInternalBalance = false;
+//        fundManagement.recipient = payable(recipient);
+//        fundManagement.toInternalBalance = false;
+//
+//        int256[] memory limits = new int256[](3);
+//        limits[0] = MAX_VALUE;
+//        limits[1] = MAX_VALUE;
+//        limits[2] = MAX_VALUE;
+//
+//        int256[] memory amounts = balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600);
+//
+//        return uint256(amounts[2]);
+//    }
 
     function onSwap(
         bytes32 poolId,

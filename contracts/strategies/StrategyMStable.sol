@@ -185,9 +185,13 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
         uint256 mtaBalance = mtaToken.balanceOf(address(this));
         if (mtaBalance != 0) {
-            uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
-                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this),
-                address(_to), mtaBalance);
+//            uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
+//                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this),
+//                address(_to), mtaBalance);
+            uint256 wmaticTokenBalance = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
+                IAsset(address(wmaticToken)), address(this), address(this), mtaBalance);
+            uint256 mtaUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(wmaticToken)),
+                IAsset(address(usdcToken)), address(this), address(_to), wmaticTokenBalance);
             totalUsdc += mtaUsdc;
         }
 
