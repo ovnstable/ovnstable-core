@@ -52,7 +52,7 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
     // ---  setters
 
-    function setPortfolio(address _value) external onlyAdmin {
+    function setPortfolioManager(address _value) external onlyAdmin {
         require(_value != address(0), "Zero address not allowed");
         portfolioManager = IPortfolioManager(_value);
         emit PortfolioManagerUpdated(_value);

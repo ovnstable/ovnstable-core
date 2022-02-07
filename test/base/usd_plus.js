@@ -7,8 +7,8 @@ const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
 
 const hre = require("hardhat");
-const expectRevert = require("../utils/expectRevert");
-const {toOvn, fromOvn} = require("../utils/decimals");
+const expectRevert = require("../../utils/expectRevert");
+const {toOvn, fromOvn} = require("../../utils/decimals");
 
 chai.use(smock.matchers);
 
