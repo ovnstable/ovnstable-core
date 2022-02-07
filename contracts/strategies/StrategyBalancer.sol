@@ -85,25 +85,25 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
         require(_balancerPoolId1 != "", "Empty pool id not allowed");
         require(_balancerPoolId2 != "", "Empty pool id not allowed");
 
-        balancerVault = IVault(_balancerVault);
-        usdcToken = IERC20(_usdcToken);
-        bpspTUsdToken = IERC20(_bpspTUsdToken);
-        balToken = IERC20(_balToken);
-        wmaticToken = IERC20(_wmaticToken);
-        tusdToken = IERC20(_tusdToken);
-        balancerExchange = BalancerExchange(_balancerExchange);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
-        balancerPoolId1 = _balancerPoolId1;
-        balancerPoolId2 = _balancerPoolId2;
-        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
-        bpspTUsdTokenDenominator = 10 ** IERC20Metadata(_bpspTUsdToken).decimals();
-        balTokenDenominator = 10 ** IERC20Metadata(_balToken).decimals();
-        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
-        tusdTokenDenominator = 10 ** IERC20Metadata(_tusdToken).decimals();
+//        balancerVault = IVault(_balancerVault);
+//        usdcToken = IERC20(_usdcToken);
+//        bpspTUsdToken = IERC20(_bpspTUsdToken);
+//        balToken = IERC20(_balToken);
+//        wmaticToken = IERC20(_wmaticToken);
+//        tusdToken = IERC20(_tusdToken);
+//        balancerExchange = BalancerExchange(_balancerExchange);
+//        quickswapExchange = QuickswapExchange(_quickswapExchange);
+//        balancerPoolId1 = _balancerPoolId1;
+//        balancerPoolId2 = _balancerPoolId2;
+//        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+//        bpspTUsdTokenDenominator = 10 ** IERC20Metadata(_bpspTUsdToken).decimals();
+//        balTokenDenominator = 10 ** IERC20Metadata(_balToken).decimals();
+//        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
+//        tusdTokenDenominator = 10 ** IERC20Metadata(_tusdToken).decimals();
 
-        emit StrategyBalancerUpdate(_balancerVault, _usdcToken, _bpspTUsdToken, _balToken, _wmaticToken, _tusdToken,
-            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
-            bpspTUsdTokenDenominator, balTokenDenominator, wmaticTokenDenominator, tusdTokenDenominator);
+//        emit StrategyBalancerUpdate(_balancerVault, _usdcToken, _bpspTUsdToken, _balToken, _wmaticToken, _tusdToken,
+//            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
+//            bpspTUsdTokenDenominator, balTokenDenominator, wmaticTokenDenominator, tusdTokenDenominator);
     }
 
     function _authorizeUpgrade(address newImplementation)

@@ -84,24 +84,24 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         require(_balancerPoolId1 != "", "Empty pool id not allowed");
         require(_balancerPoolId2 != "", "Empty pool id not allowed");
 
-        usdcToken = IERC20(_usdcToken);
-        mUsdToken = IMasset(_mUsdToken);
-        imUsdToken = ISavingsContractV2(_imUsdToken);
-        vimUsdToken = IBoostedVaultWithLockup(_vimUsdToken);
-        mtaToken = IERC20(_mtaToken);
-        wmaticToken = IERC20(_wmaticToken);
-        balancerExchange = BalancerExchange(_balancerExchange);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
-        balancerPoolId1 = _balancerPoolId1;
-        balancerPoolId2 = _balancerPoolId2;
-        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
-        vimUsdTokenDenominator = 10 ** IERC20Metadata(_vimUsdToken).decimals();
-        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
-        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
-
-        emit StrategyMStableUpdate(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
-            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
-            vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
+//        usdcToken = IERC20(_usdcToken);
+//        mUsdToken = IMasset(_mUsdToken);
+//        imUsdToken = ISavingsContractV2(_imUsdToken);
+//        vimUsdToken = IBoostedVaultWithLockup(_vimUsdToken);
+//        mtaToken = IERC20(_mtaToken);
+//        wmaticToken = IERC20(_wmaticToken);
+//        balancerExchange = BalancerExchange(_balancerExchange);
+//        quickswapExchange = QuickswapExchange(_quickswapExchange);
+//        balancerPoolId1 = _balancerPoolId1;
+//        balancerPoolId2 = _balancerPoolId2;
+//        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+//        vimUsdTokenDenominator = 10 ** IERC20Metadata(_vimUsdToken).decimals();
+//        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
+//        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
+//
+//        emit StrategyMStableUpdate(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
+//            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
+//            vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
     }
 
     function _authorizeUpgrade(address newImplementation)
