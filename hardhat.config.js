@@ -65,7 +65,7 @@ module.exports = {
 
         hardhat: {
             forking: {
-                url: "https://polygon-mainnet.infura.io/v3/d4c681bc3ab04d6e9c1e4ef9f737bc0d",
+                url: node_url('polygon'),
                 blockNumber: 24266285,
             },
             accounts: {
@@ -89,10 +89,10 @@ module.exports = {
 
     mocha: {
         timeout: 36200000,
-//        reporter:  "utils/reporter-mocha.js",
-//        "reporter-option": [
-//            "output=report.json"
-//        ]
+        reporter:  "utils/reporter-mocha.js",
+        "reporter-option": [
+            "output=report.json"
+        ]
     },
 
     gasReporter: {
