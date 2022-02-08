@@ -7,6 +7,21 @@ require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
 require("hardhat-tracer");
 
+const dotenv = require('dotenv');
+dotenv.config();
+
+let mochaSetting = {
+    timeout: 36200000,
+}
+
+if (process.env.TEST_REPORT) {
+    console.log('Mocha setting report init')
+    mochaSetting.reporter = "utils/reporter-mocha.js";
+    mochaSetting["reporter-option"] = [
+        "output=report.json"
+    ];
+}
+
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     const accounts = await hre.ethers.getSigners();
@@ -61,8 +76,7 @@ module.exports = {
         },
 
 
-
-        ganache:{
+        ganache: {
             url: "http://127.0.0.1:8555",
             chainId: 1337
         },
@@ -95,13 +109,7 @@ module.exports = {
     },
 
 
-    mocha: {
-        timeout: 36200000,
-        reporter:  "utils/reporter-mocha.js",
-        "reporter-option": [
-            "output=report.json"
-        ]
-    },
+    mocha: mochaSetting,
 
     gasReporter: {
         enabled: false, // Gas Reporter hides unit-test-mocha report
