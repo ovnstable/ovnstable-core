@@ -5,4 +5,4 @@ module.exports = async ({deployments}) => {
     await deployProxy('OvnToken', deployments, save);
 };
 
-module.exports.tags = ['base','OvnToken'];
+module.exports.tags = ['governance','OvnToken'];

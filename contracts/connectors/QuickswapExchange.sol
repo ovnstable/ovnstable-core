@@ -5,12 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
 
-contract QuickswapExchange {
+abstract contract QuickswapExchange {
 
-    IUniswapV2Router02 public swapRouter;
+    IUniswapV2Router02 private swapRouter;
 
-    constructor(address _swapRouter) {
-        require(_swapRouter != address(0), "Zero address not allowed");
+    function setSwapRouter(address _swapRouter) internal virtual{
         swapRouter = IUniswapV2Router02(_swapRouter);
     }
 
@@ -21,7 +20,7 @@ contract QuickswapExchange {
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (uint256) {
+    ) internal virtual returns (uint256) {
 
         uint256 estimateUsdcOut = getUsdcSellPrice(swapToken, usdcToken, swapTokenDenominator, amount);
 
@@ -48,7 +47,7 @@ contract QuickswapExchange {
         address usdcToken,
         uint256 swapTokenDenominator,
         uint256 usdcAmount
-    ) public view returns (uint256) {
+    ) internal virtual view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = usdcToken;
@@ -65,7 +64,7 @@ contract QuickswapExchange {
         address usdcToken,
         uint256 swapTokenDenominator,
         uint256 tokenAmount
-    ) public view returns (uint256) {
+    ) internal virtual view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = swapToken;

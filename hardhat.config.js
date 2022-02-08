@@ -54,6 +54,14 @@ module.exports = {
         },
 
 
+        polygon_dev_new: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            timeout: 36200000,
+        },
+
+
+
         ganache:{
             url: "http://127.0.0.1:8555",
             chainId: 1337
@@ -66,7 +74,7 @@ module.exports = {
         hardhat: {
             forking: {
                 url: node_url('polygon'),
-                blockNumber: 24266285,
+                blockNumber: 24689788,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"

@@ -15,14 +15,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let abis = [];
 
 
-    let contracts = JSON.parse(fs.readFileSync("impls_4.json", 'utf8'));
-
-    for (let i = 0; i < contracts.length; i++) {
-        let contract = contracts[i];
-        await upgradeTo(addresses, values, abis, contract.contractName, contract.address);
-    }
-
-
     await setWeights(addresses, values, abis);
     await setPriceGetters(addresses, values, abis);
     await setPm(addresses, values, abis);

@@ -15,14 +15,14 @@ import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
+contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, QuickswapExchange {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
 
+    address public portfolioManager;
     iCurvePool public curve;
     ILendingPoolAddressesProvider public aave;
     IRewardOnlyGauge public rewardGauge;
-    QuickswapExchange public quickswapExchange;
 
     IERC20 public usdc;
     IERC20 public aUsdc;
@@ -94,7 +94,8 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         rewardGauge = IRewardOnlyGauge(_rewardGauge);
         curve = iCurvePool(_curve);
         aave = ILendingPoolAddressesProvider(_aave);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
+
+        setSwapRouter(_quickswapExchange);
 
         usdc = IERC20(_usdc);
         wMatic = IERC20(_wMatic);
@@ -107,6 +108,16 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wMatic).decimals();
     }
 
+
+    function setPortfolioManager(address _value) public onlyAdmin {
+        require(_value != address(0), "Zero address not allowed");
+
+        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
+        grantRole(PORTFOLIO_MANAGER, _value);
+
+        portfolioManager = _value;
+        emit PortfolioManagerUpdated(_value);
+    }
 
 
     // --- logic
@@ -137,15 +148,18 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
-        // on tokenExchange
+        // on Strategy
         uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
 
+        console.log('Unstake gauge before');
         console.log('usdc %s', usdc.balanceOf(current));
         console.log('aUsdc %s', aUsdc.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         rewardGauge.withdraw(tokenAmount, false);
+
+        console.log('Unstake curve before');
         console.log('usdc %s', usdc.balanceOf(current));
         console.log('aUsdc %s', aUsdc.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
@@ -153,6 +167,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 withdrewAmount = _unstakeCurve();
 
+        console.log('Unstake aave before');
         console.log('usdc %s', usdc.balanceOf(current));
         console.log('aUsdc %s', aUsdc.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
@@ -292,16 +307,17 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 totalUsdc;
 
+
         uint256 crvBalance = crv.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = quickswapExchange.swapTokenToUsdc(address(crv), address(usdc), crvTokenDenominator,
+            uint256 crvUsdc = swapTokenToUsdc(address(crv), address(usdc), crvTokenDenominator,
                 address(this), address(_to), crvBalance);
             totalUsdc += crvUsdc;
         }
 
         uint256 wmaticBalance = wMatic.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wMatic), address(usdc), wmaticTokenDenominator,
+            uint256 wmaticUsdc = swapTokenToUsdc(address(wMatic), address(usdc), wmaticTokenDenominator,
                 address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }

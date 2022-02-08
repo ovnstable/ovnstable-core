@@ -11,7 +11,7 @@ import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
+contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, QuickswapExchange {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
 
@@ -20,7 +20,6 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     IERC20 public usdcToken;
     IIdleToken public idleToken;
     IERC20 public wmaticToken;
-    QuickswapExchange public quickswapExchange;
     uint256 public usdcTokenDenominator;
     uint256 public idleTokenDenominator;
     uint256 public wmaticTokenDenominator;
@@ -73,7 +72,8 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         usdcToken = IERC20(_usdcToken);
         idleToken = IIdleToken(_idleToken);
         wmaticToken = IERC20(_wmaticToken);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
+
+        setSwapRouter(_quickswapExchange);
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         idleTokenDenominator = 10 ** IERC20Metadata(_idleToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
@@ -152,7 +152,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken),
+            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken),
                 wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
