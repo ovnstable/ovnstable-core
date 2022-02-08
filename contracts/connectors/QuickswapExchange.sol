@@ -32,6 +32,7 @@ abstract contract QuickswapExchange {
         }
 
         uint256 amountOutMin = 0;
+        IERC20(swapToken).approve(address(uniswapRouter), amount);
 
         address[] memory path = new address[](2);
         path[0] = swapToken;

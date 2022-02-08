@@ -40,7 +40,7 @@ describe("StrategyCurve", function () {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
             await usdc.transfer(strategy.address, toUSDC(100));
-            await strategy.stake(usdc.address, toUSDC(100) );
+            await strategy.stake(usdc.address, toUSDC(100));
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;
@@ -60,6 +60,21 @@ describe("StrategyCurve", function () {
 
         it("LiquidationValue should  be greater than 99 less than 100", async function () {
             greatLess(fromUSDC(await strategy.liquidationValue()), 100);
+        });
+
+        it("ClaimRewards should return 0", async function () {
+
+            // wait 7 days
+            const days = 7 * 24 * 60 * 60;
+            await ethers.provider.send("evm_increaseTime", [days])
+            await ethers.provider.send('evm_mine');
+
+            let balanceUsdcBefore = await usdc.balanceOf(account);
+            await strategy.claimRewards(account);
+            let balanceUsdcAfter = await usdc.balanceOf(account);
+
+            let balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+            expect(balanceUSDC).to.greaterThan(0);
         });
 
 
@@ -95,26 +110,5 @@ describe("StrategyCurve", function () {
     });
 
 
-    it("ClaimRewards should return 0", async function () {
-        let balanceUsdcBefore = await usdc.balanceOf(account);
-
-
-        await usdc.transfer(strategy.address, toUSDC(100));
-        await strategy.stake(usdc.address, toUSDC(100) );
-
-        await usdc.transfer(strategy.address, toUSDC(100));
-        await strategy.stake(usdc.address, toUSDC(100) );
-
-        // wait 7 days
-        const days = 7 * 24 * 60 * 60;
-        await ethers.provider.send("evm_increaseTime", [days])
-        await ethers.provider.send('evm_mine');
-
-        await strategy.claimRewards(account);
-        let balanceUsdcAfter = await usdc.balanceOf(account);
-
-        let balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
-        expect(balanceUSDC).to.eq(0);
-    });
 
 });
