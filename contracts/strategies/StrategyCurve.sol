@@ -149,40 +149,45 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on Strategy
-        uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
+
+        // Am3CrvGauge = 6 + 12
+        uint256 tokenAmount = _amount * (10 ** 12);
 
         console.log('Unstake gauge before');
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+        console.log('usdc %s', usdc.balanceOf(current) / 10 ** 6);
+        console.log('aUsdc %s', aUsdc.balanceOf(current) / 10 ** 6);
+        console.log('a3Crv %s', a3CrvToken.balanceOf(current) / 10 ** 18);
+        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) / 10 ** 18);
 
         rewardGauge.withdraw(tokenAmount, false);
 
         console.log('Unstake curve before');
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+        console.log('usdc %s', usdc.balanceOf(current) / 10 ** 6);
+        console.log('aUsdc %s', aUsdc.balanceOf(current) / 10 ** 6);
+        console.log('a3Crv %s', a3CrvToken.balanceOf(current) / 10 ** 18);
+        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) / 10 ** 18);
 
         uint256 withdrewAmount = _unstakeCurve();
 
         console.log('Unstake aave before');
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+        console.log('usdc %s', usdc.balanceOf(current) / 10 ** 6);
+        console.log('aUsdc %s', aUsdc.balanceOf(current) / 10 ** 6);
+        console.log('a3Crv %s', a3CrvToken.balanceOf(current) / 10 ** 18);
+        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) / 10 ** 18);
 
 
         withdrewAmount = _unstakeAave();
 
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
+        console.log('WithdrewaAmount %s, amount %s', withdrewAmount, _amount);
+        console.log('usdc %s', usdc.balanceOf(current) / 10 ** 6);
+        console.log('aUsdc %s', aUsdc.balanceOf(current) / 10 ** 6);
+        console.log('a3Crv %s', a3CrvToken.balanceOf(current) / 10 ** 18);
+        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) / 10 ** 18);
 
         require(withdrewAmount >= _amount, 'Returned value less than requested amount');
+
+        usdc.transfer(_beneficiary, withdrewAmount);
+
         return withdrewAmount;
     }
 
@@ -269,12 +274,13 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, 
     function _unstakeCurve() internal returns (uint256) {
         uint256[3] memory amounts;
 
-        uint256 _amount = a3CrvToken.balanceOf(address(this));
+        uint256 _amount = a3CrvToken.balanceOf(address(this)) / 10 ** 12;
         a3CrvToken.approve(address(curve), _amount);
 
         uint256 index = 1;
         // index got from curve.coins(i);
         amounts[index] = _amount;
+        console.log("Calc_token_amount: %s", _amount);
 
         uint256 onConnectorLpTokenAmount = a3CrvToken.balanceOf(address(this));
 
@@ -297,6 +303,11 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, 
             ));
         }
 
+        IERC20 lpToken = IERC20(curve.lp_token());
+        console.log("Lp Token approve: %s, index %s", address(curve), lpTokAmount);
+        lpToken.approve(address(curve), lpTokAmount);
+
+        console.log("Remove_liq_one_coin: %s, %s", lpTokAmount, index);
         //TODO: use withdrawAmount?
         uint256 retAmount = curve.remove_liquidity_one_coin(lpTokAmount, int128(uint128(index)), 0);
         return retAmount;
