@@ -226,7 +226,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
         // _one_coin для возврата конкретной монеты (_assest)
         uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokenAmount, int128(uint128(index)));
-        console.log('us 3: withdrawAmount: %s', withdrawAmount);
         if (withdrawAmount > lpTokenAmount) {
             revert(string(
                 abi.encodePacked(
