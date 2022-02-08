@@ -13,8 +13,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyBalancer");
+    const pm = await ethers.getContract("PortfolioManager");
+
     await (await strategy.setTokens(assets.usdc, assets.bpspTUsd, assets.bal, assets.wMatic, assets.tUsd)).wait();
     await (await strategy.setParams(balancerVault, uniswapRouter, balancerPoolId1, balancerPoolId2)).wait();
+    await (await strategy.setPortfolioManager(pm.address)).wait();
+
     console.log('StrategyBalancer setting done');
 };
 
