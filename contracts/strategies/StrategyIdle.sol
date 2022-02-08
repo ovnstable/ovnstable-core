@@ -87,12 +87,13 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
-        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         console.log('Redeem %s', redeemedTokens / 10 ** 6);
         console.log('Amount %s', _amount / 10 ** 6);
 
         require(redeemedTokens >= _amount, 'Returned value less than requested amount');
+
+        usdcToken.transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;
     }
 
@@ -115,8 +116,14 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken),
-                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(
+                address(wmaticToken),
+                address(usdcToken),
+                wmaticTokenDenominator,
+                address(this),
+                address(_to),
+                wmaticBalance
+            );
             totalUsdc += wmaticUsdc;
         }
 
