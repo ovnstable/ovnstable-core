@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "../connectors/aave/interfaces/ILendingPool.sol";
+import "./Strategy.sol";
 import "../connectors/QuickswapExchange.sol";
+import "../connectors/aave/interfaces/ILendingPool.sol";
+import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
+import "../connectors/curve/interfaces/iCurvePool.sol";
 
 import "hardhat/console.sol";
-import "./Strategy.sol";
 
 contract StrategyCurve is Strategy, QuickswapExchange {
 

@@ -1,23 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import "../interfaces/IStrategy.sol";
+import "../connectors/BalancerExchange.sol";
+import "../connectors/QuickswapExchange.sol";
 import "../connectors/mstable/interfaces/IMasset.sol";
 import "../connectors/mstable/interfaces/ISavingsContract.sol";
 import "../connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
-import "../connectors/BalancerExchange.sol";
-import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
-
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange {
 
     IERC20 public usdcToken;
     IMasset public mUsdToken;
@@ -46,19 +39,9 @@ contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange, Acce
     constructor() initializer {}
 
     function initialize() initializer public {
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
+        __Strategy_init();
     }
 
-    // ---  modifiers
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
 
     // --- Setters
 
@@ -113,12 +96,6 @@ contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange, Acce
 
         emit StrategyMStableUpdatedParams(_balancerVault, _uniswapRouter, _balancerPoolId1, _balancerPoolId2);
     }
-
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
 
 
     // --- logic

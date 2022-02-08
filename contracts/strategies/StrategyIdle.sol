@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import "../connectors/idle/interfaces/IIdleToken.sol";
-import "../connectors/QuickswapExchange.sol";
-
 import "./Strategy.sol";
+import "../connectors/QuickswapExchange.sol";
+import "../connectors/idle/interfaces/IIdleToken.sol";
 
 import "hardhat/console.sol";
 
