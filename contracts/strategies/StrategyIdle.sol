@@ -83,11 +83,11 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, address(this));
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override onlyPortfolioManager returns (uint256) {
+    ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
         // fee 1% - misinformation
@@ -100,8 +100,6 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
         console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
         console.log('Amount %s', _amount / usdcTokenDenominator);
-
-        require(redeemedTokens >= _amount, 'Returned value less than requested amount');
 
         usdcToken.transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;

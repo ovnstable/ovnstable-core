@@ -117,11 +117,11 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         vimUsdToken.stake(address(this), savedTokens);
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override returns (uint256) {
+    ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
         // 18 = 18 + 6 - 6

@@ -55,5 +55,39 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
 
+    // --- logic
+
+    function _unstake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiary
+    ) internal virtual returns (uint256);
+
+
+    function unstake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiary
+    ) external override returns (uint256) {
+        return unstake(_asset, _amount, _beneficiary, false);
+    }
+
+
+    function unstake(
+        address _asset,
+        uint256 _amount,
+        address _beneficiary,
+        bool targetIsZero
+    ) external override returns (uint256) {
+
+        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+
+        if(!targetIsZero)
+            require(withdrawAmount >= _amount, 'Returned value less than requested amount');
+
+        return withdrawAmount;
+    }
+
+
     uint256[49] private __gap;
 }

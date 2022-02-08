@@ -51,15 +51,15 @@ describe("StrategyCurve", function () {
         });
 
         it("Balance am3CRVgauge should be greater than 95", async function () {
-            greatLess(fromE18(await am3CrvGauge.balanceOf(strategy.address)), 95);
+            greatLess(fromE18(await am3CrvGauge.balanceOf(strategy.address)), 95, 1);
         });
 
         it("NetAssetValue should be greater than 99 less than 100", async function () {
-            greatLess(fromUSDC(await strategy.netAssetValue()), 100);
+            greatLess(fromUSDC(await strategy.netAssetValue()), 100, 1);
         });
 
         it("LiquidationValue should  be greater than 99 less than 100", async function () {
-            greatLess(fromUSDC(await strategy.liquidationValue()), 100);
+            greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
         });
 
         it("ClaimRewards should return 0", async function () {
@@ -95,20 +95,19 @@ describe("StrategyCurve", function () {
             });
 
             it("Balance am3CRVgauge should be eq 48", async function () {
-                greatLess(fromE18(await am3CrvGauge.balanceOf(strategy.address)), 48);
+                greatLess(fromE18(await am3CrvGauge.balanceOf(strategy.address)), 48, 1);
             });
 
             it("NetAssetValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.netAssetValue()), 49);
+                greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
             });
 
             it("LiquidationValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.liquidationValue()), 49);
+                greatLess(fromUSDC(await strategy.liquidationValue()), 50, 1);
             });
         });
 
     });
-
 
 
 });

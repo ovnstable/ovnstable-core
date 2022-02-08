@@ -138,11 +138,11 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         balancerVault.joinPool(balancerPoolId1, address(this), address(this), request);
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) public override returns (uint256) {
+    ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Unstake only in usdc");
 

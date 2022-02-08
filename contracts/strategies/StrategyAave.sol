@@ -56,19 +56,17 @@ contract StrategyAave is Strategy {
         pool.deposit(address(usdc), _amount, address(this), 0);
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) override external onlyPortfolioManager returns (uint256) {
+    ) override internal returns (uint256) {
         require(_asset == address(usdc), "Some token not compatible");
 
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         aUsdc.approve(address(pool), _amount);
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, _beneficiary);
-
-        require(withdrawAmount >= _amount, 'Returned value less than _amount');
         return withdrawAmount;
     }
 

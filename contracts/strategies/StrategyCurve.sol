@@ -118,11 +118,11 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         rewardGauge.deposit(a3CrvBalance, current, false);
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) override external onlyPortfolioManager returns (uint256) {
+    ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
@@ -156,7 +156,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
-        require(withdrewAmount >= _amount, 'Returned value less than requested amount');
         usdcToken.transfer(_beneficiary, withdrewAmount);
         return withdrewAmount;
     }

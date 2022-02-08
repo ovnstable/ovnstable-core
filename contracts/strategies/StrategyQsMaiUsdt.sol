@@ -35,9 +35,6 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     }
 
-
-
-
     // --- setters
 
     function setParameters(
@@ -99,11 +96,11 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     }
 
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) override external onlyPortfolioManager returns (uint256) {
+    ) internal override returns (uint256) {
 
         console.log('Unstake amount before');
         console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
