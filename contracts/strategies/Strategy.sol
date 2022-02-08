@@ -10,7 +10,7 @@ import "../interfaces/IStrategy.sol";
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
 
     address public portfolioManager;
 
