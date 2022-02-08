@@ -30,10 +30,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     uint256 public redeemFee;
     uint256 public redeemFeeDenominator; // ~ 100 %
 
-    // percent limit to start sending proportionally tokens from vault
-    uint256 public notEnoughLimit;
-    uint256 public notEnoughLimitDenominator; // ~ 100 %
-
     // next payout time in epoch seconds
     uint256 public nextPayoutTime;
 
@@ -54,16 +50,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
-    event NotEnoughLimitUpdated(uint256 limit, uint256 denominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(
         uint256 totalUsdPlus,
         uint256 totalUsdc,
-        uint256 totallyAmountPaid
+        uint256 totallyAmountPaid,
+        uint256 newLiquidityIndex
     );
-    event NoEnoughForPayoutEvent(uint256 totalUsdPlus, uint256 totalUsdc);
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
@@ -100,9 +95,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         redeemFee = 40;
         redeemFeeDenominator = 100000; // ~ 100 %
-
-        notEnoughLimit = 98000;
-        notEnoughLimitDenominator = 100000; // ~ 100 %
 
         nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
 
@@ -152,13 +144,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
-    }
-
-    function setNotEnoughLimit(uint256 _limit, uint256 _limitDenominator) external onlyAdmin {
-        require(_limitDenominator != 0, "Zero denominator not allowed");
-        notEnoughLimit = _limit;
-        notEnoughLimitDenominator = _limitDenominator;
-        emit NotEnoughLimitUpdated(notEnoughLimit, notEnoughLimitDenominator);
     }
 
     function setPayoutTimes(
@@ -219,31 +204,27 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 redeemAmount = _amount - redeemFeeAmount;
         emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
 
-        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
-
-        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint256 totalUsdc = mark2market.totalLiquidationAssets();
-
-        //TODO: Real unstacked amount may be different to _amount
+        //TODO: Real unstacked amount may be different to redeemAmount
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
 
-        // TODO: correct amount by rates or oracles
         // TODO: check threshhold limits to withdraw deposite
         require(
             IERC20(_addrTok).balanceOf(address(this)) >= unstakedAmount,
             "Not enough for transfer unstakedAmount"
         );
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+
+        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
     }
 
     function payout() public whenNotPaused {
         _payout();
     }
 
-    function _payout() internal  {
+    function _payout() internal {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
@@ -260,11 +241,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
         uint256 totalUsdc = mark2market.totalNetAssets();
 
+        uint difference;
         if (totalUsdc <= totalUsdPlusSupply) {
-            emit NoEnoughForPayoutEvent(totalUsdPlusSupply, totalUsdc);
-            return;
+            difference = totalUsdPlusSupply - totalUsdc;
+        } else {
+            difference = totalUsdc - totalUsdPlusSupply;
         }
-        uint difference = totalUsdc - totalUsdPlusSupply;
 
         uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
         // in ray
@@ -274,11 +256,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit PayoutEvent(
             totalUsdPlusSupply,
             totalUsdc,
-            difference
+            difference,
+            newLiquidityIndex
         );
 
         // update next payout time. Cycle for preventing gaps
-        for (; block.timestamp >= nextPayoutTime - payoutTimeRange; ) {
+        for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
