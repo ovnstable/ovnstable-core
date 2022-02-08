@@ -10,8 +10,8 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
-import "../connectors/swaps/interfaces/IUniswapV2Router01.sol";
-import "../connectors/swaps/interfaces/IUniswapV2Pair.sol";
+import "../connectors/uniswap/interfaces/IUniswapV2Router01.sol";
+import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
 import "../libraries/math/LowGasSafeMath.sol";
 
 import "hardhat/console.sol";

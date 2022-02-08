@@ -15,24 +15,35 @@ import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
+contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
 
-    iCurvePool public curve;
-    ILendingPoolAddressesProvider public aave;
-    IRewardOnlyGauge public rewardGauge;
-    QuickswapExchange public quickswapExchange;
-
-    IERC20 public usdc;
-    IERC20 public aUsdc;
+    IERC20 public usdcToken;
+    IERC20 public aUsdcToken;
     IERC20 public a3CrvToken;
     IERC20 public a3CrvGaugeToken;
-    IERC20 public wMatic;
-    IERC20 public crv;
+    IERC20 public crvToken;
+    IERC20 public wmaticToken;
 
+    uint256 public usdcTokenDenominator;
+    uint256 public a3CrvTokenDenominator;
     uint256 public crvTokenDenominator;
     uint256 public wmaticTokenDenominator;
+
+    ILendingPoolAddressesProvider public aavePool;
+    iCurvePool public curvePool;
+    IRewardOnlyGauge public rewardGauge;
+
+
+    // --- events
+
+    event StrategyCurveUpdatedTokens(address usdcToken, address aUsdcToken, address a3CrvToken, address a3CrvGaugeToken,
+        address crvToken, address wmaticToken,uint256 usdcTokenDenominator, uint256 a3CrvTokenDenominator,
+        uint256 crvTokenDenominator, uint256 wmaticTokenDenominator);
+
+    event StrategyCurveUpdatedParams(address aavePool, address curvePool, address rewardGauge, address uniswapRouter);
+
 
     // ---  constructor
 
@@ -68,46 +79,57 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- Setters
 
-    function setParams(
-        address _aave,
-        address _curve,
-        address _rewardGauge,
-        address _quickswapExchange,
-        address _usdc,
-        address _aUsdc,
+    function setTokens(
+        address _usdcToken,
+        address _aUsdcToken,
         address _a3CrvToken,
         address _a3CrvGaugeToken,
-        address _wMatic,
-        address _crv) external onlyAdmin {
+        address _crvToken,
+        address _wmaticToken
+    ) external onlyAdmin {
 
-        require(_aave != address(0), "Zero address not allowed");
-        require(_curve != address(0), "Zero address not allowed");
-        require(_rewardGauge != address(0), "Zero address not allowed");
-        require(_quickswapExchange != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
-        require(_aUsdc != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_aUsdcToken != address(0), "Zero address not allowed");
         require(_a3CrvToken != address(0), "Zero address not allowed");
         require(_a3CrvGaugeToken != address(0), "Zero address not allowed");
-        require(_wMatic != address(0), "Zero address not allowed");
-        require(_crv != address(0), "Zero address not allowed");
+        require(_crvToken != address(0), "Zero address not allowed");
+        require(_wmaticToken != address(0), "Zero address not allowed");
 
-        rewardGauge = IRewardOnlyGauge(_rewardGauge);
-        curve = iCurvePool(_curve);
-        aave = ILendingPoolAddressesProvider(_aave);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
-
-        usdc = IERC20(_usdc);
-        wMatic = IERC20(_wMatic);
-        crv = IERC20(_crv);
-        aUsdc = IERC20(_aUsdc);
+        usdcToken = IERC20(_usdcToken);
+        aUsdcToken = IERC20(_aUsdcToken);
         a3CrvToken = IERC20(_a3CrvToken);
         a3CrvGaugeToken = IERC20(_a3CrvGaugeToken);
+        crvToken = IERC20(_crvToken);
+        wmaticToken = IERC20(_wmaticToken);
 
-        crvTokenDenominator = 10 ** IERC20Metadata(_crv).decimals();
-        wmaticTokenDenominator = 10 ** IERC20Metadata(_wMatic).decimals();
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        a3CrvTokenDenominator = 10 ** IERC20Metadata(_a3CrvToken).decimals();
+        crvTokenDenominator = 10 ** IERC20Metadata(_crvToken).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
+
+        emit StrategyCurveUpdatedTokens(_usdcToken, _aUsdcToken, _a3CrvToken, _a3CrvGaugeToken, _crvToken, _wmaticToken,
+            usdcTokenDenominator, a3CrvTokenDenominator, crvTokenDenominator, wmaticTokenDenominator);
     }
 
+    function setParams(
+        address _aavePool,
+        address _curvePool,
+        address _rewardGauge,
+        address _uniswapRouter
+    ) external onlyAdmin {
 
+        require(_aavePool != address(0), "Zero address not allowed");
+        require(_curvePool != address(0), "Zero address not allowed");
+        require(_rewardGauge != address(0), "Zero address not allowed");
+        require(_uniswapRouter != address(0), "Zero address not allowed");
+
+        aavePool = ILendingPoolAddressesProvider(_aavePool);
+        curvePool = iCurvePool(_curvePool);
+        rewardGauge = IRewardOnlyGauge(_rewardGauge);
+        setUniswapRouter(_uniswapRouter);
+
+        emit StrategyCurveUpdatedParams(_aavePool, _curvePool, _rewardGauge, _uniswapRouter);
+    }
 
     // --- logic
 
@@ -115,12 +137,12 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         address _asset,
         uint256 _amount
     ) override external onlyPortfolioManager {
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
 
-        _stakeAave(address(usdc), _amount, current);
-        _stakeCurve(address(aUsdc), _amount, current);
+        _stakeAave(address(usdcToken), _amount, current);
+        _stakeCurve(address(aUsdcToken), _amount, current);
 
         uint256 a3CrvBalance = a3CrvToken.balanceOf(current);
         a3CrvToken.approve(address(rewardGauge), a3CrvBalance);
@@ -133,36 +155,36 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount,
         address _beneficiary
     ) override external onlyPortfolioManager returns (uint256) {
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on tokenExchange
-        uint256 tokenAmount = (curve.get_virtual_price() / 10 ** 12) * _amount;
+        uint256 tokenAmount = (curvePool.get_virtual_price() / 10 ** 12) * _amount;
 
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
+        console.log('usdc %s', usdcToken.balanceOf(current));
+        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         rewardGauge.withdraw(tokenAmount, false);
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
+        console.log('usdc %s', usdcToken.balanceOf(current));
+        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         uint256 withdrewAmount = _unstakeCurve();
 
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
+        console.log('usdc %s', usdcToken.balanceOf(current));
+        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
 
         withdrewAmount = _unstakeAave();
 
-        console.log('usdc %s', usdc.balanceOf(current));
-        console.log('aUsdc %s', aUsdc.balanceOf(current));
+        console.log('usdc %s', usdcToken.balanceOf(current));
+        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
         console.log('a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
@@ -174,7 +196,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function netAssetValue() external view override returns (uint256){
         uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
         // 18
-        uint256 price = curve.get_virtual_price();
+        uint256 price = curvePool.get_virtual_price();
         // 18
 
         // 18 + 18 = 36
@@ -188,7 +210,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     function liquidationValue() external view override returns (uint256){
         uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
         // 18
-        uint256 price = curve.get_virtual_price();
+        uint256 price = curvePool.get_virtual_price();
         // 18
 
         // 18 + 18 = 36
@@ -204,17 +226,17 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256 _amount,
         address _beneficiary
     ) internal {
-        ILendingPool pool = ILendingPool(aave.getLendingPool());
+        ILendingPool pool = ILendingPool(aavePool.getLendingPool());
         IERC20(_asset).approve(address(pool), _amount);
         pool.deposit(_asset, _amount, _beneficiary, 0);
     }
 
     function _unstakeAave(
     ) internal returns (uint256) {
-        ILendingPool pool = ILendingPool(aave.getLendingPool());
+        ILendingPool pool = ILendingPool(aavePool.getLendingPool());
 
-        uint256 w = pool.withdraw(address(usdc), aUsdc.balanceOf(address(this)), address(this));
-        DataTypes.ReserveData memory res = pool.getReserveData(address(usdc));
+        uint256 w = pool.withdraw(address(usdcToken), aUsdcToken.balanceOf(address(this)), address(this));
+        DataTypes.ReserveData memory res = pool.getReserveData(address(usdcToken));
 
         //TODO: use _to to for returning tokens
         IERC20(res.aTokenAddress).transfer(
@@ -231,16 +253,16 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) internal {
         uint256[3] memory amounts;
         for (uint256 i = 0; i < 3; i++) {
-            address coin = curve.coins(i);
+            address coin = curvePool.coins(i);
             if (coin == _asset) {
-                IERC20(_asset).approve(address(curve), _amount);
+                IERC20(_asset).approve(address(curvePool), _amount);
                 // номер позиции в массиве (amounts) определяет какой актив (_asset) и в каком количестве (_amount)
                 // на стороне керва будет застейкано
                 amounts[uint256(i)] = _amount;
-                uint256 lpTokAmount = curve.calc_token_amount(amounts, true);
+                uint256 lpTokAmount = curvePool.calc_token_amount(amounts, true);
                 //TODO: процентажи кудато вынести, slippage
-                uint256 retAmount = curve.add_liquidity(amounts, (lpTokAmount * 99) / 100, false);
-                IERC20(curve.lp_token()).transfer(_beneficiar, retAmount);
+                uint256 retAmount = curvePool.add_liquidity(amounts, (lpTokAmount * 99) / 100, false);
+                IERC20(curvePool.lp_token()).transfer(_beneficiar, retAmount);
 
                 return;
             } else {
@@ -255,7 +277,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         uint256[3] memory amounts;
 
         uint256 _amount = a3CrvToken.balanceOf(address(this));
-        a3CrvToken.approve(address(curve), _amount);
+        a3CrvToken.approve(address(curvePool), _amount);
 
         uint256 index = 1;
         // index got from curve.coins(i);
@@ -263,9 +285,9 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 onConnectorLpTokenAmount = a3CrvToken.balanceOf(address(this));
 
-        uint256 lpTokAmount = curve.calc_token_amount(amounts, false);
+        uint256 lpTokAmount = curvePool.calc_token_amount(amounts, false);
         // _one_coin для возврата конкретной монеты (_assest)
-        uint256 withdrawAmount = curve.calc_withdraw_one_coin(lpTokAmount, int128(uint128(index)));
+        uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokAmount, int128(uint128(index)));
         if (withdrawAmount > onConnectorLpTokenAmount) {
             revert(string(
                 abi.encodePacked(
@@ -283,7 +305,7 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         }
 
         //TODO: use withdrawAmount?
-        uint256 retAmount = curve.remove_liquidity_one_coin(lpTokAmount, int128(uint128(index)), 0);
+        uint256 retAmount = curvePool.remove_liquidity_one_coin(lpTokAmount, int128(uint128(index)), 0);
         return retAmount;
     }
 
@@ -292,16 +314,16 @@ contract StrategyCurve is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 totalUsdc;
 
-        uint256 crvBalance = crv.balanceOf(address(this));
+        uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = quickswapExchange.swapTokenToUsdc(address(crv), address(usdc), crvTokenDenominator,
+            uint256 crvUsdc = swapTokenToUsdc(address(crvToken), address(usdcToken), crvTokenDenominator,
                 address(this), address(_to), crvBalance);
             totalUsdc += crvUsdc;
         }
 
-        uint256 wmaticBalance = wMatic.balanceOf(address(this));
+        uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wMatic), address(usdc), wmaticTokenDenominator,
+            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
                 address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }

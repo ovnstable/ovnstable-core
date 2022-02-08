@@ -15,7 +15,7 @@ import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
+contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
@@ -25,21 +25,22 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
     IBoostedVaultWithLockup public vimUsdToken;
     IERC20 public mtaToken;
     IERC20 public wmaticToken;
-    BalancerExchange public balancerExchange;
-    QuickswapExchange public quickswapExchange;
-    bytes32 public balancerPoolId1;
-    bytes32 public balancerPoolId2;
+
     uint256 public usdcTokenDenominator;
     uint256 public vimUsdTokenDenominator;
     uint256 public mtaTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
+    bytes32 public balancerPoolId1;
+    bytes32 public balancerPoolId2;
+
 
     // --- events
 
-    event StrategyMStableUpdate(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken,
-        address wmaticToken, address balancerExchange, address quickswapExchange, bytes32 balancerPoolId1, bytes32 balancerPoolId2,
+    event StrategyMStableUpdatedTokens(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken, address wmaticToken,
         uint256 usdcTokenDenominator, uint256 vimUsdTokenDenominator, uint256 mtaTokenDenominator, uint256 wmaticTokenDenominator);
+
+    event StrategyMStableUpdatedParams(address balancerVault, address uniswapRouter, bytes32 balancerPoolId1, bytes32 balancerPoolId2);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -61,17 +62,13 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
     // --- Setters
 
-    function setParams(
+    function setTokens(
         address _usdcToken,
         address _mUsdToken,
         address _imUsdToken,
         address _vimUsdToken,
         address _mtaToken,
-        address _wmaticToken,
-        address _balancerExchange,
-        address _quickswapExchange,
-        bytes32 _balancerPoolId1,
-        bytes32 _balancerPoolId2
+        address _wmaticToken
     ) external onlyAdmin {
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_mUsdToken != address(0), "Zero address not allowed");
@@ -79,29 +76,42 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
         require(_vimUsdToken != address(0), "Zero address not allowed");
         require(_mtaToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
-        require(_balancerExchange != address(0), "Zero address not allowed");
-        require(_quickswapExchange != address(0), "Zero address not allowed");
+
+        usdcToken = IERC20(_usdcToken);
+        mUsdToken = IMasset(_mUsdToken);
+        imUsdToken = ISavingsContractV2(_imUsdToken);
+        vimUsdToken = IBoostedVaultWithLockup(_vimUsdToken);
+        mtaToken = IERC20(_mtaToken);
+        wmaticToken = IERC20(_wmaticToken);
+
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        vimUsdTokenDenominator = 10 ** IERC20Metadata(_vimUsdToken).decimals();
+        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
+        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
+
+        emit StrategyMStableUpdatedTokens(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
+            usdcTokenDenominator, vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
+    }
+
+    function setParams(
+        address _balancerVault,
+        address _uniswapRouter,
+        bytes32 _balancerPoolId1,
+        bytes32 _balancerPoolId2
+    ) external onlyAdmin {
+        require(_balancerVault != address(0), "Zero address not allowed");
+        require(_uniswapRouter != address(0), "Zero address not allowed");
+
         require(_balancerPoolId1 != "", "Empty pool id not allowed");
         require(_balancerPoolId2 != "", "Empty pool id not allowed");
 
-//        usdcToken = IERC20(_usdcToken);
-//        mUsdToken = IMasset(_mUsdToken);
-//        imUsdToken = ISavingsContractV2(_imUsdToken);
-//        vimUsdToken = IBoostedVaultWithLockup(_vimUsdToken);
-//        mtaToken = IERC20(_mtaToken);
-//        wmaticToken = IERC20(_wmaticToken);
-//        balancerExchange = BalancerExchange(_balancerExchange);
-//        quickswapExchange = QuickswapExchange(_quickswapExchange);
-//        balancerPoolId1 = _balancerPoolId1;
-//        balancerPoolId2 = _balancerPoolId2;
-//        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
-//        vimUsdTokenDenominator = 10 ** IERC20Metadata(_vimUsdToken).decimals();
-//        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
-//        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
-//
-//        emit StrategyMStableUpdate(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
-//            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
-//            vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
+        setBalancerVault(_balancerVault);
+        setUniswapRouter(_uniswapRouter);
+
+        balancerPoolId1 = _balancerPoolId1;
+        balancerPoolId2 = _balancerPoolId2;
+
+        emit StrategyMStableUpdatedParams(_balancerVault, _uniswapRouter, _balancerPoolId1, _balancerPoolId2);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -185,20 +195,15 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
         uint256 mtaBalance = mtaToken.balanceOf(address(this));
         if (mtaBalance != 0) {
-//            uint256 mtaUsdc = balancerExchange.batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN,
-//                IAsset(address(mtaToken)), IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this),
-//                address(_to), mtaBalance);
-            uint256 wmaticTokenBalance = balancerExchange.swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
-                IAsset(address(wmaticToken)), address(this), address(this), mtaBalance);
-            uint256 mtaUsdc = balancerExchange.swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(wmaticToken)),
-                IAsset(address(usdcToken)), address(this), address(_to), wmaticTokenBalance);
+            uint256 mtaUsdc = batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
+                IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this), payable(_to), mtaBalance);
             totalUsdc += mtaUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken),
-                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
+                address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 

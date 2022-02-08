@@ -11,28 +11,34 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
-describe("StrategyIdle", function () {
+describe("StrategyBalancer", function () {
 
     let account;
     let strategy;
     let usdc;
-    let idleUsdc;
+    let bpspTUsd;
+    let tUsd;
+    let bal;
+    let wMatic;
 
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyIdle', 'Vault', 'StrategyIdleSetting', 'BuyUsdc']);
+        await deployments.fixture(['StrategyBalancer', 'StrategyBalancerSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
+
+        strategy = await ethers.getContract('StrategyBalancer');
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        idleUsdc = await ethers.getContractAt("ERC20", assets.idleUsdc);
-        strategy = await ethers.getContract('StrategyIdle');
-        await strategy.setPortfolioManager(account);
+        bpspTUsd = await ethers.getContractAt("ERC20", assets.bpspTUsd);
+        tUsd = await ethers.getContractAt("ERC20", assets.tUsd);
+        bal = await ethers.getContractAt("ERC20", assets.bal);
+        wMatic = await ethers.getContractAt("ERC20", assets.wMatic);
     });
 
 
-    describe("Stack 100 USDC", function () {
+    describe("Stake 100 USDC", function () {
 
         let balanceUSDC;
 
@@ -50,15 +56,15 @@ describe("StrategyIdle", function () {
             expect(balanceUSDC).to.eq(0);
         });
 
-        it("Balance idleUsdc should be greater than 99", async function () {
-            greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 99, 1);
+        it("Balance bpspTUsd should be greater than 95 less than 105", async function () {
+            greatLess(fromE18(await bpspTUsd.balanceOf(strategy.address)), 100, 5);
         });
 
-        it("NetAssetValue should be greater than 99 less than 100", async function () {
+        it("NetAssetValue should be greater than 99 less than 101", async function () {
             greatLess(fromUSDC(await strategy.netAssetValue()), 100, 1);
         });
 
-        it("LiquidationValue should  be greater than 99 less than 100", async function () {
+        it("LiquidationValue should be greater than 99 less than 101", async function () {
             greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
         });
 
@@ -79,16 +85,16 @@ describe("StrategyIdle", function () {
                 greatLess(balanceUSDC, 50, 1);
             });
 
-            it("Balance idleUsdc should be eq 48", async function () {
-                greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 48, 1);
+            it("Balance bpspTUsd should be eq 50", async function () {
+                greatLess(fromE18(await bpspTUsd.balanceOf(strategy.address)), 50, 5);
             });
 
             it("NetAssetValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.netAssetValue()), 49, 1);
+                greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
             });
 
             it("LiquidationValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.liquidationValue()), 49, 1);
+                greatLess(fromUSDC(await strategy.liquidationValue()), 50, 1);
             });
         });
 

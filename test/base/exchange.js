@@ -143,7 +143,7 @@ describe("Exchange", function () {
             });
 
             it("balance USDC must be more than 50", async function () {
-                greatLess(fromUSDC(await usdc.balanceOf(account)), balanceUserUSDC+50);
+                greatLess(fromUSDC(await usdc.balanceOf(account)), balanceUserUSDC + 50, 1);
             });
 
             it("Balance USD+ should 49.96", function () {

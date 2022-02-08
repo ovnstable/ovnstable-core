@@ -11,7 +11,7 @@ import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
+contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
 
@@ -20,15 +20,18 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     IERC20 public usdcToken;
     IIdleToken public idleToken;
     IERC20 public wmaticToken;
-    QuickswapExchange public quickswapExchange;
+
     uint256 public usdcTokenDenominator;
     uint256 public idleTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
+
     // --- events
 
-    event StrategyIdleUpdate(address usdcToken, address idleToken, address wmaticToken, address quickswapExchange,
+    event StrategyIdleUpdatedTokens(address usdcToken, address idleToken, address wmaticToken,
         uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
+
+    event StrategyIdleUpdatedParams(address uniswapRouter);
 
     // ---  constructor
 
@@ -58,28 +61,37 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- Setters
 
-    function setParams(
+    function setTokens(
         address _usdcToken,
         address _idleToken,
-        address _wmaticToken,
-        address _quickswapExchange
+        address _wmaticToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_idleToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
-        require(_quickswapExchange != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         idleToken = IIdleToken(_idleToken);
         wmaticToken = IERC20(_wmaticToken);
-        quickswapExchange = QuickswapExchange(_quickswapExchange);
+
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         idleTokenDenominator = 10 ** IERC20Metadata(_idleToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
-        emit StrategyIdleUpdate(_usdcToken, _idleToken, _wmaticToken, _quickswapExchange,
+        emit StrategyIdleUpdatedTokens(_usdcToken, _idleToken, _wmaticToken,
             usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
+    }
+
+    function setParams(
+        address _uniswapRouter
+    ) external onlyAdmin {
+
+        require(_uniswapRouter != address(0), "Zero address not allowed");
+
+        setUniswapRouter(_uniswapRouter);
+
+        emit StrategyIdleUpdatedParams(_uniswapRouter);
     }
 
     function setPortfolioManager(address _value) public onlyAdmin {
@@ -119,15 +131,17 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) public override onlyPortfolioManager returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
-        uint256 tokenAmount = _amount + (_amount / 100 * 1);
-        // fee 5% - misinformation
-        tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
+        // fee 1% - misinformation
+        uint256 fixedAmount = _amount * 101 / 100;
+
+        // 18 = 18 + 6 - 6
+        uint256 tokenAmount = idleTokenDenominator * fixedAmount / idleToken.tokenPrice();
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
         usdcToken.transfer(_beneficiary, redeemedTokens);
 
-        console.log('Redeem %s', redeemedTokens / 10 ** 6);
-        console.log('Amount %s', _amount / 10 ** 6);
+        console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
+        console.log('Amount %s', _amount / usdcTokenDenominator);
 
         require(redeemedTokens >= _amount, 'Returned value less than requested amount');
         return redeemedTokens;
@@ -152,8 +166,8 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = quickswapExchange.swapTokenToUsdc(address(wmaticToken), address(usdcToken),
-                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
+                address(this), address(_to), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 
