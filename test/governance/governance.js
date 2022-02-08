@@ -5,7 +5,7 @@ const {smock} = require("@defi-wonderland/smock");
 
 const hre = require("hardhat");
 
-const {fromOvnGov} = require("../utils/decimals");
+const {fromOvnGov} = require("../../utils/decimals");
 
 chai.use(smock.matchers);
 

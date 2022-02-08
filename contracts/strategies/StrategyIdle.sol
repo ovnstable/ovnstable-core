@@ -26,7 +26,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, Q
 
     // --- events
 
-    event StrategyIdleUpdate(address usdcToken, address idleToken, address wmaticToken, address quickswapExchange,
+    event StrategyIdleUpdated(address usdcToken, address idleToken, address wmaticToken, address quickswapExchange,
         uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
 
     // ---  constructor
@@ -78,7 +78,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, Q
         idleTokenDenominator = 10 ** IERC20Metadata(_idleToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
-        emit StrategyIdleUpdate(_usdcToken, _idleToken, _wmaticToken, _quickswapExchange,
+        emit StrategyIdleUpdated(_usdcToken, _idleToken, _wmaticToken, _quickswapExchange,
             usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
     }
 
@@ -157,6 +157,7 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, Q
             totalUsdc += wmaticUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }

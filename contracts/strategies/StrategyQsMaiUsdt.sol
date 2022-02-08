@@ -4,9 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "../connectors/curve/interfaces/iCurvePool.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
@@ -32,7 +29,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
 
     // --- events
 
-    event ConnectorQuickswapUsdtMai(address router, address pair, address mai, address usdt, address usdc);
+    event ConnectorQuickswapUsdtMaiUpdated(address router, address pair, address mai, address usdt, address usdc);
 
 
 
@@ -91,7 +88,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         mai = IERC20(_mai);
         usdt = IERC20(_usdt);
         usdc = IERC20(_usdc);
-        emit ConnectorQuickswapUsdtMai(_router, _pair, _mai, _usdt, _usdc);
+        emit ConnectorQuickswapUsdtMaiUpdated(_router, _pair, _mai, _usdt, _usdc);
     }
 
 
@@ -273,6 +270,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
+        emit Reward(0);
         return 0;
     }
 
