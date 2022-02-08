@@ -76,7 +76,7 @@ describe("StrategyAave", function () {
                 balanceUSDC = fromUSDC(balanceUsdcAfter-balanceUsdcBefore);
             });
 
-            it("Balance USDC should be eq 50 USDC", async function () {
+            it("Balance USDC should be gte 50 USDC", async function () {
                 expect(balanceUSDC).to.greaterThanOrEqual(50);
             });
 
