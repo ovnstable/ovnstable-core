@@ -178,8 +178,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function buy(address _addrTok, uint256 _amount) external whenNotPaused {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
 
-        uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
-        require(balance >= _amount, "Not enough tokens to buy");
+        uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
+        require(currentBalance >= _amount, "Not enough tokens to buy");
 
         IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
