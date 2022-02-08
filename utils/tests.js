@@ -1,8 +1,8 @@
 const { expect } = require('chai');
 
-function greatLess(balance, value, delta) {
-  expect(balance).to.greaterThanOrEqual(value - delta);
-  expect(balance).to.lessThanOrEqual(value + delta);
+function greatLess(balance, value, delta, msg) {
+  expect(balance).to.greaterThanOrEqual(value - delta, msg);
+  expect(balance).to.lessThanOrEqual(value + delta, msg);
 }
 
 module.exports = {

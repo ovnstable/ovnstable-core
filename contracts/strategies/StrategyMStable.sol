@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../interfaces/IStrategy.sol";
 import "../connectors/BalancerExchange.sol";
 import "../connectors/QuickswapExchange.sol";
 import "../connectors/mstable/interfaces/IMasset.sol";
 import "../connectors/mstable/interfaces/ISavingsContract.sol";
 import "../connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
+import "./Strategy.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange {
+contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     IERC20 public usdcToken;
     IMasset public mUsdToken;

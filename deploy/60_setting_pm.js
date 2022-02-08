@@ -19,7 +19,21 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let curve = {
         strategy: (await ethers.getContract("StrategyCurve")).address,
         minWeight: 0,
-        targetWeight: 65000,
+        targetWeight: 45000,
+        maxWeight: 100000,
+    }
+
+    let mstable= {
+        strategy: (await ethers.getContract("StrategyMStable")).address,
+        minWeight: 0,
+        targetWeight: 10000,
+        maxWeight: 100000,
+    }
+
+    let balancer = {
+        strategy: (await ethers.getContract("StrategyBalancer")).address,
+        minWeight: 0,
+        targetWeight: 10000,
         maxWeight: 100000,
     }
 
@@ -32,6 +46,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let weights = [
         aave,
+        mstable,
+        balancer,
         curve,
         idle
     ]

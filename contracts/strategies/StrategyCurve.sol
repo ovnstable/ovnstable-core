@@ -220,7 +220,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
         // index got from curve.coins(i) for USDC
         uint256 index = 1;
-        require(curvePool.underlying_coins(index) == address(usdc), "Invalid index for unstaking curve");
+        require(curvePool.underlying_coins(index) == address(usdcToken), "Invalid index for unstaking curve");
 
         uint256 lpTokenAmount = a3CrvToken.balanceOf(address(this));
 
@@ -239,7 +239,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
             ));
         }
 
-        a3CrvToken.approve(address(curve), lpTokenAmount);
+        a3CrvToken.approve(address(curvePool), lpTokenAmount);
 
         //TODO: use withdrawAmount?
         uint256 retAmount = curvePool.remove_liquidity_one_coin(lpTokenAmount, int128(uint128(index)), 0, true);

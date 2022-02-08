@@ -95,13 +95,26 @@ describe("StrategyCurve", function () {
     });
 
 
-    // it("ClaimRewards should return 0", async function () {
-    //     let balanceUsdcBefore = await usdc.balanceOf(account);
-    //     await strategy.claimRewards(account);
-    //     let balanceUsdcAfter = await usdc.balanceOf(account);
-    //
-    //     let balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
-    //     expect(balanceUSDC).to.eq(0);
-    // });
+    it("ClaimRewards should return 0", async function () {
+        let balanceUsdcBefore = await usdc.balanceOf(account);
+
+
+        await usdc.transfer(strategy.address, toUSDC(100));
+        await strategy.stake(usdc.address, toUSDC(100) );
+
+        await usdc.transfer(strategy.address, toUSDC(100));
+        await strategy.stake(usdc.address, toUSDC(100) );
+
+        // wait 7 days
+        const days = 7 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [days])
+        await ethers.provider.send('evm_mine');
+
+        await strategy.claimRewards(account);
+        let balanceUsdcAfter = await usdc.balanceOf(account);
+
+        let balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
+        expect(balanceUSDC).to.eq(0);
+    });
 
 });

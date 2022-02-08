@@ -102,11 +102,11 @@ describe("Exchange", function () {
                 let target = weight.targetWeight / 1000;
                 let balance = fromUSDC(asset.netAssetValue)
 
-                let targetValue = totalValue / 100 * target + "";
+                let targetValue = totalValue / 100 * target;
                 let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
                 console.log(message);
 
-                expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+                greatLess(balance, targetValue, 1, message);
             }
         });
 
@@ -169,11 +169,11 @@ describe("Exchange", function () {
                     let target = weight.targetWeight / 1000;
                     let balance = fromUSDC(asset.netAssetValue)
 
-                    let targetValue = totalValue / 100 * target + "";
+                    let targetValue = totalValue / 100 * target;
                     let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
                     console.log(message);
 
-                    expect(new BN(balance).toFixed(0)).to.eq(targetValue, message);
+                    greatLess(balance, targetValue, 1, message);
                 }
             });
 
