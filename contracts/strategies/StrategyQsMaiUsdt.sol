@@ -2,8 +2,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "../interfaces/IStrategy.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
@@ -11,12 +9,12 @@ import "../connectors/swaps/interfaces/IUniswapV2Router01.sol";
 import "../connectors/swaps/interfaces/IUniswapV2Pair.sol";
 import "../libraries/math/LowGasSafeMath.sol";
 
+import "./Strategy.sol";
+import "../connectors/QuickswapExchange.sol";
+
 import "hardhat/console.sol";
 
-contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeable{
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
-
+contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     using LowGasSafeMath for uint256;
     uint256 public constant minimumAmount = 1000;
@@ -32,39 +30,16 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     event ConnectorQuickswapUsdtMaiUpdated(address router, address pair, address mai, address usdt, address usdc);
 
 
-
-
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
     function initialize() initializer public {
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
+        __Strategy_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
-
-
-    // ---  modifiers
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyPortfolioManager() {
-        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
-        _;
-    }
 
 
 
@@ -76,12 +51,12 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         address _usdc,
         address _router,
         address _pair
-    ) external onlyAdmin{
+    ) external onlyAdmin {
         require(_mai != address(0), "Zero address not allowed");
         require(_usdt != address(0), "Zero address not allowed");
         require(_usdc != address(0), "Zero address not allowed");
         require(_router != address(0), "Zero address not allowed");
-        require(_pair!= address(0), "Zero address not allowed");
+        require(_pair != address(0), "Zero address not allowed");
 
         router = IUniswapV2Router01(_router);
         pair = IUniswapV2Pair(_pair);
@@ -113,18 +88,18 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         uint256 swapAmountMAI = _swapToMAI(amountMAI);
 
         console.log('Stake amount before');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
+        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
+        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         _addLiquidity();
 
         console.log('Stake amount after');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
+        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
+        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
 
     }
@@ -136,27 +111,27 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     ) override external onlyPortfolioManager returns (uint256) {
 
         console.log('Unstake amount before');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
+        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
+        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         pair.approve(address(router), _amount);
 
         (uint amountA, uint amountB) = router.removeLiquidity(pair.token0(), pair.token1(), _amount, 0, 0, address(this), block.timestamp + 600);
         console.log('Unstake amount after');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
+        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
+        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         _swapToUSDC();
         console.log('Swap to USDC after');
 
-        console.log('Amount MAI: %s', mai.balanceOf(address(this))/ 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this))/ 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this))/ 10** 18);
+        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
+        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
+        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
     }
 
     function _addLiquidity() private {
@@ -170,12 +145,12 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         usdt.approve(address(router), amountUSDT);
         mai.approve(address(router), amountMAI);
 
-        (,, uint256 amountLiquidity) = router.addLiquidity(path[0], path[1], amountMAI, amountUSDT, 1, 1, address(this), block.timestamp+ 600);
+        (,, uint256 amountLiquidity) = router.addLiquidity(path[0], path[1], amountMAI, amountUSDT, 1, 1, address(this), block.timestamp + 600);
 
         console.log('Amount liq: %s', amountLiquidity);
     }
 
-    function _swapToMAI(uint256 amount)private returns(uint256 swapAmount) {
+    function _swapToMAI(uint256 amount) private returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
         path[0] = address(usdt);
@@ -197,7 +172,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     }
 
 
-    function _swapToUSDC() private returns(uint256 swapAmount) {
+    function _swapToUSDC() private returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
         path[0] = address(usdt);
@@ -231,7 +206,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         return swapedAmountsUSDT[1] + swapedAmountsMAI[1];
     }
 
-    function _swapToUSDT(uint256 amount) private returns(uint256 swapAmount) {
+    function _swapToUSDT(uint256 amount) private returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
         path[0] = address(usdc);
@@ -256,7 +231,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         uint256 halfInvestment = investmentA / 2;
         uint256 nominator = router.getAmountOut(halfInvestment, reserveA, reserveB);
         uint256 denominator = router.quote(halfInvestment, reserveA.add(halfInvestment), reserveB.sub(nominator));
-//        swapAmount = investmentA.sub(Babylonian.sqrt(halfInvestment * halfInvestment * nominator / denominator));
+        //        swapAmount = investmentA.sub(Babylonian.sqrt(halfInvestment * halfInvestment * nominator / denominator));
         return swapAmount;
     }
 
@@ -266,7 +241,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     }
 
     function liquidationValue() external view override returns (uint256){
-        return  0;
+        return 0;
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){

@@ -10,13 +10,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const balancerExchange = await ethers.getContract("BalancerExchange");
-    const quickswapExchange = await ethers.getContract("QuickswapExchange");
-
-    const strategy = await ethers.getContract("StrategyMStable");
-    await (await strategy.setParams(assets.usdc, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic,
-            balancerExchange.address, quickswapExchange.address, balancerPoolId1, balancerPoolId2)).wait();
-    console.log('StrategyMStable setting done');
+    // const balancerExchange = await ethers.getContract("BalancerExchange");
+    // const quickswapExchange = await ethers.getContract("QuickswapExchange");
+    //
+    // const strategy = await ethers.getContract("StrategyMStable");
+    // await (await strategy.setParams(assets.usdc, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic,
+    //         balancerExchange.address, quickswapExchange.address, balancerPoolId1, balancerPoolId2)).wait();
+    // console.log('StrategyMStable setting done');
 };
 
 module.exports.tags = ['setting', 'StrategyMStableSetting'];
