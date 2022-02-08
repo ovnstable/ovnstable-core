@@ -57,12 +57,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     // --- logic
 
-    function _unstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) internal virtual returns (uint256);
-
 
     function unstake(
         address _asset,
@@ -72,11 +66,21 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         return _unstakeProcess(_asset, _amount, _beneficiary, false);
     }
 
+    function unstake2(
+        address _asset,
+        uint256 _amount,
+        address _beneficiary,
+        bool targetIsZero
+    ) public override onlyPortfolioManager returns (uint256) {
+        return _unstakeProcess(_asset, _amount, _beneficiary, targetIsZero);
+    }
+
     function _unstakeProcess(
         address _asset,
         uint256 _amount,
         address _beneficiary,
-        bool targetIsZero) internal returns (uint256) {
+        bool targetIsZero
+    ) internal returns (uint256) {
 
         uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
 
@@ -90,15 +94,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         return withdrawAmount;
     }
 
-
-    function unstake(
+    function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary,
-        bool targetIsZero
-    ) public override onlyPortfolioManager returns (uint256) {
-        return _unstakeProcess(_asset, _amount, _beneficiary, targetIsZero);
-    }
+        address _beneficiary
+    ) internal virtual returns (uint256);
+
 
 
     uint256[49] private __gap;

@@ -144,8 +144,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
         // Am3CrvGauge = 6 + 12 + 18 - 18 = 18
         uint256 tokenAmountToWithdrawFromGauge = _amount * 10 ** 30 / curvePool.get_virtual_price();
-        // inc to get extra
-        tokenAmountToWithdrawFromGauge += 1;
 
         console.log('Unstake gauge before');
         console.log('1: _amount %s', _amount);
@@ -187,16 +185,14 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     }
 
     function liquidationValue() external view override returns (uint256){
-        uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
-        // 18
-        uint256 price = curvePool.get_virtual_price();
-        // 18
+        uint256 gaugeAmount = a3CrvGaugeToken.balanceOf(address(this));
 
-        // 18 + 18 = 36
-        uint256 result = (balance * price);
+        // get amount usdc that will be unstaked, gauge is 1:1 to am3Crv
+        int128 usdcIndex = 1;
+        // position of usdc token
+        uint256 withdrawUsdcAmount = curvePool.calc_withdraw_one_coin(gaugeAmount, usdcIndex);
 
-        // 36 - 18 - 12 = 6
-        return (result / (10 ** 18)) / 10 ** 12;
+        return withdrawUsdcAmount;
     }
 
 
@@ -234,20 +230,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         require(curvePool.underlying_coins(index) == address(usdcToken), "Invalid index for unstaking curve");
 
         uint256 lpTokenAmount = a3CrvToken.balanceOf(address(this));
-
-        // _one_coin для возврата конкретной монеты (_assest)
-        uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokenAmount, int128(uint128(index)));
-        if (withdrawAmount > lpTokenAmount) {
-            revert(string(
-                abi.encodePacked(
-                    "Not enough lpToken own ",
-                    " lpTokenAmount: ",
-                    Strings.toString(lpTokenAmount),
-                    " withdrawAmount: ",
-                    Strings.toString(withdrawAmount)
-                )
-            ));
-        }
 
         a3CrvToken.approve(address(curvePool), lpTokenAmount);
 
