@@ -153,8 +153,14 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, Q
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken),
-                wmaticTokenDenominator, address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(
+                address(wmaticToken),
+                address(usdcToken),
+                wmaticTokenDenominator,
+                address(this),
+                address(_to),
+                wmaticBalance
+            );
             totalUsdc += wmaticUsdc;
         }
 
