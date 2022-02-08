@@ -35,12 +35,14 @@ async function main() {
     const governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address);
     let usdc = await ethers.getContractAt(ERC20.abi, assets.usdc, wallet);
     let amUsdc = await ethers.getContractAt(ERC20.abi, assets.amUsdc, wallet);
+    let am3CRV = await ethers.getContractAt(ERC20.abi, assets.am3CRV, wallet);
+    let am3CRVgauge = await ethers.getContractAt(ERC20.abi, assets.am3CRVgauge, wallet);
     let aave = await ethers.getContract("StrategyAave");
+    let curve = await ethers.getContract("StrategyCurve");
 
     let addresses = [];
     let values = [];
     let abis = [];
-
 
 
     addresses.push(vault.address);
@@ -51,10 +53,17 @@ async function main() {
     values.push(0);
     abis.push(vault.interface.encodeFunctionData('transfer', [assets.usdc, pmNew.address, await usdc.balanceOf(vault.address)]));
 
-
     addresses.push(vault.address);
     values.push(0);
     abis.push(vault.interface.encodeFunctionData('transfer', [assets.amUsdc, aave.address, await amUsdc.balanceOf(vault.address)]));
+
+    addresses.push(vault.address);
+    values.push(0);
+    abis.push(vault.interface.encodeFunctionData('transfer', [assets.am3CRV, curve.address, await am3CRV.balanceOf(vault.address)]));
+
+    addresses.push(vault.address);
+    values.push(0);
+    abis.push(vault.interface.encodeFunctionData('transfer', [assets.am3CRVgauge, curve.address, await am3CRVgauge.balanceOf(vault.address)]));
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
@@ -74,7 +83,6 @@ async function main() {
     let balanceUsdcNew = await usdc.balanceOf(pmNew.address);
 
     console.log(`Balance USDC ${balanceUsdc}:${balanceUsdcNew}`)
-}
 
 }
 

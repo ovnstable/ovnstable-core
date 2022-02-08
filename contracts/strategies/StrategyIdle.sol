@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "../interfaces/IStrategy.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
 import "../connectors/QuickswapExchange.sol";
 
+import "./Strategy.sol";
+
 import "hardhat/console.sol";
 
-contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
-
-    address public portfolioManager;
+contract StrategyIdle is Strategy, QuickswapExchange {
 
     IERC20 public usdcToken;
     IIdleToken public idleToken;
@@ -39,23 +34,7 @@ contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable,
     constructor() initializer {}
 
     function initialize() initializer public {
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-    }
-
-    // ---  modifiers
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyPortfolioManager() {
-        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
-        _;
+        __Strategy_init();
     }
 
 
@@ -93,23 +72,6 @@ contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable,
 
         emit StrategyIdleUpdatedParams(_uniswapRouter);
     }
-
-    function setPortfolioManager(address _value) public onlyAdmin {
-        require(_value != address(0), "Zero address not allowed");
-
-        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
-        grantRole(PORTFOLIO_MANAGER, _value);
-
-        portfolioManager = _value;
-        emit PortfolioManagerUpdated(_value);
-    }
-
-
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
 
 
     // --- logic

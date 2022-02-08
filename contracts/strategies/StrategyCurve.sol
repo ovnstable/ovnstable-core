@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../interfaces/IStrategy.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
@@ -13,10 +10,9 @@ import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/QuickswapExchange.sol";
 
 import "hardhat/console.sol";
+import "./Strategy.sol";
 
-contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("UPGRADER_ROLE");
+contract StrategyCurve is Strategy, QuickswapExchange {
 
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
@@ -33,7 +29,6 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
     iCurvePool public curvePool;
     IRewardOnlyGauge public rewardGauge;
 
-    address public portfolioManager;
 
     // --- events
 
@@ -50,30 +45,9 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
     constructor() initializer {}
 
     function initialize() initializer public {
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
+        __Strategy_init();
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
-
-    // ---  modifiers
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyPortfolioManager() {
-        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
-        _;
-    }
 
 
     // --- Setters
@@ -127,15 +101,6 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
         emit StrategyCurveUpdatedParams(_curvePool, _rewardGauge, _uniswapRouter);
     }
 
-    function setPortfolioManager(address _value) public onlyAdmin {
-        require(_value != address(0), "Zero address not allowed");
-
-        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
-        grantRole(PORTFOLIO_MANAGER, _value);
-
-        portfolioManager = _value;
-        emit PortfolioManagerUpdated(_value);
-    }
 
     // --- logic
 
@@ -152,7 +117,6 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
         uint256 a3CrvBalance = a3CrvToken.balanceOf(current);
         a3CrvToken.approve(address(rewardGauge), a3CrvBalance);
         rewardGauge.deposit(a3CrvBalance, current, false);
-
     }
 
     function unstake(
@@ -167,31 +131,31 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
         // on Strategy
 
         // Am3CrvGauge = 6 + 12 + 18 - 18 = 18
-        uint256 tokenAmountToWithdrawFromGauge = _amount * 10**30 / curvePool.get_virtual_price();
+        uint256 tokenAmountToWithdrawFromGauge = _amount * 10 ** 30 / curvePool.get_virtual_price();
         // inc to get extra
         tokenAmountToWithdrawFromGauge += 1;
 
         console.log('Unstake gauge before');
         console.log('1: _amount %s', _amount);
         console.log('1: get_virtual_price %s', curvePool.get_virtual_price());
-        console.log('1: tokenAmountToWithdrawFromGauge %s', tokenAmountToWithdrawFromGauge );
+        console.log('1: tokenAmountToWithdrawFromGauge %s', tokenAmountToWithdrawFromGauge);
         console.log('1: usdc %s', usdcToken.balanceOf(current));
-        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current) );
-        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
+        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         rewardGauge.withdraw(tokenAmountToWithdrawFromGauge, false);
 
         console.log('Unstake curve before');
-        console.log('2: usdc %s', usdcToken.balanceOf(current) );
-        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current) );
-        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
+        console.log('2: usdc %s', usdcToken.balanceOf(current));
+        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         uint256 withdrewAmount = _unstakeCurve();
 
         console.log('Unstake curve after: withdrewAmount: %s', withdrewAmount);
-        console.log('3: usdc %s', usdcToken.balanceOf(current) );
+        console.log('3: usdc %s', usdcToken.balanceOf(current));
         console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
+        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         require(withdrewAmount >= _amount, 'Returned value less than requested amount');
         usdcToken.transfer(_beneficiary, withdrewAmount);
