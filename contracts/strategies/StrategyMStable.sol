@@ -202,6 +202,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
             totalUsdc += wmaticUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }

@@ -273,6 +273,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
+        emit Reward(0);
         return 0;
     }
 

@@ -248,6 +248,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
             totalUsdc += tusdUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }
