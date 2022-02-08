@@ -184,6 +184,7 @@ contract StrategyMStable is IStrategy, BalancerExchange, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }
