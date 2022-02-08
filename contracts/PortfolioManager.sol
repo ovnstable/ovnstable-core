@@ -30,19 +30,10 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     // ---  events
 
     event ExchangerUpdated(address value);
-    event UsdcUpdate(address value);
+    event UsdcUpdated(address value);
     event Exchanged(uint256 amount, address from, address to);
-    event UpdatedAssetInfo(uint256 index, address asset, address priceGetter);
 
-    event UpdatedAssetWeight(
-        uint256 index,
-        address asset,
-        uint256 minWeight,
-        uint256 targetWeight,
-        uint256 maxWeight
-    );
-
-    event UpdatedStrategyWeight(
+    event StrategyWeightUpdated(
         uint256 index,
         address strategy,
         uint256 minWeight,
@@ -98,7 +89,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         require(_usdc != address(0), "Zero address not allowed");
 
         usdc = IERC20(_usdc);
-        emit UsdcUpdate(_usdc);
+        emit UsdcUpdated(_usdc);
     }
 
 
@@ -106,7 +97,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     // ---  logic
 
     function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger {
-        balance();
+        _balance();
     }
 
 
@@ -116,47 +107,37 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     onlyExchanger
     returns (uint256)
     {
-        // 1. balance to needed amount
-        balance(_token, _amount);
+        require(address(_token) == address(usdc), "PM: Only USDC now available to withdraw");
 
-        // 2. transfer back tokens
-        // TODO: transfer amount should be reduced by fees
+        // balance to needed amount
+        _balance(_token, _amount);
 
         uint256 currentBalance = _token.balanceOf(address(this));
 
-        //TODO: crunch to get logs, remove
-        if (_amount > currentBalance) {
-            _amount = currentBalance;
-        }
-
+        // `if` is cheaper then `require` when need build complex message
         if (currentBalance < _amount) {
             revert(string(
                 abi.encodePacked(
                     "In portfolioManager not enough for transfer _amount: ",
-                    Strings.toString(_token.balanceOf(address(this))),
+                    Strings.toString(currentBalance),
                     " < ",
                     Strings.toString(_amount)
                 )
             ));
         }
 
-        // 4. Transfer unstacked amount to exchange
+        // transfer back tokens
         _token.transfer(exchanger, _amount);
 
         return _amount;
     }
 
     function claimAndBalance() external override onlyExchanger {
-        claimRewards();
-        balance();
+        _claimRewards();
+        _balance();
     }
 
-    function balance() internal {
-        // Same to zero withdrawal balance
-        balance(IERC20(address(0)), 0);
-    }
-
-    function claimRewards() internal {
+    function _claimRewards() internal {
         StrategyWeight[] memory strategies = getAllStrategyWeights();
 
         for (uint8 i; i < strategies.length; i++) {
@@ -164,7 +145,12 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         }
     }
 
-    function balance(IERC20 withdrawToken, uint256 withdrawAmount) internal {
+    function _balance() internal {
+        // Same to zero withdrawal balance
+        _balance(IERC20(address(0)), 0);
+    }
+
+    function _balance(IERC20 withdrawToken, uint256 withdrawAmount) internal {
 
         StrategyWeight[] memory strategies = getAllStrategyWeights();
 
@@ -266,7 +252,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             }
         }
         strategyWeights[index] = strategyWeight;
-        emit UpdatedStrategyWeight(
+        emit StrategyWeightUpdated(
             index,
             strategyWeight.strategy,
             strategyWeight.minWeight,
