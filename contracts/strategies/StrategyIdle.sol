@@ -124,12 +124,13 @@ contract StrategyIdle is IStrategy, AccessControlUpgradeable, UUPSUpgradeable, Q
         tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
-        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         console.log('Redeem %s', redeemedTokens / 10 ** 6);
         console.log('Amount %s', _amount / 10 ** 6);
 
         require(redeemedTokens >= _amount, 'Returned value less than requested amount');
+
+        usdcToken.transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;
     }
 
