@@ -204,10 +204,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
 
-        usdPlus.mint(msg.sender, buyAmount);
-
         IERC20(_addrTok).transfer(address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
+
+        usdPlus.mint(msg.sender, buyAmount);
     }
 
     /**
