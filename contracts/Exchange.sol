@@ -196,18 +196,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 balance = IERC20(_addrTok).balanceOf(msg.sender);
         require(balance >= _amount, "Not enough tokens to buy");
 
-        IERC20(_addrTok).transferFrom(msg.sender, address(this), _amount);
+        IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
+        portfolioManager.deposit(IERC20(_addrTok), _amount);
 
         uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
         uint256 buyAmount = _amount - buyFeeAmount;
         emit PaidBuyFee(buyAmount, buyFeeAmount);
 
-        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
-
-        IERC20(_addrTok).transfer(address(portfolioManager), _amount);
-        portfolioManager.deposit(IERC20(_addrTok), _amount);
-
         usdPlus.mint(msg.sender, buyAmount);
+
+        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
     }
 
     /**
