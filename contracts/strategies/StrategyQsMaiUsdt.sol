@@ -4,9 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "../connectors/curve/interfaces/iCurvePool.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
