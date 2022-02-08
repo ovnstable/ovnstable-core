@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IPortfolioManager.sol";
@@ -69,13 +68,12 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
         for (uint8 i = 0; i < count; i++) {
             IPortfolioManager.StrategyWeight memory weight = weights[i];
-            IStrategy item = IStrategy(weight.strategy);
-
+            IStrategy strategy = IStrategy(weight.strategy);
 
             assets[i] = StrategyAsset(
                 weight.strategy,
-                item.netAssetValue(),
-                item.liquidationValue()
+                strategy.netAssetValue(),
+                strategy.liquidationValue()
             );
         }
 
@@ -84,29 +82,24 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
 
 
     function totalNetAssets() public view override returns (uint256){
-        return totalAssets(false);
+        return _totalAssets(false);
     }
 
     function totalLiquidationAssets() public view override returns (uint256){
-        return totalAssets(true);
+        return _totalAssets(true);
     }
 
-    function totalAssets(bool liq) internal view returns (uint256)
+    function _totalAssets(bool liquidation) internal view returns (uint256)
     {
         uint256 totalUsdcPrice = 0;
         IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
-        uint256 count = weights.length;
 
-        StrategyAsset[] memory assets = new StrategyAsset[](count);
-
-        for (uint8 i = 0; i < count; i++) {
-            IPortfolioManager.StrategyWeight memory weight = weights[i];
-            IStrategy item = IStrategy(weight.strategy);
-
-            if (liq) {
-                totalUsdcPrice += item.liquidationValue();
+        for (uint8 i = 0; i < weights.length; i++) {
+            IStrategy strategy = IStrategy(weights[i].strategy);
+            if (liquidation) {
+                totalUsdcPrice += strategy.liquidationValue();
             } else {
-                totalUsdcPrice += item.netAssetValue();
+                totalUsdcPrice += strategy.netAssetValue();
             }
         }
 
