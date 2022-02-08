@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import "../connectors/idle/interfaces/IIdleToken.sol";
-import "../connectors/QuickswapExchange.sol";
-
 import "./Strategy.sol";
+import "../connectors/QuickswapExchange.sol";
+import "../connectors/idle/interfaces/IIdleToken.sol";
 
 import "hardhat/console.sol";
 
 contract StrategyIdle is Strategy, QuickswapExchange {
 
-
     IERC20 public usdcToken;
     IIdleToken public idleToken;
     IERC20 public wmaticToken;
+
     uint256 public usdcTokenDenominator;
     uint256 public idleTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
+
     // --- events
 
-    event StrategyIdleUpdated(address usdcToken, address idleToken, address wmaticToken, address quickswapExchange,
+    event StrategyIdleUpdatedTokens(address usdcToken, address idleToken, address wmaticToken,
         uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
+
+    event StrategyIdleUpdatedParams(address uniswapRouter);
 
     // ---  constructor
 
@@ -37,29 +37,37 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
     // --- Setters
 
-    function setParams(
+    function setTokens(
         address _usdcToken,
         address _idleToken,
-        address _wmaticToken,
-        address _quickswapExchange
+        address _wmaticToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_idleToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
-        require(_quickswapExchange != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         idleToken = IIdleToken(_idleToken);
         wmaticToken = IERC20(_wmaticToken);
 
-        setSwapRouter(_quickswapExchange);
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         idleTokenDenominator = 10 ** IERC20Metadata(_idleToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
-        emit StrategyIdleUpdated(_usdcToken, _idleToken, _wmaticToken, _quickswapExchange,
+        emit StrategyIdleUpdatedTokens(_usdcToken, _idleToken, _wmaticToken,
             usdcTokenDenominator, idleTokenDenominator, wmaticTokenDenominator);
+    }
+
+    function setParams(
+        address _uniswapRouter
+    ) external onlyAdmin {
+
+        require(_uniswapRouter != address(0), "Zero address not allowed");
+
+        setUniswapRouter(_uniswapRouter);
+
+        emit StrategyIdleUpdatedParams(_uniswapRouter);
     }
 
 
@@ -82,14 +90,16 @@ contract StrategyIdle is Strategy, QuickswapExchange {
     ) public override onlyPortfolioManager returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
-        uint256 tokenAmount = _amount + (_amount / 100 * 1);
-        // fee 5% - misinformation
-        tokenAmount = tokenAmount * (10 ** 18) / idleToken.tokenPrice();
+        // fee 1% - misinformation
+        uint256 fixedAmount = _amount * 101 / 100;
+
+        // 18 = 18 + 6 - 6
+        uint256 tokenAmount = idleTokenDenominator * fixedAmount / idleToken.tokenPrice();
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
 
-        console.log('Redeem %s', redeemedTokens / 10 ** 6);
-        console.log('Amount %s', _amount / 10 ** 6);
+        console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
+        console.log('Amount %s', _amount / usdcTokenDenominator);
 
         require(redeemedTokens >= _amount, 'Returned value less than requested amount');
 

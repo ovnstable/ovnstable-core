@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../interfaces/IStrategy.sol";
-
-import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
-import "../connectors/aave/interfaces/ILendingPool.sol";
-import "../connectors/swaps/interfaces/IUniswapV2Router01.sol";
-import "../connectors/swaps/interfaces/IUniswapV2Pair.sol";
-import "../libraries/math/LowGasSafeMath.sol";
-
 import "./Strategy.sol";
 import "../connectors/QuickswapExchange.sol";
+import "../connectors/uniswap/interfaces/IUniswapV2Router01.sol";
+import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
+import "../libraries/math/LowGasSafeMath.sol";
 
 import "hardhat/console.sol";
 

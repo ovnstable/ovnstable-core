@@ -3,14 +3,14 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../connectors/swaps/interfaces/IUniswapV2Router02.sol";
+import "../connectors/uniswap/interfaces/IUniswapV2Router02.sol";
 
 abstract contract QuickswapExchange {
 
-    IUniswapV2Router02 private swapRouter;
+    IUniswapV2Router02 private uniswapRouter;
 
-    function setSwapRouter(address _swapRouter) internal virtual{
-        swapRouter = IUniswapV2Router02(_swapRouter);
+    function setUniswapRouter(address _uniswapRouter) internal {
+        uniswapRouter = IUniswapV2Router02(_uniswapRouter);
     }
 
     function swapTokenToUsdc(
@@ -20,7 +20,7 @@ abstract contract QuickswapExchange {
         address sender,
         address recipient,
         uint256 amount
-    ) internal virtual returns (uint256) {
+    ) internal returns (uint256) {
 
         uint256 estimateUsdcOut = getUsdcSellPrice(swapToken, usdcToken, swapTokenDenominator, amount);
 
@@ -37,9 +37,7 @@ abstract contract QuickswapExchange {
         path[0] = swapToken;
         path[1] = usdcToken;
 
-        uint[] memory amounts = swapRouter.swapExactTokensForTokens(amount, amountOutMin, path, recipient, block.timestamp + 600);
-
-        return amounts[1];
+        return uniswapRouter.swapExactTokensForTokens(amount, amountOutMin, path, recipient, block.timestamp + 600)[1];
     }
 
     function getUsdcBuyPrice(
@@ -47,13 +45,13 @@ abstract contract QuickswapExchange {
         address usdcToken,
         uint256 swapTokenDenominator,
         uint256 usdcAmount
-    ) internal virtual view returns (uint256) {
+    ) internal view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = usdcToken;
         path[1] = swapToken;
 
-        uint[] memory amountsOut = swapRouter.getAmountsOut(usdcAmount, path);
+        uint[] memory amountsOut = uniswapRouter.getAmountsOut(usdcAmount, path);
 
         // x + 6 - x = 6
         return swapTokenDenominator * amountsOut[0] / amountsOut[1];
@@ -64,13 +62,13 @@ abstract contract QuickswapExchange {
         address usdcToken,
         uint256 swapTokenDenominator,
         uint256 tokenAmount
-    ) internal virtual view returns (uint256) {
+    ) internal view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = swapToken;
         path[1] = usdcToken;
 
-        uint[] memory amountsOut = swapRouter.getAmountsOut(tokenAmount, path);
+        uint[] memory amountsOut = uniswapRouter.getAmountsOut(tokenAmount, path);
 
         // x + 6 - x = 6
         return swapTokenDenominator * amountsOut[1] / amountsOut[0];
