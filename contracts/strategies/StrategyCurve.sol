@@ -14,7 +14,6 @@ import "hardhat/console.sol";
 contract StrategyCurve is Strategy, QuickswapExchange {
 
     IERC20 public usdcToken;
-    IERC20 public aUsdcToken;
     IERC20 public a3CrvToken;
     IERC20 public a3CrvGaugeToken;
     IERC20 public crvToken;
@@ -31,9 +30,17 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
     // --- events
 
-    event StrategyCurveUpdatedTokens(address usdcToken, address aUsdcToken, address a3CrvToken, address a3CrvGaugeToken,
-        address crvToken, address wmaticToken,uint256 usdcTokenDenominator, uint256 a3CrvTokenDenominator,
-        uint256 crvTokenDenominator, uint256 wmaticTokenDenominator);
+    event StrategyCurveUpdatedTokens(
+        address usdcToken,
+        address a3CrvToken,
+        address a3CrvGaugeToken,
+        address crvToken,
+        address wmaticToken,
+        uint256 usdcTokenDenominator,
+        uint256 a3CrvTokenDenominator,
+        uint256 crvTokenDenominator,
+        uint256 wmaticTokenDenominator
+    );
 
     event StrategyCurveUpdatedParams(address curvePool, address rewardGauge, address uniswapRouter);
 
@@ -53,7 +60,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
     function setTokens(
         address _usdcToken,
-        address _aUsdcToken,
         address _a3CrvToken,
         address _a3CrvGaugeToken,
         address _crvToken,
@@ -61,14 +67,12 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_aUsdcToken != address(0), "Zero address not allowed");
         require(_a3CrvToken != address(0), "Zero address not allowed");
         require(_a3CrvGaugeToken != address(0), "Zero address not allowed");
         require(_crvToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
-        aUsdcToken = IERC20(_aUsdcToken);
         a3CrvToken = IERC20(_a3CrvToken);
         a3CrvGaugeToken = IERC20(_a3CrvGaugeToken);
         crvToken = IERC20(_crvToken);
@@ -79,8 +83,17 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         crvTokenDenominator = 10 ** IERC20Metadata(_crvToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
-        emit StrategyCurveUpdatedTokens(_usdcToken, _aUsdcToken, _a3CrvToken, _a3CrvGaugeToken, _crvToken, _wmaticToken,
-            usdcTokenDenominator, a3CrvTokenDenominator, crvTokenDenominator, wmaticTokenDenominator);
+        emit StrategyCurveUpdatedTokens(
+            _usdcToken,
+            _a3CrvToken,
+            _a3CrvGaugeToken,
+            _crvToken,
+            _wmaticToken,
+            usdcTokenDenominator,
+            a3CrvTokenDenominator,
+            crvTokenDenominator,
+            wmaticTokenDenominator
+        );
     }
 
     function setParams(
@@ -225,7 +238,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
         // _one_coin для возврата конкретной монеты (_assest)
         uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokenAmount, int128(uint128(index)));
-        console.log('us 3: withdrawAmount: %s', withdrawAmount);
         if (withdrawAmount > lpTokenAmount) {
             revert(string(
                 abi.encodePacked(
