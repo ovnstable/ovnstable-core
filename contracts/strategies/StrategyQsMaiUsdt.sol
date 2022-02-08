@@ -32,7 +32,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
 
     // --- events
 
-    event ConnectorQuickswapUsdtMai(address router, address pair, address mai, address usdt, address usdc);
+    event ConnectorQuickswapUsdtMaiUpdated(address router, address pair, address mai, address usdt, address usdc);
 
 
 
@@ -91,7 +91,7 @@ contract StrategyQsMaiUsdt is IStrategy, AccessControlUpgradeable, UUPSUpgradeab
         mai = IERC20(_mai);
         usdt = IERC20(_usdt);
         usdc = IERC20(_usdc);
-        emit ConnectorQuickswapUsdtMai(_router, _pair, _mai, _usdt, _usdc);
+        emit ConnectorQuickswapUsdtMaiUpdated(_router, _pair, _mai, _usdt, _usdc);
     }
 
 

@@ -36,7 +36,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 
     // --- events
 
-    event StrategyBalancerUpdate(address balancerVault, address usdcToken, address bpspTUsdToken, address balToken,
+    event StrategyBalancerUpdated(address balancerVault, address usdcToken, address bpspTUsdToken, address balToken,
         address wmaticToken, address tusdToken, address balancerExchange, address quickswapExchange,
         bytes32 balancerPoolId1, bytes32 balancerPoolId2, uint256 usdcTokenDenominator, uint256 bpspTUsdTokenDenominator,
         uint256 balTokenDenominator, uint256 wmaticTokenDenominator, uint256 tusdTokenDenominator);
@@ -101,7 +101,7 @@ contract StrategyBalancer is IStrategy, AccessControlUpgradeable, UUPSUpgradeabl
 //        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 //        tusdTokenDenominator = 10 ** IERC20Metadata(_tusdToken).decimals();
 
-//        emit StrategyBalancerUpdate(_balancerVault, _usdcToken, _bpspTUsdToken, _balToken, _wmaticToken, _tusdToken,
+//        emit StrategyBalancerUpdated(_balancerVault, _usdcToken, _bpspTUsdToken, _balToken, _wmaticToken, _tusdToken,
 //            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
 //            bpspTUsdTokenDenominator, balTokenDenominator, wmaticTokenDenominator, tusdTokenDenominator);
     }

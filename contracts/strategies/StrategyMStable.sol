@@ -37,7 +37,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 
     // --- events
 
-    event StrategyMStableUpdate(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken,
+    event StrategyMStableUpdated(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken,
         address wmaticToken, address balancerExchange, address quickswapExchange, bytes32 balancerPoolId1, bytes32 balancerPoolId2,
         uint256 usdcTokenDenominator, uint256 vimUsdTokenDenominator, uint256 mtaTokenDenominator, uint256 wmaticTokenDenominator);
 
@@ -99,7 +99,7 @@ contract StrategyMStable is IStrategy, AccessControlUpgradeable, UUPSUpgradeable
 //        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
 //        wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 //
-//        emit StrategyMStableUpdate(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
+//        emit StrategyMStableUpdated(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
 //            _balancerExchange, _quickswapExchange, _balancerPoolId1, _balancerPoolId2, usdcTokenDenominator,
 //            vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
     }
