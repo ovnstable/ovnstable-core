@@ -79,8 +79,8 @@ describe("StrategyMStable", function () {
                 balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
             });
 
-            it("Balance USDC should be eq 50 USDC", async function () {
-                greatLess(balanceUSDC, 50, 1);
+            it("Balance USDC should be gte 50 USDC", async function () {
+                expect(balanceUSDC).to.greaterThanOrEqual(50);
             });
 
             it("Balance vimUsd should be eq 450", async function () {
