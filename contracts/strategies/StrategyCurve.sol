@@ -169,7 +169,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
         console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
-        usdcToken.transfer(_beneficiary, withdrewAmount);
         return withdrewAmount;
     }
 

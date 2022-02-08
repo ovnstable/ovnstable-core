@@ -124,6 +124,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
         console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
         console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
+
+        return _amount;
     }
 
     function _addLiquidity() private {

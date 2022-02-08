@@ -134,7 +134,6 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         mUsdToken.redeem(address(usdcToken), mUsdToken.balanceOf(address(this)), 0, address(this));
 
         uint256 redeemedTokens = usdcToken.balanceOf(address(this));
-        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         return redeemedTokens;
     }

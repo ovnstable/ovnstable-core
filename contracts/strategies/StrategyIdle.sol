@@ -101,7 +101,6 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
         console.log('Amount %s', _amount / usdcTokenDenominator);
 
-        usdcToken.transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;
     }
 

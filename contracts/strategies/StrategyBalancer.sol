@@ -168,8 +168,8 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
 
-        balancerVault.exitPool(balancerPoolId1, address(this), payable(_beneficiary), request);
-        return usdcToken.balanceOf(_beneficiary);
+        balancerVault.exitPool(balancerPoolId1, address(this), payable(address(this)), request);
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external override view returns (uint256) {

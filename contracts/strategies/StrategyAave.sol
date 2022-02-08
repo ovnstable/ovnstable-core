@@ -66,7 +66,7 @@ contract StrategyAave is Strategy {
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         aUsdc.approve(address(pool), _amount);
 
-        uint256 withdrawAmount = pool.withdraw(_asset, _amount, _beneficiary);
+        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
         return withdrawAmount;
     }
 

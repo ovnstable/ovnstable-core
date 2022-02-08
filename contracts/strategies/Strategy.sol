@@ -68,8 +68,26 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) external override returns (uint256) {
-        return unstake(_asset, _amount, _beneficiary, false);
+    ) public override onlyPortfolioManager returns (uint256) {
+        return _unstakeProcess(_asset, _amount, _beneficiary, false);
+    }
+
+    function _unstakeProcess(
+        address _asset,
+        uint256 _amount,
+        address _beneficiary,
+        bool targetIsZero) internal returns (uint256) {
+
+        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+
+        if(targetIsZero){
+            require(withdrawAmount >= _amount, 'Returned value less than requested amount');
+            require((IERC20(_asset).balanceOf(address(this)) / 10 ** 6) >= _amount, 'BalanceOf(_asset) less than requested amount');
+        }
+
+        IERC20(_asset).transfer(_beneficiary, withdrawAmount);
+
+        return withdrawAmount;
     }
 
 
@@ -78,14 +96,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 _amount,
         address _beneficiary,
         bool targetIsZero
-    ) external override returns (uint256) {
-
-        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
-
-        if(!targetIsZero)
-            require(withdrawAmount >= _amount, 'Returned value less than requested amount');
-
-        return withdrawAmount;
+    ) public override onlyPortfolioManager returns (uint256) {
+        return _unstakeProcess(_asset, _amount, _beneficiary, targetIsZero);
     }
 
 
