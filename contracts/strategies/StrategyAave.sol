@@ -4,9 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../interfaces/IStrategy.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
-import "../connectors/curve/interfaces/iCurvePool.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
@@ -94,11 +91,9 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
     ) override external onlyPortfolioManager {
         require(_asset == address(usdc), "Some token not compatible");
 
-        address current = address(this);
-
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         IERC20(usdc).approve(address(pool), _amount);
-        pool.deposit(address(usdc), _amount, current, 0);
+        pool.deposit(address(usdc), _amount, address(this), 0);
     }
 
     function unstake(
@@ -111,8 +106,7 @@ contract StrategyAave is IStrategy, AccessControlUpgradeable, UUPSUpgradeable {
         ILendingPool pool = ILendingPool(aave.getLendingPool());
         aUsdc.approve(address(pool), _amount);
 
-        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
-        usdc.transfer(_beneficiary, withdrawAmount);
+        uint256 withdrawAmount = pool.withdraw(_asset, _amount, _beneficiary);
 
         require(withdrawAmount >= _amount, 'Returned value less than _amount');
         return withdrawAmount;

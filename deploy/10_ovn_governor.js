@@ -32,4 +32,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('Grant executor role to governor - done');
 };
 
-module.exports.tags = ['base','OvnGovernor'];
+module.exports.tags = ['governance','OvnGovernor'];

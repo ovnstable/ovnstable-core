@@ -9,7 +9,6 @@ import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/QuickswapExchange.sol";
 
@@ -31,10 +30,10 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
     uint256 public crvTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
-    ILendingPoolAddressesProvider public aavePool;
     iCurvePool public curvePool;
     IRewardOnlyGauge public rewardGauge;
 
+    address public portfolioManager;
 
     // --- events
 
@@ -42,7 +41,7 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
         address crvToken, address wmaticToken,uint256 usdcTokenDenominator, uint256 a3CrvTokenDenominator,
         uint256 crvTokenDenominator, uint256 wmaticTokenDenominator);
 
-    event StrategyCurveUpdatedParams(address aavePool, address curvePool, address rewardGauge, address uniswapRouter);
+    event StrategyCurveUpdatedParams(address curvePool, address rewardGauge, address uniswapRouter);
 
 
     // ---  constructor
@@ -112,23 +111,30 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
     }
 
     function setParams(
-        address _aavePool,
         address _curvePool,
         address _rewardGauge,
         address _uniswapRouter
     ) external onlyAdmin {
 
-        require(_aavePool != address(0), "Zero address not allowed");
         require(_curvePool != address(0), "Zero address not allowed");
         require(_rewardGauge != address(0), "Zero address not allowed");
         require(_uniswapRouter != address(0), "Zero address not allowed");
 
-        aavePool = ILendingPoolAddressesProvider(_aavePool);
         curvePool = iCurvePool(_curvePool);
         rewardGauge = IRewardOnlyGauge(_rewardGauge);
         setUniswapRouter(_uniswapRouter);
 
-        emit StrategyCurveUpdatedParams(_aavePool, _curvePool, _rewardGauge, _uniswapRouter);
+        emit StrategyCurveUpdatedParams(_curvePool, _rewardGauge, _uniswapRouter);
+    }
+
+    function setPortfolioManager(address _value) public onlyAdmin {
+        require(_value != address(0), "Zero address not allowed");
+
+        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
+        grantRole(PORTFOLIO_MANAGER, _value);
+
+        portfolioManager = _value;
+        emit PortfolioManagerUpdated(_value);
     }
 
     // --- logic
@@ -141,8 +147,7 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
 
         address current = address(this);
 
-        _stakeAave(address(usdcToken), _amount, current);
-        _stakeCurve(address(aUsdcToken), _amount, current);
+        _stakeCurve(address(usdcToken), _amount, current);
 
         uint256 a3CrvBalance = a3CrvToken.balanceOf(current);
         a3CrvToken.approve(address(rewardGauge), a3CrvBalance);
@@ -159,37 +164,37 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
-        // on tokenExchange
-        uint256 tokenAmount = (curvePool.get_virtual_price() / 10 ** 12) * _amount;
+        // on Strategy
 
-        console.log('usdc %s', usdcToken.balanceOf(current));
-        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+        // Am3CrvGauge = 6 + 12 + 18 - 18 = 18
+        uint256 tokenAmountToWithdrawFromGauge = _amount * 10**30 / curvePool.get_virtual_price();
+        // inc to get extra
+        tokenAmountToWithdrawFromGauge += 1;
 
-        rewardGauge.withdraw(tokenAmount, false);
-        console.log('usdc %s', usdcToken.balanceOf(current));
-        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+        console.log('Unstake gauge before');
+        console.log('1: _amount %s', _amount);
+        console.log('1: get_virtual_price %s', curvePool.get_virtual_price());
+        console.log('1: tokenAmountToWithdrawFromGauge %s', tokenAmountToWithdrawFromGauge );
+        console.log('1: usdc %s', usdcToken.balanceOf(current));
+        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current) );
+        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
+
+        rewardGauge.withdraw(tokenAmountToWithdrawFromGauge, false);
+
+        console.log('Unstake curve before');
+        console.log('2: usdc %s', usdcToken.balanceOf(current) );
+        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current) );
+        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
 
         uint256 withdrewAmount = _unstakeCurve();
 
-        console.log('usdc %s', usdcToken.balanceOf(current));
-        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
-
-        withdrewAmount = _unstakeAave();
-
-        console.log('usdc %s', usdcToken.balanceOf(current));
-        console.log('aUsdc %s', aUsdcToken.balanceOf(current));
-        console.log('a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
+        console.log('Unstake curve after: withdrewAmount: %s', withdrewAmount);
+        console.log('3: usdc %s', usdcToken.balanceOf(current) );
+        console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current) );
 
         require(withdrewAmount >= _amount, 'Returned value less than requested amount');
+        usdcToken.transfer(_beneficiary, withdrewAmount);
         return withdrewAmount;
     }
 
@@ -221,52 +226,27 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
     }
 
 
-    function _stakeAave(
+    function _stakeCurve(
         address _asset,
         uint256 _amount,
         address _beneficiary
     ) internal {
-        ILendingPool pool = ILendingPool(aavePool.getLendingPool());
-        IERC20(_asset).approve(address(pool), _amount);
-        pool.deposit(_asset, _amount, _beneficiary, 0);
-    }
-
-    function _unstakeAave(
-    ) internal returns (uint256) {
-        ILendingPool pool = ILendingPool(aavePool.getLendingPool());
-
-        uint256 w = pool.withdraw(address(usdcToken), aUsdcToken.balanceOf(address(this)), address(this));
-        DataTypes.ReserveData memory res = pool.getReserveData(address(usdcToken));
-
-        //TODO: use _to to for returning tokens
-        IERC20(res.aTokenAddress).transfer(
-            msg.sender,
-            IERC20(res.aTokenAddress).balanceOf(address(this))
-        );
-        return w;
-    }
-
-    function _stakeCurve(
-        address _asset,
-        uint256 _amount,
-        address _beneficiar
-    ) internal {
         uint256[3] memory amounts;
         for (uint256 i = 0; i < 3; i++) {
-            address coin = curvePool.coins(i);
+            address coin = curvePool.underlying_coins(i);
             if (coin == _asset) {
                 IERC20(_asset).approve(address(curvePool), _amount);
                 // номер позиции в массиве (amounts) определяет какой актив (_asset) и в каком количестве (_amount)
                 // на стороне керва будет застейкано
-                amounts[uint256(i)] = _amount;
+                amounts[i] = _amount;
                 uint256 lpTokAmount = curvePool.calc_token_amount(amounts, true);
                 //TODO: процентажи кудато вынести, slippage
-                uint256 retAmount = curvePool.add_liquidity(amounts, (lpTokAmount * 99) / 100, false);
-                IERC20(curvePool.lp_token()).transfer(_beneficiar, retAmount);
+                uint256 retAmount = curvePool.add_liquidity(amounts, (lpTokAmount * 99) / 100, true);
+                if (_beneficiary != address(this)) {
+                    IERC20(curvePool.lp_token()).transfer(_beneficiary, retAmount);
+                }
 
                 return;
-            } else {
-                amounts[i] = 0;
             }
         }
         revert("can't find active for staking in curve");
@@ -274,38 +254,32 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
 
 
     function _unstakeCurve() internal returns (uint256) {
-        uint256[3] memory amounts;
 
-        uint256 _amount = a3CrvToken.balanceOf(address(this));
-        a3CrvToken.approve(address(curvePool), _amount);
-
+        // index got from curve.coins(i) for USDC
         uint256 index = 1;
-        // index got from curve.coins(i);
-        amounts[index] = _amount;
+        require(curvePool.underlying_coins(index) == address(usdc), "Invalid index for unstaking curve");
 
-        uint256 onConnectorLpTokenAmount = a3CrvToken.balanceOf(address(this));
+        uint256 lpTokenAmount = a3CrvToken.balanceOf(address(this));
 
-        uint256 lpTokAmount = curvePool.calc_token_amount(amounts, false);
         // _one_coin для возврата конкретной монеты (_assest)
-        uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokAmount, int128(uint128(index)));
-        if (withdrawAmount > onConnectorLpTokenAmount) {
+        uint256 withdrawAmount = curvePool.calc_withdraw_one_coin(lpTokenAmount, int128(uint128(index)));
+        console.log('us 3: withdrawAmount: %s', withdrawAmount);
+        if (withdrawAmount > lpTokenAmount) {
             revert(string(
                 abi.encodePacked(
                     "Not enough lpToken own ",
-                    " _amount: ",
-                    Strings.toString(_amount),
-                    " lpTok: ",
-                    Strings.toString(lpTokAmount),
-                    " onConnectorLpTokenAmount: ",
-                    Strings.toString(onConnectorLpTokenAmount),
+                    " lpTokenAmount: ",
+                    Strings.toString(lpTokenAmount),
                     " withdrawAmount: ",
                     Strings.toString(withdrawAmount)
                 )
             ));
         }
 
+        a3CrvToken.approve(address(curve), lpTokenAmount);
+
         //TODO: use withdrawAmount?
-        uint256 retAmount = curvePool.remove_liquidity_one_coin(lpTokAmount, int128(uint128(index)), 0);
+        uint256 retAmount = curvePool.remove_liquidity_one_coin(lpTokenAmount, int128(uint128(index)), 0, true);
         return retAmount;
     }
 
@@ -316,18 +290,31 @@ contract StrategyCurve is IStrategy, QuickswapExchange, AccessControlUpgradeable
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = swapTokenToUsdc(address(crvToken), address(usdcToken), crvTokenDenominator,
-                address(this), address(_to), crvBalance);
+            uint256 crvUsdc = swapTokenToUsdc(
+                address(crvToken),
+                address(usdcToken),
+                crvTokenDenominator,
+                address(this),
+                address(_to),
+                crvBalance
+            );
             totalUsdc += crvUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(
+                address(wmaticToken),
+                address(usdcToken),
+                wmaticTokenDenominator,
+                address(this),
+                address(_to),
+                wmaticBalance
+            );
             totalUsdc += wmaticUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 

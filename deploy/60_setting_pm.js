@@ -13,7 +13,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let aave = {
         strategy: (await ethers.getContract("StrategyAave")).address,
         minWeight: 0,
-        targetWeight: 50000,
+        targetWeight: 100000,
         maxWeight: 100000,
     }
     // let curve = {
@@ -32,7 +32,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let weights = [
         aave,
-        idle
+        // idle
     ]
 
     await (await pm.setStrategyWeights(weights)).wait();
@@ -42,5 +42,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await pm.setUsdc(assets.usdc)).wait();
 };
 
-module.exports.tags = ['setting', 'setting-weights'];
+module.exports.tags = ['setting', 'SettingPM'];
 

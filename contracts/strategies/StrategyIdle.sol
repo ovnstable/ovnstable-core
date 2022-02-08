@@ -138,12 +138,13 @@ contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable,
         uint256 tokenAmount = idleTokenDenominator * fixedAmount / idleToken.tokenPrice();
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
-        usdcToken.transfer(_beneficiary, redeemedTokens);
 
         console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
         console.log('Amount %s', _amount / usdcTokenDenominator);
 
         require(redeemedTokens >= _amount, 'Returned value less than requested amount');
+
+        usdcToken.transfer(_beneficiary, redeemedTokens);
         return redeemedTokens;
     }
 
@@ -166,11 +167,18 @@ contract StrategyIdle is IStrategy, QuickswapExchange, AccessControlUpgradeable,
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(_to), wmaticBalance);
+            uint256 wmaticUsdc = swapTokenToUsdc(
+                address(wmaticToken),
+                address(usdcToken),
+                wmaticTokenDenominator,
+                address(this),
+                address(_to),
+                wmaticBalance
+            );
             totalUsdc += wmaticUsdc;
         }
 
+        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }
