@@ -119,7 +119,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) override external onlyPortfolioManager {
+    ) external override onlyPortfolioManager {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
@@ -134,7 +134,8 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
+        address _beneficiary,
+        bool _targetIsZero
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 

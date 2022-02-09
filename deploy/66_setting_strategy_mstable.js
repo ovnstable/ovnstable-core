@@ -18,6 +18,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await strategy.setTokens(assets.usdc, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic)).wait();
     await (await strategy.setParams(balancerVault, uniswapRouter, balancerPoolId1, balancerPoolId2)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
+
     console.log('StrategyMStable setting done');
 };
 

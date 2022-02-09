@@ -16,13 +16,6 @@ interface IStrategy {
     function unstake(
         address _asset, // USDC
         uint256 _amount, // minimum expected value for unstaking in USDC
-        address _beneficiary // PortfolioManager
-    ) external returns (uint256); // Real unstake value
-
-
-    function unstake2(
-        address _asset, // USDC
-        uint256 _amount, // minimum expected value for unstaking in USDC
         address _beneficiary, // PortfolioManager
         bool targetIsZero // allow unstake full value
     ) external returns (uint256); // Real unstake value

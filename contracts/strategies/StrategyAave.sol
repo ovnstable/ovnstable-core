@@ -9,9 +9,9 @@ import "hardhat/console.sol";
 
 contract StrategyAave is Strategy {
 
-    ILendingPoolAddressesProvider public aave;
-    IERC20 public usdc;
-    IERC20 public aUsdc;
+    ILendingPoolAddressesProvider public aaveProvider;
+    IERC20 public usdcToken;
+    IERC20 public aUsdcToken;
 
 
     // ---  constructor
@@ -26,21 +26,21 @@ contract StrategyAave is Strategy {
 
     // --- Setters
 
-    function setParams(address _aave,
-        address _usdc,
-        address _aUsdc
+    function setParams(
+        address _aaveProvider,
+        address _usdcToken,
+        address _aUsdcToken
     ) external onlyAdmin {
 
-        require(_aave != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
-        require(_aUsdc != address(0), "Zero address not allowed");
+        require(_aaveProvider != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_aUsdcToken != address(0), "Zero address not allowed");
 
-        aave = ILendingPoolAddressesProvider(_aave);
+        aaveProvider = ILendingPoolAddressesProvider(_aaveProvider);
 
-        usdc = IERC20(_usdc);
-        aUsdc = IERC20(_aUsdc);
+        usdcToken = IERC20(_usdcToken);
+        aUsdcToken = IERC20(_aUsdcToken);
     }
-
 
 
     // --- logic
@@ -48,39 +48,40 @@ contract StrategyAave is Strategy {
     function stake(
         address _asset,
         uint256 _amount
-    ) override external onlyPortfolioManager {
-        require(_asset == address(usdc), "Some token not compatible");
+    ) external override onlyPortfolioManager {
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        ILendingPool pool = ILendingPool(aave.getLendingPool());
-        IERC20(usdc).approve(address(pool), _amount);
-        pool.deposit(address(usdc), _amount, address(this), 0);
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
+        usdcToken.approve(address(pool), _amount);
+
+        pool.deposit(address(usdcToken), _amount, address(this), 0);
     }
 
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
-    ) override internal returns (uint256) {
-        require(_asset == address(usdc), "Some token not compatible");
+        address _beneficiary,
+        bool _targetIsZero
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        ILendingPool pool = ILendingPool(aave.getLendingPool());
-        aUsdc.approve(address(pool), _amount);
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
+        aUsdcToken.approve(address(pool), _amount);
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
         return withdrawAmount;
     }
 
-
-    function netAssetValue() external view override returns (uint256){
-        return aUsdc.balanceOf(address(this));
+    function netAssetValue() external view override returns (uint256) {
+        return aUsdcToken.balanceOf(address(this));
 
     }
 
-    function liquidationValue() external view override returns (uint256){
-        return aUsdc.balanceOf(address(this));
+    function liquidationValue() external view override returns (uint256) {
+        return aUsdcToken.balanceOf(address(this));
     }
 
-    function claimRewards(address _beneficiary) external override onlyPortfolioManager returns (uint256){
+    function claimRewards(address _beneficiary) external override onlyPortfolioManager returns (uint256) {
         emit Reward(0);
         return 0;
     }

@@ -57,34 +57,25 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     // --- logic
 
-
     function unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
-    ) public override onlyPortfolioManager returns (uint256) {
-        return _unstakeProcess(_asset, _amount, _beneficiary, false);
-    }
-
-    function unstake2(
-        address _asset,
-        uint256 _amount,
         address _beneficiary,
-        bool targetIsZero
-    ) public override onlyPortfolioManager returns (uint256) {
-        return _unstakeProcess(_asset, _amount, _beneficiary, targetIsZero);
+        bool _targetIsZero
+    ) external override onlyPortfolioManager returns (uint256) {
+        return _unstakeProcess(_asset, _amount, _beneficiary, _targetIsZero);
     }
 
     function _unstakeProcess(
         address _asset,
         uint256 _amount,
         address _beneficiary,
-        bool targetIsZero
+        bool _targetIsZero
     ) internal returns (uint256) {
 
-        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary, _targetIsZero);
 
-        if(targetIsZero){
+        if (_targetIsZero) {
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
             require((IERC20(_asset).balanceOf(address(this)) / 10 ** 6) >= _amount, 'BalanceOf(_asset) less than requested amount');
         }
@@ -97,9 +88,9 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
+        address _beneficiary,
+        bool _targetIsZero
     ) internal virtual returns (uint256);
-
 
 
     uint256[49] private __gap;

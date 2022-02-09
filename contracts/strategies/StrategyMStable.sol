@@ -103,7 +103,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) public override {
+    ) external override onlyPortfolioManager {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
         usdcToken.approve(address(mUsdToken), _amount);
@@ -120,7 +120,8 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
+        address _beneficiary,
+        bool _targetIsZero
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
@@ -164,7 +165,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         return mUsdToken.getRedeemOutput(address(usdcToken), underlying);
     }
 
-    function claimRewards(address _to) external override returns (uint256) {
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
         vimUsdToken.claimReward();
 
         uint256 totalUsdc;

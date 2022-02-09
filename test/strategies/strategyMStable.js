@@ -23,12 +23,13 @@ describe("StrategyMStable", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyMStable', 'StrategyMStableSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyMStable', 'StrategyMStableSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
         strategy = await ethers.getContract('StrategyMStable');
+        await strategy.setPortfolioManager(account);
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         vimUsd = await ethers.getContractAt("ERC20", assets.vimUsd);
         mta = await ethers.getContractAt("ERC20", assets.mta);
@@ -74,7 +75,7 @@ describe("StrategyMStable", function () {
             before(async () => {
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
-                await strategy.unstake(usdc.address, toUSDC(50), account);
+                await strategy.unstake(usdc.address, toUSDC(50), account, false);
                 let balanceUsdcAfter = await usdc.balanceOf(account);
                 balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
             });

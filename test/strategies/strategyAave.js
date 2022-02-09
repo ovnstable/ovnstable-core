@@ -21,7 +21,7 @@ describe("StrategyAave", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyAave', , 'StrategyAaveSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyAave', , 'StrategyAaveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -71,7 +71,7 @@ describe("StrategyAave", function () {
 
             before(async () => {
                 let balanceUsdcBefore = await usdc.balanceOf(account);
-                await strategy.unstake(usdc.address, toUSDC(50), account);
+                await strategy.unstake(usdc.address, toUSDC(50), account, false);
                 let balanceUsdcAfter = await usdc.balanceOf(account);
                 balanceUSDC = fromUSDC(balanceUsdcAfter-balanceUsdcBefore);
             });

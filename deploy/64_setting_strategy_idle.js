@@ -14,8 +14,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await strategy.setTokens(assets.usdc, assets.idleUsdc, assets.wMatic)).wait();
     await (await strategy.setParams(uniswapRouter)).wait();
-
     await (await strategy.setPortfolioManager(pm.address)).wait();
+
     console.log('StrategyIdle setting done');
 };
 

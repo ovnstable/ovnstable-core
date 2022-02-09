@@ -76,7 +76,7 @@ contract StrategyIdle is Strategy, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) public override onlyPortfolioManager {
+    ) external override onlyPortfolioManager {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
         usdcToken.approve(address(idleToken), _amount);
@@ -86,7 +86,8 @@ contract StrategyIdle is Strategy, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary
+        address _beneficiary,
+        bool _targetIsZero
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
