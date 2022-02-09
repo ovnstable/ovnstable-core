@@ -100,10 +100,10 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     // --- logic
 
-    function stake(
+    function _stake(
         address _asset,
         uint256 _amount
-    ) external override onlyPortfolioManager {
+    ) internal override {
         require(_asset == address(usdcToken), "Unstake only in usdc");
 
         usdcToken.approve(address(mUsdToken), _amount);

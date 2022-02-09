@@ -62,10 +62,10 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     // --- logic
 
-    function stake(
+    function _stake(
         address _asset,
         uint256 _amount
-    ) external override onlyPortfolioManager {
+    ) internal override {
         require(address(usdc) == _asset, 'ConnectorQuickswapUsdtMai: can work only with USDC');
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();

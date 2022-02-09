@@ -45,10 +45,10 @@ contract StrategyAave is Strategy {
 
     // --- logic
 
-    function stake(
+    function _stake(
         address _asset,
         uint256 _amount
-    ) external override onlyPortfolioManager {
+    ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());

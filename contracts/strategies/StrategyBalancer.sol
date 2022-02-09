@@ -104,10 +104,10 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
     // --- logic
 
-    function stake(
+    function _stake(
         address _asset,
         uint256 _amount
-    ) external override onlyPortfolioManager {
+    ) internal override {
 
         require(_asset == address(usdcToken), "Stake only in usdc");
 

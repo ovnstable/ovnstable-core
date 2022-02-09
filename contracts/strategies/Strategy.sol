@@ -57,6 +57,14 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     // --- logic
 
+
+    function stake(
+        address _asset, // USDC
+        uint256 _amount // value for staking in USDC
+    ) external override onlyPortfolioManager {
+        _stake(_asset, _amount);
+    }
+
     function unstake(
         address _asset,
         uint256 _amount,
@@ -90,6 +98,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         emit Reward(totalUsdc);
         return totalUsdc;
     }
+
+    function _stake(
+        address _asset,
+        uint256 _amount
+    ) internal virtual;
 
     function _claimRewards(address _to) internal virtual returns (uint256);
 
