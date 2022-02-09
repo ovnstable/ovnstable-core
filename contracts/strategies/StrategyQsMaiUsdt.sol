@@ -66,7 +66,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
-        require(address(usdc) == _asset, 'ConnectorQuickswapUsdtMai: can work only with USDC');
+
+        require(_asset == address(usdc), "Some token not compatible");
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();
         console.log('Reserve A: %s, %s', pair.token0(), reserveA / 10 ** 18);
@@ -102,6 +103,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _beneficiary
     ) internal override returns (uint256) {
 
+        require(_asset == address(usdc), "Some token not compatible");
+
         console.log('Unstake amount before');
         console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
         console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
@@ -132,9 +135,12 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdc), "Some token not compatible");
+
         uint256 _amount = mai.balanceOf(address(this));
 
+        //TODO
         return 0;
     }
 

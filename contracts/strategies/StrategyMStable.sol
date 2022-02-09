@@ -21,7 +21,6 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     uint256 public usdcTokenDenominator;
     uint256 public vimUsdTokenDenominator;
-    uint256 public mtaTokenDenominator;
     uint256 public wmaticTokenDenominator;
 
     bytes32 public balancerPoolId1;
@@ -31,7 +30,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
     // --- events
 
     event StrategyMStableUpdatedTokens(address usdcToken, address mUsdToken, address imUsdToken, address vimUsdToken, address mtaToken, address wmaticToken,
-        uint256 usdcTokenDenominator, uint256 vimUsdTokenDenominator, uint256 mtaTokenDenominator, uint256 wmaticTokenDenominator);
+        uint256 usdcTokenDenominator, uint256 vimUsdTokenDenominator, uint256 wmaticTokenDenominator);
 
     event StrategyMStableUpdatedParams(address balancerVault, address uniswapRouter, bytes32 balancerPoolId1, bytes32 balancerPoolId2);
 
@@ -69,11 +68,10 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         vimUsdTokenDenominator = 10 ** IERC20Metadata(_vimUsdToken).decimals();
-        mtaTokenDenominator = 10 ** IERC20Metadata(_mtaToken).decimals();
         wmaticTokenDenominator = 10 ** IERC20Metadata(_wmaticToken).decimals();
 
         emit StrategyMStableUpdatedTokens(_usdcToken, _mUsdToken, _imUsdToken, _vimUsdToken, _mtaToken, _wmaticToken,
-            usdcTokenDenominator, vimUsdTokenDenominator, mtaTokenDenominator, wmaticTokenDenominator);
+            usdcTokenDenominator, vimUsdTokenDenominator, wmaticTokenDenominator);
     }
 
     function setParams(
@@ -104,7 +102,8 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
-        require(_asset == address(usdcToken), "Unstake only in usdc");
+
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         usdcToken.approve(address(mUsdToken), _amount);
 
@@ -122,10 +121,11 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdcToken), "Unstake only in usdc");
+
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         // 18 = 18 + 6 - 6
-        uint256 tokenAmount = vimUsdTokenDenominator * _amount / _getVimUsdBuyPrice();
+        uint256 tokenAmount = vimUsdTokenDenominator * _amount / _getVimUsdSellPrice();
 
         vimUsdToken.withdraw(tokenAmount);
 
@@ -142,10 +142,20 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
+
         uint256 _amount = vimUsdToken.balanceOf(address(this));
 
-        return 0;
+        vimUsdToken.withdraw(_amount);
+
+        imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
+
+        mUsdToken.redeem(address(usdcToken), mUsdToken.balanceOf(address(this)), 0, address(this));
+
+        uint256 redeemedTokens = usdcToken.balanceOf(address(this));
+
+        return redeemedTokens;
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -193,7 +203,6 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
-        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }

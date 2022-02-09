@@ -109,7 +109,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(usdcToken), "Stake only in usdc");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         usdcToken.approve(address(balancerVault), _amount);
 
@@ -144,7 +144,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Unstake only in usdc");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
 
@@ -163,7 +163,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         uint256 exitKind = 0;
         uint256 exitTokenIndex = 0;
         // 18 = 18 + 6 - 6
-        uint256 amountBpspTUsd = bpspTUsdTokenDenominator * _amount / _getBpspTUsdBuyPrice(bpspTUsdTokenDenominator);
+        uint256 amountBpspTUsd = bpspTUsdTokenDenominator * _amount / _getBpspTUsdSellPrice(bpspTUsdTokenDenominator);
         bytes memory userData = abi.encode(exitKind, amountBpspTUsd, exitTokenIndex);
 
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
@@ -176,10 +176,35 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdcToken), "Some token not compatible");
-        uint256 _amount = bpspTUsdToken.balanceOf(address(this));
 
-        return 0;
+        require(_asset == address(usdcToken), "Some token not compatible");
+
+        uint256 _amount = bpspTUsdToken.balanceOf(address(this));
+        // 18 = 18
+        uint256 amountBpspTUsd = _getBpspTUsdSellPrice(_amount);
+
+        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
+
+        IAsset[] memory assets = new IAsset[](4);
+        uint256[] memory minAmountsOut = new uint256[](4);
+        for (uint256 i; i < tokens.length; i++) {
+            assets[i] = IAsset(address(tokens[i]));
+            if (tokens[i] == usdcToken) {
+                //TODO: Balancer. FIX if big slippage
+                minAmountsOut[i] = amountBpspTUsd * 99 / 100;
+            } else {
+                minAmountsOut[i] = 0;
+            }
+        }
+
+        uint256 exitKind = 0;
+        uint256 exitTokenIndex = 0;
+        bytes memory userData = abi.encode(exitKind, _amount, exitTokenIndex);
+
+        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
+
+        balancerVault.exitPool(balancerPoolId1, address(this), payable(address(this)), request);
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -253,7 +278,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
             totalUsdc += tusdUsdc;
         }
 
-        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }

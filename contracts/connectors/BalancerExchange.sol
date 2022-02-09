@@ -28,6 +28,8 @@ abstract contract BalancerExchange {
         uint256 amount
     ) internal returns (uint256) {
 
+        IERC20(address(tokenIn)).approve(address(balancerVault), amount);
+
         IVault.SingleSwap memory singleSwap;
         singleSwap.poolId = poolId;
         singleSwap.kind = kind;
@@ -55,6 +57,8 @@ abstract contract BalancerExchange {
         address payable recipient,
         uint256 amount
     ) internal returns (uint256) {
+
+        IERC20(address(tokenIn)).approve(address(balancerVault), amount);
 
         IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
 

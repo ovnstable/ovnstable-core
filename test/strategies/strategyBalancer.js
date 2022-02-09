@@ -47,7 +47,7 @@ describe("StrategyBalancer", function () {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
             await usdc.transfer(strategy.address, toUSDC(100));
-            await strategy.stake(usdc.address, toUSDC(100) );
+            await strategy.stake(usdc.address, toUSDC(100));
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;

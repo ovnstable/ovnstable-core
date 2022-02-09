@@ -9,9 +9,17 @@ import "hardhat/console.sol";
 
 contract StrategyAave is Strategy {
 
-    ILendingPoolAddressesProvider public aaveProvider;
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
+
+    ILendingPoolAddressesProvider public aaveProvider;
+
+
+    // --- events
+
+    event StrategyAaveUpdatedTokens(address usdcToken, address aUsdcToken);
+
+    event StrategyAaveUpdatedParams(address aaveProvider);
 
 
     // ---  constructor
@@ -26,20 +34,29 @@ contract StrategyAave is Strategy {
 
     // --- Setters
 
-    function setParams(
-        address _aaveProvider,
+    function setTokens(
         address _usdcToken,
         address _aUsdcToken
     ) external onlyAdmin {
 
-        require(_aaveProvider != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_aUsdcToken != address(0), "Zero address not allowed");
 
-        aaveProvider = ILendingPoolAddressesProvider(_aaveProvider);
-
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
+
+        emit StrategyAaveUpdatedTokens(_usdcToken, _aUsdcToken);
+    }
+
+    function setParams(
+        address _aaveProvider
+    ) external onlyAdmin {
+
+        require(_aaveProvider != address(0), "Zero address not allowed");
+
+        aaveProvider = ILendingPoolAddressesProvider(_aaveProvider);
+
+        emit StrategyAaveUpdatedParams(_aaveProvider);
     }
 
 
@@ -62,6 +79,7 @@ contract StrategyAave is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
 
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
@@ -75,10 +93,16 @@ contract StrategyAave is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
+
         uint256 _amount = aUsdcToken.balanceOf(address(this));
 
-        return 0;
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
+        aUsdcToken.approve(address(pool), _amount);
+
+        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        return withdrawAmount;
     }
 
     function netAssetValue() external view override returns (uint256) {

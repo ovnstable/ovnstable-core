@@ -71,27 +71,18 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _beneficiary,
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
+        uint256 withdrawAmount;
         if (_targetIsZero) {
-            return _unstakeFull(_asset, _beneficiary);
+            withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
-            return _unstakeNotFull(_asset, _amount, _beneficiary);
+            withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+            require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
-    }
-
-    function _unstakeNotFull(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) internal returns (uint256) {
-
-        uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary);
-        require(withdrawAmount >= _amount, 'Returned value less than requested amount');
 
         IERC20(_asset).transfer(_beneficiary, withdrawAmount);
 
         return withdrawAmount;
     }
-
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
         uint256 totalUsdc = _claimRewards(_to);
@@ -103,10 +94,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset,
         uint256 _amount
     ) internal virtual {
-        revert("Not implemented");
-    }
-
-    function _claimRewards(address _to) internal virtual returns (uint256){
         revert("Not implemented");
     }
 
@@ -122,6 +109,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset,
         address _beneficiary
     ) internal virtual returns (uint256){
+        revert("Not implemented");
+    }
+
+    function _claimRewards(address _to) internal virtual returns (uint256){
         revert("Not implemented");
     }
 

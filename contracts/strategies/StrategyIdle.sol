@@ -77,7 +77,8 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
-        require(_asset == address(usdcToken), "Stake only in usdc");
+
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         usdcToken.approve(address(idleToken), _amount);
         uint256 mintedTokens = idleToken.mintIdleToken(_amount, true, address(this));
@@ -88,7 +89,8 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdcToken), "Unstake only in usdc");
+
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         // fee 1% - misinformation
         uint256 fixedAmount = _amount * 101 / 100;
@@ -108,10 +110,17 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
+
         uint256 _amount = idleToken.balanceOf(address(this));
 
-        return 0;
+        uint256 redeemedTokens = idleToken.redeemIdleToken(_amount);
+
+        console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
+        console.log('Amount %s', _amount / idleTokenDenominator);
+
+        return redeemedTokens;
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -144,7 +153,6 @@ contract StrategyIdle is Strategy, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
-        emit Reward(totalUsdc);
         return totalUsdc;
     }
 }

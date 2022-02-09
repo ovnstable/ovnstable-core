@@ -32,7 +32,7 @@ describe("StrategyIdle", function () {
     });
 
 
-    describe("Stack 100 USDC", function () {
+    describe("Stake 100 USDC", function () {
 
         let balanceUSDC;
 
@@ -40,7 +40,7 @@ describe("StrategyIdle", function () {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
             await usdc.transfer(strategy.address, toUSDC(100));
-            await strategy.stake(usdc.address, toUSDC(100) );
+            await strategy.stake(usdc.address, toUSDC(100));
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;
@@ -50,8 +50,8 @@ describe("StrategyIdle", function () {
             expect(balanceUSDC).to.eq(0);
         });
 
-        it("Balance idleUsdc should be greater than 99", async function () {
-            greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 99, 1);
+        it("Balance idleUsdc should be greater than 95", async function () {
+            greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 100, 5);
         });
 
         it("NetAssetValue should be greater than 99 less than 100", async function () {
@@ -79,8 +79,8 @@ describe("StrategyIdle", function () {
                 expect(balanceUSDC).to.greaterThanOrEqual(50);
             });
 
-            it("Balance idleUsdc should be eq 48", async function () {
-                greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 48, 1);
+            it("Balance idleUsdc should be greater 47", async function () {
+                greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 50, 3);
             });
 
             it("NetAssetValue should be eq 50", async function () {

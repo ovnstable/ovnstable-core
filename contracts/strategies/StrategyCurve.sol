@@ -120,6 +120,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
+
         require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
@@ -136,14 +137,17 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on Strategy
 
-        // Am3CrvGauge = 6 + 12 + 18 - 18 = 18
-        uint256 tokenAmountToWithdrawFromGauge = _amount * 10 ** 30 / curvePool.get_virtual_price();
+        // 6 = 18 + 6 - 18
+        uint256 price = curvePool.get_virtual_price() * usdcTokenDenominator / a3CrvTokenDenominator;
+        // 18 = 18 + 6 - 6
+        uint256 tokenAmountToWithdrawFromGauge = a3CrvTokenDenominator * _amount / price;
 
         console.log('Unstake gauge before');
         console.log('1: _amount %s', _amount);
@@ -174,24 +178,46 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         require(_asset == address(usdcToken), "Some token not compatible");
+
         uint256 _amount = a3CrvGaugeToken.balanceOf(address(this));
 
-        return 0;
+        address current = address(this);
+        // gauge doesn't need approve on withdraw, but we should have amount token
+        // on Strategy
+
+        console.log('Unstake gauge before');
+        console.log('1: _amount %s', _amount);
+        console.log('1: get_virtual_price %s', curvePool.get_virtual_price());
+        console.log('1: tokenAmountToWithdrawFromGauge %s', _amount);
+        console.log('1: usdc %s', usdcToken.balanceOf(current));
+        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+
+        rewardGauge.withdraw(_amount, false);
+
+        console.log('Unstake curve before');
+        console.log('2: usdc %s', usdcToken.balanceOf(current));
+        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+
+        uint256 withdrewAmount = _unstakeCurve();
+
+        console.log('Unstake curve after: withdrewAmount: %s', withdrewAmount);
+        console.log('3: usdc %s', usdcToken.balanceOf(current));
+        console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
+        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
+
+        return withdrewAmount;
     }
 
     function netAssetValue() external view override returns (uint256){
         uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
-        // 18
-        uint256 price = curvePool.get_virtual_price();
-        // 18
-
-        // 18 + 18 = 36
-        uint256 result = (balance * price);
-
-        // 36 - 18 - 12 = 6
-        return (result / (10 ** 18)) / 10 ** 12;
-
+        // 6 = 18 + 6 - 18
+        uint256 price = curvePool.get_virtual_price() * usdcTokenDenominator / a3CrvTokenDenominator;
+        // 18 + 6 - 18 = 6
+        return balance * price / a3CrvTokenDenominator;
     }
 
     function liquidationValue() external view override returns (uint256){
@@ -279,7 +305,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
-        emit Reward(totalUsdc);
         return totalUsdc;
     }
 
