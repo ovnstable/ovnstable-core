@@ -102,20 +102,28 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     function _stake(
         address _asset,
         uint256 _amount
-    ) internal virtual;
+    ) internal virtual {
+        revert("Not implemented");
+    }
 
-    function _claimRewards(address _to) internal virtual returns (uint256);
+    function _claimRewards(address _to) internal virtual returns (uint256){
+        revert("Not implemented");
+    }
 
     function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) internal virtual returns (uint256);
+    ) internal virtual returns (uint256){
+        revert("Not implemented");
+    }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
-    ) internal virtual returns (uint256);
+    ) internal virtual returns (uint256){
+        revert("Not implemented");
+    }
 
 
     uint256[49] private __gap;
