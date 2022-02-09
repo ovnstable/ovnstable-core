@@ -143,7 +143,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         for (uint8 i; i < strategies.length; i++) {
             StrategyWeight memory item = strategies[i];
 
-            if(item.enabledReward){
+            if (item.enabledReward) {
                 IStrategy(item.strategy).claimRewards(address(this));
             }
         }
@@ -160,8 +160,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         // 1. calc total USDC equivalent
         uint256 totalUsdc = usdc.balanceOf(address(this));
+        uint256 totalWeight = 0;
         for (uint8 i; i < strategies.length; i++) {
+            if (!strategies[i].enabled) {// Skip if strategy is not enabled
+                continue;
+            }
             totalUsdc += IStrategy(strategies[i].strategy).netAssetValue();
+            totalWeight += strategies[i].targetWeight;
         }
 
         if (address(withdrawToken) == address(usdc)) {
@@ -175,23 +180,31 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         uint8 stakeOrdersCount = 0;
         for (uint8 i; i < strategies.length; i++) {
 
-            if(!strategies[i].enabled) // Skip if strategy is not enabled
+            if (!strategies[i].enabled) {// Skip if strategy is not enabled
                 continue;
+            }
 
-            uint256 targetLiquidity = (totalUsdc * strategies[i].targetWeight) / TOTAL_WEIGHT;
+            uint256 targetLiquidity;
+            if (strategies[i].targetWeight == 0) {
+                targetLiquidity = 0;
+            } else {
+                targetLiquidity = (totalUsdc * strategies[i].targetWeight) / totalWeight;
+            }
+
             uint256 currentLiquidity = IStrategy(strategies[i].strategy).netAssetValue();
             if (targetLiquidity == currentLiquidity) {
                 // skip already at target strategies
                 continue;
             }
 
+            bool targetIsZero = targetLiquidity == 0;
             if (targetLiquidity < currentLiquidity) {
                 // unstake now
                 IStrategy(strategies[i].strategy).unstake(
                     address(usdc),
                     currentLiquidity - targetLiquidity,
                     address(this),
-                    false
+                    targetIsZero
                 );
             } else {
                 // save to stake later
