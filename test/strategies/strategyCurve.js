@@ -40,7 +40,9 @@ describe("StrategyCurve", function () {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
             await usdc.transfer(strategy.address, toUSDC(100));
-            await strategy.stake(usdc.address, toUSDC(100));
+            let receipt = await (await strategy.stake(usdc.address, toUSDC(100))).wait();
+            console.log(`stake gas used: ${receipt.gasUsed}`); // stake gas used: 724760
+
             let balanceUsdcAfter = await usdc.balanceOf(account);
 
             balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;
@@ -85,7 +87,9 @@ describe("StrategyCurve", function () {
             before(async () => {
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
-                await strategy.unstake(usdc.address, toUSDC(50), account, false);
+                let receipt = await (await strategy.unstake(usdc.address, toUSDC(50), account, false)).wait();
+                console.log(`unstake gas used: ${receipt.gasUsed}`); // unstake gas used: 711381
+
                 let balanceUsdcAfter = await usdc.balanceOf(account);
                 balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
             });
