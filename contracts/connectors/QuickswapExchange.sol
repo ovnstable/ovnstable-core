@@ -74,4 +74,6 @@ abstract contract QuickswapExchange {
         // x + 6 - x = 6
         return swapTokenDenominator * amountsOut[1] / amountsOut[0];
     }
+
+    uint256[49] private __gap;
 }

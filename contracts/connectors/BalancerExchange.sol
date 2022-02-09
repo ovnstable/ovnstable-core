@@ -145,4 +145,6 @@ abstract contract BalancerExchange {
             return 0;
         }
     }
+
+    uint256[49] private __gap;
 }
