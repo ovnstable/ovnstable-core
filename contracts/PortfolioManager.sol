@@ -190,7 +190,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
                 IStrategy(strategies[i].strategy).unstake(
                     address(usdc),
                     currentLiquidity - targetLiquidity,
-                    address(this)
+                    address(this),
+                    false
                 );
             } else {
                 // save to stake later

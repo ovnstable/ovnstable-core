@@ -17,6 +17,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await strategy.setTokens(assets.usdc, assets.am3CRV, assets.am3CRVgauge, assets.crv, assets.wMatic)).wait();
     await (await strategy.setParams(aCurvepoolStake, assets.am3CRVgauge, uniswapRouter)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
+
     console.log('StrategyCurve setting done');
 };
 

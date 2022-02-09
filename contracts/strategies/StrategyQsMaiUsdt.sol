@@ -65,7 +65,7 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) override external onlyPortfolioManager {
+    ) external override onlyPortfolioManager {
         require(address(usdc) == _asset, 'ConnectorQuickswapUsdtMai: can work only with USDC');
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();
@@ -126,6 +126,16 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         return _amount;
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = mai.balanceOf(address(this));
+
+        return 0;
     }
 
     function _addLiquidity() private {

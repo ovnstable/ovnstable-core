@@ -26,7 +26,7 @@ abstract contract BalancerExchange {
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IVault.SingleSwap memory singleSwap;
         singleSwap.poolId = poolId;
@@ -54,7 +54,7 @@ abstract contract BalancerExchange {
         address sender,
         address payable recipient,
         uint256 amount
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
 
@@ -97,7 +97,7 @@ abstract contract BalancerExchange {
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 balance
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         IPoolSwapStructs.SwapRequest memory swapRequest;
         swapRequest.kind = kind;

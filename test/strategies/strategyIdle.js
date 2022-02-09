@@ -21,7 +21,7 @@ describe("StrategyIdle", function () {
     before(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyIdle', 'Vault', 'StrategyIdleSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyIdle', 'StrategyIdleSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -70,7 +70,7 @@ describe("StrategyIdle", function () {
             before(async () => {
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
-                await strategy.unstake(usdc.address, toUSDC(50), account);
+                await strategy.unstake(usdc.address, toUSDC(50), account, false);
                 let balanceUsdcAfter = await usdc.balanceOf(account);
                 balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
             });

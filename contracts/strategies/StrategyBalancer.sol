@@ -107,7 +107,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) public override {
+    ) external override onlyPortfolioManager {
 
         require(_asset == address(usdcToken), "Stake only in usdc");
 
@@ -172,6 +172,16 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         return usdcToken.balanceOf(address(this));
     }
 
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = bpspTUsdToken.balanceOf(address(this));
+
+        return 0;
+    }
+
     function netAssetValue() external override view returns (uint256) {
         uint256 balanceBpspTUsd = bpspTUsdToken.balanceOf(address(this));
         return _getBpspTUsdBuyPrice(balanceBpspTUsd);
@@ -216,7 +226,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         return totalBalanceUsdc;
     }
 
-    function claimRewards(address _to) external override returns (uint256) {
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
         //TODO: Balancer. Claiming
 //        claimRewards();
 

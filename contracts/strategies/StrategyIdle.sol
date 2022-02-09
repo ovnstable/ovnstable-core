@@ -76,7 +76,7 @@ contract StrategyIdle is Strategy, QuickswapExchange {
     function stake(
         address _asset,
         uint256 _amount
-    ) public override onlyPortfolioManager {
+    ) external override onlyPortfolioManager {
         require(_asset == address(usdcToken), "Stake only in usdc");
 
         usdcToken.approve(address(idleToken), _amount);
@@ -102,6 +102,16 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         console.log('Amount %s', _amount / usdcTokenDenominator);
 
         return redeemedTokens;
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = idleToken.balanceOf(address(this));
+
+        return 0;
     }
 
     function netAssetValue() external override view returns (uint256) {
