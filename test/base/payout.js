@@ -51,6 +51,11 @@ describe("Payout", function () {
         let liquidationIndex = await usdPlus.liquidityIndex();
         let balanceUsdPlusUser = await usdPlus.balanceOf(account);
 
+        // wait 1 days
+        const days = 1 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [days])
+        await ethers.provider.send('evm_mine');
+
         await (await exchange.payout()).wait();
 
         let totalNetAssetsNew = await m2m.totalNetAssets();

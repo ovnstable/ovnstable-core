@@ -15,12 +15,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         minWeight: 0,
         targetWeight: 10000,
         maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
     }
     let curve = {
         strategy: (await ethers.getContract("StrategyCurve")).address,
         minWeight: 0,
         targetWeight: 45000,
         maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
     }
 
     let mstable= {
@@ -28,6 +32,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         minWeight: 0,
         targetWeight: 10000,
         maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
     }
 
     let balancer = {
@@ -35,6 +41,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         minWeight: 0,
         targetWeight: 10000,
         maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
     }
 
     let idle = {
@@ -42,6 +50,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         minWeight: 0,
         targetWeight: 25000,
         maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
     }
 
     let weights = [

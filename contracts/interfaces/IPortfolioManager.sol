@@ -19,6 +19,8 @@ interface IPortfolioManager {
         uint256 minWeight;
         uint256 targetWeight;
         uint256 maxWeight;
+        bool enabled;
+        bool enabledReward;
     }
 
     function deposit(IERC20 _token, uint256 _amount) external;

@@ -36,7 +36,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         address strategy,
         uint256 minWeight,
         uint256 targetWeight,
-        uint256 maxWeight
+        uint256 maxWeight,
+        bool enabled,
+        bool enabledReward
     );
 
 
@@ -139,7 +141,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         StrategyWeight[] memory strategies = getAllStrategyWeights();
 
         for (uint8 i; i < strategies.length; i++) {
-            IStrategy(strategies[i].strategy).claimRewards(address(this));
+            StrategyWeight memory item = strategies[i];
+
+            if(item.enabledReward){
+                IStrategy(item.strategy).claimRewards(address(this));
+            }
         }
     }
 
@@ -168,6 +174,10 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         Order[] memory stakeOrders = new Order[](strategies.length);
         uint8 stakeOrdersCount = 0;
         for (uint8 i; i < strategies.length; i++) {
+
+            if(!strategies[i].enabled) // Skip if strategy is not enabled
+                continue;
+
             uint256 targetLiquidity = (totalUsdc * strategies[i].targetWeight) / TOTAL_WEIGHT;
             uint256 currentLiquidity = IStrategy(strategies[i].strategy).netAssetValue();
             if (targetLiquidity == currentLiquidity) {
@@ -255,7 +265,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             strategyWeight.strategy,
             strategyWeight.minWeight,
             strategyWeight.targetWeight,
-            strategyWeight.maxWeight
+            strategyWeight.maxWeight,
+            strategyWeight.enabled,
+            strategyWeight.enabledReward
         );
     }
 
