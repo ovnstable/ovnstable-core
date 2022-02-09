@@ -74,9 +74,9 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) internal returns (uint256) {
 
         uint256 withdrawAmount = _unstake(_asset, _amount, _beneficiary, _targetIsZero);
+        require(withdrawAmount >= _amount, 'Returned value less than requested amount');
 
         if (_targetIsZero) {
-            require(withdrawAmount >= _amount, 'Returned value less than requested amount');
             require((IERC20(_asset).balanceOf(address(this)) / 10 ** 6) >= _amount, 'BalanceOf(_asset) less than requested amount');
         }
 
