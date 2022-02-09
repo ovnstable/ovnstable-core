@@ -485,6 +485,80 @@ describe("StaticUsdPlusToken", function () {
     });
 
 
+    it("totalAssets", async function () {
+
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+
+
+        let usdPlusAmountToWrap = 250;
+        let startUsdPlusBalance = 1000;
+        await usdPlus.mint(account, startUsdPlusBalance);
+
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.totalAssets()).to.equals(0);
+
+        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+
+        let mintedStaticAmount = await staticUsdPlus.callStatic.wrap(account, usdPlusAmountToWrap);
+        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
+
+    });
+
+    it("totalAssets / totalSupply eq to assetsPerShare", async function () {
+
+        let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+
+
+        let usdPlusAmountToWrap = 250;
+        let startUsdPlusBalance = 1000;
+        await usdPlus.mint(account, startUsdPlusBalance);
+
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.totalAssets()).to.equals(0);
+
+        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+
+        let mintedStaticAmount = await staticUsdPlus.callStatic.wrap(account, usdPlusAmountToWrap);
+        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
+        expect(await staticUsdPlus.totalSupply()).to.equals(mintedStaticAmount);
+
+        // assetsPerShare will be at `digital()` scale so upscale to 10^6
+        let assetsDivSupply = new BN(10).pow(new BN(6)).muln(usdPlusAmountToWrap);
+        assetsDivSupply = assetsDivSupply.div(new BN(mintedStaticAmount.toString()));
+        expect((await staticUsdPlus.assetsPerShare()).toString()).to.equals(assetsDivSupply.toString());
+
+    });
+
+    it("assetsOf", async function () {
+
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+
+
+        let usdPlusAmountToWrap = 250;
+        let startUsdPlusBalance = 1000;
+        await usdPlus.mint(account, startUsdPlusBalance);
+
+        expect(await staticUsdPlus.totalAssets()).to.equals(0);
+        expect(await staticUsdPlus.assetsOf(account)).to.equals(0);
+
+        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+
+        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
+        expect(await staticUsdPlus.assetsOf(account)).to.equals(usdPlusAmountToWrap);
+
+    });
+
 });
 
 

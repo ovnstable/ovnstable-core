@@ -38,11 +38,20 @@ interface IERC4626 {
      **/
     function assetsPerShare() external view returns (uint256);
 
-
     /**
      * @dev The address of the underlying token used for the Vault uses for accounting,
      * depositing, and withdrawing
      **/
     function asset() external view returns (address);
+
+    /**
+     * @dev Total amount of the underlying asset that is “managed” by Vault
+     **/
+    function totalAssets() external view returns (uint256);
+
+    /**
+     * @dev Total number of underlying assets that depositor’s shares represent.
+     **/
+    function assetsOf(address depositor) external view returns (uint256);
 
 }
