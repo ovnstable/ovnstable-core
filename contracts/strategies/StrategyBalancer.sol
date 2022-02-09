@@ -226,7 +226,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         return totalBalanceUsdc;
     }
 
-    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
+    function _claimRewards(address _to) internal override returns (uint256) {
         //TODO: Balancer. Claiming
 //        claimRewards();
 

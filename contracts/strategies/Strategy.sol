@@ -66,11 +66,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         if (_targetIsZero) {
             return _unstakeFull(_asset, _beneficiary);
         } else {
-            return _unstakeProcess(_asset, _amount, _beneficiary);
+            return _unstakeNotFull(_asset, _amount, _beneficiary);
         }
     }
 
-    function _unstakeProcess(
+    function _unstakeNotFull(
         address _asset,
         uint256 _amount,
         address _beneficiary
@@ -83,6 +83,15 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         return withdrawAmount;
     }
+
+
+    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
+        uint256 totalUsdc = _claimRewards(_to);
+        emit Reward(totalUsdc);
+        return totalUsdc;
+    }
+
+    function _claimRewards(address _to) internal virtual returns (uint256);
 
     function _unstake(
         address _asset,

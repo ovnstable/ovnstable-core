@@ -248,7 +248,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         return retAmount;
     }
 
-    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
+    function _claimRewards(address _to) internal override returns (uint256){
         rewardGauge.claim_rewards(address(this));
 
         uint256 totalUsdc;

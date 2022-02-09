@@ -174,7 +174,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         return mUsdToken.getRedeemOutput(address(usdcToken), underlying);
     }
 
-    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
+    function _claimRewards(address _to) internal override returns (uint256) {
         vimUsdToken.claimReward();
 
         uint256 totalUsdc;

@@ -76,7 +76,7 @@ contract StrategyAave is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
-        uint256 _amount = _aUsdcToken.balanceOf(address(this));
+        uint256 _amount = aUsdcToken.balanceOf(address(this));
 
         return 0;
     }
@@ -90,8 +90,7 @@ contract StrategyAave is Strategy {
         return aUsdcToken.balanceOf(address(this));
     }
 
-    function claimRewards(address _beneficiary) external override onlyPortfolioManager returns (uint256) {
-        emit Reward(0);
+    function _claimRewards(address _beneficiary) internal override returns (uint256) {
         return 0;
     }
 

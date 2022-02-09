@@ -128,7 +128,7 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         return balance * price / idleTokenDenominator;
     }
 
-    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
+    function _claimRewards(address _to) internal override returns (uint256) {
         uint256 totalUsdc;
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));

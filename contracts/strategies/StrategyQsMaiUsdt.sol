@@ -132,7 +132,7 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(usdc), "Some token not compatible");
         uint256 _amount = mai.balanceOf(address(this));
 
         return 0;
@@ -248,8 +248,7 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         return 0;
     }
 
-    function claimRewards(address _to) external override onlyPortfolioManager returns (uint256){
-        emit Reward(0);
+    function _claimRewards(address _to) internal override returns (uint256){
         return 0;
     }
 
