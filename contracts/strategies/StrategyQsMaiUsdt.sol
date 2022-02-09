@@ -99,8 +99,7 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary,
-        bool _targetIsZero
+        address _beneficiary
     ) internal override returns (uint256) {
 
         console.log('Unstake amount before');
@@ -127,6 +126,16 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         return _amount;
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = mai.balanceOf(address(this));
+
+        return 0;
     }
 
     function _addLiquidity() private {

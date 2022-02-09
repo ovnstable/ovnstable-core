@@ -141,8 +141,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary,
-        bool _targetIsZero
+        address _beneficiary
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Unstake only in usdc");
@@ -171,6 +170,16 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
         balancerVault.exitPool(balancerPoolId1, address(this), payable(address(this)), request);
         return usdcToken.balanceOf(address(this));
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = bpspTUsdToken.balanceOf(address(this));
+
+        return 0;
     }
 
     function netAssetValue() external override view returns (uint256) {

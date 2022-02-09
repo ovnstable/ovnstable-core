@@ -134,8 +134,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary,
-        bool _targetIsZero
+        address _beneficiary
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
@@ -169,6 +168,16 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         return withdrewAmount;
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = a3CrvGaugeToken.balanceOf(address(this));
+
+        return 0;
     }
 
     function netAssetValue() external view override returns (uint256){

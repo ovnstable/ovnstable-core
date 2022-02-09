@@ -60,8 +60,7 @@ contract StrategyAave is Strategy {
     function _unstake(
         address _asset,
         uint256 _amount,
-        address _beneficiary,
-        bool _targetIsZero
+        address _beneficiary
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
@@ -70,6 +69,16 @@ contract StrategyAave is Strategy {
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
         return withdrawAmount;
+    }
+
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+        require(_asset == address(usdcToken), "Some token not compatible");
+        uint256 _amount = _aUsdcToken.balanceOf(address(this));
+
+        return 0;
     }
 
     function netAssetValue() external view override returns (uint256) {
