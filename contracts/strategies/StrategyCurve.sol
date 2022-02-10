@@ -214,6 +214,9 @@ contract StrategyCurve is Strategy, QuickswapExchange {
 
     function netAssetValue() external view override returns (uint256){
         uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
         // 6 = 18 + 6 - 18
         uint256 price = curvePool.get_virtual_price() * usdcTokenDenominator / a3CrvTokenDenominator;
         // 18 + 6 - 18 = 6
@@ -221,12 +224,15 @@ contract StrategyCurve is Strategy, QuickswapExchange {
     }
 
     function liquidationValue() external view override returns (uint256){
-        uint256 gaugeAmount = a3CrvGaugeToken.balanceOf(address(this));
+        uint256 balance = a3CrvGaugeToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
 
         // get amount usdc that will be unstaked, gauge is 1:1 to am3Crv
         int128 usdcIndex = 1;
         // position of usdc token
-        uint256 withdrawUsdcAmount = curvePool.calc_withdraw_one_coin(gaugeAmount, usdcIndex);
+        uint256 withdrawUsdcAmount = curvePool.calc_withdraw_one_coin(balance, usdcIndex);
 
         return withdrawUsdcAmount;
     }

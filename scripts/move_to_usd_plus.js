@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic} = require("../utils/decimals");
+const {fromE18} = require("../utils/decimals");
 const ethers = hre.ethers;
 
 let USDPlusOld = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusTokenOld.json'));
@@ -12,7 +12,7 @@ async function main() {
     let wallet = await new ethers.Wallet("", provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromWmatic(balance))
+    console.log('Balance wallet: ' + fromE18(balance))
 
     let gasPrice = await provider.getGasPrice();
     console.log('Gas price: ' + gasPrice)

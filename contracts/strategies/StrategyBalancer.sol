@@ -208,13 +208,19 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        uint256 balanceBpspTUsd = bpspTUsdToken.balanceOf(address(this));
-        return _getBpspTUsdBuyPrice(balanceBpspTUsd);
+        uint256 balance = bpspTUsdToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
+        return _getBpspTUsdBuyPrice(balance);
     }
 
     function liquidationValue() external override view returns (uint256) {
-        uint256 balanceBpspTUsd = bpspTUsdToken.balanceOf(address(this));
-        return _getBpspTUsdSellPrice(balanceBpspTUsd);
+        uint256 balance = bpspTUsdToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
+        return _getBpspTUsdSellPrice(balance);
     }
 
     function _getBpspTUsdBuyPrice(uint256 balanceBpspTUsd) internal view returns (uint256) {

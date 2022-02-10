@@ -11,7 +11,8 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
-describe("StrategyIdle", function () {
+
+describe("StrategyIdle. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -26,83 +27,197 @@ describe("StrategyIdle", function () {
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        idleUsdc = await ethers.getContractAt("ERC20", assets.idleUsdc);
+
         strategy = await ethers.getContract('StrategyIdle');
         await strategy.setPortfolioManager(account);
+
+        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        idleUsdc = await ethers.getContractAt("ERC20", assets.idleUsdc);
     });
 
 
     describe("Stake 100 USDC", function () {
 
-        let balanceUSDC;
+        let balanceUsdc;
+        let balanceIdleUsdc;
 
         before(async () => {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
+            let balanceIdleUsdcBefore = await idleUsdc.balanceOf(strategy.address);
+
             await usdc.transfer(strategy.address, toUSDC(100));
             await strategy.stake(usdc.address, toUSDC(100));
+
             let balanceUsdcAfter = await usdc.balanceOf(account);
+            let balanceIdleUsdcAfter = await idleUsdc.balanceOf(strategy.address);
 
-            balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter) - 100;
+            balanceUsdc = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
+            balanceIdleUsdc = fromE18(balanceIdleUsdcAfter - balanceIdleUsdcBefore);
+
+            console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+            console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+            console.log("balanceUsdc: " + balanceUsdc);
+            console.log("balanceIdleUsdcBefore: " + fromE18(balanceIdleUsdcBefore));
+            console.log("balanceIdleUsdcAfter: " + fromE18(balanceUsdcBefore));
+            console.log("balanceIdleUsdc: " + balanceIdleUsdc);
         });
 
-        it("Balance USDC should be eq 0 USDC", async function () {
-            expect(balanceUSDC).to.eq(0);
+        it("Balance USDC should be greater than 99 less than 101", async function () {
+            greatLess(balanceUsdc, 100, 1);
         });
 
-        it("Balance idleUsdc should be greater than 95", async function () {
-            greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 100, 5);
+        it("Balance idleUsdc should be greater than 90 less than 100", async function () {
+            greatLess(balanceIdleUsdc, 95, 5);
         });
 
-        it("NetAssetValue should be greater than 99 less than 100", async function () {
+        it("NetAssetValue USDC should be greater than 99 less than 101", async function () {
             greatLess(fromUSDC(await strategy.netAssetValue()), 100, 1);
         });
 
-        it("LiquidationValue should  be greater than 99 less than 100", async function () {
+        it("LiquidationValue USDC should be greater than 99 less than 101", async function () {
             greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
         });
 
-
         describe("Unstake 50 USDC", function () {
 
-            let balanceUSDC;
+            let balanceUsdc;
+            let balanceIdleUsdc;
 
             before(async () => {
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
+                let balanceIdleUsdcBefore = await idleUsdc.balanceOf(strategy.address);
+
                 await strategy.unstake(usdc.address, toUSDC(50), account, false);
+
                 let balanceUsdcAfter = await usdc.balanceOf(account);
-                balanceUSDC = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                let balanceIdleUsdcAfter = await idleUsdc.balanceOf(strategy.address);
+
+                balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                balanceIdleUsdc = fromE18(balanceIdleUsdcBefore - balanceIdleUsdcAfter);
+
+                console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+                console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+                console.log("balanceUsdc: " + balanceUsdc);
+                console.log("balanceIdleUsdcBefore: " + fromE18(balanceIdleUsdcBefore));
+                console.log("balanceIdleUsdcAfter: " + fromE18(balanceUsdcBefore));
+                console.log("balanceIdleUsdc: " + balanceIdleUsdc);
             });
 
-            it("Balance USDC should be gte 50 USDC", async function () {
-                expect(balanceUSDC).to.greaterThanOrEqual(50);
+            it("Balance USDC should be greater than 49 less than 51", async function () {
+                greatLess(balanceUsdc, 50, 1);
             });
 
-            it("Balance idleUsdc should be greater 47", async function () {
-                greatLess(fromE18(await idleUsdc.balanceOf(strategy.address)), 50, 3);
+            it("Balance idleUsdc should be greater than 45 less than 50", async function () {
+                greatLess(balanceIdleUsdc, 47.5, 2.5);
             });
 
-            it("NetAssetValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.netAssetValue()), 49, 1);
+            it("NetAssetValue USDC should be greater than 49 less than 51", async function () {
+                greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
             });
 
-            it("LiquidationValue should be eq 50", async function () {
-                greatLess(fromUSDC(await strategy.liquidationValue()), 49, 1);
+            it("LiquidationValue USDC should be greater than 49 less than 51", async function () {
+                greatLess(fromUSDC(await strategy.liquidationValue()), 50, 1);
             });
+
+            describe("Unstake Full", function () {
+
+                let balanceUSDC;
+                let balanceIdleUsdc;
+
+                before(async () => {
+
+                    let balanceUsdcBefore = await usdc.balanceOf(account);
+                    let balanceIdleUsdcBefore = await idleUsdc.balanceOf(strategy.address);
+
+                    await strategy.unstake(usdc.address, 0, account, true);
+
+                    let balanceUsdcAfter = await usdc.balanceOf(account);
+                    let balanceIdleUsdcAfter = await idleUsdc.balanceOf(strategy.address);
+
+                    balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                    balanceIdleUsdc = fromE18(balanceIdleUsdcBefore - balanceIdleUsdcAfter);
+
+                    console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+                    console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+                    console.log("balanceUsdc: " + balanceUsdc);
+                    console.log("balanceIdleUsdcBefore: " + fromE18(balanceIdleUsdcBefore));
+                    console.log("balanceIdleUsdcAfter: " + fromE18(balanceUsdcBefore));
+                    console.log("balanceIdleUsdc: " + balanceIdleUsdc);
+                });
+
+                it("Balance USDC should be greater than 49 less than 51", async function () {
+                    greatLess(balanceUsdc, 50, 1);
+                });
+
+                it("Balance idleUsdc should be greater than 45 less than 50", async function () {
+                    greatLess(balanceIdleUsdc, 47.5, 2.5);
+                });
+
+                it("NetAssetValue USDC should be greater than 0 less than 1", async function () {
+                    greatLess(fromUSDC(await strategy.netAssetValue()), 0.5, 0.5);
+                });
+
+                it("LiquidationValue USDC should be greater than 0 less than 1", async function () {
+                    greatLess(fromUSDC(await strategy.liquidationValue()), 0.5, 0.5);
+                });
+
+            });
+
         });
 
     });
 
+});
 
-    it("ClaimRewards should return 0", async function () {
-        let balanceUsdcBefore = await usdc.balanceOf(account);
-        await strategy.claimRewards(account);
-        let balanceUsdcAfter = await usdc.balanceOf(account);
+describe("StrategyIdle. Claim rewards", function () {
 
-        let balanceUSDC = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
-        expect(balanceUSDC).to.eq(0);
+    let account;
+    let strategy;
+    let usdc;
+
+    before(async () => {
+        await hre.run("compile");
+        await resetHardhat();
+
+        await deployments.fixture(['PortfolioManager', 'StrategyIdle', 'StrategyIdleSetting', 'BuyUsdc']);
+
+        const {deployer} = await getNamedAccounts();
+        account = deployer;
+
+        strategy = await ethers.getContract('StrategyIdle');
+        await strategy.setPortfolioManager(account);
+
+        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+    });
+
+    describe("Stake 100 USDC. Claim rewards", function () {
+
+        let balanceUsdc;
+
+        before(async () => {
+
+            await usdc.transfer(strategy.address, toUSDC(100));
+            await strategy.stake(usdc.address, toUSDC(100));
+
+            // timeout 7 days
+            const sevenDays = 7 * 24 * 60 * 60;
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine');
+
+            let balanceUsdcBefore = await usdc.balanceOf(account);
+            await strategy.claimRewards(account);
+            let balanceUsdcAfter = await usdc.balanceOf(account);
+
+            balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+            console.log("Rewards: " + balanceUsdc);
+        });
+
+        it("Rewards should be greater or equal 0 USDC", async function () {
+            expect(balanceUsdc).to.greaterThanOrEqual(0);
+        });
+
     });
 
 });

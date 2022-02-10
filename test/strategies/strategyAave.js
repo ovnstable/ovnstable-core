@@ -4,15 +4,17 @@ const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
-const {fromAmUSDC, fromE6, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = require("../../utils/decimals");
+const {greatLess} = require('../../utils/tests');
+const {fromE6, toUSDC, fromUSDC, fromE18, fromOvn, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
 const BN = require('bignumber.js');
 const {resetHardhat} = require("../../utils/tests");
+let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
-describe("StrategyAave", function () {
+
+describe("StrategyAave. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -23,88 +25,150 @@ describe("StrategyAave", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyAave', , 'StrategyAaveSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyAave', 'StrategyAaveSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
-        strategy = await ethers.getContract('StrategyAave');
 
+        strategy = await ethers.getContract('StrategyAave');
         await strategy.setPortfolioManager(account);
 
+        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
     });
 
 
-    describe("Stack 100 USDC", function () {
+    describe("Stake 100 USDC", function () {
 
-        let balanceUSDC;
+        let balanceUsdc;
+        let balanceAmUsdc;
 
         before(async () => {
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
+            let balanceAmUsdcBefore = await amUsdc.balanceOf(strategy.address);
+
             await usdc.transfer(strategy.address, toUSDC(100));
             await strategy.stake(usdc.address, toUSDC(100));
+
             let balanceUsdcAfter = await usdc.balanceOf(account);
+            let balanceAmUsdcAfter = await amUsdc.balanceOf(strategy.address);
 
-            balanceUSDC = fromUSDC(balanceUsdcBefore-balanceUsdcAfter)-100;
+            balanceUsdc = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
+            balanceAmUsdc = fromE6(balanceAmUsdcAfter - balanceAmUsdcBefore);
+
+            console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+            console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+            console.log("balanceUsdc: " + balanceUsdc);
+            console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
+            console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+            console.log("balanceAmUsdc: " + balanceAmUsdc);
         });
 
-        it("Balance USDC should be eq 0 USDC", async function () {
-            expect(balanceUSDC).to.eq(0);
+        it("Balance USDC should be greater than 99 less than 101", async function () {
+            greatLess(balanceUsdc, 100, 1);
         });
 
-        it("Balance Am3CrvGauge should be eq 100", async function () {
-            expect(fromE6(await amUsdc.balanceOf(strategy.address))).to.eq(100);
+        it("Balance amUsdc should be greater than 90 less than 100", async function () {
+            greatLess(balanceAmUsdc, 95, 5);
         });
 
-        it("NetAssetValue should be 100", async function () {
-            expect(fromUSDC(await strategy.netAssetValue())).to.eq(100);
+        it("NetAssetValue USDC should be greater than 99 less than 101", async function () {
+            greatLess(fromUSDC(await strategy.netAssetValue()), 100, 1);
         });
 
-        it("LiquidationValue should be 100", async function () {
-            expect(fromUSDC(await strategy.liquidationValue())).to.eq(100);
+        it("LiquidationValue USDC should be greater than 99 less than 101", async function () {
+            greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
         });
-
 
         describe("Unstake 50 USDC", function () {
 
-            let balanceUSDC;
+            let balanceUsdc;
+            let balanceAmUsdc;
 
             before(async () => {
+
                 let balanceUsdcBefore = await usdc.balanceOf(account);
+                let balanceAmUsdcBefore = await amUsdc.balanceOf(strategy.address);
+
                 await strategy.unstake(usdc.address, toUSDC(50), account, false);
+
                 let balanceUsdcAfter = await usdc.balanceOf(account);
-                balanceUSDC = fromUSDC(balanceUsdcAfter-balanceUsdcBefore);
+                let balanceAmUsdcAfter = await amUsdc.balanceOf(strategy.address);
+
+                balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                balanceAmUsdc = fromE6(balanceAmUsdcBefore - balanceAmUsdcAfter);
+
+                console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+                console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+                console.log("balanceUsdc: " + balanceUsdc);
+                console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
+                console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+                console.log("balanceAmUsdc: " + balanceAmUsdc);
             });
 
-            it("Balance USDC should be gte 50 USDC", async function () {
-                expect(balanceUSDC).to.greaterThanOrEqual(50);
+            it("Balance USDC should be greater than 49 less than 51", async function () {
+                greatLess(balanceUsdc, 50, 1);
             });
 
-            it("Balance AmUsdc should be eq 50", async function () {
-                expect(fromE6(await amUsdc.balanceOf(strategy.address))).to.greaterThanOrEqual(50);
+            it("Balance amUsdc should be greater than 49 less than 51", async function () {
+                greatLess(balanceAmUsdc, 50, 1);
             });
 
-            it("NetAssetValue should be eq 50", async function () {
-                expect(fromUSDC(await strategy.netAssetValue())).to.greaterThanOrEqual(50);
+            it("NetAssetValue USDC should be greater than 49 less than 51", async function () {
+                greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
             });
 
-            it("LiquidationValue should be eq 50", async function () {
-                expect(fromUSDC(await strategy.liquidationValue())).to.greaterThanOrEqual(50);
+            it("LiquidationValue USDC should be greater than 49 less than 51", async function () {
+                greatLess(fromUSDC(await strategy.liquidationValue()), 50, 1);
             });
+
+            describe("Unstake Full", function () {
+
+                let balanceUSDC;
+                let balanceAmUsdc;
+
+                before(async () => {
+
+                    let balanceUsdcBefore = await usdc.balanceOf(account);
+                    let balanceAmUsdcBefore = await amUsdc.balanceOf(strategy.address);
+
+                    await strategy.unstake(usdc.address, 0, account, true);
+
+                    let balanceUsdcAfter = await usdc.balanceOf(account);
+                    let balanceAmUsdcAfter = await amUsdc.balanceOf(strategy.address);
+
+                    balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                    balanceAmUsdc = fromE6(balanceAmUsdcBefore - balanceAmUsdcAfter);
+
+                    console.log("balanceUsdcBefore: " + fromUSDC(balanceUsdcBefore));
+                    console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
+                    console.log("balanceUsdc: " + balanceUsdc);
+                    console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
+                    console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+                    console.log("balanceAmUsdc: " + balanceAmUsdc);
+                });
+
+                it("Balance USDC should be greater than 49 less than 51", async function () {
+                    greatLess(balanceUsdc, 50, 1);
+                });
+
+                it("Balance amUsdc should be greater than 49 less than 51", async function () {
+                    greatLess(balanceAmUsdc, 50, 1);
+                });
+
+                it("NetAssetValue USDC should be greater than 0 less than 1", async function () {
+                    greatLess(fromUSDC(await strategy.netAssetValue()), 0.5, 0.5);
+                });
+
+                it("LiquidationValue USDC should be greater than 0 less than 1", async function () {
+                    greatLess(fromUSDC(await strategy.liquidationValue()), 0.5, 0.5);
+                });
+
+            });
+
         });
 
-    });
-
-
-    it("ClaimRewards should return 0", async function () {
-        let balanceUsdcBefore = await usdc.balanceOf(account);
-        await strategy.claimRewards(account);
-        let balanceUsdcAfter = await usdc.balanceOf(account);
-
-        let balanceUSDC = fromUSDC(balanceUsdcBefore-balanceUsdcAfter);
-        expect(balanceUSDC).to.eq(0);
     });
 
 });

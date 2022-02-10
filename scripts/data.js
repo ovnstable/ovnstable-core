@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic, toUSDC, fromOvn} = require("../utils/decimals");
+const {fromE18, toUSDC, fromOvn} = require("../utils/decimals");
 const ethers = hre.ethers;
 
 let OVN = JSON.parse(fs.readFileSync('./deployments/old_polygon/OvernightToken.json'));
@@ -16,7 +16,7 @@ async function main() {
     let wallet = await new ethers.Wallet("", provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromWmatic(balance))
+    console.log('Balance wallet: ' + fromE18(balance))
 
     let portfolioManager = await ethers.getContractAt(PM.abi, "0xEa250cbf97b47522fda27a2875868491509Ca393", wallet);
     let exchange = await ethers.getContractAt(Exchange.abi, "0x2f7ECA37123f70Fd60D9339C622B14Dd0e515b7E", wallet);

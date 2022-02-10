@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic} = require("../utils/decimals");
+const {fromE18} = require("../utils/decimals");
 const ethers = hre.ethers;
 
 
@@ -21,7 +21,7 @@ async function main() {
     let wallet = await new ethers.Wallet(secrets.polygon.pk_test, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromWmatic(balance))
+    console.log('Balance wallet: ' + fromE18(balance))
 
     let ovn = await ethers.getContract("OvernightToken");
     console.log("ovn: " + ovn.address);

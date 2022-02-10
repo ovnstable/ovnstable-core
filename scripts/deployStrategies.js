@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic, fromOvnGov, fromE18, fromOvn} = require("../utils/decimals");
+const {fromE18, fromOvnGov, fromE18, fromOvn} = require("../utils/decimals");
 const {expect} = require("chai");
 const ethers = hre.ethers;
 
@@ -93,7 +93,7 @@ async function initWallet() {
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromWmatic(balance));
+    console.log('Balance wallet: ' + fromE18(balance));
 
     return wallet;
 }

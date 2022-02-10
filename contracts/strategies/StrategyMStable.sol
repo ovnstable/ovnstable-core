@@ -160,6 +160,9 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     function netAssetValue() external override view returns (uint256) {
         uint256 balance = vimUsdToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
         uint256 price = _getVimUsdBuyPrice();
         // 18 + 6 - 18 = 6
         return balance * price / vimUsdTokenDenominator;
@@ -167,6 +170,9 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     function liquidationValue() external override view returns (uint256) {
         uint256 balance = vimUsdToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
         uint256 price = _getVimUsdSellPrice();
         // 18 + 6 - 18 = 6
         return balance * price / vimUsdTokenDenominator;
@@ -190,19 +196,24 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 totalUsdc;
 
         uint256 mtaBalance = mtaToken.balanceOf(address(this));
+        console.log("Balance mta: %s", mtaBalance);
         if (mtaBalance != 0) {
             uint256 mtaUsdc = batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
                 IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this), payable(_to), mtaBalance);
+            console.log("mtaUsdc: %s", mtaUsdc);
             totalUsdc += mtaUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
+        console.log("Balance wmatic: %s", wmaticBalance);
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
                 address(this), address(_to), wmaticBalance);
+            console.log("wmaticUsdc: %s", wmaticUsdc);
             totalUsdc += wmaticUsdc;
         }
 
+        console.log("totalUsdc: %s", totalUsdc);
         return totalUsdc;
     }
 }

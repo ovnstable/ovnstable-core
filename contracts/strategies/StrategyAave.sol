@@ -107,7 +107,6 @@ contract StrategyAave is Strategy {
 
     function netAssetValue() external view override returns (uint256) {
         return aUsdcToken.balanceOf(address(this));
-
     }
 
     function liquidationValue() external view override returns (uint256) {

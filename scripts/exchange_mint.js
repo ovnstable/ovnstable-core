@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromWmatic} = require("../utils/decimals");
+const {fromE18} = require("../utils/decimals");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -23,7 +23,7 @@ async function main() {
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromWmatic(balance))
+    console.log('Balance wallet: ' + fromE18(balance))
 
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let connectorMstable = await ethers.getContractAt(ConnectorMStable.abi, ConnectorMStable.address,wallet );

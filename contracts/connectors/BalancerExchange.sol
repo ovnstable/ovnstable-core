@@ -92,7 +92,7 @@ abstract contract BalancerExchange {
         limits[1] = MAX_VALUE;
         limits[2] = MAX_VALUE;
 
-        return uint256(balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600)[2]);
+        return uint256(- balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600)[2]);
     }
 
     function onSwap(

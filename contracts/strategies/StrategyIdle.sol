@@ -125,6 +125,9 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
     function netAssetValue() external override view returns (uint256) {
         uint256 balance = idleToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
         uint256 price = idleToken.tokenPrice();
         // 18 + 6 - 18 = 6
         return balance * price / idleTokenDenominator;
@@ -132,6 +135,9 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
     function liquidationValue() external override view returns (uint256) {
         uint256 balance = idleToken.balanceOf(address(this));
+        if (balance == 0) {
+            return 0;
+        }
         uint256 price = idleToken.tokenPrice();
         // 18 + 6 - 18 = 6
         return balance * price / idleTokenDenominator;
