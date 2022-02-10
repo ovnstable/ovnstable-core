@@ -48,8 +48,22 @@ function accounts(networkName) {
     return [getPrivateKey(networkName)];
 }
 
+function blockNumber(){
+
+    let blockNumber;
+    if (process.env.HARDHAT_BLOCK_NUMBER){
+        blockNumber = Number.parseInt(process.env.HARDHAT_BLOCK_NUMBER);
+        console.log('Use HARDHAT_BLOCK_NUMBERblock number: ' + blockNumber);
+    }else {
+        blockNumber = 24689788
+        console.log('Use default block number: ' + blockNumber);
+    }
+
+    return blockNumber;
+}
 
 module.exports = {
     node_url: node_url,
     accounts: accounts,
+    blockNumber: blockNumber,
 }

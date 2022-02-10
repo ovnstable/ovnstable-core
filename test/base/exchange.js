@@ -7,7 +7,7 @@ const fs = require("fs");
 const {toUSDC, fromE18, fromOvn, fromUSDC} = require("../../utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
-const {greatLess} = require("../../utils/tests");
+const {greatLess, resetHardhat} = require("../../utils/tests");
 
 
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
@@ -26,6 +26,7 @@ describe("Exchange", function () {
     before(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
+        await resetHardhat();
 
         await deployments.fixture(['setting', 'base', 'BuyUsdc']);
 
@@ -60,7 +61,7 @@ describe("Exchange", function () {
             strategyAssets = await m2m.strategyAssets();
 
             vaultBalance = 0;
-            for (let i = 0; i <strategyAssets.length ; i++) {
+            for (let i = 0; i < strategyAssets.length; i++) {
                 vaultBalance += fromUSDC(strategyAssets[i].netAssetValue);
             }
 
@@ -76,7 +77,7 @@ describe("Exchange", function () {
         });
 
         it("balance USDC must be less than 100 ", async function () {
-            expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUserUSDC-100)
+            expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUserUSDC - 100)
         });
 
         it("Balance USD+ should 99.96", function () {
@@ -103,7 +104,7 @@ describe("Exchange", function () {
                 let balance = fromUSDC(asset.netAssetValue)
 
                 let targetValue = totalValue / 100 * target;
-                let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
+                let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
                 console.log(message);
 
                 greatLess(balance, targetValue, 1, message);
@@ -127,7 +128,7 @@ describe("Exchange", function () {
                 strategyAssets = await m2m.strategyAssets();
 
                 totalBalance = 0;
-                for (let i = 0; i <strategyAssets.length ; i++) {
+                for (let i = 0; i < strategyAssets.length; i++) {
                     totalBalance += fromUSDC(strategyAssets[i].netAssetValue);
                 }
 
@@ -170,7 +171,7 @@ describe("Exchange", function () {
                     let balance = fromUSDC(asset.netAssetValue)
 
                     let targetValue = totalValue / 100 * target;
-                    let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy +  " target value " + targetValue;
+                    let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
                     console.log(message);
 
                     greatLess(balance, targetValue, 1, message);

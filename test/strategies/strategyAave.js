@@ -8,6 +8,7 @@ const {fromAmUSDC, fromE6, toUSDC, fromUSDC, fromWmatic, fromOvn, fromE18} = req
 const hre = require("hardhat");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 const BN = require('bignumber.js');
+const {resetHardhat} = require("../../utils/tests");
 
 chai.use(smock.matchers);
 
@@ -20,6 +21,7 @@ describe("StrategyAave", function () {
 
     before(async () => {
         await hre.run("compile");
+        await resetHardhat();
 
         await deployments.fixture(['PortfolioManager', 'StrategyAave', , 'StrategyAaveSetting', 'BuyUsdc']);
 

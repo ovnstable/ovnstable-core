@@ -31,7 +31,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     }
 });
 
-const {node_url, accounts} = require("./utils/network");
+const {node_url, accounts, blockNumber} = require("./utils/network");
 
 
 module.exports = {
@@ -88,7 +88,7 @@ module.exports = {
         hardhat: {
             forking: {
                 url: node_url('polygon'),
-                blockNumber: 24689788,
+                blockNumber: blockNumber(),
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"

@@ -3,7 +3,7 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {smock} = require("@defi-wonderland/smock");
 
-const {greatLess} = require('../../utils/tests');
+const {greatLess, resetHardhat} = require('../../utils/tests');
 const fs = require("fs");
 const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
@@ -20,6 +20,7 @@ describe("StrategyCurve", function () {
 
     before(async () => {
         await hre.run("compile");
+        await resetHardhat();
 
         await deployments.fixture(['PortfolioManager', 'StrategyCurve', 'StrategyCurveSetting', 'BuyUsdc']);
 
