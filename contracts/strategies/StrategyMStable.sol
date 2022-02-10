@@ -8,8 +8,6 @@ import "../connectors/mstable/interfaces/ISavingsContract.sol";
 import "../connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
 import "./Strategy.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
     IERC20 public usdcToken;
@@ -196,24 +194,19 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 totalUsdc;
 
         uint256 mtaBalance = mtaToken.balanceOf(address(this));
-        console.log("Balance mta: %s", mtaBalance);
         if (mtaBalance != 0) {
             uint256 mtaUsdc = batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
                 IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this), payable(_to), mtaBalance);
-            console.log("mtaUsdc: %s", mtaUsdc);
             totalUsdc += mtaUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
-        console.log("Balance wmatic: %s", wmaticBalance);
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
                 address(this), address(_to), wmaticBalance);
-            console.log("wmaticUsdc: %s", wmaticUsdc);
             totalUsdc += wmaticUsdc;
         }
 
-        console.log("totalUsdc: %s", totalUsdc);
         return totalUsdc;
     }
 }

@@ -7,8 +7,6 @@ import "../connectors/balancer/interfaces/IAsset.sol";
 import "../connectors/BalancerExchange.sol";
 import "../connectors/QuickswapExchange.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
     IERC20 public usdcToken;

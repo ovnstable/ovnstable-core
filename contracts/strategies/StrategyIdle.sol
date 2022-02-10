@@ -5,8 +5,6 @@ import "./Strategy.sol";
 import "../connectors/QuickswapExchange.sol";
 import "../connectors/idle/interfaces/IIdleToken.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyIdle is Strategy, QuickswapExchange {
 
     IERC20 public usdcToken;
@@ -100,9 +98,6 @@ contract StrategyIdle is Strategy, QuickswapExchange {
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(tokenAmount);
 
-        console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
-        console.log('Amount %s', _amount / usdcTokenDenominator);
-
         return redeemedTokens;
     }
 
@@ -116,9 +111,6 @@ contract StrategyIdle is Strategy, QuickswapExchange {
         uint256 _amount = idleToken.balanceOf(address(this));
 
         uint256 redeemedTokens = idleToken.redeemIdleToken(_amount);
-
-        console.log('Redeem %s', redeemedTokens / usdcTokenDenominator);
-        console.log('Amount %s', _amount / idleTokenDenominator);
 
         return redeemedTokens;
     }

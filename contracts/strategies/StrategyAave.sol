@@ -5,7 +5,6 @@ import "./Strategy.sol";
 import "../connectors/aave/interfaces/ILendingPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/ILendingPool.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyAave is Strategy {
 

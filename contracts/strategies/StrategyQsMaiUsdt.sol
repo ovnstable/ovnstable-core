@@ -7,8 +7,6 @@ import "../connectors/uniswap/interfaces/IUniswapV2Router01.sol";
 import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
 import "../libraries/math/LowGasSafeMath.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     using LowGasSafeMath for uint256;
@@ -70,30 +68,14 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         require(_asset == address(usdc), "Some token not compatible");
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();
-        console.log('Reserve A: %s, %s', pair.token0(), reserveA / 10 ** 18);
-        console.log('Reserve B: %s, %s', pair.token1(), reserveB / 10 ** 6);
         require(reserveA > minimumAmount && reserveB > minimumAmount, 'ConnectorQuickswapUsdtMai: Liquidity pair reserves too low');
 
         uint256 swapAmountUSDT = _swapToUSDT(_amount);
-        console.log('Swap amount USDT: input usdc: %s , output usdt: %s', _amount, swapAmountUSDT);
 
         uint256 amountMAI = _getSwapAmount(swapAmountUSDT, reserveB, reserveA);
         uint256 swapAmountMAI = _swapToMAI(amountMAI);
 
-        console.log('Stake amount before');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
-
         _addLiquidity();
-
-        console.log('Stake amount after');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
-
 
     }
 
@@ -105,28 +87,13 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        console.log('Unstake amount before');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
-
         pair.approve(address(router), _amount);
 
         (uint amountA, uint amountB) = router.removeLiquidity(pair.token0(), pair.token1(), _amount, 0, 0, address(this), block.timestamp + 600);
-        console.log('Unstake amount after');
-        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
+
 
         _swapToUSDC();
-        console.log('Swap to USDC after');
 
-        console.log('Amount MAI: %s', mai.balanceOf(address(this)) / 10 ** 18);
-        console.log('Amount USDT: %s', usdt.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount USDC: %s', usdc.balanceOf(address(this)) / 10 ** 6);
-        console.log('Amount LP: %s', pair.balanceOf(address(this)) / 10 ** 18);
 
         return _amount;
     }
@@ -157,7 +124,6 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
         (,, uint256 amountLiquidity) = router.addLiquidity(path[0], path[1], amountMAI, amountUSDT, 1, 1, address(this), block.timestamp + 600);
 
-        console.log('Amount liq: %s', amountLiquidity);
     }
 
     function _swapToMAI(uint256 amount) private returns (uint256 swapAmount) {

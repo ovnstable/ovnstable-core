@@ -9,8 +9,6 @@ import "../connectors/aave/interfaces/ILendingPool.sol";
 import "../connectors/curve/interfaces/IRewardOnlyGauge.sol";
 import "../connectors/curve/interfaces/iCurvePool.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyCurve is Strategy, QuickswapExchange {
 
     IERC20 public usdcToken;
@@ -149,27 +147,9 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         // 18 = 18 + 6 - 6
         uint256 tokenAmountToWithdrawFromGauge = a3CrvTokenDenominator * _amount / price;
 
-        console.log('Unstake gauge before');
-        console.log('1: _amount %s', _amount);
-        console.log('1: get_virtual_price %s', curvePool.get_virtual_price());
-        console.log('1: tokenAmountToWithdrawFromGauge %s', tokenAmountToWithdrawFromGauge);
-        console.log('1: usdc %s', usdcToken.balanceOf(current));
-        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
         rewardGauge.withdraw(tokenAmountToWithdrawFromGauge, false);
 
-        console.log('Unstake curve before');
-        console.log('2: usdc %s', usdcToken.balanceOf(current));
-        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
         uint256 withdrewAmount = _unstakeCurve();
-
-        console.log('Unstake curve after: withdrewAmount: %s', withdrewAmount);
-        console.log('3: usdc %s', usdcToken.balanceOf(current));
-        console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         return withdrewAmount;
     }
@@ -187,27 +167,9 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         // gauge doesn't need approve on withdraw, but we should have amount token
         // on Strategy
 
-        console.log('Unstake gauge before');
-        console.log('1: _amount %s', _amount);
-        console.log('1: get_virtual_price %s', curvePool.get_virtual_price());
-        console.log('1: tokenAmountToWithdrawFromGauge %s', _amount);
-        console.log('1: usdc %s', usdcToken.balanceOf(current));
-        console.log('1: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('1: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
         rewardGauge.withdraw(_amount, false);
 
-        console.log('Unstake curve before');
-        console.log('2: usdc %s', usdcToken.balanceOf(current));
-        console.log('2: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('2: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
-
         uint256 withdrewAmount = _unstakeCurve();
-
-        console.log('Unstake curve after: withdrewAmount: %s', withdrewAmount);
-        console.log('3: usdc %s', usdcToken.balanceOf(current));
-        console.log('3: a3Crv %s', a3CrvToken.balanceOf(current));
-        console.log('3: a3CrvGauge %s', a3CrvGaugeToken.balanceOf(current));
 
         return withdrewAmount;
     }

@@ -5,7 +5,7 @@ const {smock} = require("@defi-wonderland/smock");
 
 const fs = require("fs");
 const {greatLess} = require('../../utils/tests');
-const {fromE6, toUSDC, fromUSDC, fromE18, fromOvn, fromE18} = require("../../utils/decimals");
+const {fromE6, toUSDC, fromUSDC, fromE18, fromOvn} = require("../../utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 const {resetHardhat} = require("../../utils/tests");
