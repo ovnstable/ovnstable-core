@@ -61,7 +61,7 @@ describe("StrategyAave. Stake/unstake", function () {
             console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
             console.log("balanceUsdc: " + balanceUsdc);
             console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
-            console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+            console.log("balanceAmUsdcAfter: " + fromE6(balanceAmUsdcAfter));
             console.log("balanceAmUsdc: " + balanceAmUsdc);
         });
 
@@ -103,7 +103,7 @@ describe("StrategyAave. Stake/unstake", function () {
                 console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                 console.log("balanceUsdc: " + balanceUsdc);
                 console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
-                console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+                console.log("balanceAmUsdcAfter: " + fromE6(balanceAmUsdcAfter));
                 console.log("balanceAmUsdc: " + balanceAmUsdc);
             });
 
@@ -145,7 +145,7 @@ describe("StrategyAave. Stake/unstake", function () {
                     console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                     console.log("balanceUsdc: " + balanceUsdc);
                     console.log("balanceAmUsdcBefore: " + fromE6(balanceAmUsdcBefore));
-                    console.log("balanceAmUsdcAfter: " + fromE6(balanceUsdcBefore));
+                    console.log("balanceAmUsdcAfter: " + fromE6(balanceAmUsdcAfter));
                     console.log("balanceAmUsdc: " + balanceAmUsdc);
                 });
 

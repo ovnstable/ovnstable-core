@@ -60,7 +60,7 @@ describe("StrategyMStable. Stake/unstake", function () {
             console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
             console.log("balanceUsdc: " + balanceUsdc);
             console.log("balanceVimUsdBefore: " + fromE18(balanceVimUsdBefore));
-            console.log("balanceVimUsdAfter: " + fromE18(balanceUsdcBefore));
+            console.log("balanceVimUsdAfter: " + fromE18(balanceVimUsdAfter));
             console.log("balanceVimUsd: " + balanceVimUsd);
         });
 
@@ -102,7 +102,7 @@ describe("StrategyMStable. Stake/unstake", function () {
                 console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                 console.log("balanceUsdc: " + balanceUsdc);
                 console.log("balanceVimUsdBefore: " + fromE18(balanceVimUsdBefore));
-                console.log("balanceVimUsdAfter: " + fromE18(balanceUsdcBefore));
+                console.log("balanceVimUsdAfter: " + fromE18(balanceVimUsdAfter));
                 console.log("balanceVimUsd: " + balanceVimUsd);
             });
 
@@ -144,7 +144,7 @@ describe("StrategyMStable. Stake/unstake", function () {
                     console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                     console.log("balanceUsdc: " + balanceUsdc);
                     console.log("balanceVimUsdBefore: " + fromE18(balanceVimUsdBefore));
-                    console.log("balanceVimUsdAfter: " + fromE18(balanceUsdcBefore));
+                    console.log("balanceVimUsdAfter: " + fromE18(balanceVimUsdAfter));
                     console.log("balanceVimUsd: " + balanceVimUsd);
                 });
 

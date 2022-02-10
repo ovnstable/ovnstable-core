@@ -60,7 +60,7 @@ describe("StrategyBalancer. Stake/unstake", function () {
             console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
             console.log("balanceUsdc: " + balanceUsdc);
             console.log("balanceBpspTUsdBefore: " + fromE18(balanceBpspTUsdBefore));
-            console.log("balanceBpspTUsdAfter: " + fromE18(balanceUsdcBefore));
+            console.log("balanceBpspTUsdAfter: " + fromE18(balanceBpspTUsdAfter));
             console.log("balanceBpspTUsd: " + balanceBpspTUsd);
         });
 
@@ -102,7 +102,7 @@ describe("StrategyBalancer. Stake/unstake", function () {
                 console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                 console.log("balanceUsdc: " + balanceUsdc);
                 console.log("balanceBpspTUsdBefore: " + fromE18(balanceBpspTUsdBefore));
-                console.log("balanceBpspTUsdAfter: " + fromE18(balanceUsdcBefore));
+                console.log("balanceBpspTUsdAfter: " + fromE18(balanceBpspTUsdAfter));
                 console.log("balanceBpspTUsd: " + balanceBpspTUsd);
             });
 
@@ -144,7 +144,7 @@ describe("StrategyBalancer. Stake/unstake", function () {
                     console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                     console.log("balanceUsdc: " + balanceUsdc);
                     console.log("balanceBpspTUsdBefore: " + fromE18(balanceBpspTUsdBefore));
-                    console.log("balanceBpspTUsdAfter: " + fromE18(balanceUsdcBefore));
+                    console.log("balanceBpspTUsdAfter: " + fromE18(balanceBpspTUsdAfter));
                     console.log("balanceBpspTUsd: " + balanceBpspTUsd);
                 });
 
