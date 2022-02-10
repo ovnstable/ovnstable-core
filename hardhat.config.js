@@ -72,7 +72,8 @@ module.exports = {
         polygon_dev_new: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
-            timeout: 36200000,
+            timeout: 362000000,
+            gasPrice: 50000000000,
         },
 
 

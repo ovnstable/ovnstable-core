@@ -13,7 +13,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let aave = {
         strategy: (await ethers.getContract("StrategyAave")).address,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -21,7 +21,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let curve = {
         strategy: (await ethers.getContract("StrategyCurve")).address,
         minWeight: 0,
-        targetWeight: 45000,
+        targetWeight: 10000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -30,7 +30,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let mstable= {
         strategy: (await ethers.getContract("StrategyMStable")).address,
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 80000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -48,7 +48,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let idle = {
         strategy: (await ethers.getContract("StrategyIdle")).address,
         minWeight: 0,
-        targetWeight: 25000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,

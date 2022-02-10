@@ -45,6 +45,9 @@ async function main() {
     let abis = [];
 
 
+    pmOld.interface.encodeFunctionData('set')
+
+
     addresses.push(vault.address);
     values.push(0);
     abis.push(vault.interface.encodeFunctionData('grantRole', [await vault.PORTFOLIO_MANAGER(), TimeLock.address]));
