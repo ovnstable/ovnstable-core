@@ -11,9 +11,18 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     using WadRayMath for uint256;
 
     UsdPlusToken _mainToken;
+    ERC20 _depositAsset;
 
-    constructor(address mainTokenAddress) ERC20("StaticUsdPlusToken", "stUSD+"){
-        _mainToken = UsdPlusToken(mainTokenAddress);
+    /**
+     * @param usdPlusTokenAddress The address of UsdPlusToken
+     * @param depositAsset The address of paired token to deposit/redeem, like USDC
+     */
+    constructor(
+        address usdPlusTokenAddress,
+        address depositAsset
+    ) ERC20("StaticUsdPlusToken", "stUSD+"){
+        _mainToken = UsdPlusToken(usdPlusTokenAddress);
+        _depositAsset = ERC20(depositAsset);
     }
 
     /// @inheritdoc ERC20
@@ -24,32 +33,50 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
     /// @inheritdoc IStaticUsdPlusToken
     function wrap(address recipient, uint256 amount) external override returns (uint256){
-        return deposit(amount, recipient);
-    }
+        require(recipient != address(0), "Zero address for recipient not allowed");
+        require(amount != 0, "Zero amount not allowed");
 
-    /// @inheritdoc IERC4626
-    function deposit(uint256 assets, address receiver) public override returns (uint256){
-        require(assets != 0, "Zero assets not allowed");
-        require(receiver != address(0), "Zero address for receiver not allowed");
+        _mainToken.transferFrom(msg.sender, address(this), amount);
 
-        _mainToken.transferFrom(msg.sender, address(this), assets);
-
-        uint256 mintAmount = dynamicToStaticAmount(assets);
-        _mint(receiver, mintAmount);
-
-        emit Deposit(msg.sender, receiver, assets, mintAmount);
+        uint256 mintAmount = dynamicToStaticAmount(amount);
+        _mint(recipient, mintAmount);
 
         return mintAmount;
     }
 
+    /// @inheritdoc IERC4626
+    function deposit(uint256 assets, address receiver) external override returns (uint256){
+        require(assets != 0, "Zero assets not allowed");
+        require(receiver != address(0), "Zero address for receiver not allowed");
+
+        _depositAsset.transferFrom(msg.sender, address(this), assets);
+        _depositAsset.approve(_mainToken.exchange(), assets);
+
+        uint256 mintAmount = IExchange(_mainToken.exchange()).buy(address(_depositAsset), assets);
+
+        uint256 shareMintAmount = dynamicToStaticAmount(mintAmount);
+        _mint(receiver, shareMintAmount);
+
+        emit Deposit(msg.sender, receiver, assets, shareMintAmount);
+
+        return shareMintAmount;
+    }
+
     /// @inheritdoc IStaticUsdPlusToken
     function unwrap(address recipient, uint256 amount) external override returns (uint256, uint256){
-        uint256 redeemed = redeem(amount, recipient, msg.sender);
-        return (amount, redeemed);
+        require(recipient != address(0), "Zero address for recipient not allowed");
+        require(amount != 0, "Zero amount not allowed");
+
+        _burn(msg.sender, amount);
+
+        uint256 transferAmount = staticToDynamicAmount(amount);
+        _mainToken.transfer(recipient, transferAmount);
+
+        return (amount, transferAmount);
     }
 
     /// @inheritdoc IERC4626
-    function redeem(uint256 shares, address receiver, address owner) public override returns (uint256){
+    function redeem(uint256 shares, address receiver, address owner) external override returns (uint256){
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
         require(owner != address(0), "Zero address for owner not allowed");
@@ -62,8 +89,10 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
         _burn(owner, shares);
 
-        uint256 transferAmount = staticToDynamicAmount(shares);
-        _mainToken.transfer(receiver, transferAmount);
+        uint256 redeemAmount = staticToDynamicAmount(shares);
+        uint256 transferAmount = IExchange(_mainToken.exchange()).redeem(address(_depositAsset), redeemAmount);
+
+        _depositAsset.transfer(receiver, transferAmount);
 
         emit Withdraw(owner, receiver, transferAmount, shares);
 
@@ -92,7 +121,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
     /// @inheritdoc IERC4626
     function assetsPerShare() external view override returns (uint256){
-        return _mainToken.liquidityIndex() / 10 ** 21;
+        return 10 ** _depositAsset.decimals() * _mainToken.liquidityIndex() / 10 ** 27;
     }
 
     /// @inheritdoc IStaticUsdPlusToken
@@ -102,7 +131,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
     /// @inheritdoc IERC4626
     function asset() external view override returns (address){
-        return address(_mainToken);
+        return address(_depositAsset);
     }
 
     /// @inheritdoc IERC4626

@@ -8,8 +8,33 @@ const {ZERO_ADDRESS} = constants;
 
 const hre = require("hardhat");
 const expectRevert = require("../utils/expectRevert");
+const fs = require("fs");
+const {toUSDC, fromUSDC} = require("../utils/decimals");
+let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
+
+
+async function setLiquidityIndex(account, usdPlus, liquidityIndex) {
+    let prevExchanger = await usdPlus.callStatic.exchange();
+    // console.log("Save previous exchanger: " + prevExchanger);
+    await usdPlus.setExchanger(account);
+    // console.log("Set exchanger to: " + account);
+    await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+    await usdPlus.setExchanger(prevExchanger);
+    // console.log("Back exchanger to: " + prevExchanger);
+}
+
+async function mint(account, usdPlus, amountToMint) {
+    let prevExchanger = await usdPlus.callStatic.exchange();
+    // console.log("Save previous exchanger: " + prevExchanger);
+    await usdPlus.setExchanger(account);
+    // console.log("Set exchanger to: " + account);
+    await usdPlus.mint(account, amountToMint);
+    await usdPlus.setExchanger(prevExchanger);
+    // console.log("Back exchanger to: " + prevExchanger);
+}
+
 
 describe("StaticUsdPlusToken", function () {
 
@@ -17,20 +42,36 @@ describe("StaticUsdPlusToken", function () {
     let secondAccount;
     let usdPlus;
     let staticUsdPlus;
+    let usdc;
 
 
     beforeEach(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["UsdPlusToken", "StaticUsdPlusToken"]);
+        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "BuyUsdc"]);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;
         secondAccount = anotherAccount;
         usdPlus = await ethers.getContract("UsdPlusToken");
-        usdPlus.setExchanger(account);
         staticUsdPlus = await ethers.getContract("StaticUsdPlusToken");
+        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+
+        const pm = await ethers.getContract("PortfolioManager");
+        const exchange = await ethers.getContract("Exchange");
+
+        // only aave strategy for tests
+        let weights = [{
+            strategy: (await ethers.getContract("StrategyAave")).address,
+            minWeight: 0,
+            targetWeight: 100000,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: true,
+        }]
+
+        await pm.setStrategyWeights(weights);
     });
 
 
@@ -41,22 +82,22 @@ describe("StaticUsdPlusToken", function () {
 
     });
 
-    it("asset token is usdToken", async function () {
+    it("asset token is usdc", async function () {
 
         let assetToken = await staticUsdPlus.asset();
-        expect(assetToken.toString()).to.equals(usdPlus.address);
+        expect(assetToken.toString().toLowerCase()).to.equals(assets.usdc.toString().toLowerCase());
 
     });
 
     it("rate same to usdPlus liquidity index", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
         let rate = await staticUsdPlus.rate();
         expect(rate.toString()).to.equals(liquidityIndex.toString());
 
         liquidityIndex = liquidityIndex.subn(1000)
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
         rate = await staticUsdPlus.rate();
         expect(rate.toString()).to.equals(liquidityIndex.toString());
 
@@ -65,12 +106,12 @@ describe("StaticUsdPlusToken", function () {
     it("assetsPerShare correspond to usdPlus liquidity index", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
         let assetsPerShare = await staticUsdPlus.assetsPerShare();
         expect(assetsPerShare.toString()).to.equals(new BN(10).pow(new BN(6)).toString());
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2);
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
         assetsPerShare = await staticUsdPlus.assetsPerShare();
         expect(assetsPerShare.toString()).to.equals(new BN(10).pow(new BN(6)).muln(2).toString());
 
@@ -79,20 +120,20 @@ describe("StaticUsdPlusToken", function () {
     it("static to dynamic converting", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let staticAmount = 1000;
         let dynamicAmount = await staticUsdPlus.staticToDynamicAmount(staticAmount);
         expect(dynamicAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.staticToDynamicAmount(staticAmount);
         expect(dynamicAmount).to.equals(500);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.staticToDynamicAmount(staticAmount);
         expect(dynamicAmount).to.equals(2000);
@@ -102,20 +143,20 @@ describe("StaticUsdPlusToken", function () {
     it("dynamic to static converting", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let staticAmount = 1000;
         let dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
         expect(dynamicAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
         expect(dynamicAmount).to.equals(2000);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
         expect(dynamicAmount).to.equals(500);
@@ -125,7 +166,7 @@ describe("StaticUsdPlusToken", function () {
     it("dynamic<->static converting", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let staticAmount = 1000;
         let dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
@@ -133,14 +174,14 @@ describe("StaticUsdPlusToken", function () {
         expect(newStaticAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
         newStaticAmount = await staticUsdPlus.staticToDynamicAmount(dynamicAmount);
         expect(newStaticAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         dynamicAmount = await staticUsdPlus.dynamicToStaticAmount(staticAmount);
         newStaticAmount = await staticUsdPlus.staticToDynamicAmount(dynamicAmount);
@@ -151,22 +192,22 @@ describe("StaticUsdPlusToken", function () {
     it("wrapping 1:1", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
 
         await expectRevert(
             staticUsdPlus.callStatic.wrap(ZERO_ADDRESS, 1),
-            'Zero address for receiver not allowed',
+            'Zero address for recipient not allowed',
         );
 
         await expectRevert(
             staticUsdPlus.callStatic.wrap(account, 0),
-            'Zero assets not allowed',
+            'Zero amount not allowed',
         );
 
         let usdPlusAmountToWrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
 
         await expectRevert(
             staticUsdPlus.callStatic.wrap(account, usdPlusAmountToWrap),
@@ -198,11 +239,11 @@ describe("StaticUsdPlusToken", function () {
     it("wrapping 1:2", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let usdPlusAmountToWrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
 
         expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
         expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance);
@@ -229,11 +270,11 @@ describe("StaticUsdPlusToken", function () {
     it("wrapping 1:1 and 1:2", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let usdPlusAmountToWrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
 
         expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
         expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance);
@@ -257,7 +298,7 @@ describe("StaticUsdPlusToken", function () {
 
         // change LI 1:2
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         // x2 on usdPlus after LI change
         expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(2 * usdPlusAmountToWrap);
@@ -286,17 +327,17 @@ describe("StaticUsdPlusToken", function () {
     it("unwrapping 1:1", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
 
         await expectRevert(
             staticUsdPlus.callStatic.unwrap(ZERO_ADDRESS, 1),
-            'Zero address for receiver not allowed',
+            'Zero address for recipient not allowed',
         );
 
         await expectRevert(
             staticUsdPlus.callStatic.unwrap(account, 0),
-            'Zero shares not allowed',
+            'Zero amount not allowed',
         );
 
         let staticUsdPlusAmountToUnwrap = 250;
@@ -306,7 +347,7 @@ describe("StaticUsdPlusToken", function () {
         );
 
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
         await usdPlus.approve(staticUsdPlus.address, staticUsdPlusAmountToUnwrap);
         await staticUsdPlus.wrap(account, staticUsdPlusAmountToUnwrap);
 
@@ -334,11 +375,11 @@ describe("StaticUsdPlusToken", function () {
     it("unwrapping 1:2", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let staticUsdPlusAmountToUnwrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
         await usdPlus.approve(staticUsdPlus.address, staticUsdPlusAmountToUnwrap);
         await staticUsdPlus.wrap(account, staticUsdPlusAmountToUnwrap);
 
@@ -366,11 +407,11 @@ describe("StaticUsdPlusToken", function () {
     it("wrap/unwrap 1:1->1:2->1:1", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let usdPlusAmountToWrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
 
         await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
 
@@ -380,7 +421,7 @@ describe("StaticUsdPlusToken", function () {
 
         // change LI 1:2
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         // x2 on usdPlus after LI change
         await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
@@ -395,7 +436,7 @@ describe("StaticUsdPlusToken", function () {
 
         // change LI 1:1
         liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let staticUsdPlusUsdPlusAmountBalance = 3 * usdPlusAmountToWrap / 2;
         let userUsdPlusAmountBalance = (2 * (startUsdPlusBalance - usdPlusAmountToWrap) - usdPlusAmountToWrap) / 2;
@@ -429,11 +470,11 @@ describe("StaticUsdPlusToken", function () {
     it("dynamic balance", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
         let usdPlusAmountToWrap = 250;
         let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        await mint(account, usdPlus, startUsdPlusBalance);
 
         await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
 
@@ -445,42 +486,158 @@ describe("StaticUsdPlusToken", function () {
 
     });
 
+    it("deposit 1:1", async function () {
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
+
+        await expectRevert(
+            staticUsdPlus.callStatic.deposit(1, ZERO_ADDRESS),
+            'Zero address for receiver not allowed',
+        );
+
+        await expectRevert(
+            staticUsdPlus.callStatic.deposit(0, account),
+            'Zero assets not allowed',
+        );
+
+        let usdcAmountToDeposit = 250;
+
+        await expectRevert(
+            staticUsdPlus.callStatic.deposit(usdcAmountToDeposit, account),
+            'ERC20: transfer amount exceeds allowance',
+        );
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
+
+        // callStatic doesn't change state but return value
+        let mintedStaticAmount = await staticUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
+        expect(mintedStaticAmount.toString()).to.equals(String(usdcAmountToDeposit));
+
+        // call again to change state
+        let receipt = await (await staticUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
+
+        const depositEvent = receipt.events.find((e) => e.event === 'Deposit' && e.args[0] === account);
+        expect(depositEvent.args[3].toString()).to.equals(String(mintedStaticAmount));
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(usdcAmountToDeposit);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
+
+    });
+
+    it("redeem 1:1", async function () {
+
+        let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
+
+
+        await expectRevert(
+            staticUsdPlus.callStatic.redeem(1, ZERO_ADDRESS, account),
+            'Zero address for receiver not allowed',
+        );
+
+        await expectRevert(
+            staticUsdPlus.callStatic.redeem(1, account, ZERO_ADDRESS),
+            'Zero address for owner not allowed',
+        );
+
+        await expectRevert(
+            staticUsdPlus.callStatic.redeem(0, account, account),
+            'Zero shares not allowed',
+        );
+
+        let usdcAmountToDeposit = 250;
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
+
+        // callStatic doesn't change state but return value
+        let mintedStaticAmount = await staticUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
+        expect(mintedStaticAmount.toString()).to.equals(String(usdcAmountToDeposit));
+
+        // call again to change state
+        await (await staticUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(usdcAmountToDeposit);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
+
+        // callStatic doesn't change state but return value
+        let transferredDynamicAmount = await staticUsdPlus.callStatic.redeem(usdcAmountToDeposit, account, account);
+        expect(transferredDynamicAmount.toString()).to.equals(String(usdcAmountToDeposit));
+
+        let usdcBalanceBefore = await usdc.balanceOf(account);
+
+        // call again to change state
+        let receipt = await (await staticUsdPlus.redeem(usdcAmountToDeposit, account, account)).wait();
+
+        const depositEvent = receipt.events.find((e) => e.event === 'Withdraw' && e.args[0] === account);
+        expect(depositEvent.args[3].toString()).to.equals(String(transferredDynamicAmount));
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
+
+        expect((await usdc.balanceOf(account)).toString()).to.equals(
+            new BN(usdcBalanceBefore.toString())
+                .add(new BN(transferredDynamicAmount.toString()))
+                .toString()
+        );
+
+    });
+
+
     it("redeem another owner", async function () {
         const [owner, tmpUser] = await ethers.getSigners();
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
-        let staticUsdPlusAmountToRedeem = 250;
+        let usdcAmountToDeposit = 250;
         await expectRevert(
-            staticUsdPlus.callStatic.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address),
+            staticUsdPlus.callStatic.redeem(usdcAmountToDeposit, account, tmpUser.address),
             'Redeem amount exceeds allowance',
         );
 
-        let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
-        await usdPlus.approve(staticUsdPlus.address, staticUsdPlusAmountToRedeem);
-        await staticUsdPlus.wrap(tmpUser.address, staticUsdPlusAmountToRedeem);
-
-        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(staticUsdPlusAmountToRedeem);
-        expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance - staticUsdPlusAmountToRedeem);
-        expect(await staticUsdPlus.balanceOf(tmpUser.address)).to.equals(staticUsdPlusAmountToRedeem);
-
-
-        await staticUsdPlus.connect(tmpUser).approve(account, staticUsdPlusAmountToRedeem);
-
-        // callStatic doesn't change state but return value
-        let transferredDynamicAmount = await staticUsdPlus.callStatic.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address);
-        expect(transferredDynamicAmount.toString()).to.equals(String(staticUsdPlusAmountToRedeem));
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
 
         // call again to change state
-        let receipt = await (await staticUsdPlus.redeem(staticUsdPlusAmountToRedeem, account, tmpUser.address)).wait();
+        await (await staticUsdPlus.deposit(usdcAmountToDeposit, tmpUser.address)).wait();
+
+        expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(usdcAmountToDeposit);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await staticUsdPlus.balanceOf(tmpUser.address)).to.equals(usdcAmountToDeposit);
+
+        await staticUsdPlus.connect(tmpUser).approve(account, usdcAmountToDeposit);
+        expect(await staticUsdPlus.allowance(tmpUser.address, account)).to.equals(usdcAmountToDeposit);
+
+        // callStatic doesn't change state but return value
+        let transferredDynamicAmount = await staticUsdPlus.callStatic.redeem(usdcAmountToDeposit, account, tmpUser.address);
+        expect(transferredDynamicAmount.toString()).to.equals(String(usdcAmountToDeposit));
+
+        let usdcBalanceBefore = await usdc.balanceOf(account);
+
+        // call again to change state
+        let receipt = await (await staticUsdPlus.redeem(usdcAmountToDeposit, account, tmpUser.address)).wait();
 
         expect(await usdPlus.balanceOf(staticUsdPlus.address)).to.equals(0);
-        expect(await usdPlus.balanceOf(account)).to.equals(startUsdPlusBalance);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
         expect(await staticUsdPlus.balanceOf(tmpUser.address)).to.equals(0);
         expect(await staticUsdPlus.allowance(tmpUser.address, account)).to.equals(0);
+
+        expect((await usdc.balanceOf(account)).toString()).to.equals(
+            new BN(usdcBalanceBefore.toString())
+                .add(new BN(transferredDynamicAmount.toString()))
+                .toString()
+        );
 
     });
 
@@ -488,50 +645,45 @@ describe("StaticUsdPlusToken", function () {
     it("totalAssets", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
+        let usdcAmountToDeposit = 250;
 
-        let usdPlusAmountToWrap = 250;
-        let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
-
-        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
         expect(await staticUsdPlus.totalAssets()).to.equals(0);
+        expect(await staticUsdPlus.assetsOf(account)).to.equals(0);
 
-        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
 
-        let mintedStaticAmount = await staticUsdPlus.callStatic.wrap(account, usdPlusAmountToWrap);
-        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+        let mintedStaticAmount = await staticUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
+        await staticUsdPlus.deposit(usdcAmountToDeposit, account);
 
         expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
-        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit);
 
     });
 
     it("totalAssets / totalSupply eq to assetsPerShare", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
 
-        let usdPlusAmountToWrap = 250;
-        let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        let usdcAmountToDeposit = 250;
 
         expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
         expect(await staticUsdPlus.totalAssets()).to.equals(0);
 
-        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
 
-        let mintedStaticAmount = await staticUsdPlus.callStatic.wrap(account, usdPlusAmountToWrap);
-        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+        let mintedStaticAmount = await staticUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
+        await staticUsdPlus.deposit(usdcAmountToDeposit, account);
 
         expect(await staticUsdPlus.balanceOf(account)).to.equals(mintedStaticAmount);
-        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit);
         expect(await staticUsdPlus.totalSupply()).to.equals(mintedStaticAmount);
 
-        // assetsPerShare will be at `digital()` scale so upscale to 10^6
-        let assetsDivSupply = new BN(10).pow(new BN(6)).muln(usdPlusAmountToWrap);
+        // assetsPerShare will be at `digits()` scale so upscale to 10^6
+        let assetsDivSupply = new BN(10).pow(new BN(6)).muln(usdcAmountToDeposit);
         assetsDivSupply = assetsDivSupply.div(new BN(mintedStaticAmount.toString()));
         expect((await staticUsdPlus.assetsPerShare()).toString()).to.equals(assetsDivSupply.toString());
 
@@ -540,22 +692,20 @@ describe("StaticUsdPlusToken", function () {
     it("assetsOf", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await setLiquidityIndex(account, usdPlus, liquidityIndex);
 
-
-        let usdPlusAmountToWrap = 250;
-        let startUsdPlusBalance = 1000;
-        await usdPlus.mint(account, startUsdPlusBalance);
+        let usdcAmountToDeposit = 250;
 
         expect(await staticUsdPlus.totalAssets()).to.equals(0);
         expect(await staticUsdPlus.assetsOf(account)).to.equals(0);
 
-        await usdPlus.approve(staticUsdPlus.address, usdPlusAmountToWrap);
+        await usdc.approve(staticUsdPlus.address, usdcAmountToDeposit);
 
-        await staticUsdPlus.wrap(account, usdPlusAmountToWrap);
+        // call again to change state
+        await staticUsdPlus.deposit(usdcAmountToDeposit, account);
 
-        expect(await staticUsdPlus.totalAssets()).to.equals(usdPlusAmountToWrap);
-        expect(await staticUsdPlus.assetsOf(account)).to.equals(usdPlusAmountToWrap);
+        expect(await staticUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit);
+        expect(await staticUsdPlus.assetsOf(account)).to.equals(usdcAmountToDeposit);
 
     });
 

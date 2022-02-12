@@ -58,3 +58,10 @@ interface IStaticUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
     function mainToken() external view returns (address);
 
 }
+
+/// interface for Exchange to not use real contract link
+interface IExchange {
+    function buy(address _addrTok, uint256 _amount) external returns (uint256);
+
+    function redeem(address _addrTok, uint256 _amount) external returns (uint256);
+}
