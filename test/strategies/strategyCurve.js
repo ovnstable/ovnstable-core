@@ -60,7 +60,7 @@ describe("StrategyCurve. Stake/unstake", function () {
             console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
             console.log("balanceUsdc: " + balanceUsdc);
             console.log("balanceAm3CrvGaugeBefore: " + fromE18(balanceAm3CrvGaugeBefore));
-            console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceUsdcBefore));
+            console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceAm3CrvGaugeAfter));
             console.log("balanceAm3CrvGauge: " + balanceAm3CrvGauge);
         });
 
@@ -103,7 +103,7 @@ describe("StrategyCurve. Stake/unstake", function () {
                 console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                 console.log("balanceUsdc: " + balanceUsdc);
                 console.log("balanceAm3CrvGaugeBefore: " + fromE18(balanceAm3CrvGaugeBefore));
-                console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceUsdcBefore));
+                console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceAm3CrvGaugeAfter));
                 console.log("balanceAm3CrvGauge: " + balanceAm3CrvGauge);
             });
 
@@ -146,7 +146,7 @@ describe("StrategyCurve. Stake/unstake", function () {
                     console.log("balanceUsdcAfter: " + fromUSDC(balanceUsdcAfter));
                     console.log("balanceUsdc: " + balanceUsdc);
                     console.log("balanceAm3CrvGaugeBefore: " + fromE18(balanceAm3CrvGaugeBefore));
-                    console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceUsdcBefore));
+                    console.log("balanceAm3CrvGaugeAfter: " + fromE18(balanceAm3CrvGaugeAfter));
                     console.log("balanceAm3CrvGauge: " + balanceAm3CrvGauge);
                 });
 

@@ -10,6 +10,7 @@ import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./libraries/math/WadRayMath.sol";
 import "./UsdPlusToken.sol";
+import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -175,7 +176,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return usdPlus.balanceOf(msg.sender);
     }
 
-    function buy(address _addrTok, uint256 _amount) external whenNotPaused {
+    /**
+     * @param _addrTok Token to withdraw
+     * @param _amount Amount of USD+ tokens to burn
+     * @return Amount of minted to caller tokens
+     */
+    function buy(address _addrTok, uint256 _amount) external whenNotPaused returns (uint256) {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
 
         uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -191,13 +197,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         usdPlus.mint(msg.sender, buyAmount);
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
+
+        return buyAmount;
     }
 
     /**
      * @param _addrTok Token to withdraw
      * @param _amount Amount of USD+ tokens to burn
+     * @return Amount of unstacked and transferred to caller tokens
      */
-    function redeem(address _addrTok, uint256 _amount) external whenNotPaused {
+    function redeem(address _addrTok, uint256 _amount) external whenNotPaused returns (uint256) {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
@@ -218,6 +227,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
+
+        return unstakedAmount;
     }
 
     function payout() public whenNotPaused {

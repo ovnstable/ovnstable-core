@@ -38,6 +38,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     EnumerableSet.AddressSet _owners;
 
+    address public exchange;
+
     // ---  events
 
     event ExchangerUpdated(address exchanger);
@@ -58,7 +60,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ---  setters
 
     function setExchanger(address _exchanger) external onlyAdmin {
+        if (exchange != address(0)) {
+            revokeRole(EXCHANGER, exchange);
+        }
         grantRole(EXCHANGER, _exchanger);
+        exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
     }
 
