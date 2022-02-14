@@ -1,54 +1,43 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, fromOvnGov, fromE18, fromOvn} = require("../utils/decimals");
+const {fromE18, fromOvnGov} = require("../utils/decimals");
 const {expect} = require("chai");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
 let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
 
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
-let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
-let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
-let OvnGovernor = JSON.parse(fs.readFileSync('./deployments/polygon/OvnGovernor.json'));
-let OvnToken = JSON.parse(fs.readFileSync('./deployments/polygon/OvnToken.json'));
-let Vault = JSON.parse(fs.readFileSync('./deployments/polygon/Vault.json'));
-const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/UsdPlusToken.json'));
+let OvnGovernor = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/OvnGovernor.json'));
+let OvnToken = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/OvnToken.json'));
 
 async function main() {
 
     let wallet = await initWallet();
 
-    let governator = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
+    let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-    let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
-    let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address, wallet);
     let usdPlus = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
 
-    await execProposal(governator, ovn, "105135459147370785544922440762846673168766303493319499029502214459806662918844", wallet);
+    let addresses = [];
+    let values = [];
+    let abis = [];
 
-    console.log('Liq index before: ' + await usdPlus.liquidityIndex());
-    console.log('Total supply before: ' + fromOvn(await usdPlus.totalSupply()));
-    console.log('Total sell assets before: ' + fromE18(await m2m.totalSellAssets()));
-    console.log('Total buy assets before: ' + fromE18(await m2m.totalBuyAssets()));
-    console.log('NextPayout: ' + new Date(await exchange.nextPayoutTime() * 1000));
+    addresses.push(usdPlus.address);
+    values.push(0);
+    abis.push(usdPlus.interface.encodeFunctionData('upgradeTo', ['0x5606BC9C9A702dF065d43E34f8F660014929a83d']));
 
-    await showBalances(Vault.address);
 
-    let tx = await (await exchange.payout()).wait();
-
-    console.log('Balance after')
-    await showBalances(Vault.address);
-
-    const args= tx.events.find((e) => e.event == 'PayoutEvent').args;
-    console.log('PayoutEvent: total USD+ ' + args.totalUsdPlus + " total USDC " + args.totalUsdc + " difference " + args.totallyAmountPaid);
-
-    console.log('Liq index after: ' + await usdPlus.liquidityIndex());
-    console.log('Total supply after: ' + fromOvn(await usdPlus.totalSupply()));
-    console.log('Total sell assets before: ' + fromE18(await m2m.totalSellAssets()));
-    console.log('Total buy ssets before: ' + fromE18(await m2m.totalBuyAssets()));
-    console.log('NextPayout: ' + new Date(await exchange.nextPayoutTime() * 1000));
-
+    console.log('Creating a proposal...')
+    const proposeTx = await governor.proposeExec(
+        addresses,
+        values,
+        abis,
+        ethers.utils.id("Proposal #17 Upgrade UsdPlusToken"),
+    );
+    let tx = await proposeTx.wait();
+    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    console.log('Proposal id ' + proposalId)
 }
 
 async function initWallet(){

@@ -110,6 +110,10 @@ module.exports = {
     },
 
 
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API
+    },
+
     mocha: mochaSetting,
 
     gasReporter: {

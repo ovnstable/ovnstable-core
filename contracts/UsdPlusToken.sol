@@ -38,6 +38,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     EnumerableSet.AddressSet _owners;
 
+    uint256[50] private __gap;
+
     address public exchange;
 
     // ---  events
@@ -502,5 +504,4 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
     }
 
-    uint256[50] private __gap;
 }
