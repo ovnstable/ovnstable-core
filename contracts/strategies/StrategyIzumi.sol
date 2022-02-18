@@ -119,12 +119,11 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uint256 _amount
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
-
         if (tokenId == 0) {
             // create NFT in UniswapV3
-            mint(_amount);
+            mint();
         } else {
-            addLiquidity(_amount);
+            addLiquidity();
         }
     }
 
@@ -158,10 +157,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uniswapPositionManager.decreaseLiquidity(params);
 
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-            tokenId,
-            address(this),
-            type(uint128).max,
-            type(uint128).max
+        tokenId,
+        address(this),
+        type(uint128).max,
+    type(uint128).max
         );
 
         uniswapPositionManager.collect(collectParam);
@@ -169,9 +168,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
     }
 
-    function addLiquidity(uint256 _amount) internal {
+    function addLiquidity() internal {
 
-        uint256 neededUsdtBalance = getNeedToByUsdt(_amount);
+        uint256 neededUsdtBalance = getNeedToByUsdt(usdcToken.balanceOf(address(this))); // Use old USDC
         uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
 
         if (currentUsdtBalance <= neededUsdtBalance) {
@@ -216,9 +215,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         return needUsdtValue;
     }
 
-    function mint(uint256 _amount) internal {
+    function mint() internal {
 
-        uint256 neededUsdtBalance = getNeedToByUsdt(_amount);
+        uint256 neededUsdtBalance = getNeedToByUsdt(usdcToken.balanceOf(address(this)));
         uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
 
         if (currentUsdtBalance <= neededUsdtBalance) {
@@ -302,10 +301,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             (,,,,,,,uint128 liquidity1,,,,) = uniswapPositionManager.positions(tokenId);
 
             INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-                tokenId,
-                address(this),
-                type(uint128).max,
-                type(uint128).max
+            tokenId,
+            address(this),
+            type(uint128).max,
+        type(uint128).max
             );
 
             uniswapPositionManager.collect(collectParam);

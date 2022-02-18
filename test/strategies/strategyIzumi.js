@@ -59,11 +59,11 @@ describe("StrategyIzumi. Stake/unstake", function () {
 
             await usdc.transfer(strategy.address, toUSDC(100));
             let receipt = await (await strategy.stake(usdc.address, toUSDC(100))).wait();
-            console.log(`unstake gas used: ${receipt.gasUsed}`);
+            console.log(`stake gas used: ${receipt.gasUsed}`);
 
             await usdc.transfer(strategy.address, toUSDC(100));
             receipt = await (await strategy.stake(usdc.address, toUSDC(100))).wait();
-            console.log(`unstake gas used: ${receipt.gasUsed}`);
+            console.log(`stake gas used: ${receipt.gasUsed}`);
         });
 
         it("Token ID (NFT) is not 0 ", async function () {
@@ -183,7 +183,6 @@ describe("StrategyIzumi. Stake/unstakeFull", function () {
     before(async () => {
         await hre.run("compile");
         await resetHardhat();
-        await prepareArtifacts();
 
         await deployments.fixture(['PortfolioManager', 'StrategyIzumi', 'StrategyIzumiSetting', 'BuyUsdc']);
 

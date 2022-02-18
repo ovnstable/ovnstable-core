@@ -55,7 +55,7 @@ function blockNumber(){
         blockNumber = Number.parseInt(process.env.HARDHAT_BLOCK_NUMBER);
         console.log('Use HARDHAT_BLOCK_NUMBERblock number: ' + blockNumber);
     }else {
-        blockNumber = 24689788
+        blockNumber = 25082314
         console.log('Use default block number: ' + blockNumber);
     }
 
