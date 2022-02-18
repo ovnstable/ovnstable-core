@@ -30,7 +30,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let mstable= {
         strategy: (await ethers.getContract("StrategyMStable")).address,
         minWeight: 0,
-        targetWeight: 80000,
+        targetWeight: 70000,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
+    let izumu = {
+        strategy: (await ethers.getContract("StrategyIzumi")).address,
+        minWeight: 0,
+        targetWeight:10000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -57,6 +66,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let weights = [
         aave,
         mstable,
+        izumu,
         balancer,
         curve,
         idle

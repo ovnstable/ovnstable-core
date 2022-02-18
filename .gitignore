@@ -29,3 +29,4 @@ solcInputs
 /gas-report
 /.openzeppelin/unknown-31337.json
 impls*.json
+/artifacts-external/
