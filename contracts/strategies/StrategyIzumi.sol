@@ -9,14 +9,14 @@ import "../connectors/izumi/MiningFixRangeBoost.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import "hardhat/console.sol";
 import "../connectors/uniswapV3/ISwapRouterV3.sol";
 import "../connectors/uniswapV3/LiquidityAmounts.sol";
-import "../connectors/uniswapV3/TickMath.sol";
 import "../connectors/uniswapV3/INonfungiblePositionManager.sol";
 
 contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
+    uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
+    uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -131,20 +131,15 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
     function removeLiquidity(uint256 _amount) internal {
 
-        console.log('USDT %s', usdtToken.balanceOf(address(this)));
-        console.log('USDC %s', usdcToken.balanceOf(address(this)));
-
         izumiBoost.withdraw(tokenId, false);
 
-        uint160 sqrtPriceAX96 = TickMath.getSqrtRatioAtTick(- 10);
-        uint160 sqrtPriceBX96 = TickMath.getSqrtRatioAtTick(10);
 
         (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
-            sqrtPriceAX96,
-            sqrtPriceBX96,
+            MIN_SQRT_RATIO,
+            MAX_SQRT_RATIO,
             uniswapV3Pool.liquidity());
 
         uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
@@ -152,7 +147,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uint256 usdtAmount = getNeedToByUsdt(_amount);
         uint256 usdcAmount = _amount - usdtAmount;
 
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, sqrtPriceAX96, sqrtPriceBX96, usdcAmount, usdtAmount);
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, MIN_SQRT_RATIO, MAX_SQRT_RATIO, usdcAmount, usdtAmount);
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams(
             tokenId,
             liquidity,
@@ -163,18 +158,15 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uniswapPositionManager.decreaseLiquidity(params);
 
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-        tokenId,
-        address(this),
-        type(uint128).max,
-        type(uint128).max
+            tokenId,
+            address(this),
+            type(uint128).max,
+            type(uint128).max
         );
 
         uniswapPositionManager.collect(collectParam);
 
         swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
-
-        console.log('USDT %s', usdtToken.balanceOf(address(this)) / 10 ** 6);
-        console.log('USDC %s', usdcToken.balanceOf(address(this)) / 10 ** 6);
     }
 
     function addLiquidity(uint256 _amount) internal {
@@ -212,8 +204,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
-            TickMath.getSqrtRatioAtTick(- 10),
-            TickMath.getSqrtRatioAtTick(10),
+            MIN_SQRT_RATIO,
+            MAX_SQRT_RATIO,
             uniswapV3Pool.liquidity());
 
         uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
@@ -294,8 +286,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
             (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtPriceX96,
-                TickMath.getSqrtRatioAtTick(- 10),
-                TickMath.getSqrtRatioAtTick(10),
+                MIN_SQRT_RATIO,
+                MAX_SQRT_RATIO,
                 liquidity);
 
             INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams(
@@ -310,10 +302,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             (,,,,,,,uint128 liquidity1,,,,) = uniswapPositionManager.positions(tokenId);
 
             INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-            tokenId,
-            address(this),
-            type(uint128).max,
-        type(uint128).max
+                tokenId,
+                address(this),
+                type(uint128).max,
+                type(uint128).max
             );
 
             uniswapPositionManager.collect(collectParam);
@@ -346,8 +338,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
-            TickMath.getSqrtRatioAtTick(- 10),
-            TickMath.getSqrtRatioAtTick(10),
+            MIN_SQRT_RATIO,
+            MAX_SQRT_RATIO,
             liquidity);
 
 
