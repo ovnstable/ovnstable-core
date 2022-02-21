@@ -261,7 +261,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         _claimRewards(address(this));
 
-        if (tokenId != 0) {
+        if (tokenId == 0) {
             return usdcToken.balanceOf(address(this));
         } else {
             izumiBoost.withdraw(tokenId, false);
