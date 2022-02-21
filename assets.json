@@ -1,6 +1,7 @@
 {
   "idleUsdc": "0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1",
   "usdc": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+  "usdt": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
   "amUsdc": "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F",
   "am3CRV": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
   "am3CRVgauge": "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
@@ -12,5 +13,8 @@
   "mta": "0xf501dd45a1198c2e1b5aef5314a68b9006d842e0",
   "bpspTUsd": "0x0d34e5dD4D8f043557145598E4e2dC286B35FD4f",
   "tUsd": "0x2e1ad108ff1d8c782fcbbb89aad783ac49586756",
-  "bal": "0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3"
+  "bal": "0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3",
+  "izi": "0x60d01ec2d5e98ac51c8b4cf84dfcce98d527c747",
+  "yin": "0x794Baab6b878467F93EF17e2f2851ce04E3E34C8",
+  "weth": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
 }

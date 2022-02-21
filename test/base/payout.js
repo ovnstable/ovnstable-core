@@ -58,7 +58,8 @@ describe("Payout", function () {
         await ethers.provider.send("evm_increaseTime", [days])
         await ethers.provider.send('evm_mine');
 
-        await (await exchange.payout()).wait();
+        let receipt = await (await exchange.payout()).wait();
+        console.log(`Payout: gas used: ${receipt.gasUsed}`);
 
         let totalNetAssetsNew = fromUSDC(await m2m.totalNetAssets());
         let totalLiqAssetsNew = fromUSDC(await m2m.totalLiquidationAssets());
