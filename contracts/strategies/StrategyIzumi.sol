@@ -189,8 +189,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             // t=N/(r+1)
             return needUsdtValue;
         } else {
-            // unchecked thread -- need more analytics
-            return 0;
+            revert("Amount liquidity USDT more then USDC");
         }
     }
 
