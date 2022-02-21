@@ -42,10 +42,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
     // --- events
 
-    event StrategyIdleUpdatedTokens(address usdcToken, address idleToken, address wmaticToken,
-        uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
-
-    event StrategyIdleUpdatedParams(address uniswapRouter);
+    event StrategyTokens(address usdc, address usdt, address izi, address yin, address weth, address uniswapToken);
+    event StrategyParams(address uniswapPositionManager, address uniswapV3Pool, address izumiBoost, address uniswapV3Router, address uniswapV2Router);
 
     // ---  constructor
 
@@ -87,6 +85,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         iziTokenDenominator = 10 ** IERC20Metadata(_iziToken).decimals();
         yinTokenDenominator = 10 ** IERC20Metadata(_yinToken).decimals();
 
+        emit StrategyTokens(_usdcToken, _usdtToken, _iziToken, _yinToken, _wethToken, _uniswapToken);
     }
 
     function setParams(
@@ -109,6 +108,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
         setUniswapRouter(_uniswapV2Router);
+
+        emit StrategyParams(_uniswapPositionManager, _uniswapV3Pool, _izumiBoost, _uniswapV3Router, _uniswapV2Router);
     }
 
 
