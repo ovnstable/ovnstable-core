@@ -181,14 +181,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             MAX_SQRT_RATIO,
             uniswapV3Pool.liquidity());
 
-        if(amountLiq0 >= amountLiq1){
+        if (amountLiq0 >= amountLiq1) {
 
             uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
             uint256 usdcBalance = _amount;
             uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
             // t=N/(r+1)
             return needUsdtValue;
-        }else {
+        } else {
             // unchecked thread -- need more analytics
             return 0;
         }
@@ -202,7 +202,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         if (currentUsdtBalance <= neededUsdtBalance) {
             neededUsdtBalance = neededUsdtBalance - currentUsdtBalance;
-            swapTokenToUsdc(address(usdcToken), address(usdtToken), usdcTokenDenominator, address(this), address(this), neededUsdtBalance);
+            swapTokenToUsdc(address(usdcToken), address(usdtToken), usdtTokenDenominator, address(this), address(this), neededUsdtBalance);
         }
 
     }
@@ -262,7 +262,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         _claimRewards(address(this));
 
         if (tokenId != 0) {
-
+            return usdcToken.balanceOf(address(this));
+        } else {
             izumiBoost.withdraw(tokenId, false);
 
             (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
@@ -289,10 +290,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             uniswapPositionManager.burn(tokenId);
 
             tokenId = 0;
+
+            return usdcToken.balanceOf(address(this));
         }
-
-        return usdcToken.balanceOf(address(this));
-
     }
 
 
@@ -338,11 +338,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uint256 totalUsdt = usdtToken.balanceOf(address(this)) + amountLiq1;
 
         uint256 price = getUsdcBuyPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, totalUsdt);
-        return totalUsdc + ((totalUsdt * price)  / 10 ** 6);
+        return totalUsdc + ((totalUsdt * price) / usdtTokenDenominator);
     }
 
 
     function _swapIziUsdc() internal returns (uint256) {
+
+        if (iziToken.balanceOf(address(this)) == 0)
+            return 0;
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(iziToken),
@@ -376,6 +379,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
     }
 
     function _swapYinUsdc() internal returns (uint256) {
+
+        if (yinToken.balanceOf(address(this)) == 0)
+            return 0;
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(yinToken),
