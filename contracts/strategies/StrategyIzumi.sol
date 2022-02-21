@@ -121,14 +121,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         require(_asset == address(usdcToken), "Some token not compatible");
         if (tokenId == 0) {
             // create NFT in UniswapV3
-            mint();
+            _mint();
         } else {
-            addLiquidity();
+            _addLiquidity();
         }
     }
 
 
-    function removeLiquidity(uint256 _amount) internal {
+    function _removeLiquidity(uint256 _amount) internal {
 
         izumiBoost.withdraw(tokenId, false);
 
@@ -143,7 +143,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
 
-        uint256 usdtAmount = getNeedToByUsdt(_amount);
+        uint256 usdtAmount = _getNeedToByUsdt(_amount);
         uint256 usdcAmount = _amount - usdtAmount;
 
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, MIN_SQRT_RATIO, MAX_SQRT_RATIO, usdcAmount, usdtAmount);
@@ -156,21 +156,13 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         );
         uniswapPositionManager.decreaseLiquidity(params);
 
-        INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-        tokenId,
-        address(this),
-        type(uint128).max,
-    type(uint128).max
-        );
-
-        uniswapPositionManager.collect(collectParam);
-
+        _collectParams();
         swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
     }
 
-    function addLiquidity() internal {
+    function _addLiquidity() internal {
 
-        uint256 neededUsdtBalance = getNeedToByUsdt(usdcToken.balanceOf(address(this))); // Use old USDC
+        uint256 neededUsdtBalance = _getNeedToByUsdt(usdcToken.balanceOf(address(this))); // Use old USDC
         uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
 
         if (currentUsdtBalance <= neededUsdtBalance) {
@@ -197,7 +189,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
     }
 
 
-    function getNeedToByUsdt(uint256 _amount) internal returns (uint256){
+    function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
 
         (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
 
@@ -215,9 +207,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         return needUsdtValue;
     }
 
-    function mint() internal {
+    function _mint() internal {
 
-        uint256 neededUsdtBalance = getNeedToByUsdt(usdcToken.balanceOf(address(this)));
+        uint256 neededUsdtBalance = _getNeedToByUsdt(usdcToken.balanceOf(address(this)));
         uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
 
         if (currentUsdtBalance <= neededUsdtBalance) {
@@ -261,7 +253,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         if (usdcToken.balanceOf(address(this)) <= _amount) {
-            removeLiquidity(_amount);
+            _removeLiquidity(_amount);
         }
 
         return _amount;
@@ -300,14 +292,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
             (,,,,,,,uint128 liquidity1,,,,) = uniswapPositionManager.positions(tokenId);
 
-            INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
-            tokenId,
-            address(this),
-            type(uint128).max,
-        type(uint128).max
-            );
 
-            uniswapPositionManager.collect(collectParam);
+            _collectParams();
             uniswapPositionManager.burn(tokenId);
 
             tokenId = 0;
@@ -318,15 +304,27 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
     }
 
+
+    function _collectParams() internal {
+        INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
+            tokenId,
+            address(this),
+            type(uint128).max,
+            type(uint128).max
+        );
+
+        uniswapPositionManager.collect(collectParam);
+    }
+
     function netAssetValue() external override view returns (uint256) {
-        return getTotal();
+        return _getTotal();
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return getTotal();
+        return _getTotal();
     }
 
-    function getTotal() internal view returns (uint256){
+    function _getTotal() internal view returns (uint256){
 
         if (tokenId == 0)
             return 0;
