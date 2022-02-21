@@ -132,20 +132,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         izumiBoost.withdraw(tokenId, false);
 
-
-        (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
-
-        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96,
-            MIN_SQRT_RATIO,
-            MAX_SQRT_RATIO,
-            uniswapV3Pool.liquidity());
-
-        uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
-
         uint256 usdtAmount = _getNeedToByUsdt(_amount);
         uint256 usdcAmount = _amount - usdtAmount;
 
+        (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, MIN_SQRT_RATIO, MAX_SQRT_RATIO, usdcAmount, usdtAmount);
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams(
             tokenId,
@@ -155,20 +145,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             block.timestamp + 600
         );
         uniswapPositionManager.decreaseLiquidity(params);
-
-        _collectParams();
-        swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
+        _collectLiquidityAndSwap();
     }
 
     function _addLiquidity() internal {
 
-        uint256 neededUsdtBalance = _getNeedToByUsdt(usdcToken.balanceOf(address(this))); // Use old USDC
-        uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
-
-        if (currentUsdtBalance <= neededUsdtBalance) {
-            neededUsdtBalance = neededUsdtBalance - currentUsdtBalance;
-            swapTokenToUsdc(address(usdcToken), address(usdtToken), usdcTokenDenominator, address(this), address(this), neededUsdtBalance);
-        }
+        _buyNeedAmountUsdt();
 
         uint256 amount0Desired = usdcToken.balanceOf(address(this));
         uint256 amount1Desired = usdtToken.balanceOf(address(this));
@@ -199,15 +181,21 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             MAX_SQRT_RATIO,
             uniswapV3Pool.liquidity());
 
-        uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
+        if(amountLiq0 >= amountLiq1){
 
-        uint256 usdcBalance = _amount;
-        uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
-        // t=N/(r+1)
-        return needUsdtValue;
+            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
+            uint256 usdcBalance = _amount;
+            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
+            // t=N/(r+1)
+            return needUsdtValue;
+        }else {
+            // unchecked thread -- need more analytics
+            return 0;
+        }
     }
 
-    function _mint() internal {
+
+    function _buyNeedAmountUsdt() internal {
 
         uint256 neededUsdtBalance = _getNeedToByUsdt(usdcToken.balanceOf(address(this)));
         uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
@@ -216,6 +204,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             neededUsdtBalance = neededUsdtBalance - currentUsdtBalance;
             swapTokenToUsdc(address(usdcToken), address(usdtToken), usdcTokenDenominator, address(this), address(this), neededUsdtBalance);
         }
+
+    }
+
+    function _mint() internal {
+
+        _buyNeedAmountUsdt();
 
         uint256 amount0Desired = usdcToken.balanceOf(address(this));
         uint256 amount1Desired = usdtToken.balanceOf(address(this));
@@ -288,24 +282,21 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
                 (amountLiq1 * 99 / 100),
                 block.timestamp + 600
             );
-            (uint256 amount0, uint256 amount1) = uniswapPositionManager.decreaseLiquidity(params);
 
-            (,,,,,,,uint128 liquidity1,,,,) = uniswapPositionManager.positions(tokenId);
+            uniswapPositionManager.decreaseLiquidity(params);
 
-
-            _collectParams();
+            _collectLiquidityAndSwap();
             uniswapPositionManager.burn(tokenId);
 
             tokenId = 0;
         }
 
-        swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
         return usdcToken.balanceOf(address(this));
 
     }
 
 
-    function _collectParams() internal {
+    function _collectLiquidityAndSwap() internal {
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(
             tokenId,
             address(this),
@@ -314,6 +305,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         );
 
         uniswapPositionManager.collect(collectParam);
+
+        swapTokenToUsdc(address(usdtToken), address(usdcToken), usdtTokenDenominator, address(this), address(this), usdtToken.balanceOf(address(this)));
+
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -343,9 +337,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uint256 totalUsdc = usdcToken.balanceOf(address(this)) + amountLiq0;
         uint256 totalUsdt = usdtToken.balanceOf(address(this)) + amountLiq1;
 
-        uint256 price = getUsdcBuyPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, totalUsdt) / 10 ** 6;
-
-        return totalUsdc + (totalUsdt * price);
+        uint256 price = getUsdcBuyPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, totalUsdt);
+        return totalUsdc + ((totalUsdt * price)  / 10 ** 6);
     }
 
 
