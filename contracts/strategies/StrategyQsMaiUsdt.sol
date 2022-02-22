@@ -4,23 +4,30 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./Strategy.sol";
 import "../connectors/QuickswapExchange.sol";
 import "../connectors/uniswap/interfaces/IUniswapV2Router01.sol";
-import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
+import "../connectors/uniswap/UniswapV2LiquidityMathLibrary.sol";
 import "../libraries/math/LowGasSafeMath.sol";
+
+import "hardhat/console.sol";
 
 contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     using LowGasSafeMath for uint256;
     uint256 public constant minimumAmount = 1000;
 
+    IERC20 public maiToken;
+    IERC20 public usdtToken;
+    IERC20 public usdcToken;
+
+    uint256 public usdcTokenDenominator;
+    uint256 public usdtTokenDenominator;
+    uint256 public maiTokenDenominator;
+
+
     IUniswapV2Router01 public router;
     IUniswapV2Pair public pair;
-    IERC20 public mai;
-    IERC20 public usdt;
-    IERC20 public usdc;
 
     // --- events
 
-    event ConnectorQuickswapUsdtMaiUpdated(address router, address pair, address mai, address usdt, address usdc);
 
 
     // ---  constructor
@@ -35,25 +42,35 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
     // --- setters
 
-    function setParameters(
-        address _mai,
-        address _usdt,
-        address _usdc,
+    function setTokens(
+        address _maiToken,
+        address _usdtToken,
+        address _usdcToken
+    ) external onlyAdmin {
+
+        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_usdtToken != address(0), "Zero address not allowed");
+        require(_maiToken != address(0), "Zero address not allowed");
+
+        usdcToken = IERC20(_usdcToken);
+        usdtToken = IERC20(_usdtToken);
+        maiToken = IERC20(_maiToken);
+
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        usdtTokenDenominator = 10 ** IERC20Metadata(_usdtToken).decimals();
+        maiTokenDenominator = 10 ** IERC20Metadata(_maiToken).decimals();
+
+    }
+
+    function setParams(
         address _router,
         address _pair
     ) external onlyAdmin {
-        require(_mai != address(0), "Zero address not allowed");
-        require(_usdt != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
         require(_router != address(0), "Zero address not allowed");
         require(_pair != address(0), "Zero address not allowed");
 
         router = IUniswapV2Router01(_router);
         pair = IUniswapV2Pair(_pair);
-        mai = IERC20(_mai);
-        usdt = IERC20(_usdt);
-        usdc = IERC20(_usdc);
-        emit ConnectorQuickswapUsdtMaiUpdated(_router, _pair, _mai, _usdt, _usdc);
     }
 
 
@@ -64,19 +81,39 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
-
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         (uint256 reserveA, uint256 reserveB,) = pair.getReserves();
         require(reserveA > minimumAmount && reserveB > minimumAmount, 'ConnectorQuickswapUsdtMai: Liquidity pair reserves too low');
 
+        console.log('Reserve A %s Reserve B %s', reserveA, reserveB);
+
+        console.log('1:Balance USDC %s', usdcToken.balanceOf(address(this)) / usdcTokenDenominator);
+        console.log('1:Balance USDT %s', usdtToken.balanceOf(address(this)) / usdtTokenDenominator);
+        console.log('1:Balance MAI %s', maiToken.balanceOf(address(this)) /  maiTokenDenominator);
+
         uint256 swapAmountUSDT = _swapToUSDT(_amount);
 
+        console.log('2:Balance USDC %s', usdcToken.balanceOf(address(this)) / usdcTokenDenominator);
+        console.log('2:Balance USDT %s', usdtToken.balanceOf(address(this)) / usdtTokenDenominator);
+        console.log('2:Balance MAI %s', maiToken.balanceOf(address(this)) /  maiTokenDenominator);
+
         uint256 amountMAI = _getSwapAmount(swapAmountUSDT, reserveB, reserveA);
+
+        console.log('Need MAI %s', amountMAI);
+
         uint256 swapAmountMAI = _swapToMAI(amountMAI);
+
+        console.log('3:Balance USDC %s', usdcToken.balanceOf(address(this)) / usdcTokenDenominator);
+        console.log('3:Balance USDT %s', usdtToken.balanceOf(address(this)) /  usdtTokenDenominator);
+        console.log('3:Balance MAI %s', maiToken.balanceOf(address(this)) / maiTokenDenominator);
+
 
         _addLiquidity();
 
+        console.log('4:Balance USDC %s', usdcToken.balanceOf(address(this)) / usdcTokenDenominator);
+        console.log('4:Balance USDT %s', usdtToken.balanceOf(address(this)) /  usdtTokenDenominator);
+        console.log('4:Balance MAI %s', maiToken.balanceOf(address(this)) / maiTokenDenominator);
     }
 
     function _unstake(
@@ -85,7 +122,7 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         pair.approve(address(router), _amount);
 
@@ -103,38 +140,38 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdc), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = mai.balanceOf(address(this));
+        uint256 _amount = maiToken.balanceOf(address(this));
 
         //TODO
         return 0;
     }
 
-    function _addLiquidity() private {
+    function _addLiquidity() internal {
 
         address[] memory path = new address[](2);
-        path[0] = address(mai);
-        path[1] = address(usdt);
+        path[0] = address(maiToken);
+        path[1] = address(usdtToken);
 
-        uint256 amountUSDT = usdt.balanceOf(address(this));
-        uint256 amountMAI = mai.balanceOf(address(this));
-        usdt.approve(address(router), amountUSDT);
-        mai.approve(address(router), amountMAI);
+        uint256 amountUSDT = usdtToken.balanceOf(address(this));
+        uint256 amountMAI = maiToken.balanceOf(address(this));
+        usdtToken.approve(address(router), amountUSDT);
+        maiToken.approve(address(router), amountMAI);
 
         (,, uint256 amountLiquidity) = router.addLiquidity(path[0], path[1], amountMAI, amountUSDT, 1, 1, address(this), block.timestamp + 600);
 
     }
 
-    function _swapToMAI(uint256 amount) private returns (uint256 swapAmount) {
+    function _swapToMAI(uint256 amount) internal returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
-        path[0] = address(usdt);
-        path[1] = address(mai);
+        path[0] = address(usdtToken);
+        path[1] = address(maiToken);
 
         uint[] memory amountsOut = router.getAmountsOut(amount, path);
 
-        usdt.approve(address(router), amount);
+        usdtToken.approve(address(router), amount);
 
         uint256[] memory swapedAmounts = router.swapExactTokensForTokens(
             amount, //    uint amountIn,
@@ -148,14 +185,14 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
     }
 
 
-    function _swapToUSDC() private returns (uint256 swapAmount) {
+    function _swapToUSDC() internal returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
-        path[0] = address(usdt);
-        path[1] = address(usdc);
+        path[0] = address(usdtToken);
+        path[1] = address(usdcToken);
 
-        uint256 amountUSDT = usdt.balanceOf(address(this));
-        usdt.approve(address(router), amountUSDT);
+        uint256 amountUSDT = usdtToken.balanceOf(address(this));
+        usdtToken.approve(address(router), amountUSDT);
 
         uint256[] memory swapedAmountsUSDT = router.swapExactTokensForTokens(
             amountUSDT, //    uint amountIn,
@@ -165,11 +202,11 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
             block.timestamp + 600 // 10 mins
         );
 
-        path[0] = address(mai);
-        path[1] = address(usdc);
+        path[0] = address(maiToken);
+        path[1] = address(usdcToken);
 
-        uint256 amountMAI = mai.balanceOf(address(this));
-        mai.approve(address(router), amountMAI);
+        uint256 amountMAI = maiToken.balanceOf(address(this));
+        maiToken.approve(address(router), amountMAI);
 
         uint256[] memory swapedAmountsMAI = router.swapExactTokensForTokens(
             amountMAI, //    uint amountIn,
@@ -182,15 +219,15 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         return swapedAmountsUSDT[1] + swapedAmountsMAI[1];
     }
 
-    function _swapToUSDT(uint256 amount) private returns (uint256 swapAmount) {
+    function _swapToUSDT(uint256 amount) internal returns (uint256 swapAmount) {
 
         address[] memory path = new address[](2);
-        path[0] = address(usdc);
-        path[1] = address(usdt);
+        path[0] = address(usdcToken);
+        path[1] = address(usdtToken);
 
         uint[] memory amountsOut = router.getAmountsOut(amount, path);
 
-        usdc.approve(address(router), amount);
+        usdcToken.approve(address(router), amount);
 
         uint256[] memory swapedAmounts = router.swapExactTokensForTokens(
             amount, //    uint amountIn,
@@ -203,16 +240,20 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         return swapedAmounts[1];
     }
 
-    function _getSwapAmount(uint256 investmentA, uint256 reserveA, uint256 reserveB) private view returns (uint256 swapAmount) {
+    function _getSwapAmount(uint256 investmentA, uint256 reserveA, uint256 reserveB) internal view returns (uint256 swapAmount) {
         uint256 halfInvestment = investmentA / 2;
         uint256 nominator = router.getAmountOut(halfInvestment, reserveA, reserveB);
         uint256 denominator = router.quote(halfInvestment, reserveA.add(halfInvestment), reserveB.sub(nominator));
-        //        swapAmount = investmentA.sub(Babylonian.sqrt(halfInvestment * halfInvestment * nominator / denominator));
+        swapAmount = investmentA.sub(Babylonian.sqrt(halfInvestment * halfInvestment * nominator / denominator));
         return swapAmount;
     }
 
 
     function netAssetValue() external view override returns (uint256){
+
+        uint256 amountLp = pair.balanceOf(address(this));
+        console.log('Amount LP %s', amountLp);
+
         return 0;
     }
 
