@@ -52,7 +52,7 @@ abstract contract QuickswapExchange {
         path[0] = usdcToken;
         path[1] = swapToken;
 
-        uint[] memory amountsOut = uniswapRouter.getAmountsOut(usdcAmount, path);
+        uint[] memory amountsOut = uniswapRouter.getAmountsIn(usdcAmount, path);
 
         // x + 6 - x = 6
         return swapTokenDenominator * amountsOut[0] / amountsOut[1];

@@ -8,13 +8,11 @@ const fs = require("fs");
 const {toUSDC, fromUSDC, fromE18, fromE6} = require("../../utils/decimals");
 const hre = require("hardhat");
 const {logStrategyGasUsage} = require("./strategyCommon");
-const {resetHardhat, prepareArtifacts} = require("../../utils/tests");
-const BN = require('bignumber.js');
+const {resetHardhat} = require("../../utils/tests");
 
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
-const fse = require('fs-extra');
 
 
 describe("StrategyQsMaiUsdt. Stake/unstake", function () {
@@ -59,9 +57,7 @@ describe("StrategyQsMaiUsdt. Stake/unstake", function () {
         before(async () => {
 
             await usdc.transfer(strategy.address, toUSDC(100));
-            let receipt = await (await strategy.stake(usdc.address, toUSDC(100))).wait();
-            console.log(`stake gas used: ${receipt.gasUsed}`);
-
+            await strategy.stake(usdc.address, toUSDC(100));
         });
 
 
@@ -81,8 +77,7 @@ describe("StrategyQsMaiUsdt. Stake/unstake", function () {
             before(async () => {
 
                 let balanceUsdcBefore = await usdc.balanceOf(account);
-                let receipt = await (await strategy.unstake(usdc.address, toUSDC(50), account, false)).wait();
-                console.log(`unstake gas used: ${receipt.gasUsed}`);
+                await strategy.unstake(usdc.address, toUSDC(50), account, false);
 
                 let balanceUsdcAfter = await usdc.balanceOf(account);
                 balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
@@ -172,6 +167,8 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
     let usdt;
     let mai;
     let lp;
+    let dQuick;
+    let quick;
 
     before(async () => {
         await hre.run("compile");
@@ -188,6 +185,8 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         usdt = await ethers.getContractAt("ERC20", assets.usdt);
         mai = await ethers.getContractAt("ERC20", assets.mai);
+        quick = await ethers.getContractAt("ERC20", assets.quick);
+        dQuick = await ethers.getContractAt("ERC20", assets.dQuick);
         lp = await ethers.getContractAt("ERC20", "0xE89faE1B4AdA2c869f05a0C96C87022DaDC7709a");
     });
 
@@ -202,8 +201,7 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
             await strategy.stake(usdc.address, toUSDC(100));
 
             let balanceUsdcBefore = await usdc.balanceOf(account);
-            let receipt = await (await strategy.unstake(usdc.address, 0, account, true)).wait();
-            console.log(`unstake gas used: ${receipt.gasUsed}`);
+            await strategy.unstake(usdc.address, 0, account, true);
 
             let balanceUsdcAfter = await usdc.balanceOf(account);
             balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
@@ -211,11 +209,13 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
         });
 
 
-        it("Balance USDC/USDT/MAI/lp should be 0", async function () {
+        it("Balance USDC/USDT/MAI/lp/qUick/QUICK should be 0", async function () {
             expect(fromE6(await usdc.balanceOf(strategy.address))).to.eq(0);
             expect(fromE6(await usdt.balanceOf(strategy.address))).to.eq(0);
             expect(fromE18(await mai.balanceOf(strategy.address))).to.eq(0);
             expect(fromE18(await lp.balanceOf(strategy.address))).to.eq(0);
+            expect(fromE18(await quick.balanceOf(strategy.address))).to.eq(0);
+            expect(fromE18(await dQuick.balanceOf(strategy.address))).to.eq(0);
         });
 
         it("Balance USDC should be greater than 99 less than 101", async function () {

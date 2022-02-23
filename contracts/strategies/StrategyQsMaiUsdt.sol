@@ -33,8 +33,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
     IStakingRewards public stakingRewards;
 
     // --- events
-
-
+    event StrategyTokens(address mai, address usdt, address usdc, address quick, address dQuick);
+    event StrategyParams(address router, address pair, address stakingRewards);
 
     // ---  constructor
 
@@ -72,6 +72,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         usdtTokenDenominator = 10 ** IERC20Metadata(_usdtToken).decimals();
         maiTokenDenominator = 10 ** IERC20Metadata(_maiToken).decimals();
         quickTokenDenominator = 10 ** IERC20Metadata(_quickToken).decimals();
+
+        emit StrategyTokens(_maiToken, _usdtToken, _usdcToken, _quickToken, _dQuickToken);
     }
 
     function setParams(
@@ -88,6 +90,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
         stakingRewards = IStakingRewards(_stakingRewards);
 
         setUniswapRouter(_router);
+
+        emit StrategyParams(_router, _pair, _stakingRewards);
     }
 
 
@@ -307,38 +311,52 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
 
 
     function netAssetValue() external view override returns (uint256){
-        return _getTotal();
+        return _getTotal(false);
     }
 
     function liquidationValue() external view override returns (uint256){
-        return _getTotal();
+        return _getTotal(true);
     }
 
-    function _getTotal() internal view returns (uint256){
+    function _getTotal(bool sell) internal view returns (uint256) {
 
         uint256 balanceLp = stakingRewards.balanceOf(address(this));
+
+        if (balanceLp == 0)
+            return 0;
 
         (uint256 tokenAAmount, uint256 tokenBAmount) = UniswapV2LiquidityMathLibrary.getLiquidityValue(pair.factory(), pair.token0(), pair.token1(), balanceLp);
 
         uint256 total = 0;
 
         tokenAAmount += maiToken.balanceOf(address(this));
-
         if (tokenAAmount != 0) {
-            uint256 price = getUsdcSellPrice(address(maiToken), address(usdcToken), maiTokenDenominator, tokenAAmount);
+            uint256 price;
+
+            if (sell)
+                price = getUsdcSellPrice(address(maiToken), address(usdcToken), maiTokenDenominator, tokenAAmount);
+            else
+                price = getUsdcBuyPrice(address(maiToken), address(usdcToken), maiTokenDenominator, tokenAAmount);
+
             uint256 amount = ((tokenAAmount * price) / maiTokenDenominator);
             total += amount;
         }
 
         tokenBAmount += usdtToken.balanceOf(address(this));
-
         if (tokenBAmount != 0) {
-            uint256 price = getUsdcSellPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, tokenBAmount);
+
+            uint256 price;
+
+            if (sell)
+                price = getUsdcSellPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, tokenBAmount);
+            else
+                price = getUsdcBuyPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, tokenBAmount);
+
             uint256 amount = ((tokenBAmount * price) / usdtTokenDenominator);
             total += amount;
         }
 
-        return total;
+        return total + usdcToken.balanceOf(address(this));
     }
 
     // Get rewards (dQuick) from Staking Layer
