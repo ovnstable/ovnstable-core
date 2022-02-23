@@ -88,9 +88,6 @@ describe("StrategyQsMaiUsdt. Stake/unstake", function () {
                 greatLess(balanceUsdc, 50, 1);
             });
 
-            it("Balance USDT should be 0", async function () {
-                expect(await usdt.balanceOf(strategy.address)).to.eq(0);
-            });
 
             it("NetAssetValue USDC should be greater than 49 less than 51", async function () {
                 greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
@@ -113,6 +110,7 @@ describe("StrategyQsMaiUsdt. Claim rewards", function () {
     let strategy;
     let usdc;
     let usdt;
+    let dQuick;
 
     before(async () => {
         await hre.run("compile");
@@ -128,6 +126,7 @@ describe("StrategyQsMaiUsdt. Claim rewards", function () {
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         usdt = await ethers.getContractAt("ERC20", assets.usdt);
+        dQuick = await ethers.getContractAt("ERC20", assets.dQuick);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {
@@ -152,8 +151,8 @@ describe("StrategyQsMaiUsdt. Claim rewards", function () {
             console.log("Rewards: " + balanceUsdc);
         });
 
-        it("Rewards should be greater or equal 0 USDC", async function () {
-            expect(balanceUsdc).to.greaterThanOrEqual(0);
+        it("Rewards should be greater 0 USDC", async function () {
+            expect(balanceUsdc).to.greaterThan(0);
         });
 
     });
@@ -167,9 +166,8 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
     let strategy;
     let usdc;
     let usdt;
-    let izi;
-    let yin;
-    let weth;
+    let mai;
+    let lp;
 
     before(async () => {
         await hre.run("compile");
@@ -185,9 +183,8 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         usdt = await ethers.getContractAt("ERC20", assets.usdt);
-        yin = await ethers.getContractAt("ERC20", assets.yin);
-        izi = await ethers.getContractAt("ERC20", assets.izi);
-        weth = await ethers.getContractAt("ERC20", assets.weth);
+        mai = await ethers.getContractAt("ERC20", assets.mai);
+        lp = await ethers.getContractAt("ERC20", "0xE89faE1B4AdA2c869f05a0C96C87022DaDC7709a");
     });
 
 
@@ -209,17 +206,12 @@ describe("StrategyQsMaiUsdt. Stake/unstakeFull", function () {
 
         });
 
-        it("Token ID (NFT) is 0 ", async function () {
-            expect(await strategy.tokenId()).to.eq(0);
-        });
 
-
-        it("Balance USDC/USDT/IZI/YIN/WETH should be 0", async function () {
+        it("Balance USDC/USDT/MAI/lp should be 0", async function () {
             expect(fromE6(await usdc.balanceOf(strategy.address))).to.eq(0);
             expect(fromE6(await usdt.balanceOf(strategy.address))).to.eq(0);
-            expect(fromE18(await izi.balanceOf(strategy.address))).to.eq(0);
-            expect(fromE18(await yin.balanceOf(strategy.address))).to.eq(0);
-            expect(fromE18(await weth.balanceOf(strategy.address))).to.eq(0);
+            expect(fromE18(await mai.balanceOf(strategy.address))).to.eq(0);
+            expect(fromE18(await lp.balanceOf(strategy.address))).to.eq(0);
         });
 
         it("Balance USDC should be greater than 99 less than 101", async function () {
