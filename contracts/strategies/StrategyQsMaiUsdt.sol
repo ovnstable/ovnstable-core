@@ -184,8 +184,8 @@ contract StrategyQsMaiUsdt is Strategy, QuickswapExchange {
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        _claimRewards(address(this));
         stakingRewards.exit();
+        _claimRewards(address(this));
 
         uint256 _amount = pair.balanceOf(address(this));
         pair.approve(address(router), _amount);
