@@ -21,7 +21,7 @@ describe("PortfolioManager set new cash strategy", function () {
 
 
     let owner;
-    let mockUsdc;
+    let usdc;
     let mockCashStrategy;
     let mockCashStrategy2;
     let account;
@@ -32,26 +32,34 @@ describe("PortfolioManager set new cash strategy", function () {
         await hre.run("compile");
 
         [owner] = await ethers.getSigners();
+        const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
+        await deployments.fixture(['BuyUsdc']);
 
         // reload after recompile
-        let IERC20 = JSON.parse(fs.readFileSync('artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json', 'utf-8'));
-        let IStrategy = JSON.parse(fs.readFileSync('artifacts/contracts/interfaces/IStrategy.sol/IStrategy.json', 'utf-8'));
+        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        mockCashStrategy = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assets.usdc, 1],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+        mockCashStrategy2 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assets.usdc, 2],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
 
-        let PortfolioManager = JSON.parse(fs.readFileSync('artifacts/contracts/PortfolioManager.sol/PortfolioManager.json', 'utf-8'));
-
-        mockUsdc = await deployMockContract(owner, IERC20.abi);
-        mockCashStrategy = await deployMockContract(owner, IStrategy.abi);
-        mockCashStrategy2 = await deployMockContract(owner, IStrategy.abi);
 
         const contractFactory = await ethers.getContractFactory("PortfolioManager");
         pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
         await pm.deployTransaction.wait();
         await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
-        await pm.setUsdc(mockUsdc.address);
+        await pm.setUsdc(usdc.address);
     });
 
 
@@ -60,51 +68,44 @@ describe("PortfolioManager set new cash strategy", function () {
 
         expect(await pm.cashStrategy()).eq(ZERO_ADDRESS);
 
-        await expect(pm.setCashStrategy(mockCashStrategy2.address))
+        await expect(pm.setCashStrategy(mockCashStrategy.address))
             .to.emit(pm, "CashStrategyUpdated")
+            .withArgs(mockCashStrategy.address);
+
+        await expect(pm.setCashStrategy(mockCashStrategy.address))
+            .to.emit(pm, "CashStrategyAlreadySet")
+            .withArgs(mockCashStrategy.address);
+
+        expect(await usdc.balanceOf(mockCashStrategy.address)).to.equal(0);
+        expect(await usdc.balanceOf(mockCashStrategy2.address)).to.equal(0);
+
+        await expect(pm.setCashStrategy(mockCashStrategy2.address))
+            .to.not.emit(pm, "CashStrategyRestaked")
             .withArgs(mockCashStrategy2.address);
 
         await expect(pm.setCashStrategy(mockCashStrategy2.address))
             .to.emit(pm, "CashStrategyAlreadySet")
             .withArgs(mockCashStrategy2.address);
 
-
-        await mockCashStrategy2.mock.claimRewards.returns(100);
-        await mockCashStrategy2.mock.unstake.returns(100);
-        await mockCashStrategy2.mock.stake.returns();
-
-        await mockCashStrategy.mock.claimRewards.returns(100);
-        await mockCashStrategy.mock.unstake.returns(100);
-        await mockCashStrategy.mock.stake.returns();
-
-        await mockUsdc.mock.balanceOf.withArgs(pm.address).returns(0);
-        await mockUsdc.mock.transfer.returns(true);
-
-
-        await expect(pm.setCashStrategy(mockCashStrategy.address))
-            .to.not.emit(pm, "CashStrategyRestaked")
-            .withArgs(mockCashStrategy.address);
-
+        expect(await usdc.balanceOf(mockCashStrategy.address)).to.equal(0);
+        expect(await usdc.balanceOf(mockCashStrategy2.address)).to.equal(0);
     });
 
-    it("Set new cash strategy when old have liquidity", async function () {
-
-        await mockCashStrategy.mock.claimRewards.returns(100);
-        await mockCashStrategy.mock.unstake.returns(100);
-        await mockCashStrategy.mock.stake.returns();
-
-        await mockCashStrategy2.mock.claimRewards.returns(100);
-        await mockCashStrategy2.mock.unstake.returns(100);
-        await mockCashStrategy2.mock.stake.returns();
-
-        await mockUsdc.mock.balanceOf.withArgs(pm.address).returns(1234);
-        await mockUsdc.mock.transfer.returns(true);
+    it("Set new cash strategy when prev have liquidity", async function () {
 
         await pm.setCashStrategy(mockCashStrategy.address);
+
+        await usdc.transfer(mockCashStrategy.address, 1234);
+
+        expect(await usdc.balanceOf(mockCashStrategy.address)).to.equal(1234);
+        expect(await usdc.balanceOf(mockCashStrategy2.address)).to.equal(0);
 
         await expect(pm.setCashStrategy(mockCashStrategy2.address))
             .to.emit(pm, "CashStrategyRestaked")
             .withArgs(1234);
+
+        expect(await usdc.balanceOf(mockCashStrategy.address)).to.equal(0);
+        expect(await usdc.balanceOf(mockCashStrategy2.address)).to.equal(1234);
 
     });
 

@@ -105,19 +105,15 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     function setCashStrategy(address _cashStrategy) public onlyAdmin {
         require(_cashStrategy != address(0), "Zero address not allowed");
 
-        console.log("_cashStrategy 1 ", _cashStrategy);
         if (_cashStrategy == address(cashStrategy)) {
             emit CashStrategyAlreadySet(_cashStrategy);
             return;
         }
-        console.log("_cashStrategy 2 ", _cashStrategy);
         bool needMoveCash = address(cashStrategy) != address(0);
         if (needMoveCash) {
             // unstake everything
             //TODO: may be claiming should be in unstakeFull?
-            console.log("_cashStrategy 3 ", _cashStrategy);
             cashStrategy.claimRewards(address(this));
-            console.log("_cashStrategy 4 ", _cashStrategy);
             cashStrategy.unstake(
                 address(usdc),
                 0,
@@ -126,28 +122,21 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             );
         }
 
-        console.log("_cashStrategy 5 ", _cashStrategy);
         cashStrategy = IStrategy(_cashStrategy);
-        console.log("_cashStrategy 6 ", _cashStrategy);
 
         if (needMoveCash) {
-            console.log("_cashStrategy 7 ", _cashStrategy);
             uint256 amount = usdc.balanceOf(address(this));
-            console.log("_cashStrategy 8 ", _cashStrategy);
             if (amount > 0) {
                 usdc.transfer(address(cashStrategy), amount);
-                console.log("_cashStrategy 9 ", _cashStrategy);
                 cashStrategy.stake(
                     address(usdc),
                     amount
                 );
-                console.log("_cashStrategy 10 ", _cashStrategy);
                 emit CashStrategyRestaked(amount);
             }
         }
 
         emit CashStrategyUpdated(_cashStrategy);
-        console.log("_cashStrategy 11 ", _cashStrategy);
     }
 
 
