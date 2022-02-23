@@ -33,4 +33,6 @@ interface IPortfolioManager {
 
     function claimAndBalance() external;
 
+    function balance() external;
+
 }
