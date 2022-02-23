@@ -32,8 +32,14 @@ contract MockStrategy is IStrategy {
         bool targetIsZero
     ) external override returns (uint256) {
         uint256 balance = usdcToken.balanceOf(address(this));
-        usdcToken.transfer(_beneficiary, balance);
-        return balance;
+        if (targetIsZero) {
+            usdcToken.transfer(_beneficiary, balance);
+            return balance;
+        } else {
+            require(balance >= _amount, "MockStrategy: unstake more than balance");
+            usdcToken.transfer(_beneficiary, _amount);
+            return _amount;
+        }
     }
 
 

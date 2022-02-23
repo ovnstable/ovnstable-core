@@ -151,9 +151,14 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 3. if _amount + current < limit then just stake to cash strategy
         // 4. else call _balance
 
-        uint256 currentLiquidity = cashStrategy.netAssetValue();
+        uint256 pmUsdcBalance = usdc.balanceOf(address(this));
+        if (pmUsdcBalance == 0) {
+            // zero usdc amount always fit in cash strategy but also zero stake result
+            // so we can return now
+            return;
+        }
 
-        uint256 totalUsdc = usdc.balanceOf(address(this));
+        uint256 totalUsdc = pmUsdcBalance;
         uint256 totalWeight = 0;
         for (uint8 i; i < strategyWeights.length; i++) {
             if (!strategyWeights[i].enabled) {// Skip if strategy is not enabled
@@ -163,17 +168,17 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             totalWeight += strategyWeights[i].targetWeight;
         }
 
+        uint256 currentCashLiquidity = cashStrategy.netAssetValue();
         StrategyWeight memory cashStrategyWeight = getStrategyWeight(address(cashStrategy));
-        //TODO: optimize by saving previous totalUsdc
-        uint256 maxLiquidity = (totalUsdc * cashStrategyWeight.maxWeight) / totalWeight;
+        //TODO: can be optimized by saving previous totalUsdc gere and in balance
+        uint256 maxCashLiquidity = (totalUsdc * cashStrategyWeight.maxWeight) / totalWeight;
 
-        if (currentLiquidity + _amount < maxLiquidity) {
+        if (currentCashLiquidity + pmUsdcBalance < maxCashLiquidity) {
             // we may add _amount to cash strategy without balancing
-            uint256 amount = usdc.balanceOf(address(this));
-            usdc.transfer(address(cashStrategy), amount);
+            usdc.transfer(address(cashStrategy), pmUsdcBalance);
             cashStrategy.stake(
                 address(usdc),
-                amount
+                pmUsdcBalance
             );
             return;
         }

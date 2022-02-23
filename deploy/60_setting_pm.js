@@ -77,6 +77,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pm.setExchanger(exchange.address)).wait();
     await (await pm.setUsdc(assets.usdc)).wait();
+    await (await pm.setCashStrategy((await ethers.getContract("StrategyAave")).address)).wait();
 };
 
 module.exports.tags = ['setting', 'SettingPM'];
