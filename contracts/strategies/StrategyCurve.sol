@@ -146,10 +146,10 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         uint256 price = curvePool.get_virtual_price() * usdcTokenDenominator / a3CrvTokenDenominator;
 
         // Add +1% - slippage curve
-        uint256 amount = _amount + (_amount * 1 /100);
+        uint256 amount = _amount + (_amount * 1 / 100);
 
         // 18 = 18 + 6 - 6
-        uint256 tokenAmountToWithdrawFromGauge = a3CrvTokenDenominator * amount  / price;
+        uint256 tokenAmountToWithdrawFromGauge = a3CrvTokenDenominator * amount / price;
 
         rewardGauge.withdraw(tokenAmountToWithdrawFromGauge, false);
 
@@ -277,6 +277,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
     }
 

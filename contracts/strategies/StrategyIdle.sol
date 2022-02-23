@@ -151,6 +151,7 @@ contract StrategyIdle is Strategy, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
     }
 }

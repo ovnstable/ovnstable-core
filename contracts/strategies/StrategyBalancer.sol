@@ -282,6 +282,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
             totalUsdc += tusdUsdc;
         }
 
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
     }
 }

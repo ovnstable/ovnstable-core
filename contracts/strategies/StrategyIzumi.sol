@@ -423,6 +423,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         total += _swapIziUsdc();
         total += _swapYinUsdc();
 
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return total;
     }
 

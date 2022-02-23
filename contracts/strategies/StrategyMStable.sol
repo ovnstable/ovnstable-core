@@ -207,6 +207,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
             totalUsdc += wmaticUsdc;
         }
 
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
     }
 }
