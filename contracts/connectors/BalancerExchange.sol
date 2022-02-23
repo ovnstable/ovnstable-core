@@ -28,7 +28,7 @@ abstract contract BalancerExchange {
         uint256 amount
     ) internal returns (uint256) {
 
-        IERC20(address(tokenIn)).approve(address(balancerVault), amount);
+        IERC20(address(tokenIn)).approve(address(balancerVault), IERC20(address(tokenIn)).balanceOf(address(this)));
 
         IVault.SingleSwap memory singleSwap;
         singleSwap.poolId = poolId;

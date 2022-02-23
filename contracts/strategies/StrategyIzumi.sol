@@ -12,8 +12,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../connectors/uniswapV3/ISwapRouterV3.sol";
 import "../connectors/uniswapV3/LiquidityAmounts.sol";
 import "../connectors/uniswapV3/INonfungiblePositionManager.sol";
+import "../connectors/BalancerExchange.sol";
 
-contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
+contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721Receiver {
 
     uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
     uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
@@ -33,6 +34,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
 
     uint256 public tokenId;
+    bytes32 public balancerPoolId;
 
     INonfungiblePositionManager public uniswapPositionManager;
     IUniswapV3Pool public uniswapV3Pool;
@@ -94,7 +96,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         address _uniswapV3Pool,
         address _uniswapV2Router,
         address _izumiBoost,
-        address _uniswapV3Router
+        address _uniswapV3Router,
+        bytes32  _balancerPoolId,
+        address _balancerVault
     ) external onlyAdmin {
 
         require(_uniswapPositionManager != address(0), "Zero address not allowed");
@@ -102,13 +106,18 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         require(_uniswapV2Router != address(0), "Zero address not allowed");
         require(_uniswapV3Router != address(0), "Zero address not allowed");
         require(_izumiBoost != address(0), "Zero address not allowed");
+        require(_balancerPoolId != 0, "Zero address not allowed");
+        require(_balancerVault != address(0), "Zero address not allowed");
 
         uniswapPositionManager = INonfungiblePositionManager(_uniswapPositionManager);
         uniswapV3Pool = IUniswapV3Pool(_uniswapV3Pool);
         izumiBoost = MiningFixRangeBoost(_izumiBoost);
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
+        setBalancerVault(_balancerVault);
         setUniswapRouter(_uniswapV2Router);
+
+        balancerPoolId = _balancerPoolId;
     }
 
 
@@ -204,7 +213,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         if (currentUsdtBalance <= neededUsdtBalance) {
             neededUsdtBalance = neededUsdtBalance - currentUsdtBalance;
-            swapTokenToUsdc(address(usdcToken), address(usdtToken), usdtTokenDenominator, address(this), address(this), neededUsdtBalance);
+            swap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, IAsset(address(usdcToken)), IAsset(address(usdtToken)), address(this), address(this), neededUsdtBalance);
         }
 
     }
@@ -423,7 +432,6 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         total += _swapIziUsdc();
         total += _swapYinUsdc();
 
-        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return total;
     }
 
