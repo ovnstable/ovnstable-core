@@ -22,6 +22,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     IERC20 usdc;
     mapping(address => uint256) public strategyWeightPositions;
     StrategyWeight[] public strategyWeights;
+    IStrategy public cashStrategy;
 
 
 
@@ -29,6 +30,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     event ExchangerUpdated(address value);
     event UsdcUpdated(address value);
+    event CashStrategyAlreadySet(address value);
+    event CashStrategyUpdated(address value);
     event Exchanged(uint256 amount, address from, address to);
 
     event StrategyWeightUpdated(
@@ -51,6 +54,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     modifier onlyExchanger() {
         require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    modifier cashStrategySet() {
+        require(address(cashStrategy) != address(0), "Cash strategy not set yet");
         _;
     }
 
@@ -92,11 +100,79 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         emit UsdcUpdated(_usdc);
     }
 
+    function setCashStrategy(address _cashStrategy) public onlyAdmin {
+        require(_cashStrategy != address(0), "Zero address not allowed");
+        if (_cashStrategy == address(cashStrategy)) {
+            emit CashStrategyAlreadySet(_cashStrategy);
+            return;
+        }
+
+        bool needMoveCash = address(cashStrategy) != address(0);
+        if (needMoveCash) {
+            // unstake everything
+            //TODO: may be claiming should be in unstakeFull?
+            cashStrategy.claimRewards(address(this));
+            cashStrategy.unstake(
+                address(usdc),
+                0,
+                address(this),
+                true
+            );
+        }
+
+        cashStrategy = IStrategy(_cashStrategy);
+
+        if (needMoveCash) {
+            uint256 amount = usdc.balanceOf(address(this));
+            usdc.transfer(address(cashStrategy), amount);
+            cashStrategy.stake(
+                address(usdc),
+                amount
+            );
+        }
+
+        emit CashStrategyUpdated(_cashStrategy);
+    }
+
 
 
     // ---  logic
 
-    function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger {
+    function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger cashStrategySet {
+        require(address(_token) == address(usdc), "PM: Only USDC now available to deposit");
+
+        // 1. get cashStrategy current usdc amount
+        // 2. get cashStrategy upper limit
+        // 3. if _amount + current < limit then just stake to cash strategy
+        // 4. else call _balance
+
+        uint256 currentLiquidity = cashStrategy.netAssetValue();
+
+        uint256 totalUsdc = usdc.balanceOf(address(this));
+        uint256 totalWeight = 0;
+        for (uint8 i; i < strategyWeights.length; i++) {
+            if (!strategyWeights[i].enabled) {// Skip if strategy is not enabled
+                continue;
+            }
+            totalUsdc += IStrategy(strategyWeights[i].strategy).netAssetValue();
+            totalWeight += strategyWeights[i].targetWeight;
+        }
+
+        StrategyWeight memory cashStrategyWeight = getStrategyWeight(address(cashStrategy));
+        //TODO: optimize by saving previous totalUsdc
+        uint256 maxLiquidity = (totalUsdc * cashStrategyWeight.maxWeight) / totalWeight;
+
+        if (currentLiquidity + _amount < maxLiquidity) {
+            // we may add _amount to cash strategy without balancing
+            uint256 amount = usdc.balanceOf(address(this));
+            usdc.transfer(address(cashStrategy), amount);
+            cashStrategy.stake(
+                address(usdc),
+                amount
+            );
+            return;
+        }
+
         _balance();
     }
 
@@ -105,12 +181,24 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     external
     override
     onlyExchanger
+    cashStrategySet
     returns (uint256)
     {
         require(address(_token) == address(usdc), "PM: Only USDC now available to withdraw");
 
-        // balance to needed amount
-        _balance(_token, _amount);
+        // if cash strategy has enough liquidity then prevent balancing
+        uint256 liquidationValue = cashStrategy.liquidationValue();
+        if (liquidationValue > _amount) {
+            cashStrategy.unstake(
+                address(usdc),
+                _amount,
+                address(this),
+                false
+            );
+        } else {
+            // balance to needed amount
+            _balance(_token, _amount);
+        }
 
         uint256 currentBalance = _token.balanceOf(address(this));
 
