@@ -196,7 +196,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 mtaBalance = mtaToken.balanceOf(address(this));
         if (mtaBalance != 0) {
             uint256 mtaUsdc = batchSwap(balancerPoolId1, balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(mtaToken)),
-                IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this), payable(this), mtaBalance);
+                IAsset(address(wmaticToken)), IAsset(address(usdcToken)), address(this), payable(address(this)), mtaBalance);
             totalUsdc += mtaUsdc;
         }
 
