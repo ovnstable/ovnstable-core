@@ -12,8 +12,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const strategy = await ethers.getContract("StrategyQsMaiUsdt");
+    const pm = await ethers.getContract("PortfolioManager");
+
     await (await strategy.setTokens(assets.mai, assets.usdt, assets.usdc, assets.dQuick, assets.quick)).wait();
     await (await strategy.setParams(router, pair, stakingManager)).wait();
+    await (await strategy.setPortfolioManager(pm.address)).wait();
     console.log('StrategyQsMaiUsdt setting done')
 };
 
