@@ -118,7 +118,6 @@ contract StrategyCurve is Strategy, QuickswapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
-
         require(_asset == address(usdcToken), "Some token not compatible");
 
         address current = address(this);
@@ -258,7 +257,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
                 address(usdcToken),
                 crvTokenDenominator,
                 address(this),
-                address(_to),
+                address(this),
                 crvBalance
             );
             totalUsdc += crvUsdc;
@@ -271,7 +270,7 @@ contract StrategyCurve is Strategy, QuickswapExchange {
                 address(usdcToken),
                 wmaticTokenDenominator,
                 address(this),
-                address(_to),
+                address(this),
                 wmaticBalance
             );
             totalUsdc += wmaticUsdc;

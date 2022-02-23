@@ -264,21 +264,21 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         uint256 balBalance = balToken.balanceOf(address(this));
         if (balBalance != 0) {
             uint256 balUsdc = swap(balancerPoolId2, IVault.SwapKind.GIVEN_IN, IAsset(address(balToken)),
-                IAsset(address(usdcToken)), address(this), address(_to), balBalance);
+                IAsset(address(usdcToken)), address(this), address(this), balBalance);
             totalUsdc += balUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(_to), wmaticBalance);
+                address(this), address(this), wmaticBalance);
             totalUsdc += wmaticUsdc;
         }
 
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
         if (tusdBalance != 0) {
             uint256 tusdUsdc = swap(balancerPoolId1, IVault.SwapKind.GIVEN_IN, IAsset(address(tusdToken)),
-                IAsset(address(usdcToken)), address(this), address(_to), tusdBalance);
+                IAsset(address(usdcToken)), address(this), address(this), tusdBalance);
             totalUsdc += tusdUsdc;
         }
 

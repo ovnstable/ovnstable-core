@@ -145,7 +145,7 @@ contract StrategyIdle is Strategy, QuickswapExchange {
                 address(usdcToken),
                 wmaticTokenDenominator,
                 address(this),
-                address(_to),
+                address(this),
                 wmaticBalance
             );
             totalUsdc += wmaticUsdc;
