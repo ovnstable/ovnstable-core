@@ -5,6 +5,7 @@ const { smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
 const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
+const {logGas} = require("../../utils/gas");
 
 const hre = require("hardhat");
 const expectRevert = require("../../utils/expectRevert");
@@ -36,7 +37,8 @@ describe("Liquidity Index", function () {
         let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
         await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
 
-        await usdPlus.mint(account, 1);
+        await logGas(usdPlus.mint(account, 1), "UsdPlusToken", "mint");
+
         let scaledBalance = await usdPlus.scaledBalanceOf(account);
         console.log("ScaledBalance usdPlus: " + scaledBalance);
         expect(scaledBalance).to.equals(1000000000); // stored as rays

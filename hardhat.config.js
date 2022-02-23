@@ -66,7 +66,7 @@ module.exports = {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 80000000000,
+            gasPrice: 90000000000,
         },
 
         ganache: {

@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "hardhat test",
-    "dep": "npx hardhat deploy --network polygon_prod --tags OvnToken"
+    "dep": "npx hardhat deploy --network polygon_prod --tags OvnToken",
+    "gas:print": "node -e \"require('./utils/gas.js').printGasFile()\""
   },
   "keywords": [],
   "author": {

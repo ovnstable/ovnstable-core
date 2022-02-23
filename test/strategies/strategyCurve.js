@@ -7,6 +7,7 @@ const {greatLess, resetHardhat} = require('../../utils/tests');
 const fs = require("fs");
 const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
+const {logStrategyGasUsage} = require("./strategyCommon");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -35,6 +36,9 @@ describe("StrategyCurve. Stake/unstake", function () {
         am3CrvGauge = await ethers.getContractAt("ERC20", assets.am3CRVgauge);
     });
 
+    it("log gas", async () => {
+        await logStrategyGasUsage("StrategyCurve", strategy, usdc, account)
+    });
 
     describe("Stake 100 USDC", function () {
 

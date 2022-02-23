@@ -10,6 +10,7 @@ const hre = require("hardhat");
 const BN = require('bignumber.js');
 const {resetHardhat} = require("../../utils/tests");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
+const {logStrategyGasUsage} = require("./strategyCommon");
 
 chai.use(smock.matchers);
 
@@ -37,6 +38,9 @@ describe("StrategyAave. Stake/unstake", function () {
         amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
     });
 
+    it("log gas", async () => {
+        await logStrategyGasUsage("StrategyAave", strategy, usdc, account)
+    });
 
     describe("Stake 100 USDC", function () {
 

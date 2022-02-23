@@ -147,6 +147,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         );
         uniswapPositionManager.decreaseLiquidity(params);
         _collectLiquidityAndSwap();
+
+        uniswapToken.approve(address(izumiBoost), tokenId);
+        izumiBoost.deposit(tokenId, 0);
     }
 
     function _addLiquidity() internal {

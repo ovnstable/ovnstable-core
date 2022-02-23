@@ -14,6 +14,7 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 const fse = require('fs-extra');
+const {logStrategyGasUsage} = require("./strategyCommon");
 
 
 describe("StrategyIzumi. Stake/unstake", function () {
@@ -37,6 +38,10 @@ describe("StrategyIzumi. Stake/unstake", function () {
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         usdt = await ethers.getContractAt("ERC20", assets.usdt);
+    });
+
+    it("log gas", async () => {
+        await logStrategyGasUsage("StrategyIzumi", strategy, usdc, account)
     });
 
     it("Token ID (NFT) is 0", async function () {

@@ -8,6 +8,7 @@ const fs = require("fs");
 const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
 const hre = require("hardhat");
 const {resetHardhat} = require("../../utils/tests");
+const {logStrategyGasUsage} = require("./strategyCommon");
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
@@ -36,6 +37,9 @@ describe("StrategyMStable. Stake/unstake", function () {
         vimUsd = await ethers.getContractAt("ERC20", assets.vimUsd);
     });
 
+    it("log gas", async () => {
+        await logStrategyGasUsage("StrategyMStable", strategy, usdc, account)
+    });
 
     describe("Stake 100 USDC", function () {
 
