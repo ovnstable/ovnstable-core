@@ -7,6 +7,7 @@ const {greatLess} = require('../../utils/tests');
 const fs = require("fs");
 const {toUSDC, fromUSDC, fromE18, fromE6} = require("../../utils/decimals");
 const hre = require("hardhat");
+const {logStrategyGasUsage} = require("./strategyCommon");
 const {resetHardhat, prepareArtifacts} = require("../../utils/tests");
 const BN = require('bignumber.js');
 
@@ -39,6 +40,9 @@ describe("StrategyQsMaiUsdt. Stake/unstake", function () {
         usdt = await ethers.getContractAt("ERC20", assets.usdt);
     });
 
+    it("log gas", async () => {
+        await logStrategyGasUsage("StrategyQsMaiUsdt", strategy, usdc, account)
+    });
 
     it("NetAssetValue is 0", async function () {
         expect(await strategy.netAssetValue()).to.eq(0);
