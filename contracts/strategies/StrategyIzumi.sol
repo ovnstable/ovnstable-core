@@ -348,8 +348,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721
         uint256 totalUsdc = usdcToken.balanceOf(address(this)) + amountLiq0;
         uint256 totalUsdt = usdtToken.balanceOf(address(this)) + amountLiq1;
 
-        uint256 price = getUsdcBuyPrice(address(usdtToken), address(usdcToken), usdtTokenDenominator, totalUsdt);
-        return totalUsdc + ((totalUsdt * price) / usdtTokenDenominator);
+        return totalUsdc + getAmountsOut(address(usdtToken),address(usdcToken), totalUsdt);
     }
 
 
