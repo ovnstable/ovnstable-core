@@ -313,7 +313,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         return totalUsdc;
     }
 
-    function claimRewards(
+    function claimRewardsTest(
         uint256 claimedBalanceBal,
         uint256 claimedBalanceWMatic,
         uint256 claimedBalanceTUsd,
@@ -393,7 +393,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         bytes32[] memory merkleProofWMatic,
         bytes32[] memory merkleProofTUsd
     ) public {
-        console.log("Start verify claim");
+        console.log("Start verify claim 1");
 
         if (claimedBalanceBal > 0) {
             bool isClaimBal = merkleOrchard.verifyClaim(

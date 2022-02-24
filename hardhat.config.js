@@ -66,7 +66,7 @@ module.exports = {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 90000000000,
+            gasPrice: 350000000000,
         },
 
         ganache: {
@@ -75,7 +75,8 @@ module.exports = {
         },
 
         localhost: {
-            timeout: 362000000
+            timeout: 362000000,
+            accounts: accounts('polygon'),
         },
 
         hardhat: {

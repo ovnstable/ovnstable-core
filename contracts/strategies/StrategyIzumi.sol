@@ -12,12 +12,15 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../connectors/uniswapV3/ISwapRouterV3.sol";
 import "../connectors/uniswapV3/LiquidityAmounts.sol";
 import "../connectors/uniswapV3/INonfungiblePositionManager.sol";
-import "../connectors/BalancerExchange.sol";
 
-contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721Receiver {
+import "../connectors/balancer/interfaces/IVault.sol";
+import "../connectors/balancer/interfaces/IAsset.sol";
+
+contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
     uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
     uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
+    int256 public constant MAX_VALUE = 10 ** 27;
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -32,14 +35,15 @@ contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721
     uint256 public iziTokenDenominator;
     uint256 public yinTokenDenominator;
 
-
     uint256 public tokenId;
-    bytes32 public balancerPoolId;
 
     INonfungiblePositionManager public uniswapPositionManager;
     IUniswapV3Pool public uniswapV3Pool;
     MiningFixRangeBoost public izumiBoost;
     ISwapRouter public uniswapV3Router;
+
+    IVault public balancerVault;
+    bytes32 public balancerPoolId;
 
 
     // --- events
@@ -114,10 +118,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721
         izumiBoost = MiningFixRangeBoost(_izumiBoost);
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
-        setBalancerVault(_balancerVault);
         setUniswapRouter(_uniswapV2Router);
 
         balancerPoolId = _balancerPoolId;
+        balancerVault = IVault(_balancerVault);
     }
 
 
@@ -444,4 +448,32 @@ contract StrategyIzumi is Strategy, QuickswapExchange, BalancerExchange, IERC721
         return this.onERC721Received.selector;
     }
 
+
+    function swap(
+        bytes32 poolId,
+        IVault.SwapKind kind,
+        IAsset tokenIn,
+        IAsset tokenOut,
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal returns (uint256) {
+
+        IERC20(address(tokenIn)).approve(address(balancerVault), IERC20(address(tokenIn)).balanceOf(address(this)));
+
+        IVault.SingleSwap memory singleSwap;
+        singleSwap.poolId = poolId;
+        singleSwap.kind = kind;
+        singleSwap.assetIn = tokenIn;
+        singleSwap.assetOut = tokenOut;
+        singleSwap.amount = amount;
+
+        IVault.FundManagement memory fundManagement;
+        fundManagement.sender = sender;
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(recipient);
+        fundManagement.toInternalBalance = false;
+
+        return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
+    }
 }
