@@ -165,8 +165,20 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             if (!strategies[i].enabled) {// Skip if strategy is not enabled
                 continue;
             }
-            totalUsdc += IStrategy(strategies[i].strategy).netAssetValue();
-            totalWeight += strategies[i].targetWeight;
+
+            // UnstakeFull from Strategies with targetWeight == 0
+            if(strategies[i].targetWeight == 0){
+                totalUsdc += IStrategy(strategies[i].strategy).unstake(
+                    address(usdc),
+                    0,
+                    address(this),
+                    true
+                );
+            }else {
+                totalUsdc += IStrategy(strategies[i].strategy).netAssetValue();
+                totalWeight += strategies[i].targetWeight;
+            }
+
         }
 
         if (address(withdrawToken) == address(usdc)) {
@@ -197,14 +209,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
                 continue;
             }
 
-            bool targetIsZero = targetLiquidity == 0;
             if (targetLiquidity < currentLiquidity) {
                 // unstake now
                 IStrategy(strategies[i].strategy).unstake(
                     address(usdc),
                     currentLiquidity - targetLiquidity,
                     address(this),
-                    targetIsZero
+                    false
                 );
             } else {
                 // save to stake later
