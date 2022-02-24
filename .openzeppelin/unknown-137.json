@@ -350,6 +350,46 @@
       "address": "0xE9D203Ce2CB1Bf0367484BdD5239A7510Efd88Bf",
       "txHash": "0xa965835a1cc587d621b3281eaba025eda8c2cd7640857de79d106705d13badd5",
       "kind": "uups"
+    },
+    {
+      "address": "0x6B3712943A913EB9A22B71D4210DE6158c519970",
+      "txHash": "0xacbd727fe788c0cbb9280a213356994023c3e1f6a3d6d023f4223429ac07d434",
+      "kind": "uups"
+    },
+    {
+      "address": "0x33efB0868A6f12aEce19B451e0fcf62302Ec4A72",
+      "txHash": "0x261edec7e3927a51dfd43d2682707cff8913b856804d9148e6717e24a5b6f0db",
+      "kind": "uups"
+    },
+    {
+      "address": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
+      "txHash": "0x356bab463fbf61d4d9600e89b30814faf006246af61e412e304ad436db469497",
+      "kind": "uups"
+    },
+    {
+      "address": "0xC647A43cF67Ecae5C4C5aC18378FD45C210E8Fbc",
+      "txHash": "0x49648c55e8b3a1d7c335f31a26ec38156b03273dc25a5eca80d7069e432420ba",
+      "kind": "uups"
+    },
+    {
+      "address": "0xBD8e4aCb3348c09EdCE1476790375b3C04684D32",
+      "txHash": "0xf2263e4a3540bb9809bbfcd278be12a168334a67bad48aa9041ec839fe6f3175",
+      "kind": "uups"
+    },
+    {
+      "address": "0xB16Af8666675cD039d56cb0645241d3a8C54DacE",
+      "txHash": "0xcef9786101b50203291ac203d389b9a9f4b2174d36124055d50d19162ddda734",
+      "kind": "uups"
+    },
+    {
+      "address": "0x44FdF9E0C9E52123aB484C9235694cC166CE5718",
+      "txHash": "0x6650c334f2f765cf8ecda7f704dad7aa3ae2e8f6b751003af92012a10064dc71",
+      "kind": "uups"
+    },
+    {
+      "address": "0xE4E59Fc6a475cDBF12299513461F0F52644ee16D",
+      "txHash": "0x9a21fab344b0b7a502de1248690ee9bf94eb2ffcacbda9e3f2c7b7177d5f7a33",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -6372,12 +6412,12 @@
           {
             "contract": "Mark2Market",
             "label": "portfolioManager",
-            "type": "t_contract(IPortfolioManager)20451",
+            "type": "t_contract(IPortfolioManager)21870",
             "src": "contracts/Mark2Market.sol:19"
           }
         ],
         "types": {
-          "t_contract(IPortfolioManager)20451": {
+          "t_contract(IPortfolioManager)21870": {
             "label": "contract IPortfolioManager"
           },
           "t_array(t_uint256)50_storage": {
@@ -7731,7 +7771,7 @@
           {
             "contract": "Exchange",
             "label": "usdPlus",
-            "type": "t_contract(UsdPlusToken)15496",
+            "type": "t_contract(UsdPlusToken)16002",
             "src": "contracts/Exchange.sol:21"
           },
           {
@@ -7743,13 +7783,13 @@
           {
             "contract": "Exchange",
             "label": "portfolioManager",
-            "type": "t_contract(IPortfolioManager)20479",
+            "type": "t_contract(IPortfolioManager)21870",
             "src": "contracts/Exchange.sol:24"
           },
           {
             "contract": "Exchange",
             "label": "mark2market",
-            "type": "t_contract(IMark2Market)20419",
+            "type": "t_contract(IMark2Market)21807",
             "src": "contracts/Exchange.sol:25"
           },
           {
@@ -7796,16 +7836,16 @@
           }
         ],
         "types": {
-          "t_contract(UsdPlusToken)15496": {
+          "t_contract(UsdPlusToken)16002": {
             "label": "contract UsdPlusToken"
           },
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(IPortfolioManager)20479": {
+          "t_contract(IPortfolioManager)21870": {
             "label": "contract IPortfolioManager"
           },
-          "t_contract(IMark2Market)20419": {
+          "t_contract(IMark2Market)21807": {
             "label": "contract IMark2Market"
           },
           "t_uint256": {
@@ -9945,7 +9985,7 @@
           {
             "contract": "StrategyAave",
             "label": "aaveProvider",
-            "type": "t_contract(ILendingPoolAddressesProvider)16921",
+            "type": "t_contract(ILendingPoolAddressesProvider)17269",
             "src": "contracts/strategies/StrategyAave.sol:14"
           }
         ],
@@ -9953,7 +9993,7 @@
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(ILendingPoolAddressesProvider)16921": {
+          "t_contract(ILendingPoolAddressesProvider)17269": {
             "label": "contract ILendingPoolAddressesProvider"
           },
           "t_address": {
@@ -10064,7 +10104,7 @@
           {
             "contract": "QuickswapExchange",
             "label": "uniswapRouter",
-            "type": "t_contract(IUniswapV2Router02)19972",
+            "type": "t_contract(IUniswapV2Router02)20320",
             "src": "contracts/connectors/QuickswapExchange.sol:10"
           },
           {
@@ -10130,13 +10170,13 @@
           {
             "contract": "StrategyCurve",
             "label": "curvePool",
-            "type": "t_contract(iCurvePool)18554",
+            "type": "t_contract(iCurvePool)18902",
             "src": "contracts/strategies/StrategyCurve.sol:25"
           },
           {
             "contract": "StrategyCurve",
             "label": "rewardGauge",
-            "type": "t_contract(IRewardOnlyGauge)18431",
+            "type": "t_contract(IRewardOnlyGauge)18779",
             "src": "contracts/strategies/StrategyCurve.sol:26"
           }
         ],
@@ -10147,13 +10187,13 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_contract(iCurvePool)18554": {
+          "t_contract(iCurvePool)18902": {
             "label": "contract iCurvePool"
           },
-          "t_contract(IRewardOnlyGauge)18431": {
+          "t_contract(IRewardOnlyGauge)18779": {
             "label": "contract IRewardOnlyGauge"
           },
-          "t_contract(IUniswapV2Router02)19972": {
+          "t_contract(IUniswapV2Router02)20320": {
             "label": "contract IUniswapV2Router02"
           },
           "t_array(t_uint256)49_storage": {
@@ -10479,7 +10519,7 @@
           {
             "contract": "QuickswapExchange",
             "label": "uniswapRouter",
-            "type": "t_contract(IUniswapV2Router02)19972",
+            "type": "t_contract(IUniswapV2Router02)20320",
             "src": "contracts/connectors/QuickswapExchange.sol:10"
           },
           {
@@ -10557,31 +10597,31 @@
           {
             "contract": "StrategyIzumi",
             "label": "uniswapPositionManager",
-            "type": "t_contract(INonfungiblePositionManager)20331",
+            "type": "t_contract(INonfungiblePositionManager)20679",
             "src": "contracts/strategies/StrategyIzumi.sol:40"
           },
           {
             "contract": "StrategyIzumi",
             "label": "uniswapV3Pool",
-            "type": "t_contract(IUniswapV3Pool)20574",
+            "type": "t_contract(IUniswapV3Pool)20922",
             "src": "contracts/strategies/StrategyIzumi.sol:41"
           },
           {
             "contract": "StrategyIzumi",
             "label": "izumiBoost",
-            "type": "t_contract(MiningFixRangeBoost)18746",
+            "type": "t_contract(MiningFixRangeBoost)19094",
             "src": "contracts/strategies/StrategyIzumi.sol:42"
           },
           {
             "contract": "StrategyIzumi",
             "label": "uniswapV3Router",
-            "type": "t_contract(ISwapRouter)20431",
+            "type": "t_contract(ISwapRouter)20779",
             "src": "contracts/strategies/StrategyIzumi.sol:43"
           },
           {
             "contract": "StrategyIzumi",
             "label": "balancerVault",
-            "type": "t_contract(IVault)18338",
+            "type": "t_contract(IVault)18686",
             "src": "contracts/strategies/StrategyIzumi.sol:45"
           },
           {
@@ -10601,25 +10641,25 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_contract(INonfungiblePositionManager)20331": {
+          "t_contract(INonfungiblePositionManager)20679": {
             "label": "contract INonfungiblePositionManager"
           },
-          "t_contract(IUniswapV3Pool)20574": {
+          "t_contract(IUniswapV3Pool)20922": {
             "label": "contract IUniswapV3Pool"
           },
-          "t_contract(MiningFixRangeBoost)18746": {
+          "t_contract(MiningFixRangeBoost)19094": {
             "label": "contract MiningFixRangeBoost"
           },
-          "t_contract(ISwapRouter)20431": {
+          "t_contract(ISwapRouter)20779": {
             "label": "contract ISwapRouter"
           },
-          "t_contract(IVault)18338": {
+          "t_contract(IVault)18686": {
             "label": "contract IVault"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IUniswapV2Router02)19972": {
+          "t_contract(IUniswapV2Router02)20320": {
             "label": "contract IUniswapV2Router02"
           },
           "t_array(t_uint256)49_storage": {
@@ -10975,7 +11015,7 @@
           {
             "contract": "BalancerExchange",
             "label": "balancerVault",
-            "type": "t_contract(IVault)18338",
+            "type": "t_contract(IVault)18686",
             "src": "contracts/connectors/BalancerExchange.sol:15"
           },
           {
@@ -10987,7 +11027,7 @@
           {
             "contract": "QuickswapExchange",
             "label": "uniswapRouter",
-            "type": "t_contract(IUniswapV2Router02)19972",
+            "type": "t_contract(IUniswapV2Router02)20320",
             "src": "contracts/connectors/QuickswapExchange.sol:10"
           },
           {
@@ -11005,19 +11045,19 @@
           {
             "contract": "StrategyMStable",
             "label": "mUsdToken",
-            "type": "t_contract(IMasset)19200",
+            "type": "t_contract(IMasset)19548",
             "src": "contracts/strategies/StrategyMStable.sol:14"
           },
           {
             "contract": "StrategyMStable",
             "label": "imUsdToken",
-            "type": "t_contract(ISavingsContractV2)19321",
+            "type": "t_contract(ISavingsContractV2)19669",
             "src": "contracts/strategies/StrategyMStable.sol:15"
           },
           {
             "contract": "StrategyMStable",
             "label": "vimUsdToken",
-            "type": "t_contract(IBoostedVaultWithLockup)18973",
+            "type": "t_contract(IBoostedVaultWithLockup)19321",
             "src": "contracts/strategies/StrategyMStable.sol:16"
           },
           {
@@ -11067,13 +11107,13 @@
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(IMasset)19200": {
+          "t_contract(IMasset)19548": {
             "label": "contract IMasset"
           },
-          "t_contract(ISavingsContractV2)19321": {
+          "t_contract(ISavingsContractV2)19669": {
             "label": "contract ISavingsContractV2"
           },
-          "t_contract(IBoostedVaultWithLockup)18973": {
+          "t_contract(IBoostedVaultWithLockup)19321": {
             "label": "contract IBoostedVaultWithLockup"
           },
           "t_uint256": {
@@ -11082,13 +11122,13 @@
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(IUniswapV2Router02)19972": {
+          "t_contract(IUniswapV2Router02)20320": {
             "label": "contract IUniswapV2Router02"
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
           },
-          "t_contract(IVault)18338": {
+          "t_contract(IVault)18686": {
             "label": "contract IVault"
           },
           "t_address": {

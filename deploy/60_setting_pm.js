@@ -45,31 +45,31 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabledReward: true,
     }
 
-    let balancer = {
-        strategy: (await ethers.getContract("StrategyBalancer")).address,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
+    // let balancer = {
+    //     strategy: (await ethers.getContract("StrategyBalancer")).address,
+    //     minWeight: 0,
+    //     targetWeight: 0,
+    //     maxWeight: 100000,
+    //     enabled: true,
+    //     enabledReward: true,
+    // }
 
-    let idle = {
-        strategy: (await ethers.getContract("StrategyIdle")).address,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
+    // let idle = {
+    //     strategy: (await ethers.getContract("StrategyIdle")).address,
+    //     minWeight: 0,
+    //     targetWeight: 0,
+    //     maxWeight: 100000,
+    //     enabled: true,
+    //     enabledReward: true,
+    // }
 
     let weights = [
         aave,
         mstable,
         izumu,
-        balancer,
+        // balancer,
         curve,
-        idle
+        // idle
     ]
 
     await (await pm.setStrategyWeights(weights)).wait();
