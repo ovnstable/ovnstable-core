@@ -62,11 +62,18 @@ module.exports = {
             gasPrice: 80000000000,
         },
 
+        polygon_new: {
+            url: node_url('polygon'),
+            accounts: accounts('polygon'),
+            timeout: 36200000,
+            gasPrice: 200000000000,
+        },
+
         polygon_dev: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 350000000000,
+            gasPrice: 200000000000,
         },
 
         ganache: {

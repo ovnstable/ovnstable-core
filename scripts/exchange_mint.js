@@ -99,14 +99,17 @@ async function main() {
         idle
     ]
 
-    await (await pm.setStrategyWeights(weights)).wait();
-    console.log("portfolio.setWeights done");
 
-    let balanceUSDC = await USDC.balanceOf(wallet.address);
-    await USDC.approve(exchange.address, balanceUSDC);
+    // await(await pm.balance()).wait();
 
-    console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
-    await exchange.buy(USDC.address, balanceUSDC);
+    // await (await pm.setStrategyWeights(weights)).wait();
+    // console.log("portfolio.setWeights done");
+
+    // let balanceUSDC = await USDC.balanceOf(wallet.address);
+    // await USDC.approve(exchange.address, balanceUSDC);
+    //
+    // console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
+    // await exchange.buy(USDC.address, balanceUSDC);
     // await exchange.payout();
 
 }
