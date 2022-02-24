@@ -6,6 +6,9 @@ import "../connectors/balancer/interfaces/IVault.sol";
 import "../connectors/balancer/interfaces/IAsset.sol";
 import "../connectors/BalancerExchange.sol";
 import "../connectors/QuickswapExchange.sol";
+import "../connectors/balancer/MerkleOrchard.sol";
+
+import "hardhat/console.sol";
 
 contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
@@ -26,6 +29,14 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
     bytes32 public balancerPoolId1;
     bytes32 public balancerPoolId2;
 
+    MerkleOrchard public merkleOrchard;
+
+    address public distributorBal;
+    address public distributorWMatic;
+    address public distributorTUsd;
+
+    uint256 public distributionId;
+
 
     // --- events
 
@@ -33,7 +44,8 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         address tusdToken, uint256 usdcTokenDenominator, uint256 bpspTUsdTokenDenominator,uint256 balTokenDenominator,
         uint256 wmaticTokenDenominator, uint256 tusdTokenDenominator);
 
-    event StrategyBalancerUpdatedParams(address balancerVault, address uniswapRouter, bytes32 balancerPoolId1, bytes32 balancerPoolId2);
+    event StrategyBalancerUpdatedParams(address balancerVault, address uniswapRouter, bytes32 balancerPoolId1, bytes32 balancerPoolId2,
+        address merkleOrchard, address distributorBal, address distributorWMatic, address distributorTUsd, uint256 distributionId);
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -80,23 +92,38 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         address _balancerVault,
         address _uniswapRouter,
         bytes32 _balancerPoolId1,
-        bytes32 _balancerPoolId2
+        bytes32 _balancerPoolId2,
+        address _merkleOrchard,
+        address _distributorBal,
+        address _distributorWMatic,
+        address _distributorTUsd,
+        uint256 _distributionId
     ) external onlyAdmin {
 
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_uniswapRouter != address(0), "Zero address not allowed");
-
         require(_balancerPoolId1 != "", "Empty pool id not allowed");
         require(_balancerPoolId2 != "", "Empty pool id not allowed");
+        require(_merkleOrchard != address(0), "Zero address not allowed");
+        require(_distributorBal != address(0), "Zero address not allowed");
+        require(_distributorWMatic != address(0), "Zero address not allowed");
+        require(_distributorTUsd != address(0), "Zero address not allowed");
+        require(_distributionId != 0, "Zero distributionId not allowed");
 
-        balancerVault = IVault(_balancerVault);
         setBalancerVault(_balancerVault);
         setUniswapRouter(_uniswapRouter);
 
+        balancerVault = IVault(_balancerVault);
         balancerPoolId1 = _balancerPoolId1;
         balancerPoolId2 = _balancerPoolId2;
+        merkleOrchard = MerkleOrchard(_merkleOrchard);
+        distributorBal = _distributorBal;
+        distributorWMatic = _distributorWMatic;
+        distributorTUsd = _distributorTUsd;
+        distributionId = _distributionId;
 
-        emit StrategyBalancerUpdatedParams(_balancerVault, _uniswapRouter, _balancerPoolId1, _balancerPoolId2);
+        emit StrategyBalancerUpdatedParams(_balancerVault, _uniswapRouter, _balancerPoolId1, _balancerPoolId2,
+            _merkleOrchard, _distributorBal, _distributorWMatic, _distributorTUsd, _distributionId);
     }
 
 
@@ -284,5 +311,123 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
+    }
+
+    function claimRewards(
+        uint256 claimedBalanceBal,
+        uint256 claimedBalanceWMatic,
+        uint256 claimedBalanceTUsd,
+        bytes32[] memory merkleProofBal,
+        bytes32[] memory merkleProofWMatic,
+        bytes32[] memory merkleProofTUsd
+    ) public {
+        console.log("Start claim");
+
+        uint8 size;
+        if (claimedBalanceBal > 0) {
+            size++;
+        }
+        if (claimedBalanceWMatic > 0) {
+            size++;
+        }
+        if (claimedBalanceTUsd > 0) {
+            size++;
+        }
+        MerkleOrchard.Claim[] memory claims = new MerkleOrchard.Claim[](size);
+        IERC20[] memory tokens = new IERC20[](size);
+
+        uint8 i;
+        if (claimedBalanceBal > 0) {
+            MerkleOrchard.Claim memory claimBal = MerkleOrchard.Claim(
+                distributionId,
+                claimedBalanceBal,
+                distributorBal,
+                i,
+                merkleProofBal);
+            claims[i] = claimBal;
+            tokens[i] = balToken;
+            i++;
+            console.log("claimBal: %s", i);
+        }
+        if (claimedBalanceWMatic > 0) {
+            MerkleOrchard.Claim memory claimWMatic = MerkleOrchard.Claim(
+                distributionId,
+                claimedBalanceWMatic,
+                distributorWMatic,
+                i,
+                merkleProofWMatic);
+            claims[i] = claimWMatic;
+            tokens[i] = wmaticToken;
+            i++;
+            console.log("claimWMatic: %s", i);
+        }
+        if (claimedBalanceTUsd > 0) {
+            MerkleOrchard.Claim memory claimTUsd = MerkleOrchard.Claim(
+                distributionId,
+                claimedBalanceTUsd,
+                distributorTUsd,
+                i,
+                merkleProofTUsd);
+            claims[i] = claimTUsd;
+            tokens[i] = tusdToken;
+            console.log("claimTUsd: %s", i);
+        }
+
+        merkleOrchard.claimDistributions(address(this), claims, tokens);
+
+        uint256 balanceBal = balToken.balanceOf(address(this));
+        console.log("balanceBal: %s", balanceBal);
+        uint256 balanceWMatic = wmaticToken.balanceOf(address(this));
+        console.log("balanceWMatic: %s", balanceWMatic);
+        uint256 balanceTUsd = tusdToken.balanceOf(address(this));
+        console.log("balanceTUsd: %s", balanceTUsd);
+
+        console.log("Finish claim");
+    }
+
+    function verifyClaim(
+        uint256 claimedBalanceBal,
+        uint256 claimedBalanceWMatic,
+        uint256 claimedBalanceTUsd,
+        bytes32[] memory merkleProofBal,
+        bytes32[] memory merkleProofWMatic,
+        bytes32[] memory merkleProofTUsd
+    ) public {
+        console.log("Start verify claim");
+
+        if (claimedBalanceBal > 0) {
+            bool isClaimBal = merkleOrchard.verifyClaim(
+                balToken,
+                distributorBal,
+                distributionId,
+                address(this),
+                claimedBalanceBal,
+                merkleProofBal);
+            console.log("isClaimBal: %s", isClaimBal);
+        }
+
+        if (claimedBalanceBal > 0) {
+            bool isClaimWMatic = merkleOrchard.verifyClaim(
+                balToken,
+                distributorWMatic,
+                distributionId,
+                address(this),
+                claimedBalanceWMatic,
+                merkleProofWMatic);
+            console.log("isClaimWMatic: %s", isClaimWMatic);
+        }
+
+        if (claimedBalanceBal > 0) {
+            bool isClaimTUsd = merkleOrchard.verifyClaim(
+                balToken,
+                distributorTUsd,
+                distributionId,
+                address(this),
+                claimedBalanceTUsd,
+                merkleProofTUsd);
+            console.log("isClaimTUsd: %s", isClaimTUsd);
+        }
+
+        console.log("Finish verify claim");
     }
 }

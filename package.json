@@ -9,6 +9,7 @@
   "scripts": {
     "test": "hardhat test",
     "dep": "npx hardhat deploy --network polygon_prod --tags OvnToken",
+    "gas:report": "mocha --timeout 300000 --grep \"log gas\" \"test\\strategies\" ",
     "gas:print": "node -e \"require('./utils/gas.js').printGasFile()\""
   },
   "keywords": [],
