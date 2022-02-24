@@ -21,4 +21,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['setting','StrategyAaveSetting'];
-module.exports.dependencies = ["PortfolioManager"];
