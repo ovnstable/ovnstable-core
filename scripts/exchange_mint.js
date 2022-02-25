@@ -110,7 +110,7 @@ async function main() {
     //
     // console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
     // await exchange.buy(USDC.address, balanceUSDC);
-    // await exchange.payout();
+    await exchange.payout();
 
 }
 

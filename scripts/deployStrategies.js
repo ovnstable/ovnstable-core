@@ -1,30 +1,32 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, fromOvnGov, toUSDC} = require("../utils/decimals");
+const {fromE18, fromOvnGov, toUSDC, fromUSDC} = require("../utils/decimals");
 const {expect} = require("chai");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
 let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
 
-let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon_dev/UsdPlusToken.json'));
-let TimeLock = JSON.parse(fs.readFileSync('./deployments/polygon_dev/TimelockController.json'));
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Exchange.json'));
-let Portfolio = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Portfolio.json'));
-let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Mark2Market.json'));
-let OvnGovernor = JSON.parse(fs.readFileSync('./deployments/polygon_dev/OvnGovernor.json'));
-let OvnToken = JSON.parse(fs.readFileSync('./deployments/polygon_dev/OvnToken.json'));
-let Vault = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Vault.json'));
+let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
+let TimeLock = JSON.parse(fs.readFileSync('./deployments/polygon/TimelockController.json'));
+let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
+let Portfolio = JSON.parse(fs.readFileSync('./deployments/polygon/Portfolio.json'));
+let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
+let OvnGovernor = JSON.parse(fs.readFileSync('./deployments/polygon/OvnGovernor.json'));
+let OvnToken = JSON.parse(fs.readFileSync('./deployments/polygon/OvnToken.json'));
+let Vault = JSON.parse(fs.readFileSync('./deployments/polygon/Vault.json'));
 
-let AAVE = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/StrategyAave.json'));
-let CURVE = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/StrategyCurve.json'));
-let EXCHANGE_NEW = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/Exchange.json'));
-let PortfolioNew = JSON.parse(fs.readFileSync('./deployments/polygon_dev_new/PortfolioManager.json'));
+let AAVE = JSON.parse(fs.readFileSync('./deployments/polygon_new/StrategyAave.json'));
+let CURVE = JSON.parse(fs.readFileSync('./deployments/polygon_new/StrategyCurve.json'));
+let MSTABLE = JSON.parse(fs.readFileSync('./deployments/polygon_new/StrategyMStable.json'));
+let IZUMI = JSON.parse(fs.readFileSync('./deployments/polygon_new/StrategyIzumi.json'));
+let M2M_NEW = JSON.parse(fs.readFileSync('./deployments/polygon_new/Mark2Market.json'));
+let EXCHANGE_NEW = JSON.parse(fs.readFileSync('./deployments/polygon_new/Exchange.json'));
+let PortfolioNew = JSON.parse(fs.readFileSync('./deployments/polygon_new/PortfolioManager.json'));
 
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 let assets = JSON.parse(fs.readFileSync('./assets.json'));
-
 
 
 
@@ -39,6 +41,7 @@ async function main() {
     let pmOld = await ethers.getContractAt(Portfolio.abi, Portfolio.address, wallet);
     let pmNew = await ethers.getContractAt(PortfolioNew.abi, PortfolioNew.address, wallet);
     let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address, wallet);
+    let m2mNew = await ethers.getContractAt(M2M_NEW.abi, M2M_NEW.address, wallet);
     let usdPlus = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
     const governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address);
     let usdc = await ethers.getContractAt(ERC20.abi, assets.usdc, wallet);
@@ -54,207 +57,270 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let vimUsdWeight = {
-        asset: assets.vimUsd,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let idleUsdcWeight = {
-        asset: assets.idleUsdc,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let usdcWeight = {
-        asset: assets.usdc,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let aUsdcWeight = {
-        asset: assets.amUsdc,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let a3CrvWeight = {
-        asset: assets.am3CRV,
-        minWeight: 0,
-        targetWeight: 1000,
-        maxWeight: 100000,
-    }
-    let a3CrvGaugeWeight = {
-        asset: assets.am3CRVgauge,
-        minWeight: 0,
-        targetWeight: 97000,
-        maxWeight: 100000,
-    }
-    let wMaticWeight = {
-        asset: assets.wMatic,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let crvWeight = {
-        asset: assets.crv,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let mtaWeight = {
-        asset: assets.mta,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-    }
-    let weights = [
-        vimUsdWeight,
-        idleUsdcWeight,
-        usdcWeight,
-        aUsdcWeight,
-        a3CrvWeight,
-        a3CrvGaugeWeight,
-        wMaticWeight,
-        crvWeight,
-        mtaWeight
-    ]
 
-    // addresses.push(pmOld.address);
-    // values.push(0);
-
-    // await (await pmOld.setWeights(weights)).wait();
-
-    // abis.push(pmOld.interface.encodeFunctionData('setWeights', [weights]));
-    // abis.push(pmOld.interface.encodeFunctionData('grantRole', [await pmOld.DEFAULT_ADMIN_ROLE(), wallet.address]));
-
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal #15 Add Strategies"),
-    // );
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-
-    // console.log('Proposal id ' + proposalId);
-    // await execProposal(governator, ovn, proposalId, wallet);
-
+    // await grantRole();
+    // await checkGrantRole();
+    // await redeem();
+    // await showBalances(vault.address);
+    // await transferVault();
     // await showBalances(vault.address);
 
-    // console.log('Redeem USD+')
-    //
-    // console.log('Balance usdPlus ' + await usdPlus.balanceOf(wallet.address));
-    // await (await usdPlus.approve(exchangeOld.address, await usdPlus.balanceOf(wallet.address))).wait();
-    // await exchangeOld.redeem(assets.usdc, await usdPlus.balanceOf(wallet.address));
-
-    // await showBalances(vault.address);
-
-    // addresses.push(vault.address);
-    // values.push(0);
-    // abis.push(vault.interface.encodeFunctionData('grantRole', [await vault.PORTFOLIO_MANAGER(), wallet.address]));
-
-    // addresses.push(vault.address);
-    // values.push(0);
-    // abis.push(vault.interface.encodeFunctionData('transfer', [assets.usdc, pmNew.address, await usdc.balanceOf(vault.address)]));
-    //
-    // addresses.push(vault.address);
-    // values.push(0);
-    // abis.push(vault.interface.encodeFunctionData('transfer', [assets.amUsdc, aave.address, await amUsdc.balanceOf(vault.address)]));
-    //
-    // addresses.push(vault.address);
-    // values.push(0);
-    // abis.push(vault.interface.encodeFunctionData('transfer', [assets.am3CRV, curve.address, await am3CRV.balanceOf(vault.address)]));
-    //
-    // addresses.push(vault.address);
-    // values.push(0);
-    // abis.push(vault.interface.encodeFunctionData('transfer', [assets.am3CRVgauge, curve.address, await am3CRVgauge.balanceOf(vault.address)]));
-
-    // addresses.push(usdPlus.address);
-    // values.push(0);
-    // abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.EXCHANGER(), exchangeNew.address]))
-    //
-    // addresses.push(usdPlus.address);
-    // values.push(0);
-    // abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.EXCHANGER(), exchangeOld.address]))
-
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal #1224Add Strategies"),
-    // );
-
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    // console.log('ProposalID ' + proposalId);
-    // let balanceUsdc = await usdc.balanceOf(pmNew.address);
-
-    // await execProposal(governator, ovn, proposalId, wallet);
-    // await showBalances(vault.address);
+    // await setStrategyWeights();
+    await showM2MNew();
 
 
-    // console.log('Role wallet ' + await vault.hasRole(await vault.DEFAULT_ADMIN_ROLE(), wallet.address));
-    // console.log('Role timelock ' + await vault.hasRole(await vault.DEFAULT_ADMIN_ROLE(), TimeLock.address));
-    //
-    // await (await vault.grantRole(await vault.PORTFOLIO_MANAGER(), wallet.address)).wait();
-    // await vault.transfer(assets.usdc, pmNew.address, await usdc.balanceOf(vault.address));
-    // await vault.transfer(assets.amUsdc, aave.address, await amUsdc.balanceOf(vault.address));
-    // await vault.transfer(assets.am3CRV, curve.address, await am3CRV.balanceOf(vault.address));
-    // await vault.transfer(assets.am3CRVgauge, curve.address, await am3CRVgauge.balanceOf(vault.address));
+    console.log('Total supply : ' + await usdPlus.totalSupply() / 10 ** 6);
+    // await buyNew();
 
-    //
-    // await showBalances(vault.address);
-    //
-    // await showBalances(aave.address);
-    // await showBalances(curve.address);
+    async function buyNew(){
 
-    // let balanceUsdcNew = await usdc.balanceOf(pmNew.address);
-    //
-    // console.log(`Balance USDC ${balanceUsdc}:${balanceUsdcNew}`)
+        let tx =await exchangeNew.setTokens(usdPlus.address, assets.usdc, {
+            maxFeePerGas: "250000000000",
+            maxPriorityFeePerGas: "250000000000"
+        });
+
+        console.log(' maxPriorityFeePerGas : ' + tx.maxPriorityFeePerGas);
+        console.log(' maxFeePerGas:  ' + tx.maxFeePerGas);
+        console.log(' gasPrice:  ' + tx.gasPrice);
+
+        await tx.wait();
+
+        await (await pmNew.balance( {
+            maxFeePerGas: "250000000000",
+            maxPriorityFeePerGas: "250000000000"
+        })).wait();
+    }
+
+    async function transferVault(){
+
+        console.log(`Transfer USDC token ${assets.usdc} recepient: ${pmNew.address} balance: ${await usdc.balanceOf(vault.address)}`);
+        console.log(`Transfer amUSDC token ${assets.amUsdc} recepient: ${aave.address} balance: ${await amUsdc.balanceOf(vault.address)}`);
+        console.log(`Transfer am3CRV token ${assets.am3CRV} recepient: ${curve.address} balance: ${await am3CRV.balanceOf(vault.address)}`);
+        console.log(`Transfer am3CRVgauge token ${assets.am3CRVgauge} recepient: ${curve.address} balance: ${await am3CRVgauge.balanceOf(vault.address)}`);
+
+        await (await vault.transfer(assets.usdc, pmNew.address, await usdc.balanceOf(vault.address))).wait();
+
+        console.log('Transfer amUSDC');
+        await ( await vault.transfer(assets.amUsdc, aave.address, await amUsdc.balanceOf(vault.address))).wait();
+
+        console.log('Transfer am3CRV');
+        await (await vault.transfer(assets.am3CRV, curve.address, await am3CRV.balanceOf(vault.address))).wait();
+
+        console.log('Transfer am3CRVgauge');
+        await (await vault.transfer(assets.am3CRVgauge, curve.address, await am3CRVgauge.balanceOf(vault.address))).wait();
+    }
+
+    async function showM2MNew(){
+
+        let items = await m2mNew.strategyAssets();
+
+        console.log('Total net asset value: ' + await m2mNew.totalNetAssets());
+        console.log('Total liq value: ' + await m2mNew.totalLiquidationAssets());
+
+        for (let i = 0; i <items.length ; i++) {
+
+            let item = items[i];
+            console.log("Strategy: " + item.strategy);
+            console.log("NetAsset: " + fromUSDC(item.netAssetValue));
+            console.log("LiqValue: " + fromUSDC(item.liquidationValue));
+        }
+    }
 
 
-    // addresses.push(usdPlus.address);
-    // values.push(0);
-    // abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.EXCHANGER(), exchangeNew.address]))
-    //
-    // addresses.push(usdPlus.address);
-    // values.push(0);
-    // abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.EXCHANGER(), exchangeOld.address]))
-    //
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal #1225Add Strategies"),
-    // );
-    // //
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    // console.log('ProposalID ' + proposalId);
-    // await execProposal(governator, ovn, proposalId, wallet);
+    async function unstakeAave(){
 
-    // console.log('Grant role');
-    // await (await usdPlus.grantRole(await usdPlus.EXCHANGER(), exchangeNew.address)).wait();
-    //
-    // console.log('Revoke role');
-    // await (await usdPlus.revokeRole(await usdPlus.EXCHANGER(), exchangeOld.address)).wait();
+        console.log('Balance USDC: ' + await usdc.balanceOf(wallet.address));
+        await aave.setPortfolioManager(wallet.address);
+        await aave.unstake(usdc.address, 0, wallet.address, true);
+        console.log('Balance USDC: ' + await usdc.balanceOf(wallet.address));
+    }
 
-    // console.log('Approve');
-    // await usdc.approve(exchangeNew.address, toUSDC(1));
-    //
-    // console.log('Buy');
-    await  (await exchangeNew.payout()).wait();
+    async function grantRole(){
 
+        let vimUsdWeight = {
+            asset: assets.vimUsd,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+        }
+        let idleUsdcWeight = {
+            asset: assets.idleUsdc,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+        }
+        let usdcWeight = {
+            asset: assets.usdc,
+            minWeight: 0,
+            targetWeight: 1000,
+            maxWeight: 100000,
+        }
+        let aUsdcWeight = {
+            asset: assets.amUsdc,
+            minWeight: 0,
+            targetWeight: 1000,
+            maxWeight: 100000,
+        }
+        let a3CrvWeight = {
+            asset: assets.am3CRV,
+            minWeight: 0,
+            targetWeight: 1000,
+            maxWeight: 100000,
+        }
+        let a3CrvGaugeWeight = {
+            asset: assets.am3CRVgauge,
+            minWeight: 0,
+            targetWeight: 97000,
+            maxWeight: 100000,
+        }
+        let wMaticWeight = {
+            asset: assets.wMatic,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+        }
+        let crvWeight = {
+            asset: assets.crv,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+        }
+        let mtaWeight = {
+            asset: assets.mta,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+        }
+        let weights = [
+            vimUsdWeight,
+            idleUsdcWeight,
+            usdcWeight,
+            aUsdcWeight,
+            a3CrvWeight,
+            a3CrvGaugeWeight,
+            wMaticWeight,
+            crvWeight,
+            mtaWeight
+        ]
+
+        addresses.push(pmOld.address);
+        values.push(0);
+        abis.push(pmOld.interface.encodeFunctionData('setWeights', [weights]));
+
+        addresses.push(pmOld.address);
+        values.push(0);
+        abis.push(pmOld.interface.encodeFunctionData('grantRole', [await pmOld.DEFAULT_ADMIN_ROLE(), wallet.address]));
+
+        addresses.push(vault.address);
+        values.push(0);
+        abis.push(vault.interface.encodeFunctionData('grantRole', [await vault.PORTFOLIO_MANAGER(), wallet.address]));
+
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.EXCHANGER(), exchangeNew.address]))
+
+        // addresses.push(usdPlus.address);
+        // values.push(0);
+        // abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.EXCHANGER(), exchangeOld.address]))
+
+        console.log('Creating a proposal...')
+        const proposeTx = await governor.proposeExec(
+            addresses,
+            values,
+            abis,
+            ethers.utils.id("Proposal #22 New core"),
+        );
+
+        console.log('Tx ' + proposeTx.hash);
+        let tx = await proposeTx.wait();
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        console.log('Proposal id ' + proposalId);
+        // await execProposal(governator, ovn, proposalId, wallet);
+
+    }
+
+
+    async function redeem(){
+
+        //
+        console.log('Approve');
+        await(await usdc.approve(exchangeOld.address, toUSDC(1))).wait();
+
+        console.log('Buy');
+        await  (await exchangeOld.buy(usdc.address, toUSDC(1))).wait();
+
+    }
+
+    async function setStrategyWeights(){
+
+        let aave = {
+            strategy: AAVE.address,
+            minWeight: 0,
+            targetWeight: 100000,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: true,
+        }
+        let curve = {
+            strategy: CURVE.address,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+            enabled: false,
+            enabledReward: true,
+        }
+
+        let mstable= {
+            strategy: MSTABLE.address,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: true,
+        }
+
+        let izumu = {
+            strategy: IZUMI.address,
+            minWeight: 0,
+            targetWeight: 0,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: true,
+        }
+
+        let weights = [
+            aave,
+            mstable,
+            izumu,
+            // balancer,
+            curve,
+            // idle
+        ]
+
+        await (await pmNew.setStrategyWeights(weights)).wait();
+        await (await pmNew.balance()).wait();
+
+    }
+
+    async function checkGrantRole(){
+
+        console.log(`pmOld.hasRoleAdmin() => ${await pmOld.hasRole(await pmOld.DEFAULT_ADMIN_ROLE(), wallet.address)}`)
+        console.log(`vault.hasRolePM() => ${await vault.hasRole(await vault.PORTFOLIO_MANAGER(), wallet.address)}`)
+        console.log(`usdPlus[${usdPlus.address}].hasRoleEXCHANGER() - NEW ${exchangeNew.address} => ${await usdPlus.hasRole(await usdPlus.EXCHANGER(), exchangeNew.address)}`)
+        console.log(`usdPlus[${usdPlus.address}].hasRoleEXCHANGER() - OLD ${exchangeOld.address}=> ${await usdPlus.hasRole(await usdPlus.EXCHANGER(), exchangeOld.address)}`)
+
+    }
 }
+
+
+
 
 async function initWallet() {
 
     let provider = ethers.provider;
     console.log('Provider: ' + provider.connection.url);
+
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
@@ -317,6 +383,11 @@ main()
     });
 
 async function showBalances( ownerAddress) {
+
+    let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address );
+
+    let prices = await m2m.assetPrices();
+   console.log('TotalUSDC: ' + fromE18(prices.totalUsdcPrice));
 
     let idleUSDC = await ethers.getContractAt(ERC20.abi, '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
