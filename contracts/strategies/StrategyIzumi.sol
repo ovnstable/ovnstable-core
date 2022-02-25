@@ -175,15 +175,16 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             tokenId,
             amount0Desired,
             amount1Desired,
-            (amount0Desired * 99 / 100), // slippage 1%
-            (amount1Desired * 99 / 100), // slippage 1%
+            0, // TODO UPDATE slippage
+            0, // TODO UPDATE slippage
             block.timestamp + 600
         );
 
         usdcToken.approve(address(uniswapPositionManager), amount0Desired);
         usdtToken.approve(address(uniswapPositionManager), amount1Desired);
 
-        uniswapPositionManager.increaseLiquidity(params);
+
+        (uint128 liquidity, uint256 amount0, uint256 amount1 ) = uniswapPositionManager.increaseLiquidity(params);
     }
 
 
@@ -237,8 +238,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             10, // price 1.001
             amount0Desired,
             amount1Desired,
-            (amount0Desired * 99 / 100), // slippage 1%
-            (amount1Desired * 99 / 100), // slippage 1%
+            (amount0Desired * 95 / 100), // slippage 1%
+            (amount1Desired * 95 / 100), // slippage 1%
             address(this),
             block.timestamp + 600
         );
