@@ -94,7 +94,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
 
         _depositAsset.transfer(receiver, transferAmount);
 
-        emit Withdraw(owner, receiver, transferAmount, shares);
+        emit Withdraw(msg.sender, receiver, owner, transferAmount, shares);
 
         return transferAmount;
     }
@@ -117,11 +117,6 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     /// @inheritdoc IStaticUsdPlusToken
     function rate() external view override returns (uint256){
         return _mainToken.liquidityIndex();
-    }
-
-    /// @inheritdoc IERC4626
-    function assetsPerShare() external view override returns (uint256){
-        return 10 ** _depositAsset.decimals() * _mainToken.liquidityIndex() / 10 ** 27;
     }
 
     /// @inheritdoc IStaticUsdPlusToken

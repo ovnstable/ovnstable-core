@@ -4,21 +4,23 @@ pragma solidity >=0.5.0 <0.9.0;
 interface IERC4626 {
 
     /**
-     * @dev `sender` has exchanged `assets` for `shares`, and transferred those `shares` to `receiver`.
+     * @dev `caller` has exchanged `assets` for `shares`, and transferred those `shares` to `owner`.
      */
     event Deposit(
-        address indexed sender,
-        address indexed receiver,
+        address indexed caller,
+        address indexed owner,
         uint256 assets,
         uint256 shares
     );
 
     /**
-     * @dev `sender` has exchanged `shares` for `assets`, and transferred those `assets` to `receiver`.
+     * @dev `caller` has exchanged `shares`, owned by `owner`, for `assets`, and transferred those `assets` to
+     * `receiver`.
      */
     event Withdraw(
-        address indexed sender,
+        address indexed caller,
         address indexed receiver,
+        address indexed owner,
         uint256 assets,
         uint256 shares
     );
@@ -32,11 +34,6 @@ interface IERC4626 {
      * @dev Redeems `shares` from `owner` and sends `assets` of underlying tokens to `receiver`.
      */
     function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
-
-    /**
-     * @dev The current exchange rate of shares to assets, quoted per unit share
-     **/
-    function assetsPerShare() external view returns (uint256);
 
     /**
      * @dev The address of the underlying token used for the Vault uses for accounting,
