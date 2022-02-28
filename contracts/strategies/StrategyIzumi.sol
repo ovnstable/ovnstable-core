@@ -15,6 +15,8 @@ import "../connectors/uniswapV3/INonfungiblePositionManager.sol";
 
 import "../connectors/balancer/interfaces/IVault.sol";
 import "../connectors/balancer/interfaces/IAsset.sol";
+import "../connectors/curve/interfaces/iCurvePool.sol";
+
 
 contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
@@ -45,13 +47,13 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
     IVault public balancerVault;
     bytes32 public balancerPoolId;
 
+    iCurvePool aavePool;
+
 
     // --- events
 
-    event StrategyIdleUpdatedTokens(address usdcToken, address idleToken, address wmaticToken,
-        uint256 usdcTokenDenominator, uint256 idleTokenDenominator, uint256 wmaticTokenDenominator);
-
-    event StrategyIdleUpdatedParams(address uniswapRouter);
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address iziToken, address yinToken, address uniswapToken, address wethToken);
+    event StrategyUpdatedParams(address uniswapPositionManager, address uniswapV3Pool, address uniswapV2Router, address izumiBoost, address uniswapV3Router, address balancerVault, bytes32 balancerPoolId, address aavePool);
 
     // ---  constructor
 
@@ -93,6 +95,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         iziTokenDenominator = 10 ** IERC20Metadata(_iziToken).decimals();
         yinTokenDenominator = 10 ** IERC20Metadata(_yinToken).decimals();
 
+        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _iziToken, _yinToken, _uniswapToken, _wethToken);
+
     }
 
     function setParams(
@@ -102,7 +106,8 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         address _izumiBoost,
         address _uniswapV3Router,
         bytes32  _balancerPoolId,
-        address _balancerVault
+        address _balancerVault,
+        address _aavePool
     ) external onlyAdmin {
 
         require(_uniswapPositionManager != address(0), "Zero address not allowed");
@@ -112,6 +117,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         require(_izumiBoost != address(0), "Zero address not allowed");
         require(_balancerPoolId != 0, "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
+        require(_aavePool != address(0), "Zero address not allowed");
 
         uniswapPositionManager = INonfungiblePositionManager(_uniswapPositionManager);
         uniswapV3Pool = IUniswapV3Pool(_uniswapV3Pool);
@@ -122,6 +128,10 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         balancerPoolId = _balancerPoolId;
         balancerVault = IVault(_balancerVault);
+
+        aavePool = iCurvePool(_aavePool);
+
+        emit StrategyUpdatedParams(_uniswapPositionManager, _uniswapV3Pool, _uniswapV2Router, _izumiBoost, _uniswapV3Router, _balancerVault, _balancerPoolId, _aavePool);
     }
 
 
@@ -353,14 +363,16 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         uint256 totalUsdc = usdcToken.balanceOf(address(this)) + amountLiq0;
         uint256 totalUsdt = usdtToken.balanceOf(address(this)) + amountLiq1;
 
-        return totalUsdc + getAmountsOut(address(usdtToken),address(usdcToken), totalUsdt);
+        // index 2 - aUSDT
+        // index 1 - aUSDC
+        return totalUsdc + aavePool.get_dy(2, 1, totalUsdt);
     }
 
 
-    function _swapIziUsdc() internal returns (uint256) {
+    function _swapIziWeth() internal  {
 
         if (iziToken.balanceOf(address(this)) == 0)
-            return 0;
+            return;
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(iziToken),
@@ -375,28 +387,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         iziToken.approve(address(uniswapV3Router), iziToken.balanceOf(address(this)));
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
-
-
-        params = ISwapRouter.ExactInputSingleParams(
-            address(wethToken),
-            address(usdcToken),
-            500, // pool fee 0.05%
-            address(this),
-            block.timestamp + 600,
-            wethToken.balanceOf(address(this)),
-            0,
-            0
-        );
-
-        wethToken.approve(address(uniswapV3Router), wethToken.balanceOf(address(this)));
-        amountOut = uniswapV3Router.exactInputSingle(params);
-        return amountOut;
     }
 
-    function _swapYinUsdc() internal returns (uint256) {
+    function _swapYinWeth() internal {
 
         if (yinToken.balanceOf(address(this)) == 0)
-            return 0;
+            return;
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(yinToken),
@@ -411,9 +407,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         yinToken.approve(address(uniswapV3Router), yinToken.balanceOf(address(this)));
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
+    }
 
+    function _swapWethUsdc() internal {
 
-        params = ISwapRouter.ExactInputSingleParams(
+        if(wethToken.balanceOf(address(this)) == 0)
+            return;
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(wethToken),
             address(usdcToken),
             500, // pool fee 0.05%
@@ -425,18 +426,19 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         );
 
         wethToken.approve(address(uniswapV3Router), wethToken.balanceOf(address(this)));
-        amountOut = uniswapV3Router.exactInputSingle(params);
-        return amountOut;
+        uint256 amountOut = uniswapV3Router.exactInputSingle(params);
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
         izumiBoost.collectReward(tokenId);
 
-        uint256 total = 0;
-        total += _swapIziUsdc();
-        total += _swapYinUsdc();
+        _swapIziWeth();
+        _swapYinWeth();
+        _swapWethUsdc();
 
-        return total;
+        uint256 balanceUSDC = usdcToken.balanceOf(address(this));
+        usdcToken.transfer(_to, balanceUSDC);
+        return balanceUSDC;
     }
 
     /// @notice Used for ERC721 safeTransferFrom
