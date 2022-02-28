@@ -371,8 +371,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
     function _swapIziWeth() internal  {
 
-        if (iziToken.balanceOf(address(this)) == 0)
+        uint256 balanceIzi = iziToken.balanceOf(address(this));
+
+        if (balanceIzi == 0){
+            emit Balance(address(iziToken), balanceIzi);
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(iziToken),
@@ -380,19 +384,25 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             3000, // pool fee 0.3%
             address(this),
             block.timestamp + 600,
-            iziToken.balanceOf(address(this)),
+            balanceIzi,
             0,
             0
         );
 
-        iziToken.approve(address(uniswapV3Router), iziToken.balanceOf(address(this)));
+        iziToken.approve(address(uniswapV3Router), balanceIzi);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
+
+        emit Swap(address(uniswapV3Router), balanceIzi, address(iziToken), amountOut, address(wethToken));
     }
 
     function _swapYinWeth() internal {
 
-        if (yinToken.balanceOf(address(this)) == 0)
+        uint256 balanceYin = yinToken.balanceOf(address(this));
+
+        if (balanceYin == 0){
+            emit Balance(address(yinToken), balanceYin);
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(yinToken),
@@ -400,19 +410,24 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             3000, // pool fee 0.3%
             address(this),
             block.timestamp + 600,
-            yinToken.balanceOf(address(this)),
+                balanceYin,
             0,
             0
         );
 
-        yinToken.approve(address(uniswapV3Router), yinToken.balanceOf(address(this)));
+        yinToken.approve(address(uniswapV3Router), balanceYin);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
+
+        emit Swap(address(uniswapV3Router), balanceYin, address(yinToken), amountOut, address(wethToken));
     }
 
     function _swapWethUsdc() internal {
 
-        if(wethToken.balanceOf(address(this)) == 0)
+        uint256 balanceWeth = wethToken.balanceOf(address(this));
+        if(balanceWeth == 0){
+            emit Balance(address(wethToken), balanceWeth);
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(wethToken),
@@ -420,13 +435,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             500, // pool fee 0.05%
             address(this),
             block.timestamp + 600,
-            wethToken.balanceOf(address(this)),
+            balanceWeth,
             0,
             0
         );
 
-        wethToken.approve(address(uniswapV3Router), wethToken.balanceOf(address(this)));
+        wethToken.approve(address(uniswapV3Router), balanceWeth);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
+        emit Swap(address(uniswapV3Router), balanceWeth, address(wethToken), amountOut, address(usdcToken));
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -477,6 +493,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
-        return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
+        uint256 balanceUsdcBefore = IERC20(address(tokenIn)).balanceOf(address(this));
+        uint256 amountReceived = balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
+
+        uint256 balanceUsdcAfter = IERC20(address(tokenIn)).balanceOf(address(this));
+
+        emit Swap(address(balancerVault), balanceUsdcBefore-balanceUsdcAfter, address(usdcToken), amountReceived, address(usdtToken));
+        return amountReceived;
     }
 }

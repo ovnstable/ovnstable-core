@@ -83,6 +83,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
         IERC20(_asset).transfer(_beneficiary, balanceUSDC);
 
+        emit UnStake(_amount, balanceUSDC);
+
         return balanceUSDC;
     }
 
