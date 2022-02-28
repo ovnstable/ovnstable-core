@@ -8,8 +8,6 @@ import "../connectors/BalancerExchange.sol";
 import "../connectors/QuickswapExchange.sol";
 import "../connectors/balancer/MerkleOrchard.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
 
     IERC20 public usdcToken;
@@ -357,7 +355,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
     }
 
     function _claimRewardsBalancer() internal {
-        console.log("Start claim");
 
         uint8 size;
         if (claimedBalanceBal > 0) {
@@ -369,7 +366,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         if (claimedBalanceTUsd > 0) {
             size++;
         }
-        console.log("size: %s", size);
 
         if (size == 0) {
             return;
@@ -388,7 +384,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
                 merkleProofBal);
             claims[i] = claimBal;
             tokens[i] = balToken;
-            console.log("claimBal: %s", i);
             i++;
         }
 
@@ -401,7 +396,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
                 merkleProofWMatic);
             claims[i] = claimWMatic;
             tokens[i] = wmaticToken;
-            console.log("claimWMatic: %s", i);
             i++;
         }
 
@@ -414,7 +408,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
                 merkleProofTUsd);
             claims[i] = claimTUsd;
             tokens[i] = tusdToken;
-            console.log("claimTUsd: %s", i);
         }
 
         merkleOrchard.claimDistributions(address(this), claims, tokens);
@@ -424,74 +417,6 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickswapExchange {
         claimedBalanceWMatic = 0;
         claimedBalanceTUsd = 0;
 
-        console.log("balanceBal: %s", balToken.balanceOf(address(this)));
-        console.log("balanceWMatic: %s", wmaticToken.balanceOf(address(this)));
-        console.log("balanceTUsd: %s", tusdToken.balanceOf(address(this)));
-
-        console.log("Finish claim");
     }
 
-    function verifyClaim(
-        address distributorBal,
-        address distributorWMatic,
-        address distributorTUsd,
-        uint256 distributionIdBal,
-        uint256 distributionIdWMatic,
-        uint256 distributionIdTUsd,
-        uint256 claimedBalanceBal,
-        uint256 claimedBalanceWMatic,
-        uint256 claimedBalanceTUsd,
-        bytes32[] memory merkleProofBal,
-        bytes32[] memory merkleProofWMatic,
-        bytes32[] memory merkleProofTUsd
-    ) external {
-        console.log("Start verify claim");
-
-        if (claimedBalanceBal > 0) {
-            console.log("balToken: %s", address(balToken));
-            console.log("distributorBal: %s", distributorBal);
-            console.log("distributionIdBal: %s", distributionIdBal);
-            console.log("claimedBalanceBal: %s", claimedBalanceBal);
-            bool isClaimBal = merkleOrchard.verifyClaim(
-                balToken,
-                distributorBal,
-                distributionIdBal,
-                address(this),
-                claimedBalanceBal,
-                merkleProofBal);
-            console.log("isClaimBal: %s", isClaimBal);
-        }
-
-        if (claimedBalanceWMatic > 0) {
-            console.log("wmaticToken: %s", address(wmaticToken));
-            console.log("distributorWMatic: %s", distributorWMatic);
-            console.log("distributionIdWMatic: %s", distributionIdWMatic);
-            console.log("claimedBalanceWMatic: %s", claimedBalanceWMatic);
-            bool isClaimWMatic = merkleOrchard.verifyClaim(
-                wmaticToken,
-                distributorWMatic,
-                distributionIdWMatic,
-                address(this),
-                claimedBalanceWMatic,
-                merkleProofWMatic);
-            console.log("isClaimWMatic: %s", isClaimWMatic);
-        }
-
-        if (claimedBalanceTUsd > 0) {
-            console.log("tusdToken: %s", address(tusdToken));
-            console.log("distributorTUsd: %s", distributorTUsd);
-            console.log("distributionIdTUsd: %s", distributionIdTUsd);
-            console.log("claimedBalanceTUsd: %s", claimedBalanceTUsd);
-            bool isClaimTUsd = merkleOrchard.verifyClaim(
-                tusdToken,
-                distributorTUsd,
-                distributionIdTUsd,
-                address(this),
-                claimedBalanceTUsd,
-                merkleProofTUsd);
-            console.log("isClaimTUsd: %s", isClaimTUsd);
-        }
-
-        console.log("Finish verify claim");
-    }
 }

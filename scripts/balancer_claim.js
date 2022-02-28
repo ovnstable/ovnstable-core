@@ -20,16 +20,20 @@ async function main() {
     let claimedParamsBal = await getClaimedParams(chanId, week, tokenAddressBal, strategyBalancer.address);
     console.log(claimedParamsBal);
 
-    // get params for TUsd
+    // get params for wMatic
+    let claimedParamsWMatic = new ClaimedParams('0x0000000000000000000000000000000000000000', 0, 0, []);
+    console.log(claimedParamsWMatic);
+
+    // get params for tUsd
     let claimedParamsTUsd = await getClaimedParams(chanId, week, tokenAddressTUsd, strategyBalancer.address);
     console.log(claimedParamsTUsd);
 
     // verify claim
-    await strategyBalancer.verifyClaim(
-        claimedParamsBal.distributor, '0x0000000000000000000000000000000000000000', claimedParamsTUsd.distributor,
-        claimedParamsBal.distributionId, 0, claimedParamsTUsd.distributionId,
-        claimedParamsBal.claimedBalance, 0, claimedParamsTUsd.claimedBalance,
-        claimedParamsBal.merkleProof, [], claimedParamsTUsd.merkleProof);
+//     await strategyBalancer.verifyClaim(
+//         claimedParamsBal.distributor, claimedParamsWMatic.distributor, claimedParamsTUsd.distributor,
+//         claimedParamsBal.distributionId, claimedParamsWMatic.distributionId, claimedParamsTUsd.distributionId,
+//         claimedParamsBal.claimedBalance, claimedParamsWMatic.claimedBalance, claimedParamsTUsd.claimedBalance,
+//         claimedParamsBal.merkleProof, claimedParamsWMatic.merkleProof, claimedParamsTUsd.merkleProof);
 
     // claim
 //     await strategyBalancer._claimRewardsBalancer();
