@@ -8,6 +8,9 @@ interface IStrategy {
     event Reward(uint256 amount);
     event PortfolioManagerUpdated(address value);
 
+    event Stake(uint256 amount);
+    event UnStake(uint256 amount, uint256 );
+
     function stake(
         address _asset, // USDC
         uint256 _amount // value for staking in USDC
