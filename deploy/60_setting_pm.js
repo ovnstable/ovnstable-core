@@ -18,14 +18,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabled: true,
         enabledReward: true,
     }
-    let curve = {
-        strategy: (await ethers.getContract("StrategyCurve")).address,
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
+    // let curve = {
+    //     strategy: (await ethers.getContract("StrategyCurve")).address,
+    //     minWeight: 0,
+    //     targetWeight: 0,
+    //     maxWeight: 100000,
+    //     enabled: true,
+    //     enabledReward: true,
+    // }
 
     let mstable= {
         strategy: (await ethers.getContract("StrategyMStable")).address,
@@ -68,7 +68,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         mstable,
         izumu,
         // balancer,
-        curve,
+        // curve,
         // idle
     ]
 
