@@ -64,6 +64,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) external override onlyPortfolioManager {
         emit Stake(_amount);
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
+        emit Balance(address(_asset), IERC20(_asset).balanceOf(address(this)));
     }
 
     function unstake(

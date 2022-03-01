@@ -105,13 +105,47 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
         usdcToken.approve(address(mUsdToken), _amount);
 
+
+        // 1) Mint mUSD token
+        uint256 usdcBefore = usdcToken.balanceOf(address(this));
+        uint256 mUsdBefore = mUsdToken.balanceOf(address(this));
+
         uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
+
+        uint256 usdcAfter = usdcToken.balanceOf(address(this));
+        uint256 mUsdAfter = mUsdToken.balanceOf(address(this));
+
+        emit Swap(address(mUsdToken), usdcBefore-usdcAfter, address(usdcToken), mUsdAfter-mUsdBefore, address(mUsdToken));
+
+
+        // 2) Deposit mUsd
+
+        mUsdBefore = mUsdToken.balanceOf(address(this));
+        uint256 imUsdBefore = imUsdToken.balanceOf(address(this));
 
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
 
+        mUsdAfter = mUsdToken.balanceOf(address(this));
+        uint256 imUsdAfter = imUsdToken.balanceOf(address(this));
+
+        emit Swap(address(imUsdToken), mUsdBefore-mUsdAfter, address(mUsdToken), imUsdAfter-imUsdBefore, address(imUsdToken));
+
+
+
+        // 3) Stake imUsd
+
+        imUsdBefore = imUsdToken.balanceOf(address(this));
+        uint256 vimUsdBefore = vimUsdToken.balanceOf(address(this));
+
         imUsdToken.approve(address(vimUsdToken), savedTokens);
         vimUsdToken.stake(address(this), savedTokens);
+
+        imUsdAfter = imUsdToken.balanceOf(address(this));
+        uint256 vimUsdAfter = vimUsdToken.balanceOf(address(this));
+
+
+        emit Swap(address(vimUsdToken), imUsdBefore-imUsdAfter, address(imUsdToken), vimUsdAfter-vimUsdBefore, address(vimUsdToken));
     }
 
     function _unstake(

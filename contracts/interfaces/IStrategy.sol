@@ -9,8 +9,9 @@ interface IStrategy {
     event PortfolioManagerUpdated(address value);
 
     event Stake(uint256 amount);
+    event Action(string value);
     event UnStake(uint256 amount, uint256 amountReceived);
-    event Swap(address swapper, uint256 amountSend, address tokenSend, address tokenReceived, uint256 amountReceived);
+    event Swap(address exchange, uint256 amountSend, address tokenSend, uint256 amountReceived, address tokenReceived);
     event Balance(address token, uint256 amount);
 
     function stake(

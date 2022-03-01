@@ -70,7 +70,16 @@ contract StrategyAave is Strategy {
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         usdcToken.approve(address(pool), _amount);
 
+        uint256 usdcBefore = usdcToken.balanceOf(address(this));
+        uint256 aUsdcBefore = aUsdcToken.balanceOf(address(this));
         pool.deposit(address(usdcToken), _amount, address(this), 0);
+
+        uint256 usdcAfter = usdcToken.balanceOf(address(this));
+        uint256 aUsdcAfter = aUsdcToken.balanceOf(address(this));
+
+        emit Swap(address(pool), usdcBefore-usdcAfter, address(usdcToken), aUsdcAfter-aUsdcBefore, address(aUsdcToken));
+
+        emit Balance(address(aUsdcToken), aUsdcToken.balanceOf(address(this)));
     }
 
     function _unstake(
