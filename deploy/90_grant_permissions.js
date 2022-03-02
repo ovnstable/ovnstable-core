@@ -20,6 +20,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await grantRevokeRole(await ethers.getContract("StrategyMStable"), deployer, address);
     await grantRevokeRole(await ethers.getContract("StrategyCurve"), deployer, address);
     await grantRevokeRole(await ethers.getContract("StrategyBalancer"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("StrategyIzumi"), deployer, address);
 
 };
 
