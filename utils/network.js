@@ -44,8 +44,19 @@ function getPrivateKey(networkName) {
 
 
 function accounts(networkName) {
-
     return [getPrivateKey(networkName)];
+}
+
+function getGasPrice(){
+
+    let gasPrice = 50000000000; //50 gwei
+
+    if (process.env.GAS_PRICE){
+        gasPrice = Number.parseInt(process.env.GAS_PRICE);
+        console.log('Use GAS_PRICE: ' + gasPrice);
+    }
+
+    return gasPrice;
 }
 
 function blockNumber(){
@@ -65,5 +76,6 @@ function blockNumber(){
 module.exports = {
     node_url: node_url,
     accounts: accounts,
+    getGasPrice: getGasPrice,
     blockNumber: blockNumber,
 }

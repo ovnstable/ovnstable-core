@@ -110,42 +110,32 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 usdcBefore = usdcToken.balanceOf(address(this));
         uint256 mUsdBefore = mUsdToken.balanceOf(address(this));
 
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, mUsdToken);
         uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
-
-        uint256 usdcAfter = usdcToken.balanceOf(address(this));
-        uint256 mUsdAfter = mUsdToken.balanceOf(address(this));
-
-        emit Swap(address(mUsdToken), usdcBefore-usdcAfter, address(usdcToken), mUsdAfter-mUsdBefore, address(mUsdToken));
+        _logExchangeEnd(swapInfo, address(mUsdToken), 'mint');
 
 
         // 2) Deposit mUsd
 
-        mUsdBefore = mUsdToken.balanceOf(address(this));
-        uint256 imUsdBefore = imUsdToken.balanceOf(address(this));
+
+        swapInfo = _logExchangeStart(mUsdToken, imUsdToken);
 
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
 
-        mUsdAfter = mUsdToken.balanceOf(address(this));
-        uint256 imUsdAfter = imUsdToken.balanceOf(address(this));
-
-        emit Swap(address(imUsdToken), mUsdBefore-mUsdAfter, address(mUsdToken), imUsdAfter-imUsdBefore, address(imUsdToken));
-
+        _logExchangeEnd(swapInfo, address(imUsdToken), 'depositSavings');
 
 
         // 3) Stake imUsd
 
-        imUsdBefore = imUsdToken.balanceOf(address(this));
-        uint256 vimUsdBefore = vimUsdToken.balanceOf(address(this));
+
+        swapInfo = _logExchangeStart(imUsdToken, vimUsdToken);
 
         imUsdToken.approve(address(vimUsdToken), savedTokens);
         vimUsdToken.stake(address(this), savedTokens);
 
-        imUsdAfter = imUsdToken.balanceOf(address(this));
-        uint256 vimUsdAfter = vimUsdToken.balanceOf(address(this));
+        _logExchangeEnd(swapInfo, address(vimUsdToken), 'stake');
 
-
-        emit Swap(address(vimUsdToken), imUsdBefore-imUsdAfter, address(imUsdToken), vimUsdAfter-vimUsdBefore, address(vimUsdToken));
     }
 
     function _unstake(

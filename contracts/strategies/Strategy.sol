@@ -123,9 +123,9 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function _logExchangeStart(IERC20 token1, IERC20 token2) internal returns (SwapInfo memory){
 
-        uint256[] memory balancesBefore = new uint256[](1);
-        uint256[] memory balancesAfter = new uint256[](1);
-        address[] memory tokens = new address[](1);
+        uint256[] memory balancesBefore = new uint256[](2);
+        uint256[] memory balancesAfter = new uint256[](2);
+        address[] memory tokens = new address[](2);
 
         balancesBefore[0] = token1.balanceOf(address(this));
         balancesBefore[1] = token2.balanceOf(address(this));
@@ -142,24 +142,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         return swapInfo;
     }
 
-
-    function _logExchangeStart(IERC20 token) internal returns (SwapInfo memory){
-
-        uint256[] memory balancesBefore = new uint256[](1);
-        uint256[] memory balancesAfter = new uint256[](1);
-        address[] memory tokens = new address[](1);
-
-        balancesBefore[0] = token.balanceOf(address(this));
-        tokens[0] = address(token);
-
-        SwapInfo memory swapInfo = SwapInfo(
-            tokens,
-            balancesBefore,
-            balancesAfter
-        );
-
-        return swapInfo;
-    }
 
     function _logExchangeEnd(SwapInfo memory swapInfo, address exchange, string memory code) internal {
 

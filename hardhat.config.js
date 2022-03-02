@@ -31,7 +31,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     }
 });
 
-const {node_url, accounts, blockNumber} = require("./utils/network");
+const {node_url, accounts, blockNumber, getGasPrice} = require("./utils/network");
 
 
 module.exports = {
@@ -59,14 +59,14 @@ module.exports = {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 650000000000,
+            gasPrice: getGasPrice(),
         },
 
         polygon_dev: {
             url: node_url('polygon'),
             accounts: accounts('polygon'),
             timeout: 36200000,
-            gasPrice: 200000000000,
+            gasPrice: getGasPrice(),
         },
 
         ganache: {
