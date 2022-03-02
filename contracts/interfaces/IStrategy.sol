@@ -10,8 +10,18 @@ interface IStrategy {
 
     event Stake(uint256 amount);
     event Action(string value);
-    event UnStake(uint256 amount, uint256 amountReceived);
+    event Unstake(uint256 amount, uint256 amountReceived);
     event Swap(address exchange, uint256 amountSend, address tokenSend, uint256 amountReceived, address tokenReceived);
+
+
+    struct SwapInfo {
+        address[] tokens;
+        uint256[] balancesBefore;
+        uint256[] balancesAfter;
+    }
+
+    event Exchange(address exchange, string code, SwapInfo swap);
+
     event Balance(address token, uint256 amount);
 
     function stake(

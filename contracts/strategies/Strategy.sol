@@ -64,7 +64,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) external override onlyPortfolioManager {
         emit Stake(_amount);
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
-        emit Balance(address(_asset), IERC20(_asset).balanceOf(address(this)));
     }
 
     function unstake(
@@ -84,7 +83,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
         IERC20(_asset).transfer(_beneficiary, balanceUSDC);
 
-        emit UnStake(_amount, balanceUSDC);
+        emit Unstake(_amount, balanceUSDC);
 
         return balanceUSDC;
     }
@@ -119,6 +118,35 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function _claimRewards(address _to) internal virtual returns (uint256){
         revert("Not implemented");
+    }
+
+    function _logExchangeStart(address[] memory tokens) internal returns (SwapInfo memory){
+        SwapInfo memory swapInfo = SwapInfo({
+        tokens : tokens,
+        balancesBefore : uint256[](tokens.length),
+        balancesAfter : uint256[](tokens.length)
+        });
+
+
+        for (uint8 i; i < tokens.length; i++) {
+
+            address token = tokens[i];
+            swapInfo.balancesBefore[i] = IERC20(token).balanceOf(address(this));
+        }
+
+        return swapInfo;
+    }
+
+    function _logExchangeEnd(SwapInfo memory swapInfo, address exchange, string memory code) internal {
+
+        for (uint8 i; i < swapInfo.tokens.length; i++) {
+
+            address token = swapInfo.tokens[i];
+            swapInfo.balancesAfter[i] = IERC20(token).balanceOf(address(this));
+        }
+
+        emit Exchange(exchange, code, swapInfo);
+
     }
 
 
