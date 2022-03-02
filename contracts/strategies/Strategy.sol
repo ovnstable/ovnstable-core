@@ -120,19 +120,43 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         revert("Not implemented");
     }
 
-    function _logExchangeStart(address[] memory tokens) internal returns (SwapInfo memory){
-        SwapInfo memory swapInfo = SwapInfo({
-        tokens : tokens,
-        balancesBefore : uint256[](tokens.length),
-        balancesAfter : uint256[](tokens.length)
-        });
+
+    function _logExchangeStart(IERC20 token1, IERC20 token2) internal returns (SwapInfo memory){
+
+        uint256[] memory balancesBefore = new uint256[](1);
+        uint256[] memory balancesAfter = new uint256[](1);
+        address[] memory tokens = new address[](1);
+
+        balancesBefore[0] = token1.balanceOf(address(this));
+        balancesBefore[1] = token2.balanceOf(address(this));
+
+        tokens[0] = address(token1);
+        tokens[1] = address(token2);
+
+        SwapInfo memory swapInfo = SwapInfo(
+            tokens,
+            balancesBefore,
+            balancesAfter
+        );
+
+        return swapInfo;
+    }
 
 
-        for (uint8 i; i < tokens.length; i++) {
+    function _logExchangeStart(IERC20 token) internal returns (SwapInfo memory){
 
-            address token = tokens[i];
-            swapInfo.balancesBefore[i] = IERC20(token).balanceOf(address(this));
-        }
+        uint256[] memory balancesBefore = new uint256[](1);
+        uint256[] memory balancesAfter = new uint256[](1);
+        address[] memory tokens = new address[](1);
+
+        balancesBefore[0] = token.balanceOf(address(this));
+        tokens[0] = address(token);
+
+        SwapInfo memory swapInfo = SwapInfo(
+            tokens,
+            balancesBefore,
+            balancesAfter
+        );
 
         return swapInfo;
     }

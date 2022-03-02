@@ -167,7 +167,11 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             0,
             block.timestamp + 600
         );
+
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, usdtToken);
         uniswapPositionManager.decreaseLiquidity(params);
+        _logExchangeEnd(swapInfo, address(uniswapPositionManager), 'decreaseLiquidity');
+
         _collectLiquidityAndSwap();
 
         uniswapToken.approve(address(izumiBoost), tokenId);
@@ -196,7 +200,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         usdtToken.approve(address(uniswapPositionManager), amount1Desired);
 
 
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, usdtToken);
         (uint128 liquidity, uint256 amount0, uint256 amount1) = uniswapPositionManager.increaseLiquidity(params);
+        _logExchangeEnd(swapInfo, address(uniswapPositionManager), 'increaseLiquidity');
     }
 
 
@@ -259,14 +265,15 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         usdcToken.approve(address(uniswapPositionManager), amount0Desired);
         usdtToken.approve(address(uniswapPositionManager), amount1Desired);
 
-        (uint256 _tokenId,,,) = uniswapPositionManager.mint(params);
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, usdtToken);
+        (uint256 _tokenId, ,uint256 amount0, uint256 amount1) = uniswapPositionManager.mint(params);
+        _logExchangeEnd(swapInfo, address(uniswapPositionManager), 'mint');
 
         tokenId = _tokenId;
 
         uniswapToken.approve(address(izumiBoost), _tokenId);
         izumiBoost.deposit(_tokenId, 0);
-
-        emit Action('Deposit to Izumi');
+        emit Action('Deposit NFT to Izumi');
     }
 
     function _unstake(
@@ -280,8 +287,6 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             _removeLiquidity(_amount);
         }
 
-        emit Balance(address(usdcToken), usdcToken.balanceOf(address(this)));
-        emit Balance(address(usdtToken), usdtToken.balanceOf(address(this)));
         return _amount;
     }
 
@@ -323,10 +328,6 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
             tokenId = 0;
 
-
-            emit Balance(address(usdcToken), usdcToken.balanceOf(address(this)));
-            emit Balance(address(usdtToken), usdtToken.balanceOf(address(this)));
-
             return usdcToken.balanceOf(address(this));
         }
     }
@@ -335,23 +336,23 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
     function _collectLiquidityAndSwap() internal {
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
 
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, usdtToken);
         uniswapPositionManager.collect(collectParam);
-        emit Action('Collect UniswapV3');
+        _logExchangeEnd(swapInfo, address(uniswapPositionManager), 'collect');
+
 
         uint256 balanceUSDT = usdtToken.balanceOf(address(this));
-        uint256 balanceUSDC = usdcToken.balanceOf(address(this));
-
         usdtToken.approve(address(aavePool), balanceUSDT);
 
         // index 2 - USDT send coin
         // index 1 - USDC received coin
         uint256 minAmount = (aavePool.get_dy_underlying(2, 1, balanceUSDT) * 99 / 100); // slippage 1%;
+
+
+        swapInfo = _logExchangeStart(usdcToken, usdtToken);
         aavePool.exchange_underlying(2, 1, balanceUSDT, minAmount);
+        _logExchangeEnd(swapInfo, address(uniswapPositionManager), 'collect');
 
-        uint256 balanceUSDTAfter = usdtToken.balanceOf(address(this));
-        uint256 balanceUSDCAfter = usdcToken.balanceOf(address(this));
-
-        emit Swap(address(aavePool), balanceUSDT-balanceUSDTAfter, address(usdtToken), balanceUSDC-balanceUSDCAfter, address(usdcToken));
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -462,7 +463,6 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         wethToken.approve(address(uniswapV3Router), balanceWeth);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
-        emit Swap(address(uniswapV3Router), balanceWeth, address(wethToken), amountOut, address(usdcToken));
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -514,12 +514,9 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
-        uint256 usdcBefore = IERC20(address(tokenIn)).balanceOf(address(this));
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, usdtToken);
         uint256 amountReceived = balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
-
-        uint256 usdcAfter = IERC20(address(tokenIn)).balanceOf(address(this));
-
-        emit Swap(address(balancerVault), usdcBefore-usdcAfter, address(usdcToken), amountReceived, address(usdtToken));
+        _logExchangeEnd(swapInfo, address(balancerVault), 'USDC->USDT');
         return amountReceived;
     }
 }

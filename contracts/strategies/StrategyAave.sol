@@ -70,10 +70,8 @@ contract StrategyAave is Strategy {
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         usdcToken.approve(address(pool), _amount);
 
-        SwapInfo memory swapInfo = _logExchangeStart([address(usdcToken), address(aUsdcToken)]);
-
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, aUsdcToken);
         pool.deposit(address(usdcToken), _amount, address(this), 0);
-
         _logExchangeEnd(swapInfo, address(pool), 'deposit');
     }
 
@@ -88,7 +86,9 @@ contract StrategyAave is Strategy {
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         aUsdcToken.approve(address(pool), _amount);
 
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, aUsdcToken);
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        _logExchangeEnd(swapInfo, address(pool), 'withdraw');
         return withdrawAmount;
     }
 
@@ -104,7 +104,11 @@ contract StrategyAave is Strategy {
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         aUsdcToken.approve(address(pool), _amount);
 
+        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, aUsdcToken);
+
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        _logExchangeEnd(swapInfo, address(pool), 'withdrawFull');
+
         return withdrawAmount;
     }
 
