@@ -8,23 +8,6 @@ import "./IERC4626.sol";
 interface IStaticUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
 
     /**
-     * @dev Wrap UsdPlusToken. Caller should approve `amount` for transferFrom
-     * @param recipient The address that will receive StaticUsdPlusTokens
-     * @param amount The amount of UsdPlusTokens to wrap
-     * @return uint256 The amount of StaticUsdPlusTokens minted to recipient, static balance
-     **/
-    function wrap(address recipient, uint256 amount) external returns (uint256);
-
-    /**
-     * @dev Unwrap StaticUsdPlusToken. Caller should approve `amount` for transferFrom
-     * @param recipient The address that will receive unwrapped UsdPlusTokens
-     * @param amount The amount of UsdTokens to wrap
-     * @return uint256 The amount of StaticUsdPlusTokens burned, static balance
-     * @return uint256 The amount of UsdPlusTokens sent to recipient, dynamic balance
-     **/
-    function unwrap(address recipient, uint256 amount) external returns (uint256, uint256);
-
-    /**
      * @dev Utility method to get the current UsdPlusToken balance of an user
      * @param account The address of the user
      * @return uint256 The UsdPlusToken balance
@@ -57,11 +40,4 @@ interface IStaticUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
      **/
     function mainToken() external view returns (address);
 
-}
-
-/// interface for Exchange to not use real contract link
-interface IExchange {
-    function buy(address _addrTok, uint256 _amount) external returns (uint256);
-
-    function redeem(address _addrTok, uint256 _amount) external returns (uint256);
 }
