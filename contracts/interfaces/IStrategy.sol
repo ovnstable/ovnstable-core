@@ -20,7 +20,7 @@ interface IStrategy {
         uint256[] balancesAfter;
     }
 
-    event Exchange(address exchange, string code, SwapInfo swap);
+    event Exchange(address exchange, string code, address[] tokens, uint256[] balancesBefore, uint256[] balancesAfter);
 
     event Balance(address token, uint256 amount);
 

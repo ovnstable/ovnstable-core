@@ -151,7 +151,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             swapInfo.balancesAfter[i] = IERC20(token).balanceOf(address(this));
         }
 
-        emit Exchange(exchange, code, swapInfo);
+        emit Exchange(exchange, code, swapInfo.tokens, swapInfo.balancesBefore, swapInfo.balancesAfter);
 
     }
 
