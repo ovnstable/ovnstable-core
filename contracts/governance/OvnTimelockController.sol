@@ -22,7 +22,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  *
  * _Available since v3.3._
  */
-contract TimelockController is Initializable, AccessControlEnumerableUpgradeable, UUPSUpgradeable {
+contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PROPOSER_ROLE = keccak256("PROPOSER_ROLE");
     uint256 internal constant _DONE_TIMESTAMP = uint256(1);
@@ -60,36 +60,6 @@ contract TimelockController is Initializable, AccessControlEnumerableUpgradeable
      */
     event MinDelayChange(uint256 oldDuration, uint256 newDuration);
 
-//    /**
-//     * @dev Initializes the contract with a given `minDelay`.
-//     */
-//    constructor(
-//        uint256 minDelay,
-//        address[] memory proposers,
-//        address[] memory executors
-//    ) {
-//        _setRoleAdmin(TIMELOCK_ADMIN_ROLE, TIMELOCK_ADMIN_ROLE);
-//        _setRoleAdmin(PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
-//        _setRoleAdmin(EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
-//
-//        // deployer + self administration
-//        _setupRole(TIMELOCK_ADMIN_ROLE, _msgSender());
-//        _setupRole(TIMELOCK_ADMIN_ROLE, address(this));
-//
-//        // register proposers
-//        for (uint256 i = 0; i < proposers.length; ++i) {
-//            _setupRole(PROPOSER_ROLE, proposers[i]);
-//        }
-//
-//        // register executors
-//        for (uint256 i = 0; i < executors.length; ++i) {
-//            _setupRole(EXECUTOR_ROLE, executors[i]);
-//        }
-//
-//        _minDelay = minDelay;
-//        emit MinDelayChange(0, minDelay);
-//    }
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
@@ -102,14 +72,20 @@ contract TimelockController is Initializable, AccessControlEnumerableUpgradeable
 
         _setupRole(DEFAULT_ADMIN_ROLE, address(this));
         _setupRole(UPGRADER_ROLE, address(this));
+
+        _minDelay = 0;
     }
 
     function setGovernor(address _governor) external onlyRoleOrOpenRole(DEFAULT_ADMIN_ROLE) {
-        if (exchange != address(0)) {
-            revokeRole(EXCHANGER, exchange);
+        require(_governor != address(0), "Governor address is null");
+
+        uint256 count = getRoleMemberCount(PROPOSER_ROLE);
+        for (uint8 i = 0; i < count; i++) {
+            address account = getRoleMember(PROPOSER_ROLE, i);
+            _revokeRole(PROPOSER_ROLE, account);
         }
-        grantRole(EXCHANGER, _governor);
-        exchange = _exchanger;
+
+        grantRole(PROPOSER_ROLE, _governor);
         emit GovernorUpdated(_governor);
     }
 

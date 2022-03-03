@@ -6,7 +6,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const timelockController = await ethers.getContract("TimelockController");
+    const timelockController = await ethers.getContract("OvnTimelockController");
     let address = timelockController.address;
 
     await grantRevokeRole(await ethers.getContract("UsdPlusToken"), deployer, address);
@@ -21,6 +21,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await grantRevokeRole(await ethers.getContract("StrategyCurve"), deployer, address);
     await grantRevokeRole(await ethers.getContract("StrategyBalancer"), deployer, address);
     await grantRevokeRole(await ethers.getContract("StrategyIzumi"), deployer, address);
+
 
 };
 

@@ -2,6 +2,7 @@ const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {smock} = require("@defi-wonderland/smock");
+const expectRevert = require("../../utils/expectRevert");
 
 const hre = require("hardhat");
 
@@ -38,7 +39,7 @@ describe("Governance", function () {
 
         ovnToken = await ethers.getContract('OvnToken');
         governator = await ethers.getContract('OvnGovernor');
-        timeLock = await ethers.getContract('TimelockController');
+        timeLock = await ethers.getContract('OvnTimelockController');
         exchange = await ethers.getContract('Exchange');
 
         await ovnToken.grantRole(await ovnToken.DEFAULT_ADMIN_ROLE(), timeLock.address);
