@@ -1,7 +1,6 @@
 const {ethers} = require("hardhat");
 const fs = require("fs");
 
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -11,7 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('StaticUsdPlusToken', {
         from: deployer,
-        args: [usdPlus.address, assets.usdc],
+        args: [usdPlus.address],
         log: true,
     });
 };

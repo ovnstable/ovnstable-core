@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/IStaticUsdPlusToken.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/math/WadRayMath.sol";
-import "hardhat/console.sol";
+
 
 contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     using WadRayMath for uint256;
@@ -16,8 +16,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
      * @param usdPlusTokenAddress The address of UsdPlusToken, this is `asset` in 4626 terms
      */
     constructor(
-        address usdPlusTokenAddress,
-        address depositAsset
+        address usdPlusTokenAddress
     ) ERC20("StaticUsdPlusToken", "stUSD+"){
         _mainToken = UsdPlusToken(usdPlusTokenAddress);
     }
