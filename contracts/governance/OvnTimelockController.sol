@@ -24,7 +24,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  */
 contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PROPOSER_ROLE = keccak256("PROPOSER_ROLE");
+    bytes32 public constant GOVERNOR_ROLE = keccak256("PROPOSER_ROLE");
     uint256 internal constant _DONE_TIMESTAMP = uint256(1);
 
     mapping(bytes32 => uint256) private _timestamps;
@@ -79,13 +79,13 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
     function setGovernor(address _governor) external onlyRoleOrOpenRole(DEFAULT_ADMIN_ROLE) {
         require(_governor != address(0), "Governor address is null");
 
-        uint256 count = getRoleMemberCount(PROPOSER_ROLE);
+        uint256 count = getRoleMemberCount(GOVERNOR_ROLE);
         for (uint8 i = 0; i < count; i++) {
-            address account = getRoleMember(PROPOSER_ROLE, i);
-            _revokeRole(PROPOSER_ROLE, account);
+            address account = getRoleMember(GOVERNOR_ROLE, i);
+            _revokeRole(GOVERNOR_ROLE, account);
         }
 
-        grantRole(PROPOSER_ROLE, _governor);
+        grantRole(GOVERNOR_ROLE, _governor);
         emit GovernorUpdated(_governor);
     }
 
@@ -204,7 +204,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
         bytes32 predecessor,
         bytes32 salt,
         uint256 delay
-    ) public virtual onlyRole(PROPOSER_ROLE) {
+    ) public virtual onlyRole(GOVERNOR_ROLE) {
         bytes32 id = hashOperation(target, value, data, predecessor, salt);
         _schedule(id, delay);
         emit CallScheduled(id, 0, target, value, data, predecessor, delay);
@@ -226,7 +226,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
         bytes32 predecessor,
         bytes32 salt,
         uint256 delay
-    ) public virtual onlyRole(PROPOSER_ROLE) {
+    ) public virtual onlyRole(GOVERNOR_ROLE) {
         require(targets.length == values.length, "TimelockController: length mismatch");
         require(targets.length == datas.length, "TimelockController: length mismatch");
 
@@ -253,7 +253,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * - the caller must have the 'proposer' role.
      */
-    function cancel(bytes32 id) public virtual onlyRole(PROPOSER_ROLE) {
+    function cancel(bytes32 id) public virtual onlyRole(GOVERNOR_ROLE) {
         require(isOperationPending(id), "TimelockController: operation cannot be cancelled");
         delete _timestamps[id];
 
