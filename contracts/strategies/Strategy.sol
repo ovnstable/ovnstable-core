@@ -82,7 +82,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
         IERC20(_asset).transfer(_beneficiary, balanceUSDC);
-
         emit Unstake(_amount, balanceUSDC);
 
         return balanceUSDC;
@@ -118,41 +117,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function _claimRewards(address _to) internal virtual returns (uint256){
         revert("Not implemented");
-    }
-
-
-    function _logExchangeStart(IERC20 token1, IERC20 token2) internal returns (SwapInfo memory){
-
-        uint256[] memory balancesBefore = new uint256[](2);
-        uint256[] memory balancesAfter = new uint256[](2);
-        address[] memory tokens = new address[](2);
-
-        balancesBefore[0] = token1.balanceOf(address(this));
-        balancesBefore[1] = token2.balanceOf(address(this));
-
-        tokens[0] = address(token1);
-        tokens[1] = address(token2);
-
-        SwapInfo memory swapInfo = SwapInfo(
-            tokens,
-            balancesBefore,
-            balancesAfter
-        );
-
-        return swapInfo;
-    }
-
-
-    function _logExchangeEnd(SwapInfo memory swapInfo, address exchange, string memory code) internal {
-
-        for (uint8 i; i < swapInfo.tokens.length; i++) {
-
-            address token = swapInfo.tokens[i];
-            swapInfo.balancesAfter[i] = IERC20(token).balanceOf(address(this));
-        }
-
-        emit Exchange(exchange, code, swapInfo.tokens, swapInfo.balancesBefore, swapInfo.balancesAfter);
-
     }
 
 

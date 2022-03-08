@@ -110,32 +110,16 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
         uint256 usdcBefore = usdcToken.balanceOf(address(this));
         uint256 mUsdBefore = mUsdToken.balanceOf(address(this));
 
-        SwapInfo memory swapInfo = _logExchangeStart(usdcToken, mUsdToken);
         uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
-        _logExchangeEnd(swapInfo, address(mUsdToken), 'mint');
 
 
         // 2) Deposit mUsd
-
-
-        swapInfo = _logExchangeStart(mUsdToken, imUsdToken);
-
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
 
-        _logExchangeEnd(swapInfo, address(imUsdToken), 'depositSavings');
-
-
         // 3) Stake imUsd
-
-
-        swapInfo = _logExchangeStart(imUsdToken, vimUsdToken);
-
         imUsdToken.approve(address(vimUsdToken), savedTokens);
         vimUsdToken.stake(address(this), savedTokens);
-
-        _logExchangeEnd(swapInfo, address(vimUsdToken), 'stake');
-
     }
 
     function _unstake(
