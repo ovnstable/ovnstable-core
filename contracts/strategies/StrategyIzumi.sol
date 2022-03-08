@@ -164,10 +164,13 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             0,
             block.timestamp + 600
         );
+
         uniswapPositionManager.decreaseLiquidity(params);
+
         _collectLiquidityAndSwap();
 
         uniswapToken.approve(address(izumiBoost), tokenId);
+
         izumiBoost.deposit(tokenId, 0);
     }
 
@@ -189,7 +192,6 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         usdcToken.approve(address(uniswapPositionManager), amount0Desired);
         usdtToken.approve(address(uniswapPositionManager), amount1Desired);
-
 
         (uint128 liquidity, uint256 amount0, uint256 amount1) = uniswapPositionManager.increaseLiquidity(params);
     }
@@ -254,7 +256,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         usdcToken.approve(address(uniswapPositionManager), amount0Desired);
         usdtToken.approve(address(uniswapPositionManager), amount1Desired);
 
-        (uint256 _tokenId,,,) = uniswapPositionManager.mint(params);
+        (uint256 _tokenId, ,uint256 amount0, uint256 amount1) = uniswapPositionManager.mint(params);
 
         tokenId = _tokenId;
 
@@ -324,15 +326,17 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
 
         uniswapPositionManager.collect(collectParam);
 
+
         uint256 balanceUSDT = usdtToken.balanceOf(address(this));
-
-
         usdtToken.approve(address(aavePool), balanceUSDT);
 
         // index 2 - USDT send coin
         // index 1 - USDC received coin
         uint256 minAmount = (aavePool.get_dy_underlying(2, 1, balanceUSDT) * 99 / 100); // slippage 1%;
+
+
         aavePool.exchange_underlying(2, 1, balanceUSDT, minAmount);
+
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -368,10 +372,14 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
     }
 
 
-    function _swapIziWeth() internal {
 
-        if (iziToken.balanceOf(address(this)) == 0)
+    function _swapIziWeth() internal  {
+
+        uint256 balanceIzi = iziToken.balanceOf(address(this));
+
+        if (balanceIzi == 0){
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(iziToken),
@@ -379,19 +387,22 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             3000, // pool fee 0.3%
             address(this),
             block.timestamp + 600,
-            iziToken.balanceOf(address(this)),
+            balanceIzi,
             0,
             0
         );
 
-        iziToken.approve(address(uniswapV3Router), iziToken.balanceOf(address(this)));
+        iziToken.approve(address(uniswapV3Router), balanceIzi);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
     }
 
     function _swapYinWeth() internal {
 
-        if (yinToken.balanceOf(address(this)) == 0)
+        uint256 balanceYin = yinToken.balanceOf(address(this));
+
+        if (balanceYin == 0){
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(yinToken),
@@ -399,19 +410,22 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             3000, // pool fee 0.3%
             address(this),
             block.timestamp + 600,
-            yinToken.balanceOf(address(this)),
+            balanceYin,
             0,
             0
         );
 
-        yinToken.approve(address(uniswapV3Router), yinToken.balanceOf(address(this)));
+        yinToken.approve(address(uniswapV3Router), balanceYin);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
     }
 
+
     function _swapWethUsdc() internal {
 
-        if (wethToken.balanceOf(address(this)) == 0)
+        uint256 balanceWeth = wethToken.balanceOf(address(this));
+        if(balanceWeth == 0){
             return;
+        }
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             address(wethToken),
@@ -419,12 +433,12 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
             500, // pool fee 0.05%
             address(this),
             block.timestamp + 600,
-            wethToken.balanceOf(address(this)),
+            balanceWeth,
             0,
             0
         );
 
-        wethToken.approve(address(uniswapV3Router), wethToken.balanceOf(address(this)));
+        wethToken.approve(address(uniswapV3Router), balanceWeth);
         uint256 amountOut = uniswapV3Router.exactInputSingle(params);
     }
 
@@ -476,6 +490,7 @@ contract StrategyIzumi is Strategy, QuickswapExchange, IERC721Receiver {
         fundManagement.recipient = payable(recipient);
         fundManagement.toInternalBalance = false;
 
-        return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
+        uint256 amountReceived = balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
+        return amountReceived;
     }
 }

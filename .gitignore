@@ -30,3 +30,4 @@ solcInputs
 /.openzeppelin/unknown-31337.json
 impls*.json
 /artifacts-external/
+/gasUsage.json

@@ -105,11 +105,19 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickswapExchange {
 
         usdcToken.approve(address(mUsdToken), _amount);
 
+
+        // 1) Mint mUSD token
+        uint256 usdcBefore = usdcToken.balanceOf(address(this));
+        uint256 mUsdBefore = mUsdToken.balanceOf(address(this));
+
         uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
 
+
+        // 2) Deposit mUsd
         mUsdToken.approve(address(imUsdToken), mintedTokens);
         uint256 savedTokens = imUsdToken.depositSavings(mintedTokens, address(this));
 
+        // 3) Stake imUsd
         imUsdToken.approve(address(vimUsdToken), savedTokens);
         vimUsdToken.stake(address(this), savedTokens);
     }
