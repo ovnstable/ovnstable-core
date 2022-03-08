@@ -62,6 +62,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset, // USDC
         uint256 _amount // value for staking in USDC
     ) external override onlyPortfolioManager {
+        emit Stake(_amount);
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
     }
 
@@ -81,6 +82,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
         IERC20(_asset).transfer(_beneficiary, balanceUSDC);
+        emit Unstake(_amount, balanceUSDC);
 
         return balanceUSDC;
     }

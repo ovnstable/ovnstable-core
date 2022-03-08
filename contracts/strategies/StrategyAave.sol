@@ -101,6 +101,7 @@ contract StrategyAave is Strategy {
         aUsdcToken.approve(address(pool), _amount);
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+
         return withdrawAmount;
     }
 
