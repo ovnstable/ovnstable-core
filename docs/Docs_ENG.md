@@ -2,6 +2,8 @@
 
 Overnight - DeFi protocol based on USD+ token, stablecoin with daily rewards.
 
+![Core](UsdPlus_core.png)
+
 ### UsdPlusToken (USD+)
 
 Main token of protocol. ERC20. Rebased Stablecoin. Use a liquidity index reflecting the current ratio of the number of issued 
@@ -84,7 +86,7 @@ Allows to make proposals for changes in the protocol, controls the voting proces
 
 Based on the code from: openzeppelin
 
-### GovToken (OVN)
+### OvnToken (OVN)
 
 Governance token that allows holders to participate in governance.
 
