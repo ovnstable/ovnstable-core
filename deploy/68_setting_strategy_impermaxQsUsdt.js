@@ -17,8 +17,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const strategy = await ethers.getContract("StrategyImpermaxQsUsdt");
     const pm = await ethers.getContract("PortfolioManager");
 
-    await (await strategy.setTokens(assets.usdc, assets.usdt)).wait();
-    await (await strategy.setParams(impermaxRouter, balancerVault, balancerPoolId, imxBToken)).wait();
+    await (await strategy.setTokens(assets.usdc, assets.usdt, imxBToken)).wait();
+    await (await strategy.setParams(impermaxRouter, balancerVault, balancerPoolId)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
     console.log('StrategyImpermaxQsUsdt setting done');

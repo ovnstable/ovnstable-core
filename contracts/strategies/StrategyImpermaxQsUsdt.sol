@@ -25,9 +25,9 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address aUsdcToken);
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address imxBToken);
 
-    event StrategyUpdatedParams(address aaveProvider);
+    event StrategyUpdatedParams(address impermaxRouter, address balancerVault,  bytes32 balancerPoolId);
 
 
     // ---  constructor
@@ -44,35 +44,39 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     function setTokens(
         address _usdcToken,
-        address _usdtToken
+        address _usdtToken,
+        address _imxBToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_usdtToken != address(0), "Zero address not allowed");
+        require(_imxBToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         usdtToken = IERC20(_usdtToken);
+        imxBToken = IPoolToken(_imxBToken);
+
+        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _imxBToken);
     }
 
     function setParams(
         address _impermaxRouter,
         address _balancerVault,
-        bytes32 _balancerPoolId,
-        address _imxBToken
+        bytes32 _balancerPoolId
     ) external onlyAdmin {
 
         require(_impermaxRouter != address(0), "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_balancerPoolId != "", "Empty pool id not allowed");
-        require(_imxBToken != address(0), "Zero address not allowed");
 
         impermaxRouter = ImpermaxRouter(_impermaxRouter);
-        imxBToken = IPoolToken(_imxBToken);
 
         pair = IUniswapV2Pair(impermaxRouter.getUniswapV2Pair(imxBToken.underlying()));
 
         balancerPoolId = _balancerPoolId;
         setBalancerVault(_balancerVault);
+
+        emit StrategyUpdatedParams(_impermaxRouter, _balancerVault, _balancerPoolId);
     }
 
 
@@ -112,6 +116,7 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         usdtToken.approve(address(impermaxRouter), usdtToken.balanceOf(current));
         impermaxRouter.mint(address(imxBToken), usdtToken.balanceOf(current), current, block.timestamp);
 
+        impermaxExchangeRate = imxBToken.exchangeRate();
 
         return usdcToken.balanceOf(current);
     }
@@ -150,6 +155,7 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         uint256 lockedBalance = imxBToken.balanceOf(address(this));
 
         if (lockedBalance != 0) {
+            // 6 + 18 - 18 = 6
             uint256 balanceUsdt = (lockedBalance * impermaxExchangeRate) / 1e18;
             balance += onSwap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdcToken, usdtToken, balanceUsdt);
         }
@@ -157,6 +163,9 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         return balance;
     }
 
+
+    // No claiming. Natural increase in liquidity.
+    // But need to update liquidation index: impermaxExchangeRate
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         impermaxExchangeRate = imxBToken.exchangeRate();
         return 0;
