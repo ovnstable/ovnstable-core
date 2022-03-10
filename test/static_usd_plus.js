@@ -49,7 +49,7 @@ describe("StaticUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "BuyUsdc"]);
+        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "BuyUsdc", "SettingUsdPlusToken", "SettingExchange"]);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;

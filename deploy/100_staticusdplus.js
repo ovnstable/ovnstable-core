@@ -16,4 +16,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['StaticUsdPlusToken'];
-module.exports.dependencies = ["SettingUsdPlusToken", "SettingExchange"];
