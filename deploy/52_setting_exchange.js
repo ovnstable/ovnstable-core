@@ -30,3 +30,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['setting','SettingExchange'];
+module.exports.dependencies = ["UsdPlusToken", "Mark2Market", "PortfolioManager"];
