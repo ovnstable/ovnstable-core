@@ -9,7 +9,6 @@ import "../connectors/impermax/ImpermaxRouter.sol";
 import "../connectors/impermax/IPoolToken.sol";
 import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
 
-
 contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     IERC20 public usdcToken;
@@ -21,7 +20,6 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
     ImpermaxRouter public impermaxRouter;
     IUniswapV2Pair public pair;
 
-    uint public impermaxExchangeRate;
 
     // --- events
 
@@ -95,7 +93,6 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         usdtToken.approve(address(impermaxRouter), usdtToken.balanceOf(current));
         impermaxRouter.mint(address(imxBToken), usdtToken.balanceOf(current), current, block.timestamp);
 
-        impermaxExchangeRate = imxBToken.exchangeRate();
     }
 
 
@@ -116,7 +113,6 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         usdtToken.approve(address(impermaxRouter), usdtToken.balanceOf(current));
         impermaxRouter.mint(address(imxBToken), usdtToken.balanceOf(current), current, block.timestamp);
 
-        impermaxExchangeRate = imxBToken.exchangeRate();
 
         return usdcToken.balanceOf(current);
     }
@@ -134,11 +130,9 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
         swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)), current, current, usdtToken.balanceOf(current), 0);
 
-        impermaxExchangeRate = imxBToken.exchangeRate();
 
         return usdcToken.balanceOf(current);
     }
-
 
     function netAssetValue() external view override returns (uint256) {
         return _getTotal();
@@ -156,7 +150,7 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
         if (lockedBalance != 0) {
             // 6 + 18 - 18 = 6
-            uint256 balanceUsdt = (lockedBalance * impermaxExchangeRate) / 1e18;
+            uint256 balanceUsdt = (lockedBalance * imxBToken.exchangeRateLast()) / 1e18;
             balance += onSwap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdcToken, usdtToken, balanceUsdt);
         }
 
@@ -165,9 +159,7 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
 
     // No claiming. Natural increase in liquidity.
-    // But need to update liquidation index: impermaxExchangeRate
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        impermaxExchangeRate = imxBToken.exchangeRate();
         return 0;
     }
 
