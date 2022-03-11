@@ -25,6 +25,35 @@ abstract contract BalancerExchange {
         IAsset tokenOut,
         address sender,
         address recipient,
+        uint256 amount,
+        uint256 limit
+    ) internal returns (uint256) {
+
+        IERC20(address(tokenIn)).approve(address(balancerVault), IERC20(address(tokenIn)).balanceOf(address(this)));
+
+        IVault.SingleSwap memory singleSwap;
+        singleSwap.poolId = poolId;
+        singleSwap.kind = kind;
+        singleSwap.assetIn = tokenIn;
+        singleSwap.assetOut = tokenOut;
+        singleSwap.amount = amount;
+
+        IVault.FundManagement memory fundManagement;
+        fundManagement.sender = sender;
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(recipient);
+        fundManagement.toInternalBalance = false;
+
+        return balancerVault.swap(singleSwap, fundManagement, limit, block.timestamp + 600);
+    }
+
+    function swap(
+        bytes32 poolId,
+        IVault.SwapKind kind,
+        IAsset tokenIn,
+        IAsset tokenOut,
+        address sender,
+        address recipient,
         uint256 amount
     ) internal returns (uint256) {
 
