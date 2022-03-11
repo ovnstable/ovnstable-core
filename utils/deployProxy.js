@@ -4,9 +4,14 @@ const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
 const fs = require('fs');
 
-async function deployProxy(contractName, deployments, save) {
 
-    const contractFactory = await ethers.getContractFactory(contractName);
+async function deployProxy(contractName, deployments, save) {
+    return deployProxyMulti(contractName, contractName, deployments, save);
+}
+
+async function deployProxyMulti(contractName, factoryName, deployments, save) {
+
+    const contractFactory = await ethers.getContractFactory(factoryName);
 
     let proxy;
     try {
@@ -56,14 +61,15 @@ async function deployProxy(contractName, deployments, save) {
             address: impl.impl
         });
 
-        await fs.writeFile(name, JSON.stringify(config), 'utf8', ()=>{});
+        await fs.writeFile(name, JSON.stringify(config), 'utf8', () => {
+        });
     }
 
 
     if (impl && impl.deployTransaction)
         await impl.deployTransaction.wait();
 
-    const artifact = await deployments.getExtendedArtifact(contractName);
+    const artifact = await deployments.getExtendedArtifact(factoryName);
     let proxyDeployments = {
         address: proxy.address,
         ...artifact
@@ -74,4 +80,7 @@ async function deployProxy(contractName, deployments, save) {
 }
 
 
-module.exports = deployProxy;
+module.exports = {
+    deployProxy: deployProxy,
+    deployProxyMulti: deployProxyMulti,
+};
