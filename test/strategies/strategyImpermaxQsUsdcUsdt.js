@@ -17,7 +17,7 @@ const fse = require('fs-extra');
 const {logStrategyGasUsage} = require("./strategyCommon");
 
 
-describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
+describe("StrategyImpermaxQsUsdcUsdt. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -28,12 +28,12 @@ describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdcUsdtSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
@@ -41,7 +41,7 @@ describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
     });
 
     it("log gas", async () => {
-        await logStrategyGasUsage("StrategyImpermaxQsUsdt", strategy, usdc, account)
+        await logStrategyGasUsage("StrategyImpermaxQsUsdcUsdt", strategy, usdc, account)
     });
 
 
@@ -111,7 +111,7 @@ describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
 });
 
 
-describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
+describe("StrategyImpermaxQsUsdcUsdt. Claim rewards", function () {
 
     let account;
     let strategy;
@@ -122,12 +122,12 @@ describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdcUsdtSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
@@ -165,7 +165,7 @@ describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
 });
 
 
-describe("StrategyImpermaxQsUsdt. Stake/unstakeFull", function () {
+describe("StrategyImpermaxQsUsdcUsdt. Stake/unstakeFull", function () {
 
     let account;
     let strategy;
@@ -178,12 +178,12 @@ describe("StrategyImpermaxQsUsdt. Stake/unstakeFull", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdcUsdtSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);

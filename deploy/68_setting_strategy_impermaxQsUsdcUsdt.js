@@ -14,7 +14,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyImpermaxQsUsdt");
+    const strategy = await ethers.getContract("StrategyImpermaxQsUsdcUsdt");
     const pm = await ethers.getContract("PortfolioManager");
 
     await (await strategy.setTokens(assets.usdc, assets.usdt, imxBToken)).wait();
@@ -24,5 +24,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('StrategyImpermaxQsUsdt setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyImpermaxQsUsdtSetting'];
+module.exports.tags = ['setting', 'StrategyImpermaxQsUsdcUsdtSetting'];
 
