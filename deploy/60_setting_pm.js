@@ -46,7 +46,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let impermaxQsUsdt = {
-        strategy: (await ethers.getContract("StrategyImpermaxQsUsdcUsdt")).address,
+        strategy: (await ethers.getContract("StrategyImpermaxQsUsdt")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,

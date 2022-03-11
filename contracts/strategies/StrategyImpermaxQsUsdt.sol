@@ -9,7 +9,7 @@ import "../connectors/impermax/ImpermaxRouter.sol";
 import "../connectors/impermax/IPoolToken.sol";
 import "../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
 
-contract StrategyImpermaxQsUsdcUsdt is Strategy, BalancerExchange {
+contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
