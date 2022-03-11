@@ -5,8 +5,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    // await deployProxyMulti('StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
-    await deployProxyMulti('StrategyImpermaxQsMaticUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
+    await deployProxyMulti('StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
+
+    // Uncomment for individual deploy
+    // await deployProxyMulti('StrategyImpermaxQsMaticUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
     // await deployProxyMulti('StrategyImpermaxQsWethUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
     // await deployProxyMulti('StrategyImpermaxQsMaiUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
 };

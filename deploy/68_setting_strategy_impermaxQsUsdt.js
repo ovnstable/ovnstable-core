@@ -14,10 +14,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    // await impermaxQsUsdt("0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965", "StrategyImpermaxQsUsdcUsdt");
-    await impermaxQsUsdt("0xed618c29abc8fa6ee05b33051b3cdb4a1efb7924", "StrategyImpermaxQsMaticUsdt");
+    await impermaxQsUsdt("0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965", "StrategyImpermaxQsUsdcUsdt");
+
+    // Uncomment for individual deploy
+    // await impermaxQsUsdt("0xed618c29abc8fa6ee05b33051b3cdb4a1efb7924", "StrategyImpermaxQsMaticUsdt");
     // await impermaxQsUsdt("0x64ce3e18c091468acf30bd861692a74ce48a0c7c", "StrategyImpermaxQsWethUsdt");
-    // await impermaxQsUsdt("0x65a0effbb58e4beb2f3a40fdca740f85585213", "StrategyImpermaxQsMaiUsdt");
+    // await impermaxQsUsdt("0x0065A0effbb58e4BeB2f3A40fDcA740F85585213", "StrategyImpermaxQsMaiUsdt");
 };
 
 module.exports.tags = ['setting', 'StrategyImpermaxQsUsdtSetting'];
@@ -34,5 +36,5 @@ async function impermaxQsUsdt(imxbToken, strategyName){
     await (await strategy.setParams(impermaxRouter, balancerVault, balancerPoolId)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
-    console.log('StrategyImpermaxQsUsdt setting done');
+    console.log(`${strategyName} setting done`);
 }

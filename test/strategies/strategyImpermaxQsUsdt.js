@@ -33,7 +33,7 @@ describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsMaticUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
@@ -127,7 +127,7 @@ describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsMaticUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
@@ -183,7 +183,7 @@ describe("StrategyImpermaxQsUsdt. Stake/unstakeFull", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyImpermaxQsMaticUsdt');
+        strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);

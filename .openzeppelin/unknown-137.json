@@ -395,6 +395,21 @@
       "address": "0x19c0F0388521F68cA73Dd02622943202F9e6B461",
       "txHash": "0x885b003a2aa2fceb461110073e0727fabc0c667a7eab1c8196fcd11c510d2121",
       "kind": "uups"
+    },
+    {
+      "address": "0x693eD2e6A26B64c4eCf77260Bf14e23fCCD470d3",
+      "txHash": "0x2dce253e9c86d323f4c1f713c574a6dbbc8128d68003facfe60a127adf4aa832",
+      "kind": "uups"
+    },
+    {
+      "address": "0x7698D56d8f66De494E9598A9931064dcbE469Ca9",
+      "txHash": "0x087afef54cba3777663febf4642d21f9646bf4b0658f5524dcf01bcbb1db8e6d",
+      "kind": "uups"
+    },
+    {
+      "address": "0x788024d68C76B26dDADC6Df00fD5A466cf12AC55",
+      "txHash": "0xd31cb76fc9e4802c2fa777639f091f063776c5943c1b71f42457b3da5ec0d4aa",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -15492,7 +15507,7 @@
           {
             "contract": "BalancerExchange",
             "label": "balancerVault",
-            "type": "t_contract(IVault)18816",
+            "type": "t_contract(IVault)19148",
             "src": "contracts/connectors/BalancerExchange.sol:15"
           },
           {
@@ -15502,59 +15517,59 @@
             "src": "contracts/connectors/BalancerExchange.sol:178"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "usdcToken",
             "type": "t_contract(IERC20)8922",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:14"
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:14"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "usdtToken",
             "type": "t_contract(IERC20)8922",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:15"
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:15"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "imxBToken",
-            "type": "t_contract(IPoolToken)19341",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:16"
+            "type": "t_contract(IPoolToken)19673",
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:16"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "balancerPoolId",
             "type": "t_bytes32",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:18"
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:18"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "impermaxRouter",
-            "type": "t_contract(ImpermaxRouter)19402",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:20"
+            "type": "t_contract(ImpermaxRouter)19734",
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:20"
           },
           {
-            "contract": "StrategyImpermaxQsUsdcUsdt",
+            "contract": "StrategyImpermaxQsUsdt",
             "label": "pair",
-            "type": "t_contract(IUniswapV2Pair)20243",
-            "src": "contracts/strategies/StrategyImpermaxQsUsdcUsdt.sol:21"
+            "type": "t_contract(IUniswapV2Pair)20575",
+            "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:21"
           }
         ],
         "types": {
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(IPoolToken)19341": {
+          "t_contract(IPoolToken)19673": {
             "label": "contract IPoolToken"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ImpermaxRouter)19402": {
+          "t_contract(ImpermaxRouter)19734": {
             "label": "contract ImpermaxRouter"
           },
-          "t_contract(IUniswapV2Pair)20243": {
+          "t_contract(IUniswapV2Pair)20575": {
             "label": "contract IUniswapV2Pair"
           },
-          "t_contract(IVault)18816": {
+          "t_contract(IVault)19148": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
