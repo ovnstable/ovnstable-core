@@ -54,8 +54,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabledReward: true,
     }
 
-    let dodo = {
-        strategy: (await ethers.getContract("StrategyDodo")).address,
+    let dodoUsdc = {
+        strategy: (await ethers.getContract("StrategyDodoUsdc")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -86,7 +86,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         mstable,
         izumu,
         impermaxQsUsdt,
-        dodo,
+        dodoUsdc,
         // balancer,
         // curve,
         // idle

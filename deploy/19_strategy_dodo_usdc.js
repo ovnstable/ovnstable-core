@@ -1,11 +1,11 @@
 const { ethers, upgrades} = require("hardhat");
-const deployProxy = require("../utils/deployProxy");
+const { deployProxy } = require("../utils/deployProxy");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deployProxy('StrategyDodo', deployments, save);
+    await deployProxy('StrategyDodoUsdc', deployments, save);
 };
 
-module.exports.tags = ['base', 'StrategyDodo'];
+module.exports.tags = ['base', 'StrategyDodoUsdc'];

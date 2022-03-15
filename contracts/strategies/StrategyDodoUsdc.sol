@@ -6,7 +6,7 @@ import "../connectors/DodoExchange.sol";
 import "../connectors/dodo/IDODOV1.sol";
 import "../connectors/dodo/IDODOMine.sol";
 
-contract StrategyDodo is Strategy, DodoExchange {
+contract StrategyDodoUsdc is Strategy, DodoExchange {
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -21,7 +21,8 @@ contract StrategyDodo is Strategy, DodoExchange {
 
     // --- events
 
-    event StrategyDodoUpdatedTokens(address usdcToken, address usdtToken, address dodoToken, address usdcLPToken, address usdtLPToken);
+    event StrategyDodoUpdatedTokens(address usdcToken, address usdtToken, address dodoToken, address usdcLPToken,
+        address usdtLPToken);
 
     event StrategyDodoUpdatedParams(address dodoV1UsdcUsdtPool, address dodoV2DodoUsdtPool, address dodoMine,
         address dodoV1Helper, address dodoProxy, address dodoApprove);
@@ -99,7 +100,7 @@ contract StrategyDodo is Strategy, DodoExchange {
 
         // add liquidity to pool
         usdcToken.approve(address(dodoV1UsdcUsdtPool), _amount);
-        uint256 baseShares = dodoV1UsdcUsdtPool.depositBaseTo(address(this), _amount);
+        dodoV1UsdcUsdtPool.depositBaseTo(address(this), _amount);
 
         // stake all lp tokens, because we unstake 0.1% tokens and don't stake them in _unstake() method
         uint256 usdcLPTokenBalance = usdcLPToken.balanceOf(address(this));
@@ -154,7 +155,7 @@ contract StrategyDodo is Strategy, DodoExchange {
         }
 
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
+        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 amount = baseLpBalance * baseTarget / baseLpTotalSupply;
 
         return amount;
@@ -167,7 +168,7 @@ contract StrategyDodo is Strategy, DodoExchange {
         }
 
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
+        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 amount = baseLpBalance * baseTarget / baseLpTotalSupply;
 
         return amount;

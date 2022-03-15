@@ -16,15 +16,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyDodo");
+    const strategy = await ethers.getContract("StrategyDodoUsdc");
     const pm = await ethers.getContract("PortfolioManager");
 
     await (await strategy.setTokens(assets.usdc, assets.usdt, assets.dodo, usdcLPToken, usdtLPToken)).wait();
     await (await strategy.setParams(dodoV1UsdcUsdtPool, dodoV2DodoUsdtPool, dodoMine, dodoV1Helper, dodoProxy, dodoApprove)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
-    console.log('StrategyDodo setting done');
+    console.log('StrategyDodoUsdc setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyDodoSetting'];
+module.exports.tags = ['setting', 'StrategyDodoUsdcSetting'];
 module.exports.dependencies = ["PortfolioManager"];

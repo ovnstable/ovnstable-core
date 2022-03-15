@@ -13,7 +13,7 @@ let assets = JSON.parse(fs.readFileSync('./assets.json'));
 
 chai.use(smock.matchers);
 
-describe("StrategyDodo. Stake/unstake", function () {
+describe("StrategyDodoUsdc. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -25,12 +25,12 @@ describe("StrategyDodo. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyDodo', 'StrategyDodoSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyDodoUsdc', 'StrategyDodoUsdcSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyDodo');
+        strategy = await ethers.getContract('StrategyDodoUsdc');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
@@ -39,7 +39,7 @@ describe("StrategyDodo. Stake/unstake", function () {
     });
 
     it("log gas", async () => {
-        await logStrategyGasUsage("StrategyDodo", strategy, usdc, account)
+        await logStrategyGasUsage("StrategyDodoUsdc", strategy, usdc, account)
     });
 
     describe("Stake 100 USDC", function () {
@@ -165,7 +165,7 @@ describe("StrategyDodo. Stake/unstake", function () {
 
 });
 
-describe("StrategyDodo. Claim rewards", function () {
+describe("StrategyDodoUsdc. Claim rewards", function () {
 
     let account;
     let strategy;
@@ -175,12 +175,12 @@ describe("StrategyDodo. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat();
 
-        await deployments.fixture(['PortfolioManager', 'StrategyDodo', 'StrategyDodoSetting', 'BuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyDodoUsdc', 'StrategyDodoUsdcSetting', 'BuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('StrategyDodo');
+        strategy = await ethers.getContract('StrategyDodoUsdc');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
