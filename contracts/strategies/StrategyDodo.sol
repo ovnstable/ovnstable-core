@@ -6,8 +6,6 @@ import "../connectors/DodoExchange.sol";
 import "../connectors/dodo/IDODOV1.sol";
 import "../connectors/dodo/IDODOMine.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyDodo is Strategy, DodoExchange {
 
     IERC20 public usdcToken;
@@ -181,25 +179,15 @@ contract StrategyDodo is Strategy, DodoExchange {
         dodoMine.claimAll();
 
         uint256 dodoBalance = dodoToken.balanceOf(address(this));
-        console.log("dodoBalance: %s", dodoBalance);
         if (dodoBalance == 0) {
             return 0;
         }
-        console.log("usdtBalance: %s", usdtToken.balanceOf(address(this)));
 
         // swap v2 dodo -> usdt
         uint256 usdtTokenAmount = _useDodoSwapV2(address(dodoV2DodoUsdtPool), address(dodoToken), address(usdtToken), dodoBalance, 1, 0);
 
-        console.log("usdtTokenAmount: %s", usdtTokenAmount);
-        console.log("dodoBalance: %s", dodoToken.balanceOf(address(this)));
-        console.log("usdtBalance: %s", usdtToken.balanceOf(address(this)));
-
         // swap v1 usdt -> usdc
         uint256 usdcTokenAmount = _useDodoSwapV1(address(dodoV1UsdcUsdtPool), address(usdtToken), address(usdcToken), usdtTokenAmount, 1, 1);
-
-        console.log("usdcTokenAmount: %s", usdcTokenAmount);
-        console.log("usdtBalance: %s", usdtToken.balanceOf(address(this)));
-        console.log("usdcBalance: %s", usdcToken.balanceOf(address(this)));
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
 

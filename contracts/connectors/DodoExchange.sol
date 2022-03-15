@@ -1,10 +1,4 @@
-/*
-
-    Copyright 2020 DODO ZOO.
-    SPDX-License-Identifier: Apache-2.0
-
-*/
-
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -60,8 +54,14 @@ abstract contract DodoExchange {
         uint256 directions
     ) internal returns (uint256) {
 
-        uint256 receivedBaseAmount = dodoV1Helper.querySellQuoteToken(dodoV1Pool, fromTokenAmount);
-        uint256 minReturnAmount = receivedBaseAmount * (100 - slippage) / 100;
+        uint256 minReturnAmount;
+        if (directions == 0) {
+            uint256 receivedQuoteAmount = dodoV1Helper.querySellBaseToken(dodoV1Pool, fromTokenAmount);
+            minReturnAmount = receivedQuoteAmount * (100 - slippage) / 100;
+        } else {
+            uint256 receivedBaseAmount = dodoV1Helper.querySellQuoteToken(dodoV1Pool, fromTokenAmount);
+            minReturnAmount = receivedBaseAmount * (100 - slippage) / 100;
+        }
 
         address[] memory dodoPairs = new address[](1); //one-hop
         dodoPairs[0] = dodoV1Pool;
@@ -99,8 +99,14 @@ abstract contract DodoExchange {
         uint256 directions
     ) internal returns (uint256) {
 
-        (uint256 receivedQuoteAmount,) = IDODOV2(dodoV2Pool).querySellBase(msg.sender, fromTokenAmount);
-        uint256 minReturnAmount = receivedQuoteAmount * (100 - slippage) / 100;
+        uint256 minReturnAmount;
+        if (directions == 0) {
+            (uint256 receiveQuoteAmount,) = IDODOV2(dodoV2Pool).querySellBase(address(this), fromTokenAmount);
+            minReturnAmount = receiveQuoteAmount * (100 - slippage) / 100;
+        } else {
+            (uint256 receiveBaseAmount,) = IDODOV2(dodoV2Pool).querySellQuote(address(this), fromTokenAmount);
+            minReturnAmount = receiveBaseAmount * (100 - slippage) / 100;
+        }
 
         address[] memory dodoPairs = new address[](1); //one-hop
         dodoPairs[0] = dodoV2Pool;
