@@ -51,6 +51,10 @@ describe("TimelockController", function () {
         await expectRevert(timeLock.connect(user1).setGovernor(user1.address), 'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000');
     });
 
+    it("UpdateDelay -> caller must be timelock", async function () {
+        await expectRevert(timeLock.connect(user1).updateDelay(1), 'TimelockController: caller must be timelock');
+        await expectRevert(timeLock.updateDelay(1), 'TimelockController: caller must be timelock');
+    });
 
     it("Execute governor methods -> revert is missing role", async function () {
 
@@ -61,14 +65,14 @@ describe("TimelockController", function () {
         let salt = ethers.utils.formatBytes32String("32");
         let delay = 0;
 
-        let error = `AccessControl: account ${user1.address} is missing role ${governorRole}`;
+        let error = `AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x7935bd0ae54bc31f548c14dba4d37c5c64b3f8ca900cb468fb8abd54d5894f55`;
         await expectRevert(timeLock.connect(user1).schedule(target, value, data, predecessor, salt, delay), error);
 
-        await expectRevert(timeLock.connect(user1).scheduleBatch([target], [value], [data], [predecessor], [salt], [delay]), error);
+        await expectRevert(timeLock.connect(user1).scheduleBatch([target], [value], [data], predecessor, salt, delay), error);
 
         await expectRevert(timeLock.connect(user1).execute(target, value, data, predecessor, salt), error);
 
-        await expectRevert(timeLock.connect(user1).executeBatch([target], [value], [data], [predecessor], [salt]), error);
+        await expectRevert(timeLock.connect(user1).executeBatch([target], [value], [data], predecessor, salt), error);
 
         await expectRevert(timeLock.connect(user1).cancel(predecessor), error);
     });
