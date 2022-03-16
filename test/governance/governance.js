@@ -410,4 +410,57 @@ describe("Governance", function () {
         hasRole = await exchange.hasRole(adminRole, account);
         expect(hasRole).to.true;
     });
+
+
+    it("Execute not successful proposal -> revert", async function () {
+        await expectRevert(governator.executeExec(await createTestProposal()), 'Governor: proposal not successful');
+    });
+
+    it("Queue not successful proposal -> revert", async function () {
+        await expectRevert(governator.queueExec(await createTestProposal()), 'Governor: proposal not successful');
+    });
+
+    it("Only proposer can cancel proposal", async function () {
+        await expectRevert(governator.connect(user1).cancel(await createTestProposal()), 'GovernorBravo: proposer above threshold');
+    });
+
+
+    it("Cancel proposal", async function () {
+        let id = await createTestProposal();
+        await governator.cancel(id);
+        await expect(await getState(id)).to.equal('Canceled');
+    });
+
+    async function getState(proposalId){
+        return proposalStates[await governator.state(proposalId)];
+
+    }
+
+    async function createTestProposal(){
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await ovnToken.mint(account, votes);
+        await ovnToken.delegate(account)
+
+        const grant = ethers.utils.parseUnits("500.0", 18);
+        const newProposal = {
+            grantAmount: grant,
+            transferCalldata: ovnToken.interface.encodeFunctionData('mint', [account, grant]),
+            descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
+        };
+
+        const proposeTx = await governator.proposeExec(
+            [ovnToken.address],
+            [0],
+            [newProposal.transferCalldata],
+            newProposal.descriptionHash,
+        );
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        return tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+    }
 });
+
+
