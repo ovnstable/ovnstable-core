@@ -5,8 +5,9 @@ import "./Strategy.sol";
 import "../connectors/DodoExchange.sol";
 import "../connectors/dodo/IDODOV1.sol";
 import "../connectors/dodo/IDODOMine.sol";
+import "../connectors/BalancerExchange.sol";
 
-contract StrategyDodoUsdc is Strategy, DodoExchange {
+contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -17,6 +18,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
     IDODOV1 public dodoV1UsdcUsdtPool;
     IDODOV2 public dodoV2DodoUsdtPool;
     IDODOMine public dodoMine;
+    bytes32 public balancerPoolId;
 
 
     // --- events
@@ -25,7 +27,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
         address usdtLPToken);
 
     event StrategyDodoUpdatedParams(address dodoV1UsdcUsdtPool, address dodoV2DodoUsdtPool, address dodoMine,
-        address dodoV1Helper, address dodoProxy, address dodoApprove);
+        address dodoV1Helper, address dodoProxy, address dodoApprove, address balancerVault, bytes32 balancerPoolId);
 
 
     // ---  constructor
@@ -69,7 +71,9 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
         address _dodoMine,
         address _dodoV1Helper,
         address _dodoProxy,
-        address _dodoApprove
+        address _dodoApprove,
+        address _balancerVault,
+        bytes32 _balancerPoolId
     ) external onlyAdmin {
 
         require(_dodoV1UsdcUsdtPool != address(0), "Zero address not allowed");
@@ -78,14 +82,20 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
         require(_dodoV1Helper != address(0), "Zero address not allowed");
         require(_dodoProxy != address(0), "Zero address not allowed");
         require(_dodoApprove != address(0), "Zero address not allowed");
+        require(_balancerVault != address(0), "Zero address not allowed");
+        require(_balancerPoolId != "", "Empty pool id not allowed");
 
         dodoV1UsdcUsdtPool = IDODOV1(_dodoV1UsdcUsdtPool);
         dodoV2DodoUsdtPool = IDODOV2(_dodoV2DodoUsdtPool);
         dodoMine = IDODOMine(_dodoMine);
+        balancerPoolId = _balancerPoolId;
 
         setDodoParams(_dodoV1Helper, _dodoProxy, _dodoApprove);
 
-        emit StrategyDodoUpdatedParams(_dodoV1UsdcUsdtPool, _dodoV2DodoUsdtPool, _dodoMine, _dodoV1Helper, _dodoProxy, _dodoApprove);
+        setBalancerVault(_balancerVault);
+
+        emit StrategyDodoUpdatedParams(_dodoV1UsdcUsdtPool, _dodoV2DodoUsdtPool, _dodoMine, _dodoV1Helper, _dodoProxy,
+            _dodoApprove, _balancerVault, _balancerPoolId);
     }
 
 
@@ -98,14 +108,18 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // swap usdc to usdt
+        uint256 usdtTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
+            IAsset(address(usdtToken)), address(this), address(this), usdcToken.balanceOf(address(this)), 0);
+
         // add liquidity to pool
-        usdcToken.approve(address(dodoV1UsdcUsdtPool), _amount);
-        dodoV1UsdcUsdtPool.depositBaseTo(address(this), _amount);
+        usdtToken.approve(address(dodoV1UsdcUsdtPool), usdtTokenAmount);
+        dodoV1UsdcUsdtPool.depositQuoteTo(address(this), usdtTokenAmount);
 
         // stake all lp tokens, because we unstake 0.1% tokens and don't stake them in _unstake() method
-        uint256 usdcLPTokenBalance = usdcLPToken.balanceOf(address(this));
-        usdcLPToken.approve(address(dodoMine), usdcLPTokenBalance);
-        dodoMine.deposit(address(usdcLPToken), usdcLPTokenBalance);
+        uint256 usdtLPTokenBalance = usdtLPToken.balanceOf(address(this));
+        usdtLPToken.approve(address(dodoMine), usdtLPTokenBalance);
+        dodoMine.deposit(address(usdtLPToken), usdtLPTokenBalance);
     }
 
     function _unstake(
@@ -116,20 +130,29 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // get usdt amount
+        uint256 usdtTokenAmount = onSwap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdtToken, usdcToken, _amount);
+        // need usdt amount >= _amount in usdc
+        usdtTokenAmount = usdtTokenAmount * 1001 / 1000;
+
         // get lp tokens
-        uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 baseLpBalance = _amount * baseLpTotalSupply / baseTarget;
-        // need for smooth withdraw in withdrawBase() method, but we will have some unstaken tokens
-        baseLpBalance = baseLpBalance * 1001 / 1000;
+        uint256 quoteLpTotalSupply = usdtLPToken.totalSupply();
+        (, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
+        uint256 quoteLpBalance = usdtTokenAmount * quoteLpTotalSupply / quoteTarget;
+        // need for smooth withdraw in withdrawQuote() method, but we will have some unstaken tokens
+        quoteLpBalance = quoteLpBalance * 1001 / 1000;
 
         // unstake lp tokens
-        dodoMine.withdraw(address(usdcLPToken), baseLpBalance);
+        dodoMine.withdraw(address(usdtLPToken), quoteLpBalance);
 
         // remove liquidity from pool
-        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawBase(_amount);
+        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawQuote(usdtTokenAmount);
 
-        return redeemedTokens;
+        // swap usdt to usdc
+        uint256 usdcTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)),
+            IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
+
+        return usdcTokenAmount;
     }
 
     function _unstakeFull(
@@ -140,12 +163,16 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // unstake lp tokens
-        dodoMine.withdrawAll(address(usdcLPToken));
+        dodoMine.withdrawAll(address(usdtLPToken));
 
         // remove liquidity from pool
-        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllBase();
+        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllQuote();
 
-        return redeemedTokens;
+        // swap usdt to usdc
+        uint256 usdcTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)),
+            IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
+
+        return usdcTokenAmount;
     }
 
     function netAssetValue() external override view returns (uint256) {
@@ -157,16 +184,18 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
     }
 
     function _totalValue() internal view returns (uint256) {
-        uint256 baseLpBalance = dodoMine.getUserLpBalance(address(usdcLPToken), address(this));
-        if (baseLpBalance == 0) {
+        uint256 quoteLpBalance = dodoMine.getUserLpBalance(address(usdtLPToken), address(this));
+        if (quoteLpBalance == 0) {
             return 0;
         }
 
-        uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 amount = baseLpBalance * baseTarget / baseLpTotalSupply;
+        uint256 quoteLpTotalSupply = usdtLPToken.totalSupply();
+        (, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
+        uint256 usdtTokenBalance = quoteLpBalance * quoteTarget / quoteLpTotalSupply;
 
-        return usdcToken.balanceOf(address(this)) + amount;
+        uint256 usdcTokenBalance = onSwap(balancerPoolId, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, usdtTokenBalance);
+
+        return usdcToken.balanceOf(address(this)) + usdcTokenBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

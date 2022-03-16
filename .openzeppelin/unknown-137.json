@@ -415,6 +415,11 @@
       "address": "0xc90754A12424Db8d532B54725B787fd70400DD6A",
       "txHash": "0x39aa433ff36aa6570f313c131650c0e331eca16092a0523ad03b408a4c73a483",
       "kind": "uups"
+    },
+    {
+      "address": "0x3ceA7c4e1EBf2a65860dF7af61F9C1c4839e7c4a",
+      "txHash": "0x00d90664cd3a62e89bad9f30a971b8863e610e0af40e99bfa1baa3098912c79a",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -15805,6 +15810,409 @@
         }
       }
     },
+    "366528487d9d358fd3dbec4ad5dcc8084671e2dbd0ec3736a8a792997b786c0f": {
+      "address": "0x17D7B1B9cF4F559fA4026e955D3456462efF3AFA",
+      "txHash": "0xf1c0a9a660cfd052ff92631bc6cc2654d662239a855c2481d1349639ef9fbaab",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:37"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:42"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "_roles",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)43_storage)",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:64"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:232"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:215"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:81"
+          },
+          {
+            "contract": "Strategy",
+            "label": "portfolioManager",
+            "type": "t_address",
+            "src": "contracts\\strategies\\Strategy.sol:16"
+          },
+          {
+            "contract": "Strategy",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "contracts\\strategies\\Strategy.sol:123"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoV1Helper",
+            "type": "t_contract(IDODOV1Helper)19957",
+            "src": "contracts\\connectors\\DodoExchange.sol:24"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoProxy",
+            "type": "t_contract(IDODOProxy)19797",
+            "src": "contracts\\connectors\\DodoExchange.sol:25"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoApprove",
+            "type": "t_address",
+            "src": "contracts\\connectors\\DodoExchange.sol:26"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "usdcToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:11"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "usdtToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:12"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "dodoToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:13"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "usdcLPToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:14"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "usdtLPToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:15"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "dodoV1UsdcUsdtPool",
+            "type": "t_contract(IDODOV1)19936",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:17"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "dodoV2DodoUsdtPool",
+            "type": "t_contract(IDODOV2)19982",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:18"
+          },
+          {
+            "contract": "StrategyDodoUsdc",
+            "label": "dodoMine",
+            "type": "t_contract(IDODOMine)19750",
+            "src": "contracts\\strategies\\StrategyDodoUsdc.sol:19"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20)8922": {
+            "label": "contract IERC20"
+          },
+          "t_contract(IDODOV1)19936": {
+            "label": "contract IDODOV1"
+          },
+          "t_contract(IDODOV2)19982": {
+            "label": "contract IDODOV2"
+          },
+          "t_contract(IDODOMine)19750": {
+            "label": "contract IDODOMine"
+          },
+          "t_contract(IDODOV1Helper)19957": {
+            "label": "contract IDODOV1Helper"
+          },
+          "t_contract(IDODOProxy)19797": {
+            "label": "contract IDODOProxy"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)43_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_struct(RoleData)43_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "adc0d161ee280beb82b2826bb9866e4754a40e69c4488bf97d3cfa1d603c26e2": {
+      "address": "0x0B8Cf10C019218bA47DE62A008aE44f912C84F90",
+      "txHash": "0xbb274c6dcf28d63887141e85bd301665ad73116647be6f84f8b02a705db02300",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:37"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:42"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "_roles",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)43_storage)",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:64"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:232"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:215"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:81"
+          },
+          {
+            "contract": "Strategy",
+            "label": "portfolioManager",
+            "type": "t_address",
+            "src": "contracts\\strategies\\Strategy.sol:16"
+          },
+          {
+            "contract": "Strategy",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "contracts\\strategies\\Strategy.sol:123"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoV1Helper",
+            "type": "t_contract(IDODOV1Helper)19957",
+            "src": "contracts\\connectors\\DodoExchange.sol:24"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoProxy",
+            "type": "t_contract(IDODOProxy)19797",
+            "src": "contracts\\connectors\\DodoExchange.sol:25"
+          },
+          {
+            "contract": "DodoExchange",
+            "label": "dodoApprove",
+            "type": "t_address",
+            "src": "contracts\\connectors\\DodoExchange.sol:26"
+          },
+          {
+            "contract": "BalancerExchange",
+            "label": "balancerVault",
+            "type": "t_contract(IVault)19408",
+            "src": "contracts\\connectors\\BalancerExchange.sol:15"
+          },
+          {
+            "contract": "BalancerExchange",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "contracts\\connectors\\BalancerExchange.sol:178"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "usdcToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:12"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "usdtToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:13"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "dodoToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:14"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "usdcLPToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:15"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "usdtLPToken",
+            "type": "t_contract(IERC20)8922",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:16"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "dodoV1UsdcUsdtPool",
+            "type": "t_contract(IDODOV1)19936",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:18"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "dodoV2DodoUsdtPool",
+            "type": "t_contract(IDODOV2)19982",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:19"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "dodoMine",
+            "type": "t_contract(IDODOMine)19750",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:20"
+          },
+          {
+            "contract": "StrategyDodoUsdt",
+            "label": "balancerPoolId",
+            "type": "t_bytes32",
+            "src": "contracts\\strategies\\StrategyDodoUsdt.sol:21"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20)8922": {
+            "label": "contract IERC20"
+          },
+          "t_contract(IDODOV1)19936": {
+            "label": "contract IDODOV1"
+          },
+          "t_contract(IDODOV2)19982": {
+            "label": "contract IDODOV2"
+          },
+          "t_contract(IDODOMine)19750": {
+            "label": "contract IDODOMine"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_contract(IVault)19408": {
+            "label": "contract IVault"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_contract(IDODOV1Helper)19957": {
+            "label": "contract IDODOV1Helper"
+          },
+          "t_contract(IDODOProxy)19797": {
+            "label": "contract IDODOProxy"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)43_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_struct(RoleData)43_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
     "650b3295d12567015af5951623d31f7bd02824f4002a44dc210795832237c738": {
       "address": "0xA58780232E007aB7f1d0a5fa638479f07C32D070",
       "txHash": "0x642b439f3b4f61d0c661273e7e088955c6636b4fd214f693cff287743e870c7f",
@@ -15873,7 +16281,7 @@
           {
             "contract": "BalancerExchange",
             "label": "balancerVault",
-            "type": "t_contract(IVault)19409",
+            "type": "t_contract(IVault)19408",
             "src": "contracts/connectors/BalancerExchange.sol:15"
           },
           {
@@ -15897,7 +16305,7 @@
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "imxBToken",
-            "type": "t_contract(IPoolToken)20235",
+            "type": "t_contract(IPoolToken)20234",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:16"
           },
           {
@@ -15909,13 +16317,13 @@
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "impermaxRouter",
-            "type": "t_contract(ImpermaxRouter)20296",
+            "type": "t_contract(ImpermaxRouter)20295",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:20"
           },
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "pair",
-            "type": "t_contract(IUniswapV2Pair)21137",
+            "type": "t_contract(IUniswapV2Pair)21136",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:21"
           }
         ],
@@ -15923,19 +16331,19 @@
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(IPoolToken)20235": {
+          "t_contract(IPoolToken)20234": {
             "label": "contract IPoolToken"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ImpermaxRouter)20296": {
+          "t_contract(ImpermaxRouter)20295": {
             "label": "contract ImpermaxRouter"
           },
-          "t_contract(IUniswapV2Pair)21137": {
+          "t_contract(IUniswapV2Pair)21136": {
             "label": "contract IUniswapV2Pair"
           },
-          "t_contract(IVault)19409": {
+          "t_contract(IVault)19408": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
