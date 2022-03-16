@@ -118,7 +118,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         // get lp tokens
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
+        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 baseLpBalance = _amount * baseLpTotalSupply / baseTarget;
         // need for smooth withdraw in withdrawBase() method, but we will have some unstaken tokens
         baseLpBalance = baseLpBalance * 1001 / 1000;
@@ -149,19 +149,14 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        uint256 baseLpBalance = dodoMine.getUserLpBalance(address(usdcLPToken), address(this));
-        if (baseLpBalance == 0) {
-            return 0;
-        }
-
-        uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
-        (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 amount = baseLpBalance * baseTarget / baseLpTotalSupply;
-
-        return amount;
+        return _totalValue();
     }
 
     function liquidationValue() external override view returns (uint256) {
+        return _totalValue();
+    }
+
+    function _totalValue() internal view returns (uint256) {
         uint256 baseLpBalance = dodoMine.getUserLpBalance(address(usdcLPToken), address(this));
         if (baseLpBalance == 0) {
             return 0;
@@ -171,7 +166,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 amount = baseLpBalance * baseTarget / baseLpTotalSupply;
 
-        return amount;
+        return usdcToken.balanceOf(address(this)) + amount;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
