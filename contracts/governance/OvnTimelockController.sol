@@ -24,7 +24,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  */
 contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant GOVERNOR_ROLE = keccak256("PROPOSER_ROLE");
+    bytes32 public constant GOVERNOR_ROLE = keccak256("GOVERNOR_ROLE");
     uint256 internal constant _DONE_TIMESTAMP = uint256(1);
 
     mapping(bytes32 => uint256) private _timestamps;
@@ -195,7 +195,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * Requirements:
      *
-     * - the caller must have the 'proposer' role.
+     * - the caller must have the 'governor' role.
      */
     function schedule(
         address target,
@@ -217,7 +217,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * Requirements:
      *
-     * - the caller must have the 'proposer' role.
+     * - the caller must have the 'governor' role.
      */
     function scheduleBatch(
         address[] calldata targets,
@@ -251,7 +251,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * Requirements:
      *
-     * - the caller must have the 'proposer' role.
+     * - the caller must have the 'governor' role.
      */
     function cancel(bytes32 id) public virtual onlyRole(GOVERNOR_ROLE) {
         require(isOperationPending(id), "TimelockController: operation cannot be cancelled");
@@ -267,7 +267,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * Requirements:
      *
-     * - the caller must have the 'executor' role. TODO Remove this role
+     * - the caller must have the 'executor' role.
      */
     function execute(
         address target,
@@ -275,7 +275,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
         bytes calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable virtual  {
+    ) public payable virtual onlyRole(GOVERNOR_ROLE) {
         bytes32 id = hashOperation(target, value, data, predecessor, salt);
         _beforeCall(id, predecessor);
         _call(id, 0, target, value, data);
@@ -289,7 +289,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
      *
      * Requirements:
      *
-     * - the caller must have the 'executor' role. TODO Remove this role
+     * - the caller must have the 'executor' role.
      */
     function executeBatch(
         address[] calldata targets,
@@ -297,7 +297,7 @@ contract OvnTimelockController is Initializable, AccessControlEnumerableUpgradea
         bytes[] calldata datas,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable virtual  {
+    ) public payable virtual onlyRole(GOVERNOR_ROLE) {
         require(targets.length == values.length, "TimelockController: length mismatch");
         require(targets.length == datas.length, "TimelockController: length mismatch");
 
