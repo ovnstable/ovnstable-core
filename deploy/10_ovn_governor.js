@@ -20,7 +20,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let governor = await ethers.getContract('OvnGovernor');
 
-    await controller.setGovernor(governor.address)
+    await (await controller.setGovernor(governor.address)).wait();
     console.log('Grant proposer role to governor - done');
 
 };
