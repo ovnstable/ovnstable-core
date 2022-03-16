@@ -15517,7 +15517,7 @@
           {
             "contract": "BalancerExchange",
             "label": "balancerVault",
-            "type": "t_contract(IVault)19148",
+            "type": "t_contract(IVault)19409",
             "src": "contracts/connectors/BalancerExchange.sol:15"
           },
           {
@@ -15541,7 +15541,7 @@
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "imxBToken",
-            "type": "t_contract(IPoolToken)19673",
+            "type": "t_contract(IPoolToken)20235",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:16"
           },
           {
@@ -15553,13 +15553,13 @@
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "impermaxRouter",
-            "type": "t_contract(ImpermaxRouter)19734",
+            "type": "t_contract(ImpermaxRouter)20296",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:20"
           },
           {
             "contract": "StrategyImpermaxQsUsdt",
             "label": "pair",
-            "type": "t_contract(IUniswapV2Pair)20575",
+            "type": "t_contract(IUniswapV2Pair)21137",
             "src": "contracts/strategies/StrategyImpermaxQsUsdt.sol:21"
           }
         ],
@@ -15567,19 +15567,19 @@
           "t_contract(IERC20)8922": {
             "label": "contract IERC20"
           },
-          "t_contract(IPoolToken)19673": {
+          "t_contract(IPoolToken)20235": {
             "label": "contract IPoolToken"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_contract(ImpermaxRouter)19734": {
+          "t_contract(ImpermaxRouter)20296": {
             "label": "contract ImpermaxRouter"
           },
-          "t_contract(IUniswapV2Pair)20575": {
+          "t_contract(IUniswapV2Pair)21137": {
             "label": "contract IUniswapV2Pair"
           },
-          "t_contract(IVault)19148": {
+          "t_contract(IVault)19409": {
             "label": "contract IVault"
           },
           "t_array(t_uint256)49_storage": {
