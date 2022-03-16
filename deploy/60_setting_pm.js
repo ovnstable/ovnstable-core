@@ -39,14 +39,23 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let izumu = {
         strategy: (await ethers.getContract("StrategyIzumi")).address,
         minWeight: 0,
-        targetWeight: 60000,
+        targetWeight: 55000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
 
     let impermaxQsUsdt = {
-        strategy: (await ethers.getContract("StrategyImpermaxQsUsdt")).address,
+        strategy: (await ethers.getContract("StrategyImpermaxQsUsdcUsdt")).address,
+        minWeight: 0,
+        targetWeight: 5000,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
+    let dodoUsdc = {
+        strategy: (await ethers.getContract("StrategyDodoUsdc")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -77,6 +86,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         mstable,
         izumu,
         impermaxQsUsdt,
+        dodoUsdc,
         // balancer,
         // curve,
         // idle

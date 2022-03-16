@@ -20,4 +20,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['setting', 'StrategyIdleSetting'];
-module.exports.dependencies = ["PortfolioManager"];
