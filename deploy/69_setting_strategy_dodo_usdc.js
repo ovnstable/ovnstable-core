@@ -27,4 +27,3 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 };
 
 module.exports.tags = ['setting', 'StrategyDodoUsdcSetting'];
-module.exports.dependencies = ["PortfolioManager"];
