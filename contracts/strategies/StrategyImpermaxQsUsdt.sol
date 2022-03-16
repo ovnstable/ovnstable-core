@@ -108,7 +108,7 @@ contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         imxBToken.approve(address(impermaxRouter), imxBToken.balanceOf(current));
         impermaxRouter.redeem(address(imxBToken), imxBToken.balanceOf(current), current, block.timestamp, "");
 
-        swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)), current, current, _amount, 0);
+        swap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, IAsset(address(usdtToken)), IAsset(address(usdcToken)), current, current, _amount);
 
         usdtToken.approve(address(impermaxRouter), usdtToken.balanceOf(current));
         impermaxRouter.mint(address(imxBToken), usdtToken.balanceOf(current), current, block.timestamp);
