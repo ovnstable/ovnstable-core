@@ -1,7 +1,7 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require("hardhat");
-const { smock} = require("@defi-wonderland/smock");
+const {smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
 const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
@@ -504,6 +504,15 @@ describe("ERC20", function () {
 
     describe("approve", function () {
 
+        it('max', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            let uint256Max = new BN(2).pow(new BN(256)).subn(1);
+            await usdPlus.approve(tmpUser.address, uint256Max.toString());
+
+            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(uint256Max.toString())
+        });
+
         it('transfer', async function () {
             const [owner, tmpUser] = await ethers.getSigners();
 
@@ -519,15 +528,45 @@ describe("ERC20", function () {
             expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
         });
 
+        it('increaseAllowance', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            await usdPlus.mint(account, 50);
+            await usdPlus.increaseAllowance(tmpUser.address, 25);
+            await usdPlus.increaseAllowance(tmpUser.address, 25);
+
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
+            expect(await usdPlus.balanceOf(account)).to.eq(50)
+
+            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
+
+            expect(await usdPlus.balanceOf(account)).to.eq(0)
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
+        });
+
+        it('decreaseAllowance', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            await usdPlus.mint(account, 50);
+            await usdPlus.increaseAllowance(tmpUser.address, 75);
+            await usdPlus.decreaseAllowance(tmpUser.address, 25);
+
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
+            expect(await usdPlus.balanceOf(account)).to.eq(50)
+
+            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
+
+            expect(await usdPlus.balanceOf(account)).to.eq(0)
+            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
+        });
+
         describe('when the owner is the zero address', function () {
             it('reverts', async function () {
-                await expectRevert(usdPlus.approve(ZERO_ADDRESS,  50),
+                await expectRevert(usdPlus.approve(ZERO_ADDRESS, 50),
                     'ERC20: approve to the zero address',
                 );
             });
         });
-
-
 
 
     });
@@ -546,7 +585,7 @@ describe("ERC20", function () {
 
             it('increments totalSupply', async function () {
                 await usdPlus.mint(recipient.address, 1);
-                expect(await usdPlus.totalSupply()).to.equal(amount+1);
+                expect(await usdPlus.totalSupply()).to.equal(amount + 1);
             });
 
             it('increments recipient balance', async function () {
@@ -554,7 +593,7 @@ describe("ERC20", function () {
             });
 
             it('emits Transfer event', async function () {
-                let events = await usdPlus.queryFilter(usdPlus.filters.Transfer(ZERO_ADDRESS, recipient.address), this.receipt.blockNumber-1, this.receipt.blockNumber+1);
+                let events = await usdPlus.queryFilter(usdPlus.filters.Transfer(ZERO_ADDRESS, recipient.address), this.receipt.blockNumber - 1, this.receipt.blockNumber + 1);
                 let value = events[0].args[2];
                 expect(value.toString()).to.equal("50");
             });
