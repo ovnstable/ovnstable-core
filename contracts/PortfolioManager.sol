@@ -336,6 +336,10 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             address strategy = stakeOrders[i].strategy;
             uint256 amount = stakeOrders[i].amount;
 
+            uint256 currentBalance = usdc.balanceOf(address(this));
+            if (currentBalance < amount) {
+                amount = currentBalance;
+            }
             usdc.transfer(strategy, amount);
 
             IStrategy(strategy).stake(
