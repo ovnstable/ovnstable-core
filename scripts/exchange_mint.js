@@ -1,6 +1,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 const {fromE18, fromUSDC} = require("../utils/decimals");
+const {evmCheckpoint, evmRestore} = require("../test/common/sharedBeforeEach")
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -27,22 +28,31 @@ async function main() {
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', wallet);
     let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
 
+    await evmCheckpoint("default");
+
+    try {
 
 
+        // await(await pm.balance()).wait();
 
-    // await(await pm.balance()).wait();
+        // await (await pm.setStrategyWeights(weights)).wait();
+        // console.log("portfolio.setWeights done");
 
-    // await (await pm.setStrategyWeights(weights)).wait();
-    // console.log("portfolio.setWeights done");
+        // let balanceUSDC = await USDC.balanceOf(wallet.address);
+        // await USDC.approve(exchange.address, balanceUSDC);
+        //
+        // console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
+        // await exchange.buy(USDC.address, balanceUSDC);
+        // await exchange.payout();
 
-    // let balanceUSDC = await USDC.balanceOf(wallet.address);
-    // await USDC.approve(exchange.address, balanceUSDC);
-    //
-    // console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
-    // await exchange.buy(USDC.address, balanceUSDC);
-    // await exchange.payout();
+        console.log(`Before balance on ${PM.address}`)
+        await pm.balance();
+        console.log('After balance')
 
-    await pm.balance();
+    } catch (e) {
+        console.error(e)
+    }
+    await evmRestore("default");
 
 }
 

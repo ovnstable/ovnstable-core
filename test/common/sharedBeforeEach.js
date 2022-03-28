@@ -4,6 +4,7 @@
  * License: GPL-3.0
  */
 const SNAPSHOTS = [];
+const SNAPSHOTS_BY_LABELS = {};
 
 async function takeSnapshot(provider) {
     return await provider.request({
@@ -72,6 +73,30 @@ function wrapWithTitle(title, str) {
     return title === undefined ? str : `${title} at step "${str}"`;
 }
 
+async function evmCheckpoint(label) {
+    const provider = await getProvider();
+    let prevSnapshot = SNAPSHOTS_BY_LABELS[label];
+
+    if (prevSnapshot !== undefined) {
+        await revert(provider, prevSnapshot);
+    }
+
+    SNAPSHOTS_BY_LABELS[label] = await takeSnapshot(provider);
+}
+
+async function evmRestore(label) {
+    const provider = await getProvider();
+    let prevSnapshot = SNAPSHOTS_BY_LABELS[label];
+
+    if (prevSnapshot !== undefined) {
+        await revert(provider, prevSnapshot);
+    } else {
+        throw Error(`Missing snapshot for label: ${label}`);
+    }
+}
+
 module.exports = {
-    sharedBeforeEach
+    sharedBeforeEach,
+    evmCheckpoint,
+    evmRestore
 }
