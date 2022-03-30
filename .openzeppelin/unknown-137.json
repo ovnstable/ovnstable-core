@@ -8059,7 +8059,7 @@
           {
             "contract": "UsdPlusToken",
             "label": "_owners",
-            "type": "t_struct(AddressSet)12339_storage",
+            "type": "t_struct(AddressSet)12933_storage",
             "src": "contracts/UsdPlusToken.sol:39"
           },
           {
@@ -8091,16 +8091,16 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_struct(AddressSet)12339_storage": {
+          "t_struct(AddressSet)12933_storage": {
             "label": "struct EnumerableSet.AddressSet",
             "members": [
               {
                 "label": "_inner",
-                "type": "t_struct(Set)12038_storage"
+                "type": "t_struct(Set)12632_storage"
               }
             ]
           },
-          "t_struct(Set)12038_storage": {
+          "t_struct(Set)12632_storage": {
             "label": "struct EnumerableSet.Set",
             "members": [
               {
@@ -16567,6 +16567,216 @@
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "2cfcb527a77479f4d7d6fe9a0c0a72ad5c69804a0d2f852acb02c5781e8bf649": {
+      "address": "0x78e5995Bd3c1b1e68beFbF289A33f252622b3D6b",
+      "txHash": "0xcd1ce1cf7cd9a395af46621bfa664e1547fdd652994f760ab60b977ca827d0de",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:37"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:42"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:36"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "_roles",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)43_storage)",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:64"
+          },
+          {
+            "contract": "AccessControlUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:232"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:215"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:81"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/UsdPlusToken.sol:18"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "contracts/UsdPlusToken.sol:20"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:22"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "contracts/UsdPlusToken.sol:24"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "contracts/UsdPlusToken.sol:25"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_totalMint",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:32"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_totalBurn",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:33"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "liquidityIndexChangeTime",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:35"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "liquidityIndex",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:36"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "liquidityIndexDenominator",
+            "type": "t_uint256",
+            "src": "contracts/UsdPlusToken.sol:37"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "_owners",
+            "type": "t_struct(AddressSet)12339_storage",
+            "src": "contracts/UsdPlusToken.sol:39"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "contracts/UsdPlusToken.sol:41"
+          },
+          {
+            "contract": "UsdPlusToken",
+            "label": "exchange",
+            "type": "t_address",
+            "src": "contracts/UsdPlusToken.sol:43"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(AddressSet)12339_storage": {
+            "label": "struct EnumerableSet.AddressSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)12038_storage"
+              }
+            ]
+          },
+          "t_struct(Set)12038_storage": {
+            "label": "struct EnumerableSet.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)"
+              }
+            ]
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)43_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
+          },
+          "t_struct(RoleData)43_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
