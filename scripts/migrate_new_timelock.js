@@ -18,16 +18,24 @@ let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json')
 let PortfolioManager = JSON.parse(fs.readFileSync('./deployments/polygon/PortfolioManager.json'));
 let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
 
+let StrategyAave = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyAave.json'));
+let StrategyCurve = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyCurve.json'));
+let StrategyDodoUsdc = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyDodoUsdc.json'));
+let StrategyDodoUsdt = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyDodoUsdt.json'));
+let StrategyImpermaxQsUsdcUsdt = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyImpermaxQsUsdcUsdt.json'));
+let StrategyIzumi = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyIzumi.json'));
+let StrategyMStable = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyMStable.json'));
+
 
 async function main() {
     // need to run inside IDEA via node script running
     await hre.run("compile");
 
-
     let wallet = await initWallet();
 
     let usdPlus = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
     const governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
+    const ovnToken = await ethers.getContractAt(OvnToken.abi, OvnToken.address, wallet);
     const exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     const pm = await ethers.getContractAt(PortfolioManager.abi, PortfolioManager.address, wallet);
     const m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address, wallet);
@@ -40,75 +48,130 @@ async function main() {
     let values = [];
     let abis = [];
 
-    addresses.push(usdPlus.address);
-    values.push(0);
-    abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), newTimeLock.address]));
+    // await grantRevokeRoleByGov();
+    // await moveRulesAll();
+    await checksRules();
 
-    addresses.push(usdPlus.address);
-    values.push(0);
-    abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.UPGRADER_ROLE(), newTimeLock.address]));
+    async function grantRevokeRoleByGov(){
 
-    addresses.push(usdPlus.address);
-    values.push(0);
-    abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.UPGRADER_ROLE(), oldTimeLock.address]));
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), newTimeLock.address]));
 
-    addresses.push(usdPlus.address);
-    values.push(0);
-    abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), oldTimeLock.address]));
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.UPGRADER_ROLE(), newTimeLock.address]));
 
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.UPGRADER_ROLE(), oldTimeLock.address]));
 
-    console.log('\n[UsdPlus]\n')
-    console.log('hasRole(ADMIN) OLD_TIME_LOCK     ' + await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), oldTimeLock.address));
-    console.log('hasRole(ADMIN) WALLET            ' + await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address));
-    console.log('hasRole(ADMIN) NEW_TIME_LOCK     ' + await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), newTimeLock.address));
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), oldTimeLock.address]));
 
-    console.log('hasRole(UPGRADED) OLD_TIME_LOCK  ' + await usdPlus.hasRole(await usdPlus.UPGRADER_ROLE(), oldTimeLock.address));
-    console.log('hasRole(UPGRADED) WALLET         ' + await usdPlus.hasRole(await usdPlus.UPGRADER_ROLE(), wallet.address));
-    console.log('hasRole(UPGRADED) NEW_TIME_LOCK  ' + await usdPlus.hasRole(await usdPlus.UPGRADER_ROLE(), newTimeLock.address));
+        addresses.push(ovnToken.address);
+        values.push(0);
+        abis.push(ovnToken.interface.encodeFunctionData('grantRole', [await ovnToken.DEFAULT_ADMIN_ROLE(), newTimeLock.address]));
 
-    console.log('\n[Exchange]\n')
-    console.log('hasRole(ADMIN) OLD_TIME_LOCK     ' + await exchange.hasRole(await exchange.DEFAULT_ADMIN_ROLE(), oldTimeLock.address));
-    console.log('hasRole(ADMIN) WALLET            ' + await exchange.hasRole(await exchange.DEFAULT_ADMIN_ROLE(), wallet.address));
-    console.log('hasRole(ADMIN) NEW_TIME_LOCK     ' + await exchange.hasRole(await exchange.DEFAULT_ADMIN_ROLE(), newTimeLock.address));
+        addresses.push(ovnToken.address);
+        values.push(0);
+        abis.push(ovnToken.interface.encodeFunctionData('grantRole', [await ovnToken.UPGRADER_ROLE(), newTimeLock.address]));
 
-    console.log('hasRole(UPGRADED) OLD_TIME_LOCK  ' + await exchange.hasRole(await exchange.UPGRADER_ROLE(), oldTimeLock.address));
-    console.log('hasRole(UPGRADED) WALLET         ' + await exchange.hasRole(await exchange.UPGRADER_ROLE(), wallet.address));
-    console.log('hasRole(UPGRADED) NEW_TIME_LOCK  ' + await exchange.hasRole(await exchange.UPGRADER_ROLE(), newTimeLock.address));
+        addresses.push(ovnToken.address);
+        values.push(0);
+        abis.push(ovnToken.interface.encodeFunctionData('revokeRole', [await ovnToken.UPGRADER_ROLE(), oldTimeLock.address]));
 
-    console.log('\n[M2M]\n')
-    console.log('hasRole(ADMIN) OLD_TIME_LOCK     ' + await m2m.hasRole(await m2m.DEFAULT_ADMIN_ROLE(), oldTimeLock.address));
-    console.log('hasRole(ADMIN) WALLET            ' + await m2m.hasRole(await m2m.DEFAULT_ADMIN_ROLE(), wallet.address));
-    console.log('hasRole(ADMIN) NEW_TIME_LOCK     ' + await m2m.hasRole(await m2m.DEFAULT_ADMIN_ROLE(), newTimeLock.address));
-
-    console.log('hasRole(UPGRADED) OLD_TIME_LOCK  ' + await m2m.hasRole(await m2m.UPGRADER_ROLE(), oldTimeLock.address));
-    console.log('hasRole(UPGRADED) WALLET         ' + await m2m.hasRole(await m2m.UPGRADER_ROLE(), wallet.address));
-    console.log('hasRole(UPGRADED) NEW_TIME_LOCK  ' + await m2m.hasRole(await m2m.UPGRADER_ROLE(), newTimeLock.address));
-
-    console.log('\n[PM]\n')
-    console.log('hasRole(ADMIN) OLD_TIME_LOCK     ' + await pm.hasRole(await pm.DEFAULT_ADMIN_ROLE(), oldTimeLock.address));
-    console.log('hasRole(ADMIN) WALLET            ' + await pm.hasRole(await pm.DEFAULT_ADMIN_ROLE(), wallet.address));
-    console.log('hasRole(ADMIN) NEW_TIME_LOCK     ' + await pm.hasRole(await pm.DEFAULT_ADMIN_ROLE(), newTimeLock.address));
-
-    console.log('hasRole(UPGRADED) OLD_TIME_LOCK  ' + await pm.hasRole(await pm.UPGRADER_ROLE(), oldTimeLock.address));
-    console.log('hasRole(UPGRADED) WALLET         ' + await pm.hasRole(await pm.UPGRADER_ROLE(), wallet.address));
-    console.log('hasRole(UPGRADED) NEW_TIME_LOCK  ' + await pm.hasRole(await pm.UPGRADER_ROLE(), newTimeLock.address));
+        addresses.push(ovnToken.address);
+        values.push(0);
+        abis.push(ovnToken.interface.encodeFunctionData('revokeRole', [await ovnToken.DEFAULT_ADMIN_ROLE(), oldTimeLock.address]));
 
 
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal #22 New core"),
-    // );
-    //
-    // console.log('Tx ' + proposeTx.hash);
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    //
-    // console.log('Proposal id ' + proposalId);
+        console.log('Creating a proposal...')
+        const proposeTx = await governor.proposeExec(
+            addresses,
+            values,
+            abis,
+            ethers.utils.id("Proposal #22 New core"),
+        );
 
+        console.log('Tx ' + proposeTx.hash);
+        let tx = await proposeTx.wait();
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        console.log('Proposal id ' + proposalId);
+
+        await execProposal(governor, ovnToken, proposalId, wallet);
+    }
+
+    async function checksRules() {
+        await printRules(exchange, 'Exchange');
+        await printRules(m2m, 'M2M');
+        await printRules(pm, 'PM');
+
+        await printRules(await ethers.getContractAt(StrategyAave.abi, StrategyAave.address, wallet), 'StrategyAave');
+        await printRules(await ethers.getContractAt(StrategyCurve.abi, StrategyCurve.address, wallet), 'StrategyCurve');
+        await printRules(await ethers.getContractAt(StrategyDodoUsdc.abi, StrategyDodoUsdc.address, wallet), 'StrategyDodoUsdc');
+        await printRules(await ethers.getContractAt(StrategyDodoUsdt.abi, StrategyDodoUsdt.address, wallet), 'StrategyDodoUsdt');
+        await printRules(await ethers.getContractAt(StrategyImpermaxQsUsdcUsdt.abi, StrategyImpermaxQsUsdcUsdt.address, wallet), 'StrategyImpermaxQsUsdcUsdt');
+        await printRules(await ethers.getContractAt(StrategyIzumi.abi, StrategyIzumi.address, wallet), 'StrategyIzumi');
+        await printRules(await ethers.getContractAt(StrategyMStable.abi, StrategyMStable.address, wallet), 'StrategyMStable');
+
+
+        await printRules(newTimeLock, 'OvnTimelockController');
+        await printRules(ovnToken, 'OvnToken');
+        await printRules(usdPlus, 'USDPlus');
+    }
+
+    async function moveRulesAll(){
+
+        await moveRules(exchange, wallet.address, newTimeLock.address);
+        await moveRules(m2m, wallet.address, newTimeLock.address);
+        await moveRules(pm, wallet.address, newTimeLock.address);
+
+        await moveRules(await ethers.getContractAt(StrategyAave.abi, StrategyAave.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyCurve.abi, StrategyCurve.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyDodoUsdc.abi, StrategyDodoUsdc.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyDodoUsdt.abi, StrategyDodoUsdt.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyImpermaxQsUsdcUsdt.abi, StrategyImpermaxQsUsdcUsdt.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyIzumi.abi, StrategyIzumi.address, wallet), wallet.address, newTimeLock.address);
+        await moveRules(await ethers.getContractAt(StrategyMStable.abi, StrategyMStable.address, wallet), wallet.address, newTimeLock.address);
+
+
+
+    }
+
+    async function moveRules(contract, oldAddress, newAddress) {
+
+        await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress)).wait();
+        await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress)).wait();
+
+        await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress)).wait();
+        await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAddress)).wait();
+    }
+
+    async function printRules(contract, name) {
+
+        try {
+            console.log(`\n[${name}]`);
+            expect(false, 'hasRole(ADMIN) OLD_TIME_LOCK = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), oldTimeLock.address));
+            expect(false, 'hasRole(ADMIN) WALLET = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address));
+            expect(true, 'hasRole(ADMIN) NEW_TIME_LOCK = true').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), newTimeLock.address));
+
+            expect(false, 'hasRole(UPGRADED) OLD_TIME_LOCK = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), oldTimeLock.address));
+            expect(false, 'hasRole(UPGRADED) WALLET = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address));
+            expect(true, 'hasRole(UPGRADED) NEW_TIME_LOCK = true').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), newTimeLock.address));
+        } catch (e) {
+            console.log('Error test: ' + e)
+            return;
+        }
+
+        console.log('Done')
+    }
 }
+
+
+
 
 
 main()
@@ -117,6 +180,9 @@ main()
         console.error(error);
         process.exit(1);
     });
+
+
+
 
 async function execProposal(governator, ovn, id, wallet) {
 
