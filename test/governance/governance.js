@@ -113,7 +113,7 @@ describe("Governance", function () {
             ethers.utils.id("Proposal #3: Set Buy fee"),
         );
 
-        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon')-1));
         console.log('Quorum: ' + quorum);
         console.log('For votes: ' + forVotesCount)
 
@@ -150,7 +150,7 @@ describe("Governance", function () {
             ethers.utils.id("Proposal #3: Set Buy fee"),
         );
 
-        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon')-1));
         console.log('Quorum: ' + quorum);
         console.log('For votes: ' + forVotesCount)
 
@@ -248,7 +248,7 @@ describe("Governance", function () {
         console.log('voteSucceeded: ' + await governator.voteSucceeded(proposalId))
         console.log('quorumReached: ' + await governator.quorumReached(proposalId))
 
-        console.log('Current block:  ' + await ethers.provider.getBlockNumber())
+        console.log('Current block:  ' + await ethers.provider.getBlockNumber('polygon'))
         console.log('Deadline block: ' + await governator.proposalDeadline(proposalId))
 
         state = await governator.state(proposalId);

@@ -15,11 +15,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await grantRevokeRole(await ethers.getContract("OvnToken"), deployer, address);
     await grantRevokeRole(await ethers.getContract("Mark2Market"), deployer, address);
 
-    await grantRevokeRole(await ethers.getContract("StrategyAave"), deployer, address);
-    await grantRevokeRole(await ethers.getContract("StrategyIdle"), deployer, address);
-    await grantRevokeRole(await ethers.getContract("StrategyMStable"), deployer, address);
-    await grantRevokeRole(await ethers.getContract("StrategyCurve"), deployer, address);
-    await grantRevokeRole(await ethers.getContract("StrategyBalancer"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("PolygonStrategyAave"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("PolygonStrategyIdle"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("PolygonStrategyMStable"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("PolygonStrategyCurve"), deployer, address);
+    await grantRevokeRole(await ethers.getContract("PolygonStrategyBalancer"), deployer, address);
 
 };
 

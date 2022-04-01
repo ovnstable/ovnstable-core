@@ -26,7 +26,7 @@ let PortfolioNew = JSON.parse(fs.readFileSync('./deployments/polygon_new/Portfol
 
 
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 
 
@@ -331,7 +331,7 @@ async function initWallet() {
 
 async function execProposal(governator, ovn, id, wallet) {
 
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber() - 1));
+    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1));
     console.log('Quorum: ' + quorum);
 
     const proposalId = id;
@@ -391,7 +391,7 @@ async function showBalances( ownerAddress) {
 
     let idleUSDC = await ethers.getContractAt(ERC20.abi, '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');
-    let amUSDC = await ethers.getContractAt(ERC20.abi, '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F');
+    let amUSDC = await ethers.getContractAt(ERC20.abi, '0x625E7708f30cA75bfd92586e17077590C60eb4cD');
     let am3CRV = await ethers.getContractAt(ERC20.abi, '0xe7a24ef0c5e95ffb0f6684b813a78f2a3ad7d171');
     let am3CRVGauge = await ethers.getContractAt(ERC20.abi, '0x19793b454d3afc7b454f206ffe95ade26ca6912c');
     let CRV = await ethers.getContractAt(ERC20.abi, '0x172370d5Cd63279eFa6d502DAB29171933a610AF');

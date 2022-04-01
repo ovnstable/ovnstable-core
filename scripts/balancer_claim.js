@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 const {fromE18, fromUSDC} = require("../utils/decimals");
-const assets = JSON.parse(fs.readFileSync('./assets.json'));
+const assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 const {getClaimedParams, ClaimedParams} = require("../utils/claimRewardsBalancer");
 const ethers = hre.ethers;
 

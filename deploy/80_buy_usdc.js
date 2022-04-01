@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 let uniswapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
 
@@ -24,4 +24,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('Buy usdc: ' + value);
 };
 
-module.exports.tags = ['test', 'BuyUsdc'];
+module.exports.tags = ['test', 'PolygonBuyUsdc'];

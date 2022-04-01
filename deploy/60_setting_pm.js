@@ -1,7 +1,7 @@
 const {ethers} = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -11,7 +11,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const exchange = await ethers.getContract("Exchange");
 
     let aave = {
-        strategy: (await ethers.getContract("StrategyAave")).address,
+        strategy: (await ethers.getContract("PolygonStrategyAave")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -19,7 +19,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabledReward: true,
     }
     // let curve = {
-    //     strategy: (await ethers.getContract("StrategyCurve")).address,
+    //     strategy: (await ethers.getContract("PolygonStrategyCurve")).address,
     //     minWeight: 0,
     //     targetWeight: 0,
     //     maxWeight: 100000,
@@ -28,7 +28,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // }
 
     let mstable= {
-        strategy: (await ethers.getContract("StrategyMStable")).address,
+        strategy: (await ethers.getContract("PolygonStrategyMStable")).address,
         minWeight: 0,
         targetWeight: 30000,
         maxWeight: 100000,
@@ -37,7 +37,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let izumu = {
-        strategy: (await ethers.getContract("StrategyIzumi")).address,
+        strategy: (await ethers.getContract("PolygonStrategyIzumi")).address,
         minWeight: 0,
         targetWeight: 50000,
         maxWeight: 100000,
@@ -46,7 +46,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let impermaxQsUsdt = {
-        strategy: (await ethers.getContract("StrategyImpermaxQsUsdcUsdt")).address,
+        strategy: (await ethers.getContract("PolygonStrategyImpermaxQsUsdcUsdt")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -55,7 +55,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let dodoUsdc = {
-        strategy: (await ethers.getContract("StrategyDodoUsdc")).address,
+        strategy: (await ethers.getContract("PolygonStrategyDodoUsdc")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -64,7 +64,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let dodoUsdt = {
-        strategy: (await ethers.getContract("StrategyDodoUsdt")).address,
+        strategy: (await ethers.getContract("PolygonStrategyDodoUsdt")).address,
         minWeight: 0,
         targetWeight: 5000,
         maxWeight: 100000,
@@ -73,7 +73,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     // let balancer = {
-    //     strategy: (await ethers.getContract("StrategyBalancer")).address,
+    //     strategy: (await ethers.getContract("PolygonStrategyBalancer")).address,
     //     minWeight: 0,
     //     targetWeight: 0,
     //     maxWeight: 100000,
@@ -82,7 +82,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // }
 
     // let idle = {
-    //     strategy: (await ethers.getContract("StrategyIdle")).address,
+    //     strategy: (await ethers.getContract("PolygonStrategyIdle")).address,
     //     minWeight: 0,
     //     targetWeight: 0,
     //     maxWeight: 100000,
@@ -107,7 +107,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pm.setExchanger(exchange.address)).wait();
     await (await pm.setUsdc(assets.usdc)).wait();
-    await (await pm.setCashStrategy((await ethers.getContract("StrategyAave")).address)).wait();
+    await (await pm.setCashStrategy((await ethers.getContract("PolygonStrategyAave")).address)).wait();
 };
 
 module.exports.tags = ['setting', 'SettingPM'];

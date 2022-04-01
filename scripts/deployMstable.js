@@ -30,7 +30,7 @@ async function main() {
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
 
 
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber()-1));
+    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon')-1));
     console.log('Quorum: ' + quorum);
 
     const proposalId = "87959442158342476488539525451864684949777127548068069626858436987653532573024";

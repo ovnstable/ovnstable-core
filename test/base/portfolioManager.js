@@ -4,7 +4,7 @@ const {deployments, ethers, getNamedAccounts, upgrades} = require("hardhat");
 
 const fs = require("fs");
 const hre = require("hardhat");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 const {constants} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
 const expectRevert = require("../../utils/expectRevert");
@@ -28,7 +28,7 @@ describe("PortfolioManager set new cash strategy", function () {
         const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
 
-        await deployments.fixture(['BuyUsdc']);
+        await deployments.fixture(['PolygonBuyUsdc']);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         mockCashStrategyA = await deploy("MockStrategy", {
@@ -151,7 +151,7 @@ describe("PortfolioManager", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        await deployments.fixture(['BuyUsdc']);
+        await deployments.fixture(['PolygonBuyUsdc']);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);
         cashStrategy = await deploy("MockStrategy", {

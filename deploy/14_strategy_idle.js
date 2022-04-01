@@ -5,7 +5,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deployProxy('StrategyIdle', deployments, save);
+    await deployProxy('PolygonStrategyIdle', deployments, save);
 };
 
-module.exports.tags = ['base','StrategyIdle'];
+module.exports.tags = ['base', 'PolygonStrategyIdle'];

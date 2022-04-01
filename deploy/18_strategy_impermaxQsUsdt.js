@@ -5,12 +5,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deployProxyMulti('StrategyImpermaxQsUsdcUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
+    await deployProxyMulti('PolygonStrategyImpermaxQsUsdcUsdt', 'PolygonStrategyImpermaxQsUsdt', deployments, save);
 
     // Uncomment for individual deploy
-    // await deployProxyMulti('StrategyImpermaxQsMaticUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
-    // await deployProxyMulti('StrategyImpermaxQsWethUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
-    // await deployProxyMulti('StrategyImpermaxQsMaiUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
+    // await deployProxyMulti('PolygonStrategyImpermaxQsMaticUsdt', 'PolygonStrategyImpermaxQsUsdt', deployments, save);
+    // await deployProxyMulti('PolygonStrategyImpermaxQsWethUsdt', 'PolygonStrategyImpermaxQsUsdt', deployments, save);
+    // await deployProxyMulti(Polygon'StrategyImpermaxQsMaiUsdt', 'PolygonStrategyImpermaxQsUsdt', deployments, save);
 };
 
-module.exports.tags = ['base', 'StrategyImpermaxQsUsdt'];
+module.exports.tags = ['base', 'PolygonStrategyImpermaxQsUsdt'];

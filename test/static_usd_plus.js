@@ -10,7 +10,7 @@ const hre = require("hardhat");
 const expectRevert = require("../utils/expectRevert");
 const fs = require("fs");
 const {toUSDC, fromUSDC} = require("../utils/decimals");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 chai.use(smock.matchers);
 
@@ -49,7 +49,7 @@ describe("StaticUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "BuyUsdc", "SettingUsdPlusToken", "SettingExchange"]);
+        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "PolygonBuyUsdc", "SettingUsdPlusToken", "SettingExchange"]);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;

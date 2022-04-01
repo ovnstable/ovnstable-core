@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 let uniswapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
@@ -12,15 +12,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyMStable");
+    const strategy = await ethers.getContract("PolygonStrategyMStable");
     const pm = await ethers.getContract("PortfolioManager");
 
     await (await strategy.setTokens(assets.usdc, assets.mUsd, assets.imUsd, assets.vimUsd, assets.mta, assets.wMatic)).wait();
     await (await strategy.setParams(balancerVault, uniswapRouter, balancerPoolId1, balancerPoolId2)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
-    console.log('StrategyMStable setting done');
+    console.log('PolygonStrategyMStable setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyMStableSetting'];
+module.exports.tags = ['setting', 'PolygonStrategyMStableSetting'];
 

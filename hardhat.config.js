@@ -81,8 +81,8 @@ module.exports = {
 
         hardhat: {
             forking: {
-                url: node_url('polygon'),
-                blockNumber: blockNumber(),
+                url: node_url('fantom'),
+                blockNumber: blockNumber('fantom'),
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"

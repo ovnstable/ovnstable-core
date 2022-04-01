@@ -10,7 +10,7 @@ const BN = require('bignumber.js');
 const {greatLess, resetHardhat} = require("../../utils/tests");
 
 
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 chai.use(smock.matchers);
 
@@ -26,9 +26,9 @@ describe("Exchange", function () {
     before(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
-        await resetHardhat();
+        await resetHardhat('polygon');
 
-        await deployments.fixture(['setting', 'base', 'BuyUsdc']);
+        await deployments.fixture(['setting', 'base', 'PolygonBuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

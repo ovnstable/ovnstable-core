@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 let usdcLPToken = "0x2C5CA709d9593F6Fd694D84971c55fB3032B87AB";
 let usdtLPToken = "0xB0B417A00E1831DeF11b242711C3d251856AADe3";
@@ -18,7 +18,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyDodoUsdt");
+    const strategy = await ethers.getContract("PolygonStrategyDodoUsdt");
     const pm = await ethers.getContract("PortfolioManager");
 
     await (await strategy.setTokens(assets.usdc, assets.usdt, assets.dodo, usdcLPToken, usdtLPToken)).wait();
@@ -26,7 +26,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         dodoProxy, dodoApprove, balancerVault, balancerPoolId)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
-    console.log('StrategyDodoUsdt setting done');
+    console.log('PolygonStrategyDodoUsdt setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyDodoUsdtSetting'];
+module.exports.tags = ['setting', 'PolygonStrategyDodoUsdtSetting'];

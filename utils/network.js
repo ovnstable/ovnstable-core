@@ -42,16 +42,15 @@ function getPrivateKey(networkName) {
     return pk;
 }
 
-
 function accounts(networkName) {
     return [getPrivateKey(networkName)];
 }
 
-function getGasPrice(){
+function getGasPrice() {
 
     let gasPrice = 50000000000; //50 gwei
 
-    if (process.env.GAS_PRICE){
+    if (process.env.GAS_PRICE) {
         gasPrice = Number.parseInt(process.env.GAS_PRICE);
         console.log('Use GAS_PRICE: ' + gasPrice);
     }
@@ -59,18 +58,17 @@ function getGasPrice(){
     return gasPrice;
 }
 
-function blockNumber(){
-
-    let blockNumber;
-    if (process.env.HARDHAT_BLOCK_NUMBER){
-        blockNumber = Number.parseInt(process.env.HARDHAT_BLOCK_NUMBER);
-        console.log('Use HARDHAT_BLOCK_NUMBERblock number: ' + blockNumber);
-    }else {
-        blockNumber = 25082314
-        console.log('Use default block number: ' + blockNumber);
+function blockNumber(networkName) {
+    if (!networkName) {
+        return 0;
     }
 
-    return blockNumber;
+    const blockNumber = Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER_' + networkName.toUpperCase()]);
+    if (Number.isNaN(blockNumber)) {
+        return 0;
+    } else {
+        return blockNumber;
+    }
 }
 
 module.exports = {

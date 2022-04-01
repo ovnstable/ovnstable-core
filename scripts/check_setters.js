@@ -3,7 +3,7 @@ const fs = require("fs");
 const ethers = hre.ethers;
 const {expect} = require("chai");
 const chai = require("chai");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 
 async function main() {

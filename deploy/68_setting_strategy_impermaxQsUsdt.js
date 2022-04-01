@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 
 
@@ -14,15 +14,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await impermaxQsUsdt("0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965", "StrategyImpermaxQsUsdcUsdt");
+    await impermaxQsUsdt("0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965", "PolygonStrategyImpermaxQsUsdcUsdt");
 
     // Uncomment for individual deploy
-    // await impermaxQsUsdt("0xed618c29abc8fa6ee05b33051b3cdb4a1efb7924", "StrategyImpermaxQsMaticUsdt");
-    // await impermaxQsUsdt("0x64ce3e18c091468acf30bd861692a74ce48a0c7c", "StrategyImpermaxQsWethUsdt");
-    // await impermaxQsUsdt("0x0065A0effbb58e4BeB2f3A40fDcA740F85585213", "StrategyImpermaxQsMaiUsdt");
+    // await impermaxQsUsdt("0xed618c29abc8fa6ee05b33051b3cdb4a1efb7924", "PolygonStrategyImpermaxQsMaticUsdt");
+    // await impermaxQsUsdt("0x64ce3e18c091468acf30bd861692a74ce48a0c7c", "PolygonStrategyImpermaxQsWethUsdt");
+    // await impermaxQsUsdt("0x0065A0effbb58e4BeB2f3A40fDcA740F85585213", "PolygonStrategyImpermaxQsMaiUsdt");
 };
 
-module.exports.tags = ['setting', 'StrategyImpermaxQsUsdtSetting'];
+module.exports.tags = ['setting', 'PolygonStrategyImpermaxQsUsdtSetting'];
 
 
 

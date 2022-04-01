@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./assets.json'));
+let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
 
 
 
@@ -18,15 +18,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const strategy = await ethers.getContract("StrategyIzumi");
+    const strategy = await ethers.getContract("PolygonStrategyIzumi");
     const pm = await ethers.getContract("PortfolioManager");
 
     await (await strategy.setTokens(assets.usdc, assets.usdt, assets.izi, assets.yin, uniswapNftToken, assets.weth)).wait();
     await (await strategy.setParams(uniswapV3PositionManager, uniswapV3Pool,  izumiBoost, uniswapV3Router, balancerPoolId, balancerVault, aaveCurve)).wait();
     await (await strategy.setPortfolioManager(pm.address)).wait();
 
-    console.log('StrategyIzumi setting done');
+    console.log('PolygonStrategyIzumi setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyIzumiSetting'];
+module.exports.tags = ['setting', 'PolygonStrategyIzumiSetting'];
 
