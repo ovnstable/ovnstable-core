@@ -4,8 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../Strategy.sol";
 import "../../exchanges/polygon/DodoExchange.sol";
 import "../../exchanges/polygon/BalancerExchange.sol";
-import "../../connectors/dodo/IDODOV1.sol";
-import "../../connectors/dodo/IDODOMine.sol";
+import "../../connectors/dodo/interfaces/IDODOV1.sol";
+import "../../connectors/dodo/interfaces/IDODOMine.sol";
 
 contract PolygonStrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 

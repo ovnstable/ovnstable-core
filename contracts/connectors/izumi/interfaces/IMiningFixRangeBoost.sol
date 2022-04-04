@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5 <0.9.0;
 
-interface MiningFixRangeBoost {
-
+interface IMiningFixRangeBoost {
 
     function deposit(uint256 tokenId, uint256 nIZI) external returns (uint256 vLiquidity);
 

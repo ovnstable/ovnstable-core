@@ -3,9 +3,9 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../../connectors/dodo/IDODOV1Helper.sol";
-import "../../connectors/dodo/IDODOProxy.sol";
-import "../../connectors/dodo/IDODOV2.sol";
+import "../../connectors/dodo/interfaces/IDODOV1Helper.sol";
+import "../../connectors/dodo/interfaces/IDODOProxy.sol";
+import "../../connectors/dodo/interfaces/IDODOV2.sol";
 
 /*
     There are six swap functions in DODOProxy. Which are executed for different sources or versions

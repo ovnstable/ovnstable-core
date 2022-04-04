@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "../Strategy.sol";
 import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/uniswapV3/INonfungiblePositionManager.sol";
-import "../../connectors/uniswapV3/IUniswapV3Pool.sol";
-import "../../connectors/izumi/MiningFixRangeBoost.sol";
-import "../../connectors/uniswapV3/ISwapRouterV3.sol";
-import "../../connectors/uniswapV3/LiquidityAmounts.sol";
-import "../../connectors/uniswapV3/INonfungiblePositionManager.sol";
+import "../../connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
+import "../../connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
+import "../../connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
+import "../../connectors/uniswap/v3/interfaces/LiquidityAmounts.sol";
+import "../../connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
+import "../../connectors/izumi/IMiningFixRangeBoost.sol";
 import "../../connectors/balancer/interfaces/IVault.sol";
 import "../../connectors/balancer/interfaces/IAsset.sol";
 import "../../connectors/curve/interfaces/IStableSwapPool.sol";
@@ -39,7 +39,7 @@ contract PolygonStrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
 
     INonfungiblePositionManager public uniswapPositionManager;
     IUniswapV3Pool public uniswapV3Pool;
-    MiningFixRangeBoost public izumiBoost;
+    IMiningFixRangeBoost public izumiBoost;
     ISwapRouter public uniswapV3Router;
 
     IVault public balancerVault;
@@ -117,7 +117,7 @@ contract PolygonStrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
 
         uniswapPositionManager = INonfungiblePositionManager(_uniswapPositionManager);
         uniswapV3Pool = IUniswapV3Pool(_uniswapV3Pool);
-        izumiBoost = MiningFixRangeBoost(_izumiBoost);
+        izumiBoost = IMiningFixRangeBoost(_izumiBoost);
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
 

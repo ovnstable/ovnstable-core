@@ -3,9 +3,9 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "../Strategy.sol";
 import "../../exchanges/polygon/BalancerExchange.sol";
-import "../../connectors/impermax/ImpermaxRouter.sol";
-import "../../connectors/impermax/IPoolToken.sol";
-import "../../connectors/uniswap/interfaces/IUniswapV2Pair.sol";
+import "../../connectors/impermax/interfaces/IImpermaxRouter.sol";
+import "../../connectors/impermax/interfaces/IPoolToken.sol";
+import "../../connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
 
 contract PolygonStrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
@@ -15,7 +15,7 @@ contract PolygonStrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     bytes32 public balancerPoolId;
 
-    ImpermaxRouter public impermaxRouter;
+    IImpermaxRouter public impermaxRouter;
     IUniswapV2Pair public pair;
 
 
@@ -65,7 +65,7 @@ contract PolygonStrategyImpermaxQsUsdt is Strategy, BalancerExchange {
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_balancerPoolId != "", "Empty pool id not allowed");
 
-        impermaxRouter = ImpermaxRouter(_impermaxRouter);
+        impermaxRouter = IImpermaxRouter(_impermaxRouter);
 
         pair = IUniswapV2Pair(impermaxRouter.getUniswapV2Pair(imxBToken.underlying()));
 
