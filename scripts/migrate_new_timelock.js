@@ -26,6 +26,8 @@ let StrategyImpermaxQsUsdcUsdt = JSON.parse(fs.readFileSync('./deployments/polyg
 let StrategyIzumi = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyIzumi.json'));
 let StrategyMStable = JSON.parse(fs.readFileSync('./deployments/polygon/StrategyMStable.json'));
 
+let price = { maxFeePerGas: "100000000000", maxPriorityFeePerGas: "100000000000" };
+
 
 async function main() {
     // need to run inside IDEA via node script running
@@ -49,8 +51,41 @@ async function main() {
     let abis = [];
 
     // await grantRevokeRoleByGov();
-    // await moveRulesAll();
+    await moveRulesAll();
     await checksRules();
+    // await testGrant();
+
+    async function testGrant(){
+
+        let addresses = [];
+        let values = [];
+        let abis = [];
+
+        console.log('[Test Grant USD+]\n')
+
+        expect(false, 'hasRole(ADMIN) WALLET = false').to.equal(await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address));
+
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('grantRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address]));
+
+        await execProposal(addresses, values, abis, governor, ovnToken, wallet);
+
+        expect(true, 'hasRole(ADMIN) WALLET = true').to.equal(await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address));
+
+        addresses = [];
+        values = [];
+        abis = [];
+
+        addresses.push(usdPlus.address);
+        values.push(0);
+        abis.push(usdPlus.interface.encodeFunctionData('revokeRole', [await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address]));
+
+        await execProposal(addresses, values, abis, governor, ovnToken, wallet);
+
+        expect(false, 'hasRole(ADMIN) WALLET = false').to.equal(await usdPlus.hasRole(await usdPlus.DEFAULT_ADMIN_ROLE(), wallet.address));
+
+    }
 
     async function grantRevokeRoleByGov(){
 
@@ -86,22 +121,12 @@ async function main() {
         values.push(0);
         abis.push(ovnToken.interface.encodeFunctionData('revokeRole', [await ovnToken.DEFAULT_ADMIN_ROLE(), oldTimeLock.address]));
 
+        addresses.push(governor.address);
+        values.push(0);
+        abis.push(governor.interface.encodeFunctionData('updateTimelock', [newTimeLock.address]));
 
-        console.log('Creating a proposal...')
-        const proposeTx = await governor.proposeExec(
-            addresses,
-            values,
-            abis,
-            ethers.utils.id("Proposal #22 New core"),
-        );
 
-        console.log('Tx ' + proposeTx.hash);
-        let tx = await proposeTx.wait();
-        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-
-        console.log('Proposal id ' + proposalId);
-
-        await execProposal(governor, ovnToken, proposalId, wallet);
+        await execProposal(addresses, values, abis, governor, ovnToken, wallet);
     }
 
     async function checksRules() {
@@ -125,6 +150,7 @@ async function main() {
 
     async function moveRulesAll(){
 
+
         await moveRules(exchange, wallet.address, newTimeLock.address);
         await moveRules(m2m, wallet.address, newTimeLock.address);
         await moveRules(pm, wallet.address, newTimeLock.address);
@@ -138,25 +164,44 @@ async function main() {
         await moveRules(await ethers.getContractAt(StrategyMStable.abi, StrategyMStable.address, wallet), wallet.address, newTimeLock.address);
 
 
+        console.log('\n[OvnGovernor]')
+        try {
+            expect(oldTimeLock.address, 'timelock = OLD_TIME_LOCK = false').not.equal(await governor.timelock());
+            expect(newTimeLock.address, 'timelock = NEW_TIME_LOCK = false').to.equal(await governor.timelock());
+        } catch (e) {
+            console.log('Error test: ' + e)
+        }
+
+        console.log('Done');
+
+
+        // console.log('\n[OvnTimelockController]')
+        //
+        // await (await newTimeLock.revokeRole(await newTimeLock.UPGRADER_ROLE(), wallet.address)).wait();
+        // await (await newTimeLock.revokeRole(await newTimeLock.DEFAULT_ADMIN_ROLE(), wallet.address)).wait();
+        //
+        // console.log('Done');
 
     }
 
     async function moveRules(contract, oldAddress, newAddress) {
 
-        await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress)).wait();
-        await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress)).wait();
+        console.log('Move contract: ' + contract.address);
 
-        await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress)).wait();
-        await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAddress)).wait();
+        await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress, price)).wait();
+        await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress, price)).wait();
+
+        await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress, price)).wait();
+        await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAddress, price)).wait();
     }
 
     async function printRules(contract, name) {
 
         try {
             console.log(`\n[${name}]`);
-            expect(false, 'hasRole(ADMIN) OLD_TIME_LOCK = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), oldTimeLock.address));
-            expect(false, 'hasRole(ADMIN) WALLET = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address));
-            expect(true, 'hasRole(ADMIN) NEW_TIME_LOCK = true').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), newTimeLock.address));
+            expect(false, 'hasRole(ADMIN) OLD_TIME_LOCK = false').to.equal(await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), oldTimeLock.address));
+            expect(false, 'hasRole(ADMIN) WALLET = false').to.equal(await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), wallet.address));
+            expect(true, 'hasRole(ADMIN) NEW_TIME_LOCK = true').to.equal(await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), newTimeLock.address));
 
             expect(false, 'hasRole(UPGRADED) OLD_TIME_LOCK = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), oldTimeLock.address));
             expect(false, 'hasRole(UPGRADED) WALLET = false').to.equal(await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address));
@@ -184,52 +229,51 @@ main()
 
 
 
-async function execProposal(governator, ovn, id, wallet) {
+async function execProposal(addresses, values, abis, governator, ovn, wallet) {
+
+    console.log('Creating a proposal...')
+    const proposeTx = await governator.proposeExec(
+        addresses,
+        values,
+        abis,
+        ethers.utils.id(addresses.toString() + abis.toString()),
+        price
+    );
+
+    console.log('Tx ' + proposeTx.hash);
+    let tx = await proposeTx.wait();
+    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+    console.log('ProposalID: ' + proposalId);
 
     const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
-
-
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber() - 1));
-    console.log('Quorum: ' + quorum);
-
-    const proposalId = id;
-
-    let votes = ethers.utils.parseUnits("100000100", 9);
 
     let state = proposalStates[await governator.state(proposalId)];
     if (state === "Executed") {
         return;
     }
 
-    console.log('State status: ' + state)
-    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-
-    console.log('Votes: ' + votes)
-    await governator.castVote(proposalId, 1);
-
-    let item = await governator.proposals(proposalId);
-    console.log('Votes for: ' + item.forVotes / 10 ** 18);
-
-    let total = fromOvnGov(await ovn.getVotes(wallet.address));
-    console.log('Delegated ' + total)
-
-    let waitBlock = 200;
-    const sevenDays = 7 * 24 * 60 * 60;
-    for (let i = 0; i < waitBlock; i++) {
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
-        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    }
-
-    state = proposalStates[await governator.state(proposalId)];
-    expect(state).to.eq('Succeeded');
-    await governator.queueExec(proposalId);
-    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    await governator.executeExec(proposalId);
+    // await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+    // await governator.castVote(proposalId, 1);
+    //
+    //
+    // let waitBlock = 200;
+    // const sevenDays = 7 * 24 * 60 * 60;
+    // for (let i = 0; i < waitBlock; i++) {
+    //     await ethers.provider.send("evm_increaseTime", [sevenDays])
+    //     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+    // }
+    //
+    // state = proposalStates[await governator.state(proposalId)];
+    // expect(state).to.eq('Succeeded');
+    // await governator.queueExec(proposalId);
+    // await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+    // await governator.executeExec(proposalId);
 
 
     state = proposalStates[await governator.state(proposalId)];
     console.log('State status: ' + state)
-    expect(state).to.eq('Executed');
+    // expect(state).to.eq('Executed');
 }
 
 

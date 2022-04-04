@@ -173,24 +173,7 @@ describe("Governance", function () {
 
     it("Create propose -> call: proposals", async function () {
 
-        let votes = ethers.utils.parseUnits("100.0", 18);
-        await ovnToken.mint(account, votes);
-        await ovnToken.delegate(account)
-
-        const grant = ethers.utils.parseUnits("500.0", 18);
-        const newProposal = {
-            grantAmount: grant,
-            transferCalldata: ovnToken.interface.encodeFunctionData('mint', [account, grant]),
-            descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
-        };
-
-        await governator.proposeExec(
-            [ovnToken.address],
-            [0],
-            [newProposal.transferCalldata],
-            newProposal.descriptionHash,
-        );
-
+        await createTestProposal();
 
         let ids = await governator.getProposals();
         expect(ids.length).to.eq(1)
@@ -199,78 +182,8 @@ describe("Governance", function () {
 
     it("Create propose -> voting -> success -> queue -> executed", async function () {
 
-        let votes = ethers.utils.parseUnits("100.0", 18);
-        await ovnToken.mint(account, votes);
-        await ovnToken.delegate(account)
-
-        console.log('proposalThreshold: ' + await governator.proposalThreshold())
-        console.log('votes:             ' + await ovnToken.getVotes(account))
-
         const grant = ethers.utils.parseUnits("500.0", 18);
-        const newProposal = {
-            grantAmount: grant,
-            transferCalldata: ovnToken.interface.encodeFunctionData('mint', [account, grant]),
-            descriptionHash: ethers.utils.id("Proposal #2: Give admin some tokens")
-        };
-
-        const proposeTx = await governator.proposeExec(
-            [ovnToken.address],
-            [0],
-            [newProposal.transferCalldata],
-            newProposal.descriptionHash,
-        );
-
-        const tx = await proposeTx.wait();
-        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-
-
-        let state = await governator.state(proposalId);
-        console.log('State: ' + proposalStates[state])
-        console.log('Voting delay: ' + await governator.votingPeriod());
-
-
-        console.log('ProposalID ' + proposalId)
-        await governator.castVote(proposalId, forVotes);
-
-        console.log('Votes: ' + votes)
-
-
-        const sevenDays = 7 * 24 * 60 * 60;
-        for (let i = 0; i < waitBlock; i++) {
-            await ethers.provider.send("evm_increaseTime", [sevenDays])
-            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        }
-
-        state = await governator.state(proposalId);
-        console.log('State: ' + proposalStates[state])
-
-
-        console.log('voteSucceeded: ' + await governator.voteSucceeded(proposalId))
-        console.log('quorumReached: ' + await governator.quorumReached(proposalId))
-
-        console.log('Current block:  ' + await ethers.provider.getBlockNumber())
-        console.log('Deadline block: ' + await governator.proposalDeadline(proposalId))
-
-        state = await governator.state(proposalId);
-        console.log('State: ' + proposalStates[state])
-
-        let proposal = await governator.proposals(proposalId);
-        console.log('Proposal: ' + JSON.stringify(proposal))
-
-        await governator.queueExec(proposalId);
-        state = await governator.state(proposalId);
-        console.log('State: ' + proposalStates[state])
-
-
-        for (let i = 0; i < 5; i++) {
-            await ethers.provider.send("evm_increaseTime", [sevenDays])
-            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        }
-
-        console.log('before votes:' + await ovnToken.getVotes(account))
-        await governator.executeExec(proposalId);
-        console.log('after votes:' + await ovnToken.getVotes(account))
+        await executeProposal([ovnToken.address], [ovnToken.interface.encodeFunctionData('mint', [account, grant])] )
 
         let number = await ovnToken.getVotes(account) / 10 ** 18;
         expect(number).to.eq(700)
@@ -380,29 +293,10 @@ describe("Governance", function () {
         hasRole = await exchange.hasRole(adminRole, account);
         expect(hasRole).to.false;
 
-        const proposeTx = await governator.proposeExec(
-            [exchange.address, exchange.address],
-            [0,0],
-            [exchange.interface.encodeFunctionData('grantRole', [adminRole, account]),
-             exchange.interface.encodeFunctionData('revokeRole', [adminRole, timeLock.address])
-            ],
-            ethers.utils.id("Proposal #6: Return rules"),
-        );
+        let addresses = [exchange.address, exchange.address];
+        let abis = [exchange.interface.encodeFunctionData('grantRole', [adminRole, account]), exchange.interface.encodeFunctionData('revokeRole', [adminRole, timeLock.address]) ] ;
 
-        const tx = await proposeTx.wait();
-        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-
-        await governator.castVote(proposalId, forVotes);
-
-        const sevenDays = 7 * 24 * 60 * 60;
-        for (let i = 0; i < 200; i++) {
-            await ethers.provider.send("evm_increaseTime", [sevenDays])
-            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        }
-
-        await governator.queueExec(proposalId);
-        await governator.executeExec(proposalId);
+        await executeProposal(addresses, abis);
 
         hasRole = await exchange.hasRole(adminRole, timeLock.address);
         expect(hasRole).to.false;
@@ -425,6 +319,18 @@ describe("Governance", function () {
     });
 
 
+    it("Update timelock -> revert", async function () {
+        await expectRevert(governator.connect(user1).updateTimelock(user1.address), 'Governor: onlyGovernance');
+        await expectRevert(governator.updateTimelock(user1.address), 'Governor: onlyGovernance');
+    });
+
+    it("Update timelock -> sucess", async function () {
+        expect(user1.address).not.equal(await governator.timelock());
+        await executeProposal([governator.address], [governator.interface.encodeFunctionData('updateTimelock', [user1.address])]);
+        expect(user1.address).to.equal(await governator.timelock());
+    });
+
+
     it("Cancel proposal", async function () {
         let id = await createTestProposal();
         await governator.cancel(id);
@@ -433,6 +339,38 @@ describe("Governance", function () {
 
     async function getState(proposalId){
         return proposalStates[await governator.state(proposalId)];
+
+    }
+
+    async function executeProposal(addresses, encode){
+
+        let votes = ethers.utils.parseUnits("100.0", 18);
+        await ovnToken.mint(account, votes);
+        await ovnToken.delegate(account);
+
+        let values = addresses.map(value=> 0);
+
+        const proposeTx = await governator.proposeExec(
+            addresses,
+            values,
+            encode,
+            ethers.utils.id(addresses.toString() + encode.toString()),
+        );
+
+        const tx = await proposeTx.wait();
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+
+        await governator.castVote(proposalId, forVotes);
+
+        const sevenDays = 7 * 24 * 60 * 60;
+        for (let i = 0; i < 200; i++) {
+            await ethers.provider.send("evm_increaseTime", [sevenDays])
+            await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        }
+
+        await governator.queueExec(proposalId);
+        await governator.executeExec(proposalId);
 
     }
 
