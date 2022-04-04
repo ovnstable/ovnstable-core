@@ -11,7 +11,7 @@ let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToke
 let OvnGovernor = JSON.parse(fs.readFileSync('./deployments/polygon/OvnGovernor.json'));
 let OvnToken = JSON.parse(fs.readFileSync('./deployments/polygon/OvnToken.json'));
 
-let OldTimeLock = JSON.parse(fs.readFileSync('./deployments/polygon/TimelockController.json'));
+let OldTimeLock = JSON.parse(fs.readFileSync('./deployments/polygon/OldTimelockController.json'));
 let NewTimeLock = JSON.parse(fs.readFileSync('./deployments/polygon/OvnTimelockController.json'));
 
 let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
@@ -51,8 +51,8 @@ async function main() {
     let abis = [];
 
     // await grantRevokeRoleByGov();
-    await moveRulesAll();
-    await checksRules();
+    // await moveRulesAll();
+    // await checksRules();
     // await testGrant();
 
     async function testGrant(){
@@ -175,12 +175,12 @@ async function main() {
         console.log('Done');
 
 
-        // console.log('\n[OvnTimelockController]')
-        //
-        // await (await newTimeLock.revokeRole(await newTimeLock.UPGRADER_ROLE(), wallet.address)).wait();
-        // await (await newTimeLock.revokeRole(await newTimeLock.DEFAULT_ADMIN_ROLE(), wallet.address)).wait();
-        //
-        // console.log('Done');
+        console.log('\n[OvnTimelockController]')
+
+        await (await newTimeLock.revokeRole(await newTimeLock.UPGRADER_ROLE(), wallet.address, price)).wait();
+        await (await newTimeLock.revokeRole(await newTimeLock.DEFAULT_ADMIN_ROLE(), wallet.address, price)).wait();
+
+        console.log('Done');
 
     }
 
