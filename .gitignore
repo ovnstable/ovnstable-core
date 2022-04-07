@@ -31,3 +31,5 @@ solcInputs
 impls*.json
 /artifacts-external/
 /gasUsage.json
+
+package-lock.json
