@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/idle/interfaces/IIdleToken.sol";
+import "./core/Strategy.sol";
+import "./exchanges/QuickSwapExchange.sol";
+import "./connectors/idle/interfaces/IIdleToken.sol";
 
-contract PolygonStrategyIdle is Strategy, QuickSwapExchange {
+contract StrategyIdle is Strategy, QuickSwapExchange {
 
     IERC20 public usdcToken;
     IIdleToken public idleToken;

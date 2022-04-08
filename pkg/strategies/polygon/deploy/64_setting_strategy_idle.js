@@ -1,22 +1,18 @@
-const { ethers } = require("hardhat");
+const {ethers} = require("hardhat");
 
-const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
-
+let {POLYGON} = require('../../../common/utils/assets');
+let {core} = require('../../../common/utils/core');
 let uniswapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
+module.exports = async () => {
 
-    const strategy = await ethers.getContract("PolygonStrategyIdle");
-    const pm = await ethers.getContract("PortfolioManager");
+    const strategy = await ethers.getContract("StrategyIdle");
 
-    await (await strategy.setTokens(assets.usdc, assets.idleUsdc, assets.wMatic)).wait();
+    await (await strategy.setTokens(POLYGON.usdc, POLYGON.idleUsdc, POLYGON.wMatic)).wait();
     await (await strategy.setParams(uniswapRouter)).wait();
-    await (await strategy.setPortfolioManager(pm.address)).wait();
+    await (await strategy.setPortfolioManager(core.pm)).wait();
 
-    console.log('PolygonStrategyIdle setting done');
+    console.log('StrategyIdle setting done');
 };
 
-module.exports.tags = ['setting', 'PolygonStrategyIdleSetting'];
+module.exports.tags = ['setting', 'StrategyIdleSetting'];

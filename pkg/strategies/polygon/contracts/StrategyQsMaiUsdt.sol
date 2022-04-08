@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/uniswap/v2/interfaces/IUniswapV2Router01.sol";
-import "../../connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
-import "../../libraries/math/LowGasSafeMath.sol";
+import "./core/Strategy.sol";
+import "./exchanges/QuickSwapExchange.sol";
+import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
+import "./libraries/LowGasSafeMath.sol";
+import "./connectors/uniswap/v2/interfaces/IUniswapV2Router01.sol";
 
-contract PolygonStrategyQsMaiUsdt is Strategy, QuickSwapExchange {
+contract StrategyQsMaiUsdt is Strategy, QuickSwapExchange {
     using LowGasSafeMath for uint256;
 
     uint256 public constant minimumAmount = 1000;

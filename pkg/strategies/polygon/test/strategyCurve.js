@@ -1,19 +1,15 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const {greatLess, resetHardhat} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {logStrategyGasUsage} = require("./strategyCommon");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+const {resetHardhat} = require("../../../common/utils/tests");
 
-chai.use(smock.matchers);
+let {POLYGON} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
 
-describe("PolygonStrategyCurve. Stake/unstake", function () {
+describe("StrategyCurve. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -24,20 +20,20 @@ describe("PolygonStrategyCurve. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'PolygonStrategyCurve', 'PolygonStrategyCurveSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyCurve', 'StrategyCurveSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('PolygonStrategyCurve');
+        strategy = await ethers.getContract('StrategyCurve');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        am3CrvGauge = await ethers.getContractAt("ERC20", assets.am3CRVgauge);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        am3CrvGauge = await ethers.getContractAt(ERC20, POLYGON.am3CRVgauge);
     });
 
     it("log gas", async () => {
-        await logStrategyGasUsage("PolygonStrategyCurve", strategy, usdc, account)
+        await logStrategyGasUsage("StrategyCurve", strategy, usdc, account)
     });
 
     describe("Stake 100 USDC", function () {
@@ -178,7 +174,7 @@ describe("PolygonStrategyCurve. Stake/unstake", function () {
 
 });
 
-describe("PolygonStrategyCurve. Claim rewards", function () {
+describe("StrategyCurve. Claim rewards", function () {
 
     let account;
     let strategy;
@@ -188,12 +184,12 @@ describe("PolygonStrategyCurve. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'PolygonStrategyCurve', 'PolygonStrategyCurveSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyCurve', 'StrategyCurveSetting', 'PolygonBuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('PolygonStrategyCurve');
+        strategy = await ethers.getContract('StrategyCurve');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);

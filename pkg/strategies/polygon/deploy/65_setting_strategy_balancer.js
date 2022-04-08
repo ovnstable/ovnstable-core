@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+let {POLYGON} = require('../../../common/utils/assets');
+let {core} = require('../../../common/utils/core');
 
 let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 let uniswapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
@@ -16,15 +16,11 @@ let merkleOrchard = "0x0F3e0c4218b7b0108a3643cFe9D3ec0d4F57c54e";
 // let week = '90';
 // const {getClaimedParams, ClaimedParams} = require("../utils/claimRewardsBalancer");
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
+module.exports = async () => {
 
-    const strategy = await ethers.getContract("PolygonStrategyBalancer");
-    const pm = await ethers.getContract("PortfolioManager");
+    const strategy = await ethers.getContract("StrategyBalancer");
 
-    await (await strategy.setTokens(assets.usdc, assets.bpspTUsd, assets.bal, assets.wMatic, assets.tUsd)).wait();
-
+    await (await strategy.setTokens(POLYGON.usdc, POLYGON.bpspTUsd, POLYGON.bal, POLYGON.wMatic, POLYGON.tUsd)).wait();
     await (await strategy.setParams(balancerVault, uniswapRouter, balancerPoolId1, balancerPoolId2, merkleOrchard)).wait();
 
 //     // get params for bal
@@ -49,10 +45,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 //         claimedParamsBal.claimedBalance, claimedParamsWMatic.claimedBalance, claimedParamsTUsd.claimedBalance,
 //         claimedParamsBal.merkleProof, claimedParamsWMatic.merkleProof, claimedParamsTUsd.merkleProof)).wait();
 
-    await (await strategy.setPortfolioManager(pm.address)).wait();
-
-    console.log('PolygonStrategyBalancer setting done');
+    await (await strategy.setPortfolioManager(core.pm)).wait();
+    console.log('StrategyBalancer setting done');
 };
 
-module.exports.tags = ['setting', 'PolygonStrategyBalancerSetting'];
+module.exports.tags = ['setting', 'StrategyBalancerSetting'];
 

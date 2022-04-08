@@ -2,11 +2,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../connectors/balancer/interfaces/IVault.sol";
+import "../connectors/balancer/interfaces/IGeneralPool.sol";
+import "../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
+import "../connectors/balancer/interfaces/IPoolSwapStructs.sol";
 
-import "../../connectors/balancer/interfaces/IVault.sol";
-import "../../connectors/balancer/interfaces/IAsset.sol";
-import "../../connectors/balancer/interfaces/IGeneralPool.sol";
-import "../../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
 
 abstract contract BalancerExchange {
 

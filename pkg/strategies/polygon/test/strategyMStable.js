@@ -1,17 +1,13 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const {greatLess} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../utils/tests");
-const {logStrategyGasUsage} = require("./strategyCommon");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+const {resetHardhat} = require("../../../common/utils/tests");
+const {expect} = require("chai");
 
-chai.use(smock.matchers);
+let {POLYGON} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyMStable. Stake/unstake", function () {
@@ -25,7 +21,7 @@ describe("StrategyMStable. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyMStable', 'StrategyMStableSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyMStable', 'StrategyMStableSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -33,8 +29,8 @@ describe("StrategyMStable. Stake/unstake", function () {
         strategy = await ethers.getContract('StrategyMStable');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        vimUsd = await ethers.getContractAt("ERC20", assets.vimUsd);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        vimUsd = await ethers.getContractAt(ERC20, POLYGON.vimUsd);
     });
 
     it("log gas", async () => {

@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./exchanges/QuickSwapExchange.sol";
+import "./core/Strategy.sol";
+import "./connectors/curve/interfaces/IStableSwapPool.sol";
+import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/curve/interfaces/IRewardsOnlyGauge.sol";
-import "../../connectors/curve/interfaces/IStableSwapPool.sol";
 
-contract PolygonStrategyCurve is Strategy, QuickSwapExchange {
+contract StrategyCurve is Strategy, QuickSwapExchange {
 
     IERC20 public usdcToken;
     IERC20 public a3CrvToken;

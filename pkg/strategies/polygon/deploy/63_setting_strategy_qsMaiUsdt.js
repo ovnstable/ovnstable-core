@@ -1,16 +1,13 @@
 const { ethers } = require("hardhat");
 
-const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+let {POLYGON} = require('../../../common/utils/assets');
+let {core} = require('../../../common/utils/core');
+module.exports = async () => {
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
-
-    const strategy = await ethers.getContract("PolygonStrategyQsMaiUsdt");
+    const strategy = await ethers.getContract("StrategyQsMaiUsdt");
     // await (await strategy.setParams(aaveAddress, assets.usdc, assets.amUsdc)).wait();
-    console.log('PolygonStrategyQsMaiUsdt setting done')
+    console.log('StrategyQsMaiUsdt setting done')
 };
 
-module.exports.tags = ['setting','PolygonStrategyQsMaiUsdtSetting'];
+module.exports.tags = ['setting','StrategyQsMaiUsdtSetting'];
 

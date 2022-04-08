@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/DodoExchange.sol";
-import "../../exchanges/polygon/BalancerExchange.sol";
-import "../../connectors/dodo/interfaces/IDODOV1.sol";
-import "../../connectors/dodo/interfaces/IDODOMine.sol";
+import "./core/Strategy.sol";
+import "./exchanges/DodoExchange.sol";
+import "./exchanges/BalancerExchange.sol";
+import "./connectors/dodo/interfaces/IDODOV1.sol";
+import "./connectors/dodo/interfaces/IDODOV2.sol";
+import "./connectors/dodo/interfaces/IDODOMine.sol";
 
-contract PolygonStrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
+contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;

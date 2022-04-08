@@ -1,20 +1,13 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const {greatLess} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE18, fromE6} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat, prepareArtifacts} = require("../../utils/tests");
-const BN = require('bignumber.js');
+const {resetHardhat} = require("../../../common/utils/tests");
+const {expect} = require("chai");
 
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
-
-chai.use(smock.matchers);
-const fse = require('fs-extra');
-const {logStrategyGasUsage} = require("./strategyCommon");
+let {POLYGON} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyIzumi. Stake/unstake", function () {
@@ -28,7 +21,7 @@ describe("StrategyIzumi. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyIzumi', 'StrategyIzumiSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyIzumi', 'StrategyIzumiSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -36,8 +29,8 @@ describe("StrategyIzumi. Stake/unstake", function () {
         strategy = await ethers.getContract('StrategyIzumi');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdt = await ethers.getContractAt("ERC20", assets.usdt);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdt = await ethers.getContractAt(ERC20, POLYGON.usdt);
     });
 
     it("log gas", async () => {

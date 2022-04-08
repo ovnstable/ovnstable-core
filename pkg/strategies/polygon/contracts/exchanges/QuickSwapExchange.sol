@@ -2,8 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 
-import "../../connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 
 abstract contract QuickSwapExchange {
 

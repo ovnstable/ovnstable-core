@@ -1,5 +1,5 @@
-const {logGas, skipGasLog} = require("../../utils/gas");
-const {toUSDC} = require("../../utils/decimals");
+const {logGas, skipGasLog} = require("./gas");
+const {toUSDC} = require("./decimals");
 
 async function logStrategyGasUsage(contractName, strategy, usdc, account) {
 

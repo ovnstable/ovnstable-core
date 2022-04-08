@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/BalancerExchange.sol";
-import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/balancer/interfaces/IVault.sol";
-import "../../connectors/balancer/interfaces/IAsset.sol";
-import "../../connectors/balancer/MerkleOrchard.sol";
+import "./core/Strategy.sol";
+import "./exchanges/BalancerExchange.sol";
+import "./exchanges/QuickSwapExchange.sol";
+import "./connectors/balancer/interfaces/IVault.sol";
+import "./connectors/balancer/MerkleOrchard.sol";
 
-contract PolygonStrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
+
+contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
 
     IERC20 public usdcToken;
     IERC20 public bpspTUsdToken;

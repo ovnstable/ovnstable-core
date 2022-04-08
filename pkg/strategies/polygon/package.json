@@ -1,7 +1,7 @@
 {
-  "name": "@overnight-contracts/strategies-polygon",
+  "name": "@overnight-contracts/straegies-polygon",
   "version": "0.0.1",
-  "description": "Strategies Polygon",
+  "description": "Strategies Polygon contracts",
   "main": "hardhat.config",
   "directories": {
     "test": "test"

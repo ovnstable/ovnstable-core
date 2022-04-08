@@ -4,19 +4,17 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/QuickSwapExchange.sol";
-import "../../connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
-import "../../connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
-import "../../connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
-import "../../connectors/uniswap/v3/interfaces/LiquidityAmounts.sol";
-import "../../connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
-import "../../connectors/izumi/IMiningFixRangeBoost.sol";
-import "../../connectors/balancer/interfaces/IVault.sol";
-import "../../connectors/balancer/interfaces/IAsset.sol";
-import "../../connectors/curve/interfaces/IStableSwapPool.sol";
+import "./core/Strategy.sol";
+import "./exchanges/QuickSwapExchange.sol";
+import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
+import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
+import "./connectors/izumi/interfaces/IMiningFixRangeBoost.sol";
+import "./connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
+import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
+import "./connectors/balancer/interfaces/IVault.sol";
+import "./connectors/curve/interfaces/IStableSwapPool.sol";
 
-contract PolygonStrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
+contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
 
     uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
     uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)

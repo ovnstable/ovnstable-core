@@ -1,22 +1,18 @@
-const { ethers } = require("hardhat");
+const {ethers} = require("hardhat");
 
-const fs = require("fs");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
-
+let {POLYGON} = require('../../../common/utils/assets');
+let {core} = require('../../../common/utils/core');
 let aaveProvider = "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb";
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
+module.exports = async () => {
 
-    const strategy = await ethers.getContract("PolygonStrategyAave");
-    const pm = await ethers.getContract("PortfolioManager");
+    const strategy = await ethers.getContract("StrategyAave");
 
-    await (await strategy.setTokens(assets.usdc, assets.amUsdc)).wait();
+    await (await strategy.setTokens(POLYGON.usdc, POLYGON.amUsdc)).wait();
     await (await strategy.setParams(aaveProvider)).wait();
-    await (await strategy.setPortfolioManager(pm.address)).wait();
+    await (await strategy.setPortfolioManager(core.pm)).wait();
 
-    console.log('PolygonStrategyAave setting done');
+    console.log('StrategyAave setting done');
 };
 
-module.exports.tags = ['setting', 'PolygonStrategyAaveSetting'];
+module.exports.tags = ['setting', 'StrategyAaveSetting'];

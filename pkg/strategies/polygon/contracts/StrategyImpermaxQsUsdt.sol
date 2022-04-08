@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../exchanges/polygon/BalancerExchange.sol";
-import "../../connectors/impermax/interfaces/IImpermaxRouter.sol";
-import "../../connectors/impermax/interfaces/IPoolToken.sol";
-import "../../connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
+import "./core/Strategy.sol";
+import "./exchanges/BalancerExchange.sol";
+import "./connectors/impermax/interfaces/IPoolToken.sol";
+import "./connectors/impermax/interfaces/IImpermaxRouter.sol";
+import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
 
-contract PolygonStrategyImpermaxQsUsdt is Strategy, BalancerExchange {
+contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;

@@ -1,16 +1,12 @@
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-const {greatLess} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../utils/tests");
-const {logStrategyGasUsage} = require("./strategyCommon");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+const {resetHardhat} = require("../../../common/utils/tests");
 
-chai.use(smock.matchers);
-
+let {POLYGON} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 describe("StrategyBalancer. Stake/unstake", function () {
 
     let account;
@@ -22,7 +18,7 @@ describe("StrategyBalancer. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyBalancer', 'StrategyBalancerSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyBalancer', 'StrategyBalancerSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -30,8 +26,8 @@ describe("StrategyBalancer. Stake/unstake", function () {
         strategy = await ethers.getContract('StrategyBalancer');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        bpspTUsd = await ethers.getContractAt("ERC20", assets.bpspTUsd);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        bpspTUsd = await ethers.getContractAt(ERC20, POLYGON.bpspTUsd);
     });
 
     it("log gas", async () => {

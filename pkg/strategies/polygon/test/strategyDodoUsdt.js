@@ -1,17 +1,12 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const {greatLess} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE6} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../utils/tests");
-const {logStrategyGasUsage} = require("./strategyCommon");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+const {resetHardhat} = require("../../../common/utils/tests");
 
-chai.use(smock.matchers);
+let {POLYGON} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
 describe("StrategyDodoUsdt. Stake/unstake", function () {
 
@@ -25,7 +20,7 @@ describe("StrategyDodoUsdt. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyDodoUsdt', 'StrategyDodoUsdtSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyDodoUsdt', 'StrategyDodoUsdtSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -33,8 +28,8 @@ describe("StrategyDodoUsdt. Stake/unstake", function () {
         strategy = await ethers.getContract('StrategyDodoUsdt');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdtLPToken = await ethers.getContractAt("ERC20", "0x2C5CA709d9593F6Fd694D84971c55fB3032B87AB");
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdtLPToken = await ethers.getContractAt(ERC20, "0x2C5CA709d9593F6Fd694D84971c55fB3032B87AB");
         dodoMine = await ethers.getContractAt("IDODOMine", "0xB14dA65459DB957BCEec86a79086036dEa6fc3AD");
     });
 
@@ -49,7 +44,7 @@ describe("StrategyDodoUsdt. Stake/unstake", function () {
 
         before(async () => {
 
-            let balanceUsdcBefore = await usdc.balanceOf(account);            
+            let balanceUsdcBefore = await usdc.balanceOf(account);
             let balanceUsdtLPTokenBefore = await dodoMine.getUserLpBalance(usdtLPToken.address, strategy.address);
 
             await usdc.transfer(strategy.address, toUSDC(100));
