@@ -20,7 +20,7 @@ async function resetHardhat(network) {
             {
                 forking: {
                     jsonRpcUrl: node_url(network),
-                    blockNumber: blockNumber(network),
+                    blockNumber: blockNumber(),
                 },
             },
         ],

@@ -11,35 +11,21 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 
 
+    let mockStrategy1 = await deploy("MockStrategy", {
+        from: deployer,
+        args: [DEFAULT.usdc, 1],
+        log: true,
+        skipIfAlreadyDeployed: false
+    });
+    let mockStrategy2 = await deploy("MockStrategy", {
+        from: deployer,
+        args: [DEFAULT.usdc, 2],
+        log: true,
+        skipIfAlreadyDeployed: false
+    });
 
-    let aave = {
-        strategy: (await ethers.getContract("MochStrategy")).address,
-        minWeight: 0,
-        targetWeight: 5000,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-    // let curve = {
-    //     strategy: (await ethers.getContract("PolygonStrategyCurve")).address,
-    //     minWeight: 0,
-    //     targetWeight: 0,
-    //     maxWeight: 100000,
-    //     enabled: true,
-    //     enabledReward: true,
-    // }
-
-    let mstable= {
-        strategy: (await ethers.getContract("PolygonStrategyMStable")).address,
-        minWeight: 0,
-        targetWeight: 30000,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    let izumu = {
-        strategy: (await ethers.getContract("PolygonStrategyIzumi")).address,
+    let strategy1 = {
+        strategy: mockStrategy1.address,
         minWeight: 0,
         targetWeight: 50000,
         maxWeight: 100000,
@@ -47,61 +33,19 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabledReward: true,
     }
 
-    let impermaxQsUsdt = {
-        strategy: (await ethers.getContract("PolygonStrategyImpermaxQsUsdcUsdt")).address,
+    let strategy2 = {
+        strategy: mockStrategy2.address,
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 50000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
 
-    let dodoUsdc = {
-        strategy: (await ethers.getContract("PolygonStrategyDodoUsdc")).address,
-        minWeight: 0,
-        targetWeight: 5000,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    let dodoUsdt = {
-        strategy: (await ethers.getContract("PolygonStrategyDodoUsdt")).address,
-        minWeight: 0,
-        targetWeight: 5000,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    // let balancer = {
-    //     strategy: (await ethers.getContract("PolygonStrategyBalancer")).address,
-    //     minWeight: 0,
-    //     targetWeight: 0,
-    //     maxWeight: 100000,
-    //     enabled: true,
-    //     enabledReward: true,
-    // }
-
-    // let idle = {
-    //     strategy: (await ethers.getContract("PolygonStrategyIdle")).address,
-    //     minWeight: 0,
-    //     targetWeight: 0,
-    //     maxWeight: 100000,
-    //     enabled: true,
-    //     enabledReward: true,
-    // }
 
     let weights = [
-        aave,
-        mstable,
-        izumu,
-        impermaxQsUsdt,
-        dodoUsdc,
-        dodoUsdt,
-        // balancer,
-        // curve,
-        // idle
+        strategy1,
+        strategy2,
     ]
 
     await (await pm.setStrategyWeights(weights)).wait();
@@ -109,7 +53,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pm.setExchanger(exchange.address)).wait();
     await (await pm.setUsdc(DEFAULT.usdc)).wait();
-    await (await pm.setCashStrategy((await ethers.getContract("PolygonStrategyAave")).address)).wait();
+    await (await pm.setCashStrategy(mockStrategy1.address)).wait();
 };
 
 module.exports.tags = ['setting', 'SettingPM'];

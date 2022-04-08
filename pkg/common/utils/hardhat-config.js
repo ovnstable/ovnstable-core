@@ -5,6 +5,11 @@ const {node_url, accounts, blockNumber} = require("./network");
 const {getGasPrice} = require("./network");
 let gasPrice = getGasPrice();
 
+
+let forkingUrl = node_url('polygon');
+let blockNumberValue = blockNumber();
+console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
+
 let networks = {
     polygon: {
         url: node_url('polygon'),
@@ -28,8 +33,8 @@ let networks = {
 
     hardhat: {
         forking: {
-            url: node_url('polygon'),
-            blockNumber: blockNumber('polygon'),
+            url: forkingUrl,
+            blockNumber: blockNumberValue,
         },
         accounts: {
             accountsBalance: "100000000000000000000000000"

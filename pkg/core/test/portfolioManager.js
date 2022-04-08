@@ -2,14 +2,13 @@ const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts, upgrades} = require("hardhat");
 
-const fs = require("fs");
 const hre = require("hardhat");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
+let {POLYGON} = require('../../common/utils/assets');
 const {constants} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
-const expectRevert = require("../../utils/expectRevert");
+const expectRevert = require("../../common/utils/expectRevert");
 const sampleModule = require("@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl");
-const {sharedBeforeEach} = require("../common/sharedBeforeEach")
+const {sharedBeforeEach} = require("../../common/utils/sharedBeforeEach")
 
 chai.use(require('chai-bignumber')());
 
@@ -28,18 +27,18 @@ describe("PortfolioManager set new cash strategy", function () {
         const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
 
-        await deployments.fixture(['PolygonBuyUsdc']);
+        await deployments.fixture(['test']);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         mockCashStrategyA = await deploy("MockStrategy", {
             from: deployer,
-            args: [assets.usdc, 1],
+            args: [POLYGON.usdc, 1],
             log: true,
             skipIfAlreadyDeployed: false
         });
         mockCashStrategyB = await deploy("MockStrategy", {
             from: deployer,
-            args: [assets.usdc, 2],
+            args: [POLYGON.usdc, 2],
             log: true,
             skipIfAlreadyDeployed: false
         });
@@ -48,7 +47,7 @@ describe("PortfolioManager set new cash strategy", function () {
         const contractFactory = await ethers.getContractFactory("PortfolioManager");
         pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
         await pm.deployTransaction.wait();
-        await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
+        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
         await pm.setUsdc(usdc.address);
     });
@@ -116,7 +115,7 @@ describe("PortfolioManager not set cash strategy", function () {
         const contractFactory = await ethers.getContractFactory("PortfolioManager");
         pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
         await pm.deployTransaction.wait();
-        await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
+        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
         await pm.setExchanger(deployer);
     });
@@ -153,16 +152,16 @@ describe("PortfolioManager", function () {
 
         await deployments.fixture(['PolygonBuyUsdc']);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         cashStrategy = await deploy("MockStrategy", {
             from: deployer,
-            args: [assets.usdc, 1],
+            args: [POLYGON.usdc, 1],
             log: true,
             skipIfAlreadyDeployed: false
         });
         nonCashStrategy = await deploy("MockStrategy", {
             from: deployer,
-            args: [assets.usdc, 2],
+            args: [POLYGON.usdc, 2],
             log: true,
             skipIfAlreadyDeployed: false
         });
@@ -171,7 +170,7 @@ describe("PortfolioManager", function () {
         const contractFactory = await ethers.getContractFactory("PortfolioManager");
         pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
         await pm.deployTransaction.wait();
-        await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
+        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
         await pm.setUsdc(usdc.address);
         await pm.setExchanger(deployer);

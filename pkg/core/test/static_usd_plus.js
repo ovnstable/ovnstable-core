@@ -7,11 +7,8 @@ const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
 
 const hre = require("hardhat");
-const expectRevert = require("../utils/expectRevert");
-const fs = require("fs");
-const {toUSDC, fromUSDC} = require("../utils/decimals");
-let assets = JSON.parse(fs.readFileSync('./polygon_assets.json'));
-
+const expectRevert = require("../../common/utils/expectRevert");
+let {POLYGON} = require('../../common/utils/assets');
 chai.use(smock.matchers);
 
 
@@ -49,21 +46,20 @@ describe("StaticUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "PolygonBuyUsdc", "SettingUsdPlusToken", "SettingExchange"]);
+        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "test", "SettingUsdPlusToken", "SettingExchange"]);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;
         secondAccount = anotherAccount;
         usdPlus = await ethers.getContract("UsdPlusToken");
         staticUsdPlus = await ethers.getContract("StaticUsdPlusToken");
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
 
         const pm = await ethers.getContract("PortfolioManager");
-        const exchange = await ethers.getContract("Exchange");
 
         // only aave strategy for tests
         let weights = [{
-            strategy: (await ethers.getContract("StrategyAave")).address,
+            strategy: (await ethers.getContract("MockStrategy")).address,
             minWeight: 0,
             targetWeight: 100000,
             maxWeight: 100000,
