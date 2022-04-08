@@ -1,14 +1,9 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-const expectRevert = require("../../utils/expectRevert");
+const expectRevert = require("../../common/utils/expectRevert");
 
 const hre = require("hardhat");
-
-const {fromOvnGov} = require("../../utils/decimals");
-
-chai.use(smock.matchers);
 
 let againstVotes = 0;
 let forVotes = 1;

@@ -1,11 +1,6 @@
 const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
 const hre = require("hardhat");
-
-chai.use(smock.matchers);
 
 describe("Ovn Token", function () {
 

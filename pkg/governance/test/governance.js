@@ -1,14 +1,11 @@
 const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-const expectRevert = require("../../utils/expectRevert");
+const expectRevert = require("../../common/utils/expectRevert");
 
 const hre = require("hardhat");
 
-const {fromOvnGov} = require("../../utils/decimals");
+const {fromOvnGov} = require("../../common/utils/decimals");
 
-chai.use(smock.matchers);
 
 let againstVotes = 0;
 let forVotes = 1;
@@ -31,6 +28,7 @@ describe("Governance", function () {
         await hre.run("compile");
 
         await deployments.fixture(['OvnToken','OvnGovernor', 'Exchange']);
+        const {deploy} = deployments;
 
         const {deployer } = await getNamedAccounts();
         account = deployer;
@@ -40,7 +38,16 @@ describe("Governance", function () {
         ovnToken = await ethers.getContract('OvnToken');
         governator = await ethers.getContract('OvnGovernor');
         timeLock = await ethers.getContract('OvnTimelockController');
-        exchange = await ethers.getContract('Exchange');
+
+
+         await deploy('MockContract', {
+            from: deployer,
+            args: [],
+            log: true,
+        });
+
+        exchange = await ethers.getContract('MockContract')
+
 
         await ovnToken.grantRole(await ovnToken.DEFAULT_ADMIN_ROLE(), timeLock.address);
 

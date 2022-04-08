@@ -1,5 +1,5 @@
 const { ethers, upgrades} = require("hardhat");
-const { deployProxy } = require('../utils/deployProxy');
+const { deployProxy } = require('../../common/utils/deployProxy');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
