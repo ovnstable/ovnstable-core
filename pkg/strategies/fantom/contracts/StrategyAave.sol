@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../Strategy.sol";
-import "../../connectors/aave/interfaces/IPoolAddressesProvider.sol";
-import "../../connectors/aave/interfaces/IPool.sol";
+import "./core/Strategy.sol";
+import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
+import "./connectors/aave/interfaces/IPool.sol";
 
-contract FantomStrategyAave is Strategy {
+contract StrategyAave is Strategy {
 
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;

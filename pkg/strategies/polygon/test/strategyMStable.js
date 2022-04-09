@@ -190,7 +190,7 @@ describe("StrategyMStable. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyMStable');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {

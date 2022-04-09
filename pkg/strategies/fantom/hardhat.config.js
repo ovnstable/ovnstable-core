@@ -5,12 +5,12 @@ require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-waffle");
 
-const config = require("../common/utils/hardhat-config");
+const config = require("../../common/utils/hardhat-config");
 
 module.exports = {
 
     namedAccounts: config.namedAccounts,
-    networks: config.getNetwork('POLYGON'),
+    networks: config.getNetwork('FANTOM'),
     solidity: config.solidity,
     etherscan: config.etherscan(),
     mocha: config.mocha,

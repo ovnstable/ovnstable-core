@@ -133,8 +133,8 @@ describe("StrategyIzumi. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyIzumi');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdt = await ethers.getContractAt("ERC20", assets.usdt);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        usdt = await ethers.getContractAt("ERC20", POLYGON.usdt);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {
@@ -190,11 +190,11 @@ describe("StrategyIzumi. Stake/unstakeFull", function () {
         strategy = await ethers.getContract('StrategyIzumi');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdt = await ethers.getContractAt("ERC20", assets.usdt);
-        yin = await ethers.getContractAt("ERC20", assets.yin);
-        izi = await ethers.getContractAt("ERC20", assets.izi);
-        weth = await ethers.getContractAt("ERC20", assets.weth);
+        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        usdt = await ethers.getContractAt("ERC20", POLYGON.usdt);
+        yin = await ethers.getContractAt("ERC20", POLYGON.yin);
+        izi = await ethers.getContractAt("ERC20", POLYGON.izi);
+        weth = await ethers.getContractAt("ERC20", POLYGON.weth);
     });
 
 

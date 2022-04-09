@@ -10,7 +10,7 @@ const config = require("../../common/utils/hardhat-config");
 module.exports = {
 
     namedAccounts: config.namedAccounts,
-    networks: config.networks,
+    networks: config.getNetwork('POLYGON'),
     solidity: config.solidity,
     etherscan: config.etherscan(),
     mocha: config.mocha,

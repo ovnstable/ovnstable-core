@@ -1,19 +1,15 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const {greatLess, resetHardhat} = require('../../utils/tests');
-const fs = require("fs");
-const {toUSDC, fromUSDC, fromE18} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {logStrategyGasUsage} = require("./strategyCommon");
-let assets = JSON.parse(fs.readFileSync('./fantom_assets.json'));
+const {resetHardhat} = require("../../../common/utils/tests");
 
-chai.use(smock.matchers);
+let {FANTOM} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
 
-describe("FantomStrategyCurve2Pool. Stake/unstake", function () {
+describe("StrategyCurve2Pool. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -24,20 +20,20 @@ describe("FantomStrategyCurve2Pool. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture(['PortfolioManager', 'FantomStrategyCurve2Pool', 'FantomStrategyCurve2PoolSetting', 'FantomBuyUsdc']);
+        await deployments.fixture(['StrategyCurve2Pool', 'StrategyCurve2PoolSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('FantomStrategyCurve2Pool');
+        strategy = await ethers.getContract('StrategyCurve2Pool');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        crv2PoolGauge = await ethers.getContractAt("ERC20", assets.crv2PoolGauge);
+        usdc = await ethers.getContractAt(ERC20, FANTOM.usdc);
+        crv2PoolGauge = await ethers.getContractAt(ERC20, FANTOM.crv2PoolGauge);
     });
 
     it("log gas", async () => {
-        await logStrategyGasUsage("FantomStrategyCurve2Pool", strategy, usdc, account)
+        await logStrategyGasUsage("StrategyCurve2Pool", strategy, usdc, account)
     });
 
     describe("Stake 100 USDC", function () {
@@ -178,7 +174,7 @@ describe("FantomStrategyCurve2Pool. Stake/unstake", function () {
 
 });
 
-describe("FantomStrategyCurve2Pool. Claim rewards", function () {
+describe("StrategyCurve2Pool. Claim rewards", function () {
 
     let account;
     let strategy;
@@ -188,12 +184,12 @@ describe("FantomStrategyCurve2Pool. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture(['PortfolioManager', 'FantomStrategyCurve2Pool', 'FantomStrategyCurve2PoolSetting', 'FantomBuyUsdc']);
+        await deployments.fixture(['PortfolioManager', 'StrategyCurve2Pool', 'StrategyCurve2PoolSetting', 'FantomBuyUsdc']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('FantomStrategyCurve2Pool');
+        strategy = await ethers.getContract('StrategyCurve2Pool');
         await strategy.setPortfolioManager(account);
 
         usdc = await ethers.getContractAt("ERC20", assets.usdc);

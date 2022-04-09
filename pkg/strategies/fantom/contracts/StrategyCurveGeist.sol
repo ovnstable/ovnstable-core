@@ -3,23 +3,23 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "../Strategy.sol";
-import "../../exchanges/fantom/SpookySwapExchange.sol";
-import "../../connectors/curve/interfaces/IRewardsOnlyGauge.sol";
-import "../../connectors/curve/interfaces/IStableSwapPool.sol";
+import "./core/Strategy.sol";
+import "./exchanges/SpookySwapExchange.sol";
+import "./connectors/curve/interfaces/IStableSwapPool.sol";
+import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
-import "hardhat/console.sol";
-
-contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
+contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
     IERC20 public usdcToken;
     IERC20 public crvPoolToken;
     IERC20 public crvGaugeToken;
+    IERC20 public geistToken;
     IERC20 public crvToken;
     IERC20 public wFtmToken;
 
     uint256 public usdcTokenDenominator;
     uint256 public crvPoolTokenDenominator;
+    uint256 public geistTokenDenominator;
     uint256 public crvTokenDenominator;
     uint256 public wFtmTokenDenominator;
 
@@ -33,10 +33,12 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
         address usdcToken,
         address crvPoolToken,
         address crvGaugeToken,
+        address geistToken,
         address crvToken,
         address wFtmToken,
         uint256 usdcTokenDenominator,
         uint256 crvPoolTokenDenominator,
+        uint256 geistTokenDenominator,
         uint256 crvTokenDenominator,
         uint256 wFtmTokenDenominator
     );
@@ -61,6 +63,7 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
         address _usdcToken,
         address _crvPoolToken,
         address _crvGaugeToken,
+        address _geistToken,
         address _crvToken,
         address _wFtmToken
     ) external onlyAdmin {
@@ -68,17 +71,20 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_crvPoolToken != address(0), "Zero address not allowed");
         require(_crvGaugeToken != address(0), "Zero address not allowed");
+        require(_geistToken != address(0), "Zero address not allowed");
         require(_crvToken != address(0), "Zero address not allowed");
         require(_wFtmToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         crvPoolToken = IERC20(_crvPoolToken);
         crvGaugeToken = IERC20(_crvGaugeToken);
+        geistToken = IERC20(_geistToken);
         crvToken = IERC20(_crvToken);
         wFtmToken = IERC20(_wFtmToken);
 
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         crvPoolTokenDenominator = 10 ** IERC20Metadata(_crvPoolToken).decimals();
+        geistTokenDenominator = 10 ** IERC20Metadata(_geistToken).decimals();
         crvTokenDenominator = 10 ** IERC20Metadata(_crvToken).decimals();
         wFtmTokenDenominator = 10 ** IERC20Metadata(_wFtmToken).decimals();
 
@@ -86,10 +92,12 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
             _usdcToken,
             _crvPoolToken,
             _crvGaugeToken,
+            _geistToken,
             _crvToken,
             _wFtmToken,
             usdcTokenDenominator,
             crvPoolTokenDenominator,
+            geistTokenDenominator,
             crvTokenDenominator,
             wFtmTokenDenominator
         );
@@ -121,15 +129,16 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        require(crvPool.coins(1) == address(usdcToken), "Invalid index for staking curve");
+        require(crvPool.underlying_coins(1) == address(usdcToken), "Invalid index for staking curve");
 
-        uint256[2] memory amounts;
+        uint256[3] memory amounts;
         amounts[0] = 0;
         amounts[1] = _amount;
+        amounts[2] = 0;
         usdcToken.approve(address(crvPool), _amount);
         uint256 lpTokAmount = crvPool.calc_token_amount(amounts, true);
         //TODO: процентажи кудато вынести, slippage
-        uint256 retAmount = crvPool.add_liquidity(amounts, lpTokAmount * 99 / 100);
+        uint256 retAmount = crvPool.add_liquidity(amounts, lpTokAmount * 99 / 100, true);
 
         uint256 crvPoolBalance = crvPoolToken.balanceOf(address(this));
         crvPoolToken.approve(address(rewardGauge), crvPoolBalance);
@@ -196,7 +205,7 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
 
     function liquidationValue() external view override returns (uint256) {
 
-        require(crvPool.coins(1) == address(usdcToken), "Invalid index for liquidationValue curve");
+        require(crvPool.underlying_coins(1) == address(usdcToken), "Invalid index for liquidationValue curve");
 
         uint256 balance = crvGaugeToken.balanceOf(address(this));
         if (balance == 0) {
@@ -209,14 +218,14 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
 
     function _unstakeCurve() internal returns (uint256) {
 
-        require(crvPool.coins(1) == address(usdcToken), "Invalid index for unstaking curve");
+        require(crvPool.underlying_coins(1) == address(usdcToken), "Invalid index for unstaking curve");
 
         uint256 lpTokenAmount = crvPoolToken.balanceOf(address(this));
 
         crvPoolToken.approve(address(crvPool), lpTokenAmount);
 
         //TODO: use withdrawAmount?
-        uint256 retAmount = crvPool.remove_liquidity_one_coin(lpTokenAmount, 1, 0);
+        uint256 retAmount = crvPool.remove_liquidity_one_coin(lpTokenAmount, 1, 0, true);
         return retAmount;
     }
 
@@ -225,8 +234,20 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         uint256 totalUsdc;
 
+        uint256 geistBalance = geistToken.balanceOf(address(this));
+        if (geistBalance != 0) {
+            uint256 geistUsdc = swapTokenToUsdc(
+                address(geistToken),
+                address(usdcToken),
+                geistTokenDenominator,
+                address(this),
+                address(this),
+                geistBalance
+            );
+            totalUsdc += geistUsdc;
+        }
+
         uint256 crvBalance = crvToken.balanceOf(address(this));
-        console.log("crvBalance: %s", crvBalance);
         if (crvBalance != 0) {
             uint256 crvUsdc = swapTokenToUsdc(
                 address(crvToken),
@@ -236,12 +257,10 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
                 address(this),
                 crvBalance
             );
-            console.log("crvUsdc: %s", crvUsdc);
             totalUsdc += crvUsdc;
         }
 
         uint256 wFtmBalance = wFtmToken.balanceOf(address(this));
-        console.log("wFtmBalance: %s", wFtmBalance);
         if (wFtmBalance != 0) {
             uint256 wFtmUsdc = swapTokenToUsdc(
                 address(wFtmToken),
@@ -251,7 +270,6 @@ contract FantomStrategyCurve2Pool is Strategy, SpookySwapExchange {
                 address(this),
                 wFtmBalance
             );
-            console.log("wFtmUsdc: %s", wFtmUsdc);
             totalUsdc += wFtmUsdc;
         }
 

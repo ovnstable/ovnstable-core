@@ -5,45 +5,103 @@ const {node_url, accounts, blockNumber} = require("./network");
 const {getGasPrice} = require("./network");
 let gasPrice = getGasPrice();
 
+let timeout = 362000000;
 
-let forkingUrl = node_url('polygon');
-let blockNumberValue = blockNumber();
-console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
+function getFantomNetwork() {
 
-let networks = {
-    polygon: {
-        url: node_url('polygon'),
-        accounts: accounts('polygon'),
-        timeout: 36200000,
-        gasPrice: gasPrice,
-    },
+    let forkingUrl = node_url('fantom');
+    let accountsFantom = accounts('fantom');
+    let blockNumberValue = blockNumber();
+    console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
 
-    polygon_dev: {
-        url: node_url('polygon'),
-        accounts: accounts('polygon'),
-        timeout: 36200000,
-        gasPrice: gasPrice,
-    },
-
-
-    localhost: {
-        timeout: 362000000,
-        accounts: accounts('polygon'),
-    },
-
-    hardhat: {
-        forking: {
+    return {
+        fantom: {
             url: forkingUrl,
-            blockNumber: blockNumberValue,
+            accounts: accountsFantom,
+            timeout: timeout,
+            gasPrice: gasPrice,
         },
-        accounts: {
-            accountsBalance: "100000000000000000000000000"
+
+        fantom_dev: {
+            url: forkingUrl,
+            accounts: accountsFantom,
+            timeout: timeout,
+            gasPrice: gasPrice,
         },
-        timeout: 362000000
-    },
+
+        localhost: {
+            timeout: timeout,
+            accounts: accountsFantom,
+        },
+
+        hardhat: {
+            forking: {
+                url: forkingUrl,
+                blockNumber: blockNumberValue,
+            },
+            accounts: {
+                accountsBalance: "100000000000000000000000000"
+            },
+            timeout: timeout
+        },
+    }
+
 }
 
 
+function getPolygonNetwork() {
+
+    let forkingUrl = node_url('polygon');
+    let accountsPolygon = accounts('fantom');
+    let blockNumberValue = blockNumber();
+    console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
+
+    return {
+        polygon: {
+            url: forkingUrl,
+            accounts: accountsPolygon,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+        polygon_dev: {
+            url: forkingUrl,
+            accounts: accountsPolygon,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+        localhost: {
+            timeout: timeout,
+            accounts: accountsPolygon,
+        },
+
+        hardhat: {
+            forking: {
+                url: forkingUrl,
+                blockNumber: blockNumberValue,
+            },
+            accounts: {
+                accountsBalance: "100000000000000000000000000"
+            },
+            timeout: timeout
+        },
+    }
+}
+
+function getNetwork(network) {
+
+
+    switch (network){
+        case 'FANTOM':
+            return getFantomNetwork();
+        case 'POLYGON':
+            return getPolygonNetwork();
+        default:
+            throw new Error('Unknown network id');
+    }
+
+}
 
 let namedAccounts = {
     deployer: {
@@ -99,7 +157,7 @@ function getEtherScan(chain){
 }
 
 module.exports = {
-    networks: networks,
+    getNetwork: getNetwork,
     namedAccounts: namedAccounts,
     solidity: solidity,
     mocha: mocha,

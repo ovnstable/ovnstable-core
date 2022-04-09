@@ -1,21 +1,14 @@
-const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
-
-const fs = require("fs");
-const {greatLess} = require('../../utils/tests');
-const {fromE6, toUSDC, fromUSDC, fromE18, fromOvn} = require("../../utils/decimals");
+const {greatLess} = require('../../../common/utils/tests');
+const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const BN = require('bignumber.js');
-const {resetHardhat} = require("../../utils/tests");
-let assets = JSON.parse(fs.readFileSync('./fantom_assets.json'));
-const {logStrategyGasUsage} = require("./strategyCommon");
+const {resetHardhat} = require("../../../common/utils/tests");
 
-chai.use(smock.matchers);
+let {FANTOM} = require('../../../common/utils/assets');
+const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
+let ERC20 = require('./abi/IERC20.json');
 
-
-describe("FantomStrategyAave. Stake/unstake", function () {
+describe("StrategyAave. Stake/unstake", function () {
 
     let account;
     let strategy;
@@ -26,20 +19,20 @@ describe("FantomStrategyAave. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture(['PortfolioManager', 'FantomStrategyAave', 'FantomStrategyAaveSetting', 'FantomBuyUsdc']);
+        await deployments.fixture([ 'StrategyAave', 'StrategyAaveSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        strategy = await ethers.getContract('FantomStrategyAave');
+        strategy = await ethers.getContract('StrategyAave');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        amUsdc = await ethers.getContractAt("ERC20", assets.amUsdc);
+        usdc = await ethers.getContractAt(ERC20, FANTOM.usdc);
+        amUsdc = await ethers.getContractAt(ERC20, FANTOM.amUsdc);
     });
 
     it("log gas", async () => {
-        await logStrategyGasUsage("FantomStrategyAave", strategy, usdc, account)
+        await logStrategyGasUsage("StrategyAave", strategy, usdc, account)
     });
 
     describe("Stake 100 USDC", function () {
