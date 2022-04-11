@@ -1,6 +1,6 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {greatLess} = require('../../../common/utils/tests');
-const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
+const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
 const {resetHardhat} = require("../../../common/utils/tests");
 
@@ -192,7 +192,7 @@ describe("StrategyCurve2Pool. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyCurve2Pool');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt("ERC20", FANTOM.usdc);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {

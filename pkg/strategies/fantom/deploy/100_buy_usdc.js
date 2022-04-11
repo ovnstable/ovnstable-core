@@ -1,4 +1,4 @@
-const { ethers } = require("hardhat");
+const {ethers} = require("hardhat");
 
 let {FANTOM} = require('../../../common/utils/assets');
 

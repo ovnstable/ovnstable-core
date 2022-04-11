@@ -19,7 +19,7 @@ describe("StrategyAave. Stake/unstake", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture([ 'StrategyAave', 'StrategyAaveSetting', 'test']);
+        await deployments.fixture(['StrategyAave', 'StrategyAaveSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

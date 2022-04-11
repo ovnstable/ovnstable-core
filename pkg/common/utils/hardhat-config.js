@@ -11,8 +11,8 @@ function getFantomNetwork() {
 
     let forkingUrl = node_url('fantom');
     let accountsFantom = accounts('fantom');
-    let blockNumberValue = blockNumber();
-    console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
+    let blockNumberValue = blockNumber('fantom');
+    console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
     return {
         fantom: {
@@ -52,9 +52,9 @@ function getFantomNetwork() {
 function getPolygonNetwork() {
 
     let forkingUrl = node_url('polygon');
-    let accountsPolygon = accounts('fantom');
-    let blockNumberValue = blockNumber();
-    console.log(`Forking url: ${forkingUrl}:${blockNumberValue}`);
+    let accountsPolygon = accounts('polygon');
+    let blockNumberValue = blockNumber('polygon');
+    console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
     return {
         polygon: {
@@ -90,7 +90,7 @@ function getPolygonNetwork() {
 }
 
 function getNetwork(network) {
-
+    console.log(`Network: [${network}]`)
 
     switch (network){
         case 'FANTOM':
