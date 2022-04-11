@@ -14,22 +14,16 @@ chai.use(smock.matchers);
 
 async function setLiquidityIndex(account, usdPlus, liquidityIndex) {
     let prevExchanger = await usdPlus.callStatic.exchange();
-    // console.log("Save previous exchanger: " + prevExchanger);
     await usdPlus.setExchanger(account);
-    // console.log("Set exchanger to: " + account);
     await usdPlus.setLiquidityIndex(liquidityIndex.toString());
     await usdPlus.setExchanger(prevExchanger);
-    // console.log("Back exchanger to: " + prevExchanger);
 }
 
 async function mint(account, usdPlus, amountToMint) {
     let prevExchanger = await usdPlus.callStatic.exchange();
-    // console.log("Save previous exchanger: " + prevExchanger);
     await usdPlus.setExchanger(account);
-    // console.log("Set exchanger to: " + account);
     await usdPlus.mint(account, amountToMint);
     await usdPlus.setExchanger(prevExchanger);
-    // console.log("Back exchanger to: " + prevExchanger);
 }
 
 

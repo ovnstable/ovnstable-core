@@ -48,6 +48,16 @@ function getFantomNetwork() {
 
 }
 
+function getCoreNetworks(){
+
+    let polygon = getPolygonNetwork();
+    let fantom = getFantomNetwork();
+
+    return {
+        ...polygon,
+        ...fantom
+    }
+}
 
 function getPolygonNetwork() {
 
@@ -131,6 +141,7 @@ let solidity = {
 }
 
 let mocha = require("./mocha-report-setting")
+const {setDefault} = require("./assets");
 
 let gasReport = {
     enabled: false, // Gas Reporter hides unit-test-mocha report

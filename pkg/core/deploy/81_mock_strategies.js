@@ -51,9 +51,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await pm.setStrategyWeights(weights)).wait();
     console.log("portfolio.setWeights done");
 
-    await (await pm.setExchanger(exchange.address)).wait();
-    await (await pm.setUsdc(DEFAULT.usdc)).wait();
+    await (await pm.setCashStrategy(mockStrategy1.address)).wait();
 };
 
-module.exports.tags = ['setting', 'SettingPM'];
+module.exports.tags = ['test', 'MockStrategies'];
 

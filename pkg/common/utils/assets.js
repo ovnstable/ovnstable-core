@@ -37,10 +37,32 @@ let POLYGON = {
 }
 
 
+let DEFAULT = POLYGON;
 
+setDefault(process.env.ETH_NETWORK);
+
+
+function setDefault(network){
+
+
+    console.log(`Assets: [${network}]`)
+
+    switch (network){
+        case 'FANTOM':
+            DEFAULT = FANTOM;
+            break
+        case 'POLYGON':
+            DEFAULT = POLYGON;
+            break
+        default:
+            throw new Error('Unknown network')
+    }
+
+}
 
 module.exports = {
     POLYGON: POLYGON,
     FANTOM: FANTOM,
-    DEFAULT: POLYGON,
+    DEFAULT: DEFAULT,
+    setDefault: setDefault
 }

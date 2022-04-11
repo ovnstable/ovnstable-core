@@ -1,4 +1,6 @@
 const dotenv = require('dotenv');
+const web3 = require('web3');
+const BN = require("bn.js");
 dotenv.config({path:__dirname+ '/../../../.env'});
 
 function node_url(networkName) {
@@ -48,14 +50,16 @@ function accounts(networkName) {
 
 function getGasPrice() {
 
-    let gasPrice = 50000000000; //50 gwei
+    let gasPrice = 50; //50 gwei
 
     if (process.env.GAS_PRICE) {
         gasPrice = Number.parseInt(process.env.GAS_PRICE);
-        console.log('Use GAS_PRICE: ' + gasPrice);
     }
 
-    return gasPrice;
+    let wei = web3.utils.toWei(new BN(gasPrice), 'Gwei').toNumber();
+    console.log(`Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
+
+    return wei;
 }
 
 function blockNumber(networkName) {
