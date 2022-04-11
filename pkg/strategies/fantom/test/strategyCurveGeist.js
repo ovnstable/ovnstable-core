@@ -192,7 +192,7 @@ describe("StrategyCurveGeist. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyCurveGeist');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", FANTOM.usdc);
+        usdc = await ethers.getContractAt(ERC20, FANTOM.usdc);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {
