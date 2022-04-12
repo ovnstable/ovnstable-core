@@ -1,13 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
-const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
 const {expect} = require("chai");
-
-let {POLYGON} = require('../../../common/utils/assets');
+const {POLYGON} = require('../../../common/utils/assets');
+const {fromE6, fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyIzumi. Stake/unstake", function () {
@@ -125,7 +123,7 @@ describe("StrategyIzumi. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyIzumi', 'StrategyIzumiSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyIzumi', 'StrategyIzumiSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -133,8 +131,8 @@ describe("StrategyIzumi. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyIzumi');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
-        usdt = await ethers.getContractAt("ERC20", POLYGON.usdt);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdt = await ethers.getContractAt(ERC20, POLYGON.usdt);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {
@@ -182,7 +180,7 @@ describe("StrategyIzumi. Stake/unstakeFull", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyIzumi', 'StrategyIzumiSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyIzumi', 'StrategyIzumiSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -190,11 +188,11 @@ describe("StrategyIzumi. Stake/unstakeFull", function () {
         strategy = await ethers.getContract('StrategyIzumi');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
-        usdt = await ethers.getContractAt("ERC20", POLYGON.usdt);
-        yin = await ethers.getContractAt("ERC20", POLYGON.yin);
-        izi = await ethers.getContractAt("ERC20", POLYGON.izi);
-        weth = await ethers.getContractAt("ERC20", POLYGON.weth);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdt = await ethers.getContractAt(ERC20, POLYGON.usdt);
+        yin = await ethers.getContractAt(ERC20, POLYGON.yin);
+        izi = await ethers.getContractAt(ERC20, POLYGON.izi);
+        weth = await ethers.getContractAt(ERC20, POLYGON.weth);
     });
 
 

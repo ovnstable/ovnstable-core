@@ -1,12 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
-const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
-
-let {POLYGON} = require('../../../common/utils/assets');
+const {expect} = require("chai");
+const {POLYGON} = require('../../../common/utils/assets');
+const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 describe("StrategyDodoUsdt. Stake/unstake", function () {
 
@@ -170,7 +169,7 @@ describe("StrategyDodoUsdt. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyDodoUsdt', 'StrategyDodoUsdtSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyDodoUsdt', 'StrategyDodoUsdtSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -178,7 +177,7 @@ describe("StrategyDodoUsdt. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyDodoUsdt');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
     });
 
     describe("Stake 100000 USDC and claim rewards", function () {

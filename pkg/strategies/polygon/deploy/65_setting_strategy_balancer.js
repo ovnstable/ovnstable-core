@@ -3,28 +3,22 @@ const { ethers } = require("hardhat");
 let {POLYGON} = require('../../../common/utils/assets');
 let {core} = require('../../../common/utils/core');
 
-let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
-let uniswapRouter = "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff";
-let balancerPoolId1 = "0x0d34e5dd4d8f043557145598e4e2dc286b35fd4f000000000000000000000068";
-let balancerPoolId2 = "0x0297e37f1873d2dab4487aa67cd56b58e2f27875000100000000000000000002";
-let merkleOrchard = "0x0F3e0c4218b7b0108a3643cFe9D3ec0d4F57c54e";
-
 // let chanId = '137';
 // // увеличивается на 1 каждую неделю
 // // можно в принципе как-то парсить данную папку, чтобы найти самую последнюю неделю
 // // https://github.com/balancer-labs/bal-mining-scripts/tree/master/reports
 // let week = '90';
-// const {getClaimedParams, ClaimedParams} = require("../utils/claimRewardsBalancer");
+// const {getClaimedParams, ClaimedParams} = require("../../../common/utils/claimRewardsBalancer");
 
 module.exports = async () => {
-
     const strategy = await ethers.getContract("StrategyBalancer");
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.bpspTUsd, POLYGON.bal, POLYGON.wMatic, POLYGON.tUsd)).wait();
-    await (await strategy.setParams(balancerVault, uniswapRouter, balancerPoolId1, balancerPoolId2, merkleOrchard)).wait();
+    await (await strategy.setParams(POLYGON.balancerVault, POLYGON.quickSwapRouter, POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
+        POLYGON.balancerPoolIdWmaticUsdcWethBal, POLYGON.merkleOrchard)).wait();
 
 //     // get params for bal
-//     let claimedParamsBal = await getClaimedParams(chanId, week, assets.bal, strategy.address);
+//     let claimedParamsBal = await getClaimedParams(chanId, week, POLYGON.bal, strategy.address);
 //     console.log(claimedParamsBal);
 //
 //     // get params for wMatic
@@ -35,7 +29,7 @@ module.exports = async () => {
 //     console.log(claimedParamsWMatic);
 //
 //     // get params for tUsd
-//     let claimedParamsTUsd = await getClaimedParams(chanId, week, assets.tUsd, strategy.address);
+//     let claimedParamsTUsd = await getClaimedParams(chanId, week, POLYGON.tUsd, strategy.address);
 //     console.log(claimedParamsTUsd);
 //
 //     // сеттить эти параметры надо раз в неделю. наверное в среду, потому что во вторник они обновляют скрипты

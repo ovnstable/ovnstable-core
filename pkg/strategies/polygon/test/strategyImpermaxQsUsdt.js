@@ -1,13 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
-const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
 const {expect} = require("chai");
-
-let {POLYGON} = require('../../../common/utils/assets');
+const {POLYGON} = require('../../../common/utils/assets');
+const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyImpermaxQsUsdt. Stake/unstake", function () {
@@ -115,7 +113,7 @@ describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -123,8 +121,8 @@ describe("StrategyImpermaxQsUsdt. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdt = await ethers.getContractAt("ERC20", assets.usdt);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdt = await ethers.getContractAt(ERC20, POLYGON.usdt);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {
@@ -171,7 +169,7 @@ describe("StrategyImpermaxQsUsdt. Stake/unstakeFull", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyImpermaxQsUsdt', 'StrategyImpermaxQsUsdtSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -179,9 +177,9 @@ describe("StrategyImpermaxQsUsdt. Stake/unstakeFull", function () {
         strategy = await ethers.getContract('StrategyImpermaxQsUsdcUsdt');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", assets.usdc);
-        usdt = await ethers.getContractAt("ERC20", assets.usdt);
-        imxB = await ethers.getContractAt("ERC20", "0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965");
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
+        usdt = await ethers.getContractAt(ERC20, POLYGON.usdt);
+        imxB = await ethers.getContractAt(ERC20, "0xEaB52C4eFBbB54505EB3FC804A29Dcf263668965");
 
     });
 

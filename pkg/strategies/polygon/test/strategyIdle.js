@@ -1,12 +1,10 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
-const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
-
-let {POLYGON} = require('../../../common/utils/assets');
+const {POLYGON} = require('../../../common/utils/assets');
+const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 describe("StrategyIdle. Stake/unstake", function () {
 

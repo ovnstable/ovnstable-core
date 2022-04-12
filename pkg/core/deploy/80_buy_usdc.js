@@ -24,4 +24,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('Buy usdc: ' + value);
 };
 
-module.exports.tags = ['test', 'BuyUsdc'];
+module.exports.tags = ['test'];

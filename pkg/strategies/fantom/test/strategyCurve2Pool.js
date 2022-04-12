@@ -1,12 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
+const hre = require('hardhat');
+const {expect} = require("chai");
+const {FANTOM} = require('../../../common/utils/assets');
 const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
-const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
-
-let {FANTOM} = require('../../../common/utils/assets');
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyCurve2Pool. Stake/unstake", function () {
@@ -184,7 +183,7 @@ describe("StrategyCurve2Pool. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyCurve2Pool', 'StrategyCurve2PoolSetting', 'FantomBuyUsdc']);
+        await deployments.fixture(['StrategyCurve2Pool', 'StrategyCurve2PoolSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -192,7 +191,7 @@ describe("StrategyCurve2Pool. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyCurve2Pool');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", FANTOM.usdc);
+        usdc = await ethers.getContractAt(ERC20, FANTOM.usdc);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {

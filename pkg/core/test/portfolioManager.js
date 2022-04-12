@@ -150,7 +150,7 @@ describe("PortfolioManager", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        await deployments.fixture(['PolygonBuyUsdc']);
+        await deployments.fixture(['test']);
 
         usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         cashStrategy = await deploy("MockStrategy", {

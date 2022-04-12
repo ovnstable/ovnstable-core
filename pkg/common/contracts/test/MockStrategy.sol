@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../interfaces/IStrategy.sol";
+import "../../../core/contracts/interfaces/IStrategy.sol";
 
 
 contract MockStrategy is IStrategy {

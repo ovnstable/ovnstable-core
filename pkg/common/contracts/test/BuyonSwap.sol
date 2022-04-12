@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
+import "./IUniswapV2Router02.sol";
 
 /**
  * @dev Contract to learn how to swap on Uniswap

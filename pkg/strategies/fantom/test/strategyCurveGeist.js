@@ -1,12 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
+const hre = require('hardhat');
+const {expect} = require("chai");
+const {FANTOM} = require('../../../common/utils/assets');
 const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
-const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
-
-let {FANTOM} = require('../../../common/utils/assets');
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyCurveGeist. Stake/unstake", function () {
@@ -184,7 +183,7 @@ describe("StrategyCurveGeist. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('fantom');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyCurveGeist', 'StrategyCurveGeistSetting', 'FantomBuyUsdc']);
+        await deployments.fixture(['StrategyCurveGeist', 'StrategyCurveGeistSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

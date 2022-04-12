@@ -1,13 +1,11 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {greatLess} = require('../../../common/utils/tests');
-const {fromE18, fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../../common/utils/tests");
 const {expect} = require("chai");
-
-let {POLYGON} = require('../../../common/utils/assets');
+const {POLYGON} = require('../../../common/utils/assets');
+const {fromE18, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
 const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-let ERC20 = require('./abi/IERC20.json');
+const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const ERC20 = require('./abi/IERC20.json');
 
 
 describe("StrategyMStable. Stake/unstake", function () {
@@ -182,7 +180,7 @@ describe("StrategyMStable. Claim rewards", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['PortfolioManager', 'StrategyMStable', 'StrategyMStableSetting', 'PolygonBuyUsdc']);
+        await deployments.fixture(['StrategyMStable', 'StrategyMStableSetting', 'test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -190,7 +188,7 @@ describe("StrategyMStable. Claim rewards", function () {
         strategy = await ethers.getContract('StrategyMStable');
         await strategy.setPortfolioManager(account);
 
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        usdc = await ethers.getContractAt(ERC20, POLYGON.usdc);
     });
 
     describe("Stake 100 USDC. Claim rewards", function () {

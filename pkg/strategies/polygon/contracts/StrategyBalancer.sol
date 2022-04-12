@@ -233,6 +233,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
 
         balancerVault.exitPool(balancerPoolId1, address(this), payable(address(this)), request);
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -243,9 +244,8 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = bpspTUsdToken.balanceOf(address(this));
-        // 18 = 18
-        uint256 amountBpspTUsd = _getBpspTUsdSellPrice(_amount);
+        uint256 amountBpspTUsd = bpspTUsdToken.balanceOf(address(this));
+        uint256 amountUsdc = _getBpspTUsdSellPrice(amountBpspTUsd);
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(balancerPoolId1);
 
@@ -255,7 +255,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
             assets[i] = IAsset(address(tokens[i]));
             if (tokens[i] == usdcToken) {
                 //TODO: Balancer. FIX if big slippage
-                minAmountsOut[i] = amountBpspTUsd * 99 / 100;
+                minAmountsOut[i] = amountUsdc * 99 / 100;
             } else {
                 minAmountsOut[i] = 0;
             }
@@ -263,11 +263,12 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
 
         uint256 exitKind = 0;
         uint256 exitTokenIndex = 0;
-        bytes memory userData = abi.encode(exitKind, _amount, exitTokenIndex);
+        bytes memory userData = abi.encode(exitKind, amountBpspTUsd, exitTokenIndex);
 
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
 
         balancerVault.exitPool(balancerPoolId1, address(this), payable(address(this)), request);
+
         return usdcToken.balanceOf(address(this));
     }
 

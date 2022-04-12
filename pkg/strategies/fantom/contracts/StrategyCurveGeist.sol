@@ -29,7 +29,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
     // --- events
 
-    event StrategyCurveUpdatedTokens(
+    event StrategyCurveGeistUpdatedTokens(
         address usdcToken,
         address crvPoolToken,
         address crvGaugeToken,
@@ -43,7 +43,11 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
         uint256 wFtmTokenDenominator
     );
 
-    event StrategyCurveUpdatedParams(address crvPool, address rewardGauge, address uniswapRouter);
+    event StrategyCurveGeistUpdatedParams(
+        address crvPool,
+        address rewardGauge,
+        address uniswapRouter
+    );
 
 
     // ---  constructor
@@ -88,7 +92,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
         crvTokenDenominator = 10 ** IERC20Metadata(_crvToken).decimals();
         wFtmTokenDenominator = 10 ** IERC20Metadata(_wFtmToken).decimals();
 
-        emit StrategyCurveUpdatedTokens(
+        emit StrategyCurveGeistUpdatedTokens(
             _usdcToken,
             _crvPoolToken,
             _crvGaugeToken,
@@ -117,7 +121,11 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
         rewardGauge = IRewardsOnlyGauge(_rewardGauge);
         setUniswapRouter(_uniswapRouter);
 
-        emit StrategyCurveUpdatedParams(_crvPool, _rewardGauge, _uniswapRouter);
+        emit StrategyCurveGeistUpdatedParams(
+            _crvPool,
+            _rewardGauge,
+            _uniswapRouter
+        );
     }
 
 

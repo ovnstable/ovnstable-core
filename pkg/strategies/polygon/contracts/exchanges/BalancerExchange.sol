@@ -117,9 +117,15 @@ abstract contract BalancerExchange {
         fundManagement.toInternalBalance = false;
 
         int256[] memory limits = new int256[](3);
-        limits[0] = MAX_VALUE;
-        limits[1] = MAX_VALUE;
-        limits[2] = MAX_VALUE;
+        if (kind == IVault.SwapKind.GIVEN_IN) {
+            limits[0] = MAX_VALUE;
+            limits[1] = MAX_VALUE;
+            limits[2] = MAX_VALUE;
+        } else {
+            limits[0] = 0;
+            limits[1] = 0;
+            limits[2] = 0;
+        }
 
         return uint256(- balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600)[2]);
     }
@@ -171,7 +177,18 @@ abstract contract BalancerExchange {
             return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
 
         } else {
-            return 0;
+
+            uint256 balanceIn;
+            uint256 balanceOut;
+            for (uint8 i = 0; i < tokens.length; i++) {
+                if (tokens[i] == tokenIn) {
+                    balanceIn = balances[i];
+                } else if (tokens[i] == tokenOut) {
+                    balanceOut = balances[i];
+                }
+            }
+
+            return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
         }
     }
 
