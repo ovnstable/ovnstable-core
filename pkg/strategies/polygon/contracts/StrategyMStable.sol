@@ -103,15 +103,9 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        usdcToken.approve(address(mUsdToken), _amount);
-
-
         // 1) Mint mUSD token
-        uint256 usdcBefore = usdcToken.balanceOf(address(this));
-        uint256 mUsdBefore = mUsdToken.balanceOf(address(this));
-
+        usdcToken.approve(address(mUsdToken), _amount);
         uint256 mintedTokens = mUsdToken.mint(address(usdcToken), _amount, 0, address(this));
-
 
         // 2) Deposit mUsd
         mUsdToken.approve(address(imUsdToken), mintedTokens);
@@ -130,18 +124,21 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // 18 = 18 + 6 - 6
-        uint256 tokenAmount = vimUsdTokenDenominator * _amount / _getVimUsdSellPrice();
+        uint256 mUsdAmount = mUsdToken.getMintOutput(address(usdcToken), _amount);
+        uint256 imUsdAmount = imUsdToken.underlyingToCredits(mUsdAmount);
+        // vimUsd and imUsd in ratio 1:1. we can use imUsdAmount for vimUsdAmount
+        // add 0.1% to withdraw more than request amount
+        uint256 vimUsdAmount = imUsdAmount * 1001 / 1000;
 
-        vimUsdToken.withdraw(tokenAmount);
+        vimUsdToken.withdraw(vimUsdAmount);
 
         imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
 
         mUsdToken.redeem(address(usdcToken), mUsdToken.balanceOf(address(this)), 0, address(this));
 
-        uint256 redeemedTokens = usdcToken.balanceOf(address(this));
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
-        return redeemedTokens;
+        return usdcBalance;
     }
 
     function _unstakeFull(
@@ -151,49 +148,39 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = vimUsdToken.balanceOf(address(this));
+        uint256 vimUsdBalance = vimUsdToken.balanceOf(address(this));
 
-        vimUsdToken.withdraw(_amount);
+        vimUsdToken.withdraw(vimUsdBalance);
 
         imUsdToken.redeem(imUsdToken.balanceOf(address(this)));
 
         mUsdToken.redeem(address(usdcToken), mUsdToken.balanceOf(address(this)), 0, address(this));
 
-        uint256 redeemedTokens = usdcToken.balanceOf(address(this));
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
-        return redeemedTokens;
+        return usdcBalance;
     }
 
     function netAssetValue() external override view returns (uint256) {
-        uint256 balance = vimUsdToken.balanceOf(address(this));
-        if (balance == 0) {
-            return 0;
-        }
-        uint256 price = _getVimUsdBuyPrice();
-        // 18 + 6 - 18 = 6
-        return balance * price / vimUsdTokenDenominator;
+        return _totalValue();
     }
 
     function liquidationValue() external override view returns (uint256) {
-        uint256 balance = vimUsdToken.balanceOf(address(this));
-        if (balance == 0) {
+        return _totalValue();
+    }
+
+    function _totalValue() internal view returns (uint256) {
+        uint256 vimUsdBalance = vimUsdToken.balanceOf(address(this));
+        if (vimUsdBalance == 0) {
             return 0;
         }
-        uint256 price = _getVimUsdSellPrice();
-        // 18 + 6 - 18 = 6
-        return balance * price / vimUsdTokenDenominator;
-    }
 
-    function _getVimUsdBuyPrice() internal view returns (uint256) {
-        uint256 mintOutput = mUsdToken.getMintOutput(address(usdcToken), usdcTokenDenominator);
-        // 6 + 18 - 18 = 6
-        return usdcTokenDenominator * vimUsdTokenDenominator / imUsdToken.underlyingToCredits(mintOutput);
-    }
+        // vimUsd and imUsd in ratio 1:1. we can use vimUsdBalance for imUsdBalance
+        uint256 mUsdBalance = imUsdToken.creditsToUnderlying(vimUsdBalance);
 
-    function _getVimUsdSellPrice() internal view returns (uint256) {
-        uint256 underlying = imUsdToken.creditsToUnderlying(vimUsdTokenDenominator);
-        // 6 = 6
-        return mUsdToken.getRedeemOutput(address(usdcToken), underlying);
+        uint256 usdcBalance = mUsdToken.getRedeemOutput(address(usdcToken), mUsdBalance);
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
