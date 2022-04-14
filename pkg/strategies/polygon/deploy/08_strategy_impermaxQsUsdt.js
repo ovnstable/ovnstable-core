@@ -1,4 +1,4 @@
-const {deployProxyMulti} = require("../../../common/utils/deployProxy");
+const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;

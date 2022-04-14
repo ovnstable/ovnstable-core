@@ -1,7 +1,10 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const hre = require("hardhat");
-
+const chai = require("chai");
+chai.use(require('chai-bignumber')());
+const { solidity } =  require("ethereum-waffle");
+chai.use(solidity);
 describe("Ovn Token", function () {
 
 

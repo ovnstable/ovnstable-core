@@ -1,14 +1,14 @@
 const { ethers } = require("hardhat");
 
-let {POLYGON} = require('../../../common/utils/assets');
-let {core} = require('../../../common/utils/core');
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+let {core} = require('@overnight-contracts/common/utils/core');
 
 // let chanId = '137';
 // // увеличивается на 1 каждую неделю
 // // можно в принципе как-то парсить данную папку, чтобы найти самую последнюю неделю
 // // https://github.com/balancer-labs/bal-mining-scripts/tree/master/reports
 // let week = '90';
-// const {getClaimedParams, ClaimedParams} = require("../../../common/utils/claimRewardsBalancer");
+// const {getClaimedParams, ClaimedParams} = require("@overnight-contracts/common/utils/claimRewardsBalancer");
 
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyBalancer");

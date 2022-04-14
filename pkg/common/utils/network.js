@@ -39,7 +39,7 @@ function getPrivateKey(networkName) {
 
     const pk = process.env.PK;
     if (!pk || pk === '') {
-        return '0xdf5D41F42f5E4571b35A6A3cdaB994e9B433Fe66';
+        return '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'; //dev private key
     }
     return pk;
 }

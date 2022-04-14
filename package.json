@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "overnight superstable coin & dApp",
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present"
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test"
   },
   "keywords": [],
   "author": {
@@ -12,7 +12,8 @@
     "email": "ovnstable@gmail.com"
   },
   "license": "ISC",
+  "private": true,
   "workspaces": [
-    "pkg/*"
+    "pkg/**"
   ]
 }

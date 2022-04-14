@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 
-let {POLYGON} = require('../../../common/utils/assets');
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;

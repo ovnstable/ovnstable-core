@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {FANTOM} = require('../../../common/utils/assets');
+let {FANTOM} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;

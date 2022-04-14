@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('../../common/utils/assets');
+let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -54,5 +54,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await pm.setCashStrategy(mockStrategy1.address)).wait();
 };
 
-module.exports.tags = ['test', 'MockStrategies'];
+module.exports.tags = ['MockStrategies'];
 

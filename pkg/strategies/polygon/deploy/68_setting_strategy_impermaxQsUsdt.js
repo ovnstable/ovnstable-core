@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
-let {POLYGON} = require('../../../common/utils/assets');
-let {core} = require('../../../common/utils/core');
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+let {core} = require('@overnight-contracts/common/utils/core');
 
 module.exports = async () => {
     await impermaxQsUsdt(POLYGON.imxbTokenQsUsdcUsdt, "StrategyImpermaxQsUsdcUsdt");

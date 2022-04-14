@@ -1,68 +1,39 @@
-# OVNGT MVP
+# Overnight Contracts
 
-MVP of OVNGT interest bearing stablecoin
-
-
-### Build Project
+This repository contains all contracts Overnight
 
 ##### Requirement:
 
 - Node v16
+- yarn v1.22.18
 
-##### How to install:
+## How to install?
 
-1. Install root packages via npm
+1. Install node 
+2. Install yarn
+3. Run `yarn install`
+4. Create .env file from copy .env.example
+5. Define PK_${CHAIN} if you need to deploy contracts to real chain
 
-`npm install`
+ 
+```
+enum CHAIN:
 
-2. Install NPX
+- POLYGON
+- FANTOM
 
-`npm install -g npx`
+```
 
-4. Open folder vapp
 
-`cd vapp`
+## Modules:
 
-3. Install packages via npm
+This repository contains is next modules:
 
-`npm install`
+1) common - it contains common scripts for deploying, build, testing contracts
+2) governance - governance contracts
+3) core - core contracts 
+4) strategies - contains sub modules with strategies for each chain
 
-### Run project
-
-Create .env file in root project.
-
-Pass env: **ETH_NODE_URI_POLYGON** - RPC connect to Polygon Node.
-
-1. Starting hardhat node (local dev):
-
-`
-npx hardhat node --show-accounts
-`
-
-2 . Run tests
-
-`
-npx hardhat test
-`
-
-3. Run web
-
-Open folder vapp and run command:
-
-`npm run serve`
-
-### How to set up MetaMask
-
-1. Install MetaMask
-
-https://metamask.io/
-
-2. Set custom RPC
-
-- Name network: Localhost 8545 
-- URL: http://localhost:8545
-- Chain ID: 31337
-- Symbol: MATIC
 
 ### Accounts for local development:
 
@@ -89,37 +60,3 @@ Params in `.prettierrc`
 Install plugin (https://plugins.jetbrains.com/plugin/9475-solidity)
 
 
-### Build && Deploy DAPP
-
-Go to directory `vapp`
-
-Run script and pass arguments:
-
-- $token - auth token
-- $url - ssh server name
-
-`deploy.sh $token $url`
-
-1) This script build docker image with frontend content
-2) Push image to Yandex Cloud
-3) Connect to server via ssh
-4) Run command for polling docker image from Yandex Cloud
-5) After polling it rum restart dapp
-
-
-### How to deploy to Polygon Mainnet? (need to update)
-
-1) Compile new version of Solidity contract: 
-`truffle compile `
-2) Deploy contract to Polygon:
-
-`truffle migration --network polygon `
-
-> You also need have secrets.json file in project directory
-
-3) After deploying, you need to save .json files Contracts:
-
-`cp -r vapp/contacts contracts_prod/`
-
-4) Update .json version Contract for Ovnstable-api service - deploy it
-5) Build dapp and deploy 

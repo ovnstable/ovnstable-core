@@ -1,13 +1,11 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {smock} = require("@defi-wonderland/smock");
 
-const {toUSDC, fromUSDC} = require("../../common/utils/decimals");
+const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
-const {resetHardhat} = require("../../common/utils/tests");
-let {POLYGON} = require('../../common/utils/assets');
-chai.use(smock.matchers);
+const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 chai.use(require('chai-bignumber')());
 
 describe("Payout", function () {
@@ -25,7 +23,7 @@ describe("Payout", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['setting', 'base', 'test']);
+        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

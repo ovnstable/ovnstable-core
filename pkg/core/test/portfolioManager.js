@@ -3,15 +3,16 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts, upgrades} = require("hardhat");
 
 const hre = require("hardhat");
-let {POLYGON} = require('../../common/utils/assets');
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {constants} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
-const expectRevert = require("../../common/utils/expectRevert");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const sampleModule = require("@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl");
-const {sharedBeforeEach} = require("../../common/utils/sharedBeforeEach")
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 
 chai.use(require('chai-bignumber')());
-
+const { solidity } =  require("ethereum-waffle");
+chai.use(solidity);
 
 describe("PortfolioManager set new cash strategy", function () {
 
@@ -27,7 +28,7 @@ describe("PortfolioManager set new cash strategy", function () {
         const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
 
-        await deployments.fixture(['test']);
+        await deployments.fixture(['base', 'setting', 'test']);
 
         usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         mockCashStrategyA = await deploy("MockStrategy", {

@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, toUSDC, fromUSDC} = require("../../common/utils/decimals");
+const {fromE18, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -10,7 +10,7 @@ let Exchange = JSON.parse(fs.readFileSync('./deployments/fantom_dev/Exchange.jso
 let PM = JSON.parse(fs.readFileSync('./deployments/fantom_dev/PortfolioManager.json'));
 let M2M = JSON.parse(fs.readFileSync('./deployments/fantom_dev/Mark2Market.json'));
 
-let {FANTOM, DEFAULT} = require('../../common/utils/assets');
+let {FANTOM, DEFAULT} = require('@overnight-contracts/common/utils/assets');
 
 
 

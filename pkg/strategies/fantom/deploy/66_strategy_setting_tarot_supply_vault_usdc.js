@@ -1,7 +1,7 @@
 const {ethers} = require("hardhat");
 
-let {FANTOM} = require('../../../common/utils/assets');
-let {core} = require('../../../common/utils/core');
+let {FANTOM} = require('@overnight-contracts/common/utils/assets');
+let {core} = require('@overnight-contracts/common/utils/core');
 
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyTarotSupplyVaultUsdc");

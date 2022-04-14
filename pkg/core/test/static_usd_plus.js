@@ -1,15 +1,12 @@
 const {expect} = require("chai");
-const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require("hardhat");
-const {smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
 const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
 
 const hre = require("hardhat");
-const expectRevert = require("../../common/utils/expectRevert");
-let {POLYGON} = require('../../common/utils/assets');
-chai.use(smock.matchers);
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
 
 async function setLiquidityIndex(account, usdPlus, liquidityIndex) {
@@ -40,7 +37,7 @@ describe("StaticUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "test", "SettingUsdPlusToken", "SettingExchange"]);
+        await deployments.fixture(["setting", "base", "StaticUsdPlusToken", "test", "SettingUsdPlusToken", "SettingExchange", 'MockStrategies']);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;

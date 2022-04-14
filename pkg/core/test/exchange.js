@@ -1,10 +1,12 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {toUSDC, fromOvn, fromUSDC} = require("../../common/utils/decimals");
+const {toUSDC, fromOvn, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
-const {greatLess, resetHardhat} = require("../../common/utils/tests");
-let {POLYGON} = require('../../common/utils/assets');
+const {greatLess, resetHardhat} = require("@overnight-contracts/common/utils/tests");
+let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+const chai = require("chai");
+chai.use(require('chai-bignumber')());
 
 describe("Exchange", function () {
 
@@ -20,7 +22,7 @@ describe("Exchange", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['setting', 'base', 'test']);
+        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;

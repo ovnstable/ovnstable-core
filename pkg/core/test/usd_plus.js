@@ -1,17 +1,15 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require("hardhat");
-const {smock} = require("@defi-wonderland/smock");
 const BN = require("bn.js");
 const {constants} = require('@openzeppelin/test-helpers');
 const {ZERO_ADDRESS} = constants;
-const {logGas} = require("../../common/utils/gas");
+const {logGas} = require("@overnight-contracts/common/utils/gas");
 
 const hre = require("hardhat");
-const expectRevert = require("../../common/utils/expectRevert");
-const {toOvn, fromOvn} = require("../../common/utils/decimals");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
+const {toOvn, fromOvn} = require("@overnight-contracts/common/utils/decimals");
 
-chai.use(smock.matchers);
 
 describe("Liquidity Index", function () {
 

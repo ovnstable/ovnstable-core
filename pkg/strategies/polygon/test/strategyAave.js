@@ -1,9 +1,9 @@
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const hre = require("hardhat");
-const {POLYGON} = require('../../../common/utils/assets');
-const {fromE6, toUSDC, fromUSDC} = require("../../../common/utils/decimals");
-const {logStrategyGasUsage} = require("../../../common/utils/strategyCommon");
-const {resetHardhat, greatLess} = require('../../../common/utils/tests');
+const {POLYGON} = require('@overnight-contracts/common/utils/assets');
+const {fromE6, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {logStrategyGasUsage} = require("@overnight-contracts/common/utils/strategyCommon");
+const {resetHardhat, greatLess} = require('@overnight-contracts/common/utils/tests');
 const ERC20 = require('./abi/IERC20.json');
 
 

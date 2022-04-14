@@ -1,12 +1,14 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const expectRevert = require("../../common/utils/expectRevert");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
 const hre = require("hardhat");
 
-const {fromOvnGov} = require("../../common/utils/decimals");
-
-
+const {fromOvnGov} = require("@overnight-contracts/common/utils/decimals");
+const chai = require("chai");
+chai.use(require('chai-bignumber')());
+const { solidity } =  require("ethereum-waffle");
+chai.use(solidity);
 let againstVotes = 0;
 let forVotes = 1;
 let abstainVotes = 2;
