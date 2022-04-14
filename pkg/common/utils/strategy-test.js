@@ -38,7 +38,7 @@ function strategyTest(strategyName, network, assets) {
                 await logStrategyGasUsage(strategyName, strategy, usdc, account)
             });
 
-            describe("Stake 100 USDC", function () {
+            describe("Stake 50+50 USDC", function () {
 
                 let balanceUsdc;
 
@@ -46,8 +46,11 @@ function strategyTest(strategyName, network, assets) {
 
                     let balanceUsdcBefore = await usdc.balanceOf(account);
 
-                    await usdc.transfer(strategy.address, toUSDC(100));
-                    await strategy.stake(usdc.address, toUSDC(100));
+                    await usdc.transfer(strategy.address, toUSDC(50));
+                    await strategy.stake(usdc.address, toUSDC(50));
+
+                    await usdc.transfer(strategy.address, toUSDC(50));
+                    await strategy.stake(usdc.address, toUSDC(50));
 
                     let balanceUsdcAfter = await usdc.balanceOf(account);
 
@@ -68,7 +71,7 @@ function strategyTest(strategyName, network, assets) {
                     greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
                 });
 
-                describe("Unstake 50 USDC", function () {
+                describe("Unstake 25+25 USDC", function () {
 
                     let balanceUsdc;
 
@@ -76,7 +79,8 @@ function strategyTest(strategyName, network, assets) {
 
                         let balanceUsdcBefore = await usdc.balanceOf(account);
 
-                        await strategy.unstake(usdc.address, toUSDC(50), account, false);
+                        await strategy.unstake(usdc.address, toUSDC(25), account, false);
+                        await strategy.unstake(usdc.address, toUSDC(25), account, false);
 
                         let balanceUsdcAfter = await usdc.balanceOf(account);
 
@@ -177,8 +181,8 @@ function strategyTest(strategyName, network, assets) {
                     console.log("Rewards: " + balanceUsdc);
                 });
 
-                it("Rewards should be greater or equal 0 USDC", async function () {
-                    expect(balanceUsdc).to.greaterThanOrEqual(0);
+                it("Rewards should be greater 0 USDC", async function () {
+                    expect(balanceUsdc).to.greaterThan(0);
                 });
 
             });
