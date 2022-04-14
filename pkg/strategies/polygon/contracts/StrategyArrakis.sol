@@ -120,7 +120,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
     function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
 
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = uniswapPoolParams();
+        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
@@ -164,7 +164,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         uint256 usdtAmount = _getNeedToByUsdt(_amount);
         uint256 usdcAmount = _amount - usdtAmount;
 
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = uniswapPoolParams();
+        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
 
         // 2. Calculating need amount lp tokens - depends on amount USDC/USDT
@@ -197,7 +197,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
 
         // 2. Calculating amount usdc/usdt under lp tokens
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = uniswapPoolParams();
+        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtPriceX96,
@@ -226,7 +226,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     }
 
 
-    function uniswapPoolParams() internal view returns (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96){
+    function _uniswapPoolParams() internal view returns (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96){
 
         uint160 lowerTick = TickMath.getSqrtRatioAtTick(arrakisVault.lowerTick());
         uint160 upperTick = TickMath.getSqrtRatioAtTick(arrakisVault.upperTick());
@@ -244,7 +244,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         if (balanceLp == 0)
             return 0;
 
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = uniswapPoolParams();
+        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
         // Balance LP tokens == pool liquidity
         // Details: https://github.com/tintinweb/smart-contract-sanctuary-ethereum/blob/80b9ddcbca94e30006ee74efc60d10bf661a53e3/contracts/mainnet/d6/d68b055fb444D136e3aC4df023f4C42334F06395_ArrakisVaultV1.sol#L1742
