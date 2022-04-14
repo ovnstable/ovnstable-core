@@ -2,6 +2,7 @@ const {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 
 let arrays = [
+
     {
         name: 'StrategyAave',
     },
@@ -29,6 +30,9 @@ let arrays = [
     {
         name: 'StrategyMStable',
     },
+    {
+        name: 'StrategyArrakis',
+    }
 
 ];
 
