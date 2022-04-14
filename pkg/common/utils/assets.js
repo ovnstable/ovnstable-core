@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config({path:__dirname+ '/../../../.env'});
+
 let FANTOM = {
     usdc: "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75",
     amUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
