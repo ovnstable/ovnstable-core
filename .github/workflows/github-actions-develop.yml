@@ -42,6 +42,7 @@ jobs:
         env:
           ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
           ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
+          TEST_STRATEGY: ${{ github.event.inputs.strategyName}}
           ETH_NETWORK: ${{ github.event.inputs.chain}}
           TEST_REPORT: true
 
