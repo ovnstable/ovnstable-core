@@ -1,191 +1,343 @@
 const hre = require("hardhat");
 const {deployments, getNamedAccounts, ethers} = require("hardhat");
-const {resetHardhat, greatLess} = require("./tests");
+const {resetHardhat} = require("./tests");
 const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toUSDC, fromUSDC} = require("./decimals");
 const {expect} = require("chai");
 
+const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach")
+
+
+const BN = require('bn.js');
+const chai = require("chai");
+chai.use(require('chai-bn')(BN));
+
+function greatLess(value, expected, delta) {
+
+    let maxValue = expected.add(delta);
+    let minValue = expected.sub(delta);
+
+    let lte = value.lte(maxValue);
+    let gte = value.gte(minValue);
+
+    expect(gte).to.equal(true, `${value.toString()} less than ${maxValue.toString()}`);
+    expect(lte).to.equal(true, `${value.toString()} greate than ${minValue.toString()}`);
+}
+
 function strategyTest(strategyName, network, assets) {
+
+    let values = [0.002, 0.02, 0.2, 2, 20, 200, 2000, 20000, 200000, 2000000];
 
     describe(`${strategyName}`, function () {
 
-        describe(`Stake/unstake`, function () {
+        stakeUnstake(strategyName, network, assets, values);
+        unstakeFull(strategyName, network, assets, values);
+        claimRewards(strategyName, network, assets, values);
 
-            let account;
-            let strategy;
-            let usdc;
+    });
+}
 
-            before(async () => {
-                await hre.run("compile");
-                await resetHardhat(network);
+module.exports = {
+    strategyTest: strategyTest,
+}
 
-                await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-                const {deployer} = await getNamedAccounts();
-                account = deployer;
+function stakeUnstake(strategyName, network, assets, values) {
 
-                strategy = await ethers.getContract(strategyName);
-                await strategy.setPortfolioManager(account);
+    describe(`Stake/unstake`, function () {
 
-                usdc = await ethers.getContractAt(ERC20, assets.usdc);
-            });
+        let account;
+        let recipient;
 
-            it("log gas", async () => {
-                await logStrategyGasUsage(strategyName, strategy, usdc, account)
-            });
+        let strategy;
+        let usdc;
 
-            describe("Stake 50000 + 50000 USDC", function () {
+        before(async () => {
+            await hre.run("compile");
+            await resetHardhat(network);
+
+            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+
+            const accounts = await getNamedAccounts();
+            account = accounts.deployer;
+
+            const signers = await ethers.getSigners();
+
+            account = signers[0];
+            recipient = signers[1];
+
+            strategy = await ethers.getContract(strategyName);
+            await strategy.setPortfolioManager(recipient.address);
+
+            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+        });
+
+        it("log gas", async () => {
+            await logStrategyGasUsage(strategyName, strategy, usdc, account.address)
+        });
+
+
+        values.forEach(stakeValue => {
+
+            let unstakeValue = stakeValue / 2;
+
+            describe(`Stake ${stakeValue}`, function () {
 
                 let balanceUsdc;
+                let expectedNetAsset;
+                let expectedLiquidation;
+
+                let valueBN = new BN(toUSDC(stakeValue));
+                let DELTA = valueBN.div(new BN(1000));
+
+                let netAssetValueCheck;
+                let liquidationValueCheck;
 
                 before(async () => {
 
-                    let balanceUsdcBefore = await usdc.balanceOf(account);
+                    await evmCheckpoint("default");
 
-                    await usdc.transfer(strategy.address, toUSDC(50000));
-                    await strategy.stake(usdc.address, toUSDC(50000));
 
-                    await usdc.transfer(strategy.address, toUSDC(50000));
-                    await strategy.stake(usdc.address, toUSDC(50000));
+                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
-                    let balanceUsdcAfter = await usdc.balanceOf(account);
+                    let balanceUsdcBefore = new BN((await usdc.balanceOf(recipient.address)).toString());
 
-                    balanceUsdc = fromUSDC(balanceUsdcBefore - balanceUsdcAfter);
+                    expectedNetAsset = new BN((await strategy.netAssetValue()).toString()).add(valueBN);
+                    expectedLiquidation = new BN((await strategy.liquidationValue()).toString()).add(valueBN);
+
+                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+
+                    let balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
+
+                    balanceUsdc = balanceUsdcBefore.sub(balanceUsdcAfter);
+
+                    netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
+                    liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
 
                 });
 
-                it("Balance USDC should be greater than 99000 less than 101000", async function () {
-                    greatLess(balanceUsdc, 100000, 1000);
+                it(`Balance USDC is in range`, async function () {
+                    greatLess(balanceUsdc, valueBN, DELTA);
                 });
 
-                it("NetAssetValue USDC should be greater than 99000 less than 101000", async function () {
-                    greatLess(fromUSDC(await strategy.netAssetValue()), 100000, 1000);
+                it(`NetAssetValue USDC is in range`, async function () {
+                    greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
                 });
 
-                it("LiquidationValue USDC should be greater than 99000 less than 101000", async function () {
-                    greatLess(fromUSDC(await strategy.liquidationValue()), 100000, 1000);
+                it(`LiquidationValue USDC is in range`, async function () {
+                    greatLess(liquidationValueCheck, expectedLiquidation, DELTA);
                 });
 
-                describe("Unstake 25000 + 25000 USDC", function () {
+
+                describe(`UnStake ${unstakeValue}`, function () {
 
                     let balanceUsdc;
+                    let expectedNetAsset;
+                    let expectedLiquidation;
+
+                    let valueBN = new BN(toUSDC(unstakeValue));
+                    let DELTA = valueBN.div(new BN(1000));
+
+                    let netAssetValueCheck;
+                    let liquidationValueCheck;
 
                     before(async () => {
 
-                        let balanceUsdcBefore = await usdc.balanceOf(account);
+                        let balanceUsdcBefore = new BN((await usdc.balanceOf(recipient.address)).toString());
 
-                        await strategy.unstake(usdc.address, toUSDC(25000), account, false);
-                        await strategy.unstake(usdc.address, toUSDC(25000), account, false);
+                        expectedNetAsset = new BN((await strategy.netAssetValue()).toString()).sub(valueBN);
+                        expectedLiquidation = new BN((await strategy.liquidationValue()).toString()).sub(valueBN);
 
-                        let balanceUsdcAfter = await usdc.balanceOf(account);
+                        await strategy.connect(recipient).unstake(usdc.address, toUSDC(unstakeValue), recipient.address, false);
 
-                        balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
+                        let balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
 
+                        balanceUsdc = balanceUsdcAfter.sub(balanceUsdcBefore);
+
+                        netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
+                        liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
+
+
+                        await evmRestore("default");
                     });
 
-                    it("Balance USDC should be greater than 49000 less than 51000", async function () {
-                        greatLess(balanceUsdc, 50000, 1000);
+                    it(`Balance USDC is in range`, async function () {
+                        greatLess(balanceUsdc, valueBN, DELTA);
                     });
 
-                    it("NetAssetValue USDC should be greater than 49000 less than 51000", async function () {
-                        greatLess(fromUSDC(await strategy.netAssetValue()), 50000, 1000);
+                    it(`NetAssetValue USDC is in range`, async function () {
+                        greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
                     });
 
-                    it("LiquidationValue USDC should be greater than 49000 less than 51000", async function () {
-                        greatLess(fromUSDC(await strategy.liquidationValue()), 50000, 1000);
-                    });
-
-                    describe("Unstake Full", function () {
-
-                        let balanceUsdc;
-
-                        before(async () => {
-
-                            let balanceUsdcBefore = await usdc.balanceOf(account);
-
-                            await strategy.unstake(usdc.address, 0, account, true);
-
-                            let balanceUsdcAfter = await usdc.balanceOf(account);
-
-                            balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
-
-                        });
-
-                        it("Balance USDC should be greater than 49000 less than 51000", async function () {
-                            greatLess(balanceUsdc, 50000, 1000);
-                        });
-
-                        it("NetAssetValue USDC should be greater than 0 less than 1000", async function () {
-                            greatLess(fromUSDC(await strategy.netAssetValue()), 500, 500);
-                        });
-
-                        it("LiquidationValue USDC should be greater than 0 less than 1000", async function () {
-                            greatLess(fromUSDC(await strategy.liquidationValue()), 500, 500);
-                        });
-
+                    it(`LiquidationValue USDC is in range`, async function () {
+                        greatLess(liquidationValueCheck, expectedLiquidation, DELTA);
                     });
 
                 });
-
             });
 
         });
 
-        describe(`ClaimRewards`, function () {
+    });
+}
 
-            let account;
-            let strategy;
-            let usdc;
 
-            before(async () => {
-                await resetHardhat(network);
+function unstakeFull(strategyName, network, assets, values) {
 
-                await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+    describe(`Stake/unstakeFull`, function () {
 
-                const {deployer} = await getNamedAccounts();
-                account = deployer;
+        let account;
+        let recipient;
 
-                strategy = await ethers.getContract(strategyName);
-                await strategy.setPortfolioManager(account);
+        let strategy;
+        let usdc;
 
-                usdc = await ethers.getContractAt(ERC20, assets.usdc);
-            });
+        before(async () => {
+            await hre.run("compile");
+            await resetHardhat(network);
 
-            describe("Stake 100000 USDC. Claim rewards", function () {
+            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-                let balanceUsdc;
+            const accounts = await getNamedAccounts();
+            account = accounts.deployer;
+
+            const signers = await ethers.getSigners();
+
+            account = signers[0];
+            recipient = signers[1];
+
+            strategy = await ethers.getContract(strategyName);
+            await strategy.setPortfolioManager(recipient.address);
+
+            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+        });
+
+
+        values.forEach(stakeValue => {
+
+            describe(`Stake ${stakeValue} => UnstakeFull`, function () {
+
+                let balanceUsdcAfter;
+
+                let liquidationValueAfterStake;
+
+                let netAssetValueCheck;
+                let liquidationValueCheck;
+
+                let valueBN = new BN(toUSDC(stakeValue));
+                let DELTA = valueBN.div(new BN(1000));
 
                 before(async () => {
 
-                    await usdc.transfer(strategy.address, toUSDC(100000));
-                    await strategy.stake(usdc.address, toUSDC(100000));
+                    await evmCheckpoint("default");
 
-                    // timeout 7 days
-                    const sevenDays = 7 * 24 * 60 * 60;
-                    await ethers.provider.send("evm_increaseTime", [sevenDays])
-                    await ethers.provider.send('evm_mine');
+                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
-                    let balanceUsdcBefore = await usdc.balanceOf(account);
-                    await strategy.claimRewards(account);
-                    let balanceUsdcAfter = await usdc.balanceOf(account);
+                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
 
-                    balanceUsdc = fromUSDC(balanceUsdcAfter - balanceUsdcBefore);
-                    console.log("Rewards: " + balanceUsdc);
+                    liquidationValueAfterStake = new BN((await strategy.liquidationValue()).toString());
+
+                    await strategy.connect(recipient).unstake(usdc.address, 0, recipient.address, true);
+
+                    balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
+
+                    netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
+                    liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
+
+                    await evmRestore("default");
+
                 });
 
-                it("Rewards should be greater 0 USDC", async function () {
-                    expect(balanceUsdc).to.greaterThan(0);
+
+                it(`Balance USDC = liquidation value`, async function () {
+                    greatLess(balanceUsdcAfter, liquidationValueAfterStake, DELTA);
                 });
+
+                it(`NetAssetValue USDC is 0`, async function () {
+                    expect(netAssetValueCheck.toString()).to.equal('0');
+                });
+
+                it(`LiquidationValue USDC 0`, async function () {
+                    expect(liquidationValueCheck.toString()).to.equal('0');
+
+                });
+
 
             });
 
         });
 
     });
-
 }
 
-module.exports = {
-    strategyTest: strategyTest,
+
+function claimRewards(strategyName, network, assets, values) {
+
+    describe(`Stake/ClaimRewards`, function () {
+
+        let account;
+        let recipient;
+
+        let strategy;
+        let usdc;
+
+        before(async () => {
+            await hre.run("compile");
+            await resetHardhat(network);
+
+            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+
+            const accounts = await getNamedAccounts();
+            account = accounts.deployer;
+
+            const signers = await ethers.getSigners();
+
+            account = signers[0];
+            recipient = signers[1];
+
+            strategy = await ethers.getContract(strategyName);
+            await strategy.setPortfolioManager(recipient.address);
+
+            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+        });
+
+        values.forEach(stakeValue => {
+
+            describe(`Stake ${stakeValue} => ClaimRewards`, function () {
+
+                let balanceUsdc;
+
+                before(async () => {
+
+                    await evmCheckpoint("default");
+
+                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+
+                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+
+                    const sevenDays = 7 * 24 * 60 * 60;
+                    await ethers.provider.send("evm_increaseTime", [sevenDays])
+                    await ethers.provider.send('evm_mine');
+
+                    await strategy.connect(recipient).claimRewards(recipient.address);
+
+                    balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());
+
+                    await evmRestore("default");
+                });
+
+
+                it(`Balance USDC is not 0`, async function () {
+                    expect(balanceUsdc.toNumber()).to.greaterThan(0);
+                });
+
+
+            });
+
+        });
+    });
 }
