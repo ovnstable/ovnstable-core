@@ -10,6 +10,9 @@ on:
         description: 'Chain'
         required: true
         default: 'POLYGON'
+      blockNumber:
+        description: 'Block Number'
+        required: true
 
 jobs:
   build:
@@ -37,11 +40,12 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run test
+      - name: Run strategy Polygon
+        if: github.event.inputs.chain == 'POLYGON'
         run: yarn workspace @overnight-contracts/straegies-polygon test
         env:
           ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
-          ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
+          HARDHAT_BLOCK_NUMBER_POLYGON: ${{ github.event.inputs.blockNumber}}
           TEST_STRATEGY: ${{ github.event.inputs.strategyName}}
           ETH_NETWORK: ${{ github.event.inputs.chain}}
           TEST_REPORT: true
