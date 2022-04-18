@@ -21,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [ 16.x ]
 
     steps:
       - uses: actions/checkout@v2
@@ -69,10 +69,10 @@ jobs:
           reporter: mocha-json
 
       - name: Test Report Strategy Fantom
-          uses: dorny/test-reporter@v1
-          if: github.event.inputs.chain == 'FANTOM' && (success() || failure())
-          with:
-            name: Test Report
-            path: ./pkg/strategies/fantom/report.json
-            reporter: mocha-json
+        uses: dorny/test-reporter@v1
+        if: github.event.inputs.chain == 'FANTOM' && (success() || failure())
+        with:
+         name: Test Report
+         path: ./pkg/strategies/fantom/report.json
+         reporter: mocha-json
 
