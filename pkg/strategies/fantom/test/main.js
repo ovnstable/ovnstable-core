@@ -1,5 +1,7 @@
-const {FANTOM} = require('@overnight-contracts/common/utils/assets');
+const {FANTOM } = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
+
+let id = process.env.TEST_STRATEGY;
 
 let arrays = [
     {
@@ -23,9 +25,19 @@ let arrays = [
     {
         name: 'StrategyTarotSupplyVaultUsdc',
     },
+    {
+        name: 'StrategyCream',
+    },
 
 ];
 
+
+if (id !== undefined && id !== ""){
+    console.log(`Strategy ID ${id}`);
+    arrays = arrays.filter(value => value.name === id);
+}
+
+console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 describe("Fantom", function () {
 
