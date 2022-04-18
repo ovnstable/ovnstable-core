@@ -4,14 +4,11 @@ const {resetHardhat, greatLess} = require("./tests");
 const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toUSDC, fromUSDC} = require("./decimals");
-const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 const {expect} = require("chai");
 
 function strategyTest(strategyName, network, assets) {
 
-
     describe(`${strategyName}`, function () {
-
 
         describe(`Stake/unstake`, function () {
 
@@ -38,7 +35,7 @@ function strategyTest(strategyName, network, assets) {
                 await logStrategyGasUsage(strategyName, strategy, usdc, account)
             });
 
-            describe("Stake 50+50 USDC", function () {
+            describe("Stake 50000 + 50000 USDC", function () {
 
                 let balanceUsdc;
 
@@ -46,11 +43,11 @@ function strategyTest(strategyName, network, assets) {
 
                     let balanceUsdcBefore = await usdc.balanceOf(account);
 
-                    await usdc.transfer(strategy.address, toUSDC(50));
-                    await strategy.stake(usdc.address, toUSDC(50));
+                    await usdc.transfer(strategy.address, toUSDC(50000));
+                    await strategy.stake(usdc.address, toUSDC(50000));
 
-                    await usdc.transfer(strategy.address, toUSDC(50));
-                    await strategy.stake(usdc.address, toUSDC(50));
+                    await usdc.transfer(strategy.address, toUSDC(50000));
+                    await strategy.stake(usdc.address, toUSDC(50000));
 
                     let balanceUsdcAfter = await usdc.balanceOf(account);
 
@@ -58,20 +55,19 @@ function strategyTest(strategyName, network, assets) {
 
                 });
 
-                it("Balance USDC should be greater than 99 less than 101", async function () {
-                    greatLess(balanceUsdc, 100, 1);
+                it("Balance USDC should be greater than 99000 less than 101000", async function () {
+                    greatLess(balanceUsdc, 100000, 1000);
                 });
 
-
-                it("NetAssetValue USDC should be greater than 99 less than 101", async function () {
-                    greatLess(fromUSDC(await strategy.netAssetValue()), 100, 1);
+                it("NetAssetValue USDC should be greater than 99000 less than 101000", async function () {
+                    greatLess(fromUSDC(await strategy.netAssetValue()), 100000, 1000);
                 });
 
-                it("LiquidationValue USDC should be greater than 99 less than 101", async function () {
-                    greatLess(fromUSDC(await strategy.liquidationValue()), 100, 1);
+                it("LiquidationValue USDC should be greater than 99000 less than 101000", async function () {
+                    greatLess(fromUSDC(await strategy.liquidationValue()), 100000, 1000);
                 });
 
-                describe("Unstake 25+25 USDC", function () {
+                describe("Unstake 25000 + 25000 USDC", function () {
 
                     let balanceUsdc;
 
@@ -79,8 +75,8 @@ function strategyTest(strategyName, network, assets) {
 
                         let balanceUsdcBefore = await usdc.balanceOf(account);
 
-                        await strategy.unstake(usdc.address, toUSDC(25), account, false);
-                        await strategy.unstake(usdc.address, toUSDC(25), account, false);
+                        await strategy.unstake(usdc.address, toUSDC(25000), account, false);
+                        await strategy.unstake(usdc.address, toUSDC(25000), account, false);
 
                         let balanceUsdcAfter = await usdc.balanceOf(account);
 
@@ -88,17 +84,16 @@ function strategyTest(strategyName, network, assets) {
 
                     });
 
-                    it("Balance USDC should be greater than 49 less than 51", async function () {
-                        greatLess(balanceUsdc, 50, 1);
+                    it("Balance USDC should be greater than 49000 less than 51000", async function () {
+                        greatLess(balanceUsdc, 50000, 1000);
                     });
 
-
-                    it("NetAssetValue USDC should be greater than 49 less than 51", async function () {
-                        greatLess(fromUSDC(await strategy.netAssetValue()), 50, 1);
+                    it("NetAssetValue USDC should be greater than 49000 less than 51000", async function () {
+                        greatLess(fromUSDC(await strategy.netAssetValue()), 50000, 1000);
                     });
 
-                    it("LiquidationValue USDC should be greater than 49 less than 51", async function () {
-                        greatLess(fromUSDC(await strategy.liquidationValue()), 50, 1);
+                    it("LiquidationValue USDC should be greater than 49000 less than 51000", async function () {
+                        greatLess(fromUSDC(await strategy.liquidationValue()), 50000, 1000);
                     });
 
                     describe("Unstake Full", function () {
@@ -117,17 +112,16 @@ function strategyTest(strategyName, network, assets) {
 
                         });
 
-                        it("Balance USDC should be greater than 49 less than 51", async function () {
-                            greatLess(balanceUsdc, 50, 1);
+                        it("Balance USDC should be greater than 49000 less than 51000", async function () {
+                            greatLess(balanceUsdc, 50000, 1000);
                         });
 
-
-                        it("NetAssetValue USDC should be greater than 0 less than 1", async function () {
-                            greatLess(fromUSDC(await strategy.netAssetValue()), 0.5, 0.5);
+                        it("NetAssetValue USDC should be greater than 0 less than 1000", async function () {
+                            greatLess(fromUSDC(await strategy.netAssetValue()), 500, 500);
                         });
 
-                        it("LiquidationValue USDC should be greater than 0 less than 1", async function () {
-                            greatLess(fromUSDC(await strategy.liquidationValue()), 0.5, 0.5);
+                        it("LiquidationValue USDC should be greater than 0 less than 1000", async function () {
+                            greatLess(fromUSDC(await strategy.liquidationValue()), 500, 500);
                         });
 
                     });
@@ -137,7 +131,6 @@ function strategyTest(strategyName, network, assets) {
             });
 
         });
-
 
         describe(`ClaimRewards`, function () {
 
@@ -159,14 +152,14 @@ function strategyTest(strategyName, network, assets) {
                 usdc = await ethers.getContractAt(ERC20, assets.usdc);
             });
 
-            describe("Stake 100 USDC. Claim rewards", function () {
+            describe("Stake 100000 USDC. Claim rewards", function () {
 
                 let balanceUsdc;
 
                 before(async () => {
 
-                    await usdc.transfer(strategy.address, toUSDC(100));
-                    await strategy.stake(usdc.address, toUSDC(100));
+                    await usdc.transfer(strategy.address, toUSDC(100000));
+                    await strategy.stake(usdc.address, toUSDC(100000));
 
                     // timeout 7 days
                     const sevenDays = 7 * 24 * 60 * 60;
@@ -188,11 +181,10 @@ function strategyTest(strategyName, network, assets) {
             });
 
         });
+
     });
 
-
 }
-
 
 module.exports = {
     strategyTest: strategyTest,

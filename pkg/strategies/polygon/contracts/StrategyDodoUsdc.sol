@@ -7,7 +7,6 @@ import "./connectors/dodo/interfaces/IDODOV1.sol";
 import "./connectors/dodo/interfaces/IDODOV2.sol";
 import "./connectors/dodo/interfaces/IDODOMine.sol";
 
-
 contract StrategyDodoUsdc is Strategy, DodoExchange {
 
     IERC20 public usdcToken;
@@ -100,11 +99,14 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // add liquidity to pool
-        usdcToken.approve(address(dodoV1UsdcUsdtPool), _amount);
-        dodoV1UsdcUsdtPool.depositBaseTo(address(this), _amount);
+        // stake all usdc tokens
+        uint256 usdcTokenAmount = usdcToken.balanceOf(address(this));
 
-        // stake all lp tokens, because we unstake 0.1% tokens and don't stake them in _unstake() method
+        // add liquidity to pool
+        usdcToken.approve(address(dodoV1UsdcUsdtPool), usdcTokenAmount);
+        dodoV1UsdcUsdtPool.depositBaseTo(address(this), usdcTokenAmount);
+
+        // stake all lp tokens, because we unstake 0.01% tokens in _unstake() method
         uint256 usdcLPTokenBalance = usdcLPToken.balanceOf(address(this));
         usdcLPToken.approve(address(dodoMine), usdcLPTokenBalance);
         dodoMine.deposit(address(usdcLPToken), usdcLPTokenBalance);
@@ -118,20 +120,24 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // don't count already unstaked usdc tokens
+        uint256 usdcTokenAmount = _amount - usdcToken.balanceOf(address(this));
+
         // get lp tokens
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 baseLpBalance = _amount * baseLpTotalSupply / baseTarget;
-        // need for smooth withdraw in withdrawBase() method, but we will have some unstaken tokens
-        baseLpBalance = baseLpBalance * 1001 / 1000;
+        uint256 baseLpBalance = usdcTokenAmount * baseLpTotalSupply / baseTarget;
+        // add 0.01%
+        baseLpBalance = baseLpBalance * 10001 / 10000;
 
         // unstake lp tokens
         dodoMine.withdraw(address(usdcLPToken), baseLpBalance);
 
         // remove liquidity from pool
-        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawBase(_amount);
+        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllBase();
 
-        return redeemedTokens;
+        // return all usdc tokens
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -141,13 +147,14 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // unstake lp tokens
+        // unstake all lp tokens
         dodoMine.withdrawAll(address(usdcLPToken));
 
         // remove liquidity from pool
         uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllBase();
 
-        return redeemedTokens;
+        // return all usdc tokens
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external override view returns (uint256) {
