@@ -8,16 +8,16 @@ contract StrategyCream is Strategy {
 
     IERC20 public usdcToken;
 
-    uint256 constant public creamExchangeRateScaling = 10 ** 18;
+    uint256 constant public CREAM_EXCHANGE_RATE_SCALING = 10 ** 18;
 
     ICErc20Delegator public cErc20Delegator;
 
 
     // --- events
 
-    event StrategyAaveUpdatedTokens(address usdcToken, address aUsdcToken);
+    event StrategyUpdatedTokens(address usdcToken, address aUsdcToken);
 
-    event StrategyAaveUpdatedParams(address aaveProvider);
+    event StrategyUpdatedParams(address aaveProvider);
 
 
     // ---  constructor
@@ -38,11 +38,10 @@ contract StrategyCream is Strategy {
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
-        require(_crUsdcToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
 
-        emit StrategyAaveUpdatedTokens(_usdcToken, _crUsdcToken);
+        emit StrategyUpdatedTokens(_usdcToken, _crUsdcToken);
     }
 
     function setParams(
@@ -53,7 +52,7 @@ contract StrategyCream is Strategy {
 
         cErc20Delegator = ICErc20Delegator(_cErc20Delegator);
 
-        emit StrategyAaveUpdatedParams(_cErc20Delegator);
+        emit StrategyUpdatedParams(_cErc20Delegator);
     }
 
 
@@ -97,13 +96,13 @@ contract StrategyCream is Strategy {
     function netAssetValue() external view override returns (uint256) {
         uint256 balance = cErc20Delegator.balanceOf(address(this));
         uint256 exchange = cErc20Delegator.exchangeRateStored();
-        return balance * exchange / creamExchangeRateScaling;
+        return balance * exchange / CREAM_EXCHANGE_RATE_SCALING;
     }
 
     function liquidationValue() external view override returns (uint256) {
         uint256 balance = cErc20Delegator.balanceOf(address(this));
         uint256 exchange = cErc20Delegator.exchangeRateStored();
-        return balance * exchange / creamExchangeRateScaling;
+        return balance * exchange / CREAM_EXCHANGE_RATE_SCALING;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
