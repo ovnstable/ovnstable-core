@@ -38,8 +38,7 @@ jobs:
         run: yarn install
 
       - name: Run test
-        working-directory: './pkg/strategies/polygon'
-        run: npx hardhat test
+        run: yarn workspace run @overnight-contracts/straegies-polygon test
         env:
           ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
           ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
