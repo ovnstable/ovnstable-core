@@ -109,15 +109,18 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // stake all usdc tokens
+        uint256 usdcTokenAmount = usdcToken.balanceOf(address(this));
+
         // swap usdc to usdt
         uint256 usdtTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
-            IAsset(address(usdtToken)), address(this), address(this), usdcToken.balanceOf(address(this)), 0);
+            IAsset(address(usdtToken)), address(this), address(this), usdcTokenAmount, 0);
 
         // add liquidity to pool
         usdtToken.approve(address(dodoV1UsdcUsdtPool), usdtTokenAmount);
         dodoV1UsdcUsdtPool.depositQuoteTo(address(this), usdtTokenAmount);
 
-        // stake all lp tokens, because we unstake 0.1% tokens and don't stake them in _unstake() method
+        // stake all lp tokens, because we unstake 0.01% tokens in _unstake() method
         uint256 usdtLPTokenBalance = usdtLPToken.balanceOf(address(this));
         usdtLPToken.approve(address(dodoMine), usdtLPTokenBalance);
         dodoMine.deposit(address(usdtLPToken), usdtLPTokenBalance);
@@ -131,29 +134,30 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // get usdt amount
-        uint256 usdtTokenAmount = onSwap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdtToken, usdcToken, _amount);
-        // need usdt amount >= _amount in usdc
-        usdtTokenAmount = usdtTokenAmount * 1001 / 1000;
+        // don't count already unstaked usdc tokens and add 5 usdc for small values
+        uint256 usdcTokenAmount = _amount - usdcToken.balanceOf(address(this)) + 5;
 
+        // get usdt amount
+        uint256 usdtTokenAmount = onSwap(balancerPoolId, IVault.SwapKind.GIVEN_OUT, usdtToken, usdcToken, usdcTokenAmount);
         // get lp tokens
         uint256 quoteLpTotalSupply = usdtLPToken.totalSupply();
         (, uint256 quoteTarget) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 quoteLpBalance = usdtTokenAmount * quoteLpTotalSupply / quoteTarget;
-        // need for smooth withdraw in withdrawQuote() method, but we will have some unstaken tokens
-        quoteLpBalance = quoteLpBalance * 1001 / 1000;
+        // add 0.01%
+        quoteLpBalance = quoteLpBalance * 10001 / 10000;
 
         // unstake lp tokens
         dodoMine.withdraw(address(usdtLPToken), quoteLpBalance);
 
         // remove liquidity from pool
-        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawQuote(usdtTokenAmount);
+        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllQuote();
 
-        // swap usdt to usdc
-        uint256 usdcTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)),
-            IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
+        // swap all usdt to usdc
+        swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)),
+            address(this), address(this), usdtToken.balanceOf(address(this)), 0);
 
-        return usdcTokenAmount;
+        // return all usdc tokens
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -163,17 +167,18 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // unstake lp tokens
+        // unstake all lp tokens
         dodoMine.withdrawAll(address(usdtLPToken));
 
         // remove liquidity from pool
         uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllQuote();
 
-        // swap usdt to usdc
-        uint256 usdcTokenAmount = swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)),
-            IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
+        // swap all usdt to usdc
+        swap(balancerPoolId, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)),
+            address(this), address(this), usdtToken.balanceOf(address(this)), 0);
 
-        return usdcTokenAmount;
+        // return all usdc tokens
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external override view returns (uint256) {
