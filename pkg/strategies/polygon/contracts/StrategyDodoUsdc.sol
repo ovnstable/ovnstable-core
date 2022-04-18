@@ -120,8 +120,8 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // don't count already unstaked usdc tokens
-        uint256 usdcTokenAmount = _amount - usdcToken.balanceOf(address(this));
+        // don't count already unstaked usdc tokens and add 5 usdc for small values
+        uint256 usdcTokenAmount = _amount - usdcToken.balanceOf(address(this)) + 5;
 
         // get lp tokens
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
