@@ -1,8 +1,15 @@
 name: Node.js CI
 
 on:
-  pull_request:
-    branches: [ develop ]
+  workflow_dispatch:
+    inputs:
+      strategyName:
+        description: 'Strategy name'
+        required: true
+      chain:
+        description: 'Chain'
+        required: true
+        default: 'POLYGON'
 
 jobs:
   build:
@@ -28,12 +35,15 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
 
       - name: Run test
+        working-directory: './pkg/core/strategies/polygon'
         run: npx hardhat test
         env:
           ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
+          ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
+          ETH_NETWORK: ${{ github.event.inputs.chain}}
           TEST_REPORT: true
 
       - name: Test Report

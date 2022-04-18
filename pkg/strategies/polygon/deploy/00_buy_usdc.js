@@ -13,7 +13,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
     console.log("Deploy BuyonSwap done");
 
-    let value = "5000000000000000000000000";
+    let value = "99000000000000000000000000";
 
     const buyonSwap = await ethers.getContract("BuyonSwap");
     await buyonSwap.buy(POLYGON.usdc, POLYGON.quickSwapRouter, {value: value});

@@ -8,9 +8,9 @@ const fs = require("fs-extra")
 
 const { node_url, blockNumber } = require("../utils/network");
 
-function greatLess(balance, value, delta, msg) {
-    expect(balance).to.greaterThanOrEqual(value - delta, msg);
-    expect(balance).to.lessThanOrEqual(value + delta, msg);
+function greatLess(value, expected, delta, msg) {
+    expect(expected + delta).to.greaterThanOrEqual(value, msg);
+    expect(expected - delta).to.lessThanOrEqual(value, msg);
 }
 
 async function resetHardhat(network) {

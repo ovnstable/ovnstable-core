@@ -17,5 +17,8 @@
     "dotenv": "^16.0.0",
     "hardhat": "^2.9.3",
     "web3": "^1.7.3"
+  },
+  "devDependencies": {
+    "chai-bn": "^0.3.1"
   }
 }
