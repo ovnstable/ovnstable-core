@@ -6,7 +6,7 @@ let {core} = require('@overnight-contracts/common/utils/core');
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyCream");
 
-    await (await strategy.setTokens(FANTOM.usdc, FANTOM.creamTokenAndDelegator)).wait();
+    await (await strategy.setTokens(FANTOM.usdc)).wait();
     await (await strategy.setParams(FANTOM.creamTokenAndDelegator)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 

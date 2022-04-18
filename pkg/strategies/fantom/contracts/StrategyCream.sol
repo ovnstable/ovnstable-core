@@ -15,9 +15,9 @@ contract StrategyCream is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address aUsdcToken);
+    event StrategyUpdatedTokens(address usdcToken);
 
-    event StrategyUpdatedParams(address aaveProvider);
+    event StrategyUpdatedParams(address creamProvider);
 
 
     // ---  constructor
@@ -33,15 +33,14 @@ contract StrategyCream is Strategy {
     // --- Setters
 
     function setTokens(
-        address _usdcToken,
-        address _crUsdcToken
+        address _usdcToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
 
-        emit StrategyUpdatedTokens(_usdcToken, _crUsdcToken);
+        emit StrategyUpdatedTokens(_usdcToken);
     }
 
     function setParams(
