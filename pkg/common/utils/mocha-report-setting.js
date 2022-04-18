@@ -4,7 +4,7 @@ let mochaSetting = {
 
 if (process.env.TEST_REPORT) {
     console.log('Mocha setting report init')
-    mochaSetting.reporter = "utils/reporter-mocha.js";
+    mochaSetting.reporter = "@overnight-contracts/common/utils/reporter-mocha.js";
     mochaSetting["reporter-option"] = [
         "output=report.json"
     ];
