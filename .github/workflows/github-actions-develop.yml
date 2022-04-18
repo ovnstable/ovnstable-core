@@ -50,11 +50,29 @@ jobs:
           ETH_NETWORK: ${{ github.event.inputs.chain}}
           TEST_REPORT: true
 
-      - name: Test Report
+      - name: Run strategy Fantom
+        if: github.event.inputs.chain == 'FANTOM'
+        run: yarn workspace @overnight-contracts/straegies-fantom test
+        env:
+          ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
+          HARDHAT_BLOCK_NUMBER_FANTOM: ${{ github.event.inputs.blockNumber}}
+          TEST_STRATEGY: ${{ github.event.inputs.strategyName}}
+          ETH_NETWORK: ${{ github.event.inputs.chain}}
+          TEST_REPORT: true
+
+      - name: Test Report Strategy Polygon
         uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if previous step failed
+        if: github.event.inputs.chain == 'POLYGON' && (success() || failure())
         with:
-          name: Test Report   # Name of the check run which will be created
-          path: ./pkg/strategies/polygon/report.json    # Path to test results
+          name: Test Report
+          path: ./pkg/strategies/polygon/report.json
           reporter: mocha-json
+
+      - name: Test Report Strategy Fantom
+          uses: dorny/test-reporter@v1
+          if: github.event.inputs.chain == 'FANTOM' && (success() || failure())
+          with:
+            name: Test Report
+            path: ./pkg/strategies/fantom/report.json
+            reporter: mocha-json
 
