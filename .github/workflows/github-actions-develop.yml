@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Strategy Tests
 
 on:
   workflow_dispatch:
