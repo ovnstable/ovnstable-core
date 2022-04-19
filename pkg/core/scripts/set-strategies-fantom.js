@@ -32,11 +32,11 @@ async function main() {
     let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
 
 
-    await (await pm.setUsdc(FANTOM.usdc)).wait();
-    console.log('pm.setUsdc done')
-
-    await (await pm.setCashStrategy("0x448e87779345cc2a4b3772DfD0f63200837B2615")).wait();
-    console.log('pm.setCashStrategy done');
+    // await (await pm.setUsdc(FANTOM.usdc)).wait();
+    // console.log('pm.setUsdc done')
+    //
+    // await (await pm.setCashStrategy("0x448e87779345cc2a4b3772DfD0f63200837B2615")).wait();
+    // console.log('pm.setCashStrategy done');
 
 
     let aave = {
@@ -51,7 +51,16 @@ async function main() {
     let beethovenxDeiUsdc= {
         strategy: "0x08d387BAb84706946dC92651Dc794D41bb7eb6b5",
         minWeight: 0,
-        targetWeight: 48000,
+        targetWeight: 38000,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
+    let cream = {
+        strategy: "0xd2381abf796Fc9c83ca977E9153812B64712754A",
+        minWeight: 0,
+        targetWeight: 10000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -108,6 +117,7 @@ async function main() {
 
     let weights = [
         aave,
+        cream,
         beethovenxDeiUsdc,
         curve2Pool,
         curveGeist,
@@ -119,6 +129,10 @@ async function main() {
 
     await (await pm.setStrategyWeights(weights)).wait();
     console.log("portfolio.setWeights done");
+
+
+    // await (await pm.balance()).wait();
+    // console.log("portfolio.balance done");
 
 }
 
