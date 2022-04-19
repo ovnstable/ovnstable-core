@@ -46,7 +46,7 @@ async function deployProxyMulti(contractName, factoryName, deployments, save) {
 
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
-        impl = await sampleModule.deployImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
+        impl = await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
         console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
         let name = 'impls_' + new Date().getDay() + ".json";
