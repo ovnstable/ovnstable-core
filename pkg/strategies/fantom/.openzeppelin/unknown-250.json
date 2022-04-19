@@ -45,6 +45,26 @@
       "address": "0xd2381abf796Fc9c83ca977E9153812B64712754A",
       "txHash": "0x7bba634862de09b511c9a1ecf4fe645cec3f8b0e3225abd7f15fc90a65202d91",
       "kind": "uups"
+    },
+    {
+      "address": "0x4db892412B917C91a697fEDaA59daF3404881906",
+      "txHash": "0x7dcce8bde91fd10b04959a66cfb2d4c41a74252903244bb6a4683b530bcd86b0",
+      "kind": "uups"
+    },
+    {
+      "address": "0xF91FAbcC4bFFe1Dd91E1cC856379fF6b0D14e572",
+      "txHash": "0x567a505f4726c896d01466bfb6dfb3d534ac716828ef2fa51d15c60ce497ba14",
+      "kind": "uups"
+    },
+    {
+      "address": "0xBE24082cf05aAaabb1C479aded4D8a6C015ADd27",
+      "txHash": "0x247b25abc08e7ea6f710d412d2fd6a739e78f0df2557aa5fa7b69a7a049c7cbc",
+      "kind": "uups"
+    },
+    {
+      "address": "0x3E93772B43bF4bEFa4b22bdC08c254e6354FB4ee",
+      "txHash": "0xdd17ea58e8e0e067e24efab3af280d3f3b0c80f659e3183c345d63083466ca59",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -153,7 +173,7 @@
             "label": "aaveProvider",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IPoolAddressesProvider)9463",
+            "type": "t_contract(IPoolAddressesProvider)9747",
             "contract": "StrategyAave",
             "src": "contracts/StrategyAave.sol:13"
           }
@@ -183,7 +203,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IPoolAddressesProvider)9463": {
+          "t_contract(IPoolAddressesProvider)9747": {
             "label": "contract IPoolAddressesProvider",
             "numberOfBytes": "20"
           },
@@ -853,7 +873,7 @@
             "label": "bTarotSpiritToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IBorrowable)12198",
+            "type": "t_contract(IBorrowable)12514",
             "contract": "StrategyTarotSpiritUsdcFtm",
             "src": "contracts/StrategyTarotSpiritUsdcFtm.sol:11"
           },
@@ -869,7 +889,7 @@
             "label": "tarotRouter",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IRouter02)12449",
+            "type": "t_contract(IRouter02)12765",
             "contract": "StrategyTarotSpiritUsdcFtm",
             "src": "contracts/StrategyTarotSpiritUsdcFtm.sol:15"
           }
@@ -895,7 +915,7 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBorrowable)12198": {
+          "t_contract(IBorrowable)12514": {
             "label": "contract IBorrowable",
             "numberOfBytes": "20"
           },
@@ -903,7 +923,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IRouter02)12449": {
+          "t_contract(IRouter02)12765": {
             "label": "contract IRouter02",
             "numberOfBytes": "20"
           },
@@ -1037,7 +1057,7 @@
             "label": "bTarotSpookyToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IBorrowable)12198",
+            "type": "t_contract(IBorrowable)12514",
             "contract": "StrategyTarotSpookyUsdcFtm",
             "src": "contracts/StrategyTarotSpookyUsdcFtm.sol:11"
           },
@@ -1053,7 +1073,7 @@
             "label": "tarotRouter",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IRouter02)12449",
+            "type": "t_contract(IRouter02)12765",
             "contract": "StrategyTarotSpookyUsdcFtm",
             "src": "contracts/StrategyTarotSpookyUsdcFtm.sol:15"
           }
@@ -1079,7 +1099,7 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBorrowable)12198": {
+          "t_contract(IBorrowable)12514": {
             "label": "contract IBorrowable",
             "numberOfBytes": "20"
           },
@@ -1087,7 +1107,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IRouter02)12449": {
+          "t_contract(IRouter02)12765": {
             "label": "contract IRouter02",
             "numberOfBytes": "20"
           },
