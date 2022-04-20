@@ -455,6 +455,11 @@
       "address": "0xee57946Aa4337ea524211b54D3C702f5572B7c17",
       "txHash": "0xae9b7cd9ca330eca23169c3ea44a9de19269e41c2eb42cf8c3389ebce5fa6644",
       "kind": "uups"
+    },
+    {
+      "address": "0x84152E7d666fC05cC64dE99959176338f783F8Eb",
+      "txHash": "0x3cef1b294d630ae459c01ac7c06fb0e090812341682f1e07a6029c0008ff671e",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -17183,7 +17188,7 @@
             "label": "balancerVault",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IVault)14786",
+            "type": "t_contract(IVault)14838",
             "contract": "BalancerExchange",
             "src": "contracts/exchanges/BalancerExchange.sol:15"
           },
@@ -17223,7 +17228,7 @@
             "label": "arrakisRouter",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(IArrakisV1RouterStaking)13356",
+            "type": "t_contract(IArrakisV1RouterStaking)13408",
             "contract": "StrategyArrakis",
             "src": "contracts/StrategyArrakis.sol:31"
           },
@@ -17231,7 +17236,7 @@
             "label": "arrakisRewards",
             "offset": 0,
             "slot": "355",
-            "type": "t_contract(IArrakisRewards)13313",
+            "type": "t_contract(IArrakisRewards)13365",
             "contract": "StrategyArrakis",
             "src": "contracts/StrategyArrakis.sol:32"
           },
@@ -17239,7 +17244,7 @@
             "label": "arrakisVault",
             "offset": 0,
             "slot": "356",
-            "type": "t_contract(IArrakisVault)13408",
+            "type": "t_contract(IArrakisVault)13460",
             "contract": "StrategyArrakis",
             "src": "contracts/StrategyArrakis.sol:33"
           },
@@ -17247,7 +17252,7 @@
             "label": "uniswapV3Pool",
             "offset": 0,
             "slot": "357",
-            "type": "t_contract(IUniswapV3Pool)17346",
+            "type": "t_contract(IUniswapV3Pool)17398",
             "contract": "StrategyArrakis",
             "src": "contracts/StrategyArrakis.sol:35"
           },
@@ -17255,7 +17260,7 @@
             "label": "uniswapPositionManager",
             "offset": 0,
             "slot": "358",
-            "type": "t_contract(INonfungiblePositionManager)17103",
+            "type": "t_contract(INonfungiblePositionManager)17155",
             "contract": "StrategyArrakis",
             "src": "contracts/StrategyArrakis.sol:36"
           },
@@ -17297,15 +17302,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IArrakisRewards)13313": {
+          "t_contract(IArrakisRewards)13365": {
             "label": "contract IArrakisRewards",
             "numberOfBytes": "20"
           },
-          "t_contract(IArrakisV1RouterStaking)13356": {
+          "t_contract(IArrakisV1RouterStaking)13408": {
             "label": "contract IArrakisV1RouterStaking",
             "numberOfBytes": "20"
           },
-          "t_contract(IArrakisVault)13408": {
+          "t_contract(IArrakisVault)13460": {
             "label": "contract IArrakisVault",
             "numberOfBytes": "20"
           },
@@ -17313,15 +17318,15 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(INonfungiblePositionManager)17103": {
+          "t_contract(INonfungiblePositionManager)17155": {
             "label": "contract INonfungiblePositionManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IUniswapV3Pool)17346": {
+          "t_contract(IUniswapV3Pool)17398": {
             "label": "contract IUniswapV3Pool",
             "numberOfBytes": "20"
           },
-          "t_contract(IVault)14786": {
+          "t_contract(IVault)14838": {
             "label": "contract IVault",
             "numberOfBytes": "20"
           },

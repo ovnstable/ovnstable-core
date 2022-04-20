@@ -17,20 +17,16 @@ async function main() {
 
     let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-    let strategyDodoUsdc = await ethers.getContractAt(Strategy.abi, "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638", wallet);
-    let strategyDodoUsdt = await ethers.getContractAt(Strategy.abi, "0x93FdE263299EA976f8a01a0239b9858528954299", wallet);
+    let strategy = await ethers.getContractAt(Strategy.abi, "0xC647A43cF67Ecae5C4C5aC18378FD45C210E8Fbc", wallet);
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(strategyDodoUsdc.address);
+    addresses.push(strategy.address);
     values.push(0);
-    abis.push(strategyDodoUsdc.interface.encodeFunctionData('upgradeTo', ['0xe1E36e93D31702019D38d2B0F6aB926f15008409']));
+    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x2D7ecfdB0f75c9fC69A2F99614868da97f25eE84']));
 
-    addresses.push(strategyDodoUsdt.address);
-    values.push(0);
-    abis.push(strategyDodoUsdt.interface.encodeFunctionData('upgradeTo', ['0xcE7aE0a4C9a3C1697256594bC6C7E8040D2a1cc2']));
 
 
     console.log('Creating a proposal...')
