@@ -28,12 +28,13 @@ function greatLess(value, expected, delta) {
 function strategyTest(strategyName, network, assets) {
 
     let values = [0.002, 0.02, 0.2, 2, 20, 200, 2000, 20000, 200000, 2000000];
+    let rewardValues = [200, 2000, 20000, 200000];
 
     describe(`${strategyName}`, function () {
 
         stakeUnstake(strategyName, network, assets, values);
         unstakeFull(strategyName, network, assets, values);
-        claimRewards(strategyName, network, assets, values);
+        claimRewards(strategyName, network, assets, rewardValues);
 
     });
 }
@@ -314,15 +315,17 @@ function claimRewards(strategyName, network, assets, values) {
 
                     await evmCheckpoint("default");
 
-                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                    for (var i = 0; i < 5; i++) {
+                        await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
-                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                        await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                        await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
 
-                    const sevenDays = 7 * 24 * 60 * 60;
-                    await ethers.provider.send("evm_increaseTime", [sevenDays])
-                    await ethers.provider.send('evm_mine');
-
+                        const sevenDays = 7 * 24 * 60 * 60;
+                        await ethers.provider.send("evm_increaseTime", [sevenDays])
+                        await ethers.provider.send('evm_mine');
+                    }
+                    
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
                     balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());

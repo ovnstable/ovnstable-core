@@ -31,6 +31,9 @@ let FANTOM = {
     poolIdWFtmUsdc: "0xcdf68a4d525ba2e90fe959c74330430a5a6b8226000200000000000000000008",
     pidDeiUsdc: 67,
     creamTokenAndDelegator: "0x328A7b4d538A2b3942653a9983fdA3C12c571141",
+    screamTokenDelegator: "0xE45Ac34E528907d0A0239ab5Db507688070B20bf",
+    screamUnitroller: "0x260E596DAbE3AFc463e75B6CC05d8c46aCAcFB09",
+    scream: "0xe0654C8e6fd4D733349ac7E09f6f23DA256bF475",
 }
 
 let POLYGON = {
