@@ -8,7 +8,7 @@ module.exports = async () => {
 
     await (await strategy.setTokens(FANTOM.usdc, FANTOM.bptDeiUsdc, FANTOM.beets, FANTOM.deus, FANTOM.wFtm)).wait();
     await (await strategy.setParams(FANTOM.beethovenxVault, FANTOM.beethovenxMasterChef, FANTOM.poolIdDeiUsdc,
-        FANTOM.poolIdBeetsWFtm, FANTOM.poolIdDeusWFtm, FANTOM.poolIdWFtmUsdc, FANTOM.pidDeiUsdc)).wait();
+        FANTOM.poolIdBeetsWFtm, FANTOM.poolIdDeusWFtm, FANTOM.poolIdWFtmUsdc, FANTOM.pidBeethovenxDeiUsdc)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyBeethovenxDeiUsdc setting done');

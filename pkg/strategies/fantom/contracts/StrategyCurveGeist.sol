@@ -119,7 +119,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         crvPool = IStableSwapPool(_crvPool);
         rewardGauge = IRewardsOnlyGauge(_rewardGauge);
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         emit StrategyCurveGeistUpdatedParams(
             _crvPool,
@@ -244,39 +244,36 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         uint256 geistBalance = geistToken.balanceOf(address(this));
         if (geistBalance != 0) {
-            uint256 geistUsdc = swapTokenToUsdc(
+            uint256 geistUsdc = _swapExactTokensForTokens(
                 address(geistToken),
                 address(usdcToken),
-                geistTokenDenominator,
-                address(this),
-                address(this),
-                geistBalance
+                geistBalance,
+                0,
+                address(this)
             );
             totalUsdc += geistUsdc;
         }
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = swapTokenToUsdc(
+            uint256 crvUsdc = _swapExactTokensForTokens(
                 address(crvToken),
                 address(usdcToken),
-                crvTokenDenominator,
-                address(this),
-                address(this),
-                crvBalance
+                crvBalance,
+                0,
+                address(this)
             );
             totalUsdc += crvUsdc;
         }
 
         uint256 wFtmBalance = wFtmToken.balanceOf(address(this));
         if (wFtmBalance != 0) {
-            uint256 wFtmUsdc = swapTokenToUsdc(
+            uint256 wFtmUsdc = _swapExactTokensForTokens(
                 address(wFtmToken),
                 address(usdcToken),
-                wFtmTokenDenominator,
-                address(this),
-                address(this),
-                wFtmBalance
+                wFtmBalance,
+                0,
+                address(this)
             );
             totalUsdc += wFtmUsdc;
         }

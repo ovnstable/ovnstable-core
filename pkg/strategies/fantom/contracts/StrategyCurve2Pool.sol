@@ -109,7 +109,7 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         crvPool = IStableSwapPool(_crvPool);
         rewardGauge = IRewardsOnlyGauge(_rewardGauge);
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         emit StrategyCurve2PoolUpdatedParams(
             _crvPool,
@@ -233,26 +233,24 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = swapTokenToUsdc(
+            uint256 crvUsdc = _swapExactTokensForTokens(
                 address(crvToken),
                 address(usdcToken),
-                crvTokenDenominator,
-                address(this),
-                address(this),
-                crvBalance
+                crvBalance,
+                0,
+                address(this)
             );
             totalUsdc += crvUsdc;
         }
 
         uint256 wFtmBalance = wFtmToken.balanceOf(address(this));
         if (wFtmBalance != 0) {
-            uint256 wFtmUsdc = swapTokenToUsdc(
+            uint256 wFtmUsdc = _swapExactTokensForTokens(
                 address(wFtmToken),
                 address(usdcToken),
-                wFtmTokenDenominator,
-                address(this),
-                address(this),
-                wFtmBalance
+                wFtmBalance,
+                0,
+                address(this)
             );
             totalUsdc += wFtmUsdc;
         }

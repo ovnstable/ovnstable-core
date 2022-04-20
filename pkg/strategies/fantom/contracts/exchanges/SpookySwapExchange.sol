@@ -8,42 +8,48 @@ abstract contract SpookySwapExchange {
 
     IUniswapV2Router02 private uniswapRouter;
 
-    function setUniswapRouter(address _uniswapRouter) internal {
+    function _setUniswapRouter(address _uniswapRouter) internal {
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
     }
 
-    function swapTokenToUsdc(
-        address swapToken,
-        address usdcToken,
-        uint256 swapTokenDenominator,
-        address sender,
-        address recipient,
-        uint256 amount
+    function _swapExactTokensForTokens(
+        address inputToken,
+        address outputToken,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
     ) internal returns (uint256) {
 
-        uint256 amountOutMin = 0;
-        IERC20(swapToken).approve(address(uniswapRouter), amount);
+        IERC20(inputToken).approve(address(uniswapRouter), amountInput);
 
         address[] memory path = new address[](2);
-        path[0] = swapToken;
-        path[1] = usdcToken;
+        path[0] = inputToken;
+        path[1] = outputToken;
 
-        return uniswapRouter.swapExactTokensForTokens(amount, amountOutMin, path, recipient, block.timestamp + 600)[1];
+        uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            recipient,
+            block.timestamp + 600
+        );
+
+        return amounts[1];
     }
 
-    function getAmountsOut(
-        address input,
-        address output,
+    function _getAmountsOut(
+        address inputToken,
+        address outputToken,
         uint256 amountInput
     ) internal view returns (uint256) {
 
         address[] memory path = new address[](2);
-        path[0] = input;
-        path[1] = output;
+        path[0] = inputToken;
+        path[1] = outputToken;
 
-        uint[] memory amountsOut = uniswapRouter.getAmountsOut(amountInput, path);
+        uint[] memory amounts = uniswapRouter.getAmountsOut(amountInput, path);
 
-        return amountsOut[1];
+        return amounts[1];
     }
 
 

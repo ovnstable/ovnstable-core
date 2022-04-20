@@ -29,8 +29,16 @@ let FANTOM = {
     poolIdBeetsWFtm: "0xcde5a11a4acb4ee4c805352cec57e236bdbc3837000200000000000000000019",
     poolIdDeusWFtm: "0x0310c6929a70acd591d8ac4bf67632bb34aaa4eb00020000000000000000034e",
     poolIdWFtmUsdc: "0xcdf68a4d525ba2e90fe959c74330430a5a6b8226000200000000000000000008",
-    pidDeiUsdc: 67,
+    pidBeethovenxDeiUsdc: 67,
     creamTokenAndDelegator: "0x328A7b4d538A2b3942653a9983fdA3C12c571141",
+    spookySwapLPMaiUsdc: "0x4dE9f0ED95de2461B6dB1660f908348c42893b1A",
+    spookySwapLPTusdUsdc: "0x12692B3bf8dd9Aa1d2E721d1a79efD0C244d7d96",
+    spookySwapMasterChef: "0x2b2929E785374c651a81A63878Ab22742656DcDd",
+    mai: "0xfB98B335551a418cD0737375a2ea0ded62Ea213b",
+    tusd: "0x9879aBDea01a879644185341F7aF7d8343556B7a",
+    boo: "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE",
+    pidSpookySwapMaiUsdc: 42,
+    pidSpookySwapTusdUsdc: 45,
 }
 
 let POLYGON = {

@@ -28,6 +28,12 @@ let arrays = [
     {
         name: 'StrategyCream',
     },
+    {
+        name: 'StrategySpookySwapMaiUsdc',
+    },
+    {
+        name: 'StrategySpookySwapTusdUsdc',
+    },
 
 ];
 
