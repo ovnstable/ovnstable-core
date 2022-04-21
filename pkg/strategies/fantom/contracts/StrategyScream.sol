@@ -104,7 +104,11 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 amount = cErc20Delegator.balanceOf(address(this));
-        cErc20Delegator.redeem(amount);
+
+        if (amount > 0) {
+            cErc20Delegator.redeem(amount);
+        }
+        
         return usdcToken.balanceOf(address(this));
     }
 

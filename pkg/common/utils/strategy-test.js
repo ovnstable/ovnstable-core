@@ -28,13 +28,12 @@ function greatLess(value, expected, delta) {
 function strategyTest(strategyName, network, assets) {
 
     let values = [0.002, 0.02, 0.2, 2, 20, 200, 2000, 20000, 200000, 2000000];
-    let rewardValues = [200000];
 
     describe(`${strategyName}`, function () {
 
         stakeUnstake(strategyName, network, assets, values);
         unstakeFull(strategyName, network, assets, values);
-        claimRewards(strategyName, network, assets, rewardValues);
+        claimRewards(strategyName, network, assets, values);
 
     });
 }
@@ -307,7 +306,7 @@ function claimRewards(strategyName, network, assets, values) {
 
         values.forEach(stakeValue => {
 
-            describe(`Stake ${2 * stakeValue} => ClaimRewards`, function () {
+            describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
                 let balanceUsdc;
 
@@ -315,16 +314,14 @@ function claimRewards(strategyName, network, assets, values) {
 
                     await evmCheckpoint("default");
 
-                    for (var i = 0; i < 2; i++) {
-                        await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
-                        await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                        await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
 
-                        const sevenDays = 7 * 24 * 60 * 60;
-                        await ethers.provider.send("evm_increaseTime", [sevenDays])
-                        await ethers.provider.send('evm_mine');
-                    }
+                    const sevenDays = 7 * 24 * 60 * 60;
+                    await ethers.provider.send("evm_increaseTime", [sevenDays])
+                    await ethers.provider.send('evm_mine');
                     
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
