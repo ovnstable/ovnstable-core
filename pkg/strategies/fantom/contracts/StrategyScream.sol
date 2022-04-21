@@ -128,7 +128,7 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         uint256 screamBalance = screamToken.balanceOf(address(this));
         uint256 screamUsdc;
 
-        if (screamBalance != 0) {
+        if (screamBalance > 0) {
 
             screamUsdc = swapTokenToUsdc(
                 address(screamToken),
@@ -142,7 +142,7 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
-        if (usdcBalance != 0) {
+        if (usdcBalance > 0) {
             usdcToken.transfer(_beneficiary, usdcBalance);
         }
 
