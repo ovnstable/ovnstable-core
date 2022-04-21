@@ -28,7 +28,7 @@ function greatLess(value, expected, delta) {
 function strategyTest(strategyName, network, assets) {
 
     let values = [0.002, 0.02, 0.2, 2, 20, 200, 2000, 20000, 200000, 2000000];
-    let rewardValues = [200, 2000, 20000, 200000];
+    let rewardValues = [200000];
 
     describe(`${strategyName}`, function () {
 
@@ -307,7 +307,7 @@ function claimRewards(strategyName, network, assets, values) {
 
         values.forEach(stakeValue => {
 
-            describe(`Stake ${stakeValue} => ClaimRewards`, function () {
+            describe(`Stake ${2 * stakeValue} => ClaimRewards`, function () {
 
                 let balanceUsdc;
 
@@ -315,7 +315,7 @@ function claimRewards(strategyName, network, assets, values) {
 
                     await evmCheckpoint("default");
 
-                    for (var i = 0; i < 5; i++) {
+                    for (var i = 0; i < 2; i++) {
                         await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
                         await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));

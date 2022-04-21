@@ -5,7 +5,6 @@ import "./core/Strategy.sol";
 import "./connectors/scream/interfaces/ICErc20Delegator.sol";
 import "./exchanges/SpookySwapExchange.sol";
 import "./connectors/scream/interfaces/IScreamUnitroller.sol";
-import "hardhat/console.sol";
 
 contract StrategyScream is Strategy, SpookySwapExchange {
 
@@ -104,18 +103,20 @@ contract StrategyScream is Strategy, SpookySwapExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = cErc20Delegator.balanceOf(address(this));
-        cErc20Delegator.redeem(_amount);
+        uint256 amount = cErc20Delegator.balanceOf(address(this));
+        cErc20Delegator.redeem(amount);
         return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        uint256 balance = cErc20Delegator.balanceOf(address(this));
-        uint256 exchange = cErc20Delegator.exchangeRateStored();
-        return balance * exchange / SCREAM_EXCHANGE_RATE_SCALING;
+        return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
+        return _totalValue();
+    }
+
+    function _totalValue() internal view returns (uint256) {
         uint256 balance = cErc20Delegator.balanceOf(address(this));
         uint256 exchange = cErc20Delegator.exchangeRateStored();
         return balance * exchange / SCREAM_EXCHANGE_RATE_SCALING;
@@ -125,20 +126,26 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         screamUnitroller.claimComp(address(this));
 
         uint256 screamBalance = screamToken.balanceOf(address(this));
-        if (screamBalance == 0) {
-            return 0;
-        }
+        uint256 screamUsdc;
 
-        uint256 screamUsdc = swapTokenToUsdc(
+        if (screamBalance != 0) {
+
+            screamUsdc = swapTokenToUsdc(
                 address(screamToken),
                 address(usdcToken),
                 screamTokenDenominator,
                 address(this),
                 address(this),
                 screamBalance
-        );
+            );
+        }
         
-        usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)));
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+
+        if (usdcBalance != 0) {
+            usdcToken.transfer(_beneficiary, usdcBalance);
+        }
+
         return screamUsdc;
     }
 
