@@ -28,7 +28,9 @@ let arrays = [
     {
         name: 'StrategyCream',
     },
-
+    {
+        name: 'StrategyScream',
+    },
 ];
 
 
