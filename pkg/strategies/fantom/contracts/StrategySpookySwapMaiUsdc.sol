@@ -86,43 +86,58 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
         address _asset,
         uint256 _amount
     ) internal override {
+        console.log("_stake start");
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
         (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
+        console.log("reserveUsdc: %s", reserveUsdc);
+        console.log("reserveMai: %s", reserveMai);
         require(reserveUsdc > 1000 && reserveMai > 1000, 'StrategySpookySwapMaiUsdc: Liquidity lpToken reserves too low');
+        console.log("_amount: %s", _amount);
 
-        // TODO надо правильно посчитать кол-во usdc, которое надо свапнуть на mai, чтобы потом при вызове addLiquidity() у нас все застейкалось
         // count amount mai to swap
         uint256 amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 halfAmountUsdc = amountUsdc / 2;
-        uint256 halfAmountMai = router.getAmountOut(halfAmountUsdc, reserveUsdc, reserveMai);
-        uint256 amountMaiToSwap = router.quote(halfAmountUsdc, reserveUsdc.add(halfAmountUsdc), reserveMai.sub(halfAmountMai));
+        console.log("amountUsdc: %s", amountUsdc);
+        uint256 amountUsdcToSwap = (reserveUsdc * 2 + amountUsdc - sqrt(reserveUsdc * reserveUsdc * 4 + amountUsdc * amountUsdc)) / 2;
+        console.log("amountUsdcToSwap: %s", amountUsdcToSwap);
 
         // swap usdc to mai
         _swapExactTokensForTokens(
             address(usdcToken),
             address(maiToken),
-            amountUsdc,
+            amountUsdcToSwap,
             0,
             address(this)
         );
         uint256 amountMai = maiToken.balanceOf(address(this));
+        console.log("amountMai: %s", amountMai);
 
-        // TODO amountMai и amountUsdc должны ли они быть в правильном соотношении через метод router.quote() можно проверить
         // add liquidity
         maiToken.approve(address(router), amountMai);
         usdcToken.approve(address(router), amountUsdc);
         (uint256 amountA, uint256 amountB, uint256 liquidity) = router.addLiquidity(
-            address(maiToken),
             address(usdcToken),
-            amountMai,
+            address(maiToken),
             amountUsdc,
+            amountMai,
             1,
             1,
             address(this),
             block.timestamp + 600
         );
+        console.log("amountA: %s", amountA);
+        console.log("amountB: %s", amountB);
+        uint256 amountUsdcAfter = usdcToken.balanceOf(address(this));
+        console.log("amountUsdcAfter: %s", amountUsdcAfter);
+        uint256 amountMaiAfter = maiToken.balanceOf(address(this));
+        console.log("amountMaiAfter: %s", amountMaiAfter);
+        uint256 lpBalance = lpToken.balanceOf(address(this));
+        console.log("lpBalance: %s", lpBalance);
+
+        // deposit lpTokens to masterChef
+        lpToken.approve(address(masterChef), lpBalance);
+        masterChef.deposit(pid, lpBalance);
     }
 
     function _unstake(
@@ -130,15 +145,22 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        console.log("_unstake start");
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // withdraw lpTokens from masterChef
         uint256 totalLpBalance = lpToken.totalSupply();
         (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
-        // TODO посчитать правильно lpBalance, чтобы анстейкнуть
-        uint256 lpBalance = totalLpBalance * _amount / reserveUsdc;
 
+        uint256 lpBalance = totalLpBalance * _amount / reserveUsdc / 2;
+        console.log("_amount: %s", _amount);
+        console.log("totalLpBalance: %s", totalLpBalance);
+        console.log("reserveUsdc: %s", reserveUsdc);
+        console.log("reserveMai: %s", reserveMai);
+        console.log("lpBalance: %s", lpBalance);
+        (uint256 lpBalanceUser, ) = masterChef.userInfo(pid, address(this));
+        console.log("lpBalanceUser: %s", lpBalanceUser);
         masterChef.withdraw(pid, lpBalance);
 
         // remove liquidity
@@ -152,9 +174,13 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
             address(this),
             block.timestamp + 600
         );
+        console.log("amountA: %s", amountA);
+        console.log("amountB: %s", amountB);
 
         // swap mai to usdc
         uint256 maiBalance = maiToken.balanceOf(address(this));
+        console.log("maiBalance: %s", maiBalance);
+        console.log("usdcBalance: %s", usdcToken.balanceOf(address(this)));
         uint256 maiUsdc = _swapExactTokensForTokens(
             address(maiToken),
             address(usdcToken),
@@ -162,6 +188,8 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
             0,
             address(this)
         );
+        console.log("maiUsdc: %s", maiUsdc);
+        console.log("usdcBalance: %s", usdcToken.balanceOf(address(this)));
 
         return usdcToken.balanceOf(address(this));
     }
@@ -170,11 +198,13 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+        console.log("_unstakeFull start");
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // withdraw lpTokens from masterChef
-        uint256 lpBalance = lpToken.balanceOf(address(this));
+        (uint256 lpBalance, ) = masterChef.userInfo(pid, address(this));
+        console.log("lpBalance: %s", lpBalance);
         masterChef.withdraw(pid, lpBalance);
 
         // remove liquidity
@@ -188,9 +218,13 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
             address(this),
             block.timestamp + 600
         );
+        console.log("amountA: %s", amountA);
+        console.log("amountB: %s", amountB);
 
         // swap mai to usdc
         uint256 maiBalance = maiToken.balanceOf(address(this));
+        console.log("maiBalance: %s", maiBalance);
+        console.log("usdcTokenBalance: %s", usdcToken.balanceOf(address(this)));
         uint256 maiUsdc = _swapExactTokensForTokens(
             address(maiToken),
             address(usdcToken),
@@ -198,26 +232,38 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
             0,
             address(this)
         );
+        console.log("maiUsdc: %s", maiUsdc);
+        console.log("usdcTokenBalance: %s", usdcToken.balanceOf(address(this)));
 
         return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
+        console.log("netAssetValue start");
         return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
+        console.log("liquidationValue start");
         return _totalValue();
     }
 
-    // TODO проверить правильно подсчета
     function _totalValue() internal view returns (uint256) {
-        uint256 lpBalance = lpToken.balanceOf(address(this));
+        (uint256 lpBalance, ) = masterChef.userInfo(pid, address(this));
+        console.log("lpBalance: %s", lpBalance);
+        if (lpBalance == 0) {
+            return 0;
+        }
         uint256 totalLpBalance = lpToken.totalSupply();
+        console.log("totalLpBalance: %s", totalLpBalance);
         (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
+        console.log("reserveUsdc: %s", reserveUsdc);
+        console.log("reserveMai: %s", reserveMai);
 
         uint256 usdcBalance = reserveUsdc * lpBalance / totalLpBalance + usdcToken.balanceOf(address(this));
+        console.log("usdcBalance: %s", usdcBalance);
         uint256 maiBalance = reserveMai * lpBalance / totalLpBalance + maiToken.balanceOf(address(this));
+        console.log("maiBalance: %s", maiBalance);
         uint256 usdcBalanceFromMai = _getAmountsOut(address(maiToken), address(usdcToken), maiBalance);
 
         return usdcBalance + usdcBalanceFromMai;
@@ -246,4 +292,12 @@ contract StrategySpookySwapMaiUsdc is Strategy, SpookySwapExchange {
         return totalUsdc;
     }
 
+    function sqrt(uint x) internal returns (uint y) {
+        uint z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+    }
 }
