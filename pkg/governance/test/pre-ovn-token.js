@@ -41,6 +41,10 @@ describe("PreOvnToken", function () {
         await expectRevert(token.connect(user1).mint(user1.address, 100), 'Restricted to admin');
     });
 
+    it("Burn -> throw: Restricted to admin", async function () {
+        await expectRevert(token.connect(user1).burn(user1.address, 100), 'Restricted to admin');
+    });
+
 
 
 });
