@@ -110,12 +110,15 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         uint256 usdcAmount = usdcToken.balanceOf(address(this));
         uint256 usdtAmount = usdtToken.balanceOf(address(this));
 
+        // 2. Calculating min amounts
+        (uint256 amount0In, uint256 amount1In, ) = arrakisVault.getMintAmounts(usdcAmount, usdtAmount);
 
-        // 2. Stake USDC/USDT to Arrakis
+        // 3. Stake USDC/USDT to Arrakis
         usdcToken.approve(address(arrakisRouter), usdcAmount);
         usdtToken.approve(address(arrakisRouter), usdtAmount);
 
-        arrakisRouter.addLiquidityAndStake(address(arrakisRewards), usdcAmount, usdtAmount, (usdcAmount * 99 / 100), (usdtAmount * 99 / 100), address(this));
+        // 4. Add tokens to uniswap v3 pools across Arrakis
+        arrakisRouter.addLiquidityAndStake(address(arrakisRewards), usdcAmount, usdtAmount, amount0In, amount1In, address(this));
     }
 
     function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){

@@ -322,7 +322,7 @@ function claimRewards(strategyName, network, assets, values) {
                     const sevenDays = 7 * 24 * 60 * 60;
                     await ethers.provider.send("evm_increaseTime", [sevenDays])
                     await ethers.provider.send('evm_mine');
-
+                    
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
                     balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());

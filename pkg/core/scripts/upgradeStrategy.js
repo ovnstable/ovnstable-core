@@ -12,11 +12,11 @@ let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/Ovn
 
 async function main() {
 
-    let wallet = await initWallet();
+    let wallet = await initWallet(ethers);
 
     let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-    let strategy = await ethers.getContractAt(Strategy.abi, "0xC647A43cF67Ecae5C4C5aC18378FD45C210E8Fbc", wallet);
+    let strategy = await ethers.getContractAt(Strategy.abi, "0x84152E7d666fC05cC64dE99959176338f783F8Eb", wallet);
 
     let addresses = [];
     let values = [];
@@ -24,7 +24,7 @@ async function main() {
 
     addresses.push(strategy.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x2D7ecfdB0f75c9fC69A2F99614868da97f25eE84']));
+    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x2C3bDE5E5e7Bf70e41e870e087C0f01d127A61cB']));
 
 
     console.log('Creating a proposal...')
@@ -32,7 +32,7 @@ async function main() {
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal: Upgrade Strategies"),
+        ethers.utils.id("Proposal 1: Upgrade Strategies"),
         {
             maxFeePerGas: "100000000000",
             maxPriorityFeePerGas: "100000000000"

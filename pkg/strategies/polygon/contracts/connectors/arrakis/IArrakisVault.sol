@@ -22,4 +22,14 @@ interface IArrakisVault {
     function totalSupply() external view returns (uint256);
 
     function balanceOf(address account) external view returns (uint256);
+
+    function getMintAmounts(uint256 amount0Max, uint256 amount1Max)
+    external
+    view
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint256 mintAmount
+    );
+
 }

@@ -29,6 +29,9 @@ let arrays = [
         name: 'StrategyCream',
     },
     {
+        name: 'StrategyScream',
+    },
+    {
         name: 'StrategySpookySwapMaiUsdc',
     },
     {

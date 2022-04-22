@@ -81,8 +81,8 @@ async function main() {
         minWeight: 0,
         targetWeight: 0,
         maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
+        enabled: false,
+        enabledReward: false,
     }
 
     let arrakis = {
@@ -118,7 +118,7 @@ async function main() {
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal: Update Strategies"),
+        ethers.utils.id("Proposal: Update "),
         {
             maxFeePerGas: "100000000000",
             maxPriorityFeePerGas: "100000000000"
@@ -128,7 +128,7 @@ async function main() {
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
 
-    await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
+    // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
 
 }
 
