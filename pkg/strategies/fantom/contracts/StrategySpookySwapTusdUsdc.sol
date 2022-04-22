@@ -8,10 +8,10 @@ import "./connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
 import "./connectors/spookyswap/MasterChef.sol";
 
-contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
+contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
     using LowGasSafeMath for uint256;
 
-    IERC20 public maiToken;
+    IERC20 public tusdToken;
     IERC20 public usdcToken;
     IERC20 public booToken;
 
@@ -19,16 +19,16 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
     IUniswapV2Pair public lpToken;
     MasterChef public masterChef;
     uint256 public pid;
-    bytes32 public poolIdMaiUsdc;
+    bytes32 public poolIdTusdUsdc;
     bytes32 public poolIdBooUsdc;
 
 
     // --- events
 
-    event StrategySpookySwapMaiUsdcUpdatedTokens(address maiToken, address usdcToken, address booToken);
+    event StrategySpookySwapTusdUsdcUpdatedTokens(address tusdToken, address usdcToken, address booToken);
 
-    event StrategySpookySwapMaiUsdcUpdatedParams(address router, address lpToken, address masterChef, uint256 pid,
-        address beethovenxVault, bytes32 poolIdMaiUsdc, bytes32 poolIdBooUsdc);
+    event StrategySpookySwapTusdUsdcUpdatedParams(address router, address lpToken, address masterChef, uint256 pid,
+        address beethovenxVault, bytes32 poolIdTusdUsdc, bytes32 poolIdBooUsdc);
 
 
     // ---  constructor
@@ -44,20 +44,20 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
     // --- setters
 
     function setTokens(
-        address _maiToken,
+        address _tusdToken,
         address _usdcToken,
         address _booToken
     ) external onlyAdmin {
 
-        require(_maiToken != address(0), "Zero address not allowed");
+        require(_tusdToken != address(0), "Zero address not allowed");
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_booToken != address(0), "Zero address not allowed");
 
-        maiToken = IERC20(_maiToken);
+        tusdToken = IERC20(_tusdToken);
         usdcToken = IERC20(_usdcToken);
         booToken = IERC20(_booToken);
 
-        emit StrategySpookySwapMaiUsdcUpdatedTokens(_maiToken, _usdcToken, _booToken);
+        emit StrategySpookySwapTusdUsdcUpdatedTokens(_tusdToken, _usdcToken, _booToken);
     }
 
     function setParams(
@@ -66,7 +66,7 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         address _masterChef,
         uint256 _pid,
         address _beethovenxVault,
-        bytes32 _poolIdMaiUsdc,
+        bytes32 _poolIdTusdUsdc,
         bytes32 _poolIdBooUsdc
     ) external onlyAdmin {
 
@@ -74,19 +74,19 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         require(_lpToken != address(0), "Zero address not allowed");
         require(_masterChef != address(0), "Zero address not allowed");
         require(_beethovenxVault != address(0), "Zero address not allowed");
-        require(_poolIdMaiUsdc != "", "Empty pool id not allowed");
+        require(_poolIdTusdUsdc != "", "Empty pool id not allowed");
         require(_poolIdBooUsdc != "", "Empty pool id not allowed");
 
         router = IUniswapV2Router02(_router);
         lpToken = IUniswapV2Pair(_lpToken);
         masterChef = MasterChef(_masterChef);
         pid = _pid;
-        poolIdMaiUsdc = _poolIdMaiUsdc;
+        poolIdTusdUsdc = _poolIdTusdUsdc;
         poolIdBooUsdc = _poolIdBooUsdc;
 
         setBeethovenxVault(_beethovenxVault);
 
-        emit StrategySpookySwapMaiUsdcUpdatedParams(_router, _lpToken, _masterChef, _pid, _beethovenxVault, _poolIdMaiUsdc, _poolIdBooUsdc);
+        emit StrategySpookySwapTusdUsdcUpdatedParams(_router, _lpToken, _masterChef, _pid, _beethovenxVault, _poolIdTusdUsdc, _poolIdBooUsdc);
     }
 
 
@@ -99,19 +99,19 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
-        require(reserveUsdc > 1000 && reserveMai > 1000, 'StrategySpookySwapMaiUsdc: Liquidity lpToken reserves too low');
+        (uint256 reserveUsdc, uint256 reserveTusd,) = lpToken.getReserves();
+        require(reserveUsdc > 1000 && reserveTusd > 1000, 'StrategySpookySwapTusdUsdc: Liquidity lpToken reserves too low');
 
-        // count amount mai to swap
+        // count amount tusd to swap
         uint256 amountUsdc = usdcToken.balanceOf(address(this));
         uint256 amountUsdcToSwap = amountUsdc / 2;
 
-        // swap usdc to mai
-        uint256 maiUsdc = swap(
-            poolIdMaiUsdc,
+        // swap usdc to tusd
+        uint256 tusdUsdc = swap(
+            poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(usdcToken)),
-            IAsset(address(maiToken)),
+            IAsset(address(tusdToken)),
             address(this),
             address(this),
             amountUsdcToSwap,
@@ -120,14 +120,14 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
         // add liquidity
         amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 amountMai = maiToken.balanceOf(address(this));
-        maiToken.approve(address(router), amountMai);
+        uint256 amountTusd = tusdToken.balanceOf(address(this));
+        tusdToken.approve(address(router), amountTusd);
         usdcToken.approve(address(router), amountUsdc);
         router.addLiquidity(
             address(usdcToken),
-            address(maiToken),
+            address(tusdToken),
             amountUsdc,
-            amountMai,
+            amountTusd,
             1,
             1,
             address(this),
@@ -160,7 +160,7 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
         // withdraw lpTokens from masterChef
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
+        (uint256 reserveUsdc, uint256 reserveTusd,) = lpToken.getReserves();
         uint256 lpBalance = totalLpBalance * amountToUnstake / reserveUsdc / 2;
         if (lpBalance > lpBalanceUser) {
             lpBalance = lpBalanceUser;
@@ -179,16 +179,16 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
             block.timestamp + 600
         );
 
-        // swap mai to usdc
-        uint256 maiBalance = maiToken.balanceOf(address(this));
-        uint256 maiUsdc = swap(
-            poolIdMaiUsdc,
+        // swap tusd to usdc
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        uint256 tusdUsdc = swap(
+            poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
-            IAsset(address(maiToken)),
+            IAsset(address(tusdToken)),
             IAsset(address(usdcToken)),
             address(this),
             address(this),
-            maiBalance,
+            tusdBalance,
             0
         );
 
@@ -220,16 +220,16 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
             block.timestamp + 600
         );
 
-        // swap mai to usdc
-        uint256 maiBalance = maiToken.balanceOf(address(this));
-        uint256 maiUsdc = swap(
-            poolIdMaiUsdc,
+        // swap tusd to usdc
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        uint256 tusdUsdc = swap(
+            poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
-            IAsset(address(maiToken)),
+            IAsset(address(tusdToken)),
             IAsset(address(usdcToken)),
             address(this),
             address(this),
-            maiBalance,
+            tusdBalance,
             0
         );
 
@@ -250,19 +250,19 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
             return 0;
         }
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
+        (uint256 reserveUsdc, uint256 reserveTusd,) = lpToken.getReserves();
         uint256 usdcBalance = reserveUsdc * lpBalance / totalLpBalance + usdcToken.balanceOf(address(this));
-        uint256 maiBalance = reserveMai * lpBalance / totalLpBalance + maiToken.balanceOf(address(this));
+        uint256 tusdBalance = reserveTusd * lpBalance / totalLpBalance + tusdToken.balanceOf(address(this));
 
-        uint256 usdcBalanceFromMai = onSwap(
-            poolIdMaiUsdc,
+        uint256 usdcBalanceFromTusd = onSwap(
+            poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
-            maiToken,
+            tusdToken,
             usdcToken,
-            maiBalance
+            tusdBalance
         );
 
-        return usdcBalance + usdcBalanceFromMai;
+        return usdcBalance + usdcBalanceFromTusd;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -293,9 +293,9 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
     function _getAmountToUnstake(uint256 _amount) internal returns (uint256) {
         if (_amount < 10 ** 4) {
-            return _amount + 10;
+            return _amount;
         } else {
-            return _amount * 1001 / 1000;
+            return _amount * 999 / 1000;
         }
     }
 }

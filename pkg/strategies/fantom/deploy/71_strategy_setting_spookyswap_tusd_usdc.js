@@ -8,7 +8,7 @@ module.exports = async () => {
 
     await (await strategy.setTokens(FANTOM.tusd, FANTOM.usdc, FANTOM.boo)).wait();
     await (await strategy.setParams(FANTOM.spookySwapRouter, FANTOM.spookySwapLPTusdUsdc, FANTOM.spookySwapMasterChef,
-        FANTOM.pidSpookySwapTusdUsdc)).wait();
+        FANTOM.pidSpookySwapTusdUsdc, FANTOM.beethovenxVault, FANTOM.poolIdTusdUsdc, FANTOM.poolIdBooUsdc)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategySpookySwapTusdUsdc setting done');
