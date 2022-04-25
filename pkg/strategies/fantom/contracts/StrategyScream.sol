@@ -64,8 +64,9 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         require(_uniswapRouter != address(0), "Zero address not allowed");
 
         cErc20Delegator = ICErc20Delegator(_cErc20Delegator);
-        setUniswapRouter(_uniswapRouter);
         screamUnitroller = IScreamUnitroller(_screamUnitroller);
+
+        _setUniswapRouter(_uniswapRouter);
 
         emit StrategyUpdatedParams(_cErc20Delegator, _screamUnitroller, _uniswapRouter);
     }
@@ -134,13 +135,12 @@ contract StrategyScream is Strategy, SpookySwapExchange {
 
         if (screamBalance > 0) {
 
-            screamUsdc = swapTokenToUsdc(
+            screamUsdc = _swapExactTokensForTokens(
                 address(screamToken),
                 address(usdcToken),
-                screamTokenDenominator,
-                address(this),
-                address(this),
-                screamBalance
+                screamBalance,
+                0,
+                address(this)
             );
         }
         

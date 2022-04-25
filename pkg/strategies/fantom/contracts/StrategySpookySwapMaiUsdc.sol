@@ -103,11 +103,22 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         require(reserveUsdc > 1000 && reserveMai > 1000, 'StrategySpookySwapMaiUsdc: Liquidity lpToken reserves too low');
 
         // count amount mai to swap
-        uint256 amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = amountUsdc / 2;
+        uint256 maiBalance = maiToken.balanceOf(address(this));
+        uint256 amountUsdcFromMai;
+        if (maiBalance > 0) {
+            amountUsdcFromMai = onSwap(
+                poolIdMaiUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                maiToken,
+                usdcToken,
+                maiBalance
+            );
+        }
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 amountUsdcToSwap = (usdcBalance - amountUsdcFromMai) / 2;
 
         // swap usdc to mai
-        uint256 maiUsdc = swap(
+        swap(
             poolIdMaiUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(usdcToken)),
@@ -119,15 +130,15 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         );
 
         // add liquidity
-        amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 amountMai = maiToken.balanceOf(address(this));
-        maiToken.approve(address(router), amountMai);
-        usdcToken.approve(address(router), amountUsdc);
+        usdcBalance = usdcToken.balanceOf(address(this));
+        maiBalance = maiToken.balanceOf(address(this));
+        usdcToken.approve(address(router), usdcBalance);
+        maiToken.approve(address(router), maiBalance);
         router.addLiquidity(
             address(usdcToken),
             address(maiToken),
-            amountUsdc,
-            amountMai,
+            usdcBalance,
+            maiBalance,
             1,
             1,
             address(this),
@@ -154,7 +165,34 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         // count amount to unstake
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         if (usdcBalance >= _amount) {
-            return usdcBalance;
+            return _amount;
+        }
+        uint256 maiBalance = maiToken.balanceOf(address(this));
+        if (maiBalance > 0) {
+            uint256 amountUsdcFromMai = onSwap(
+                poolIdMaiUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                maiToken,
+                usdcToken,
+                maiBalance
+            );
+            uint256 totalAmountUsdc = usdcBalance + amountUsdcFromMai;
+            if (totalAmountUsdc >= _amount) {
+                swap(
+                    poolIdMaiUsdc,
+                    IVault.SwapKind.GIVEN_IN,
+                    IAsset(address(maiToken)),
+                    IAsset(address(usdcToken)),
+                    address(this),
+                    address(this),
+                    maiBalance,
+                    0
+                );
+                usdcBalance = usdcToken.balanceOf(address(this));
+                if (usdcBalance >= _amount) {
+                    return _amount;
+                }
+            }
         }
         uint256 amountToUnstake = _getAmountToUnstake(_amount - usdcBalance);
 
@@ -180,8 +218,8 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         );
 
         // swap mai to usdc
-        uint256 maiBalance = maiToken.balanceOf(address(this));
-        uint256 maiUsdc = swap(
+        maiBalance = maiToken.balanceOf(address(this));
+        swap(
             poolIdMaiUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(maiToken)),
@@ -222,7 +260,7 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
         // swap mai to usdc
         uint256 maiBalance = maiToken.balanceOf(address(this));
-        uint256 maiUsdc = swap(
+        swap(
             poolIdMaiUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(maiToken)),

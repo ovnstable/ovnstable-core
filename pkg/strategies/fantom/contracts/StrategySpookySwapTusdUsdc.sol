@@ -103,11 +103,22 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         require(reserveUsdc > 1000 && reserveTusd > 1000, 'StrategySpookySwapTusdUsdc: Liquidity lpToken reserves too low');
 
         // count amount tusd to swap
-        uint256 amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = amountUsdc / 2;
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        uint256 amountUsdcFromTusd;
+        if (tusdBalance > 0) {
+            amountUsdcFromTusd = onSwap(
+                poolIdTusdUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                tusdToken,
+                usdcToken,
+                tusdBalance
+            );
+        }
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 amountUsdcToSwap = (usdcBalance - amountUsdcFromTusd) / 2;
 
         // swap usdc to tusd
-        uint256 tusdUsdc = swap(
+        swap(
             poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(usdcToken)),
@@ -119,15 +130,15 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         );
 
         // add liquidity
-        amountUsdc = usdcToken.balanceOf(address(this));
-        uint256 amountTusd = tusdToken.balanceOf(address(this));
-        tusdToken.approve(address(router), amountTusd);
-        usdcToken.approve(address(router), amountUsdc);
+        usdcBalance = usdcToken.balanceOf(address(this));
+        tusdBalance = tusdToken.balanceOf(address(this));
+        usdcToken.approve(address(router), usdcBalance);
+        tusdToken.approve(address(router), tusdBalance);
         router.addLiquidity(
             address(usdcToken),
             address(tusdToken),
-            amountUsdc,
-            amountTusd,
+            usdcBalance,
+            tusdBalance,
             1,
             1,
             address(this),
@@ -154,7 +165,34 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         // count amount to unstake
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         if (usdcBalance >= _amount) {
-            return usdcBalance;
+            return _amount;
+        }
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        if (tusdBalance > 0) {
+            uint256 amountUsdcFromTusd = onSwap(
+                poolIdTusdUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                tusdToken,
+                usdcToken,
+                tusdBalance
+            );
+            uint256 totalAmountUsdc = usdcBalance + amountUsdcFromTusd;
+            if (totalAmountUsdc >= _amount) {
+                swap(
+                    poolIdTusdUsdc,
+                    IVault.SwapKind.GIVEN_IN,
+                    IAsset(address(tusdToken)),
+                    IAsset(address(usdcToken)),
+                    address(this),
+                    address(this),
+                    tusdBalance,
+                    0
+                );
+                usdcBalance = usdcToken.balanceOf(address(this));
+                if (usdcBalance >= _amount) {
+                    return _amount;
+                }
+            }
         }
         uint256 amountToUnstake = _getAmountToUnstake(_amount - usdcBalance);
 
@@ -180,8 +218,8 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         );
 
         // swap tusd to usdc
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        uint256 tusdUsdc = swap(
+        tusdBalance = tusdToken.balanceOf(address(this));
+        swap(
             poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(tusdToken)),
@@ -222,7 +260,7 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
 
         // swap tusd to usdc
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        uint256 tusdUsdc = swap(
+        swap(
             poolIdTusdUsdc,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(tusdToken)),
