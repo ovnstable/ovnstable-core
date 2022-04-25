@@ -8,6 +8,8 @@ import "./connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
 import "./connectors/spookyswap/MasterChef.sol";
 
+import "hardhat/console.sol";
+
 contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
     using LowGasSafeMath for uint256;
 
@@ -115,7 +117,7 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
             );
         }
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = (usdcBalance - amountUsdcFromMai) / 2;
+        uint256 amountUsdcToSwap = _getAmountUsdcToSwap(usdcBalance - amountUsdcFromMai, reserveUsdc, reserveMai);
 
         // swap usdc to mai
         swap(
@@ -144,6 +146,10 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
             address(this),
             block.timestamp + 600
         );
+        usdcBalance = usdcToken.balanceOf(address(this));
+        maiBalance = maiToken.balanceOf(address(this));
+        console.log("usdcBalance: %s", usdcBalance);
+        console.log("maiBalance: %s", maiBalance);
 
         // deposit lpTokens to masterChef
         uint256 lpBalance = lpToken.balanceOf(address(this));
@@ -161,6 +167,9 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
 
         (uint256 lpBalanceUser, ) = masterChef.userInfo(pid, address(this));
         require(lpBalanceUser > 0, "Lp Balance = 0");
+
+        (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
+        require(reserveUsdc > 1000 && reserveMai > 1000, 'StrategySpookySwapMaiUsdc: Liquidity lpToken reserves too low');
 
         // count amount to unstake
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
@@ -194,15 +203,13 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
                 }
             }
         }
-        uint256 amountToUnstake = _getAmountToUnstake(_amount - usdcBalance);
-
-        // withdraw lpTokens from masterChef
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveMai,) = lpToken.getReserves();
-        uint256 lpBalance = totalLpBalance * amountToUnstake / reserveUsdc / 2;
+        uint256 lpBalance = _getAmountLPTokensForWithdraw(_amount - usdcBalance, reserveUsdc, reserveMai, totalLpBalance);
         if (lpBalance > lpBalanceUser) {
             lpBalance = lpBalanceUser;
         }
+
+        // withdraw lpTokens from masterChef
         masterChef.withdraw(pid, lpBalance);
 
         // remove liquidity
@@ -335,5 +342,50 @@ contract StrategySpookySwapMaiUsdc is Strategy, BeethovenExchange {
         } else {
             return _amount * 1001 / 1000;
         }
+    }
+
+    function _getAmountUsdcToSwap(
+        uint256 amount,
+        uint256 reserveUsdc,
+        uint256 reserveMai
+    ) internal view returns (uint256) {
+        uint256 USDCtoMAI = 1000000000000;
+        uint256 amountUsdcToSwap = (amount * reserveMai) / (reserveMai + reserveUsdc * USDCtoMAI);
+        for (uint i = 0; i < 2; i++) {
+            uint256 ons = onSwap(
+                poolIdMaiUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                usdcToken,
+                maiToken,
+                amountUsdcToSwap
+            );
+            USDCtoMAI = ons / amountUsdcToSwap;
+            amountUsdcToSwap = (amount * reserveMai) / (reserveMai + reserveUsdc * USDCtoMAI);
+        }
+        return amountUsdcToSwap;
+    }
+
+    function _getAmountLPTokensForWithdraw(
+        uint256 amount,
+        uint256 reserveUsdc,
+        uint256 reserveMai,
+        uint256 totalLpBalance
+    ) internal view returns (uint256) {
+        uint256 MAItoUSDC = 1000000000000;
+        uint256 lpBalance;
+        for (uint i = 0; i < 2; i++) {
+            lpBalance = (totalLpBalance * MAItoUSDC * amount) / (reserveMai + reserveUsdc * MAItoUSDC);
+            uint256 rdd = reserveMai * lpBalance / totalLpBalance;
+            uint256 ons = onSwap(
+                poolIdMaiUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                maiToken,
+                usdcToken,
+                rdd
+            );
+            MAItoUSDC = rdd / ons;
+        }
+        lpBalance = (totalLpBalance * MAItoUSDC * amount) / (reserveMai + reserveUsdc * MAItoUSDC);
+        return lpBalance;
     }
 }

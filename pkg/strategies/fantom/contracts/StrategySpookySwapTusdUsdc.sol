@@ -115,7 +115,7 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
             );
         }
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = (usdcBalance - amountUsdcFromTusd) / 2;
+        uint256 amountUsdcToSwap = _getAmountUsdcToSwap(usdcBalance - amountUsdcFromTusd, reserveUsdc, reserveTusd);
 
         // swap usdc to tusd
         swap(
@@ -162,6 +162,9 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         (uint256 lpBalanceUser, ) = masterChef.userInfo(pid, address(this));
         require(lpBalanceUser > 0, "Lp Balance = 0");
 
+        (uint256 reserveUsdc, uint256 reserveTusd,) = lpToken.getReserves();
+        require(reserveUsdc > 1000 && reserveTusd > 1000, 'StrategySpookySwapTusdUsdc: Liquidity lpToken reserves too low');
+
         // count amount to unstake
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         if (usdcBalance >= _amount) {
@@ -194,15 +197,13 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
                 }
             }
         }
-        uint256 amountToUnstake = _getAmountToUnstake(_amount - usdcBalance);
-
-        // withdraw lpTokens from masterChef
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveTusd,) = lpToken.getReserves();
-        uint256 lpBalance = totalLpBalance * amountToUnstake / reserveUsdc / 2;
+        uint256 lpBalance = _getAmountLPTokensForWithdraw(_amount - usdcBalance, reserveUsdc, reserveTusd, totalLpBalance);
         if (lpBalance > lpBalanceUser) {
             lpBalance = lpBalanceUser;
         }
+
+        // withdraw lpTokens from masterChef
         masterChef.withdraw(pid, lpBalance);
 
         // remove liquidity
@@ -335,5 +336,50 @@ contract StrategySpookySwapTusdUsdc is Strategy, BeethovenExchange {
         } else {
             return _amount * 999 / 1000;
         }
+    }
+
+    function _getAmountUsdcToSwap(
+        uint256 amount,
+        uint256 reserveUsdc,
+        uint256 reserveTusd
+    ) internal view returns (uint256) {
+        uint256 USDCtoTUSD = 1000000000000;
+        uint256 amountUsdcToSwap = (amount * reserveTusd) / (reserveTusd + reserveUsdc * USDCtoTUSD);
+        for (uint i = 0; i < 2; i++) {
+            uint256 ons = onSwap(
+                poolIdTusdUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                usdcToken,
+                tusdToken,
+                amountUsdcToSwap
+            );
+            USDCtoTUSD = ons / amountUsdcToSwap;
+            amountUsdcToSwap = (amount * reserveTusd) / (reserveTusd + reserveUsdc * USDCtoTUSD);
+        }
+        return amountUsdcToSwap;
+    }
+
+    function _getAmountLPTokensForWithdraw(
+        uint256 amount,
+        uint256 reserveUsdc,
+        uint256 reserveTusd,
+        uint256 totalLpBalance
+    ) internal view returns (uint256) {
+        uint256 TUSDtoUSDC = 1000000000000;
+        uint256 lpBalance;
+        for (uint i = 0; i < 2; i++) {
+            lpBalance = (totalLpBalance * TUSDtoUSDC * amount) / (reserveTusd + reserveUsdc * TUSDtoUSDC);
+            uint256 rdd = reserveTusd * lpBalance / totalLpBalance;
+            uint256 ons = onSwap(
+                poolIdTusdUsdc,
+                IVault.SwapKind.GIVEN_IN,
+                tusdToken,
+                usdcToken,
+                rdd
+            );
+            TUSDtoUSDC = rdd / ons;
+        }
+        lpBalance = (totalLpBalance * TUSDtoUSDC * amount) / (reserveTusd + reserveUsdc * TUSDtoUSDC);
+        return lpBalance;
     }
 }
