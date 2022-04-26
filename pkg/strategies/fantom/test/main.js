@@ -36,8 +36,7 @@ let arrays = [
     },
     {
         name: 'StrategySpookySwapTusdUsdc',
-    },
-
+    }
 ];
 
 

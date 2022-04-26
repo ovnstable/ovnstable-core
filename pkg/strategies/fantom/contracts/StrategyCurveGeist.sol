@@ -248,7 +248,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
                 address(geistToken),
                 address(usdcToken),
                 geistBalance,
-                0,
+                geistBalance * 99 / 100,
                 address(this)
             );
             totalUsdc += geistUsdc;
@@ -260,7 +260,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
                 address(crvToken),
                 address(usdcToken),
                 crvBalance,
-                0,
+                crvBalance * 99 / 100,
                 address(this)
             );
             totalUsdc += crvUsdc;
@@ -272,7 +272,7 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
                 address(wFtmToken),
                 address(usdcToken),
                 wFtmBalance,
-                0,
+                wFtmBalance * 99 / 100,
                 address(this)
             );
             totalUsdc += wFtmUsdc;

@@ -139,7 +139,7 @@ contract StrategyScream is Strategy, SpookySwapExchange {
                 address(screamToken),
                 address(usdcToken),
                 screamBalance,
-                0,
+                screamBalance * 99 / 100,
                 address(this)
             );
         }
