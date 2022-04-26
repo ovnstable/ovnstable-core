@@ -21,19 +21,59 @@ function greatLess(value, expected, delta) {
     let lte = value.lte(maxValue);
     let gte = value.gte(minValue);
 
-    expect(gte).to.equal(true, `${value.toString()} less than ${maxValue.toString()}`);
-    expect(lte).to.equal(true, `${value.toString()} greate than ${minValue.toString()}`);
+    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
+    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
 }
 
-function strategyTest(strategyName, network, assets) {
+function strategyTest(strategy, network, assets) {
 
-    let values = [0.002, 0.02, 0.2, 2, 20, 200, 2000, 20000, 200000, 2000000];
+    let values = [
+        {
+            value: 0.002,
+            deltaPercent: 50,
+        },
+        {
+            value: 0.02,
+            deltaPercent: 10,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+        },
+        {
+            value: 2,
+            deltaPercent: 5,
+        },
+        {
+            value: 20,
+            deltaPercent: 1,
+        },
+        {
+            value: 2000,
+            deltaPercent: 1,
+        },
+        {
+            value: 20000,
+            deltaPercent: 1,
+        },
+        {
+            value: 200000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 2000000,
+            deltaPercent: 0.1,
+        },
+    ]
 
-    describe(`${strategyName}`, function () {
+    describe(`${strategy.name}`, function () {
 
-        stakeUnstake(strategyName, network, assets, values);
-        unstakeFull(strategyName, network, assets, values);
-        claimRewards(strategyName, network, assets, values);
+        stakeUnstake(strategy.name, network, assets, values);
+        unstakeFull(strategy.name, network, assets, values);
+
+        if (strategy.enabledReward) {
+            claimRewards(strategy.name, network, assets, values);
+        }
 
     });
 }
@@ -78,7 +118,11 @@ function stakeUnstake(strategyName, network, assets, values) {
         });
 
 
-        values.forEach(stakeValue => {
+        values.forEach(item => {
+
+            let stakeValue = item.value;
+            let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
+
 
             let unstakeValue = stakeValue / 2;
 
@@ -89,12 +133,7 @@ function stakeUnstake(strategyName, network, assets, values) {
                 let expectedLiquidation;
 
                 let valueBN = new BN(toUSDC(stakeValue));
-                let DELTA;
-                if (valueBN > 10000) {
-                    DELTA = valueBN.div(new BN(1000));
-                } else {
-                    DELTA = valueBN.div(new BN(2))
-                }
+                let DELTA = valueBN.muln(deltaPercent).divn(100);
 
                 let netAssetValueCheck;
                 let liquidationValueCheck;
@@ -143,12 +182,7 @@ function stakeUnstake(strategyName, network, assets, values) {
                     let expectedLiquidation;
 
                     let valueBN = new BN(toUSDC(unstakeValue));
-                    let DELTA;
-                    if (valueBN > 10000) {
-                        DELTA = valueBN.div(new BN(1000));
-                    } else {
-                        DELTA = valueBN.div(new BN(2))
-                    }
+                    let DELTA = valueBN.muln(deltaPercent).divn(100); // 5%
 
                     let netAssetValueCheck;
                     let liquidationValueCheck;
@@ -225,7 +259,9 @@ function unstakeFull(strategyName, network, assets, values) {
         });
 
 
-        values.forEach(stakeValue => {
+        values.forEach(item => {
+
+            let stakeValue = item.value;
 
             describe(`Stake ${stakeValue} => UnstakeFull`, function () {
 
@@ -314,7 +350,9 @@ function claimRewards(strategyName, network, assets, values) {
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
 
-        values.forEach(stakeValue => {
+        values.forEach(item => {
+
+            let stakeValue = item.value;
 
             describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
@@ -332,7 +370,7 @@ function claimRewards(strategyName, network, assets, values) {
                     const sevenDays = 7 * 24 * 60 * 60;
                     await ethers.provider.send("evm_increaseTime", [sevenDays])
                     await ethers.provider.send('evm_mine');
-                    
+
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
                     balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());

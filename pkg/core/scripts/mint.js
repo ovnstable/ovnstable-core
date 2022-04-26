@@ -6,29 +6,25 @@ const ethers = hre.ethers;
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
 let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
 
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Exchange.json'));
+let Exchange = JSON.parse(fs.readFileSync('./deployments/fantom_dev/Exchange.json'));
 
-let price = { maxFeePerGas: "1400000000000", maxPriorityFeePerGas: "1400000000000" };
+let price = {maxFeePerGas: "1400000000000", maxPriorityFeePerGas: "1400000000000"};
 
-let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+let {POLYGON, FANTOM} = require('@overnight-contracts/common/utils/assets');
+const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 
 async function main() {
-    // need to run inside IDEA via node script running
-    await hre.run("compile");
 
-    let provider = ethers.provider;
-
-    console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
-    const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    let wallet = await initWallet(ethers);
 
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
+    let usdc = await ethers.getContractAt(ERC20.abi, FANTOM.usdc, wallet);
 
-    await (await exchange.buy(POLYGON.usdc, toUSDC(10), price)).wait();
-
+    // await (await usdc.approve(exchange.address, toUSDC(500))).wait();
+    // console.log('USDC approve done');
+    await (await exchange.buy(FANTOM.usdc, toUSDC(500))).wait();
+    console.log('Exchange.buy done');
 }
 
 

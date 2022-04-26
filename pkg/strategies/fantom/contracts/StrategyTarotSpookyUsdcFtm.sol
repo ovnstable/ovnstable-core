@@ -84,6 +84,8 @@ contract StrategyTarotSpookyUsdcFtm is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        _amount = _convertAmount(_amount, 5);
+
         uint256 bTarotSpookyAmount = _amount * bTarotSpookyTokenDenominator / bTarotSpookyToken.exchangeRateLast();
 
         bTarotSpookyToken.approve(address(tarotRouter), bTarotSpookyAmount);

@@ -84,6 +84,8 @@ contract StrategyTarotSpiritUsdcFtm is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        _amount = _convertAmount(_amount, 5);
+
         uint256 bTarotSpiritAmount = _amount * bTarotSpiritTokenDenominator / bTarotSpiritToken.exchangeRateLast();
 
         bTarotSpiritToken.approve(address(tarotRouter), bTarotSpiritAmount);

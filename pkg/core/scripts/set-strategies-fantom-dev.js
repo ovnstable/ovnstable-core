@@ -107,6 +107,15 @@ async function main() {
     let tarotSupplyVaultUsdc = {
         strategy: "0xF7d693CE960e70721F0353F967360046Ba7d4eFA",
         minWeight: 0,
+        targetWeight: 0,
+        maxWeight: 100000,
+        enabled: false,
+        enabledReward: false,
+    }
+
+    let scream = {
+        strategy: "0x33452F7817B545D4cC08706114A329C7Afe70B18",
+        minWeight: 0,
         targetWeight: 10000,
         maxWeight: 100000,
         enabled: true,
@@ -118,6 +127,7 @@ async function main() {
     let weights = [
         aave,
         cream,
+        scream,
         beethovenxDeiUsdc,
         curve2Pool,
         curveGeist,
