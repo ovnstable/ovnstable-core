@@ -11,19 +11,12 @@ let Exchange = JSON.parse(fs.readFileSync('./deployments/fantom_dev/Exchange.jso
 let price = {maxFeePerGas: "1400000000000", maxPriorityFeePerGas: "1400000000000"};
 
 let {POLYGON, FANTOM} = require('@overnight-contracts/common/utils/assets');
+const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 
 async function main() {
-    // need to run inside IDEA via node script running
-    await hre.run("compile");
 
-    let provider = ethers.provider;
-
-    console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
-    const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    let wallet = await initWallet(ethers);
 
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let usdc = await ethers.getContractAt(ERC20.abi, FANTOM.usdc, wallet);
