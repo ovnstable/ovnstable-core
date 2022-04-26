@@ -90,7 +90,9 @@ contract StrategyTarotSupplyVaultUsdc is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 tUsdcTokenAmount = tUsdcToken.underlyingValuedAsShare(_amount) * 1001 / 1000;
+        _amount = _convertAmount(_amount, 10);
+
+        uint256 tUsdcTokenAmount = tUsdcToken.underlyingValuedAsShare(_amount);
 
         IERC20(address(tUsdcToken)).approve(address(tarotSupplyVaultRouter), tUsdcTokenAmount);
 
