@@ -89,7 +89,12 @@ function stakeUnstake(strategyName, network, assets, values) {
                 let expectedLiquidation;
 
                 let valueBN = new BN(toUSDC(stakeValue));
-                let DELTA = valueBN.div(new BN(1000));
+                let DELTA;
+                if (valueBN > 10000) {
+                    DELTA = valueBN.div(new BN(1000));
+                } else {
+                    DELTA = valueBN.div(new BN(2))
+                }
 
                 let netAssetValueCheck;
                 let liquidationValueCheck;
@@ -138,7 +143,12 @@ function stakeUnstake(strategyName, network, assets, values) {
                     let expectedLiquidation;
 
                     let valueBN = new BN(toUSDC(unstakeValue));
-                    let DELTA = valueBN.div(new BN(1000));
+                    let DELTA;
+                    if (valueBN > 10000) {
+                        DELTA = valueBN.div(new BN(1000));
+                    } else {
+                        DELTA = valueBN.div(new BN(2))
+                    }
 
                     let netAssetValueCheck;
                     let liquidationValueCheck;
