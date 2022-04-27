@@ -40,6 +40,20 @@ let arrays = [
         name: 'StrategyScream',
         enabledReward: true,
     },
+    {
+        name: 'StrategySpookySwapMaiUsdc',
+    },
+    {
+        name: 'StrategySpookySwapTusdUsdc',
+    },
+    {
+        name: 'StrategyWigoUsdcDai',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyWigoUsdcFUsdt',
+        enabledReward: true,
+    },
 ];
 
 
