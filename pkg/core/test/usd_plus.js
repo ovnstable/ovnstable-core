@@ -502,7 +502,7 @@ describe("ERC20", function () {
 
     describe("approve", function () {
 
-        it('max', async function () {
+        it('max 256', async function () {
             const [owner, tmpUser] = await ethers.getSigners();
 
             let uint256Max = new BN(2).pow(new BN(256)).subn(1);
@@ -510,6 +510,27 @@ describe("ERC20", function () {
 
             expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(uint256Max.toString())
         });
+
+        it('max 75 symbols', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            let uint256Max = new BN(2).pow(new BN(256)).subn(1);
+            await usdPlus.approve(tmpUser.address, "115792089237316195423570985008687907853269984665640564039457584007913129");
+
+            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(uint256Max.toString())
+        });
+
+
+        it('max 40 symbols', async function () {
+            const [owner, tmpUser] = await ethers.getSigners();
+
+            let value = "1157920892373161954235709850086879078532";
+            await usdPlus.approve(tmpUser.address, value);
+
+            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(value.toString())
+        });
+
+
 
         it('transfer', async function () {
             const [owner, tmpUser] = await ethers.getSigners();

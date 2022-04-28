@@ -229,7 +229,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function allowance(address owner, address spender) public view override returns (uint256) {
         uint256 allowanceRay = _allowance(owner, spender);
-        if (allowanceRay == type(uint256).max) {
+        if (allowanceRay > (type(uint256).max / liquidityIndex )) {
             return type(uint256).max;
         }
         allowanceRay = allowanceRay.rayMul(liquidityIndex);
@@ -251,7 +251,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function approve(address spender, uint256 amount) external override returns (bool){
         uint256 scaledAmount;
-        if (amount == type(uint256).max) {
+        if (amount > (type(uint256).max / liquidityIndex / 10 ** 9)) {
             scaledAmount = type(uint256).max;
         } else {
             // up to ray

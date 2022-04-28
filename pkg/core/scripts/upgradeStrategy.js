@@ -10,21 +10,25 @@ let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contra
 let OvnGovernor = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnGovernor.json'));
 let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnToken.json'));
 
+let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
+
+
 async function main() {
 
     let wallet = await initWallet(ethers);
 
     let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-    let strategy = await ethers.getContractAt(Strategy.abi, "0x84152E7d666fC05cC64dE99959176338f783F8Eb", wallet);
+    let contract = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(strategy.address);
+
+    addresses.push(contract.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x2C3bDE5E5e7Bf70e41e870e087C0f01d127A61cB']));
+    abis.push(contract.interface.encodeFunctionData('upgradeTo', ['0x772D49f2547cC343E4Acd3F23d32A51e69fAf4d2']));
 
 
     console.log('Creating a proposal...')
@@ -32,7 +36,7 @@ async function main() {
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal 1: Upgrade Strategies"),
+        ethers.utils.id("Proposal 2: Upgrade Strategies"),
         {
             maxFeePerGas: "100000000000",
             maxPriorityFeePerGas: "100000000000"
