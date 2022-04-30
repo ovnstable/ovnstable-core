@@ -12,7 +12,7 @@ let pidBeethovenxDeiUsdc = 67;
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyBeethovenxDeiUsdc");
 
-    await (await strategy.setTokens(FANTOM.usdc, FANTOM.bptDeiUsdc, FANTOM.beets, FANTOM.deus, FANTOM.wFtm)).wait();
+    await (await strategy.setTokens(FANTOM.usdc, FANTOM.bptDeiUsdc, FANTOM.beets, FANTOM.deus, FANTOM.wFtm, FANTOM.dei)).wait();
     await (await strategy.setParams(FANTOM.beethovenxVault, FANTOM.beethovenxMasterChef, poolIdDeiUsdc,
         poolIdBeetsWFtm, poolIdDeusWFtm, poolIdWFtmUsdc, pidBeethovenxDeiUsdc)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();

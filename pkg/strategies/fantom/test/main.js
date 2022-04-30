@@ -42,9 +42,11 @@ let arrays = [
     },
     {
         name: 'StrategySpookySwapMaiUsdc',
+        enabledReward: true,
     },
     {
         name: 'StrategySpookySwapTusdUsdc',
+        enabledReward: true,
     },
     {
         name: 'StrategyWigoUsdcDai',
@@ -52,6 +54,10 @@ let arrays = [
     },
     {
         name: 'StrategyWigoUsdcFUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyBeethovenxUsdcAsUsdc',
         enabledReward: true,
     },
 ];
