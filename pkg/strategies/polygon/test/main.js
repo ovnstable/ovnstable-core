@@ -7,39 +7,49 @@ let arrays = [
 
     {
         name: 'StrategyAave',
+        enabledReward: false,
     },
     {
         name: 'StrategyBalancer',
+        enabledReward: true,
     },
     {
         name: 'StrategyCurve',
+        enabledReward: false,
     },
     {
         name: 'StrategyDodoUsdc',
+        enabledReward: true,
     },
     {
         name: 'StrategyDodoUsdt',
+        enabledReward: true,
     },
     {
         name: 'StrategyIdle',
+        enabledReward: false,
     },
     {
         name: 'StrategyImpermaxQsUsdt',
-    },
-    {
-        name: 'StrategyIzumi',
+        enabledReward: false,
     },
     {
         name: 'StrategyMStable',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyIzumi',
+        enabledReward: false,
     },
     {
         name: 'StrategyArrakis',
+        enabledReward: true,
     }
 
 ];
 
 
-if (id !== undefined && id !== ""){
+if (id !== undefined && id !== "") {
     console.log(`Strategy ID ${id}`);
     arrays = arrays.filter(value => value.name === id);
 }
@@ -49,6 +59,6 @@ console.log(`Run tests [${arrays.map(value => value.name)}]`);
 describe("Polygon", function () {
 
     arrays.forEach(value => {
-        strategyTest(value.name, 'POLYGON', POLYGON);
+        strategyTest(value, 'POLYGON', POLYGON);
     })
 });

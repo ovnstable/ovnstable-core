@@ -49,6 +49,10 @@ function strategyTest(strategy, network, assets) {
             deltaPercent: 1,
         },
         {
+            value: 200,
+            deltaPercent: 1,
+        },
+        {
             value: 2000,
             deltaPercent: 1,
         },

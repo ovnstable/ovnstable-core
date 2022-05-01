@@ -211,7 +211,11 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
             // t=N/(r+1)
             return needUsdtValue;
         } else {
-            revert("Amount liquidity USDT more then USDC");
+            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
+            uint256 usdcBalance = _amount;
+            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
+            // t=N/(r+1)
+            return needUsdtValue;
         }
     }
 
