@@ -30,7 +30,7 @@ function polygon(){
 
 function getCoreAddresses(){
 
-    let stand = "fantom_dev";
+    let stand = "fantom";
     switch (stand){
         case "fantom_dev":
             return fantomDev();
