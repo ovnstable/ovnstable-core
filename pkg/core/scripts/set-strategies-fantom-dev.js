@@ -11,6 +11,7 @@ let PM = JSON.parse(fs.readFileSync('./deployments/fantom_dev/PortfolioManager.j
 let M2M = JSON.parse(fs.readFileSync('./deployments/fantom_dev/Mark2Market.json'));
 
 let {FANTOM, DEFAULT} = require('@overnight-contracts/common/utils/assets');
+const {showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 
 
@@ -141,8 +142,10 @@ async function main() {
     console.log("portfolio.setWeights done");
 
 
-    // await (await pm.balance()).wait();
-    // console.log("portfolio.balance done");
+    await (await pm.balance()).wait();
+    console.log("portfolio.balance done");
+
+    await showM2M(m2m);
 
 }
 
