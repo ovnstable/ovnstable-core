@@ -1,6 +1,7 @@
 const {fromE18, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const axios = require('axios');
 
-async function initWallet(ethers){
+async function initWallet(ethers) {
 
     let provider = ethers.provider;
     console.log('Provider: ' + provider.connection.url);
@@ -12,18 +13,26 @@ async function initWallet(ethers){
     return wallet;
 }
 
-async function showM2M(m2m){
+async function showM2M(m2m) {
 
     let strategyAssets = await m2m.strategyAssets();
 
+    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
+
     let sum = 0;
+
+    let items = [];
     for (let i = 0; i < strategyAssets.length; i++) {
         let asset = strategyAssets[i];
-        console.log(`${asset.strategy}: ${fromUSDC(asset.netAssetValue)} : ${fromUSDC(asset.liquidationValue)}`)
 
+        let mapping = strategiesMapping.find(value => value.address === asset.strategy);
+
+
+        items.push({name: mapping ? mapping.name : asset.strategy,netAssetValue: fromUSDC(asset.netAssetValue), liquidationValue: fromUSDC(asset.liquidationValue)});
         sum += fromUSDC(asset.netAssetValue);
     }
 
+    console.table(items);
     console.log('Total: ' + sum);
 }
 

@@ -17,18 +17,13 @@ let OvnGovernor = JSON.parse(fs.readFileSync('../governance/deployments/polygon/
 let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnToken.json'));
 
 const govUtils = require("@overnight-contracts/common/utils/governance");
+const {showM2M, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 async function main() {
     // need to run inside IDEA via node script running
     await hre.run("compile");
 
-    let provider = ethers.provider;
-
-    console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
-    const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    let wallet = await initWallet(ethers);
 
     let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
     let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
@@ -113,22 +108,27 @@ async function main() {
     abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]))
 
 
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id("Proposal: Update "),
-        {
-            maxFeePerGas: "100000000000",
-            maxPriorityFeePerGas: "100000000000"
-        }
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
+    // console.log('Creating a proposal...')
+    // const proposeTx = await governor.proposeExec(
+    //     addresses,
+    //     values,
+    //     abis,
+    //     ethers.utils.id("Proposal: Update "),
+    //     {
+    //         maxFeePerGas: "100000000000",
+    //         maxPriorityFeePerGas: "100000000000"
+    //     }
+    // );
+    // let tx = await proposeTx.wait();
+    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    // console.log('Proposal id ' + proposalId)
 
     // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
+
+    await showM2M(m2m);
+
+    await governor.executeExec("37897815950041086133330196260964493702378928139770407606486714785095038396906");
+    await showM2M(m2m);
 
 }
 

@@ -19,6 +19,7 @@
     "web3": "^1.7.3"
   },
   "devDependencies": {
+    "axios": "^0.27.2",
     "chai-bn": "^0.3.1"
   }
 }
