@@ -14,7 +14,6 @@ let {FANTOM, DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const {showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 
-
 async function main() {
     // need to run inside IDEA via node script running
     await hre.run("compile");
@@ -36,12 +35,22 @@ async function main() {
     // await (await pm.setUsdc(FANTOM.usdc)).wait();
     // console.log('pm.setUsdc done')
     //
-    // await (await pm.setCashStrategy("0x448e87779345cc2a4b3772DfD0f63200837B2615")).wait();
+    // await (await pm.setCashStrategy("0xd2381abf796Fc9c83ca977E9153812B64712754A")).wait();
     // console.log('pm.setCashStrategy done');
 
 
-    let aave = {
-        strategy: "0x448e87779345cc2a4b3772DfD0f63200837B2615",
+    // 2 - Cream (cash)
+    // 2 - Aave
+    // 10 - SpookySwap MAI-USDC
+    // 10 - Scream
+    // 26 - BeethovenxDeiUsdc
+    // 20 - Beethoven USDC / asUSDC
+    // 10 - Curve2Pool
+    // 10 - TarotSpiritUsdcFtm
+    // 10 - TarotSpookyUsdcFtm
+
+    let cream = {
+        strategy: "0xd2381abf796Fc9c83ca977E9153812B64712754A",
         minWeight: 0,
         targetWeight: 2000,
         maxWeight: 5000,
@@ -49,25 +58,35 @@ async function main() {
         enabledReward: true,
     }
 
-    let beethovenxDeiUsdc= {
+    let aave = {
+        strategy: "0x448e87779345cc2a4b3772DfD0f63200837B2615",
+        minWeight: 0,
+        targetWeight: 2000,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
+    let beethovenxDeiUsdc = {
         strategy: "0x08d387BAb84706946dC92651Dc794D41bb7eb6b5",
         minWeight: 0,
-        targetWeight: 38000,
+        targetWeight: 26000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
 
-    let cream = {
-        strategy: "0xd2381abf796Fc9c83ca977E9153812B64712754A",
+    let beethovenxUsdcAsUsdc = {
+        strategy: "0x12137868aA17d31586F2444e3Cd602279FabE6E8",
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 20000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
 
-    let curve2Pool= {
+
+    let curve2Pool = {
         strategy: "0x1E1F509963A6D33e169D9497b11c7DbFe73B7F13",
         minWeight: 0,
         targetWeight: 10000,
@@ -76,10 +95,10 @@ async function main() {
         enabledReward: true,
     }
 
-    let curveGeist= {
+    let curveGeist = {
         strategy: "0x1862f0115cc08dE3F24bE5109AdCcDf5E11B6350",
         minWeight: 0,
-        targetWeight: 10000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -96,7 +115,7 @@ async function main() {
     }
 
 
-    let tarotSpookyUsdcFtm= {
+    let tarotSpookyUsdcFtm = {
         strategy: "0x3bE4a04d21D9cE2b38557CB9e89A9254AEE7c132",
         minWeight: 0,
         targetWeight: 10000,
@@ -114,6 +133,15 @@ async function main() {
         enabledReward: false,
     }
 
+    let spookySwapMaiUsdc = {
+        strategy: "0x375Ca8E03901eCdc1e9dEC6B14d2b39B665A4D85",
+        minWeight: 0,
+        targetWeight: 10000,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
     let scream = {
         strategy: "0x33452F7817B545D4cC08706114A329C7Afe70B18",
         minWeight: 0,
@@ -124,23 +152,30 @@ async function main() {
     }
 
 
-
     let weights = [
         aave,
         cream,
         scream,
         beethovenxDeiUsdc,
+        beethovenxUsdcAsUsdc,
         curve2Pool,
         curveGeist,
         tarotSpiritUsdcFtm,
         tarotSpookyUsdcFtm,
-        tarotSupplyVaultUsdc
+        tarotSupplyVaultUsdc,
+        spookySwapMaiUsdc
     ]
 
 
+    let sum = 0;
+    for (let i = 0; i < weights.length; i++) {
+        sum += weights[i].targetWeight;
+    }
+
+    console.log('TargetWeight: ' + sum);
+
     await (await pm.setStrategyWeights(weights)).wait();
     console.log("portfolio.setWeights done");
-
 
     await (await pm.balance()).wait();
     console.log("portfolio.balance done");
