@@ -116,7 +116,7 @@ abstract contract BeethovenExchange {
         swapRequest.tokenOut = tokenOut;
         swapRequest.amount = balance;
 
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = beethovenxVault.getPoolTokens(poolId);
+        (IERC20[] memory tokens, uint256[] memory balances, ) = beethovenxVault.getPoolTokens(poolId);
 
         (address pool, IVault.PoolSpecialization poolSpecialization) = beethovenxVault.getPool(poolId);
 
