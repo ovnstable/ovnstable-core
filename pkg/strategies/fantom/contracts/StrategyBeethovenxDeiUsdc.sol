@@ -16,10 +16,12 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
     IERC20 public beetsToken;
     IERC20 public deusToken;
     IERC20 public wFtmToken;
-    IERC20 public deiToken;
 
     uint256 public usdcTokenDenominator;
-    uint256 public deiTokenDenominator;
+    uint256 public bptDeiUsdcTokenDenominator; // unused
+    uint256 public beetsTokenDenominator; // unused
+    uint256 public deusTokenDenominator; // unused
+    uint256 public wFtmTokenDenominator; // unused
 
     IVault public beethovenxVault;
     BeethovenxMasterChef public beethovenxMasterChef;
@@ -30,6 +32,10 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
     bytes32 public poolIdWFtmUsdc;
 
     uint256 public pidDeiUsdc;
+
+    IERC20 public deiToken;
+    uint256 public deiTokenDenominator;
+
 
 
     // --- events
@@ -199,7 +205,7 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
 
         uint256 amountBptDeiUsdc = _getAmountLPTokensForWithdraw(
             _amount, balances[0], balances[1], bptDeiUsdcToken.totalSupply(), deiTokenDenominator/usdcTokenDenominator);
-        
+
         beethovenxMasterChef.withdrawAndHarvest(pidDeiUsdc, amountBptDeiUsdc, address(this));
 
         amountBptDeiUsdc = bptDeiUsdcToken.balanceOf(address(this));
