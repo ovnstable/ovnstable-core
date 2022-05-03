@@ -2718,7 +2718,7 @@
             "label": "uniswapRouter",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IUniswapV2Router02)19529",
+            "type": "t_contract(IUniswapV2Router02)20858",
             "contract": "SpookySwapExchange",
             "src": "contracts/exchanges/SpookySwapExchange.sol:9"
           },
@@ -2822,7 +2822,7 @@
             "label": "crvPool",
             "offset": 0,
             "slot": "362",
-            "type": "t_contract(IStableSwapPool)17540",
+            "type": "t_contract(IStableSwapPool)18869",
             "contract": "StrategyCurveGeist",
             "src": "contracts/StrategyCurveGeist.sol:26"
           },
@@ -2830,7 +2830,7 @@
             "label": "rewardGauge",
             "offset": 0,
             "slot": "363",
-            "type": "t_contract(IRewardsOnlyGauge)17358",
+            "type": "t_contract(IRewardsOnlyGauge)18687",
             "contract": "StrategyCurveGeist",
             "src": "contracts/StrategyCurveGeist.sol:27"
           }
@@ -2860,15 +2860,15 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IRewardsOnlyGauge)17358": {
+          "t_contract(IRewardsOnlyGauge)18687": {
             "label": "contract IRewardsOnlyGauge",
             "numberOfBytes": "20"
           },
-          "t_contract(IStableSwapPool)17540": {
+          "t_contract(IStableSwapPool)18869": {
             "label": "contract IStableSwapPool",
             "numberOfBytes": "20"
           },
-          "t_contract(IUniswapV2Router02)19529": {
+          "t_contract(IUniswapV2Router02)20858": {
             "label": "contract IUniswapV2Router02",
             "numberOfBytes": "20"
           },
@@ -4470,6 +4470,282 @@
           },
           "t_contract(IVault)18562": {
             "label": "contract IVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "8d46da5e80b75a0de892cb345cf46d543552d703b08d336813f69508d77de193": {
+      "address": "0xfb6D5e76A8A21a5E337c95A9A83Ee4f6F79A8a2F",
+      "txHash": "0xf5524c3e656c6c5b23a555c11729b91e068747b02d28e7b87f1a7780ca461eac",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:235"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "portfolioManager",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_address",
+            "contract": "Strategy",
+            "src": "contracts/core/Strategy.sol:16"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "Strategy",
+            "src": "contracts/core/Strategy.sol:151"
+          },
+          {
+            "label": "uniswapRouter",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IUniswapV2Router02)20858",
+            "contract": "SpookySwapExchange",
+            "src": "contracts/exchanges/SpookySwapExchange.sol:9"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "SpookySwapExchange",
+            "src": "contracts/exchanges/SpookySwapExchange.sol:56"
+          },
+          {
+            "label": "usdcToken",
+            "offset": 0,
+            "slot": "351",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:13"
+          },
+          {
+            "label": "crvPoolToken",
+            "offset": 0,
+            "slot": "352",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:14"
+          },
+          {
+            "label": "crvGaugeToken",
+            "offset": 0,
+            "slot": "353",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:15"
+          },
+          {
+            "label": "geistToken",
+            "offset": 0,
+            "slot": "354",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:16"
+          },
+          {
+            "label": "crvToken",
+            "offset": 0,
+            "slot": "355",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:17"
+          },
+          {
+            "label": "wFtmToken",
+            "offset": 0,
+            "slot": "356",
+            "type": "t_contract(IERC20)2415",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:18"
+          },
+          {
+            "label": "usdcTokenDenominator",
+            "offset": 0,
+            "slot": "357",
+            "type": "t_uint256",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:20"
+          },
+          {
+            "label": "crvPoolTokenDenominator",
+            "offset": 0,
+            "slot": "358",
+            "type": "t_uint256",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:21"
+          },
+          {
+            "label": "geistTokenDenominator",
+            "offset": 0,
+            "slot": "359",
+            "type": "t_uint256",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:22"
+          },
+          {
+            "label": "crvTokenDenominator",
+            "offset": 0,
+            "slot": "360",
+            "type": "t_uint256",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:23"
+          },
+          {
+            "label": "wFtmTokenDenominator",
+            "offset": 0,
+            "slot": "361",
+            "type": "t_uint256",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:24"
+          },
+          {
+            "label": "crvPool",
+            "offset": 0,
+            "slot": "362",
+            "type": "t_contract(IStableSwapPool)18869",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:26"
+          },
+          {
+            "label": "rewardGauge",
+            "offset": 0,
+            "slot": "363",
+            "type": "t_contract(IRewardsOnlyGauge)18687",
+            "contract": "StrategyCurveGeist",
+            "src": "contracts/StrategyCurveGeist.sol:27"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2415": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRewardsOnlyGauge)18687": {
+            "label": "contract IRewardsOnlyGauge",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStableSwapPool)18869": {
+            "label": "contract IStableSwapPool",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUniswapV2Router02)20858": {
+            "label": "contract IUniswapV2Router02",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {

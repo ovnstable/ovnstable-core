@@ -100,8 +100,8 @@ async function main() {
         minWeight: 0,
         targetWeight: 0,
         maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
+        enabled: false,
+        enabledReward: false,
     }
 
 
