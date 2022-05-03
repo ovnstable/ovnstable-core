@@ -10,6 +10,7 @@ import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
+import "./PayoutListener.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -43,6 +44,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange;
 
+    IPayoutListener public payoutListener;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address usdc);
@@ -51,6 +54,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
+    event PayoutListenerUpdated(address payoutListener);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(
@@ -130,6 +134,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_mark2market != address(0), "Zero address not allowed");
         mark2market = IMark2Market(_mark2market);
         emit Mark2MarketUpdated(_mark2market);
+    }
+
+    function setPayoutListener(address _payoutListener) external onlyAdmin {
+        require(_payoutListener != address(0), "Zero address not allowed");
+        payoutListener = IPayoutListener(_payoutListener);
+        emit PayoutListenerUpdated(_payoutListener);
     }
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
@@ -262,6 +272,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // in ray
         uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
         usdPlus.setLiquidityIndex(newLiquidityIndex);
+
+        // notify listener about payout done
+        if (address(payoutListener) != address(0)) {
+            payoutListener.payoutDone();
+        }
 
         emit PayoutEvent(
             totalUsdPlusSupply,

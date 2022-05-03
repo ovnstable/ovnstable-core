@@ -6,6 +6,8 @@ const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals")
 const hre = require("hardhat");
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 chai.use(require('chai-bignumber')());
 
 describe("Payout", function () {
@@ -17,13 +19,14 @@ describe("Payout", function () {
     let account;
     let pm;
     let m2m;
+    let mockPL;
 
     before(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies']);
+        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies', 'MockPayoutListener']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -31,6 +34,7 @@ describe("Payout", function () {
         usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract("PortfolioManager");
         m2m = await ethers.getContract("Mark2Market");
+        mockPL = await ethers.getContract("MockPayoutListener");
 
         usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
     });
@@ -73,5 +77,29 @@ describe("Payout", function () {
         expect(balanceUsdPlusUserNew).to.greaterThan(balanceUsdPlusUser);
     });
 
+    it("Call payout with PayoutListener", async function () {
+        const sum = toUSDC(100000);
+        await (await usdc.approve(exchange.address, sum)).wait();
+        await (await exchange.buy(POLYGON.usdc, sum)).wait();
+
+        // wait 1 days
+        const days = 1 * 24 * 60 * 60;
+        await ethers.provider.send("evm_increaseTime", [days])
+        await ethers.provider.send('evm_mine');
+
+        // when not set mock PL payout should pass ok
+        evmCheckpoint('before_payout');
+        let payoutReceipt = await (await exchange.payout()).wait();
+        const payoutEvent = payoutReceipt.events.find((e) => e.event === 'PayoutEvent');
+        expect(payoutEvent).to.not.be.undefined;
+        evmRestore('before_payout');
+
+        let receipt = await (await exchange.setPayoutListener(mockPL.address)).wait();
+        const updatedEvent = receipt.events.find((e) => e.event === 'PayoutListenerUpdated');
+        expect(updatedEvent.args[0]).to.equals(mockPL.address);
+
+        await expectRevert(mockPL.payoutDone(), 'MockPayoutListener.payoutDone() called');
+        await expectRevert(exchange.payout(), 'MockPayoutListener.payoutDone() called');
+    });
 
 });
