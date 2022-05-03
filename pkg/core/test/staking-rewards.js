@@ -29,7 +29,28 @@ describe("StakingRewards", function () {
         stakingRewards = await ethers.getContract('StakingRewards');
         stakingToken = await ethers.getContractAt("ERC20", POLYGON.usdc);
 
+
         await rewardToken.mint(stakingRewards.address, toUSDC(100));
+
+    });
+
+
+    it('Test', async function (){
+
+        console.log('1: Earned ' + await stakingRewards.earned(account));
+        console.log('1: RewardPerToken ' + await stakingRewards.rewardPerToken());
+
+        await stakingRewards.notifyRewardAmount(toUSDC(100));
+        await stakingToken.approve(stakingRewards.address, toUSDC(100));
+        await stakingRewards.stake(toUSDC(100));
+
+        console.log('2: Earned ' + await stakingRewards.earned(account));
+        console.log('2: RewardPerToken ' + await stakingRewards.rewardPerToken());
+
+        await stakingRewards.withdraw(toUSDC(100));
+
+        console.log('3: Earned ' + await stakingRewards.earned(account));
+        console.log('3: RewardPerToken ' + await stakingRewards.rewardPerToken());
 
     });
 
