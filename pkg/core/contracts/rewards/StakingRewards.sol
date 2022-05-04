@@ -26,7 +26,6 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     uint256 public periodFinish;
     uint256 public rewardRate;
-    uint256 public rewardsDuration;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
 
@@ -50,9 +49,6 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(PAUSABLE_ROLE, msg.sender);
 
-        rewardRate = 1;
-        periodFinish = 0;
-        rewardsDuration = 7 days;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -89,6 +85,11 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         rewardsToken = IERC20Upgradeable(_rewardsToken);
     }
 
+    function setSetting(uint256 _rewardRate, uint256 _periodFinish) external onlyAdmin updateReward(address(0)) {
+        rewardRate = _rewardRate;
+        periodFinish = _periodFinish;
+    }
+
 
     function totalSupply() external view returns (uint256) {
         return _totalSupply;
@@ -107,34 +108,23 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
             return rewardPerTokenStored;
         }
 
-
-
-        return
-        rewardPerTokenStored.add(
-            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply)
+        uint256 result = rewardPerTokenStored.add(
+            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate)
         );
+
+        return result;
     }
 
     function earned(address account) public view returns (uint256) {
         return _balances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(rewards[account]);
     }
 
-    function getRewardForDuration() external view returns (uint256) {
-        return rewardRate.mul(rewardsDuration);
-    }
-
 
     function stake(uint256 amount) external nonReentrant whenNotPaused updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
 
-        console.log("1: Amount %s", amount);
-        console.log("1: Balance %s", _balances[msg.sender]);
-
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-
-        console.log("2: Amount %s", amount);
-        console.log("2: Balance %s", _balances[msg.sender]);
 
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
@@ -162,38 +152,7 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         getReward();
     }
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward) external onlyAdmin updateReward(address(0)) {
-        if (block.timestamp >= periodFinish) {
-            rewardRate = reward.div(rewardsDuration);
-        } else {
-            uint256 remaining = periodFinish.sub(block.timestamp);
-            uint256 leftover = remaining.mul(rewardRate);
-            rewardRate = reward.add(leftover).div(rewardsDuration);
-        }
-
-        // Ensure the provided reward amount is not more than the balance in the contract.
-        // This keeps the reward rate in the right range, preventing overflows due to
-        // very high values of rewardRate in the earned and rewardsPerToken functions;
-        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-        uint balance = rewardsToken.balanceOf(address(this));
-        require(rewardRate <= balance.div(rewardsDuration), "Provided reward too high");
-
-        lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp.add(rewardsDuration);
-        emit RewardAdded(reward);
-    }
-
-
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyAdmin {
-        require(
-            block.timestamp > periodFinish,
-            "Previous rewards period must be complete before changing the duration for the new period"
-        );
-        rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
-    }
 
     /* ========== MODIFIERS ========== */
 
