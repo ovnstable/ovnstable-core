@@ -8,6 +8,8 @@ const {toUSDC, fromUSDC, toE18} = require("@overnight-contracts/common/utils/dec
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 const {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {fromE18} = require("../../common/utils/decimals");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
 describe("StakingRewards", function () {
 
@@ -19,7 +21,7 @@ describe("StakingRewards", function () {
     let stakingToken;
     let rewardToken;
 
-    before(async () => {
+    sharedBeforeEach(async () => {
         await hre.run("compile");
         await resetHardhat('POLYGON');
 
@@ -43,8 +45,8 @@ describe("StakingRewards", function () {
         console.log('PeriodFinish: ' + new Date(periodFinish));
         console.log('RewardRate : ' + rewardRate);
 
-        await stakingRewards.setSetting(rewardRate, periodFinish);
-        await rewardToken.mint(stakingRewards.address, toE18(10000));
+        await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
+        await rewardToken.mint(stakingRewards.address, toE18(100));
 
         let value = new BN("46477742369098").muln(100); // 100$ * 100 = 10 000
         await stakingToken.mint(account.address, value.toString());
@@ -54,59 +56,34 @@ describe("StakingRewards", function () {
     });
 
 
-    it('First company', async function () {
+    it('Stake User', async  function () {
 
+        await rewardBalance(10000);
         await stake(account);
         await addDays(1);
+        await expectEarned(account, 4);
         await getRewards([account]);
-        await addDays(1);
+        await expectBalance(account, 4);
+        await rewardBalance(9996);
+        await expectEarned(account, 0);
+
+    });
+
+
+
+    it('Stake multi Users' , async function (){
+
+        await rewardBalance(100);
+
+        await stake(account);
         await stake(user1);
-        await addDays(1);
-        await getRewards([account, user1]);
-
-        await expectBalance(account, 12);
-        await expectBalance(user1, 4);
-
-        await addDays(1);
-
-        await expectBalance(account, 12);
-        await expectBalance(user1, 4);
-
-        await getRewards([account, user1]);
-
-        await expectBalance(account, 16);
-        await expectBalance(user1, 8);
-
         await stake(user2);
 
-        await expectBalance(account, 16);
-        await expectBalance(user1, 8);
-        await expectBalance(user2, 0);
-
-        await addDays(15);
-        await getRewards([account, user1, user2]);
-
-        await expectBalance(account, 20);
-        await expectBalance(user1, 12);
-        await expectBalance(user2, 4);
-
-
-        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
-        let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
-
-        console.log('PeriodFinish: ' + new Date(periodFinish));
-        console.log('RewardRate : ' + rewardRate);
-        await stakingRewards.setSetting(rewardRate, periodFinish);
-
-
-        await moveBalances([account, user1, user2]);
-
-        await expectBalance(account, 0);
-        await expectBalance(user1, 0);
-        await expectBalance(user2, 0);
-
-
         await addDays(1);
+
+        await expectEarned(account, 4);
+        await expectEarned(user1, 4);
+        await expectEarned(user2, 4);
 
         await getRewards([account, user1, user2]);
 
@@ -114,14 +91,127 @@ describe("StakingRewards", function () {
         await expectBalance(user1, 4);
         await expectBalance(user2, 4);
 
+        await rewardBalance(88);
+
+        await expectEarned(account, 0);
+        await expectEarned(user1, 0);
+        await expectEarned(user2, 0);
+
     });
 
-    async function moveBalances(users) {
+
+    it('Stake/Withdraw = balances equals', async function (){
+
+        let stakingBalanceBefore = await stakingToken.balanceOf(account.address);
+        await stake(account);
+
+        await expectStakingBalanceBN(account, new BN(0));
+
+        await addDays(1);
+        await getRewards([account]);
+        await withdraw([account]);
+
+        await expectStakingBalanceBN(account, stakingBalanceBefore);
+    });
+
+
+    it("Finish rewards = 5 day max", async function () {
+
+        await stake(account);
+        await addDays(5);
+
+        await expectEarned(account, 20);
+
+        await addDays(10);
+
+        await expectEarned(account, 20);
+
+        await getRewards([account]);
+        await expectEarned(account, 0);
+        await expectBalance(account, 20);
+    });
+
+
+    it("Finish RewardProgram => updateRewardProgram", async function (){
+
+        await stake(account);
+        await addDays(5);
+        await expectEarned(account, 20);
+
+        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
+        let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
+        await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
+
+        await addDays(10);
+
+        await expectEarned(account, 40);
+
+        await getRewards([account]);
+        await expectEarned(account, 0);
+        await expectBalance(account, 40);
+
+        await rewardBalance(60);
+
+    });
+
+    it("Stop RewardProgram", async function (){
+
+        await stake(account);
+        await addDays(1);
+        await expectEarned(account, 4);
+
+        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
+        let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 1;
+        await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
+
+        await addDays(4);
+
+        await expectEarned(account, 4);
+
+        await getRewards([account]);
+        await expectEarned(account, 0);
+        await expectBalance(account, 4);
+
+    });
+
+
+    it("SetTokens = expect", async function (){
+        await expectRevert(stakingRewards.setTokens(stakingToken.address, rewardToken.address), 'StakingToken already initialized');
+    });
+
+    async function rewardBalance(amount) {
+        let value = await rewardToken.balanceOf(stakingRewards.address);
+        let number = Number.parseInt(fromE18(value));
+        console.log(`Reward balance ${value}:${number}`);
+        expect(amount).to.eq(number);
+    }
+
+    async function withdraw(users) {
+
+        for (let i = 0; i < users.length; i++) {
+            let user = users[i];
+            await stakingRewards.connect(user).withdraw(await stakingRewards.balanceOf(user.address));
+        }
+    }
+
+    async function resetBalances(users) {
 
         for (let i = 0; i < users.length; i++) {
             let user = users[i];
             await rewardToken.connect(user).transfer(stakingRewards.address, await rewardToken.balanceOf(user.address));
         }
+    }
+
+    async function expectEarned(user, number) {
+        expect(number).to.equal(Number.parseInt(fromE18(await stakingRewards.earned(user.address))));
+
+        console.log(`${user.address}: Earned rewards: ${await stakingRewards.earned(user.address)}: ${fromE18(await stakingRewards.earned(user.address))}`);
+    }
+
+    async function expectStakingBalanceBN(user, number) {
+        expect(number.toString()).to.equal((await stakingToken.balanceOf(user.address)).toString());
+
+        console.log(`${user.address}: Balance staking: ${await stakingToken.balanceOf(user.address)}: ${fromE18(await stakingToken.balanceOf(user.address))}`);
     }
 
     async function expectBalance(user, number) {
@@ -153,89 +243,5 @@ describe("StakingRewards", function () {
         await ethers.provider.send('evm_mine');
     }
 
-    it("Staking balance = 0", async function () {
-        let value = (await stakingRewards.balanceOf(account.address)).toNumber();
-        console.log('StakingRewards balance: ' + value);
-        expect(value).to.eq(0);
-    });
-
-    it("Reward balance = 0", async function () {
-        let value = (await rewardToken.balanceOf(account.address)).toNumber();
-        console.log('RewardToken balance: ' + value);
-        expect(value).to.eq(0);
-    });
-
-    it("RewardPerToken = 0", async function () {
-        let value = (await stakingRewards.rewardPerToken()).toNumber();
-        console.log('RewardPerToken: ' + value);
-        expect(value).to.eq(0);
-    });
-
-
-    describe("Stake 100", function () {
-
-        before(async () => {
-
-            await stakingToken.approve(stakingRewards.address, toUSDC(100));
-            await stakingRewards.stake(toUSDC(100));
-
-            await ethers.provider.send('evm_mine');
-
-        });
-
-        it("Balance Staking = 100", async function () {
-            let value = (await stakingRewards.balanceOf(account.address)).toNumber();
-            console.log('StakingRewards balance: ' + value);
-            expect(value).to.eq(toUSDC(100));
-        });
-
-        it("Earned = 2", async function () {
-            let value = (await stakingRewards.earned(account.address)).toNumber();
-            console.log('StakingRewards earned: ' + value);
-            expect(value).to.eq(2);
-        });
-
-
-        describe("Withdraw 50", function () {
-
-            let balanceStakingToken;
-
-            before(async () => {
-
-                balanceStakingToken = await stakingToken.balanceOf(account.address);
-                await stakingRewards.withdraw(toUSDC(50));
-                balanceStakingToken = fromUSDC(await stakingToken.balanceOf(account.address) - balanceStakingToken);
-
-            });
-
-            it("Balance Staking = 50", async function () {
-                let value = (await stakingRewards.balanceOf(account.address)).toNumber();
-                console.log('StakingRewards balance: ' + value);
-                expect(value).to.eq(toUSDC(50));
-            });
-
-            it("Balance StakingToken = 50", async function () {
-                console.log('StakingToken balance: ' + balanceStakingToken);
-                expect(balanceStakingToken).to.eq(50);
-            });
-
-
-            describe("Claim rewards", function () {
-
-                before(async () => {
-                    await stakingRewards.getReward();
-                });
-
-                it("Balance Staking = 50", async function () {
-                    let value = (await rewardToken.balanceOf(account.address)).toNumber();
-                    console.log('RewardToken balance: ' + value);
-                    expect(value).to.greaterThan(0);
-                });
-
-            });
-
-        });
-
-    });
 
 });

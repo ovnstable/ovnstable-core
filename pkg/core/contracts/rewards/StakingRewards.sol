@@ -13,13 +13,13 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-import "hardhat/console.sol";
 
 contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMath for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
+    bytes32 public constant REWARD_MANAGER_ROLE = keccak256("REWARD_MANAGER_ROLE");
 
     IERC20Upgradeable public rewardsToken;
     IERC20Upgradeable public stakingToken;
@@ -48,6 +48,7 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(PAUSABLE_ROLE, msg.sender);
+        _grantRole(REWARD_MANAGER_ROLE, msg.sender);
 
     }
 
@@ -64,6 +65,11 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     modifier onlyPausable() {
         require(hasRole(PAUSABLE_ROLE, msg.sender), "Restricted to Pausable");
+        _;
+    }
+
+    modifier onlyRewardManager() {
+        require(hasRole(REWARD_MANAGER_ROLE, msg.sender), "Restricted to RewardManager");
         _;
     }
 
@@ -85,9 +91,10 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         rewardsToken = IERC20Upgradeable(_rewardsToken);
     }
 
-    function setSetting(uint256 _rewardRate, uint256 _periodFinish) external onlyAdmin updateReward(address(0)) {
+    function updateRewardProgram(uint256 _rewardRate, uint256 _periodFinish) external onlyRewardManager updateReward(address(0)) {
         rewardRate = _rewardRate;
         periodFinish = _periodFinish;
+        lastUpdateTime = block.timestamp;
     }
 
 
@@ -147,12 +154,6 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         }
     }
 
-    function exit() external {
-        withdraw(_balances[msg.sender]);
-        getReward();
-    }
-
-
 
     /* ========== MODIFIERS ========== */
 
@@ -168,10 +169,7 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     /* ========== EVENTS ========== */
 
-    event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
-    event Recovered(address token, uint256 amount);
 }

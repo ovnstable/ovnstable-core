@@ -3,7 +3,7 @@ const BN = require('bn.js');
 module.exports = {
 
     toE18: (value) => new BN(value).mul(new BN(10).pow(new BN(18))).toString(),
-    fromE18: (value) => new BN(value.toString()).div(new BN(10).pow(new BN(18))).toString(),
+    fromE18: (value) => new BN(value.toString()).divRound(new BN(10).pow(new BN(18))).toString(),
 
     toE6: (value) => value * 10 ** 6,
     fromE6: (value) => value / 10 ** 6,
