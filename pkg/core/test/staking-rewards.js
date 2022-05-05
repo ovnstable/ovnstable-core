@@ -39,7 +39,7 @@ describe("StakingRewards", function () {
 
         await stakingRewards.setTokens(stakingToken.address, rewardToken.address);
 
-        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
+        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
 
         console.log('PeriodFinish: ' + new Date(periodFinish));
@@ -138,7 +138,7 @@ describe("StakingRewards", function () {
         await addDays(5);
         await expectEarned(account, 20);
 
-        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
+        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
 
@@ -160,7 +160,7 @@ describe("StakingRewards", function () {
         await addDays(1);
         await expectEarned(account, 4);
 
-        let rewardRate = new BN(1).muln(10).pow(new BN(13)).toString(); // 1e13
+        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 1;
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
 
