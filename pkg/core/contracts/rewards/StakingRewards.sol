@@ -13,7 +13,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-
 contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMath for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -73,6 +72,16 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         _;
     }
 
+    modifier updateReward(address account) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _;
+    }
+
     function pause() public onlyPausable {
         _pause();
     }
@@ -89,12 +98,16 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         stakingToken = IERC20Upgradeable(_stakingToken);
         rewardsToken = IERC20Upgradeable(_rewardsToken);
+
+        emit UpdateTokens(_stakingToken, _rewardsToken);
     }
 
     function updateRewardProgram(uint256 _rewardRate, uint256 _periodFinish) external onlyRewardManager updateReward(address(0)) {
         rewardRate = _rewardRate;
         periodFinish = _periodFinish;
         lastUpdateTime = block.timestamp;
+
+        emit RewardProgram(_rewardRate, _periodFinish);
     }
 
 
@@ -104,6 +117,10 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
+    }
+
+    function paid(address account) external view returns (uint256){
+        return userRewardPerTokenPaid[account];
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -130,18 +147,19 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function stake(uint256 amount) external nonReentrant whenNotPaused updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
 
+        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
 
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
+        stakingToken.safeTransfer(msg.sender, amount);
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        stakingToken.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
@@ -155,21 +173,12 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
 
-    /* ========== MODIFIERS ========== */
-
-    modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-        _;
-    }
 
     /* ========== EVENTS ========== */
 
     event Staked(address indexed user, uint256 amount);
+    event UpdateTokens(address stakingToken, address rewardToken);
+    event RewardProgram(uint256 rewardRate, uint256 periodFinish);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 }
