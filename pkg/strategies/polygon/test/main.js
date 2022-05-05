@@ -44,6 +44,10 @@ let arrays = [
     {
         name: 'StrategyArrakis',
         enabledReward: true,
+    },
+    {
+        name: 'StrategyMeshSwapUsdc',
+        enabledReward: true,
     }
 
 ];
