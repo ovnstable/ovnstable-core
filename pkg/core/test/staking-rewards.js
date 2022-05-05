@@ -58,13 +58,13 @@ describe("StakingRewards", function () {
 
     it('Stake User', async  function () {
 
-        await rewardBalance(10000);
+        await rewardBalance(100);
         await stake(account);
         await addDays(1);
         await expectEarned(account, 4);
         await getRewards([account]);
         await expectBalance(account, 4);
-        await rewardBalance(9996);
+        await rewardBalance(96);
         await expectEarned(account, 0);
 
     });
