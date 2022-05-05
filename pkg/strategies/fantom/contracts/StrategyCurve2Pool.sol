@@ -10,6 +10,8 @@ import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
 contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
+    uint256 constant public BASIS_POINTS_FOR_SLIPPAGE = 4;
+
     IERC20 public usdcToken;
     IERC20 public crvPoolToken;
     IERC20 public crvGaugeToken;
@@ -233,11 +235,12 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
+            uint256 amountOutMin = _getAmountsOut(address(crvToken), address(usdcToken), crvBalance);
             uint256 crvUsdc = _swapExactTokensForTokens(
                 address(crvToken),
                 address(usdcToken),
                 crvBalance,
-                crvBalance * 99 / 100,
+                _subBasisPoints(amountOutMin),
                 address(this)
             );
             totalUsdc += crvUsdc;
@@ -245,11 +248,12 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         uint256 wFtmBalance = wFtmToken.balanceOf(address(this));
         if (wFtmBalance != 0) {
+            uint256 amountOutMin = _getAmountsOut(address(wFtmToken), address(usdcToken), wFtmBalance);
             uint256 wFtmUsdc = _swapExactTokensForTokens(
                 address(wFtmToken),
                 address(usdcToken),
                 wFtmBalance,
-                wFtmBalance * 99 / 100,
+                _subBasisPoints(amountOutMin),
                 address(this)
             );
             totalUsdc += wFtmUsdc;
@@ -257,6 +261,11 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
+    }
+
+    function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
+        uint256 basisDenominator = 10 ** 4;
+        return amount * (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE) / basisDenominator;
     }
 
 }

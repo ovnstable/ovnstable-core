@@ -16,7 +16,6 @@ import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
 import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
 import "./connectors/arrakis/IArrakisRewards.sol";
 
-import "hardhat/console.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
