@@ -102,7 +102,8 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
         address _uniswapV3Router,
         bytes32 _balancerPoolId,
         address _balancerVault,
-        address _aavePool
+        address _aavePool,
+        address _uniswapV2Router
     ) external onlyAdmin {
 
         require(_uniswapPositionManager != address(0), "Zero address not allowed");
@@ -118,6 +119,7 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
         izumiBoost = IMiningFixRangeBoost(_izumiBoost);
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
+        setUniswapRouter(_uniswapV2Router);
 
         balancerPoolId = _balancerPoolId;
         balancerVault = IVault(_balancerVault);
@@ -204,18 +206,10 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
             uniswapV3Pool.liquidity());
 
         if (amountLiq0 >= amountLiq1) {
-
-            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
-            uint256 usdcBalance = _amount;
-            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
-            // t=N/(r+1)
+            uint256 needUsdtValue = (_amount * amountLiq1) / (amountLiq0 + amountLiq1);
             return needUsdtValue;
         } else {
-            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
-            uint256 usdcBalance = _amount;
-            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
-            // t=N/(r+1)
-            return needUsdtValue;
+            revert("Amount liquidity USDT more then USDC");
         }
     }
 
@@ -381,19 +375,7 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
             return;
         }
 
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
-            address(iziToken),
-            address(wethToken),
-            3000, // pool fee 0.3%
-            address(this),
-            block.timestamp + 600,
-            balanceIzi,
-            0,
-            0
-        );
-
-        iziToken.approve(address(uniswapV3Router), balanceIzi);
-        uint256 amountOut = uniswapV3Router.exactInputSingle(params);
+        swapTokenToUsdc(address(iziToken), address(wethToken), 0, address(this), address(this), balanceIzi);        
     }
 
     function _swapYinWeth() internal {
