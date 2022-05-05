@@ -371,7 +371,7 @@ function claimRewards(strategyName, network, assets, values) {
                     await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
                     await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
 
-                    const sevenDays = 7 * 24 * 60 * 60;
+                    const sevenDays = 7 * 24 * 60 * 60 * 1000;
                     await ethers.provider.send("evm_increaseTime", [sevenDays])
                     await ethers.provider.send('evm_mine');
 

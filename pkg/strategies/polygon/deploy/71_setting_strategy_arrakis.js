@@ -4,9 +4,9 @@ let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 let {core} = require('@overnight-contracts/common/utils/core');
 
 
-let arrakisRewards = "0x50be234a8405c32c15712850377deec768628bc9"; // USDC/USDT
+let arrakisRewards = "0x56C5b00Bdeb3cb8aDF745650599f9AdeF3c40275"; // USDC/USDT
 let arrakisRouter = "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c";
-let arrakisVault = "0x869A75D6F7ae09810c9083684cf22e9A618c8B05";
+let arrakisVault = "0x2817E729178471DBAC8b1FC190b4fd8e6F3984e3";
 
 
 module.exports = async () => {
