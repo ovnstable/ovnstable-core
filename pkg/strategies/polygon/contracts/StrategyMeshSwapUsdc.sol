@@ -12,13 +12,14 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
     IERC20 public meshToken;
 
     IMeshSwapUsdc public meshSwapUsdc;
+    address public recipient;
 
 
     // --- events
 
     event StrategyMeshSwapUsdcUpdatedTokens(address usdcToken, address meshToken);
 
-    event StrategyMeshSwapUsdcUpdatedParams(address meshSwapUsdc, address meshSwapRouter);
+    event StrategyMeshSwapUsdcUpdatedParams(address meshSwapUsdc, address meshSwapRouter, address recipient);
 
 
     // ---  constructor
@@ -49,16 +50,19 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
 
     function setParams(
         address _meshSwapUsdc,
-        address _meshSwapRouter
+        address _meshSwapRouter,
+        address _recipient
     ) external onlyAdmin {
 
         require(_meshSwapUsdc != address(0), "Zero address not allowed");
         require(_meshSwapRouter != address(0), "Zero address not allowed");
+        require(_recipient != address(0), "Zero address not allowed");
 
         meshSwapUsdc = IMeshSwapUsdc(_meshSwapUsdc);
         setUniswapRouter(_meshSwapRouter);
+        recipient = _recipient;
 
-        emit StrategyMeshSwapUsdcUpdatedParams(_meshSwapUsdc, _meshSwapRouter);
+        emit StrategyMeshSwapUsdcUpdatedParams(_meshSwapUsdc, _meshSwapRouter, _recipient);
     }
 
 
@@ -133,6 +137,7 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
         }
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
+        meshToken.transfer(recipient, meshToken.balanceOf(address(this)));
 
         return totalUsdc;
     }
