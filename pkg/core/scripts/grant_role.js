@@ -1,5 +1,5 @@
-const govUtils = require("@overnight-contracts/common/utils/governance");
 const hre = require("hardhat");
+const fs = require("fs");
 const {fromE18} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
@@ -17,20 +17,11 @@ let OvnGovernor = JSON.parse(fs.readFileSync('../governance/deployments/polygon/
 let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnToken.json'));
 
 const govUtils = require("@overnight-contracts/common/utils/governance");
-const fs = require("fs");
+const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 async function main(){
 
-    await hre.run("compile");
-
-    let provider = ethers.provider;
-
-    console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
-    const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
-
+    let wallet = await initWallet(ethers);
     let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
     let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
     let usdPlus = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
@@ -52,7 +43,7 @@ async function main(){
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal2 grantRole to Yarik"),
+        ethers.utils.id("Proposal #2 grantRole to Yarik"),
         {
             maxFeePerGas: "100000000000",
             maxPriorityFeePerGas: "100000000000"
@@ -62,5 +53,13 @@ async function main(){
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
 
-    await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
+    // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
 }
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+

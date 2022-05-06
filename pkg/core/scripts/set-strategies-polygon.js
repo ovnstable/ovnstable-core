@@ -36,7 +36,7 @@ async function main() {
     let mstable = {
         strategy: "0xC647A43cF67Ecae5C4C5aC18378FD45C210E8Fbc",
         minWeight: 0,
-        targetWeight: 5000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -56,7 +56,7 @@ async function main() {
     let dodoUsdc = {
         strategy: "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638",
         minWeight: 0,
-        targetWeight: 45000,
+        targetWeight: 25000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -65,29 +65,31 @@ async function main() {
     let dodoUsdt = {
         strategy: "0x93FdE263299EA976f8a01a0239b9858528954299",
         minWeight: 0,
-        targetWeight: 27500,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    let impermaxUsdcUsdt = {
-        strategy: "0x8f4d8799188B8360bD3c1C652aD699771E0e667e",
-        minWeight: 0,
         targetWeight: 0,
         maxWeight: 100000,
-        enabled: false,
-        enabledReward: false,
+        enabled: true,
+        enabledReward: true,
     }
 
+
     let arrakis = {
-        strategy: "0x84152E7d666fC05cC64dE99959176338f783F8Eb",
+        strategy: "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
         minWeight: 0,
-        targetWeight: 20000,
+        targetWeight: 35000,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
+
+    let meshswapUsdc = {
+        strategy: "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
+        minWeight: 0,
+        targetWeight: 37500,
+        maxWeight: 100000,
+        enabled: true,
+        enabledReward: true,
+    }
+
 
 
     let weights = [
@@ -95,40 +97,39 @@ async function main() {
         mstable,
         dodoUsdc,
         dodoUsdt,
-        impermaxUsdcUsdt,
-        arrakis
+        arrakis,
+        meshswapUsdc
     ]
 
     let addresses = [];
     let values = [];
     let abis = [];
 
+
+    // await pm.setStrategyWeights(weights);
+
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]))
+    abis.push(pm.interface.encodeFunctionData('balance', []))
 
 
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal: Update "),
-    //     {
-    //         maxFeePerGas: "100000000000",
-    //         maxPriorityFeePerGas: "100000000000"
-    //     }
-    // );
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    // console.log('Proposal id ' + proposalId)
+    console.log('Creating a proposal...')
+    const proposeTx = await governor.proposeExec(
+        addresses,
+        values,
+        abis,
+        ethers.utils.id("Proposal: Update "),
+        {
+            maxFeePerGas: "100000000000",
+            maxPriorityFeePerGas: "100000000000"
+        }
+    );
+    let tx = await proposeTx.wait();
+    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    console.log('Proposal id ' + proposalId)
 
     // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
 
-    await showM2M(m2m);
-
-    await governor.executeExec("37897815950041086133330196260964493702378928139770407606486714785095038396906");
-    await showM2M(m2m);
 
 }
 

@@ -20,9 +20,9 @@ async function main() {
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
 
+
     await showM2M(m2m);
-    await governor.executeExec("79319994271470878440252220016492033010405008236051520395480150984553190406088");
-    await (await exchange.payout()).wait();
+    await governor.executeExec("47171062368675981260198521396801802101516301899163495168967810219979966406226");
     await showM2M(m2m);
 
 }
