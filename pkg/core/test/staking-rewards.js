@@ -21,6 +21,9 @@ describe("StakingRewards", function () {
     let stakingToken;
     let rewardToken;
 
+
+    let rewardRate;
+
     sharedBeforeEach(async () => {
         await hre.run("compile");
         await resetHardhat('POLYGON');
@@ -34,12 +37,12 @@ describe("StakingRewards", function () {
         user2 = signers[2];
 
         rewardToken = await ethers.getContract('PreOvnToken');
-        stakingRewards = await ethers.getContract('StakingRewards');
+        stakingRewards = await ethers.getContract('StakingRewardQsUsdPlusWeth');
         stakingToken = await ethers.getContract("MockERC20");
 
         await stakingRewards.setTokens(stakingToken.address, rewardToken.address);
 
-        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
+        rewardRate = "495000000000000";
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
 
         console.log('PeriodFinish: ' + new Date(periodFinish));
@@ -48,7 +51,7 @@ describe("StakingRewards", function () {
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
         await rewardToken.mint(stakingRewards.address, toE18(100));
 
-        let value = new BN("46477742369098").muln(100); // 100$ * 100 = 10 000
+        let value = new BN("932210947561").muln(100); // 100$ * 100 = 10 000
         await stakingToken.mint(account.address, value.toString());
         await stakingToken.mint(user1.address, value.toString());
         await stakingToken.mint(user2.address, value.toString());
@@ -138,7 +141,6 @@ describe("StakingRewards", function () {
         await addDays(5);
         await expectEarned(account, 20);
 
-        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + (5 * 86400000); // +5 Day
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
 
@@ -160,7 +162,6 @@ describe("StakingRewards", function () {
         await addDays(1);
         await expectEarned(account, 4);
 
-        let rewardRate = new BN(10).pow(new BN(13)).muln(1).toString(); // 1e13
         let periodFinish = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 1;
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
 
