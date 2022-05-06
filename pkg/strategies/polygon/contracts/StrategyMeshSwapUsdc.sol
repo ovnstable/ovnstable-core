@@ -12,7 +12,6 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
     IERC20 public meshToken;
 
     IMeshSwapUsdc public meshSwapUsdc;
-    address public recipient;
 
 
     // --- events
