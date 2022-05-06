@@ -17,9 +17,9 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
 
     // --- events
 
-    event StrategyMeshSwapUsdcUpdatedTokens(address usdcToken, address meshToken);
+    event StrategyUpdatedTokens(address usdcToken, address meshToken);
 
-    event StrategyMeshSwapUsdcUpdatedParams(address meshSwapUsdc, address meshSwapRouter, address recipient);
+    event StrategyUpdatedParams(address meshSwapUsdc, address meshSwapRouter );
 
 
     // ---  constructor
@@ -45,24 +45,21 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
         usdcToken = IERC20(_usdcToken);
         meshToken = IERC20(_meshToken);
 
-        emit StrategyMeshSwapUsdcUpdatedTokens(_usdcToken, _meshToken);
+        emit StrategyUpdatedTokens(_usdcToken, _meshToken);
     }
 
     function setParams(
         address _meshSwapUsdc,
-        address _meshSwapRouter,
-        address _recipient
+        address _meshSwapRouter
     ) external onlyAdmin {
 
         require(_meshSwapUsdc != address(0), "Zero address not allowed");
         require(_meshSwapRouter != address(0), "Zero address not allowed");
-        require(_recipient != address(0), "Zero address not allowed");
 
         meshSwapUsdc = IMeshSwapUsdc(_meshSwapUsdc);
         setUniswapRouter(_meshSwapRouter);
-        recipient = _recipient;
 
-        emit StrategyMeshSwapUsdcUpdatedParams(_meshSwapUsdc, _meshSwapRouter, _recipient);
+        emit StrategyUpdatedParams(_meshSwapUsdc, _meshSwapRouter);
     }
 
 
@@ -115,15 +112,13 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-        // claim rewards
-        uint256 meshBalanceBefore = meshToken.balanceOf(address(this));
+
         meshSwapUsdc.claimReward();
-        uint256 meshBalanceAfter = meshToken.balanceOf(address(this));
+        uint256 meshBalance = meshToken.balanceOf(address(this));
 
         // sell rewards
         uint256 totalUsdc;
 
-        uint256 meshBalance = meshBalanceAfter - meshBalanceBefore;
         if (meshBalance > 0) {
             uint256 meshUsdc = swapTokenToUsdc(
                 address(meshToken),
@@ -131,13 +126,12 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
                 10 ** 18,
                 address(this),
                 address(this),
-                meshBalance / 2
+                meshBalance
             );
             totalUsdc += meshUsdc;
         }
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
-        meshToken.transfer(recipient, meshToken.balanceOf(address(this)));
 
         return totalUsdc;
     }
