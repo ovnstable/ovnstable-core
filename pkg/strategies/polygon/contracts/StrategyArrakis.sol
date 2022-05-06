@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "./core/Strategy.sol";
 
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 
 import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
 import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";

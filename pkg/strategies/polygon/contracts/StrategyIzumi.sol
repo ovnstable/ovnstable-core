@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "./core/Strategy.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
 import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
 import "./connectors/izumi/interfaces/IMiningFixRangeBoost.sol";
@@ -14,7 +14,7 @@ import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
 import "./connectors/balancer/interfaces/IVault.sol";
 import "./connectors/curve/interfaces/IStableSwapPool.sol";
 
-contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
+contract StrategyIzumi is Strategy, UniswapV2Exchange, IERC721Receiver {
 
     uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
     uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
@@ -119,7 +119,7 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
         izumiBoost = IMiningFixRangeBoost(_izumiBoost);
         uniswapV3Router = ISwapRouter(_uniswapV3Router);
 
-        setUniswapRouter(_uniswapV2Router);
+        _setUniswapRouter(_uniswapV2Router);
 
         balancerPoolId = _balancerPoolId;
         balancerVault = IVault(_balancerVault);
@@ -371,7 +371,12 @@ contract StrategyIzumi is Strategy, QuickSwapExchange, IERC721Receiver {
             return;
         }
 
-        swapTokenToUsdc(address(iziToken), address(wethToken), 0, address(this), address(this), balanceIzi);        
+        _swapExactTokensForTokens(
+            address(iziToken), 
+            address(wethToken), 
+            balanceIzi, 
+            address(this)
+        );        
     }
 
     function _swapYinWeth() internal {

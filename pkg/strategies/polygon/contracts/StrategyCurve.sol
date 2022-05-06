@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./core/Strategy.sol";
 import "./connectors/curve/interfaces/IStableSwapPool.sol";
 import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
 
-contract StrategyCurve is Strategy, QuickSwapExchange {
+contract StrategyCurve is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public a3CrvToken;
@@ -105,7 +105,7 @@ contract StrategyCurve is Strategy, QuickSwapExchange {
 
         crvPool = IStableSwapPool(_crvPool);
         rewardGauge = IRewardsOnlyGauge(_rewardGauge);
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         emit StrategyCurveUpdatedParams(_crvPool, _rewardGauge, _uniswapRouter);
     }
@@ -251,26 +251,22 @@ contract StrategyCurve is Strategy, QuickSwapExchange {
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 crvUsdc = swapTokenToUsdc(
+            uint256 crvUsdc = _swapExactTokensForTokens(
                 address(crvToken),
                 address(usdcToken),
-                crvTokenDenominator,
-                address(this),
-                address(this),
-                crvBalance
+                crvBalance,
+                address(this)
             );
             totalUsdc += crvUsdc;
         }
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(
+            uint256 wmaticUsdc = _swapExactTokensForTokens(
                 address(wmaticToken),
                 address(usdcToken),
-                wmaticTokenDenominator,
-                address(this),
-                address(this),
-                wmaticBalance
+                wmaticBalance,
+                address(this)
             );
             totalUsdc += wmaticUsdc;
         }

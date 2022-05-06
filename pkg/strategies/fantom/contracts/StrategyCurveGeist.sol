@@ -4,13 +4,11 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./core/Strategy.sol";
-import "./exchanges/SpookySwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/curve/interfaces/IStableSwapPool.sol";
 import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
-contract StrategyCurveGeist is Strategy, SpookySwapExchange {
-
-    uint256 constant public BASIS_POINTS_FOR_SLIPPAGE = 4;
+contract StrategyCurveGeist is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public crvPoolToken;
@@ -246,12 +244,10 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         uint256 geistBalance = geistToken.balanceOf(address(this));
         if (geistBalance != 0) {
-            uint256 amountOutMin = _getAmountsOut(address(geistToken), address(usdcToken), geistBalance);
             uint256 geistUsdc = _swapExactTokensForTokens(
                 address(geistToken),
                 address(usdcToken),
                 geistBalance,
-                _subBasisPoints(amountOutMin),
                 address(this)
             );
             totalUsdc += geistUsdc;
@@ -259,12 +255,10 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         uint256 crvBalance = crvToken.balanceOf(address(this));
         if (crvBalance != 0) {
-            uint256 amountOutMin = _getAmountsOut(address(crvToken), address(usdcToken), crvBalance);
             uint256 crvUsdc = _swapExactTokensForTokens(
                 address(crvToken),
                 address(usdcToken),
                 crvBalance,
-                _subBasisPoints(amountOutMin),
                 address(this)
             );
             totalUsdc += crvUsdc;
@@ -272,12 +266,10 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         uint256 wFtmBalance = wFtmToken.balanceOf(address(this));
         if (wFtmBalance != 0) {
-            uint256 amountOutMin = _getAmountsOut(address(wFtmToken), address(usdcToken), wFtmBalance);
             uint256 wFtmUsdc = _swapExactTokensForTokens(
                 address(wFtmToken),
                 address(usdcToken),
                 wFtmBalance,
-                _subBasisPoints(amountOutMin),
                 address(this)
             );
             totalUsdc += wFtmUsdc;
@@ -285,11 +277,6 @@ contract StrategyCurveGeist is Strategy, SpookySwapExchange {
 
         usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
         return totalUsdc;
-    }
-
-    function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** 4;
-        return amount * (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE) / basisDenominator;
     }
 
 }

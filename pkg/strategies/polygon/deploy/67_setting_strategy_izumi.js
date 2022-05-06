@@ -8,7 +8,7 @@ module.exports = async () => {
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, POLYGON.izi, POLYGON.yin, POLYGON.uniswapNftToken, POLYGON.weth)).wait();
     await (await strategy.setParams(POLYGON.uniswapV3PositionManager, POLYGON.uniswapV3Pool, POLYGON.izumiBoost,
-        POLYGON.uniswapV3Router, POLYGON.balancerPoolIdUsdcTusdDaiUsdt, POLYGON.balancerVault, POLYGON.aaveCurve, POLYGON.uniswapV2Router)).wait();
+        POLYGON.uniswapV3Router, POLYGON.balancerPoolIdUsdcTusdDaiUsdt, POLYGON.balancerVault, POLYGON.aaveCurve, POLYGON.quickSwapRouter)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyIzumi setting done');

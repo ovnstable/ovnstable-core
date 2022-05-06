@@ -3,12 +3,12 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./exchanges/BalancerExchange.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/mstable/interfaces/IMasset.sol";
 import "./connectors/mstable/interfaces/ISavingsContract.sol";
 import "./connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
 
-contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
+contract StrategyMStable is Strategy, BalancerExchange, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IMasset public mUsdToken;
@@ -85,7 +85,7 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
         require(_balancerPoolId2 != "", "Empty pool id not allowed");
 
         setBalancerVault(_balancerVault);
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         balancerPoolId1 = _balancerPoolId1;
         balancerPoolId2 = _balancerPoolId2;
@@ -197,8 +197,12 @@ contract StrategyMStable is Strategy, BalancerExchange, QuickSwapExchange {
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(address(wmaticToken), address(usdcToken), wmaticTokenDenominator,
-                address(this), address(this), wmaticBalance);
+            uint256 wmaticUsdc = _swapExactTokensForTokens(
+                address(wmaticToken), 
+                address(usdcToken), 
+                wmaticBalance,
+                address(this)
+            );
             totalUsdc += wmaticUsdc;
         }
 
