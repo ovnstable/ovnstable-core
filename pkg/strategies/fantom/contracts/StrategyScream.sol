@@ -3,10 +3,10 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./connectors/scream/interfaces/ICErc20Delegator.sol";
-import "./exchanges/SpookySwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/scream/interfaces/IScreamUnitroller.sol";
 
-contract StrategyScream is Strategy, SpookySwapExchange {
+contract StrategyScream is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public screamToken;
@@ -134,12 +134,10 @@ contract StrategyScream is Strategy, SpookySwapExchange {
         uint256 screamUsdc;
 
         if (screamBalance > 0) {
-
             screamUsdc = _swapExactTokensForTokens(
                 address(screamToken),
                 address(usdcToken),
                 screamBalance,
-                screamBalance * 99 / 100,
                 address(this)
             );
         }
@@ -152,5 +150,5 @@ contract StrategyScream is Strategy, SpookySwapExchange {
 
         return screamUsdc;
     }
-
+    
 }

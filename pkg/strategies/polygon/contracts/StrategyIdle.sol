@@ -2,10 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/idle/interfaces/IIdleToken.sol";
 
-contract StrategyIdle is Strategy, QuickSwapExchange {
+contract StrategyIdle is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IIdleToken public idleToken;
@@ -63,7 +63,7 @@ contract StrategyIdle is Strategy, QuickSwapExchange {
 
         require(_uniswapRouter != address(0), "Zero address not allowed");
 
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         emit StrategyIdleUpdatedParams(_uniswapRouter);
     }
@@ -140,13 +140,11 @@ contract StrategyIdle is Strategy, QuickSwapExchange {
 
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
-            uint256 wmaticUsdc = swapTokenToUsdc(
+            uint256 wmaticUsdc = _swapExactTokensForTokens(
                 address(wmaticToken),
                 address(usdcToken),
-                wmaticTokenDenominator,
-                address(this),
-                address(this),
-                wmaticBalance
+                wmaticBalance,
+                address(this)
             );
             totalUsdc += wmaticUsdc;
         }

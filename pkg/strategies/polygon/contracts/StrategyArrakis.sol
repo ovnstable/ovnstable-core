@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "./core/Strategy.sol";
 
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 
 import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
 import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
@@ -16,7 +16,6 @@ import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
 import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
 import "./connectors/arrakis/IArrakisRewards.sol";
 
-import "hardhat/console.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";

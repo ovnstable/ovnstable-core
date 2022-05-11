@@ -7,7 +7,6 @@ import "./libraries/LowGasSafeMath.sol";
 import "./connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
 import "./connectors/wigo/AWigoMasterFarmer.sol";
-import "hardhat/console.sol";
 
 contract StrategyWigoUsdcFUsdt is Strategy, BeethovenExchange {
     using LowGasSafeMath for uint256;
@@ -158,7 +157,6 @@ contract StrategyWigoUsdcFUsdt is Strategy, BeethovenExchange {
                 0
             );
         }
-        console.log("Remaining money: %s", usdcToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -208,7 +206,6 @@ contract StrategyWigoUsdcFUsdt is Strategy, BeethovenExchange {
             0
         );
 
-        console.log("Excess usds: %s", usdcToken.balanceOf(address(this)) - _amount);
         return usdcToken.balanceOf(address(this));
     }
 

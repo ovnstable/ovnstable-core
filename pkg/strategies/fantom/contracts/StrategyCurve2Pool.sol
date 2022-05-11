@@ -4,11 +4,11 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./core/Strategy.sol";
-import "./exchanges/SpookySwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/curve/interfaces/IStableSwapPool.sol";
 import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
-contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
+contract StrategyCurve2Pool is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public crvPoolToken;
@@ -237,7 +237,6 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
                 address(crvToken),
                 address(usdcToken),
                 crvBalance,
-                crvBalance * 99 / 100,
                 address(this)
             );
             totalUsdc += crvUsdc;
@@ -249,7 +248,6 @@ contract StrategyCurve2Pool is Strategy, SpookySwapExchange {
                 address(wFtmToken),
                 address(usdcToken),
                 wFtmBalance,
-                wFtmBalance * 99 / 100,
                 address(this)
             );
             totalUsdc += wFtmUsdc;

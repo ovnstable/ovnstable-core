@@ -3,12 +3,12 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./exchanges/BalancerExchange.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/balancer/interfaces/IVault.sol";
 import "./connectors/balancer/MerkleOrchard.sol";
 
 
-contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
+contract StrategyBalancer is Strategy, BalancerExchange, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public bpspTUsdToken;
@@ -120,7 +120,7 @@ contract StrategyBalancer is Strategy, BalancerExchange, QuickSwapExchange {
         require(_merkleOrchard != address(0), "Zero address not allowed");
 
         setBalancerVault(_balancerVault);
-        setUniswapRouter(_uniswapRouter);
+        _setUniswapRouter(_uniswapRouter);
 
         balancerVault = IVault(_balancerVault);
         balancerPoolId1 = _balancerPoolId1;
