@@ -34,6 +34,8 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
+    mapping(address => uint256) public usersPaid;
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -120,7 +122,7 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
     function paid(address account) external view returns (uint256){
-        return userRewardPerTokenPaid[account];
+        return usersPaid[account];
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -167,6 +169,7 @@ contract StakingRewards is Initializable, AccessControlUpgradeable, UUPSUpgradea
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
+            usersPaid[msg.sender] = usersPaid[msg.sender].add(reward);
             rewardsToken.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
