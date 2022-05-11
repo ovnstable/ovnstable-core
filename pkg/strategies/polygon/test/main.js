@@ -39,7 +39,7 @@ let arrays = [
     },
     {
         name: 'StrategyIzumi',
-        enabledReward: false,
+        enabledReward: true,
     },
     {
         name: 'StrategyArrakis',

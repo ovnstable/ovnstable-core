@@ -330,12 +330,12 @@ contract StrategyBeethovenxUsdcAsUsdc is Strategy, BeethovenExchange {
     }
 
     function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** BASIS_POINTS_FOR_SLIPPAGE;
+        uint256 basisDenominator = 10 ** 4;
         return amount * basisDenominator / (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE);
     }
 
     function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** BASIS_POINTS_FOR_SLIPPAGE;
+        uint256 basisDenominator = 10 ** 4;
         return amount * (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE) / basisDenominator;
     }
 }
