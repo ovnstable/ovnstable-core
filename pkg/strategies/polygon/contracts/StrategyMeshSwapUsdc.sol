@@ -3,10 +3,10 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./connectors/meshswap/interfaces/IMeshSwapUsdc.sol";
-import "./exchanges/QuickSwapExchange.sol";
+import "./exchanges/UniswapV2Exchange.sol";
 
 
-contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
+contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
 
     IERC20 public usdcToken;
     IERC20 public meshToken;
@@ -56,7 +56,7 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
         require(_meshSwapRouter != address(0), "Zero address not allowed");
 
         meshSwapUsdc = IMeshSwapUsdc(_meshSwapUsdc);
-        setUniswapRouter(_meshSwapRouter);
+        _setUniswapRouter(_meshSwapRouter);
 
         emit StrategyUpdatedParams(_meshSwapUsdc, _meshSwapRouter);
     }
@@ -119,13 +119,11 @@ contract StrategyMeshSwapUsdc is Strategy, QuickSwapExchange {
         uint256 totalUsdc;
 
         if (meshBalance > 0) {
-            uint256 meshUsdc = swapTokenToUsdc(
+            uint256 meshUsdc = _swapExactTokensForTokens(
                 address(meshToken),
                 address(usdcToken),
-                10 ** 18,
-                address(this),
-                address(this),
-                meshBalance
+                meshBalance,
+                address(this)
             );
             totalUsdc += meshUsdc;
         }

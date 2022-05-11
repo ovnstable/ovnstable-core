@@ -94,6 +94,7 @@ let POLYGON = {
     dodoV1Helper: "0xDfaf9584F5d229A9DBE5978523317820A8897C5A",
     dodoProxy: "0xa222e6a71D1A1Dd5F279805fbe38d5329C1d0e70",
     dodoApprove: "0x6D310348d5c12009854DFCf72e0DF9027e8cb4f4",
+    arrakisRouter: "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c"
 }
 
 let DEFAULT = POLYGON;

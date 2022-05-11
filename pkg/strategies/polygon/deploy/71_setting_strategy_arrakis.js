@@ -5,7 +5,6 @@ let {core} = require('@overnight-contracts/common/utils/core');
 
 
 let arrakisRewards = "0x56C5b00Bdeb3cb8aDF745650599f9AdeF3c40275"; // USDC/USDT
-let arrakisRouter = "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c";
 let arrakisVault = "0x2817E729178471DBAC8b1FC190b4fd8e6F3984e3";
 
 
@@ -15,7 +14,7 @@ module.exports = async () => {
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, POLYGON.wMatic)).wait();
     await (await strategy.setParams(
-        arrakisRouter,
+        POLYGON.arrakisRouter,
         arrakisRewards,
         arrakisVault,
         POLYGON.balancerVault,
