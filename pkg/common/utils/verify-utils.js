@@ -32,6 +32,7 @@ async function verify(items) {
             } catch (e) {
                 if (e.message === "Contract source code already verified") {
                     verified = true;
+                    console.log('Contract source code already verified');
                 } else {
                     console.log('Error: ' + e.message);
                 }
