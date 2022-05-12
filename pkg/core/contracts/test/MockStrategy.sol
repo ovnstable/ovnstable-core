@@ -55,4 +55,7 @@ contract MockStrategy is IStrategy {
         return 0;
     }
 
+    function healthFactorBalance() external override {
+        return;
+    }
 }

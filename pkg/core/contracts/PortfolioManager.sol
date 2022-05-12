@@ -411,4 +411,21 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         return strategyWeights;
     }
 
+    function healthFactorBalance() external override onlyExchanger {
+        _healthFactorBalance();
+    }
+
+    function _healthFactorBalance() internal {
+        StrategyWeight[] memory strategies = getAllStrategyWeights();
+
+        for (uint8 i; i < strategies.length; i++) {
+            
+            if (!strategyWeights[i].enabled) {
+                continue;
+            }
+
+            address strategyAddress = strategies[i].strategy;
+            IStrategy(strategyAddress).healthFactorBalance();
+        }
+    }
 }

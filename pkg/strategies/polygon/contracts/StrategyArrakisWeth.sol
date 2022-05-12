@@ -129,14 +129,14 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         }
     }
 
-    function _aaveHealthFactorBalance() internal { 
+    function _healthFactorBalance() internal override returns (uint256) { 
         
         (uint256 collateral, uint256 borrow,,,,uint256 healthFactor) = aavePool.getUserAccountData(address(this));
         uint256 price = uint256(priceFeed.latestAnswer());
         (uint256 am0, uint256 am1) = arrakisVault.getUnderlyingBalances();
 
         if (abs(healthFactor, HF) < BALANCING_DELTA) {
-            return;
+            return healthFactor;
         }
 
         if (healthFactor > HF) {
@@ -163,6 +163,8 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
             aavePool.repay(address(wethToken), amount1, 2, address(this));
             _allToCollateral(usdcToken.balanceOf(address(this)));
         }
+        (,,,,, healthFactor) = aavePool.getUserAccountData(address(this));
+        return healthFactor;
     }
 
     function _stake(
