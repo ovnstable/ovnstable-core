@@ -58,7 +58,7 @@ async function main() {
         minWeight: 0,
         targetWeight: 25000,
         maxWeight: 100000,
-        enabled: true,
+        enabled: false,
         enabledReward: true,
     }
 
@@ -77,7 +77,7 @@ async function main() {
         minWeight: 0,
         targetWeight: 35000,
         maxWeight: 100000,
-        enabled: true,
+        enabled: false,
         enabledReward: true,
     }
 
@@ -94,9 +94,7 @@ async function main() {
 
     let weights = [
         aave,
-        mstable,
         dodoUsdc,
-        dodoUsdt,
         arrakis,
         meshswapUsdc
     ]
@@ -106,27 +104,27 @@ async function main() {
     let abis = [];
 
 
-    // await pm.setStrategyWeights(weights);
+    await pm.setStrategyWeights(weights);
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []))
-
-
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id("Proposal: Update "),
-        {
-            maxFeePerGas: "100000000000",
-            maxPriorityFeePerGas: "100000000000"
-        }
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []))
+    //
+    //
+    // console.log('Creating a proposal...')
+    // const proposeTx = await governor.proposeExec(
+    //     addresses,
+    //     values,
+    //     abis,
+    //     ethers.utils.id("Proposal: Update "),
+    //     {
+    //         maxFeePerGas: "100000000000",
+    //         maxPriorityFeePerGas: "100000000000"
+    //     }
+    // );
+    // let tx = await proposeTx.wait();
+    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    // console.log('Proposal id ' + proposalId)
 
     // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
 

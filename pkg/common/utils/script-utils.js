@@ -13,9 +13,14 @@ async function initWallet(ethers) {
     return wallet;
 }
 
-async function showM2M(m2m) {
+async function showM2M(m2m, blocknumber) {
 
-    let strategyAssets = await m2m.strategyAssets();
+    let strategyAssets;
+    if (blocknumber){
+        strategyAssets = await m2m.strategyAssets({blockNumber: blocknumber});
+    }else {
+        strategyAssets = await m2m.strategyAssets();
+    }
 
     let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
 
