@@ -48,6 +48,10 @@ let arrays = [
     {
         name: 'StrategyMeshSwapUsdc',
         enabledReward: true,
+    },
+    {
+        name: 'StrategyTetuUsdc',
+        enabledReward: true,
     }
 
 ];

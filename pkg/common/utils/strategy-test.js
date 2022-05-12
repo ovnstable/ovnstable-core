@@ -5,25 +5,12 @@ const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toUSDC, fromUSDC} = require("./decimals");
 const {expect} = require("chai");
-
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach")
-
-
 const BN = require('bn.js');
 const chai = require("chai");
 chai.use(require('chai-bn')(BN));
+const IController = require("./abi/tetu/IController.json");
 
-function greatLess(value, expected, delta) {
-
-    let maxValue = expected.add(delta);
-    let minValue = expected.sub(delta);
-
-    let lte = value.lte(maxValue);
-    let gte = value.gte(minValue);
-
-    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
-    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
-}
 
 function strategyTest(strategy, network, assets) {
 
@@ -82,11 +69,6 @@ function strategyTest(strategy, network, assets) {
     });
 }
 
-module.exports = {
-    strategyTest: strategyTest,
-}
-
-
 function stakeUnstake(strategyName, network, assets, values) {
 
     describe(`Stake/unstake`, function () {
@@ -103,16 +85,13 @@ function stakeUnstake(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            await runStrategyLogic(strategyName, strategy.address);
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -248,16 +227,13 @@ function unstakeFull(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            await runStrategyLogic(strategyName, strategy.address);
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -340,16 +316,13 @@ function claimRewards(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            await runStrategyLogic(strategyName, strategy.address);
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -392,4 +365,42 @@ function claimRewards(strategyName, network, assets, values) {
 
         });
     });
+}
+
+async function runStrategyLogic(strategyName, strategyAddress) {
+
+    if (strategyName == 'StrategyTetuUsdc') {
+        let governanceAddress = "0xcc16d636dD05b52FF1D8B9CE09B09BC62b11412B";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [governanceAddress],
+        });
+        const governance = await ethers.getSigner(governanceAddress);
+        let controller = await ethers.getContractAt(IController, "0x6678814c273d5088114B6E40cC49C8DB04F9bC29");
+        let isWhiteList = await controller.connect(governance).whiteList(strategyAddress);
+        console.log("isWhiteList before: " + isWhiteList);
+        await controller.connect(governance).changeWhiteListStatus([strategyAddress], true);
+        isWhiteList = await controller.connect(governance).whiteList(strategyAddress);
+        console.log("isWhiteList after: " + isWhiteList);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [governanceAddress],
+        });
+    }
+}
+
+function greatLess(value, expected, delta) {
+
+    let maxValue = expected.add(delta);
+    let minValue = expected.sub(delta);
+
+    let lte = value.lte(maxValue);
+    let gte = value.gte(minValue);
+
+    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
+    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
+}
+
+module.exports = {
+    strategyTest: strategyTest,
 }
