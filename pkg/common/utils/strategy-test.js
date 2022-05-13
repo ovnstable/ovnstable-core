@@ -5,27 +5,13 @@ const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toUSDC, fromUSDC} = require("./decimals");
 const {expect} = require("chai");
-
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach")
-
-
 const BN = require('bn.js');
 const chai = require("chai");
 chai.use(require('chai-bn')(BN));
 
-function greatLess(value, expected, delta) {
 
-    let maxValue = expected.add(delta);
-    let minValue = expected.sub(delta);
-
-    let lte = value.lte(maxValue);
-    let gte = value.gte(minValue);
-
-    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
-    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
-}
-
-function strategyTest(strategy, network, assets) {
+function strategyTest(strategy, network, assets, runStrategyLogic) {
 
     let values = [
         {
@@ -72,22 +58,17 @@ function strategyTest(strategy, network, assets) {
 
     describe(`${strategy.name}`, function () {
 
-        stakeUnstake(strategy.name, network, assets, values);
-        unstakeFull(strategy.name, network, assets, values);
+        stakeUnstake(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        unstakeFull(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
 
         if (strategy.enabledReward) {
-            claimRewards(strategy.name, network, assets, values);
+            claimRewards(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
         }
 
     });
 }
 
-module.exports = {
-    strategyTest: strategyTest,
-}
-
-
-function stakeUnstake(strategyName, network, assets, values) {
+function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/unstake`, function () {
 
@@ -103,16 +84,15 @@ function stakeUnstake(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -232,7 +212,7 @@ function stakeUnstake(strategyName, network, assets, values) {
 }
 
 
-function unstakeFull(strategyName, network, assets, values) {
+function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/unstakeFull`, function () {
 
@@ -248,16 +228,15 @@ function unstakeFull(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -324,7 +303,7 @@ function unstakeFull(strategyName, network, assets, values) {
 }
 
 
-function claimRewards(strategyName, network, assets, values) {
+function claimRewards(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/ClaimRewards`, function () {
 
@@ -340,16 +319,15 @@ function claimRewards(strategyName, network, assets, values) {
 
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
-            const accounts = await getNamedAccounts();
-            account = accounts.deployer;
-
             const signers = await ethers.getSigners();
-
             account = signers[0];
             recipient = signers[1];
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -392,4 +370,20 @@ function claimRewards(strategyName, network, assets, values) {
 
         });
     });
+}
+
+function greatLess(value, expected, delta) {
+
+    let maxValue = expected.add(delta);
+    let minValue = expected.sub(delta);
+
+    let lte = value.lte(maxValue);
+    let gte = value.gte(minValue);
+
+    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
+    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
+}
+
+module.exports = {
+    strategyTest: strategyTest,
 }
