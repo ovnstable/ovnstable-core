@@ -115,7 +115,14 @@ contract StrategyTetuUsdc is Strategy, UniswapV2Exchange {
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
 
         // claim rewards
+        if (IERC20(address(usdcSmartVault)).balanceOf(address(this)) <= 0) {
+            return 0;
+        }
         usdcSmartVault.getAllRewards();
+
+        if (IERC20(address(xTetuSmartVault)).balanceOf(address(this)) <= 0) {
+            return 0;
+        }
         xTetuSmartVault.exit();
 
         // sell rewards
@@ -132,7 +139,10 @@ contract StrategyTetuUsdc is Strategy, UniswapV2Exchange {
             totalUsdc += tetuUsdc;
         }
 
-        usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)));
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        if (usdcBalance > 0) {
+            usdcToken.transfer(_beneficiary, usdcBalance);
+        }
 
         return totalUsdc;
     }

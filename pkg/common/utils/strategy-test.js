@@ -9,10 +9,9 @@ const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach")
 const BN = require('bn.js');
 const chai = require("chai");
 chai.use(require('chai-bn')(BN));
-const IController = require("./abi/tetu/IController.json");
 
 
-function strategyTest(strategy, network, assets) {
+function strategyTest(strategy, network, assets, runStrategyLogic) {
 
     let values = [
         {
@@ -59,17 +58,17 @@ function strategyTest(strategy, network, assets) {
 
     describe(`${strategy.name}`, function () {
 
-        stakeUnstake(strategy.name, network, assets, values);
-        unstakeFull(strategy.name, network, assets, values);
+        stakeUnstake(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        unstakeFull(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
 
         if (strategy.enabledReward) {
-            claimRewards(strategy.name, network, assets, values);
+            claimRewards(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
         }
 
     });
 }
 
-function stakeUnstake(strategyName, network, assets, values) {
+function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/unstake`, function () {
 
@@ -91,7 +90,9 @@ function stakeUnstake(strategyName, network, assets, values) {
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            await runStrategyLogic(strategyName, strategy.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -211,7 +212,7 @@ function stakeUnstake(strategyName, network, assets, values) {
 }
 
 
-function unstakeFull(strategyName, network, assets, values) {
+function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/unstakeFull`, function () {
 
@@ -233,7 +234,9 @@ function unstakeFull(strategyName, network, assets, values) {
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            await runStrategyLogic(strategyName, strategy.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -300,7 +303,7 @@ function unstakeFull(strategyName, network, assets, values) {
 }
 
 
-function claimRewards(strategyName, network, assets, values) {
+function claimRewards(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
 
     describe(`Stake/ClaimRewards`, function () {
 
@@ -322,7 +325,9 @@ function claimRewards(strategyName, network, assets, values) {
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            await runStrategyLogic(strategyName, strategy.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
 
             usdc = await ethers.getContractAt(ERC20, assets.usdc);
         });
@@ -365,28 +370,6 @@ function claimRewards(strategyName, network, assets, values) {
 
         });
     });
-}
-
-async function runStrategyLogic(strategyName, strategyAddress) {
-
-    if (strategyName == 'StrategyTetuUsdc') {
-        let governanceAddress = "0xcc16d636dD05b52FF1D8B9CE09B09BC62b11412B";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [governanceAddress],
-        });
-        const governance = await ethers.getSigner(governanceAddress);
-        let controller = await ethers.getContractAt(IController, "0x6678814c273d5088114B6E40cC49C8DB04F9bC29");
-        let isWhiteList = await controller.connect(governance).whiteList(strategyAddress);
-        console.log("isWhiteList before: " + isWhiteList);
-        await controller.connect(governance).changeWhiteListStatus([strategyAddress], true);
-        isWhiteList = await controller.connect(governance).whiteList(strategyAddress);
-        console.log("isWhiteList after: " + isWhiteList);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [governanceAddress],
-        });
-    }
 }
 
 function greatLess(value, expected, delta) {
