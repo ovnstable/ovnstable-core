@@ -11,6 +11,9 @@ let OvnGovernor = JSON.parse(fs.readFileSync('../governance/deployments/polygon/
 let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnToken.json'));
 
 let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
+let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
+let PortfolioManager = JSON.parse(fs.readFileSync('./deployments/polygon/PortfolioManager.json'));
+let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
 
 
 async function main() {
@@ -21,14 +24,30 @@ async function main() {
     let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
     let contract = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
 
+    let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
+    let pm = await ethers.getContractAt(PortfolioManager.abi, PortfolioManager.address, wallet);
+    let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address, wallet);
+
     let addresses = [];
     let values = [];
     let abis = [];
 
 
-    addresses.push(contract.address);
+    addresses.push(exchange.address);
     values.push(0);
-    abis.push(contract.interface.encodeFunctionData('upgradeTo', ['0x772D49f2547cC343E4Acd3F23d32A51e69fAf4d2']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xEaBE41bcA0d580863258a58a98289b0309DdBeFe']));
+
+    addresses.push(exchange.address);
+    values.push(0);
+    abis.push(exchange.interface.encodeFunctionData('setPayoutListener', ['0xAE35d4F19be7897f8A11B2E61e73ae9cf38Bc90D']));
+
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('upgradeTo', ['0xa5Ec68A0031eb20fC9898858C71E883db8eDd890']));
+
+    addresses.push(m2m.address);
+    values.push(0);
+    abis.push(m2m.interface.encodeFunctionData('upgradeTo', ['0xA1370B5b1115FdEDf7B12ABBBc7Ae6fDF646b368']));
 
 
     console.log('Creating a proposal...')
@@ -38,8 +57,8 @@ async function main() {
         abis,
         ethers.utils.id("Proposal 2: Upgrade Strategies"),
         {
-            maxFeePerGas: "100000000000",
-            maxPriorityFeePerGas: "100000000000"
+            maxFeePerGas: "600000000000",
+            maxPriorityFeePerGas: "600000000000"
         }
     );
     let tx = await proposeTx.wait();

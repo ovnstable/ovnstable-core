@@ -13,9 +13,14 @@ async function initWallet(ethers) {
     return wallet;
 }
 
-async function showM2M(m2m) {
+async function showM2M(m2m, usdPlus, blocknumber) {
 
-    let strategyAssets = await m2m.strategyAssets();
+    let strategyAssets;
+    if (blocknumber){
+        strategyAssets = await m2m.strategyAssets({blockNumber: blocknumber});
+    }else {
+        strategyAssets = await m2m.strategyAssets();
+    }
 
     let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
 
@@ -33,7 +38,18 @@ async function showM2M(m2m) {
     }
 
     console.table(items);
-    console.log('Total: ' + sum);
+    console.log('Total m2m:  ' + sum);
+
+    if (usdPlus){
+
+        let totalUsdPlus;
+        if (blocknumber){
+            totalUsdPlus = (await usdPlus.totalSupply({blockNumber: blocknumber})) /10 ** 6
+        }else {
+            totalUsdPlus = (await usdPlus.totalSupply()) /10 ** 6
+        }
+        console.log('Total USD+: ' + totalUsdPlus);
+    }
 }
 
 module.exports = {

@@ -2,8 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./connectors/meshswap/interfaces/IMeshSwapUsdc.sol";
 import "./exchanges/UniswapV2Exchange.sol";
+import "./connectors/meshswap/interfaces/IMeshSwapUsdc.sol";
 
 
 contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {

@@ -9,7 +9,7 @@ let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contra
 let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
 let PM = JSON.parse(fs.readFileSync('./deployments/polygon/PortfolioManager.json'));
 let M2M = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
-let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/fantom/UsdPlusToken.json'));
+let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
 
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
@@ -46,8 +46,8 @@ async function main() {
     let aave = {
         strategy: "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
         minWeight: 0,
-        targetWeight: 2500,
-        maxWeight: 5000,
+        targetWeight: 100000,
+        maxWeight: 100000,
         enabled: true,
         enabledReward: true,
     }
@@ -56,7 +56,7 @@ async function main() {
     let dodoUsdc = {
         strategy: "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638",
         minWeight: 0,
-        targetWeight: 25000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -75,7 +75,7 @@ async function main() {
     let arrakis = {
         strategy: "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
         minWeight: 0,
-        targetWeight: 35000,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -84,7 +84,7 @@ async function main() {
     let meshswapUsdc = {
         strategy: "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
         minWeight: 0,
-        targetWeight: 37500,
+        targetWeight: 0,
         maxWeight: 100000,
         enabled: true,
         enabledReward: true,
@@ -94,9 +94,7 @@ async function main() {
 
     let weights = [
         aave,
-        mstable,
         dodoUsdc,
-        dodoUsdt,
         arrakis,
         meshswapUsdc
     ]
@@ -106,27 +104,27 @@ async function main() {
     let abis = [];
 
 
-    // await pm.setStrategyWeights(weights);
+    await pm.setStrategyWeights(weights);
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []))
-
-
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id("Proposal: Update "),
-        {
-            maxFeePerGas: "100000000000",
-            maxPriorityFeePerGas: "100000000000"
-        }
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []))
+    //
+    //
+    // console.log('Creating a proposal...')
+    // const proposeTx = await governor.proposeExec(
+    //     addresses,
+    //     values,
+    //     abis,
+    //     ethers.utils.id("Proposal: Update "),
+    //     {
+    //         maxFeePerGas: "100000000000",
+    //         maxPriorityFeePerGas: "100000000000"
+    //     }
+    // );
+    // let tx = await proposeTx.wait();
+    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    // console.log('Proposal id ' + proposalId)
 
     // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
 

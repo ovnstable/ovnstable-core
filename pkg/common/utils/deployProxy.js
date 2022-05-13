@@ -49,20 +49,6 @@ async function deployProxyMulti(contractName, factoryName, deployments, save) {
         impl = await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
         console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
-        let name = 'impls_' + new Date().getDay() + ".json";
-        let config;
-        try {
-            config = JSON.parse(fs.readFileSync(name, 'utf8'));
-        } catch (e) {
-            config = [];
-        }
-        config.push({
-            contractName: contractName,
-            address: impl.impl
-        });
-
-        await fs.writeFile(name, JSON.stringify(config), 'utf8', () => {
-        });
     }
 
 
