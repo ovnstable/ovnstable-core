@@ -232,6 +232,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function claimAndBalance() external override onlyExchanger {
         _claimRewards();
+        _healthFactorBalance();
         _balance();
     }
 
@@ -419,7 +420,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         StrategyWeight[] memory strategies = getAllStrategyWeights();
 
         for (uint8 i; i < strategies.length; i++) {
-            
+
             if (!strategyWeights[i].enabled) {
                 continue;
             }
