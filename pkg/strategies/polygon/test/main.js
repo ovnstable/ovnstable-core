@@ -66,6 +66,10 @@ let arrays = [
         name: 'StrategyTetuUsdc',
         enabledReward: true,
         isRunStrategyLogic: true,
+    },
+    {
+        name: 'StrategyArrakisWeth',
+        enabledReward: true,
     }
 
 ];
