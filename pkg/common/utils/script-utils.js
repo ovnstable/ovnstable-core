@@ -13,7 +13,7 @@ async function initWallet(ethers) {
     return wallet;
 }
 
-async function showM2M(m2m, blocknumber) {
+async function showM2M(m2m, usdPlus, blocknumber) {
 
     let strategyAssets;
     if (blocknumber){
@@ -38,7 +38,18 @@ async function showM2M(m2m, blocknumber) {
     }
 
     console.table(items);
-    console.log('Total: ' + sum);
+    console.log('Total m2m:  ' + sum);
+
+    if (usdPlus){
+
+        let totalUsdPlus;
+        if (blocknumber){
+            totalUsdPlus = (await usdPlus.totalSupply({blockNumber: blocknumber})) /10 ** 6
+        }else {
+            totalUsdPlus = (await usdPlus.totalSupply()) /10 ** 6
+        }
+        console.log('Total USD+: ' + totalUsdPlus);
+    }
 }
 
 module.exports = {
