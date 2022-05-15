@@ -6,6 +6,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     await deployProxyMulti('StakingRewardQsUsdPlusWeth','StakingRewards', deployments, save);
+    await deployProxyMulti('StakingRewardQsUsdPlusWmatic','StakingRewards', deployments, save);
     console.log('Deploy StakingRewards done');
 };
 
