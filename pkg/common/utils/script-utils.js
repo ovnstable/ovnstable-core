@@ -52,7 +52,14 @@ async function showM2M(m2m, usdPlus, blocknumber) {
     }
 }
 
+
+async function getPrice(){
+    let value = process.env.GAS_PRICE.toString() + "000000000";
+    return {maxFeePerGas: value, maxPriorityFeePerGas: value};
+}
+
 module.exports = {
     initWallet: initWallet,
-    showM2M: showM2M
+    showM2M: showM2M,
+    getPrice: getPrice,
 }
