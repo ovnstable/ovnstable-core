@@ -25,7 +25,7 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 
 
-contract StrategyArrakisWeth is Strategy, BalancerExchange {
+contract StrategyArrakisWmatic is Strategy, BalancerExchange {
 
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4;
     uint256 constant HF = 1500000000000000000;

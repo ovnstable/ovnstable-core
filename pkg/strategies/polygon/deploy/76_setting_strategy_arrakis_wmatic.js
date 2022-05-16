@@ -4,19 +4,19 @@ let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 let {core} = require('@overnight-contracts/common/utils/core');
 
 
-let arrakisRewards = "0x33d1ad9Cd88A509397CD924C2d7613C285602C20"; // USDC/WETH
-let arrakisVault = "0xA173340f1E942c2845bcBCe8EBD411022E18EB13";  // USDC/WETH
-let oraclePriceFeedEthUsd = "0xF9680D99D6C9589e2a93a78A04A279e509205945"; // Chainlink: ETH/USD Price Feed 
+let arrakisRewards = "0x9941C03D31BC8B3aA26E363f7DD908725e1a21bb"; // WMATIC/USDC
+let arrakisVault = "0x4520c823E3a84ddFd3F99CDd01b2f8Bf5372A82a"; // WMATIC/USDC
+let oraclePriceFeedUsdtUsd = "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0"; // Chainlink: MATIC/USD Price Feed
 let eModeCategoryId = 0;
 let liquidationThreshold = 850;
-let usdcTokenInversion = 0;
+let usdcTokenInversion = 1;
 
 
 module.exports = async () => {
 
-    const strategy = await ethers.getContract("StrategyArrakisWeth");
+    const strategy = await ethers.getContract("StrategyArrakisWmatic");
 
-    await (await strategy.setTokens(POLYGON.usdc, POLYGON.weth, POLYGON.wMatic, POLYGON.amUsdc)).wait();
+    await (await strategy.setTokens(POLYGON.usdc, POLYGON.wMatic, POLYGON.wMatic, POLYGON.amUsdc)).wait();
     await (await strategy.setParams(
         POLYGON.arrakisRouter,
         arrakisRewards,
@@ -26,13 +26,13 @@ module.exports = async () => {
         POLYGON.balancerPoolIdWmaticUsdcWethBal,
         POLYGON.uniswapV3PositionManager,
         POLYGON.aaveProvider,
-        oraclePriceFeedEthUsd,
+        oraclePriceFeedUsdtUsd,
         eModeCategoryId,
         liquidationThreshold,
         usdcTokenInversion)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
-    console.log('StrategyArrakisWeth setting done');
+    console.log('StrategyArrakisWmatic setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyArrakisWethSetting'];
+module.exports.tags = ['setting', 'StrategyArrakisWmaticSetting'];
