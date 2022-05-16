@@ -70,7 +70,15 @@ let arrays = [
     {
         name: 'StrategyArrakisWeth',
         enabledReward: true,
-    }
+    },
+    {
+        name: 'StrategyArrakisUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyArrakisWmatic',
+        enabledReward: true,
+    },
 
 ];
 
