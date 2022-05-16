@@ -28,7 +28,6 @@ import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 contract StrategyArrakisWeth is Strategy, BalancerExchange {
 
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4;
-    uint256 constant HF = 1500000000000000000;
     uint256 constant MAX_UINT_VALUE = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
     uint256 constant BALANCING_DELTA = 10000000000000000;
 
@@ -51,6 +50,7 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
     bytes32 public balancerPoolIdToken;
     uint256 public tokenDenominator;
     uint256 LT;
+    uint256 HF;
     uint8 usdcTokenInversion;
     // ---  constructor
 
@@ -91,21 +91,14 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         address _balancerVault,
         bytes32 _balancerPoolIdToken,
         bytes32 _balancerPoolIdWmatic,
-        address _uniswapPositionManager,
-        address _aaveProvider,
-        address _priceFeed,
-        uint8 _eModeCategoryId,
-        uint256 _liquidationThreshold,
-        uint8 _usdcTokenInversion
+        address _uniswapPositionManager
     ) external onlyAdmin {
 
         require(_arrakisRouter != address(0), "Zero address not allowed");
         require(_arrakisRewards != address(0), "Zero address not allowed");
         require(_arrakisVault != address(0), "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
-        require(_aaveProvider != address(0), "Zero address not allowed");
         require(_uniswapPositionManager != address(0), "Zero address not allowed");
-        require(_priceFeed != address(0), "Zero address not allowed");
         require(_balancerPoolIdToken != "", "Empty pool id not allowed");
         require(_balancerPoolIdWmatic != "", "Empty pool id not allowed");
 
@@ -113,20 +106,33 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         arrakisRewards = IArrakisRewards(_arrakisRewards);
         arrakisVault = IArrakisVault(_arrakisVault);
 
-        priceFeed = IPriceFeed(_priceFeed);
         uniswapV3Pool = IUniswapV3Pool(arrakisVault.pool());
         uniswapPositionManager = INonfungiblePositionManager(_uniswapPositionManager);
 
         balancerPoolIdToken = _balancerPoolIdToken;
         balancerPoolIdWmatic = _balancerPoolIdWmatic;
         setBalancerVault(_balancerVault);
+    }
 
+    function setAaveParams(
+        address _aaveProvider,
+        address _priceFeed,
+        uint8 _eModeCategoryId,
+        uint256 _liquidationThreshold,
+        uint256 _healthFactor,
+        uint8 _usdcTokenInversion
+    ) external onlyAdmin {
+
+        require(_aaveProvider != address(0), "Zero address not allowed");
+        require(_priceFeed != address(0), "Zero address not allowed");
+
+        priceFeed = IPriceFeed(_priceFeed);
         aavePool = IPool(IPoolAddressesProvider(_aaveProvider).getPool());
         aavePool.setUserEMode(_eModeCategoryId);
         LT = _liquidationThreshold * 10 ** 15;
+        HF = _healthFactor * 10 ** 15;
         usdcTokenInversion = _usdcTokenInversion;
     }
-
 
     // --- logic
 
@@ -217,6 +223,10 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         _allToCollateral(0);
+
+        uint256 realAmount = _amount;
+        _amount = _addBasisPoints(_amount);
+
         uint256 price = uint256(priceFeed.latestAnswer());
         (uint256 collateral, uint256 borrow,,,,) = aavePool.getUserAccountData(address(this));
         (uint256 am0, uint256 am1) = _getUnderlyingBalances();
@@ -233,8 +243,8 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         uint256 getusdc = _amount - (secondBorrow * am0) / am1;
         aavePool.withdraw(address(usdcToken), getusdc, address(this));
         
-        _allToCollateral(_amount);
-        
+        _allToCollateral(realAmount);
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -361,6 +371,11 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
             LiquidityAmounts.toUint128(amountLp));
         (uint256 amount0, uint256 amount1,) = arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, _subBasisPoints(amountLiq0), _subBasisPoints(amountLiq1), address(this));
         return (usdcTokenInversion == 0) ? (amount0, amount1) : (amount1, amount0);
+    }
+
+    function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
+        uint256 basisDenominator = 10 ** 4;
+        return amount * basisDenominator / (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE);
     }
 
     function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
