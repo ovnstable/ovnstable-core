@@ -137,7 +137,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     function setPayoutListener(address _payoutListener) external onlyAdmin {
-        require(_payoutListener != address(0), "Zero address not allowed");
         payoutListener = IPayoutListener(_payoutListener);
         emit PayoutListenerUpdated(_payoutListener);
     }

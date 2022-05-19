@@ -8,6 +8,7 @@ const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {expectRevert} = require("@openzeppelin/test-helpers");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 chai.use(require('chai-bignumber')());
 
 describe("Payout", function () {
@@ -42,6 +43,8 @@ describe("Payout", function () {
 
     it("Mint, Payout should increase liq index", async function () {
 
+        // unset PL if was set on deploy stage
+        await (await exchange.setPayoutListener(ZERO_ADDRESS)).wait();
 
         const sum = toUSDC(100000);
         await (await usdc.approve(exchange.address, sum)).wait();
@@ -78,6 +81,10 @@ describe("Payout", function () {
     });
 
     it("Call payout with PayoutListener", async function () {
+
+        // unset PL if was set on deploy stage
+        await (await exchange.setPayoutListener(ZERO_ADDRESS)).wait();
+
         const sum = toUSDC(100000);
         await (await usdc.approve(exchange.address, sum)).wait();
         await (await exchange.buy(POLYGON.usdc, sum)).wait();
