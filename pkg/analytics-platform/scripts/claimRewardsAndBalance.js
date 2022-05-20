@@ -12,7 +12,6 @@ async function main() {
 
     await (await analyticsPlatform.claimRewardsAndBalance(price)).wait();
 
-
 }
 
 

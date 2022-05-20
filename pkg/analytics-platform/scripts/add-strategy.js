@@ -1,8 +1,10 @@
 const hre = require("hardhat");
 
-const {getContract, getERC20, getPrice } = require('@overnight-contracts/common/utils/script-utils')
+const {getContract, getERC20, getPrice, showPlatform} = require('@overnight-contracts/common/utils/script-utils')
 const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
 const {fromUSDC} = require("../../common/utils/decimals");
+const axios = require("axios");
+const {Contract} = require("ethers");
 
 async function main() {
 
@@ -20,6 +22,8 @@ async function main() {
     // await (await usdc.transfer(analyticsPlatform.address, toUSDC(10), price)).wait();
 
     // console.log(fromUSDC(await usdc.balanceOf(analyticsPlatform.address)));
+
+    await showPlatform(analyticsPlatform);
 
 }
 

@@ -22,8 +22,9 @@ contract AnalyticsPlatform is Initializable, AccessControlUpgradeable, UUPSUpgra
 
     // --- events
 
-    event ClaimRewardsError(address strategy, bytes msg);
-    event HealthFactorBalanceError(address strategy, bytes msg);
+    event ClaimRewardsError(address strategy, string msg);
+    event HealthFactorBalanceError(address strategy, string msg);
+    event Claim();
 
     // ---  modifiers
 
@@ -87,20 +88,25 @@ contract AnalyticsPlatform is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function claimRewardsAndBalance() external onlyAdmin {
+        emit Claim();
 
         for (uint8 i; i < strategies.length; i++) {
             IStrategy strategy = IStrategy(strategies[i]);
 
             try strategy.claimRewards(address(this)) returns (uint256 amount){
 
-            }catch(bytes memory reason){
+            }catch Error(string memory reason){
                 emit ClaimRewardsError(strategies[i], reason);
+            }catch(bytes memory){
+                emit ClaimRewardsError(strategies[i], 'revert()');
             }
 
             try strategy.healthFactorBalance(){
 
-            }catch(bytes memory reason){
+            }catch Error(string memory reason){
                 emit HealthFactorBalanceError(strategies[i], reason);
+            }catch(bytes memory){
+                emit ClaimRewardsError(strategies[i], 'revert()');
             }
 
         }
