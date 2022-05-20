@@ -25,7 +25,7 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 
 
-contract StrategyArrakisWeth is Strategy, BalancerExchange {
+contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4;
     uint256 constant MAX_UINT_VALUE = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
@@ -133,6 +133,7 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         HF = _healthFactor * 10 ** 15;
         usdcTokenInversion = _usdcTokenInversion;
     }
+
 
     // --- logic
 

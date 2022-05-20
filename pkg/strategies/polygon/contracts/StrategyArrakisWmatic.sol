@@ -25,9 +25,9 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 
 
-contract StrategyArrakisWeth is Strategy, BalancerExchange {
+contract StrategyArrakisWmatic is Strategy, BalancerExchange {
 
-    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4;
+    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 1400;
     uint256 constant MAX_UINT_VALUE = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
     uint256 constant BALANCING_DELTA = 10000000000000000;
 
@@ -244,7 +244,7 @@ contract StrategyArrakisWeth is Strategy, BalancerExchange {
         aavePool.withdraw(address(usdcToken), getusdc, address(this));
         
         _allToCollateral(realAmount);
-
+        
         return usdcToken.balanceOf(address(this));
     }
 
