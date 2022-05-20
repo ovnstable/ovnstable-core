@@ -52,7 +52,8 @@ contract MockStrategy is IStrategy {
     }
 
     function claimRewards(address _to) external override returns (uint256) {
-        return 0;
+        usdcToken.transfer(_to, 1e6);
+        return 1e6;
     }
 
     function healthFactorBalance() external override {

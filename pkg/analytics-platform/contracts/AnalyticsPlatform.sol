@@ -12,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "./interfaces/IStrategy.sol";
 
+import "hardhat/console.sol";
 
 contract AnalyticsPlatform is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -53,6 +54,13 @@ contract AnalyticsPlatform is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function addStrategy(address _strategy, uint256 _amount) external onlyAdmin {
+
+        for (uint8 i; i < strategies.length; i++) {
+            if(strategies[i] == _strategy){
+                revert('strategy already exists');
+            }
+        }
+
         strategies.push(_strategy);
 
         usdc.transfer(_strategy, _amount);
@@ -78,7 +86,7 @@ contract AnalyticsPlatform is Initializable, AccessControlUpgradeable, UUPSUpgra
         IStrategy(_strategy).unstake(address(usdc), 0, address(this), true);
     }
 
-    function claimRewardAndBalance() external onlyAdmin {
+    function claimRewardsAndBalance() external onlyAdmin {
 
         for (uint8 i; i < strategies.length; i++) {
             IStrategy strategy = IStrategy(strategies[i]);
