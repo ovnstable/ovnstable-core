@@ -28,9 +28,15 @@ function polygon(){
     }
 }
 
+function polygon_platform(){
+    return {
+        pm: "0xe7aAA880bbB7F22489f6279Ab28CEfB76912dA81"
+    }
+}
+
 function getCoreAddresses(){
 
-    let stand = "polygon_dev";
+    let stand = "polygon_platform";
     switch (stand){
         case "fantom_dev":
             return fantomDev();
@@ -40,7 +46,8 @@ function getCoreAddresses(){
             return polygonDev();
         case "polygon":
             return polygon();
-
+        case "polygon_platform":
+            return polygon_platform();
     }
 }
 
