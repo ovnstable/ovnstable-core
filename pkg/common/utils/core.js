@@ -36,7 +36,7 @@ function polygon_platform(){
 
 function getCoreAddresses(){
 
-    let stand = "polygon_platform";
+    let stand = "polygon_dev";
     switch (stand){
         case "fantom_dev":
             return fantomDev();
