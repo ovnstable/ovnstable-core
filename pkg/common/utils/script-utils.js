@@ -1,17 +1,105 @@
 const {fromE18, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const axios = require('axios');
+const hre = require("hardhat");
+const path = require('path'),
+    fs = require('fs');
+const {DEFAULT} = require("./assets");
 
+
+let wallet = undefined;
 async function initWallet(ethers) {
+
+    if (wallet)
+        return wallet;
 
     let provider = ethers.provider;
     console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+    wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('Balance wallet: ' + fromE18(balance));
 
     return wallet;
 }
+
+
+async function getContract(name, network){
+
+    let ethers = hre.ethers;
+    let wallet = await initWallet(ethers);
+
+    let contractJson = JSON.parse(fs.readFileSync(fromDir('../', network+ "/" + name + ".json")));
+    return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
+
+}
+
+async function getERC20(name){
+
+    let ethers = hre.ethers;
+    let wallet = await initWallet(ethers);
+
+    const ERC20 = require("./abi/IERC20.json");
+
+    return await ethers.getContractAt(ERC20, DEFAULT[name], wallet);
+
+}
+
+function fromDir(startPath, filter) {
+
+
+    if (!fs.existsSync(startPath)) {
+        console.log("no dir ", startPath);
+        return;
+    }
+
+    let files = fs.readdirSync(startPath);
+    for (let i = 0; i < files.length; i++) {
+        let filename = path.join(startPath, files[i]);
+        let stat = fs.lstatSync(filename);
+        if (stat.isDirectory()) {
+            let value = fromDir(filename, filter); //recurse
+            if (value)
+                return value;
+
+        } else if (filename.endsWith(filter)) {
+            // console.log('Fond: ' + filename)
+            return filename;
+        }
+    }
+
+
+}
+
+async function showPlatform(platform, blocknumber) {
+
+    let strategyAssets;
+    if (blocknumber){
+        strategyAssets = await platform.getStrategies({blockNumber: blocknumber});
+    }else {
+        strategyAssets = await platform.getStrategies();
+    }
+
+    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
+
+    const StrategyJson = require("./abi/Strategy.json");
+
+    let items = [];
+    for (let i = 0; i < strategyAssets.length; i++) {
+        let asset = strategyAssets[i];
+
+        let mapping = strategiesMapping.find(value => value.address === asset);
+
+        let contract = await hre.ethers.getContractAt(StrategyJson.abi, asset, wallet);
+
+        let nav = fromUSDC(await contract.netAssetValue());
+        let liq = fromUSDC(await contract.liquidationValue());
+
+        items.push({name: mapping ? mapping.name : asset,netAssetValue: nav, liquidationValue: liq});
+    }
+
+    console.table(items);
+}
+
 
 async function showM2M(m2m, usdPlus, blocknumber) {
 
@@ -61,5 +149,8 @@ async function getPrice(){
 module.exports = {
     initWallet: initWallet,
     showM2M: showM2M,
+    showPlatform: showPlatform,
     getPrice: getPrice,
+    getContract: getContract,
+    getERC20: getERC20
 }

@@ -67,6 +67,14 @@ function getPolygonNetwork() {
     console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
     return {
+
+        platform: {
+            url: forkingUrl,
+            accounts: accountsPolygon,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
         polygon: {
             url: forkingUrl,
             accounts: accountsPolygon,
