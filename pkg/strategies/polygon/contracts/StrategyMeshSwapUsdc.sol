@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/meshswap/interfaces/IMeshSwapUsdc.sol";
+import "./connectors/meshswap/interfaces/IMeshSwapLP.sol";
 
 
 contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
@@ -11,7 +11,7 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
     IERC20 public usdcToken;
     IERC20 public meshToken;
 
-    IMeshSwapUsdc public meshSwapUsdc;
+    IMeshSwapLP public meshSwapUsdc;
 
 
     // --- events
@@ -55,7 +55,7 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
         require(_meshSwapUsdc != address(0), "Zero address not allowed");
         require(_meshSwapRouter != address(0), "Zero address not allowed");
 
-        meshSwapUsdc = IMeshSwapUsdc(_meshSwapUsdc);
+        meshSwapUsdc = IMeshSwapLP(_meshSwapUsdc);
         _setUniswapRouter(_meshSwapRouter);
 
         emit StrategyUpdatedParams(_meshSwapUsdc, _meshSwapRouter);
@@ -83,7 +83,9 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        meshSwapUsdc.withdrawToken(_amount);
+        //TODO fix count
+        uint256 lpTokenAmount = _amount;
+        meshSwapUsdc.withdrawToken(lpTokenAmount);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -95,29 +97,32 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 amount = IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
-
-        meshSwapUsdc.withdrawToken(amount);
+        //TODO fix count
+        uint256 lpTokenAmount = IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
+        meshSwapUsdc.withdrawToken(lpTokenAmount);
 
         return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
+        //TODO fix count
         return IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
     }
 
     function liquidationValue() external view override returns (uint256) {
+        //TODO fix count
         return IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
+        //claim rewards
         meshSwapUsdc.claimReward();
-        uint256 meshBalance = meshToken.balanceOf(address(this));
 
         // sell rewards
         uint256 totalUsdc;
 
+        uint256 meshBalance = meshToken.balanceOf(address(this));
         if (meshBalance > 0) {
             uint256 meshUsdc = _swapExactTokensForTokens(
                 address(meshToken),
