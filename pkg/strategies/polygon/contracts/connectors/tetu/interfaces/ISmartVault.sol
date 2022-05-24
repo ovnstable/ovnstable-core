@@ -12,7 +12,9 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 
-interface ISmartVault {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface ISmartVault is IERC20 {
 
     function setStrategy(address _strategy) external;
 

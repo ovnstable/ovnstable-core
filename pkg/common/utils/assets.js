@@ -95,7 +95,9 @@ let POLYGON = {
     dodoProxy: "0xa222e6a71D1A1Dd5F279805fbe38d5329C1d0e70",
     dodoApprove: "0x6D310348d5c12009854DFCf72e0DF9027e8cb4f4",
     tetu: "0x255707B70BF90aa112006E1b07B9AeA6De021424",
-    arrakisRouter: "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c"
+    arrakisRouter: "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c",
+    oracleChainlinkUsdc: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
+    oracleChainlinkUsdt: "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
 }
 
 let DEFAULT = POLYGON;

@@ -87,7 +87,8 @@ contract StrategyTetuUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        usdcSmartVault.withdraw(_amount);
+        uint256 numberOfShares = _subBasisPoints(_amount) * usdcSmartVault.totalSupply() / usdcSmartVault.underlyingBalanceWithInvestment();
+        usdcSmartVault.withdraw(numberOfShares);
 
         return usdcToken.balanceOf(address(this));
     }

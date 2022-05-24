@@ -192,5 +192,57 @@ abstract contract BalancerExchange {
         }
     }
 
+    /**
+     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function _getAmountToSwap(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision,
+        bytes32 poolId,
+        IERC20 token0,
+        IERC20 token1
+    ) internal view returns (uint256) {
+        uint256 amount0ToSwap = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token0, token1, amount0ToSwap);
+            amount0ToSwap = (amount0Total * reserve1) / (reserve0 * amount1 / amount0ToSwap + reserve1);
+        }
+
+        return amount0ToSwap;
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function _getAmountLpTokensToWithdraw(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalLpBalance,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision,
+        bytes32 poolId,
+        IERC20 token0,
+        IERC20 token1
+    ) internal view returns (uint256) {
+        uint256 lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * denominator0 / denominator1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+            uint256 amount0 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token1, token0, amount1);
+            lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
+        }
+
+        return lpBalance;
+    }
+
     uint256[49] private __gap;
 }

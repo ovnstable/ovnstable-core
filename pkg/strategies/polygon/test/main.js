@@ -79,6 +79,14 @@ let arrays = [
         name: 'StrategyArrakisWmatic',
         enabledReward: true,
     },
+    {
+        name: 'StrategyMeshSwapUsdcUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyBorrowMeshSwapUsdcUsdt',
+        enabledReward: true,
+    },
 
 ];
 
