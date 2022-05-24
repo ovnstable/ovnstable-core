@@ -19,12 +19,17 @@ async function verify(items) {
         try {
             let deployment = await hre.deployments.get(item);
 
-            const currentImplAddress = await getImplementationAddress(ethers.provider, deployment.address);
+            let address = deployment.address;
+            try {
+                address = await getImplementationAddress(ethers.provider, deployment.address);
+            } catch (e) {
+                console.log('Error found proxy: '+ e.message);
+            }
 
-            console.log(`Verify ${item}:[${currentImplAddress}]`)
+            console.log(`Verify ${item}:[${address}]`)
             try {
                 await hre.run("verify:verify", {
-                    address: currentImplAddress,
+                    address: address,
                     constructorArguments: [],
                 });
 
@@ -40,7 +45,7 @@ async function verify(items) {
             }
 
             result.proxy = deployment.address;
-            result.impl = currentImplAddress;
+            result.impl = address;
         } catch (e) {
             console.log('Error: ' + e.message);
 
