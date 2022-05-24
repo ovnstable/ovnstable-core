@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const {initWallet, getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -18,36 +18,23 @@ let Mark2Market = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.
 
 async function main() {
 
-    let wallet = await initWallet(ethers);
+    let price = await getPrice();
 
-    let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
-    let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-    let contract = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
+    let governor = await getContract('OvnGovernor', 'polygon');
 
-    let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
-    let pm = await ethers.getContractAt(PortfolioManager.abi, PortfolioManager.address, wallet);
-    let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address, wallet);
+    let aave = await getContract('StrategyAave', 'polygon');
+    let dodoUsdc = await getContract('StrategyDodoUsdc', 'polygon');
+    let arrakis = await getContract('StrategyArrakis', 'polygon');
+    let meshSwap = await getContract('StrategyMeshSwapUsdc', 'polygon');
 
     let addresses = [];
     let values = [];
     let abis = [];
 
 
-    addresses.push(exchange.address);
+    addresses.push(aave.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xEaBE41bcA0d580863258a58a98289b0309DdBeFe']));
-
-    addresses.push(exchange.address);
-    values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('setPayoutListener', ['0xAE35d4F19be7897f8A11B2E61e73ae9cf38Bc90D']));
-
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('upgradeTo', ['0xa5Ec68A0031eb20fC9898858C71E883db8eDd890']));
-
-    addresses.push(m2m.address);
-    values.push(0);
-    abis.push(m2m.interface.encodeFunctionData('upgradeTo', ['0xA1370B5b1115FdEDf7B12ABBBc7Ae6fDF646b368']));
+    abis.push(aave.interface.encodeFunctionData('upgradeTo', ['0x20275a7B10bA4d897301Ae2c17E67b0eeb5A8024']));
 
 
     console.log('Creating a proposal...')
@@ -56,10 +43,7 @@ async function main() {
         values,
         abis,
         ethers.utils.id("Proposal 2: Upgrade Strategies"),
-        {
-            maxFeePerGas: "600000000000",
-            maxPriorityFeePerGas: "600000000000"
-        }
+        price
     );
     let tx = await proposeTx.wait();
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
