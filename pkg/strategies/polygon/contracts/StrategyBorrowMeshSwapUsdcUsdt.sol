@@ -175,7 +175,64 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        return 0;
+
+        require(_asset == address(usdcToken), "Some token not compatible");
+
+        (uint256 reserveUsdc, uint256 reserveUsdt,) = meshSwapUsdcUsdt.getReserves();
+        require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
+
+        uint256 priceUsdtToUsdc = _getUsdtToUsdcPrice();
+        IPool aavePool = _getAavePool();
+        (uint256 collateral, uint256 borrow,,,,) = aavePool.getUserAccountData(address(this));
+
+        uint256 usdcToUnstake = _addBasisPoints(_amount);
+        uint256 usdtBorrow = (((usdcToUnstake * liquidationThreshold) + (borrow * healthFactor / 100) - (collateral * liquidationThreshold / 100)) * usdtTokenDenominator) /
+        ((priceUsdtToUsdc * healthFactor) + (liquidationThreshold * usdtTokenDenominator * reserveUsdc / reserveUsdt));
+
+        uint256 lpTokenBalance = meshSwapUsdcUsdt.balanceOf(address(this));
+        if (lpTokenBalance > 0) {
+            // count amount to unstake
+            uint256 totalLpBalance = meshSwapUsdcUsdt.totalSupply();
+            uint256 lpTokensToWithdraw = totalLpBalance * usdtBorrow * (priceUsdtToUsdc + usdtTokenDenominator * reserveUsdc / reserveUsdt) / (reserveUsdt * priceUsdtToUsdc + reserveUsdc * usdtTokenDenominator);
+            if (lpTokensToWithdraw > lpTokenBalance) {
+                lpTokensToWithdraw = lpTokenBalance;
+            }
+            uint256 amountOutUsdcMin = reserveUsdc * lpTokensToWithdraw / totalLpBalance;
+            uint256 amountOutUsdtMin = reserveUsdt * lpTokensToWithdraw / totalLpBalance;
+
+            // remove liquidity
+            _removeLiquidity(
+                address(usdcToken),
+                address(usdtToken),
+                address(meshSwapUsdcUsdt),
+                lpTokensToWithdraw,
+                _subBasisPoints(amountOutUsdcMin),
+                _subBasisPoints(amountOutUsdtMin),
+                address(this)
+            );
+        }
+
+        // repay and withdraw from aave
+        usdtToken.approve(address(aavePool), usdtToken.balanceOf(address(this)));
+        aavePool.repay(address(usdtToken), usdtToken.balanceOf(address(this)), 2, address(this));
+        aavePool.withdraw(address(usdcToken), usdcToUnstake - (usdtBorrow * reserveUsdc) / reserveUsdt, address(this));
+
+        // swap usdt to usdc if > 1000
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+        if (usdtBalance > 1000) {
+            swap(
+                poolIdUsdcTusdDaiUsdt,
+                IVault.SwapKind.GIVEN_IN,
+                IAsset(address(usdtToken)),
+                IAsset(address(usdcToken)),
+                address(this),
+                address(this),
+                usdtBalance,
+                0
+            );
+        }
+
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
