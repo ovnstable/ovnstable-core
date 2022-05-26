@@ -6,6 +6,7 @@ import "../connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
 
 abstract contract UniswapV2Exchange {
 
+    uint256 constant BASIS_DENOMINATOR = 10 ** 4;
     uint256 constant public BASIS_POINTS_FOR_SLIPPAGE = 4;
 
     IUniswapV2Router02 private uniswapRouter;
@@ -14,9 +15,12 @@ abstract contract UniswapV2Exchange {
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
     }
 
+    function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
+        return amount * (BASIS_DENOMINATOR + BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
+    }
+
     function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** 4;
-        return amount * (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE) / basisDenominator;
+        return amount * (BASIS_DENOMINATOR - BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
     }
 
     function _swapExactTokensForTokens(
@@ -26,7 +30,7 @@ abstract contract UniswapV2Exchange {
         address recipient
     ) internal returns (uint256) {
 
-        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(outputToken), amountInput);
+        uint256 amountOutMin = _getAmountsOut(inputToken, outputToken, amountInput);
         IERC20(inputToken).approve(address(uniswapRouter), amountInput);
 
         address[] memory path = new address[](2);

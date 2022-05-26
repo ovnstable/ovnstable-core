@@ -32,7 +32,7 @@ abstract contract UniswapV2Exchange {
 
         IERC20(inputToken).approve(address(uniswapRouter), amountInput);
 
-        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(outputToken), amountInput);
+        uint256 amountOutMin = _getAmountsOut(inputToken, outputToken, amountInput);
         if (amountOutMin == 0) {
             return 0;
         }

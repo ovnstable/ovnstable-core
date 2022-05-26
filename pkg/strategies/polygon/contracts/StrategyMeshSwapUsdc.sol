@@ -83,9 +83,7 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        //TODO fix count
-        uint256 lpTokenAmount = _amount;
-        meshSwapUsdc.withdrawToken(lpTokenAmount);
+        meshSwapUsdc.withdrawToken(_amount);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -98,20 +96,20 @@ contract StrategyMeshSwapUsdc is Strategy, UniswapV2Exchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         //TODO fix count
-        uint256 lpTokenAmount = IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
-        meshSwapUsdc.withdrawToken(lpTokenAmount);
+        uint256 usdcTokenAmount = meshSwapUsdc.balanceOf(address(this)) * 2;
+        meshSwapUsdc.withdrawToken(usdcTokenAmount);
 
         return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
         //TODO fix count
-        return IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
+        return meshSwapUsdc.balanceOf(address(this)) * 2;
     }
 
     function liquidationValue() external view override returns (uint256) {
         //TODO fix count
-        return IERC20(address(meshSwapUsdc)).balanceOf(address(this)) * 2;
+        return meshSwapUsdc.balanceOf(address(this)) * 2;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

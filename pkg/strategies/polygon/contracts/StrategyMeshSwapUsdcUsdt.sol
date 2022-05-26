@@ -296,7 +296,6 @@ contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchan
                 meshBalance,
                 address(this)
             );
-            meshBalance = meshToken.balanceOf(address(this));
             totalUsdc += meshUsdc;
         }
 
