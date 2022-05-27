@@ -20,13 +20,13 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
 
     IDystopiaLP public gauge;
     IDystopiaLP public dystPair;
-    bytes32 public poolIdUsdcTusdDaiDai;
+    bytes32 public poolIdUsdcTusdDaiUsdt;
 
     // --- events
 
     event StrategyUpdatedTokens(address usdcToken, address daiToken, address dystToken, address wmaticToken, uint256 usdcTokenDenominator, uint256 daiTokenDenominator);
 
-    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 balancerPoolIdUsdcTusdDaiDai);
+    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt);
 
 
     // ---  constructor
@@ -68,22 +68,22 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         address _dystPair,
         address _dystRouter,
         address _balancerVault,
-        bytes32 _poolIdUsdcTusdDaiDai
+        bytes32 _poolIdUsdcTusdDaiUsdt
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
         require(_dystPair != address(0), "Zero address not allowed");
         require(_dystRouter != address(0), "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
-        require(_poolIdUsdcTusdDaiDai != "", "Empty pool id not allowed");
+        require(_poolIdUsdcTusdDaiUsdt != "", "Empty pool id not allowed");
 
         gauge = IDystopiaLP(_gauge); 
         dystPair = IDystopiaLP(_dystPair);
         _setDystopiaRouter(_dystRouter);
         setBalancerVault(_balancerVault);
-        poolIdUsdcTusdDaiDai = _poolIdUsdcTusdDaiDai;
+        poolIdUsdcTusdDaiUsdt = _poolIdUsdcTusdDaiUsdt;
 
-        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiDai);
+        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt);
     }
 
 
@@ -97,7 +97,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
-        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 3, 'Liquidity lpToken reserves too low');
+        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         uint256 daiBalance;
 
@@ -110,14 +110,14 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
             usdcTokenDenominator,
             daiTokenDenominator,
             1,
-            poolIdUsdcTusdDaiDai,
+            poolIdUsdcTusdDaiUsdt,
             usdcToken,
             daiToken
         );
 
         // swap usdc to dai
         swap(
-            poolIdUsdcTusdDaiDai,
+            poolIdUsdcTusdDaiUsdt,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(usdcToken)),
             IAsset(address(daiToken)),
@@ -156,7 +156,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
-        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 3, 'Liquidity lpToken reserves too low');
+        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
 
         uint256 lpTokenBalance = gauge.balanceOf(address(this));
@@ -173,7 +173,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
                 usdcTokenDenominator,
                 daiTokenDenominator,
                 1,
-                poolIdUsdcTusdDaiDai,
+                poolIdUsdcTusdDaiUsdt,
                 usdcToken,
                 daiToken
             );
@@ -202,7 +202,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         // swap dai to usdc
         uint256 daiBalance = daiToken.balanceOf(address(this));
         swap(
-            poolIdUsdcTusdDaiDai,
+            poolIdUsdcTusdDaiUsdt,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(daiToken)),
             IAsset(address(usdcToken)),
@@ -225,7 +225,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         gauge.withdrawAll();
         
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
-        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 3, 'Liquidity lpToken reserves too low');
+        require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         uint256 lpTokenBalance = dystPair.balanceOf(address(this));
         if (lpTokenBalance > 0) {
@@ -248,7 +248,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         // swap dai to usdc
         uint256 daiBalance = daiToken.balanceOf(address(this));
         swap(
-            poolIdUsdcTusdDaiDai,
+            poolIdUsdcTusdDaiUsdt,
             IVault.SwapKind.GIVEN_IN,
             IAsset(address(daiToken)),
             IAsset(address(usdcToken)),
@@ -286,7 +286,7 @@ contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
         uint256 usdcBalanceFromDai;
         if (daiBalance > 0) {
             usdcBalanceFromDai = onSwap(
-                poolIdUsdcTusdDaiDai,
+                poolIdUsdcTusdDaiUsdt,
                 IVault.SwapKind.GIVEN_IN,
                 daiToken,
                 usdcToken,

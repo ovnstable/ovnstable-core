@@ -26,7 +26,7 @@ contract StrategyDystopiaUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
     event StrategyUpdatedTokens(address usdcToken, address usdtToken, address dystToken, address wmaticToken, uint256 usdcTokenDenominator, uint256 usdtTokenDenominator);
 
-    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 balancerPoolIdUsdcTusdDaiUsdt);
+    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt);
 
 
     // ---  constructor
