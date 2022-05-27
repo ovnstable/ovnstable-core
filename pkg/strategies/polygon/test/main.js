@@ -87,7 +87,11 @@ let arrays = [
         name: 'StrategyBorrowMeshSwapUsdcUsdt',
         enabledReward: true,
     },
-
+    {
+        name: 'StrategyDystopiaUsdt',
+        enabledReward: true,
+    },
+    
 ];
 
 
