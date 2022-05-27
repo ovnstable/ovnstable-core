@@ -1,4 +1,4 @@
-const {fromE18, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18, fromUSDC, toE18, toUSDC} = require("@overnight-contracts/common/utils/decimals");
 const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
@@ -110,7 +110,7 @@ async function showM2M(m2m, usdPlus, blocknumber) {
         strategyAssets = await m2m.strategyAssets();
     }
 
-    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
+    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dict/strategies')).data;
 
     let sum = 0;
 
@@ -120,6 +120,9 @@ async function showM2M(m2m, usdPlus, blocknumber) {
 
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
+        if (fromUSDC(asset.netAssetValue) === 0){
+            continue;
+        }
 
         items.push({name: mapping ? mapping.name : asset.strategy,netAssetValue: fromUSDC(asset.netAssetValue), liquidationValue: fromUSDC(asset.liquidationValue)});
         sum += fromUSDC(asset.netAssetValue);
@@ -146,11 +149,72 @@ async function getPrice(){
     return {maxFeePerGas: value, maxPriorityFeePerGas: value};
 }
 
+
+async function changeWeightsAndBalance(weights){
+
+
+    let timelock = await getContract('OvnTimelockController', 'polygon');
+    let pm = await getContract('PortfolioManager', 'polygon');
+    let usdPlus = await getContract('UsdPlusToken', 'polygon');
+    let usdc = await getERC20('usdc' );
+    let exchange = await getContract('Exchange', 'polygon');
+    let m2m = await getContract('Mark2Market', 'polygon');
+
+
+
+    console.log('M2M before:')
+    await showM2M(m2m, usdPlus);
+
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [timelock.address],
+    });
+
+
+    const tx = {
+        from: wallet.address,
+        to: timelock.address,
+        value: toE18(10),
+        nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
+        gasLimit: 229059,
+        gasPrice: await hre.ethers.provider.getGasPrice(),
+    }
+
+    await wallet.sendTransaction(tx);
+
+    const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
+    await (await pm.connect(timelockAccount).setStrategyWeights(weights)).wait();
+    console.log('setStrategyWeights done()');
+
+    await (await pm.connect(timelockAccount).balance()).wait();
+    console.log('balance done()');
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [timelock.address],
+    });
+
+    console.log('M2M after:')
+    await showM2M(m2m, usdPlus);
+
+
+    await usdc.approve(exchange.address, toUSDC(10));
+    await exchange.buy(usdc.address, toUSDC(10));
+
+    await usdPlus.approve(exchange.address, toUSDC(10));
+    await exchange.redeem(usdc.address, toUSDC(10));
+
+}
+
 module.exports = {
     initWallet: initWallet,
     showM2M: showM2M,
     showPlatform: showPlatform,
     getPrice: getPrice,
     getContract: getContract,
-    getERC20: getERC20
+    getERC20: getERC20,
+    changeWeightsAndBalance: changeWeightsAndBalance,
 }

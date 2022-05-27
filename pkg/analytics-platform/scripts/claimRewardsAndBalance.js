@@ -1,8 +1,5 @@
-const hre = require("hardhat");
-
-const {getContract, getERC20, getPrice } = require('@overnight-contracts/common/utils/script-utils')
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
-const {fromUSDC} = require("../../common/utils/decimals");
+const {getContract, getPrice } = require('@overnight-contracts/common/utils/script-utils')
+const BN = require("bn.js");
 
 async function main() {
 
@@ -10,8 +7,13 @@ async function main() {
 
     let analyticsPlatform = await getContract('AnalyticsPlatform', 'polygon');
 
+    let limitGas = Number.parseInt(await analyticsPlatform.estimateGas.claimRewardsAndBalance());
+    limitGas += new BN((limitGas * 10 / 100)).toNumber() ;
+    price.gasLimit = limitGas;
+
     await (await analyticsPlatform.claimRewardsAndBalance(price)).wait();
 
+    console.log('ClaimRewardsAndBalance done()')
 }
 
 

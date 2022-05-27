@@ -1,133 +1,75 @@
-const hre = require("hardhat");
-const fs = require("fs");
-const {fromE18, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
-const ethers = hre.ethers;
-
-let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
-let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
-
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
-let PM = JSON.parse(fs.readFileSync('./deployments/polygon/PortfolioManager.json'));
-let M2M = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
-let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
-
-let {POLYGON} = require('@overnight-contracts/common/utils/assets');
-
-let OvnGovernor = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnGovernor.json'));
-let OvnToken = JSON.parse(fs.readFileSync('../governance/deployments/polygon/OvnToken.json'));
-
-const govUtils = require("@overnight-contracts/common/utils/governance");
-const {showM2M, initWallet} = require("@overnight-contracts/common/utils/script-utils");
+const {changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
 
 async function main() {
-    // need to run inside IDEA via node script running
-    await hre.run("compile");
-
-    let wallet = await initWallet(ethers);
-
-    let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
-    let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
-    let usdPlus = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
-
-    let governor = await ethers.getContractAt(OvnGovernor.abi, OvnGovernor.address, wallet);
-    let ovn = await ethers.getContractAt(OvnToken.abi, OvnToken.address);
-
-
-    let mstable = {
-        strategy: "0xC647A43cF67Ecae5C4C5aC18378FD45C210E8Fbc",
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-
-    let aave = {
-        strategy: "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
-        minWeight: 0,
-        targetWeight: 100000,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-
-    let dodoUsdc = {
-        strategy: "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638",
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    let dodoUsdt = {
-        strategy: "0x93FdE263299EA976f8a01a0239b9858528954299",
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-
-    let arrakis = {
-        strategy: "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-    let meshswapUsdc = {
-        strategy: "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
-        minWeight: 0,
-        targetWeight: 0,
-        maxWeight: 100000,
-        enabled: true,
-        enabledReward: true,
-    }
-
-
 
     let weights = [
-        aave,
-        dodoUsdc,
-        arrakis,
-        meshswapUsdc
+        {
+            "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
+            "name": "Aave",
+            "minWeight": 0,
+            "targetWeight": 2.5,
+            "maxWeight": 5,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
+            "name": "Arrakis USDC/USDT",
+            "minWeight": 0,
+            "targetWeight": 27.5,
+            "maxWeight": 100,
+            "enabled": false,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638",
+            "name": "Dodo USDC",
+            "minWeight": 0,
+            "targetWeight": 28.5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
+            "name": "MeshSwap USDC",
+            "minWeight": 0,
+            "targetWeight": 0,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xc2cdF9340E9B736a478E48024Ab00D07739BD9F9",
+            "name": "MeshSwap USDC/USDT",
+            "minWeight": 0,
+            "targetWeight": 40,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
+            "name": "Tetu USDC",
+            "minWeight": 0,
+            "targetWeight": 1.5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        }
     ]
 
-    let addresses = [];
-    let values = [];
-    let abis = [];
 
+    weights = weights.map(value => {
 
-    await pm.setStrategyWeights(weights);
+        delete value.name
+        value.targetWeight = value.targetWeight * 1000;
+        value.maxWeight = value.maxWeight * 1000;
 
-    // addresses.push(pm.address);
-    // values.push(0);
-    // abis.push(pm.interface.encodeFunctionData('balance', []))
-    //
-    //
-    // console.log('Creating a proposal...')
-    // const proposeTx = await governor.proposeExec(
-    //     addresses,
-    //     values,
-    //     abis,
-    //     ethers.utils.id("Proposal: Update "),
-    //     {
-    //         maxFeePerGas: "100000000000",
-    //         maxPriorityFeePerGas: "100000000000"
-    //     }
-    // );
-    // let tx = await proposeTx.wait();
-    // const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    // console.log('Proposal id ' + proposalId)
+        return value;
+    })
 
-    // await govUtils.execProposal(governor, ovn, proposalId, wallet, ethers);
-
+    await changeWeightsAndBalance(weights);
 
 }
 
