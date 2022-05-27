@@ -91,6 +91,10 @@ let arrays = [
         name: 'StrategyDystopiaUsdt',
         enabledReward: true,
     },
+    {
+        name: 'StrategyDystopiaDai',
+        enabledReward: true,
+    },
     
 ];
 
