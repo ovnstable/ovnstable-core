@@ -4,13 +4,25 @@ const axios = require('axios');
 
 async function main() {
 
-    let pm = await getContract('PortfolioManager', 'polygon');
+    let pm = await getContract('PortfolioManager', process.env.STAND);
 
     let weights = await pm.getAllStrategyWeights();
 
     let items = [];
 
-    let strategiesMapping = (await axios('https://app.overnight.fi/api/dict/strategies')).data;
+
+    let stand = process.env.STAND;
+
+    let strategiesMapping;
+    switch (stand){
+        case 'polygon':
+            strategiesMapping = (await axios('https://app.overnight.fi/api/dict/strategies')).data;
+            break
+        case 'polygon_dev':
+            strategiesMapping = (await axios('https://dev.overnight.fi/api/dict/strategies')).data;
+            break
+    }
+
 
     for (let i = 0; i < strategiesMapping.length; i++) {
 

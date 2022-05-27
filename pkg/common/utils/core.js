@@ -36,7 +36,8 @@ function polygon_platform(){
 
 function getCoreAddresses(){
 
-    let stand = "polygon_dev";
+    let stand = process.env.STAND;
+    console.log('STAND: ' + stand);
     switch (stand){
         case "fantom_dev":
             return fantomDev();
