@@ -7,9 +7,9 @@ const ethers = hre.ethers;
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
 let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
 
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon/Exchange.json'));
-let M2M = JSON.parse(fs.readFileSync('./deployments/polygon/Mark2Market.json'));
-let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon/UsdPlusToken.json'));
+let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Exchange.json'));
+let M2M = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Mark2Market.json'));
+let UsdPlusToken = JSON.parse(fs.readFileSync('./deployments/polygon_dev/UsdPlusToken.json'));
 
 let price = { maxFeePerGas: "1400000000000", maxPriorityFeePerGas: "1400000000000" };
 
@@ -30,7 +30,7 @@ async function main() {
     let usdPlusToken = await ethers.getContractAt(UsdPlusToken.abi, UsdPlusToken.address, wallet);
 
     await showM2M(m2m,usdPlusToken);
-    await (await exchange.payout()).wait();
+    await (await exchange.payout(price)).wait();
     await showM2M(m2m, usdPlusToken);
 
 }

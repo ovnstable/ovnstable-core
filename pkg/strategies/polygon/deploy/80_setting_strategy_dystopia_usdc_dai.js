@@ -9,13 +9,13 @@ let dystRouter = '0xbE75Dd16D029c6B32B7aD57A0FD9C1c20Dd2862e'; //DystRouter01
 let gauge = '0x9c3Afbc9D0540168C6D4f3dA0F48FeBA6a3A7d2a'; //aka MasterChef
 
 module.exports = async () => {
-    const strategy = await ethers.getContract("StrategyDystopiaDai");
+    const strategy = await ethers.getContract("StrategyDystopiaUsdcDai");
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.dai, dystToken, POLYGON.wMatic)).wait();
     await (await strategy.setParams(gauge, dystPair, dystRouter, POLYGON.balancerVault, POLYGON.balancerPoolIdUsdcTusdDaiUsdt)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
-    console.log('StrategyDystopiaDai setting done');
+    console.log('StrategyDystopiaUsdcDai setting done');
 };
 
-module.exports.tags = ['setting', 'StrategyDystopiaDaiSetting'];
+module.exports.tags = ['setting', 'StrategyDystopiaUsdcDaiSetting'];

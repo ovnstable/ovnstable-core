@@ -8,7 +8,7 @@ import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "hardhat/console.sol";
 
 
-contract StrategyDystopiaDai is Strategy, DystopiaExchange, BalancerExchange {
+contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {
 
     IERC20 public usdcToken;
     IERC20 public daiToken;

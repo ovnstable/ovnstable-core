@@ -88,11 +88,11 @@ let arrays = [
         enabledReward: true,
     },
     {
-        name: 'StrategyDystopiaUsdt',
+        name: 'StrategyDystopiaUsdcUsdt',
         enabledReward: true,
     },
     {
-        name: 'StrategyDystopiaDai',
+        name: 'StrategyDystopiaUsdcDai',
         enabledReward: true,
     },
     
