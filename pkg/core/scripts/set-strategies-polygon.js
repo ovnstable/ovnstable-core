@@ -34,10 +34,10 @@ async function main() {
             "strategy": "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
             "name": "MeshSwap USDC",
             "minWeight": 0,
-            "targetWeight": 0,
+            "targetWeight": 1,
             "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
+            "enabled": false,
+            "enabledReward": false
         },
         {
             "strategy": "0xc2cdF9340E9B736a478E48024Ab00D07739BD9F9",
