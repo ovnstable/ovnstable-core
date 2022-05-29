@@ -77,7 +77,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_poolIdUsdcTusdDaiUsdt != "", "Empty pool id not allowed");
 
-        gauge = IDystopiaLP(_gauge); 
+        gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
         _setDystopiaRouter(_dystRouter);
         setBalancerVault(_balancerVault);
@@ -160,11 +160,11 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
 
         uint256 lpTokenBalance = gauge.balanceOf(address(this));
-        
+
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = dystPair.totalSupply();
-            
+
             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
                 _addBasisPoints(_amount),
                 reserveUsdc,
@@ -223,7 +223,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         require(_asset == address(usdcToken), "Some token not compatible");
 
         gauge.withdrawAll();
-        
+
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
@@ -298,31 +298,28 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-        
+
         address[] memory token = new address[](1);
         token[0] = address(dystToken);
         gauge.getReward(address(this), token);
-        
-        // sell rewards
-        uint256 totalUsdc;
 
+        // sell rewards
         uint256 dystBalance = dystToken.balanceOf(address(this));
-        
+
         if (dystBalance > 0) {
-            uint256 dystUsdc = _swapExactTokensForTokens(
+            _swapExactTokensForTokens(
                 address(dystToken),
                 address(wmaticToken),
                 address(usdcToken),
                 dystBalance,
                 address(this)
             );
-            
-            totalUsdc += dystUsdc;
         }
 
-        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
+        uint256 totalUsdc = usdcToken.balanceOf(address(this));
+        usdcToken.transfer(_to, totalUsdc);
 
         return totalUsdc;
-      
+
     }
 }
