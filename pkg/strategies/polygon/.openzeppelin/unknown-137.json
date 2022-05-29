@@ -555,6 +555,11 @@
       "address": "0x362581927424D895F3D796F4126462e78C7e4e4A",
       "txHash": "0xd491847c883ebb7e0c0cb72e4b4d260e039bbb604046af6a46a376502d80ee19",
       "kind": "uups"
+    },
+    {
+      "address": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
+      "txHash": "0x6916a8d222ecfde46c887cd622b7d973fe3079c8f95198dab577ce782fa05e92",
+      "kind": "uups"
     }
   ],
   "impls": {

@@ -1,4 +1,6 @@
-const {changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
+const {changeWeightsAndBalance, getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+
+const hre = require('hardhat');
 
 async function main() {
 
@@ -34,7 +36,7 @@ async function main() {
             "strategy": "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
             "name": "MeshSwap USDC",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 0,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": false
@@ -43,7 +45,7 @@ async function main() {
             "strategy": "0xc2cdF9340E9B736a478E48024Ab00D07739BD9F9",
             "name": "MeshSwap USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 40,
+            "targetWeight": 5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -53,6 +55,16 @@ async function main() {
             "name": "Tetu USDC",
             "minWeight": 0,
             "targetWeight": 1.5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
+            "name": "Dystopia USDC/USDT",
+            "minWeight": 0,
+            "targetWeight": 35,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -69,7 +81,41 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
+    // await changeWeightsAndBalance(weights);
+    await createProposal(weights);
+
+}
+
+
+async function createProposal(weights){
+    let governor = await getContract('OvnGovernor', 'polygon');
+    let pm = await getContract('PortfolioManager', 'polygon');
+
+    let addresses = [];
+    let values = [];
+    let abis = [];
+
+
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
+
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('balance', []));
+
+
+    console.log('Creating a proposal...')
+    const proposeTx = await governor.proposeExec(
+        addresses,
+        values,
+        abis,
+        hre.ethers.utils.id("Proposal 2: Upgrade Strategies"),
+        await getPrice()
+    );
+    let tx = await proposeTx.wait();
+    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    console.log('Proposal id ' + proposalId)
 
 }
 
