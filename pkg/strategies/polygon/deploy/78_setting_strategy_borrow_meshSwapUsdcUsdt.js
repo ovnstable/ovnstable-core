@@ -9,6 +9,9 @@ let meshSwapRouter = '0x10f4A785F458Bc144e3706575924889954946639';
 let eModeCategoryId = 1;
 let liquidationThreshold = 975;
 let healthFactor = 1026;
+let balancingDelta = 10;
+let interestRateMode = 2;
+let referralCode = 0;
 
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyBorrowMeshSwapUsdcUsdt");
@@ -25,7 +28,10 @@ module.exports = async () => {
         POLYGON.oracleChainlinkUsdt,
         eModeCategoryId,
         liquidationThreshold,
-        healthFactor)).wait();
+        healthFactor,
+        balancingDelta,
+        interestRateMode,
+        referralCode)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyBorrowMeshSwapUsdcUsdt setting done');

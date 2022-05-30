@@ -9,7 +9,7 @@ import "./connectors/meshswap/interfaces/IMeshSwapLP.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPool.sol";
-
+import { AaveBorrowLibrary } from "./libraries/AaveBorrowLibrary.sol";
 
 contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchange {
     using OvnMath for uint256;
@@ -27,12 +27,15 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
     IMeshSwapLP public meshSwapUsdcUsdt;
     bytes32 public poolIdUsdcTusdDaiUsdt;
 
-    IPoolAddressesProvider aavePoolAddressesProvider;
-    IPriceFeed oracleChainlinkUsdc;
-    IPriceFeed oracleChainlinkUsdt;
-    uint8 eModeCategoryId;
-    uint256 liquidationThreshold;
-    uint256 healthFactor;
+    IPoolAddressesProvider public aavePoolAddressesProvider;
+    IPriceFeed public oracleChainlinkUsdc;
+    IPriceFeed public oracleChainlinkUsdt;
+    uint8 public eModeCategoryId;
+    uint256 public liquidationThreshold;
+    uint256 public healthFactor;
+    uint256 public balancingDelta;
+    uint256 public interestRateMode;
+    uint16 public referralCode;
 
 
     // --- events
@@ -42,7 +45,7 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
     event StrategyUpdatedParams(address meshSwapUsdcUsdt, address meshSwapRouter, address balancerVault, bytes32 balancerPoolIdUsdcTusdDaiUsdt);
 
     event StrategyUpdatedAaveParams(address aavePoolAddressesProvider, address oracleChainlinkUsdc, address oracleChainlinkUsdt,
-        uint256 eModeCategoryId, uint256 liquidationThreshold, uint256 healthFactor);
+        uint256 eModeCategoryId, uint256 liquidationThreshold, uint256 healthFactor, uint256 balancingDelta, uint256 interestRateMode, uint16 referralCode);
 
 
     // ---  constructor
@@ -105,7 +108,10 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         address _oracleChainlinkUsdt,
         uint8 _eModeCategoryId,
         uint256 _liquidationThreshold,
-        uint256 _healthFactor
+        uint256 _healthFactor,
+        uint256 _balancingDelta,
+        uint256 _interestRateMode,
+        uint16 _referralCode
     ) external onlyAdmin {
 
         require(_aavePoolAddressesProvider != address(0), "Zero address not allowed");
@@ -118,9 +124,12 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         eModeCategoryId = _eModeCategoryId;
         liquidationThreshold = _liquidationThreshold * 10 ** 15;
         healthFactor = _healthFactor * 10 ** 15;
+        balancingDelta = _balancingDelta * 10 ** 15;
+        interestRateMode = _interestRateMode;
+        referralCode = _referralCode;
 
         emit StrategyUpdatedAaveParams(_aavePoolAddressesProvider, _oracleChainlinkUsdc, _oracleChainlinkUsdt,
-            _eModeCategoryId, _liquidationThreshold, _healthFactor);
+            _eModeCategoryId, _liquidationThreshold, _healthFactor, _balancingDelta, _interestRateMode, _referralCode);
     }
 
 
@@ -136,14 +145,23 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         (uint256 reserveUsdc, uint256 reserveUsdt,) = meshSwapUsdcUsdt.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
 
-        uint256 usdcCollateral = (_amount * healthFactor) / (healthFactor + liquidationThreshold * reserveUsdc / _convertUsdtToUsdc(reserveUsdt));
-        uint256 usdtBorrow = _convertUsdcToUsdt(usdcCollateral) * liquidationThreshold / healthFactor;
+        (uint256 usdcCollateral, uint256 usdtBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
+            _amount,
+            reserveUsdc,
+            reserveUsdt,
+            liquidationThreshold,
+            healthFactor,
+            usdcTokenDenominator,
+            usdtTokenDenominator,
+            uint256(oracleChainlinkUsdc.latestAnswer()),
+            uint256(oracleChainlinkUsdt.latestAnswer())
+        );
 
         // supply and borrow in aave
-        IPool aavePool = _getAavePool();
-        usdcToken.approve(address(aavePool), usdcCollateral);
-        aavePool.supply(address(usdcToken), usdcCollateral, address(this), 0);
-        aavePool.borrow(address(usdtToken), usdtBorrow, 2, 0, address(this));
+        address aavePool = AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId);
+        usdcToken.approve(aavePool, usdcCollateral);
+        IPool(aavePool).supply(address(usdcToken), usdcCollateral, address(this), referralCode);
+        IPool(aavePool).borrow(address(usdtToken), usdtBorrow, interestRateMode, referralCode, address(this));
 
         // add liquidity
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
@@ -159,36 +177,6 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         );
     }
 
-    function _convertUsdcToUsdt(uint256 amountUsdc) internal view returns (uint256) {
-        return (amountUsdc * usdtTokenDenominator * uint256(oracleChainlinkUsdc.latestAnswer())) / (usdcTokenDenominator * uint256(oracleChainlinkUsdt.latestAnswer()));
-    }
-
-    function _convertUsdtToUsdc(uint256 amountUsdt) internal view returns (uint256) {
-        return (amountUsdt * usdcTokenDenominator * uint256(oracleChainlinkUsdt.latestAnswer())) / (usdtTokenDenominator * uint256(oracleChainlinkUsdc.latestAnswer()));
-    }
-
-    function _convertUsdToUsdc(uint256 amountUsd) internal view returns (uint256) {
-        return amountUsd * usdcTokenDenominator / uint256(oracleChainlinkUsdc.latestAnswer());
-    }
-
-    function _convertUsdcToUsd(uint256 amountUsdc) internal view returns (uint256) {
-        return amountUsdc * uint256(oracleChainlinkUsdc.latestAnswer()) / usdcTokenDenominator;
-    }
-
-    function _convertUsdToUsdt(uint256 amountUsd) internal view returns (uint256) {
-        return amountUsd * usdtTokenDenominator / uint256(oracleChainlinkUsdt.latestAnswer());
-    }
-
-    function _convertUsdtToUsd(uint256 amountUsdt) internal view returns (uint256) {
-        return amountUsdt * uint256(oracleChainlinkUsdt.latestAnswer()) / usdtTokenDenominator;
-    }
-
-    function _getAavePool() internal returns (IPool) {
-        IPool aavePool = IPool(aavePoolAddressesProvider.getPool());
-        aavePool.setUserEMode(eModeCategoryId);
-        return aavePool;
-    }
-
     function _unstake(
         address _asset,
         uint256 _amount,
@@ -200,20 +188,43 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         (uint256 reserveUsdc, uint256 reserveUsdt,) = meshSwapUsdcUsdt.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
 
-        IPool aavePool = _getAavePool();
-        (uint256 collateral, uint256 borrow,,,,) = aavePool.getUserAccountData(address(this));
+        address aavePool = AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId);
 
-        uint256 usdcToUnstake = _addBasisPoints(_amount);
-        uint256 usdtBorrow = ((_convertUsdToUsdt(borrow) * healthFactor) - ((_convertUsdToUsdt(collateral) - _convertUsdcToUsdt(usdcToUnstake)) * liquidationThreshold)) / (healthFactor + liquidationThreshold * reserveUsdc / _convertUsdtToUsdc(reserveUsdt));
+        (uint256 collateral, uint256 borrow,,,,) = IPool(aavePool).getUserAccountData(address(this));
+
+        uint256 usdcCollateral = _addBasisPoints(_amount);
+        uint256 usdtBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
+            usdcCollateral,
+            collateral,
+            borrow,
+            reserveUsdc,
+            reserveUsdt,
+            liquidationThreshold,
+            healthFactor,
+            usdcTokenDenominator,
+            usdtTokenDenominator,
+            uint256(oracleChainlinkUsdc.latestAnswer()),
+            uint256(oracleChainlinkUsdt.latestAnswer())
+        );
 
         uint256 lpTokenBalance = meshSwapUsdcUsdt.balanceOf(address(this));
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = meshSwapUsdcUsdt.totalSupply();
-            uint256 lpTokensToWithdraw = totalLpBalance * (_convertUsdtToUsdc(usdtBorrow) + usdtBorrow * reserveUsdc / reserveUsdt) / (reserveUsdc + _convertUsdtToUsdc(reserveUsdt));
+            uint256 lpTokensToWithdraw = AaveBorrowLibrary.getLpTokensForWithdraw(
+                totalLpBalance,
+                usdtBorrow,
+                reserveUsdc,
+                reserveUsdt,
+                usdcTokenDenominator,
+                usdtTokenDenominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkUsdt.latestAnswer())
+            );
             if (lpTokensToWithdraw > lpTokenBalance) {
                 lpTokensToWithdraw = lpTokenBalance;
             }
+
             uint256 amountOutUsdcMin = reserveUsdc * lpTokensToWithdraw / totalLpBalance;
             uint256 amountOutUsdtMin = reserveUsdt * lpTokensToWithdraw / totalLpBalance;
 
@@ -230,9 +241,9 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
         }
 
         // repay and withdraw from aave
-        usdtToken.approve(address(aavePool), usdtToken.balanceOf(address(this)));
-        aavePool.repay(address(usdtToken), usdtToken.balanceOf(address(this)), 2, address(this));
-        aavePool.withdraw(address(usdcToken), (usdcToUnstake - usdtBorrow * reserveUsdc / reserveUsdt), address(this));
+        usdtToken.approve(aavePool, usdtToken.balanceOf(address(this)));
+        IPool(aavePool).repay(address(usdtToken), usdtToken.balanceOf(address(this)), interestRateMode, address(this));
+        IPool(aavePool).withdraw(address(usdcToken), (usdcCollateral - usdtBorrow * reserveUsdc / reserveUsdt), address(this));
 
         // swap usdt to usdc if > 1000
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
@@ -280,7 +291,7 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
             );
         }
 
-        // swap < 100000
+        // swap if usdc < 100000
         uint256 usdcForSwap = 100000;
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         if (usdcBalance < usdcForSwap) {
@@ -293,14 +304,15 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
             IAsset(address(usdtToken)),
             address(this),
             address(this),
-            usdcForSwap, 0
+            usdcForSwap,
+            0
         );
 
         // repay and withdraw from aave
-        IPool aavePool = _getAavePool();
-        usdtToken.approve(address(aavePool), usdtToken.balanceOf(address(this)));
-        aavePool.repay(address(usdtToken), MAX_UINT_VALUE, 2, address(this));
-        aavePool.withdraw(address(usdcToken), MAX_UINT_VALUE, address(this));
+        address aavePool = AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId);
+        usdtToken.approve(aavePool, usdtToken.balanceOf(address(this)));
+        IPool(aavePool).repay(address(usdtToken), MAX_UINT_VALUE, interestRateMode, address(this));
+        IPool(aavePool).withdraw(address(usdcToken), MAX_UINT_VALUE, address(this));
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
@@ -383,22 +395,35 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
 
     function _healthFactorBalance() internal override returns (uint256) {
 
-        IPool aavePool = _getAavePool();
-        (uint256 collateral, uint256 borrow,,,, uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(this));
+        address aavePool = AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId);
+        (uint256 collateral, uint256 borrow,,,, uint256 healthFactorCurrent) = IPool(aavePool).getUserAccountData(address(this));
 
-        if (healthFactorCurrent.abs(healthFactor) < BALANCING_DELTA) {
+        if (healthFactorCurrent.abs(healthFactor) < balancingDelta) {
             return healthFactorCurrent;
         }
 
         (uint256 reserveUsdc, uint256 reserveUsdt,) = meshSwapUsdcUsdt.getReserves();
 
         if (healthFactorCurrent > healthFactor) {
-            uint256 neededUsdc = reserveUsdc * (collateral * liquidationThreshold - borrow * healthFactor) / (_convertUsdtToUsd(reserveUsdt) * healthFactor + _convertUsdcToUsd(reserveUsdc) * liquidationThreshold);
+
+            uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
+                collateral,
+                borrow,
+                reserveUsdc,
+                reserveUsdt,
+                liquidationThreshold,
+                healthFactor,
+                usdcTokenDenominator,
+                usdtTokenDenominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkUsdt.latestAnswer())
+            );
+
             uint256 neededUsdt = neededUsdc * reserveUsdt / reserveUsdc;
 
             // withdraw and borrow
-            aavePool.withdraw(address(usdcToken), neededUsdc, address(this));
-            aavePool.borrow(address(usdtToken), neededUsdt, 2, 0, address(this));
+            IPool(aavePool).withdraw(address(usdcToken), neededUsdc, address(this));
+            IPool(aavePool).borrow(address(usdtToken), neededUsdt, interestRateMode, referralCode, address(this));
 
             // add liquidity
             _addLiquidity(
@@ -412,10 +437,32 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
             );
 
         } else {
-            uint256 neededUsdt = reserveUsdt * (borrow * healthFactor - collateral * liquidationThreshold) / (_convertUsdtToUsd(reserveUsdt) * healthFactor + _convertUsdcToUsd(reserveUsdc) * liquidationThreshold);
+
+            uint256 neededUsdt = AaveBorrowLibrary.getSupplyAmountForBalance(
+                collateral,
+                borrow,
+                reserveUsdc,
+                reserveUsdt,
+                liquidationThreshold,
+                healthFactor,
+                usdcTokenDenominator,
+                usdtTokenDenominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkUsdt.latestAnswer())
+            );
+
             uint256 lpTokenBalance = meshSwapUsdcUsdt.balanceOf(address(this));
             uint256 totalLpBalance = meshSwapUsdcUsdt.totalSupply();
-            uint256 lpTokensToWithdraw = totalLpBalance * (_convertUsdtToUsdc(neededUsdt) + neededUsdt * reserveUsdc / reserveUsdt) / (reserveUsdc + _convertUsdtToUsdc(reserveUsdt));
+            uint256 lpTokensToWithdraw = AaveBorrowLibrary.getLpTokensForWithdraw(
+                totalLpBalance,
+                neededUsdt,
+                reserveUsdc,
+                reserveUsdt,
+                usdcTokenDenominator,
+                usdtTokenDenominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkUsdt.latestAnswer())
+            );
             if (lpTokensToWithdraw > lpTokenBalance) {
                 lpTokensToWithdraw = lpTokenBalance;
             }
@@ -432,13 +479,13 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
             );
 
             // supply and repay
-            usdcToken.approve(address(aavePool), amountUsdc);
-            usdtToken.approve(address(aavePool), amountUsdt);
-            aavePool.supply(address(usdcToken), amountUsdc, address(this), 0);
-            aavePool.repay(address(usdtToken), amountUsdt, 2, address(this));
+            usdcToken.approve(aavePool, amountUsdc);
+            usdtToken.approve(aavePool, amountUsdt);
+            IPool(aavePool).supply(address(usdcToken), amountUsdc, address(this), referralCode);
+            IPool(aavePool).repay(address(usdtToken), amountUsdt, interestRateMode, address(this));
         }
 
-        (,,,,, healthFactorCurrent) = aavePool.getUserAccountData(address(this));
+        (,,,,, healthFactorCurrent) = IPool(aavePool).getUserAccountData(address(this));
         return healthFactorCurrent;
     }
 
