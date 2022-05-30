@@ -25,6 +25,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         // QuickSwap usdPlus pools
         "0x901Debb34469e89FeCA591f5E5336984151fEc39",  // USD+/WETH
         "0x91F670270B86C80Ec92bB6B5914E6532cA967bFB",  // WMATIC/USD+
+
+        "0x143b882e58fd8c543da98c7d84063a5ae34925da"   // Parrotly Finance
     ]
 
     await (await polygonPL.setQsSyncPools(pools)).wait();
