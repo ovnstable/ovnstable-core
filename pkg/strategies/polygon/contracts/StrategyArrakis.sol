@@ -124,12 +124,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
 
         (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
-
-        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96,
-            lowerTick,
-            upperTick,
-            uniswapV3Pool.liquidity());
+        (uint256 amountLiq0, uint256 amountLiq1) = arrakisVault.getUnderlyingBalancesAtPrice(sqrtPriceX96);
 
         if (amountLiq0 >= amountLiq1) {
 
@@ -168,20 +163,18 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // 1. Calculating amount USDC/USDT
-        uint256 amountToUnstake = _amount.addBasisPoints(5) + 5;
+        uint256 amountToUnstake = _amount + (_amount / 100 * 60);
         uint256 usdtAmount = _getNeedToByUsdt(amountToUnstake);
         uint256 usdcAmount = amountToUnstake - usdtAmount;
 
         (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
-
         // 2. Calculating need amount lp tokens - depends on amount USDC/USDT
         uint256 amountLp = uint256(LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, lowerTick, upperTick, usdcAmount, usdtAmount));
 
-
         // 3. Get tokens USDC/USDT from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
-        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, usdcAmount, usdtAmount, address(this));
+        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, 0, 0, address(this));
 
 
         // 4. Swap USDT to USDC
@@ -215,7 +208,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
         // 3. Get usdc/usdt tokens from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
-        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, amountLiq0, amountLiq1, address(this));
+        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, 0, 0, address(this));
 
 
         // 4. Swap USDT to USDC tokens on Balancer
@@ -253,25 +246,22 @@ contract StrategyArrakis is Strategy, BalancerExchange {
             return 0;
 
         (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
+        (uint256 amountLiq0, uint256 amountLiq1) = arrakisVault.getUnderlyingBalancesAtPrice(sqrtPriceX96);
 
-        // Balance LP tokens == pool liquidity
-        // Details: https://github.com/tintinweb/smart-contract-sanctuary-ethereum/blob/80b9ddcbca94e30006ee74efc60d10bf661a53e3/contracts/mainnet/d6/d68b055fb444D136e3aC4df023f4C42334F06395_ArrakisVaultV1.sol#L1742
+        uint256 totalSupply = arrakisVault.totalSupply();
 
-        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96,
-            lowerTick,
-            upperTick,
-            LiquidityAmounts.toUint128(balanceLp));
+        uint256 usdcBalance = amountLiq0 * balanceLp / totalSupply;
+        uint256 usdtBalance = amountLiq1 * balanceLp / totalSupply;
 
         // index 1 - USDC
-        uint256 totalUsdc = usdcToken.balanceOf(address(this)) + amountLiq0;
+        uint256 totalUsdc = usdcToken.balanceOf(address(this)) + usdcBalance;
 
         // index 2 - USDT
-        uint256 totalUsdt = usdtToken.balanceOf(address(this)) + amountLiq1;
-
+        uint256 totalUsdt = usdtToken.balanceOf(address(this)) + usdtBalance;
 
         // check how many USDC tokens we will get if we sell USDT tokens now
-        return totalUsdc + onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_OUT, usdcToken, usdtToken, totalUsdt);
+        uint256 totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_OUT, usdcToken, usdtToken, totalUsdt);
+        return totalUsdc + totalUsdtToUsdc;
 
     }
 
