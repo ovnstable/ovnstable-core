@@ -6,8 +6,10 @@ import "./core/Strategy.sol";
 import "./connectors/dodo/interfaces/IDODOV1.sol";
 import "./connectors/dodo/interfaces/IDODOV2.sol";
 import "./connectors/dodo/interfaces/IDODOMine.sol";
+import "./libraries/OvnMath.sol";
 
 contract StrategyDodoUsdc is Strategy, DodoExchange {
+    using OvnMath for uint256;
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -120,15 +122,13 @@ contract StrategyDodoUsdc is Strategy, DodoExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // don't count already unstaked usdc tokens and add 5 usdc for small values
-        uint256 usdcTokenAmount = _amount - usdcToken.balanceOf(address(this)) + 5;
+        // add 5 basis points and 5 usdc for small values
+        uint256 amountToUnstake = _amount.addBasisPoints(5) + 5;
 
         // get lp tokens
         uint256 baseLpTotalSupply = usdcLPToken.totalSupply();
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 baseLpBalance = usdcTokenAmount * baseLpTotalSupply / baseTarget;
-        // add 0.01%
-        baseLpBalance = baseLpBalance * 10001 / 10000;
+        uint256 baseLpBalance = amountToUnstake * baseLpTotalSupply / baseTarget;
 
         // unstake lp tokens
         dodoMine.withdraw(address(usdcLPToken), baseLpBalance);

@@ -19,9 +19,10 @@ import "./connectors/arrakis/IArrakisRewards.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
+import "./libraries/OvnMath.sol";
 
 contract StrategyArrakis is Strategy, BalancerExchange {
-
+    using OvnMath for uint256;
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -167,8 +168,9 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // 1. Calculating amount USDC/USDT
-        uint256 usdtAmount = _getNeedToByUsdt(_amount);
-        uint256 usdcAmount = _amount - usdtAmount;
+        uint256 amountToUnstake = _amount.addBasisPoints(5) + 5;
+        uint256 usdtAmount = _getNeedToByUsdt(amountToUnstake);
+        uint256 usdcAmount = amountToUnstake - usdtAmount;
 
         (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
 
