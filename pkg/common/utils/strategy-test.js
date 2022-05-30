@@ -380,8 +380,15 @@ function greatLess(value, expected, delta) {
     let lte = value.lte(maxValue);
     let gte = value.gte(minValue);
 
-    expect(gte).to.equal(true, `Value[${value.toString()}] less than Min Value[${minValue.toString()}] dif:[${value.sub(minValue).toString()}]`);
-    expect(lte).to.equal(true, `Value[${value.toString()}] great than Max Value[${maxValue.toString()}] dif:[${value.sub(maxValue).toString()}]`);
+    let valueNumber = value.div(new BN(10).pow(new BN(6))).toString();
+    let minValueNumber = minValue.div(new BN(10).pow(new BN(6))).toString();
+    let maxValueNumber = maxValue.div(new BN(10).pow(new BN(6))).toString();
+
+    let minSub = (value.sub(minValue)).div(new BN(10).pow(new BN(6))).toString();
+    let maxSub = (value.sub(maxValue)).div(new BN(10).pow(new BN(6))).toString();
+
+    expect(gte).to.equal(true, `Value[${valueNumber}] less than Min Value[${minValueNumber}] dif:[${minSub}]`);
+    expect(lte).to.equal(true, `Value[${valueNumber}] great than Max Value[${maxValueNumber}] dif:[${maxSub}]`);
 }
 
 module.exports = {

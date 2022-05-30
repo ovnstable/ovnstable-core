@@ -1,8 +1,10 @@
-const {changeWeightsAndBalance, getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {changeWeightsAndBalance, getContract, getPrice, upgradeStrategy, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 const hre = require('hardhat');
+const {execProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
+
 
     let weights = [
         {
@@ -18,7 +20,7 @@ async function main() {
             "strategy": "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
             "name": "Arrakis USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 27.5,
+            "targetWeight": 20,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -33,24 +35,6 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0xbAdd752A7aE393a5e610F4a62436e370Abd31656",
-            "name": "MeshSwap USDC",
-            "minWeight": 0,
-            "targetWeight": 0,
-            "maxWeight": 100,
-            "enabled": false,
-            "enabledReward": false
-        },
-        {
-            "strategy": "0xc2cdF9340E9B736a478E48024Ab00D07739BD9F9",
-            "name": "MeshSwap USDC/USDT",
-            "minWeight": 0,
-            "targetWeight": 5,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-        {
             "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
             "name": "Tetu USDC",
             "minWeight": 0,
@@ -59,12 +43,20 @@ async function main() {
             "enabled": true,
             "enabledReward": true
         },
-
         {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
             "targetWeight": 35,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xD339B3291f7545967bF0eE0ABE967435598917C5",
+            "name": "Dystopia USDC/DAI",
+            "minWeight": 0,
+            "targetWeight": 12.5 ,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -81,10 +73,13 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
-    await createProposal(weights);
+    await changeWeightsAndBalance(weights);
+    // await createProposal(weights);
 
 }
+
+
+
 
 
 async function createProposal(weights){

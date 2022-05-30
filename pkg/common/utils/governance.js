@@ -1,10 +1,16 @@
 const {fromOvnGov} = require("./decimals");
 const {expect} = require("chai");
+const {getContract, initWallet} = require("./script-utils");
+const hre = require('hardhat');
 
-
+const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
-async function execProposal(governator, ovn, id, wallet ,ethers) {
+async function execProposal(id) {
+
+    let wallet = await initWallet(ethers)
+    let governator = await getContract('OvnGovernor', 'polygon');
+    let ovn = await getContract('OvnToken', 'polygon');
 
     let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1));
     console.log('Quorum: ' + quorum);
