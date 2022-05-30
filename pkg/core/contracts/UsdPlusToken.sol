@@ -429,9 +429,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        // up to ray
-        uint256 scaledAmount = subtractedValue.wadToRay();
-        scaledAmount = scaledAmount.rayDiv(liquidityIndex);
+        uint256 scaledAmount;
+        if (subtractedValue == allowance(_msgSender(), spender)) {
+            // transfer all
+            scaledAmount = _allowances[_msgSender()][spender];
+        } else {
+            // up to ray
+            scaledAmount = subtractedValue.wadToRay();
+            scaledAmount = scaledAmount.rayDiv(liquidityIndex);
+        }
+
         uint256 currentAllowance = _allowances[_msgSender()][spender];
         require(currentAllowance >= scaledAmount, "ERC20: decreased allowance below zero");
     unchecked {

@@ -12,4 +12,8 @@ contract TestUsdPlusToken is UsdPlusToken {
     function burnTest(address from, uint256 amount) external {
         _burn(from, amount);
     }
+
+    function approveTest(address owner, address spender, uint256 amount) external {
+        _approve(owner, spender, amount);
+    }
 }

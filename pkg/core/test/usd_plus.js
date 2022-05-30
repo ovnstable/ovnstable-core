@@ -436,6 +436,7 @@ describe("Total Mint/Burn/Supply", function () {
 
 });
 
+
 describe("ERC20", function () {
 
     let account;
@@ -622,7 +623,7 @@ describe("ERC20", function () {
 });
 
 
-describe("Test token", function () {
+describe("Full amounts", function () {
 
     let account;
     let usdPlus;
@@ -657,15 +658,15 @@ describe("Test token", function () {
         await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
 
         let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((currentBalance.eq(amount)));
+        expect(currentBalance.eq(amount));
 
         await usdPlus.burn(owner.address, amount.toString());
 
         let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((zeroBalance.eq(new BN(0))));
+        expect(zeroBalance.eq(new BN(0)));
 
         let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect((zeroBalanceInner.eq(new BN(0))));
+        expect(zeroBalanceInner.eq(new BN(0)));
 
     });
 
@@ -681,21 +682,21 @@ describe("Test token", function () {
         await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
 
         let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((currentBalance.eq(amount)));
+        expect(currentBalance.eq(amount));
 
         await usdPlus.connect(owner).transfer(tmpUser.address, amount.toString());
 
         let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((zeroBalance.eq(new BN(0))));
+        expect(zeroBalance.eq(new BN(0)));
 
         let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect((zeroBalanceInner.eq(new BN(0))));
+        expect(zeroBalanceInner.eq(new BN(0)));
 
         let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
-        expect((tmpUserBalance.eq(amount)));
+        expect(tmpUserBalance.eq(amount));
 
         let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
-        expect((tmpUserBalanceInner.eq(currentBalanceStored)));
+        expect(tmpUserBalanceInner.eq(currentBalanceStored));
 
     });
 
@@ -711,23 +712,48 @@ describe("Test token", function () {
         await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
 
         let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((currentBalance.eq(amount)));
+        expect(currentBalance.eq(amount));
 
         await usdPlus.connect(owner).approve(tmpUser.address, amount.toString());
 
         await usdPlus.connect(tmpUser).transferFrom(owner.address, tmpUser.address, amount.toString());
 
         let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect((zeroBalance.eq(new BN(0))));
+        expect(zeroBalance.eq(new BN(0)));
 
         let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect((zeroBalanceInner.eq(new BN(0))));
+        expect(zeroBalanceInner.eq(new BN(0)));
 
         let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
-        expect((tmpUserBalance.eq(amount)));
+        expect(tmpUserBalance.eq(amount));
 
         let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
-        expect((tmpUserBalanceInner.eq(currentBalanceStored)));
+        expect(tmpUserBalanceInner.eq(currentBalanceStored));
+
+    });
+
+    it("decreaseAllowance all", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1041426431168978357972356323");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let currentBalanceStored = new BN("74140869013783546");
+        let amount = new BN("77212261");
+
+        let currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(new BN(0)));
+
+        await usdPlus.approveTest(owner.address, tmpUser.address, currentBalanceStored.toString());
+
+        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(amount));
+
+        await usdPlus.connect(owner).decreaseAllowance(tmpUser.address, amount.toString());
+
+        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(new BN(0)));
 
     });
 
