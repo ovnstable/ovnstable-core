@@ -139,9 +139,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function burn(address _sender, uint256 _amount) external onlyExchanger {
-        // up to ray
-        uint256 burnAmount = _amount.wadToRay();
-        burnAmount = burnAmount.rayDiv(liquidityIndex);
+        uint256 burnAmount;
+        if (_amount == balanceOf(_sender)) {
+            // burn all
+            burnAmount = _balances[_sender];
+        } else {
+            // up to ray
+            burnAmount = _amount.wadToRay();
+            burnAmount = burnAmount.rayDiv(liquidityIndex);
+        }
+
         _burn(_sender, burnAmount);
         _totalBurn += burnAmount;
         emit Transfer(_sender, address(0), _amount);
@@ -215,9 +222,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev See {IERC20-transfer}.
      */
     function transfer(address recipient, uint256 amount) public override returns (bool) {
-        // up to ray
-        uint256 transferAmount = amount.wadToRay();
-        transferAmount = transferAmount.rayDiv(liquidityIndex);
+        uint256 transferAmount;
+        if (amount == balanceOf(_msgSender())) {
+            // transfer all
+            transferAmount = _balances[_msgSender()];
+        } else {
+            // up to ray
+            transferAmount = amount.wadToRay();
+            transferAmount = transferAmount.rayDiv(liquidityIndex);
+        }
+
         _transfer(_msgSender(), recipient, transferAmount);
         emit Transfer(_msgSender(), recipient, amount);
         return true;
@@ -229,7 +243,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function allowance(address owner, address spender) public view override returns (uint256) {
         uint256 allowanceRay = _allowance(owner, spender);
-        if (allowanceRay > (type(uint256).max / liquidityIndex )) {
+        if (allowanceRay > (type(uint256).max / liquidityIndex)) {
             return type(uint256).max;
         }
         allowanceRay = allowanceRay.rayMul(liquidityIndex);
@@ -293,15 +307,22 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address recipient,
         uint256 amount
     ) public override returns (bool) {
-        // up to ray
-        uint256 scaledAmount = amount.wadToRay();
-        scaledAmount = scaledAmount.rayDiv(liquidityIndex);
-        _transfer(sender, recipient, scaledAmount);
+        uint256 transferAmount;
+        if (amount == balanceOf(sender)) {
+            // transfer all
+            transferAmount = _balances[sender];
+        } else {
+            // up to ray
+            transferAmount = amount.wadToRay();
+            transferAmount = transferAmount.rayDiv(liquidityIndex);
+        }
+
+        _transfer(sender, recipient, transferAmount);
 
         uint256 currentAllowance = _allowance(sender, _msgSender());
-        require(currentAllowance >= scaledAmount, "UsdPlusToken: transfer amount exceeds allowance");
+        require(currentAllowance >= transferAmount, "UsdPlusToken: transfer amount exceeds allowance");
     unchecked {
-        _approve(sender, _msgSender(), currentAllowance - scaledAmount);
+        _approve(sender, _msgSender(), currentAllowance - transferAmount);
     }
         emit Transfer(sender, recipient, amount);
 
@@ -408,9 +429,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        // up to ray
-        uint256 scaledAmount = subtractedValue.wadToRay();
-        scaledAmount = scaledAmount.rayDiv(liquidityIndex);
+        uint256 scaledAmount;
+        if (subtractedValue == allowance(_msgSender(), spender)) {
+            // transfer all
+            scaledAmount = _allowances[_msgSender()][spender];
+        } else {
+            // up to ray
+            scaledAmount = subtractedValue.wadToRay();
+            scaledAmount = scaledAmount.rayDiv(liquidityIndex);
+        }
+
         uint256 currentAllowance = _allowances[_msgSender()][spender];
         require(currentAllowance >= scaledAmount, "ERC20: decreased allowance below zero");
     unchecked {
