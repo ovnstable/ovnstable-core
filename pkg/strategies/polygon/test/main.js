@@ -12,81 +12,81 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: false,
     },
-    // {
-    //     name: 'StrategyBalancer',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyCurve',
-    //     enabledReward: false,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyDodoUsdc',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyDodoUsdt',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyIdle',
-    //     enabledReward: false,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyImpermaxQsUsdt',
-    //     enabledReward: false,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyMStable',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyIzumi',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyArrakis',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyMeshSwapUsdc',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: false,
-    // },
-    // {
-    //     name: 'StrategyTetuUsdc',
-    //     enabledReward: true,
-    //     isRunStrategyLogic: true,
-    // },
-    // {
-    //     name: 'StrategyArrakisWeth',
-    //     enabledReward: true,
-    // },
-    // {
-    //     name: 'StrategyArrakisUsdt',
-    //     enabledReward: true,
-    // },
-    // {
-    //     name: 'StrategyArrakisWmatic',
-    //     enabledReward: true,
-    // },
-    // {
-    //     name: 'StrategyMeshSwapUsdcUsdt',
-    //     enabledReward: true,
-    // },
-    // {
-    //     name: 'StrategyBorrowMeshSwapUsdcUsdt',
-    //     enabledReward: true,
-    // },
+    {
+        name: 'StrategyBalancer',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyCurve',
+        enabledReward: false,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyDodoUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyDodoUsdt',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyIdle',
+        enabledReward: false,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyImpermaxQsUsdt',
+        enabledReward: false,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyMStable',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyIzumi',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyArrakis',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyMeshSwapUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategyTetuUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: true,
+    },
+    {
+        name: 'StrategyArrakisWeth',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyArrakisUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyArrakisWmatic',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyMeshSwapUsdcUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyBorrowMeshSwapUsdcUsdt',
+        enabledReward: true,
+    },
     {
         name: 'StrategyDystopiaUsdcUsdt',
         enabledReward: true,
