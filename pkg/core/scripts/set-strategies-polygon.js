@@ -47,7 +47,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 35,
+            "targetWeight": 47.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -56,10 +56,10 @@ async function main() {
             "strategy": "0xD339B3291f7545967bF0eE0ABE967435598917C5",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 12.5 ,
+            "targetWeight": 0,
             "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
+            "enabled": false,
+            "enabledReward": false
         }
     ]
 
