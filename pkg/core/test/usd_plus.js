@@ -10,6 +10,8 @@ const hre = require("hardhat");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {toOvn, fromOvn} = require("@overnight-contracts/common/utils/decimals");
 
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+
 
 describe("Liquidity Index", function () {
 
@@ -17,7 +19,7 @@ describe("Liquidity Index", function () {
     let usdPlus;
 
 
-    beforeEach(async () => {
+    sharedBeforeEach('deploy token', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -26,7 +28,7 @@ describe("Liquidity Index", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
         usdPlus = await ethers.getContract("UsdPlusToken");
-        usdPlus.setExchanger(account);
+        await usdPlus.setExchanger(account);
     });
 
 
@@ -374,7 +376,7 @@ describe("Total Mint/Burn/Supply", function () {
     let usdPlus;
     let account;
 
-    beforeEach(async () => {
+    sharedBeforeEach('deploy token', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -383,7 +385,7 @@ describe("Total Mint/Burn/Supply", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
         usdPlus = await ethers.getContract("UsdPlusToken");
-        usdPlus.setExchanger(account);
+        await usdPlus.setExchanger(account);
     });
 
 
@@ -434,6 +436,7 @@ describe("Total Mint/Burn/Supply", function () {
 
 });
 
+
 describe("ERC20", function () {
 
     let account;
@@ -441,7 +444,7 @@ describe("ERC20", function () {
     let recipient;
 
 
-    beforeEach(async () => {
+    sharedBeforeEach('deploy token', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -450,7 +453,7 @@ describe("ERC20", function () {
         const accounts = await getNamedAccounts();
         account = accounts.deployer;
         usdPlus = await ethers.getContract("UsdPlusToken");
-        usdPlus.setExchanger(account);
+        await usdPlus.setExchanger(account);
 
         const [owner, tmpUser] = await ethers.getSigners();
 
@@ -529,7 +532,6 @@ describe("ERC20", function () {
 
             expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(value.toString())
         });
-
 
 
         it('transfer', async function () {
@@ -618,5 +620,143 @@ describe("ERC20", function () {
             });
         });
     });
+});
+
+
+describe("Full amounts", function () {
+
+    let account;
+    let usdPlus;
+    let recipient;
+
+    sharedBeforeEach('deploy token', async () => {
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
+
+        await deployments.fixture(["TestUsdPlusToken"]);
+
+        const accounts = await getNamedAccounts();
+        account = accounts.deployer;
+        usdPlus = await ethers.getContract("TestUsdPlusToken");
+
+        await usdPlus.setExchanger(account);
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        recipient = tmpUser;
+    })
+
+    it("burn all", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1041426431168978357972356323");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let currentBalanceStored = new BN("74140869013783546");
+        let amount = new BN("77212261");
+        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
+
+        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(currentBalance.eq(amount));
+
+        await usdPlus.burn(owner.address, amount.toString());
+
+        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(zeroBalance.eq(new BN(0)));
+
+        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
+        expect(zeroBalanceInner.eq(new BN(0)));
+
+    });
+
+    it("transfer all", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1041426431168978357972356323");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let currentBalanceStored = new BN("74140869013783546");
+        let amount = new BN("77212261");
+        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
+
+        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(currentBalance.eq(amount));
+
+        await usdPlus.connect(owner).transfer(tmpUser.address, amount.toString());
+
+        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(zeroBalance.eq(new BN(0)));
+
+        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
+        expect(zeroBalanceInner.eq(new BN(0)));
+
+        let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
+        expect(tmpUserBalance.eq(amount));
+
+        let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
+        expect(tmpUserBalanceInner.eq(currentBalanceStored));
+
+    });
+
+    it("transferFrom all", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1041426431168978357972356323");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let currentBalanceStored = new BN("74140869013783546");
+        let amount = new BN("77212261");
+        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
+
+        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(currentBalance.eq(amount));
+
+        await usdPlus.connect(owner).approve(tmpUser.address, amount.toString());
+
+        await usdPlus.connect(tmpUser).transferFrom(owner.address, tmpUser.address, amount.toString());
+
+        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
+        expect(zeroBalance.eq(new BN(0)));
+
+        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
+        expect(zeroBalanceInner.eq(new BN(0)));
+
+        let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
+        expect(tmpUserBalance.eq(amount));
+
+        let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
+        expect(tmpUserBalanceInner.eq(currentBalanceStored));
+
+    });
+
+    it("decreaseAllowance all", async function () {
+
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        let newLiquidityIndex = new BN("1041426431168978357972356323");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let currentBalanceStored = new BN("74140869013783546");
+        let amount = new BN("77212261");
+
+        let currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(new BN(0)));
+
+        await usdPlus.approveTest(owner.address, tmpUser.address, currentBalanceStored.toString());
+
+        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(amount));
+
+        await usdPlus.connect(owner).decreaseAllowance(tmpUser.address, amount.toString());
+
+        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
+        expect(currentAllowance.eq(new BN(0)));
+
+    });
+
+
 });
 
