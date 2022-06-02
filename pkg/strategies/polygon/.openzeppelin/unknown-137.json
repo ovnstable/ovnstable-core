@@ -23678,7 +23678,7 @@
             "label": "aaveProvider",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(ILendingPoolAddressesProvider)20274",
+            "type": "t_contract(ILendingPoolAddressesProvider)25394",
             "contract": "StrategyAave",
             "src": "contracts/StrategyAave.sol:13"
           }
@@ -23708,7 +23708,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(ILendingPoolAddressesProvider)20274": {
+          "t_contract(ILendingPoolAddressesProvider)25394": {
             "label": "contract ILendingPoolAddressesProvider",
             "numberOfBytes": "20"
           },

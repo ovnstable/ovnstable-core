@@ -176,6 +176,32 @@ async function upgradeStrategy(strategy, newImplAddress) {
 
 }
 
+async function execTimelock(exec){
+
+
+    let timelock = await getContract('OvnTimelockController', 'polygon');
+
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [timelock.address],
+    });
+
+    await checkTimeLockBalance();
+
+    const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
+    await exec(timelockAccount);
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [timelock.address],
+    });
+
+
+}
+
 async function changeWeightsAndBalance(weights){
 
 
@@ -254,5 +280,6 @@ module.exports = {
     getContract: getContract,
     getERC20: getERC20,
     changeWeightsAndBalance: changeWeightsAndBalance,
-    upgradeStrategy: upgradeStrategy
+    upgradeStrategy: upgradeStrategy,
+    execTimelock: execTimelock
 }
