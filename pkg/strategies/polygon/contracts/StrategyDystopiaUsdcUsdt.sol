@@ -262,14 +262,14 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
@@ -285,13 +285,26 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         uint256 usdcBalanceFromUsdt;
         if (usdtBalance > 0) {
-            usdcBalanceFromUsdt = onSwap(
-                poolIdUsdcTusdDaiUsdt,
-                IVault.SwapKind.GIVEN_IN,
-                usdtToken,
-                usdcToken,
-                usdtBalance
-            );
+
+            if (nav) {
+                uint256 usdtPrice = onSwap(
+                    poolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    usdtToken,
+                    usdcToken,
+                    1e6
+                );
+                usdcBalanceFromUsdt = (usdtPrice * usdtBalance) / 1e6;
+            }else {
+                usdcBalanceFromUsdt = onSwap(
+                    poolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    usdtToken,
+                    usdcToken,
+                    usdtBalance
+                );
+            }
+
         }
 
         return usdcBalance + usdcBalanceFromUsdt;

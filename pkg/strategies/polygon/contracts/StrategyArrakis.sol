@@ -219,11 +219,11 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
 
     function netAssetValue() external override view returns (uint256) {
-        return _getTotal();
+        return _getTotal(true);
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return _getTotal();
+        return _getTotal(false);
     }
 
 
@@ -238,7 +238,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     }
 
 
-    function _getTotal() internal view returns (uint256){
+    function _getTotal(bool nav) internal view returns (uint256){
 
         uint256 balanceLp = arrakisRewards.balanceOf(address(this));
 
@@ -259,8 +259,16 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         // index 2 - USDT
         uint256 totalUsdt = usdtToken.balanceOf(address(this)) + usdtBalance;
 
-        // check how many USDC tokens we will get if we sell USDT tokens now
-        uint256 totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_OUT, usdcToken, usdtToken, totalUsdt);
+
+        uint256 totalUsdtToUsdc;
+        if(nav){
+            uint256 priceUsdt = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, 1e6);
+            totalUsdtToUsdc = (priceUsdt * totalUsdt) / 1e6;
+        }else {
+            // check how many USDC tokens we will get if we sell USDT tokens now
+            totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, totalUsdt);
+        }
+
         return totalUsdc + totalUsdtToUsdc;
 
     }
