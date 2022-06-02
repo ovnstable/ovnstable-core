@@ -34,6 +34,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     event CashStrategyAlreadySet(address value);
     event CashStrategyUpdated(address value);
     event CashStrategyRestaked(uint256 value);
+    event Balance();
     event Exchanged(uint256 amount, address from, address to);
 
     event StrategyWeightUpdated(
@@ -249,6 +250,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     }
 
     function balance() public override onlyAdmin {
+        emit Balance();
         _balance();
     }
 
