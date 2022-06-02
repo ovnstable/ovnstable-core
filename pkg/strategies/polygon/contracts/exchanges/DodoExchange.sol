@@ -6,8 +6,6 @@ import "../connectors/dodo/interfaces/IDODOV1Helper.sol";
 import "../connectors/dodo/interfaces/IDODOProxy.sol";
 import "../connectors/dodo/interfaces/IDODOV2.sol";
 
-
-
 /*
     There are six swap functions in DODOProxy. Which are executed for different sources or versions
 
@@ -26,7 +24,7 @@ abstract contract DodoExchange {
     IDODOProxy private dodoProxy;
     address private dodoApprove;
 
-    function setDodoParams(
+    function _setDodoParams(
         address _dodoV1Helper,
         address _dodoProxy,
         address _dodoApprove
@@ -62,6 +60,9 @@ abstract contract DodoExchange {
         } else {
             uint256 receivedBaseAmount = dodoV1Helper.querySellQuoteToken(dodoV1Pool, fromTokenAmount);
             minReturnAmount = receivedBaseAmount * (100 - slippage) / 100;
+        }
+        if (minReturnAmount == 0) {
+            return 0;
         }
 
         address[] memory dodoPairs = new address[](1); //one-hop
@@ -107,6 +108,9 @@ abstract contract DodoExchange {
         } else {
             (uint256 receiveBaseAmount,) = IDODOV2(dodoV2Pool).querySellQuote(address(this), fromTokenAmount);
             minReturnAmount = receiveBaseAmount * (100 - slippage) / 100;
+        }
+        if (minReturnAmount == 0) {
+            return 0;
         }
 
         address[] memory dodoPairs = new address[](1); //one-hop
