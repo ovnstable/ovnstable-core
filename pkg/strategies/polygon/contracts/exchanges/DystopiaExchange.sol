@@ -3,24 +3,16 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/dystopia/interfaces/IDystopiaRouter.sol";
+import "../libraries/OvnMath.sol";
 
 abstract contract DystopiaExchange {
 
-    uint256 constant BASIS_DENOMINATOR = 10 ** 4;
-    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 1400;
+    uint256 public constant BASIS_POINTS_FOR_SLIPPAGE = 4;
 
     IDystopiaRouter private dystRouter;
 
     function _setDystopiaRouter(address _dystRouter) internal {
         dystRouter = IDystopiaRouter(_dystRouter);
-    }
-
-    function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
-        return amount * (BASIS_DENOMINATOR + BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
-    }
-
-    function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        return amount * (BASIS_DENOMINATOR - BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
     }
 
     function _swapExactTokensForTokens(

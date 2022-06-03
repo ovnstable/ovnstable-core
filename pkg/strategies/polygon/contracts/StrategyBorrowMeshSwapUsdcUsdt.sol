@@ -171,8 +171,8 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
             address(usdtToken),
             usdcBalance,
             usdtBalance,
-            _subBasisPoints(usdcBalance),
-            _subBasisPoints(usdtBalance),
+            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(usdtBalance, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
         );
     }
@@ -192,11 +192,9 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
 
         (uint256 collateral, uint256 borrow,,,,) = IPool(aavePool).getUserAccountData(address(this));
 
-        uint256 usdcCollateral = _addBasisPoints(_amount);
+        uint256 usdcCollateral = OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE);
         uint256 usdtBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
             usdcCollateral,
-            collateral,
-            borrow,
             reserveUsdc,
             reserveUsdt,
             liquidationThreshold,
@@ -234,8 +232,8 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
                 address(usdtToken),
                 address(meshSwapUsdcUsdt),
                 lpTokensToWithdraw,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }
@@ -285,8 +283,8 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
                 address(usdtToken),
                 address(meshSwapUsdcUsdt),
                 lpTokenBalance,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }
@@ -431,8 +429,8 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
                 address(usdtToken),
                 neededUsdc,
                 neededUsdt,
-                _subBasisPoints(neededUsdc),
-                _subBasisPoints(neededUsdt),
+                OvnMath.subBasisPoints(neededUsdc, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(neededUsdt, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
 
@@ -473,8 +471,8 @@ contract StrategyBorrowMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, Balancer
                 address(usdtToken),
                 address(meshSwapUsdcUsdt),
                 lpTokensToWithdraw,
-                _subBasisPoints(reserveUsdc * lpTokensToWithdraw / totalLpBalance),
-                _subBasisPoints(reserveUsdt * lpTokensToWithdraw / totalLpBalance),
+                OvnMath.subBasisPoints(reserveUsdc * lpTokensToWithdraw / totalLpBalance, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(reserveUsdt * lpTokensToWithdraw / totalLpBalance, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
 

@@ -135,8 +135,8 @@ contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchan
             address(usdtToken),
             usdcBalance,
             usdtBalance,
-            _subBasisPoints(usdcBalance),
-            _subBasisPoints(usdtBalance),
+            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(usdtBalance, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
         );
     }
@@ -157,13 +157,12 @@ contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchan
             // count amount to unstake
             uint256 totalLpBalance = meshSwapUsdcUsdt.totalSupply();
             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-                _addBasisPoints(_amount),
+                OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE),
                 reserveUsdc,
                 reserveUsdt,
                 totalLpBalance,
                 usdcTokenDenominator,
                 usdtTokenDenominator,
-                1,
                 poolIdUsdcTusdDaiUsdt,
                 usdcToken,
                 usdtToken
@@ -180,8 +179,8 @@ contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchan
                 address(usdtToken),
                 address(meshSwapUsdcUsdt),
                 lpTokensToWithdraw,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }
@@ -224,8 +223,8 @@ contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchan
                 address(usdtToken),
                 address(meshSwapUsdcUsdt),
                 lpTokenBalance,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }

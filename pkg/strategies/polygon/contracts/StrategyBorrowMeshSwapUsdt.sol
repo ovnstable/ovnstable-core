@@ -176,7 +176,7 @@ contract StrategyBorrowMeshSwapUsdt is Strategy, UniswapV2Exchange, BalancerExch
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 usdcCollateral = _addBasisPoints(_amount);
+        uint256 usdcCollateral = OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE);
         uint256 usdtCollateral = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
             usdcCollateral,
             usdcTokenDenominator,
