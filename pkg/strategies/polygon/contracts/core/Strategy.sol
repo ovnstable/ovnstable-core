@@ -74,6 +74,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) external override onlyPortfolioManager returns (uint256) {
         uint256 withdrawAmount;
         if (_targetIsZero) {
+            emit Reward(_claimRewards(_beneficiary));
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);

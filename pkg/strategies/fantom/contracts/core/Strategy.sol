@@ -74,6 +74,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) external override onlyPortfolioManager returns (uint256) {
         uint256 withdrawAmount;
         if (_targetIsZero) {
+            emit Reward(_claimRewards(_beneficiary));
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
@@ -142,15 +143,15 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             _amount += (_amount * 10) / 1000;
         } else if (_amount < 100000000 && _slippageLevel >= 5) {// 10 + 0.01%
             _amount += (_amount * 10) / 10000;
-        }else if (_amount <  1000000000 && _slippageLevel >= 6) {// 100 + 0.001%
+        } else if (_amount < 1000000000 && _slippageLevel >= 6) {// 100 + 0.001%
             _amount += (_amount * 10) / 100000;
-        }else if (_amount <  10000000000 && _slippageLevel >= 7) {// 1000 + 0.001%
+        } else if (_amount < 10000000000 && _slippageLevel >= 7) {// 1000 + 0.001%
             _amount += (_amount * 10) / 100000;
-        }else if (_amount <  100000000000 && _slippageLevel >= 8) {// 10 000 + 0.001%
+        } else if (_amount < 100000000000 && _slippageLevel >= 8) {// 10 000 + 0.001%
             _amount += (_amount * 10) / 100000;
-        }else if (_amount <  1000000000000 && _slippageLevel >= 9) {// 100 000 + 0.001%
+        } else if (_amount < 1000000000000 && _slippageLevel >= 9) {// 100 000 + 0.001%
             _amount += (_amount * 10) / 100000;
-        }else if (_amount <  10000000000000 && _slippageLevel >= 10) {// 1 000 000 + 0.001%
+        } else if (_amount < 10000000000000 && _slippageLevel >= 10) {// 1 000 000 + 0.001%
             _amount += (_amount * 10) / 100000;
         }
 
