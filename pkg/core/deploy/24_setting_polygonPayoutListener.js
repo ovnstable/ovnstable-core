@@ -18,6 +18,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         "0x5A272ad79cBd3C874879E3FEc5753C2127f77583", // USD+/TETU
         "0xB2094C94E8DE8d614000eC6802635524A79C30DA", // USD+/XZAR
         "0x421a018cC5839c4C0300AfB21C725776dc389B1a", // USD+/USDC
+        "0x291E289C39cBAf5Ee158028d086d76Ffa141CFdA", // USD+/CLAM
 
         // mesh usdPlus pools
         "0x68b7cEd0dBA382a0eC705d6d97608B7bA3CD8C55",  // USDC/USD+
