@@ -81,11 +81,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
 
-        uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
-        IERC20(_asset).transfer(_beneficiary, balanceUSDC);
-        emit Unstake(_amount, balanceUSDC);
+        IERC20(_asset).transfer(_beneficiary, withdrawAmount);
+        emit Unstake(_amount, withdrawAmount);
 
-        return balanceUSDC;
+        return withdrawAmount;
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {

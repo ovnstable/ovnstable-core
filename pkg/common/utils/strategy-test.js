@@ -29,7 +29,7 @@ function strategyTest(strategy, network, assets, runStrategyLogic) {
         {
             value: 2,
             deltaPercent: 5,
-        },
+        },   
         {
             value: 20,
             deltaPercent: 1,
@@ -245,6 +245,7 @@ function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, 
         values.forEach(item => {
 
             let stakeValue = item.value;
+            let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
 
             describe(`Stake ${stakeValue} => UnstakeFull`, function () {
 
@@ -256,7 +257,7 @@ function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, 
                 let liquidationValueCheck;
 
                 let valueBN = new BN(toUSDC(stakeValue));
-                let DELTA = valueBN.div(new BN(1000));
+                let DELTA = valueBN.muln(deltaPercent).divn(100);
 
                 before(async () => {
 

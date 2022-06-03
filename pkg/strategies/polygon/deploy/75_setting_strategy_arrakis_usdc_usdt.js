@@ -3,15 +3,15 @@ const { ethers } = require("hardhat");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 let {core} = require('@overnight-contracts/common/utils/core');
 
-
 let arrakisRewards = "0x56C5b00Bdeb3cb8aDF745650599f9AdeF3c40275"; // USDC/USDT
 let arrakisVault = "0x2817E729178471DBAC8b1FC190b4fd8e6F3984e3"; // USDC/USDT
-let oraclePriceFeed = "0x0A6513e40db6EB1b165753AD52E80663aeA50545"; // Chainlink: USDT/USD Price Feed 
 let eModeCategoryId = 1;
 let liquidationThreshold = 975;
 let healthFactor = 1026;
 let usdcTokenInversion = 0;
-
+let balancingDelta = 10;
+let interestRateMode = 2;
+let referralCode = 0;
 
 module.exports = async () => {
 
@@ -25,14 +25,17 @@ module.exports = async () => {
         POLYGON.balancerVault,
         POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
         POLYGON.balancerPoolIdWmaticUsdcWethBal,
-        POLYGON.uniswapV3PositionManager)).wait();
+        usdcTokenInversion)).wait();
     await (await strategy.setAaveParams(
             POLYGON.aaveProvider,
-            oraclePriceFeed,
+            POLYGON.oracleChainlinkUsdc,
+            POLYGON.oracleChainlinkUsdt,
             eModeCategoryId,
             liquidationThreshold,
             healthFactor,
-            usdcTokenInversion)).wait();
+            balancingDelta,
+            interestRateMode,
+            referralCode)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyArrakisUsdt setting done');

@@ -229,18 +229,16 @@ abstract contract BalancerExchange {
         uint256 totalLpBalance,
         uint256 denominator0,
         uint256 denominator1,
-        uint256 precision,
         bytes32 poolId,
         IERC20 token0,
         IERC20 token1
     ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * denominator0 / denominator1);
-        for (uint i = 0; i < precision; i++) {
+        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        for (uint i = 0; i < 1; i++) {
             uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
             uint256 amount0 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token1, token0, amount1);
-            lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
+            lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
         }
-
         return lpBalance;
     }
 
