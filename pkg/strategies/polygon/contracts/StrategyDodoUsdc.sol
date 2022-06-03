@@ -156,6 +156,9 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         // get all lp tokens
         uint256 userLPBalance = dodoMine.balanceOf(address(this));
+        if (userLPBalance == 0) {
+            return usdcToken.balanceOf(address(this));
+        }
 
         // unstake lp tokens
         dodoMine.withdraw(userLPBalance);
@@ -190,6 +193,11 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
+
+        uint256 userLPBalance = dodoMine.balanceOf(address(this));
+        if (userLPBalance == 0) {
+            return 0;
+        }
 
         // claim rewards
         dodoMine.claimAllRewards();

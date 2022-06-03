@@ -192,6 +192,9 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
         // get all lp tokens
         uint256 userLPBalance = dodoMine.balanceOf(address(this));
+        if (userLPBalance == 0) {
+            return usdcToken.balanceOf(address(this));
+        }
 
         // unstake lp tokens
         dodoMine.withdraw(userLPBalance);
@@ -216,14 +219,14 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
@@ -236,13 +239,27 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
         }
 
         if (usdtBalance > 0) {
-            uint256 usdtBalanceInUsdc = onSwap(
-                balancerPoolIdUsdcTusdDaiUsdt,
-                IVault.SwapKind.GIVEN_IN,
-                usdtToken,
-                usdcToken,
-                usdtBalance
-            );
+            uint256 usdtBalanceInUsdc;
+            if (nav) {
+                // check how many USDC tokens we have by current price
+                uint256 priceUsdt = onSwap(
+                    balancerPoolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    usdtToken,
+                    usdcToken,
+                    1e6
+                );
+                usdtBalanceInUsdc = (priceUsdt * totalUsdt) / 1e6;
+            } else {
+                // check how many USDC tokens we will get if we sell USDT tokens now
+                usdtBalanceInUsdc = onSwap(
+                    balancerPoolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    usdtToken,
+                    usdcToken,
+                    usdtBalance
+                );
+            }
             usdcBalance += usdtBalanceInUsdc;
         }
 
@@ -250,6 +267,11 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
+
+        uint256 userLPBalance = dodoMine.balanceOf(address(this));
+        if (userLPBalance == 0) {
+            return 0;
+        }
 
         // claim rewards
         dodoMine.claimAllRewards();
@@ -271,14 +293,16 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
 
             uint256 usdcTokenAmount;
             if (usdtTokenAmount > 0) {
-                // swap v1 usdt -> usdc
-                usdcTokenAmount = _useDodoSwapV1(
-                    address(dodoV1UsdcUsdtPool),
-                    address(usdtToken),
-                    address(usdcToken),
+                // swap usdt -> usdc
+                usdcTokenAmount = swap(
+                    balancerPoolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    IAsset(address(usdtToken)),
+                    IAsset(address(usdcToken)),
+                    address(this),
+                    address(this),
                     usdtTokenAmount,
-                    1,
-                    1
+                    0
                 );
             }
 
