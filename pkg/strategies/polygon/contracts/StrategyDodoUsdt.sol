@@ -249,7 +249,7 @@ contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {
                     usdcToken,
                     1e6
                 );
-                usdtBalanceInUsdc = (priceUsdt * totalUsdt) / 1e6;
+                usdtBalanceInUsdc = (priceUsdt * usdtBalance) / 1e6;
             } else {
                 // check how many USDC tokens we will get if we sell USDT tokens now
                 usdtBalanceInUsdc = onSwap(
