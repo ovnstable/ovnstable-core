@@ -3,12 +3,37 @@ const { ethers } = require("hardhat");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 let {core} = require('@overnight-contracts/common/utils/core');
 
+let dodoUsdtLPToken = "0xB0B417A00E1831DeF11b242711C3d251856AADe3";
+let dodoV1UsdcUsdtPool = "0x813FddecCD0401c4Fa73B092b074802440544E52";
+let dodoV2DodoUsdtPool = "0x581c7DB44F2616781C86C331d31c1F09db87A746";
+let dodoMineUsdt = "0xA2e116e5BFF780CB531C5A99F207543DCf70BD86";
+let dodoV1Helper = "0xDfaf9584F5d229A9DBE5978523317820A8897C5A";
+let dodoProxy = "0xa222e6a71D1A1Dd5F279805fbe38d5329C1d0e70";
+let dodoApprove = "0x6D310348d5c12009854DFCf72e0DF9027e8cb4f4";
+
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyDodoUsdt");
 
-    await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, POLYGON.dodo, POLYGON.usdcLPToken, POLYGON.usdtLPToken)).wait();
-    await (await strategy.setParams(POLYGON.dodoV1UsdcUsdtPool, POLYGON.dodoV2DodoUsdtPool, POLYGON.dodoMine, POLYGON.dodoV1Helper,
-        POLYGON.dodoProxy, POLYGON.dodoApprove, POLYGON.balancerVault, POLYGON.balancerPoolIdUsdcTusdDaiUsdt)).wait();
+    await (await strategy.setTokens(
+        POLYGON.usdc,
+        POLYGON.usdt,
+        POLYGON.dodo,
+        POLYGON.wMatic,
+        dodoUsdtLPToken
+    )).wait();
+
+    await (await strategy.setParams(
+        dodoV1UsdcUsdtPool,
+        dodoV2DodoUsdtPool,
+        dodoMineUsdt,
+        dodoV1Helper,
+        dodoProxy,
+        dodoApprove,
+        POLYGON.balancerVault,
+        POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
+        POLYGON.balancerPoolIdWmaticUsdcWethBal
+    )).wait();
+
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyDodoUsdt setting done');
