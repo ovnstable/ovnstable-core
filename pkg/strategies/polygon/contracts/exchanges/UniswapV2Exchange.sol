@@ -3,24 +3,16 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/uniswap/v2/interfaces/IUniswapV2Router02.sol";
+import "../libraries/OvnMath.sol";
 
 abstract contract UniswapV2Exchange {
 
-    uint256 constant BASIS_DENOMINATOR = 10 ** 4;
-    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4;
+    uint256 public constant BASIS_POINTS_FOR_SLIPPAGE = 4;
 
     IUniswapV2Router02 private uniswapRouter;
 
     function _setUniswapRouter(address _uniswapRouter) internal {
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
-    }
-
-    function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
-        return amount * (BASIS_DENOMINATOR + BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
-    }
-
-    function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        return amount * (BASIS_DENOMINATOR - BASIS_POINTS_FOR_SLIPPAGE) / BASIS_DENOMINATOR;
     }
 
     function _swapExactTokensForTokens(
@@ -32,7 +24,7 @@ abstract contract UniswapV2Exchange {
 
         IERC20(inputToken).approve(address(uniswapRouter), amountInput);
 
-        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(outputToken), amountInput);
+        uint256 amountOutMin = _getAmountsOut(inputToken, outputToken, amountInput);
         if (amountOutMin == 0) {
             return 0;
         }
@@ -43,7 +35,7 @@ abstract contract UniswapV2Exchange {
 
         uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             amountInput,
-            _subBasisPoints(amountOutMin),
+            OvnMath.subBasisPoints(amountOutMin, BASIS_POINTS_FOR_SLIPPAGE),
             path,
             recipient,
             block.timestamp + 600

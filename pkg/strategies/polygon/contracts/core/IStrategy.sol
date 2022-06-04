@@ -12,6 +12,7 @@ interface IStrategy {
     event Unstake(uint256 amount, uint256 amountReceived);
 
     event BalanceHealthFactor(uint256 healthFactor);
+    event SetHealthFactor(uint256 healthFactor);
 
     function stake(
         address _asset, // USDC
@@ -32,4 +33,6 @@ interface IStrategy {
     function claimRewards(address _to) external returns (uint256); // Return received amount in USDC - denominator 6
 
     function healthFactorBalance() external; // Balancing aave health factor
+
+    function setHealthFactor(uint256 healthFactor) external; // Aave healthFactor setter
 }

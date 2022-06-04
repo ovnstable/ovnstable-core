@@ -136,8 +136,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
             address(usdtToken),
             usdcBalance,
             usdtBalance,
-            _subBasisPoints(usdcBalance),
-            _subBasisPoints(usdtBalance),
+            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(usdtBalance, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
         );
 
@@ -166,13 +166,12 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
             uint256 totalLpBalance = dystPair.totalSupply();
 
             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-                _addBasisPoints(_amount),
+                OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE),
                 reserveUsdc,
                 reserveUsdt,
                 totalLpBalance,
                 usdcTokenDenominator,
                 usdtTokenDenominator,
-                1,
                 poolIdUsdcTusdDaiUsdt,
                 usdcToken,
                 usdtToken
@@ -193,8 +192,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 address(usdtToken),
                 address(dystPair),
                 lpTokensToWithdraw,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }
@@ -239,8 +238,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 address(usdtToken),
                 address(dystPair),
                 lpTokenBalance,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutUsdtMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }

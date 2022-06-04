@@ -81,11 +81,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
 
-        uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
-        IERC20(_asset).transfer(_beneficiary, balanceUSDC);
-        emit Unstake(_amount, balanceUSDC);
+        IERC20(_asset).transfer(_beneficiary, withdrawAmount);
+        emit Unstake(_amount, withdrawAmount);
 
-        return balanceUSDC;
+        return withdrawAmount;
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
@@ -99,6 +98,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         if (healthFactor > 0) {
             emit BalanceHealthFactor(healthFactor);
         }
+    }
+
+    function setHealthFactor(uint256 healthFactor) external override onlyPortfolioManager {
+        _setHealthFactor(healthFactor);
+
+        emit SetHealthFactor(healthFactor);
     }
 
     function _stake(
@@ -128,7 +133,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function _healthFactorBalance() internal virtual returns (uint256) {
-        return 0;
+        
+    }
+
+    function _setHealthFactor(uint256 _healthFactor) internal virtual {
+
     }
 
     uint256[49] private __gap;

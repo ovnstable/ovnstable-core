@@ -136,8 +136,8 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
             address(daiToken),
             usdcBalance,
             daiBalance,
-            _subBasisPoints(usdcBalance),
-            _subBasisPoints(daiBalance),
+            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(daiBalance, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
         );
 
@@ -166,13 +166,12 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
             uint256 totalLpBalance = dystPair.totalSupply();
 
             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-                _addBasisPoints(_amount),
+                OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE),
                 reserveUsdc,
                 reserveDai,
                 totalLpBalance,
                 usdcTokenDenominator,
                 daiTokenDenominator,
-                1,
                 poolIdUsdcTusdDaiUsdt,
                 usdcToken,
                 daiToken
@@ -193,8 +192,8 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
                 address(daiToken),
                 address(dystPair),
                 lpTokensToWithdraw,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutDaiMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutDaiMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }
@@ -239,8 +238,8 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
                 address(daiToken),
                 address(dystPair),
                 lpTokenBalance,
-                _subBasisPoints(amountOutUsdcMin),
-                _subBasisPoints(amountOutDaiMin),
+                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountOutDaiMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
         }

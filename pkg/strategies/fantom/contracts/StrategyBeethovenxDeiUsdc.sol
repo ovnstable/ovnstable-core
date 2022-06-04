@@ -6,6 +6,7 @@ import "./exchanges/BeethovenxExchange.sol";
 import "./connectors/beethovenx/interfaces/IVault.sol";
 import "./connectors/beethovenx/interfaces/IAsset.sol";
 import "./connectors/beethovenx/BeethovenxMasterChef.sol";
+import "./libraries/OvnMath.sol";
 
 contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
 
@@ -199,7 +200,7 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 slippageAmount = _amount;
-        _amount = _addBasisPoints(_amount);
+        _amount = OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE);
 
         (IERC20[] memory tokens, uint256[] memory balances, ) = beethovenxVault.getPoolTokens(poolIdDeiUsdc);
 
@@ -254,7 +255,7 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
         for (uint256 i; i < tokens.length; i++) {
             assets[i] = IAsset(address(tokens[i]));
             if (tokens[i] == usdcToken) {
-                minAmountsOut[i] = _subBasisPoints(amountUsdc);
+                minAmountsOut[i] = OvnMath.subBasisPoints(amountUsdc, BASIS_POINTS_FOR_SLIPPAGE);
                 exitTokenIndex = i;
             } else {
                 minAmountsOut[i] = 0;
@@ -352,15 +353,5 @@ contract StrategyBeethovenxDeiUsdc is Strategy, BeethovenExchange {
         }
         lpBalance = (totalLpBalance * amountDaiToSwap * amount) / (reserveDai * swappedUsdc + reserveUsdc * amountDaiToSwap);
         return lpBalance;
-    }
-
-    function _addBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** 4;
-        return amount * basisDenominator / (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE);
-    }
-
-    function _subBasisPoints(uint256 amount) internal pure returns (uint256) {
-        uint256 basisDenominator = 10 ** 4;
-        return amount * (basisDenominator - BASIS_POINTS_FOR_SLIPPAGE) / basisDenominator;
     }
 }

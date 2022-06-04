@@ -81,11 +81,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
 
-        uint256 balanceUSDC = IERC20(_asset).balanceOf(address(this));
-        IERC20(_asset).transfer(_beneficiary, balanceUSDC);
-        emit Unstake(_amount, balanceUSDC);
+        IERC20(_asset).transfer(_beneficiary, withdrawAmount);
+        emit Unstake(_amount, withdrawAmount);
 
-        return balanceUSDC;
+        return withdrawAmount;
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
@@ -99,6 +98,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         if (healthFactor > 0) {
             emit BalanceHealthFactor(healthFactor);
         }
+    }
+
+    function setHealthFactor(uint256 healthFactor) external override onlyPortfolioManager {
+        _setHealthFactor(healthFactor);
+
+        emit SetHealthFactor(healthFactor);
     }
 
     function _stake(
@@ -128,36 +133,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function _healthFactorBalance() internal virtual returns (uint256) {
-        return 0;
+        
     }
 
-    function _convertAmount(uint256 _amount, uint256 _slippageLevel) internal returns (uint256){
+    function _setHealthFactor(uint256 _healthFactor) internal virtual {
 
-        if (_amount < 10000 && _slippageLevel >= 1) {// 0.001 + 50%
-            _amount += (_amount * 50) / 100;
-        } else if (_amount < 100000 && _slippageLevel >= 2) {// 0.01 + 5%
-            _amount += (_amount * 5) / 100;
-        } else if (_amount < 1000000 && _slippageLevel >= 3) {// 0.1 + 1%
-            _amount += (_amount * 1) / 100;
-        } else if (_amount < 10000000 && _slippageLevel >= 4) {// 1 + 0.1%
-            _amount += (_amount * 10) / 1000;
-        } else if (_amount < 100000000 && _slippageLevel >= 5) {// 10 + 0.01%
-            _amount += (_amount * 10) / 10000;
-        } else if (_amount < 1000000000 && _slippageLevel >= 6) {// 100 + 0.001%
-            _amount += (_amount * 10) / 100000;
-        } else if (_amount < 10000000000 && _slippageLevel >= 7) {// 1000 + 0.001%
-            _amount += (_amount * 10) / 100000;
-        } else if (_amount < 100000000000 && _slippageLevel >= 8) {// 10 000 + 0.001%
-            _amount += (_amount * 10) / 100000;
-        } else if (_amount < 1000000000000 && _slippageLevel >= 9) {// 100 000 + 0.001%
-            _amount += (_amount * 10) / 100000;
-        } else if (_amount < 10000000000000 && _slippageLevel >= 10) {// 1 000 000 + 0.001%
-            _amount += (_amount * 10) / 100000;
-        }
-
-        return _amount;
     }
-
 
     uint256[49] private __gap;
 }
