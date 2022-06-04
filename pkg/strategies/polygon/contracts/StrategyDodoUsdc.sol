@@ -129,8 +129,8 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // add 5 basis points and 0.000005 usdc for small values
-        uint256 amountToUnstake = _amount.addBasisPoints(5) + 5;
+        // add 0.06%
+        uint256 amountToUnstake = _amount * 10006/ 10000;
 
         // get lp tokens
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
@@ -171,14 +171,14 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         uint256 userLPBalance = dodoMine.balanceOf(address(this));
@@ -186,7 +186,14 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
             uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
             (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
             uint256 usdcTokenAmount = baseTarget * userLPBalance / usdcLPTokenTotalSupply;
-            usdcBalance += usdcTokenAmount;
+
+            if(nav){
+                usdcBalance += usdcTokenAmount;
+            }else {
+                // minus 0.06%
+                usdcBalance += usdcTokenAmount - (usdcTokenAmount * 6 / 10000);
+            }
+
         }
 
         return usdcBalance;
