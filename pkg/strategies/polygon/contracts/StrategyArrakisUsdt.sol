@@ -13,8 +13,6 @@ import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
 import { AaveBorrowLibrary } from "./libraries/AaveBorrowLibrary.sol";
 
-import "hardhat/console.sol";
-
 
 contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
@@ -37,7 +35,6 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
     IPriceFeed public oracleChainlinkUsdc;
     IPriceFeed public oracleChainlinkToken0;
     uint8 public eModeCategoryId;
-    IPool aavePool;
 
     bytes32 public balancerPoolIdWmatic;
     bytes32 public balancerPoolIdToken;
@@ -144,7 +141,6 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         oracleChainlinkUsdc = IPriceFeed(_oracleChainlinkUsdc);
         oracleChainlinkToken0 = IPriceFeed(_oracleChainlinkToken0);
         eModeCategoryId = _eModeCategoryId;
-        aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
 
         liquidationThreshold = _liquidationThreshold * 10 ** 15;
         healthFactor = _healthFactor * 10 ** 15;
@@ -155,14 +151,6 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         emit StrategyUpdatedAaveParams(_aavePoolAddressesProvider, _oracleChainlinkUsdc, _oracleChainlinkToken0,
             _eModeCategoryId, _liquidationThreshold, _healthFactor, _balancingDelta, _interestRateMode, _referralCode);
     }
-
-    function setHealthFactor(
-        uint256 _healthFactor
-    ) external onlyAdmin {
-        healthFactor = _healthFactor * 10 ** 15;
-
-        emit StrategyUpdatedHealthFactor(_healthFactor);
-    } 
 
 
     // --- logic
@@ -302,11 +290,9 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         _removeLiquidityAndUnstakeWithSlippage(amountLp);
 
 
-        // 2. Convert all storage assets to token0 to full exit from aave.
-        uint256 token0Storage = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdcStorage, usdcTokenDenominator, token0Denominator, 
-            uint256(oracleChainlinkUsdc.latestAnswer()), uint256(oracleChainlinkToken0.latestAnswer()));
-        swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_OUT, IAsset(address(usdcToken)),
-                IAsset(address(token0)), address(this), address(this), token0Storage, MAX_UINT_VALUE);
+        // 2. Convert all storage assets to token0.
+        swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
+                IAsset(address(token0)), address(this), address(this), usdcStorage, 0);
 
 
         // 3. Full exit from aave.
@@ -334,7 +320,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
     }
 
     function _getTotal() internal view returns (uint256){
-   
+        
         uint256 balanceLp = arrakisRewards.balanceOf(address(this));
 
         if (balanceLp == 0)
@@ -342,19 +328,20 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         (uint256 poolUsdc, uint256 poolToken0) = _getTokensForLiquidity(balanceLp);  
         uint256 aaveUsdc = aUsdcToken.balanceOf(address(this));
+        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider)));
         (, uint256 aaveToken0,,,,) = aavePool.getUserAccountData(address(this));
         aaveToken0 = AaveBorrowLibrary.convertUsdToTokenAmount(aaveToken0, token0Denominator, uint256(oracleChainlinkToken0.latestAnswer()));
         uint256 result = usdcToken.balanceOf(address(this)) + poolUsdc + aaveUsdc;
         
         if (aaveToken0 < poolToken0) {
             uint256 delta = poolToken0 - aaveToken0;
-            if (delta > 100000) {
+            if (delta > poolToken0 / 100) {
                 delta = onSwap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, token0, usdcToken, delta);
                 result = result + delta;
             }
         } else {
             uint256 delta = aaveToken0 - poolToken0;
-            if (delta > 100000) {
+            if (delta > poolToken0 / 100) {
                 delta = onSwap(balancerPoolIdToken, IVault.SwapKind.GIVEN_OUT, usdcToken, token0, delta);
                 result = result - delta;
             }
@@ -434,6 +421,14 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
     function _getUnderlyingBalances() internal view returns (uint256, uint256) {
         (uint256 amount0, uint256 amount1) = arrakisVault.getUnderlyingBalances();
         return (usdcTokenInversion == 0) ? (amount0, amount1) : (amount1, amount0);
+    }
+
+    function _setHealthFactor(
+        uint256 _healthFactor
+    ) internal override {
+        healthFactor = _healthFactor * 10 ** 15;
+
+        emit StrategyUpdatedHealthFactor(_healthFactor);
     }
 
     // function _healthFactorBalance() internal override returns (uint256) { 

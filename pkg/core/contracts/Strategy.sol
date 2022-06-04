@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "./interfaces/IStrategy.sol";
+import "./IStrategy.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -100,6 +100,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         }
     }
 
+    function setHealthFactor(uint256 healthFactor) external override onlyPortfolioManager {
+        _setHealthFactor(healthFactor);
+
+        emit SetHealthFactor(healthFactor);
+    }
+
     function _stake(
         address _asset,
         uint256 _amount
@@ -127,7 +133,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function _healthFactorBalance() internal virtual returns (uint256) {
-        return 0;
+        
+    }
+
+    function _setHealthFactor(uint256 _healthFactor) internal virtual {
+
     }
 
     uint256[49] private __gap;

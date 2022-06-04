@@ -1,6 +1,6 @@
 require('hardhat-deploy');
 require('@openzeppelin/hardhat-upgrades');
-require("@nomiclabs/hardhat-etherscan");
+//require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
 
 const config = require("@overnight-contracts/common/utils/hardhat-config");

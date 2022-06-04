@@ -17,6 +17,12 @@ library AaveBorrowLibrary {
         IPool(aavePool).setUserEMode(eModeCategoryId);
     }
 
+    function getAavePool(
+        address aavePoolAddressesProvider
+    ) internal view returns (address aavePool) {
+        aavePool = IPoolAddressesProvider(aavePoolAddressesProvider).getPool();
+    }
+
     function getCollateralAndBorrowForSupplyAndBorrow(
         uint256 amount0,
         uint256 reserve0,
