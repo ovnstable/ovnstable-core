@@ -1,7 +1,11 @@
-const {changeWeightsAndBalance, getContract, getPrice, upgradeStrategy, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {
+    changeWeightsAndBalance, getContract, getPrice, upgradeStrategy, showM2M, execTimelock, getERC20, initWallet,
+    getStrategy
+} = require("@overnight-contracts/common/utils/script-utils");
 
 const hre = require('hardhat');
 const {execProposal} = require("@overnight-contracts/common/utils/governance");
+const {fromUSDC, toUSDC} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
@@ -25,15 +29,7 @@ async function main() {
             "enabled": false,
             "enabledReward": true
         },
-        {
-            "strategy": "0xaF7800Ee99ABF99986978B0D357E5f6813aF8638",
-            "name": "Dodo USDC",
-            "minWeight": 0,
-            "targetWeight": 28.5,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
+
         {
             "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
             "name": "Tetu USDC",
@@ -53,13 +49,13 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0xD339B3291f7545967bF0eE0ABE967435598917C5",
-            "name": "Dystopia USDC/DAI",
+            "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
+            "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 0,
+            "targetWeight": 28.5,
             "maxWeight": 100,
-            "enabled": false,
-            "enabledReward": false
+            "enabled": true,
+            "enabledReward": true
         }
     ]
 
@@ -79,10 +75,7 @@ async function main() {
 }
 
 
-
-
-
-async function createProposal(weights){
+async function createProposal(weights, weightsNew) {
     let governor = await getContract('OvnGovernor', 'polygon');
     let pm = await getContract('PortfolioManager', 'polygon');
 

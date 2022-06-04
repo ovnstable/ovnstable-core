@@ -33,6 +33,16 @@ async function getContract(name, network){
 
 }
 
+async function getStrategy(address){
+
+    let ethers = hre.ethers;
+    let wallet = await initWallet(ethers);
+
+    const StrategyJson = require("./abi/Strategy.json");
+    return await ethers.getContractAt(StrategyJson.abi, address, wallet);
+
+}
+
 async function getERC20(name){
 
     let ethers = hre.ethers;
@@ -101,7 +111,10 @@ async function showPlatform(platform, blocknumber) {
 }
 
 
-async function showM2M(m2m, usdPlus, blocknumber) {
+async function showM2M(blocknumber) {
+
+    let m2m = await getContract('Mark2Market', process.env.STAND);
+    let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
 
     let strategyAssets;
     let totalNetAssets;
@@ -210,12 +223,9 @@ async function changeWeightsAndBalance(weights){
     let usdPlus = await getContract('UsdPlusToken', 'polygon');
     let usdc = await getERC20('usdc' );
     let exchange = await getContract('Exchange', 'polygon');
-    let m2m = await getContract('Mark2Market', 'polygon');
-
-
 
     console.log('M2M before:')
-    await showM2M(m2m, usdPlus);
+    await showM2M();
 
 
     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -247,7 +257,7 @@ async function changeWeightsAndBalance(weights){
     await exchange.redeem(usdc.address, toUSDC(10));
 
     console.log('M2M after:')
-    await showM2M(m2m, usdPlus);
+    await showM2M();
 
 
 }
@@ -279,6 +289,7 @@ module.exports = {
     getPrice: getPrice,
     getContract: getContract,
     getERC20: getERC20,
+    getStrategy: getStrategy,
     changeWeightsAndBalance: changeWeightsAndBalance,
     upgradeStrategy: upgradeStrategy,
     execTimelock: execTimelock

@@ -23,6 +23,10 @@ async function execProposal(id) {
     if (state === "Executed") {
         return;
     }
+    if (state === "Queued"){
+        await governator.executeExec(proposalId);
+        return;
+    }
 
     console.log('State status: ' + state)
     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting

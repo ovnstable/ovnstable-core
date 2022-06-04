@@ -575,6 +575,11 @@
       "address": "0x69C466cd299e9BcEdF29C56F713bd4b730CbAb1f",
       "txHash": "0x520318ee3186ff084ebb1c36634547b54550abd996fc6603ba945a70452dc5fc",
       "kind": "uups"
+    },
+    {
+      "address": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
+      "txHash": "0xe134027b1ef937862751e574eb779a57b826467c5b2063d871cd67a038b90c36",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -27266,7 +27271,7 @@
             "label": "dodoV1Helper",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IDODOV1Helper)27703",
+            "type": "t_contract(IDODOV1Helper)3157",
             "contract": "DodoExchange",
             "src": "contracts/exchanges/DodoExchange.sol:23"
           },
@@ -27274,7 +27279,7 @@
             "label": "dodoProxy",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IDODOProxy)27543",
+            "type": "t_contract(IDODOProxy)2997",
             "contract": "DodoExchange",
             "src": "contracts/exchanges/DodoExchange.sol:24"
           },
@@ -27290,7 +27295,7 @@
             "label": "balancerVault",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IVault)27198",
+            "type": "t_contract(IVault)2927",
             "contract": "BalancerExchange",
             "src": "contracts/exchanges/BalancerExchange.sol:15"
           },
@@ -27306,7 +27311,7 @@
             "label": "usdcToken",
             "offset": 0,
             "slot": "354",
-            "type": "t_contract(IERC20)1823",
+            "type": "t_contract(IERC20)1761",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:16"
           },
@@ -27314,7 +27319,7 @@
             "label": "usdtToken",
             "offset": 0,
             "slot": "355",
-            "type": "t_contract(IERC20)1823",
+            "type": "t_contract(IERC20)1761",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:17"
           },
@@ -27322,7 +27327,7 @@
             "label": "dodoToken",
             "offset": 0,
             "slot": "356",
-            "type": "t_contract(IERC20)1823",
+            "type": "t_contract(IERC20)1761",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:18"
           },
@@ -27330,7 +27335,7 @@
             "label": "wmaticToken",
             "offset": 0,
             "slot": "357",
-            "type": "t_contract(IERC20)1823",
+            "type": "t_contract(IERC20)1761",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:19"
           },
@@ -27338,7 +27343,7 @@
             "label": "usdcLPToken",
             "offset": 0,
             "slot": "358",
-            "type": "t_contract(IERC20)1823",
+            "type": "t_contract(IERC20)1761",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:20"
           },
@@ -27346,7 +27351,7 @@
             "label": "dodoV1UsdcUsdtPool",
             "offset": 0,
             "slot": "359",
-            "type": "t_contract(IDODOV1)27682",
+            "type": "t_contract(IDODOV1)3136",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:22"
           },
@@ -27354,7 +27359,7 @@
             "label": "dodoV2DodoUsdtPool",
             "offset": 0,
             "slot": "360",
-            "type": "t_contract(IDODOV2)27728",
+            "type": "t_contract(IDODOV2)3182",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:23"
           },
@@ -27362,7 +27367,7 @@
             "label": "dodoMine",
             "offset": 0,
             "slot": "361",
-            "type": "t_contract(IDODOMine)27496",
+            "type": "t_contract(IDODOMine)2950",
             "contract": "StrategyDodoUsdc",
             "src": "contracts/StrategyDodoUsdc.sol:24"
           },
@@ -27396,31 +27401,31 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IDODOMine)27496": {
+          "t_contract(IDODOMine)2950": {
             "label": "contract IDODOMine",
             "numberOfBytes": "20"
           },
-          "t_contract(IDODOProxy)27543": {
+          "t_contract(IDODOProxy)2997": {
             "label": "contract IDODOProxy",
             "numberOfBytes": "20"
           },
-          "t_contract(IDODOV1)27682": {
+          "t_contract(IDODOV1)3136": {
             "label": "contract IDODOV1",
             "numberOfBytes": "20"
           },
-          "t_contract(IDODOV1Helper)27703": {
+          "t_contract(IDODOV1Helper)3157": {
             "label": "contract IDODOV1Helper",
             "numberOfBytes": "20"
           },
-          "t_contract(IDODOV2)27728": {
+          "t_contract(IDODOV2)3182": {
             "label": "contract IDODOV2",
             "numberOfBytes": "20"
           },
-          "t_contract(IERC20)1823": {
+          "t_contract(IERC20)1761": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IVault)27198": {
+          "t_contract(IVault)2927": {
             "label": "contract IVault",
             "numberOfBytes": "20"
           },
