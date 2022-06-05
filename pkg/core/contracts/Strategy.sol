@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "./IStrategy.sol";
+import "./interfaces/IStrategy.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -133,7 +133,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function _healthFactorBalance() internal virtual returns (uint256) {
-        
+
     }
 
     function _setHealthFactor(uint256 _healthFactor) internal virtual {

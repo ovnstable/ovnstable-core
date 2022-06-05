@@ -233,7 +233,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function claimAndBalance() external override onlyExchanger {
         _claimRewards();
-        _healthFactorBalance();
+//        _healthFactorBalance();
         _balance();
     }
 
