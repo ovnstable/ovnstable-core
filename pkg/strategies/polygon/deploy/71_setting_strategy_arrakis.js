@@ -20,7 +20,10 @@ module.exports = async () => {
         POLYGON.balancerVault,
         POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
         POLYGON.balancerPoolIdWmaticUsdcWethBal,
-        POLYGON.uniswapV3PositionManager)).wait();
+        POLYGON.uniswapV3PositionManager,
+        POLYGON.oracleChainlinkUsdc,
+        POLYGON.oracleChainlinkUsdt
+        )).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyArrakis setting done');
