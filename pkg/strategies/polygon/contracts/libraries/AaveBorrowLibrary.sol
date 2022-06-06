@@ -51,8 +51,10 @@ library AaveBorrowLibrary {
         uint256 price0,
         uint256 price1
     ) internal pure returns (uint256 borrow1) {
-        uint256 collateral1 = convertTokenAmountToTokenAmount(collateral0, token0Denominator, token1Denominator, price0, price1); //usdc to usdt 
-        uint256 reserve1InToken0 = convertTokenAmountToTokenAmount(reserve1, token1Denominator, token0Denominator, price1, price0); //usdt to usdc
+        uint256 collateral1 = convertTokenAmountToTokenAmount(collateral0, token0Denominator, token1Denominator, price0, price1);
+        //usdc to usdt
+        uint256 reserve1InToken0 = convertTokenAmountToTokenAmount(reserve1, token1Denominator, token0Denominator, price1, price0);
+        //usdt to usdc
         borrow1 = (collateral1 * LT * reserve1InToken0) / (HF * reserve1InToken0 + LT * reserve0);
     }
 
@@ -71,7 +73,7 @@ library AaveBorrowLibrary {
     // ) internal pure returns (uint256 borrow1) {
     //     uint256 totalBorrowUsd1 = convertUsdToTokenAmount(totalBorrowUsd, token1Denominator, price1);   //usd to usdt
     //     uint256 totalCollateralUsd1 = convertUsdToTokenAmount(totalCollateralUsd, token1Denominator, price1); //usd to usdt
-    //     uint256 collateral1 = convertTokenAmountToTokenAmount(collateral0, token0Denominator, token1Denominator, price0, price1); //usdc to usdt 
+    //     uint256 collateral1 = convertTokenAmountToTokenAmount(collateral0, token0Denominator, token1Denominator, price0, price1); //usdc to usdt
     //     uint256 reserve1InToken0 = convertTokenAmountToTokenAmount(reserve1, token1Denominator, token0Denominator, price1, price0); //usdt to usdc
     //     borrow1 = (totalBorrowUsd1 * HF + collateral1 * LT - totalCollateralUsd1 * LT) / (HF + LT * reserve0 / reserve1InToken0);
     // }
@@ -91,38 +93,46 @@ library AaveBorrowLibrary {
         lpTokensToWithdraw = totalLpBalance * (borrow0 + borrow1 * reserve0 / reserve1) / (reserve0 + reserve1InToken0);
     }
 
+    struct GetWithdrawAmountForBalanceParams {
+        uint256 totalCollateralUsd;
+        uint256 totalBorrowUsd;
+        uint256 reserve0;
+        uint256 reserve1;
+        uint256 LT;
+        uint256 HF;
+        uint256 token0Denominator;
+        uint256 token1Denominator;
+        uint256 price0;
+        uint256 price1;
+    }
+
     function getWithdrawAmountForBalance(
-        uint256 totalCollateralUsd,
-        uint256 totalBorrowUsd,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 LT,
-        uint256 HF,
-        uint256 token0Denominator,
-        uint256 token1Denominator,
-        uint256 price0,
-        uint256 price1
+        GetWithdrawAmountForBalanceParams memory params
     ) internal pure returns (uint256 withdrawAmount) {
-        uint256 reserve1InUsd = convertTokenAmountToUsd(reserve1, token1Denominator, price1);
-        uint256 reserve0InUsd = convertTokenAmountToUsd(reserve0, token0Denominator, price0);
-        withdrawAmount = reserve0 * (totalCollateralUsd * LT - totalBorrowUsd * HF) / (reserve1InUsd * HF + reserve0InUsd * LT);
+        uint256 reserve1InUsd = convertTokenAmountToUsd(params.reserve1, params.token1Denominator, params.price1);
+        uint256 reserve0InUsd = convertTokenAmountToUsd(params.reserve0, params.token0Denominator, params.price0);
+        withdrawAmount = params.reserve0 * (params.totalCollateralUsd * params.LT - params.totalBorrowUsd * params.HF) / (reserve1InUsd * params.HF + reserve0InUsd * params.LT);
+    }
+
+    struct GetSupplyAmountForBalanceParams {
+        uint256 totalCollateralUsd;
+        uint256 totalBorrowUsd;
+        uint256 reserve0;
+        uint256 reserve1;
+        uint256 LT;
+        uint256 HF;
+        uint256 token0Denominator;
+        uint256 token1Denominator;
+        uint256 price0;
+        uint256 price1;
     }
 
     function getSupplyAmountForBalance(
-        uint256 totalCollateralUsd,
-        uint256 totalBorrowUsd,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 LT,
-        uint256 HF,
-        uint256 token0Denominator,
-        uint256 token1Denominator,
-        uint256 price0,
-        uint256 price1
+        GetSupplyAmountForBalanceParams memory params
     ) internal pure returns (uint256 supplyAmount) {
-        uint256 reserve1InUsd = convertTokenAmountToUsd(reserve1, token1Denominator, price1);
-        uint256 reserve0InUsd = convertTokenAmountToUsd(reserve0, token0Denominator, price0);
-        supplyAmount = reserve1 * (totalBorrowUsd * HF - totalCollateralUsd * LT) / (reserve1InUsd * HF + reserve0InUsd * LT);
+        uint256 reserve1InUsd = convertTokenAmountToUsd(params.reserve1, params.token1Denominator, params.price1);
+        uint256 reserve0InUsd = convertTokenAmountToUsd(params.reserve0, params.token0Denominator, params.price0);
+        supplyAmount = params.reserve1 * (params.totalBorrowUsd * params.HF - params.totalCollateralUsd * params.LT) / (reserve1InUsd * params.HF + reserve0InUsd * params.LT);
     }
 
     function convertTokenAmountToTokenAmount(

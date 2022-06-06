@@ -12,7 +12,7 @@ abstract contract BalancerExchange {
 
     int256 public constant MAX_VALUE = 10 ** 27;
 
-    IVault private balancerVault;
+    IVault public balancerVault;
 
     function setBalancerVault(address _balancerVault) internal {
         balancerVault = IVault(_balancerVault);
@@ -136,7 +136,7 @@ abstract contract BalancerExchange {
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 balance
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
 
         IPoolSwapStructs.SwapRequest memory swapRequest;
         swapRequest.kind = kind;
