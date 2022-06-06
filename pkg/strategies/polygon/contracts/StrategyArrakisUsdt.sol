@@ -182,7 +182,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
 
         // 3. Borrowing asset from aave.
-        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        IPool aavePool = _aavePoolEm();
         usdcToken.approve(address(aavePool), usdcCollateral);
         aavePool.supply(address(usdcToken), usdcCollateral, address(this), referralCode);
         aavePool.borrow(address(token0), token0Borrow, interestRateMode, referralCode, address(this));
@@ -226,7 +226,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
 
         // 3. Removing liquidity for aave calculation
-        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        IPool aavePool = _aavePoolEm();
         (, uint256 borrow,,,,) = aavePool.getUserAccountData(address(this));
         uint256 totalBorrowUsd1 = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, token0Denominator, uint256(oracleChainlinkToken0.latestAnswer()));
 
@@ -296,7 +296,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
 
         // 3. Full exit from aave.
-        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        IPool aavePool = _aavePoolEm();
         token0.approve(address(aavePool), token0.balanceOf(address(this)));
         aavePool.repay(address(token0), MAX_UINT_VALUE, interestRateMode, address(this));
         aavePool.withdraw(address(usdcToken), MAX_UINT_VALUE, address(this));
@@ -433,7 +433,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
     function _healthFactorBalance() internal override returns (uint256) {
 
-        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        IPool aavePool = _aavePoolEm();
         (uint256 collateral, uint256 borrow,,,,uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(this));
 
         if (OvnMath.abs(healthFactorCurrent, healthFactor) < balancingDelta) {
@@ -490,5 +490,9 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         (,,,,, healthFactorCurrent) = aavePool.getUserAccountData(address(this));
         return healthFactorCurrent;
+    }
+
+    function _aavePoolEm() internal returns (IPool aavePool){
+        aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
     }
 }
