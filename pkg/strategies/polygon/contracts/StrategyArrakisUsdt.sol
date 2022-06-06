@@ -435,12 +435,12 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
         (uint256 collateral, uint256 borrow,,,,uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(this));
-        uint256 price = uint256(oracleChainlinkUsdc.latestAnswer());
-        (uint256 amount0Current, uint256 amount1Current) = _getUnderlyingBalances();
 
         if (OvnMath.abs(healthFactorCurrent, healthFactor) < balancingDelta) {
             return healthFactorCurrent;
         }
+
+        (uint256 amount0Current, uint256 amount1Current) = _getUnderlyingBalances();
 
         if (healthFactorCurrent > healthFactor) {
             uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
