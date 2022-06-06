@@ -5,7 +5,6 @@ import "./core/Strategy.sol";
 import "./exchanges/DystopiaExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
-import "hardhat/console.sol";
 
 
 contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {

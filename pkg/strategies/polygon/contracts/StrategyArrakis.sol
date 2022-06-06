@@ -13,6 +13,8 @@ import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
 import "./connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
 import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
 
+import "./connectors/aave/interfaces/IPriceFeed.sol";
+
 import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
 import "./connectors/arrakis/IArrakisRewards.sol";
 
@@ -20,6 +22,7 @@ import "./exchanges/BalancerExchange.sol";
 import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
 import "./libraries/OvnMath.sol";
+
 
 contract StrategyArrakis is Strategy, BalancerExchange {
     using OvnMath for uint256;
@@ -37,6 +40,17 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
     bytes32 public balancerPoolIdStable; // Stable Pool
     bytes32 public balancerPoolIdWmatic; // Wmatic/USDC Pool
+
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleUsdt;
+
+    // --- events
+
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address wmaticToken);
+
+    event StrategyUpdatedParams(address arrakisRouter, address arrakisRewards, address arrakisVault, address balancerVault, address uniswapPositionManager,
+        bytes32 balancerPoolIdStable, bytes32 balancerPoolIdWmatic, address oracleUsdc, address oracleUsdt);
+
 
     // ---  constructor
 
@@ -63,6 +77,8 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         usdcToken = IERC20(_usdcToken);
         usdtToken = IERC20(_usdtToken);
         wmaticToken = IERC20(_wmaticToken);
+
+        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _wmaticToken);
     }
 
     function setParams(
@@ -72,7 +88,9 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         address _balancerVault,
         bytes32 _balancerPoolIdStable,
         bytes32 _balancerPoolIdWmatic,
-        address _uniswapPositionManager
+        address _uniswapPositionManager,
+        address _oracleUsdc,
+        address _oracleUsdt
     ) external onlyAdmin {
 
         require(_arrakisRouter != address(0), "Zero address not allowed");
@@ -82,6 +100,8 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         require(_uniswapPositionManager != address(0), "Zero address not allowed");
         require(_balancerPoolIdStable != "", "Empty pool id not allowed");
         require(_balancerPoolIdWmatic != "", "Empty pool id not allowed");
+        require(_oracleUsdc != address(0), "Zero address not allowed");
+        require(_oracleUsdt != address(0), "Zero address not allowed");
 
         arrakisRouter = IArrakisV1RouterStaking(_arrakisRouter);
         arrakisRewards = IArrakisRewards(_arrakisRewards);
@@ -93,6 +113,12 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         balancerPoolIdStable = _balancerPoolIdStable;
         balancerPoolIdWmatic = _balancerPoolIdWmatic;
         setBalancerVault(_balancerVault);
+
+        oracleUsdc = IPriceFeed(_oracleUsdc);
+        oracleUsdt = IPriceFeed(_oracleUsdt);
+
+        emit StrategyUpdatedParams(_arrakisRouter, _arrakisRewards, _arrakisVault, _balancerVault, _uniswapPositionManager,
+            _balancerPoolIdStable, _balancerPoolIdWmatic, _oracleUsdc, _oracleUsdt);
     }
 
 
@@ -262,8 +288,9 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
         uint256 totalUsdtToUsdc;
         if(nav){
-            uint256 priceUsdt = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, 1e6);
-            totalUsdtToUsdc = (priceUsdt * totalUsdt) / 1e6;
+            uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+            uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
+            totalUsdtToUsdc = ((totalUsdt * 1e6) * priceUsdt) / (1e6 * priceUsdc);
         }else {
             // check how many USDC tokens we will get if we sell USDT tokens now
             totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, totalUsdt);

@@ -5,8 +5,7 @@ import "./core/Strategy.sol";
 import "./exchanges/DystopiaExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
-import "hardhat/console.sol";
-
+import "./connectors/aave/interfaces/IPriceFeed.sol";
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -21,6 +20,9 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     IDystopiaLP public gauge;
     IDystopiaLP public dystPair;
     bytes32 public poolIdUsdcTusdDaiUsdt;
+
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleUsdt;
 
     // --- events
 
@@ -68,7 +70,9 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address _dystPair,
         address _dystRouter,
         address _balancerVault,
-        bytes32 _poolIdUsdcTusdDaiUsdt
+        bytes32 _poolIdUsdcTusdDaiUsdt,
+        address _oracleUsdc,
+        address _oracleUsdt
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -76,12 +80,17 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         require(_dystRouter != address(0), "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_poolIdUsdcTusdDaiUsdt != "", "Empty pool id not allowed");
+        require(_oracleUsdc != address(0), "Zero address not allowed");
+        require(_oracleUsdt != address(0), "Zero address not allowed");
 
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
         _setDystopiaRouter(_dystRouter);
         setBalancerVault(_balancerVault);
         poolIdUsdcTusdDaiUsdt = _poolIdUsdcTusdDaiUsdt;
+
+        oracleUsdc = IPriceFeed(_oracleUsdc);
+        oracleUsdt = IPriceFeed(_oracleUsdt);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt);
     }
@@ -286,14 +295,10 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         if (usdtBalance > 0) {
 
             if (nav) {
-                uint256 usdtPrice = onSwap(
-                    poolIdUsdcTusdDaiUsdt,
-                    IVault.SwapKind.GIVEN_IN,
-                    usdtToken,
-                    usdcToken,
-                    1e6
-                );
-                usdcBalanceFromUsdt = (usdtPrice * usdtBalance) / 1e6;
+                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+                uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
+
+                usdcBalanceFromUsdt = ((usdtBalance * 1e6) * priceUsdt) / (1e6 * priceUsdc);
             }else {
                 usdcBalanceFromUsdt = onSwap(
                     poolIdUsdcTusdDaiUsdt,

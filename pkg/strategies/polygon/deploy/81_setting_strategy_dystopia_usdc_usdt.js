@@ -12,7 +12,14 @@ module.exports = async () => {
     const strategy = await ethers.getContract("StrategyDystopiaUsdcUsdt");
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, dystToken, POLYGON.wMatic)).wait();
-    await (await strategy.setParams(gauge, dystPair, dystRouter, POLYGON.balancerVault, POLYGON.balancerPoolIdUsdcTusdDaiUsdt)).wait();
+    await (await strategy.setParams(
+        gauge,
+        dystPair,
+        dystRouter,
+        POLYGON.balancerVault,
+        POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
+        POLYGON.oracleChainlinkUsdc,
+        POLYGON.oracleChainlinkUsdt)).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyDystopiaUsdcUsdt setting done');
