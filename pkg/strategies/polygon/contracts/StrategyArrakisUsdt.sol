@@ -11,7 +11,7 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
-import { AaveBorrowLibrary } from "./libraries/AaveBorrowLibrary.sol";
+import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
 
 
 contract StrategyArrakisUsdt is Strategy, BalancerExchange {
@@ -292,7 +292,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         // 2. Convert all storage assets to token0.
         swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
-                IAsset(address(token0)), address(this), address(this), usdcStorage, 0);
+            IAsset(address(token0)), address(this), address(this), usdcStorage, 0);
 
 
         // 3. Full exit from aave.
@@ -305,7 +305,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         // 4. Swap remaining token0 to usdc
         if (token0.balanceOf(address(this)) > 0) {
             swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(token0)),
-                    IAsset(address(usdcToken)), address(this), address(this), token0.balanceOf(address(this)), 0);
+                IAsset(address(usdcToken)), address(this), address(this), token0.balanceOf(address(this)), 0);
         }
 
         return usdcToken.balanceOf(address(this));
@@ -385,7 +385,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
     function _addLiquidityAndStakeWithSlippage(uint256 usdcAmount, uint256 token0Amount) internal {
         if (usdcTokenInversion == 0) {
-        arrakisRouter.addLiquidityAndStake(
+            arrakisRouter.addLiquidityAndStake(
                 address(arrakisRewards),
                 usdcAmount,
                 token0Amount,
@@ -431,64 +431,64 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         emit StrategyUpdatedHealthFactor(_healthFactor);
     }
 
-     function _healthFactorBalance() internal override returns (uint256) {
+    function _healthFactorBalance() internal override returns (uint256) {
 
-         IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
-         (uint256 collateral, uint256 borrow,,,,uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(this));
-         uint256 price = uint256(oracleChainlinkUsdc.latestAnswer());
-         (uint256 amount0Current, uint256 amount1Current) = _getUnderlyingBalances();
+        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        (uint256 collateral, uint256 borrow,,,,uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(this));
+        uint256 price = uint256(oracleChainlinkUsdc.latestAnswer());
+        (uint256 amount0Current, uint256 amount1Current) = _getUnderlyingBalances();
 
-         if (OvnMath.abs(healthFactorCurrent, healthFactor) < balancingDelta) {
-             return healthFactorCurrent;
-         }
+        if (OvnMath.abs(healthFactorCurrent, healthFactor) < balancingDelta) {
+            return healthFactorCurrent;
+        }
 
-         if (healthFactorCurrent > healthFactor) {
-             uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
-                 collateral,
-                 borrow,
-                 amount0Current,
-                 amount1Current,
-                 liquidationThreshold,
-                 healthFactor,
-                 usdcTokenDenominator,
-                 token0Denominator,
-                 uint256(oracleChainlinkUsdc.latestAnswer()),
-                 uint256(oracleChainlinkToken0.latestAnswer())
-             );
-             uint256 neededToken0 = (neededUsdc * amount1Current) / amount0Current;
+        if (healthFactorCurrent > healthFactor) {
+            uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
+                collateral,
+                borrow,
+                amount0Current,
+                amount1Current,
+                liquidationThreshold,
+                healthFactor,
+                usdcTokenDenominator,
+                token0Denominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkToken0.latestAnswer())
+            );
+            uint256 neededToken0 = (neededUsdc * amount1Current) / amount0Current;
 
-             aavePool.withdraw(address(usdcToken), neededUsdc, address(this));
-             aavePool.borrow(address(token0), neededToken0, interestRateMode, referralCode, address(this));
+            aavePool.withdraw(address(usdcToken), neededUsdc, address(this));
+            aavePool.borrow(address(token0), neededToken0, interestRateMode, referralCode, address(this));
 
-             usdcToken.approve(address(arrakisRouter), neededUsdc);
-             token0.approve(address(arrakisRouter), neededToken0);
-             _addLiquidityAndStakeWithSlippage(neededUsdc, neededToken0);
-         } else {
-             uint256 neededToken0 = AaveBorrowLibrary.getSupplyAmountForBalance(
-                 collateral,
-                 borrow,
-                 amount0Current,
-                 amount1Current,
-                 liquidationThreshold,
-                 healthFactor,
-                 usdcTokenDenominator,
-                 token0Denominator,
-                 uint256(oracleChainlinkUsdc.latestAnswer()),
-                 uint256(oracleChainlinkToken0.latestAnswer())
-             );
-             uint256 amountLp = _getLiquidityForToken(neededToken0);
-             arrakisRewards.approve(address(arrakisRouter), amountLp);
+            usdcToken.approve(address(arrakisRouter), neededUsdc);
+            token0.approve(address(arrakisRouter), neededToken0);
+            _addLiquidityAndStakeWithSlippage(neededUsdc, neededToken0);
+        } else {
+            uint256 neededToken0 = AaveBorrowLibrary.getSupplyAmountForBalance(
+                collateral,
+                borrow,
+                amount0Current,
+                amount1Current,
+                liquidationThreshold,
+                healthFactor,
+                usdcTokenDenominator,
+                token0Denominator,
+                uint256(oracleChainlinkUsdc.latestAnswer()),
+                uint256(oracleChainlinkToken0.latestAnswer())
+            );
+            uint256 amountLp = _getLiquidityForToken(neededToken0);
+            arrakisRewards.approve(address(arrakisRouter), amountLp);
 
-             (uint256 amount0, uint256 amount1) = _removeLiquidityAndUnstakeWithSlippage(amountLp);
+            (uint256 amount0, uint256 amount1) = _removeLiquidityAndUnstakeWithSlippage(amountLp);
 
-             usdcToken.approve(address(aavePool), amount0);
-             aavePool.supply(address(usdcToken), amount0, address(this), referralCode);
+            usdcToken.approve(address(aavePool), amount0);
+            aavePool.supply(address(usdcToken), amount0, address(this), referralCode);
 
-             token0.approve(address(aavePool), amount1);
-             aavePool.repay(address(token0), amount1, interestRateMode, address(this));
-         }
+            token0.approve(address(aavePool), amount1);
+            aavePool.repay(address(token0), amount1, interestRateMode, address(this));
+        }
 
-         (,,,,, healthFactorCurrent) = aavePool.getUserAccountData(address(this));
-         return healthFactorCurrent;
-     }
+        (,,,,, healthFactorCurrent) = aavePool.getUserAccountData(address(this));
+        return healthFactorCurrent;
+    }
 }
