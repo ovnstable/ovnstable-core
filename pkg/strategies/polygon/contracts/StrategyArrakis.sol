@@ -22,6 +22,8 @@ import "./exchanges/BalancerExchange.sol";
 import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
 import "./libraries/OvnMath.sol";
+import { AaveBorrowLibrary } from "./libraries/AaveBorrowLibrary.sol";
+
 
 contract StrategyArrakis is Strategy, BalancerExchange {
     using OvnMath for uint256;
@@ -42,6 +44,17 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleUsdt;
+
+    uint256 public usdcTokenDenominator;
+    uint256 public usdtTokenDenominator;
+
+    // --- events
+
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address wmaticToken, uint256 usdcTokenDenominator, uint256 usdtTokenDenominator);
+
+    event StrategyUpdatedParams(address arrakisRouter, address arrakisRewards, address arrakisVault, address balancerVault, address uniswapPositionManager,
+        bytes32 balancerPoolIdStable, bytes32 balancerPoolIdWmatic, address oracleUsdc, address oracleUsdt);
+
 
     // ---  constructor
 
@@ -68,6 +81,11 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         usdcToken = IERC20(_usdcToken);
         usdtToken = IERC20(_usdtToken);
         wmaticToken = IERC20(_wmaticToken);
+
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        usdtTokenDenominator = 10 ** IERC20Metadata(_usdtToken).decimals();
+
+        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _wmaticToken, usdcTokenDenominator, usdtTokenDenominator);
     }
 
     function setParams(
@@ -105,6 +123,9 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
         oracleUsdc = IPriceFeed(_oracleUsdc);
         oracleUsdt = IPriceFeed(_oracleUsdt);
+
+        emit StrategyUpdatedParams(_arrakisRouter, _arrakisRewards, _arrakisVault, _balancerVault, _uniswapPositionManager,
+            _balancerPoolIdStable, _balancerPoolIdWmatic, _oracleUsdc, _oracleUsdt);
     }
 
 
@@ -276,7 +297,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         if(nav){
             uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
             uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
-            totalUsdtToUsdc = ((totalUsdt * 1e6 / priceUsdt) * (priceUsdc )) / 1e6;
+            totalUsdtToUsdc = AaveBorrowLibrary.convertTokenAmountToTokenAmount(totalUsdt, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
         }else {
             // check how many USDC tokens we will get if we sell USDT tokens now
             totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, totalUsdt);

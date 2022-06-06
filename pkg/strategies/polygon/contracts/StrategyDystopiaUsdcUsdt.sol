@@ -6,8 +6,8 @@ import "./exchanges/DystopiaExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
+import { AaveBorrowLibrary } from "./libraries/AaveBorrowLibrary.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -300,7 +300,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
 
-                usdcBalanceFromUsdt = ( (usdtBalance * 1e6 / priceUsdt) * (priceUsdc ) ) / 1e6;
+                usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             }else {
                 usdcBalanceFromUsdt = onSwap(
                     poolIdUsdcTusdDaiUsdt,
