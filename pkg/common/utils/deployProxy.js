@@ -5,13 +5,13 @@ const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-i
 const fs = require('fs');
 
 
-async function deployProxy(contractName, deployments, save) {
-    return deployProxyMulti(contractName, contractName, deployments, save);
+async function deployProxy(contractName, deployments, save, factoryOptions, unsafeAllow) {
+    return deployProxyMulti(contractName, contractName, deployments, save, factoryOptions, unsafeAllow);
 }
 
-async function deployProxyMulti(contractName, factoryName, deployments, save) {
+async function deployProxyMulti(contractName, factoryName, deployments, save, factoryOptions, unsafeAllow) {
 
-    const contractFactory = await ethers.getContractFactory(factoryName);
+    const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
     let proxy;
     try {
@@ -21,7 +21,10 @@ async function deployProxyMulti(contractName, factoryName, deployments, save) {
 
     if (!proxy) {
         console.log(`Proxy ${contractName} not found`)
-        proxy = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
+        proxy = await upgrades.deployProxy(contractFactory, {
+            kind: 'uups',
+            unsafeAllow: unsafeAllow
+        });
         console.log(`Deploy ${contractName} Proxy progress -> ` + proxy.address + " tx: " + proxy.deployTransaction.hash);
         await proxy.deployTransaction.wait();
     } else {
@@ -37,9 +40,9 @@ async function deployProxyMulti(contractName, factoryName, deployments, save) {
         // You need have permission for role UPGRADER_ROLE;
 
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, {unsafeAllow: unsafeAllow});
         } catch (e) {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory);
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, {unsafeAllow: unsafeAllow});
         }
         const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + currentImplAddress + "]");
@@ -47,7 +50,10 @@ async function deployProxyMulti(contractName, factoryName, deployments, save) {
 
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
-        impl = await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, proxy.address);
+        impl = await sampleModule.deployProxyImpl(hre, contractFactory, {
+            kind: 'uups',
+            unsafeAllow: unsafeAllow
+        }, proxy.address);
         console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
     }
