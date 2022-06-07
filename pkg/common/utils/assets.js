@@ -1,6 +1,13 @@
 const dotenv = require("dotenv");
 dotenv.config({path:__dirname+ '/../../../.env'});
 
+let AVALANCHE = {
+    traderJoeRouter: "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",
+    usdc: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+    aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+    aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
+}
+
 let FANTOM = {
     usdc: "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75",
     amUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
@@ -101,20 +108,24 @@ function setDefault(network) {
     console.log(`Assets: [${network}]`)
 
     switch (network) {
+        case 'AVALANCHE':
+            DEFAULT = AVALANCHE;
+            break;
         case 'FANTOM':
             DEFAULT = FANTOM;
-            break
+            break;
         case 'POLYGON':
             DEFAULT = POLYGON;
-            break
+            break;
         default:
-            throw new Error('Unknown network')
+            throw new Error('Unknown network');
     }
 }
 
 module.exports = {
     POLYGON: POLYGON,
     FANTOM: FANTOM,
+    AVALANCHE: AVALANCHE,
     DEFAULT: DEFAULT,
     setDefault: setDefault
 }
