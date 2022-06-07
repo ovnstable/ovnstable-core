@@ -8,17 +8,12 @@ import "../connectors/balancer/interfaces/IMinimalSwapInfoPool.sol";
 import "../connectors/balancer/interfaces/IPoolSwapStructs.sol";
 
 
-abstract contract BalancerExchange {
+library BalancerLibrary {
 
     int256 public constant MAX_VALUE = 10 ** 27;
 
-    IVault public vault;
-
-    function setBalancerVault(address _balancerVault) internal {
-        vault = IVault(_balancerVault);
-    }
-
     function swap(
+        IVault vault,
         bytes32 poolId,
         IVault.SwapKind kind,
         IAsset tokenIn,
@@ -27,7 +22,7 @@ abstract contract BalancerExchange {
         address recipient,
         uint256 amount,
         uint256 limit
-    ) internal returns (uint256) {
+    ) public returns (uint256) {
 
         IERC20(address(tokenIn)).approve(address(vault), IERC20(address(tokenIn)).balanceOf(address(this)));
 
@@ -48,6 +43,7 @@ abstract contract BalancerExchange {
     }
 
     function swap(
+        IVault vault,
         bytes32 poolId,
         IVault.SwapKind kind,
         IAsset tokenIn,
@@ -55,7 +51,7 @@ abstract contract BalancerExchange {
         address sender,
         address recipient,
         uint256 amount
-    ) internal returns (uint256) {
+    ) public returns (uint256) {
 
         IERC20(address(tokenIn)).approve(address(vault), IERC20(address(tokenIn)).balanceOf(address(this)));
 
@@ -75,62 +71,9 @@ abstract contract BalancerExchange {
         return vault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
     }
 
-    function batchSwap(
-        bytes32 poolId1,
-        bytes32 poolId2,
-        IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenMid,
-        IAsset tokenOut,
-        address sender,
-        address payable recipient,
-        uint256 amount
-    ) internal returns (uint256) {
-
-        IERC20(address(tokenIn)).approve(address(vault), amount);
-
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
-
-        IVault.BatchSwapStep memory batchSwap1;
-        batchSwap1.poolId = poolId1;
-        batchSwap1.assetInIndex = 0;
-        batchSwap1.assetOutIndex = 1;
-        batchSwap1.amount = amount;
-        swaps[0] = batchSwap1;
-
-        IVault.BatchSwapStep memory batchSwap2;
-        batchSwap2.poolId = poolId2;
-        batchSwap2.assetInIndex = 1;
-        batchSwap2.assetOutIndex = 2;
-        batchSwap2.amount = 0;
-        swaps[1] = batchSwap2;
-
-        IAsset[] memory assets = new IAsset[](3);
-        assets[0] = tokenIn;
-        assets[1] = tokenMid;
-        assets[2] = tokenOut;
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = sender;
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = recipient;
-        fundManagement.toInternalBalance = false;
-
-        int256[] memory limits = new int256[](3);
-        if (kind == IVault.SwapKind.GIVEN_IN) {
-            limits[0] = MAX_VALUE;
-            limits[1] = MAX_VALUE;
-            limits[2] = MAX_VALUE;
-        } else {
-            limits[0] = 0;
-            limits[1] = 0;
-            limits[2] = 0;
-        }
-
-        return uint256(- vault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600)[2]);
-    }
 
     function onSwap(
+        IVault vault,
         bytes32 poolId,
         IVault.SwapKind kind,
         IERC20 tokenIn,
@@ -198,6 +141,7 @@ abstract contract BalancerExchange {
      * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
      */
     function _getAmountToSwap(
+        IVault vault,
         uint256 amount0Total,
         uint256 reserve0,
         uint256 reserve1,
@@ -207,10 +151,10 @@ abstract contract BalancerExchange {
         bytes32 poolId,
         IERC20 token0,
         IERC20 token1
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         uint256 amount0ToSwap = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
         for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token0, token1, amount0ToSwap);
+            uint256 amount1 = onSwap(vault, poolId, IVault.SwapKind.GIVEN_IN, token0, token1, amount0ToSwap);
             amount0ToSwap = (amount0Total * reserve1) / (reserve0 * amount1 / amount0ToSwap + reserve1);
         }
 
@@ -223,6 +167,7 @@ abstract contract BalancerExchange {
      * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
      */
     function _getAmountLpTokensToWithdraw(
+        IVault vault,
         uint256 amount0Total,
         uint256 reserve0,
         uint256 reserve1,
@@ -232,15 +177,14 @@ abstract contract BalancerExchange {
         bytes32 poolId,
         IERC20 token0,
         IERC20 token1
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
         for (uint i = 0; i < 1; i++) {
             uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            uint256 amount0 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token1, token0, amount1);
+            uint256 amount0 = onSwap(vault, poolId, IVault.SwapKind.GIVEN_IN, token1, token0, amount1);
             lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
         }
         return lpBalance;
     }
 
-    uint256[49] private __gap;
 }

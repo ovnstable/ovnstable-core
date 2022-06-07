@@ -6,16 +6,19 @@ import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
 import "./connectors/arrakis/IArrakisRewards.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
+import "./connectors/balancer/interfaces/IVault.sol";
 import "./connectors/aave/interfaces/IPool.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
+
 import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
+import {BalancerLibrary} from "./libraries/BalancerLibrary.sol";
 import {StrategyArrakisUsdtLibrary} from "./libraries/StrategyArrakisUsdtLibrary.sol";
 
 
-contract StrategyArrakisUsdt is Strategy, BalancerExchange {
+contract StrategyArrakisUsdt is Strategy {
     using StrategyArrakisUsdtLibrary for StrategyArrakisUsdt;
 
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4; // 0.04%
@@ -40,6 +43,8 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
     bytes32 public balancerPoolIdWmatic;
     bytes32 public balancerPoolIdToken;
+    IVault  public balancerVault;
+
     uint256 public liquidationThreshold;
     uint256 public healthFactor;
     uint256 public usdcTokenInversion;
@@ -116,7 +121,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         balancerPoolIdToken = _balancerPoolIdToken;
         balancerPoolIdWmatic = _balancerPoolIdWmatic;
-        setBalancerVault(_balancerVault);
+        balancerVault = IVault(_balancerVault);
 
         usdcTokenInversion = _usdcTokenInversion;
 
@@ -260,7 +265,8 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         uint256 neededUsdc = _amount - (usdcToken.balanceOf(address(this)) - usdcStorage);
         (amount0Current, amount1Current) = this._getUnderlyingBalances();
         uint256 amountLp = arrakisRewards.balanceOf(address(this));
-        uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+        uint256 lpTokensToWithdraw = BalancerLibrary._getAmountLpTokensToWithdraw(
+            balancerVault,
             OvnMath.addBasisPoints(neededUsdc, BASIS_POINTS_FOR_SLIPPAGE),
             amount0Current,
             amount1Current,
@@ -273,7 +279,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         );
         arrakisRewards.approve(address(arrakisRouter), lpTokensToWithdraw);
         this._removeLiquidityAndUnstakeWithSlippage(lpTokensToWithdraw);
-        swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(token0)), IAsset(address(usdcToken)),
+        BalancerLibrary.swap(balancerVault, balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(token0)), IAsset(address(usdcToken)),
             address(this), address(this), token0.balanceOf(address(this)), 0);
 
         return usdcToken.balanceOf(address(this)) - usdcStorage;
@@ -293,7 +299,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
 
         // 2. Convert all storage assets to token0.
-        swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
+        BalancerLibrary.swap(balancerVault, balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(usdcToken)),
             IAsset(address(token0)), address(this), address(this), usdcStorage, 0);
 
 
@@ -306,7 +312,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
 
         // 4. Swap remaining token0 to usdc
         if (token0.balanceOf(address(this)) > 0) {
-            swap(balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(token0)),
+            BalancerLibrary.swap(balancerVault, balancerPoolIdToken, IVault.SwapKind.GIVEN_IN, IAsset(address(token0)),
                 IAsset(address(usdcToken)), address(this), address(this), token0.balanceOf(address(this)), 0);
         }
 
@@ -314,11 +320,55 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        return this._getTotal();
+        return _getTotal();
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return this._getTotal();
+        return _getTotal();
+    }
+
+    function _getTotal() internal view returns (uint256){
+
+        uint256 balanceLp = arrakisRewards.balanceOf(address(this));
+
+        if (balanceLp == 0)
+            return 0;
+
+        (uint256 poolUsdc, uint256 poolToken0) = this._getTokensForLiquidity(balanceLp);
+        uint256 aaveUsdc = aUsdcToken.balanceOf(address(this));
+        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider)));
+        (, uint256 aaveToken0,,,,) = aavePool.getUserAccountData(address(this));
+        aaveToken0 = AaveBorrowLibrary.convertUsdToTokenAmount(aaveToken0, token0Denominator, uint256(oracleChainlinkToken0.latestAnswer()));
+        uint256 result = usdcToken.balanceOf(address(this)) + poolUsdc + aaveUsdc;
+
+        if (aaveToken0 < poolToken0) {
+            uint256 delta = poolToken0 - aaveToken0;
+            if (delta > poolToken0 / 100) {
+                delta = BalancerLibrary.onSwap(
+                    balancerVault,
+                    balancerPoolIdToken,
+                    IVault.SwapKind.GIVEN_IN,
+                    token0,
+                    usdcToken,
+                    delta
+                );
+                result = result + delta;
+            }
+        } else {
+            uint256 delta = aaveToken0 - poolToken0;
+            if (delta > poolToken0 / 100) {
+                delta = BalancerLibrary.onSwap(
+                    balancerVault,
+                    balancerPoolIdToken,
+                    IVault.SwapKind.GIVEN_OUT,
+                    usdcToken,
+                    token0,
+                    delta
+                );
+                result = result - delta;
+            }
+        }
+        return result;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -332,7 +382,7 @@ contract StrategyArrakisUsdt is Strategy, BalancerExchange {
         // 2. Convert all assets to usdc.
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance > 0) {
-            uint256 usdcAmount = swap(balancerPoolIdWmatic, IVault.SwapKind.GIVEN_IN, IAsset(address(wmaticToken)),
+            uint256 usdcAmount = BalancerLibrary.swap(balancerVault, balancerPoolIdWmatic, IVault.SwapKind.GIVEN_IN, IAsset(address(wmaticToken)),
                 IAsset(address(usdcToken)), address(this), address(this), wmaticBalance, 0);
             usdcToken.transfer(_to, usdcAmount);
             return usdcAmount;

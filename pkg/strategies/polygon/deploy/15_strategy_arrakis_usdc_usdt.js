@@ -9,10 +9,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         from: deployer
     });
 
+    const balancerLibrary = await deploy("BalancerLibrary", {
+        from: deployer
+    });
+
     await deployProxy('StrategyArrakisUsdt', deployments, save,
         {
             libraries: {
                 "StrategyArrakisUsdtLibrary": strategyArrakisUsdtLibrary.address,
+                "BalancerLibrary": balancerLibrary.address,
             }
         },
         ["external-library-linking"]

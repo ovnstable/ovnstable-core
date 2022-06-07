@@ -11,8 +11,8 @@ import "../StrategyArrakisUsdt.sol";
 import "./OvnMath.sol";
 import "./AaveBorrowLibrary.sol";
 
-
 library StrategyArrakisUsdtLibrary {
+
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4; // 0.04%
     uint256 constant BASIS_POINTS_FOR_STORAGE = 100; // 1%
 
@@ -36,47 +36,6 @@ library StrategyArrakisUsdtLibrary {
     }
 
 
-    function _getTotal(StrategyArrakisUsdt self) public view returns (uint256){
-
-        uint256 balanceLp = self.arrakisRewards().balanceOf(address(self));
-
-        if (balanceLp == 0)
-            return 0;
-
-        (uint256 poolUsdc, uint256 poolToken0) = _getTokensForLiquidity(self, balanceLp);
-        uint256 aaveUsdc = self.aUsdcToken().balanceOf(address(self));
-        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(self.aavePoolAddressesProvider())));
-        (, uint256 aaveToken0,,,,) = aavePool.getUserAccountData(address(self));
-        aaveToken0 = AaveBorrowLibrary.convertUsdToTokenAmount(aaveToken0, self.token0Denominator(), uint256(self.oracleChainlinkToken0().latestAnswer()));
-        uint256 result = self.usdcToken().balanceOf(address(self)) + poolUsdc + aaveUsdc;
-
-        if (aaveToken0 < poolToken0) {
-            uint256 delta = poolToken0 - aaveToken0;
-            if (delta > poolToken0 / 100) {
-                delta = self.onSwap(
-                    self.balancerPoolIdToken(),
-                    IVault.SwapKind.GIVEN_IN,
-                    self.token0(),
-                    self.usdcToken(),
-                    delta
-                );
-                result = result + delta;
-            }
-        } else {
-            uint256 delta = aaveToken0 - poolToken0;
-            if (delta > poolToken0 / 100) {
-                delta = self.onSwap(
-                    self.balancerPoolIdToken(),
-                    IVault.SwapKind.GIVEN_OUT,
-                    self.usdcToken(),
-                    self.token0(),
-                    delta
-                );
-                result = result - delta;
-            }
-        }
-        return result;
-    }
 
 
     function _addLiquidityAndStakeWithSlippage(StrategyArrakisUsdt self, uint256 usdcAmount, uint256 token0Amount) public {
