@@ -52,6 +52,7 @@ contract StrategyArrakisUsdt is Strategy {
     uint256 public interestRateMode;
     uint16 public referralCode;
     uint256 public usdcStorage;
+    uint256 public realHealthFactor;
 
     // --- events
 
@@ -151,6 +152,7 @@ contract StrategyArrakisUsdt is Strategy {
 
         liquidationThreshold = _liquidationThreshold * 10 ** 15;
         healthFactor = _healthFactor * 10 ** 15;
+        realHealthFactor = 0;
         balancingDelta = _balancingDelta * 10 ** 15;
         interestRateMode = _interestRateMode;
         referralCode = _referralCode;
@@ -320,14 +322,14 @@ contract StrategyArrakisUsdt is Strategy {
     }
 
     function netAssetValue() external override view returns (uint256) {
-        return _getTotal();
+        return _getTotal(true);
     }
 
     function liquidationValue() external override view returns (uint256) {
-        return _getTotal();
+        return _getTotal(false);
     }
 
-    function _getTotal() internal view returns (uint256){
+    function _getTotal(bool nav) internal view returns (uint256){
 
         uint256 balanceLp = arrakisRewards.balanceOf(address(this));
 
@@ -343,6 +345,15 @@ contract StrategyArrakisUsdt is Strategy {
 
         if (aaveToken0 < poolToken0) {
             uint256 delta = poolToken0 - aaveToken0;
+            if (nav) {
+                return result + AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                    delta, 
+                    token0Denominator, 
+                    usdcTokenDenominator, 
+                    uint256(oracleChainlinkToken0.latestAnswer()), 
+                    uint256(oracleChainlinkUsdc.latestAnswer())
+                );
+            }
             if (delta > poolToken0 / 100) {
                 delta = BalancerLibrary.onSwap(
                     balancerVault,
@@ -356,6 +367,15 @@ contract StrategyArrakisUsdt is Strategy {
             }
         } else {
             uint256 delta = aaveToken0 - poolToken0;
+            if (nav) {
+                return result - AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                    delta, 
+                    token0Denominator, 
+                    usdcTokenDenominator, 
+                    uint256(oracleChainlinkToken0.latestAnswer()), 
+                    uint256(oracleChainlinkUsdc.latestAnswer())
+                );
+            }
             if (delta > poolToken0 / 100) {
                 delta = BalancerLibrary.onSwap(
                     balancerVault,
@@ -398,6 +418,11 @@ contract StrategyArrakisUsdt is Strategy {
         healthFactor = _healthFactor * 10 ** 15;
 
         emit StrategyUpdatedHealthFactor(_healthFactor);
+    }
+
+    function grepRealHealthFactor() external {
+        IPool aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), eModeCategoryId));
+        (,,,,, realHealthFactor) = aavePool.getUserAccountData(address(this));
     }
 
     function _healthFactorBalance() internal override returns (uint256) {
