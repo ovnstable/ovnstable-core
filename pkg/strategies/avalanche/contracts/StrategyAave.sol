@@ -15,9 +15,9 @@ contract StrategyAave is Strategy {
 
     // --- events
 
-    event StrategyAaveUpdatedTokens(address usdcToken, address aUsdcToken);
+    event StrategyUpdatedTokens(address usdcToken, address aUsdcToken);
 
-    event StrategyAaveUpdatedParams(address aaveProvider);
+    event StrategyUpdatedParams(address aaveProvider);
 
 
     // ---  constructor
@@ -43,7 +43,7 @@ contract StrategyAave is Strategy {
         usdcToken = IERC20(_usdcToken);
         aUsdcToken = IERC20(_aUsdcToken);
 
-        emit StrategyAaveUpdatedTokens(_usdcToken, _aUsdcToken);
+        emit StrategyUpdatedTokens(_usdcToken, _aUsdcToken);
     }
 
     function setParams(
@@ -54,7 +54,7 @@ contract StrategyAave is Strategy {
 
         aaveProvider = IPoolAddressesProvider(_aaveProvider);
 
-        emit StrategyAaveUpdatedParams(_aaveProvider);
+        emit StrategyUpdatedParams(_aaveProvider);
     }
 
 

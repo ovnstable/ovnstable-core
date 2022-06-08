@@ -2,7 +2,14 @@ const {verify } = require("@overnight-contracts/common/utils/verify-utils");
 
 async function main() {
 
-    let items = ["OvnTimelockController"];
+
+    // Verification for OvnGovernor need pass constructor arguments to verify task.
+    // await hre.run("verify:verify", {
+    //   address: address,
+    //   constructorArguments: [set arguments],
+    //});
+
+    let items = ["OvnToken", "OvnGovernor", "OvnTimelockController"];
     await verify(items);
 }
 
