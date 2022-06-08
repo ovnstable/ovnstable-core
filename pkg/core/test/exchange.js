@@ -4,6 +4,8 @@ const {toUSDC, fromOvn, fromUSDC} = require("@overnight-contracts/common/utils/d
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 const {greatLess, resetHardhat} = require("@overnight-contracts/common/utils/tests");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
@@ -16,13 +18,14 @@ describe("Exchange", function () {
     let usdc;
     let usdPlus;
     let m2m;
+    let multiCallWrapper;
 
-    before(async () => {
+    sharedBeforeEach("deploy contracts", async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
         await resetHardhat('polygon');
 
-        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies']);
+        await deployments.fixture(['setting', 'base', 'test', 'MockStrategies', 'ExchangeMultiCallWrapper']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -31,6 +34,7 @@ describe("Exchange", function () {
         pm = await ethers.getContract('PortfolioManager');
         m2m = await ethers.getContract('Mark2Market');
         usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        multiCallWrapper = await ethers.getContract('ExchangeMultiCallWrapper');
 
     });
 
@@ -43,7 +47,7 @@ describe("Exchange", function () {
         let balanceUserUSDC;
         let vaultBalance;
 
-        before(async () => {
+        sharedBeforeEach("buy usd+", async () => {
             const sum = toUSDC(100);
 
             balanceUserUSDC = fromUSDC(await usdc.balanceOf(account));
@@ -113,7 +117,7 @@ describe("Exchange", function () {
             let balanceUserUSDC;
             let totalBalance;
 
-            before(async () => {
+            sharedBeforeEach("redeem usd+", async () => {
                 balanceUserUSDC = fromUSDC(await usdc.balanceOf(account));
                 await usdPlus.approve(exchange.address, toUSDC(50));
                 let result = await exchange.redeem(usdc.address, toUSDC(50));
@@ -176,6 +180,49 @@ describe("Exchange", function () {
 
     });
 
+    describe("Multi call", function () {
+
+        sharedBeforeEach("buy usd+", async () => {
+            const sum = toUSDC(100);
+
+            // buy 100 usd+
+            await usdc.approve(exchange.address, sum);
+            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+
+            // transfer 100 usd+ and 100 usdc to multicall tester
+            await usdc.transfer(multiCallWrapper.address, sum);
+            await usdPlus.transfer(multiCallWrapper.address, (await usdPlus.balanceOf(account)).toString());
+        });
+
+        it("two buys should fail", async function () {
+            await expectRevert(
+                multiCallWrapper.buy2(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                "Only once in block"
+            );
+        });
+
+        it("buy into redeem fail", async function () {
+            await expectRevert(
+                multiCallWrapper.buyRedeem(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                "Only once in block"
+            );
+        });
+
+        it("two redeems should fail", async function () {
+            await expectRevert(
+                multiCallWrapper.redeem2(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                "Only once in block"
+            );
+        });
+
+        it("redeem into buy should fail", async function () {
+            await expectRevert(
+                multiCallWrapper.redeemBuy(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                "Only once in block"
+            );
+        });
+
+    });
 
 });
 

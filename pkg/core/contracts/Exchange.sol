@@ -84,7 +84,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     modifier oncePerBlock() {
-        require(lastBlockNumber < block.number, "Restricted to only once in block");
+        require(lastBlockNumber < block.number, "Only once in block");
         lastBlockNumber = block.number;
         _;
     }
