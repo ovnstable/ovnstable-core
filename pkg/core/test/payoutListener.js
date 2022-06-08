@@ -3,8 +3,8 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 
 const hre = require("hardhat");
-const {expectRevert} = require("@openzeppelin/test-helpers");
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 chai.use(require('chai-bignumber')());
 
@@ -14,7 +14,7 @@ describe("PolygonPayoutListener", function () {
     let pl;
     let mockQsSyncPool;
 
-    before(async () => {
+    sharedBeforeEach('deploy', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -37,17 +37,11 @@ describe("PolygonPayoutListener", function () {
 
 
     it("Not exchanger run error", async function () {
-        evmCheckpoint('a');
-
         expect(await pl.exchange()).to.eq(ZERO_ADDRESS);
         await expectRevert(pl.payoutDone(), 'Caller is not the EXCHANGER');
-
-        evmRestore('a');
     });
 
     it("Empty run ok", async function () {
-        evmCheckpoint('a');
-
         await pl.setExchanger(account);
         expect(await pl.exchange()).to.eq(account);
 
@@ -55,14 +49,10 @@ describe("PolygonPayoutListener", function () {
 
         // just no errors on call
         await pl.payoutDone();
-
-        evmRestore('a');
     });
 
 
     it("Add and call", async function () {
-        evmCheckpoint('a');
-
         await pl.setExchanger(account);
         expect(await pl.exchange()).to.eq(account);
 
@@ -79,16 +69,11 @@ describe("PolygonPayoutListener", function () {
         expect(updatedEvent.args[1]).to.equals(mockQsSyncPool.address);
 
         await expectRevert(pl.payoutDone(), 'MockQsSyncPool.sync() called');
-
-        evmRestore('a');
     });
 
 
     it("Add/remove qs pool", async function () {
-        evmCheckpoint('a');
-
         expect(await pl.getAllQsSyncPools()).to.empty;
-
 
         let qsPool1 = "0x0000000000000000000000000000000000000001";
         let qsPool2 = "0x0000000000000000000000000000000000000002";
@@ -133,8 +118,6 @@ describe("PolygonPayoutListener", function () {
         await (await pl.setQsSyncPools(qsSyncPoolsToSet)).wait();
         currentPools = await pl.getAllQsSyncPools();
         expect(currentPools).deep.equals(qsSyncPoolsToSet);
-
-        evmRestore('a');
     });
 
 });
