@@ -15,8 +15,8 @@ async function main() {
             "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 2.5,
-            "maxWeight": 5,
+            "targetWeight": 4.5,
+            "maxWeight": 5.5,
             "enabled": true,
             "enabledReward": true
         },
@@ -24,7 +24,7 @@ async function main() {
             "strategy": "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
             "name": "Arrakis USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 20,
+            "targetWeight": 9,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -34,7 +34,7 @@ async function main() {
             "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
             "name": "Tetu USDC",
             "minWeight": 0,
-            "targetWeight": 1.5,
+            "targetWeight": 0.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -43,7 +43,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 47.5,
+            "targetWeight": 50,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -52,7 +52,7 @@ async function main() {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 28.5,
+            "targetWeight": 36,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
