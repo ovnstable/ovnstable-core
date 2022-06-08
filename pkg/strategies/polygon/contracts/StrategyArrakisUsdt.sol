@@ -172,7 +172,7 @@ contract StrategyArrakisUsdt is Strategy {
 
         // 1. Recalculate target amount and increese usdcStorage proportionately.
         uint256 amount = OvnMath.subBasisPoints(usdcToken.balanceOf(address(this)) - usdcStorage, BASIS_POINTS_FOR_STORAGE);
-        usdcStorage = usdcStorage + usdcToken.balanceOf(address(this)) - amount;
+        usdcStorage = usdcToken.balanceOf(address(this)) - amount;
 
 
         // 2. Calculate needed collateral and borrow values for aave.
