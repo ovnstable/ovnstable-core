@@ -80,7 +80,7 @@ library StrategyArrakisWethLibrary {
         IPool aavePool = _aavePoolEm(self);
         (,,,,,uint256 healthFactorCurrent) = aavePool.getUserAccountData(address(self));
 
-        if (OvnMath.abs(healthFactorCurrent, self.healthFactor()) < self.balancingDelta()) {
+        if (healthFactorCurrent > 10 ** 20 || OvnMath.abs(healthFactorCurrent, self.healthFactor()) < self.balancingDelta()) {
             return healthFactorCurrent;
         }
 
