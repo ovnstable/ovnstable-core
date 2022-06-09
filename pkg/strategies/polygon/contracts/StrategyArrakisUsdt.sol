@@ -257,7 +257,7 @@ contract StrategyArrakisUsdt is Strategy {
         }
 
 
-        // 4. If after aave manipulations we have already needed amount of usdt then return it.
+        // 4. If after aave manipulations we have already needed amount of usdc then return it.
         if (usdcToken.balanceOf(address(this)) - usdcStorage >= _amount) {
             return usdcToken.balanceOf(address(this)) - usdcStorage;
         }
