@@ -6,8 +6,8 @@ const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals")
 const hre = require("hardhat");
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const {expectRevert} = require("@openzeppelin/test-helpers");
+const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 chai.use(require('chai-bignumber')());
 
@@ -22,7 +22,7 @@ describe("Payout", function () {
     let m2m;
     let mockPL;
 
-    before(async () => {
+    sharedBeforeEach('deploy', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
         await resetHardhat('polygon');

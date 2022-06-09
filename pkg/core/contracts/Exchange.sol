@@ -46,6 +46,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     IPayoutListener public payoutListener;
 
+    // last block number when buy/redeem was executed
+    uint256 public lastBlockNumber;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address usdc);
@@ -77,6 +80,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     modifier onlyPausable() {
         require(hasRole(PAUSABLE_ROLE, msg.sender), "Restricted to Pausable");
+        _;
+    }
+
+    modifier oncePerBlock() {
+        require(lastBlockNumber < block.number, "Only once in block");
+        lastBlockNumber = block.number;
         _;
     }
 
@@ -189,7 +198,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _amount Amount of USD+ tokens to burn
      * @return Amount of minted to caller tokens
      */
-    function buy(address _addrTok, uint256 _amount) external whenNotPaused returns (uint256) {
+    function buy(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
 
         uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
@@ -214,7 +223,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _amount Amount of USD+ tokens to burn
      * @return Amount of unstacked and transferred to caller tokens
      */
-    function redeem(address _addrTok, uint256 _amount) external whenNotPaused returns (uint256) {
+    function redeem(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;

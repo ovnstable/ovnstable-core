@@ -7,6 +7,7 @@ const {ZERO_ADDRESS} = constants;
 const hre = require("hardhat");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 
 async function setLiquidityIndex(account, usdPlus, liquidityIndex) {
@@ -33,7 +34,7 @@ describe("StaticUsdPlusToken", function () {
     let usdc;
 
 
-    beforeEach(async () => {
+    sharedBeforeEach('deploy and setup', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
