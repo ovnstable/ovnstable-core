@@ -65,6 +65,10 @@ function strategyTest(strategy, network, assets, runStrategyLogic) {
             claimRewards(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
         }
 
+        if (strategy.neutralStrategy) {
+            healthFactorBalance(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        }
+
     });
 }
 
@@ -370,6 +374,117 @@ function claimRewards(strategyName, network, assets, values, isRunStrategyLogic,
             });
 
         });
+    });
+}
+
+function healthFactorBalance(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
+
+    describe(`HealthFactorBalance`, function () {
+
+        let account;
+        let recipient;
+
+        let strategy;
+        let usdc;
+
+        before(async () => {
+            await hre.run("compile");
+            await resetHardhat(network);
+
+            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+
+            const signers = await ethers.getSigners();
+            account = signers[0];
+            recipient = signers[1];
+
+            strategy = await ethers.getContract(strategyName);
+            await strategy.setPortfolioManager(recipient.address);
+            if (isRunStrategyLogic) {
+                await runStrategyLogic(strategyName, strategy.address);
+            }
+
+            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+        });
+
+
+        values.forEach(item => {
+
+            let stakeValue = item.value;
+            let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
+
+            describe(`Stake ${stakeValue} => Disbalancing/Balancing`, function () {
+
+                let desiredHealthFactor1;
+                let realHealthFactor1;
+
+                let desiredHealthFactor2;
+                let realHealthFactor2;
+
+                let desiredHealthFactor3;
+                let realHealthFactor3;
+
+                let desiredHealthFactor4;
+                let realHealthFactor4;
+
+                let balancingDelta;
+
+                before(async () => {
+
+                    await evmCheckpoint("default");
+
+                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+
+                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                    balancingDelta = new BN((await strategy.balancingDelta()).toString());
+                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+
+                    await strategy.grepRealHealthFactor();
+                    desiredHealthFactor1 = new BN((await strategy.healthFactor()).toString());
+                    realHealthFactor1 = new BN((await strategy.realHealthFactor()).toString());
+
+                    desiredHealthFactor2 = desiredHealthFactor1.muln(100+1).divn(100);
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor2.div(new BN(10).pow(new BN(15))).toString());
+                    await strategy.connect(recipient).healthFactorBalance();
+                    await strategy.grepRealHealthFactor();
+                    realHealthFactor2 = new BN((await strategy.realHealthFactor()).toString());
+
+                    desiredHealthFactor3 = desiredHealthFactor1.muln(100-1).divn(100);
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor3.div(new BN(10).pow(new BN(15))).toString());
+                    await strategy.connect(recipient).healthFactorBalance();
+                    await strategy.grepRealHealthFactor();
+                    realHealthFactor3 = new BN((await strategy.realHealthFactor()).toString());
+
+                    desiredHealthFactor4 = desiredHealthFactor1;
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor4.div(new BN(10).pow(new BN(15))).toString());
+                    await strategy.connect(recipient).healthFactorBalance();
+                    await strategy.grepRealHealthFactor();
+                    realHealthFactor4 = new BN((await strategy.realHealthFactor()).toString());
+
+                    await evmRestore("default");
+
+                });
+
+
+                it(`HealthFactor after Stake`, async function () {
+                    greatLess(desiredHealthFactor1, realHealthFactor1, balancingDelta);
+                });
+
+                it(`HealthFactor after 1% increase`, async function () {
+                    greatLess(desiredHealthFactor2, realHealthFactor2, balancingDelta);
+                });
+
+                it(`HealthFactor after 1% decrease`, async function () {
+                    greatLess(desiredHealthFactor3, realHealthFactor3, balancingDelta);
+                });
+
+                it(`HealthFactor after return`, async function () {
+                    greatLess(desiredHealthFactor4, realHealthFactor4, balancingDelta);
+                });
+
+            });
+
+        });
+
     });
 }
 

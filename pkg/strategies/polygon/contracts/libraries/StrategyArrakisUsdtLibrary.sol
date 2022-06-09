@@ -10,6 +10,7 @@ import "../connectors/balancer/interfaces/IVault.sol";
 import "../StrategyArrakisUsdt.sol";
 import "./OvnMath.sol";
 import "./AaveBorrowLibrary.sol";
+import "hardhat/console.sol";
 
 library StrategyArrakisUsdtLibrary {
 
@@ -112,14 +113,20 @@ library StrategyArrakisUsdtLibrary {
             uint256(self.oracleChainlinkToken0().latestAnswer())
         );
 
+        if (amount0Current == 0) {
+            uint256 neededToken0 = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
+            aavePool.borrow(address(self.token0()), neededToken0, self.interestRateMode(), self.referralCode(), address(self));
+            self.token0().approve(address(self.arrakisRouter()), neededToken0);
+            _addLiquidityAndStakeWithSlippage(self, 0, neededToken0);
+            return;
+        }
+
         uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
             params
         );
         uint256 neededToken0 = (neededUsdc * amount1Current) / amount0Current;
-
         aavePool.withdraw(address(self.usdcToken()), neededUsdc, address(self));
         aavePool.borrow(address(self.token0()), neededToken0, self.interestRateMode(), self.referralCode(), address(self));
-
         self.usdcToken().approve(address(self.arrakisRouter()), neededUsdc);
         self.token0().approve(address(self.arrakisRouter()), neededToken0);
         _addLiquidityAndStakeWithSlippage(self, neededUsdc, neededToken0);
@@ -153,8 +160,10 @@ library StrategyArrakisUsdtLibrary {
 
         (uint256 amount0, uint256 amount1) = _removeLiquidityAndUnstakeWithSlippage(self, amountLp);
 
-        self.usdcToken().approve(address(aavePool), amount0);
-        aavePool.supply(address(self.usdcToken()), amount0, address(self), self.referralCode());
+        if (amount0 > 0) {
+            self.usdcToken().approve(address(aavePool), amount0);
+            aavePool.supply(address(self.usdcToken()), amount0, address(self), self.referralCode());
+        }
 
         self.token0().approve(address(aavePool), amount1);
         aavePool.repay(address(self.token0()), amount1, self.interestRateMode(), address(self));

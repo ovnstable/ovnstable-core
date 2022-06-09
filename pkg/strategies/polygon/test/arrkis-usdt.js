@@ -5,6 +5,7 @@ describe("Polygon", function () {
     let value = {
         name: 'StrategyArrakisUsdt',
         enabledReward: true,
+        neutralStrategy: true,
     };
 
     strategyTest(value, 'POLYGON', POLYGON, ()=>{});

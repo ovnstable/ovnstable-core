@@ -114,6 +114,13 @@ library AaveBorrowLibrary {
         withdrawAmount = params.reserve0 * (params.totalCollateralUsd * params.LT - params.totalBorrowUsd * params.HF) / (reserve1InUsd * params.HF + reserve0InUsd * params.LT);
     }
 
+    function getBorrowIfZeroAmountForBalance(
+        GetWithdrawAmountForBalanceParams memory params
+    ) internal pure returns (uint256 withdrawAmount) {
+        withdrawAmount = (params.totalCollateralUsd * params.LT - params.totalBorrowUsd * params.HF) / (params.HF);
+        withdrawAmount = convertUsdToTokenAmount(withdrawAmount, params.token1Denominator, params.price1);
+    }
+
     struct GetSupplyAmountForBalanceParams {
         uint256 totalCollateralUsd;
         uint256 totalBorrowUsd;

@@ -9,7 +9,7 @@ let eModeCategoryId = 1;
 let liquidationThreshold = 975;
 let healthFactor = 1026;
 let usdcTokenInversion = 0;
-let balancingDelta = 10;
+let balancingDelta = 1;
 let interestRateMode = 2;
 let referralCode = 0;
 
