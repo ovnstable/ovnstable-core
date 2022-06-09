@@ -1,4 +1,4 @@
-const {fromOvnGov} = require("./decimals");
+const {fromOvnGov, fromE18} = require("./decimals");
 const {expect} = require("chai");
 const {getContract, initWallet} = require("./script-utils");
 const hre = require('hardhat');
@@ -9,11 +9,14 @@ const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded'
 async function execProposal(id) {
 
     let wallet = await initWallet(ethers)
-    let governator = await getContract('OvnGovernor', 'polygon');
-    let ovn = await getContract('OvnToken', 'polygon');
+    let governator = await getContract('OvnGovernor' );
+    let ovn = await getContract('OvnToken');
 
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1));
+    await ovn.delegate(wallet.address);
+
+    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber() - 1));
     console.log('Quorum: ' + quorum);
+    console.log('OVN balance user: ' + fromE18(await ovn.balanceOf(wallet.address)));
 
     const proposalId = id;
 
@@ -31,10 +34,14 @@ async function execProposal(id) {
     console.log('State status: ' + state)
     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
 
-    console.log('Votes: ' + votes)
-    await governator.castVote(proposalId, 1);
+    console.log('Votes: ' + votes);
 
-    let item = await governator.proposals(proposalId);
+    let item = await governator.connect(wallet).proposals(proposalId);
+    console.log('Votes for: ' + item.forVotes / 10 ** 18);
+
+    await governator.connect(wallet).castVote(proposalId, 1);
+
+    item = await governator.connect(wallet).proposals(proposalId);
     console.log('Votes for: ' + item.forVotes / 10 ** 18);
 
     let total = fromOvnGov(await ovn.getVotes(wallet.address));
@@ -48,10 +55,10 @@ async function execProposal(id) {
     }
 
     state = proposalStates[await governator.state(proposalId)];
-    expect(state).to.eq('Succeeded');
-    await governator.queueExec(proposalId);
+    expect('Succeeded').to.eq(state);
+    await governator.connect(wallet).queueExec(proposalId);
     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    await governator.executeExec(proposalId);
+    await governator.connect(wallet).executeExec(proposalId);
 
 
     state = proposalStates[await governator.state(proposalId)];
