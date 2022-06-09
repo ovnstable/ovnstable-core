@@ -14,7 +14,7 @@ import "hardhat/console.sol";
 
 library StrategyArrakisWmaticLibrary {
 
-    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 2000; // 0.04%
+    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 1000; // 10%
     uint256 constant BASIS_POINTS_FOR_STORAGE = 100; // 1%
 
     function _getLiquidityForToken(StrategyArrakisWmatic self, uint256 token0Borrow) public view returns (uint256) {
