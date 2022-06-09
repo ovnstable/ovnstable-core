@@ -7,91 +7,46 @@ let gasPrice = getGasPrice();
 
 let timeout = 362000000;
 
-function getFantomNetwork() {
+function getNetworkByName(network) {
 
-    let forkingUrl = node_url('fantom');
-    let accountsFantom = accounts('fantom');
-    let blockNumberValue = blockNumber('fantom');
-    console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
-
-    return {
-        fantom: {
-            url: forkingUrl,
-            accounts: accountsFantom,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
-
-        fantom_dev: {
-            url: forkingUrl,
-            accounts: accountsFantom,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
-
-        localhost: {
-            timeout: timeout,
-            accounts: accountsFantom,
-        },
-
-        hardhat: {
-            forking: {
-                url: forkingUrl,
-                blockNumber: blockNumberValue,
-            },
-            accounts: {
-                accountsBalance: "100000000000000000000000000"
-            },
-            timeout: timeout
-        },
-    }
-
-}
-
-function getCoreNetworks(){
-
-    let polygon = getPolygonNetwork();
-    let fantom = getFantomNetwork();
-
-    return {
-        ...polygon,
-        ...fantom
-    }
-}
-
-function getPolygonNetwork() {
-
-    let forkingUrl = node_url('polygon');
-    let accountsPolygon = accounts('polygon');
-    let blockNumberValue = blockNumber('polygon');
+    let forkingUrl = node_url(network);
+    let accountsNetwork = accounts(network);
+    let blockNumberValue = blockNumber(network);
     console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
     return {
 
         platform: {
             url: forkingUrl,
-            accounts: accountsPolygon,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+        avalanche: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
         },
 
         polygon: {
             url: forkingUrl,
-            accounts: accountsPolygon,
+            accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
         },
 
         polygon_dev: {
             url: forkingUrl,
-            accounts: accountsPolygon,
+            accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
         },
 
         localhost: {
             timeout: timeout,
-            accounts: accountsPolygon,
+            accounts: accountsNetwork,
         },
 
         hardhat: {
@@ -108,17 +63,8 @@ function getPolygonNetwork() {
 }
 
 function getNetwork(network) {
-    console.log(`Network: [${network}]`)
-
-    switch (network){
-        case 'FANTOM':
-            return getFantomNetwork();
-        case 'POLYGON':
-            return getPolygonNetwork();
-        default:
-            throw new Error('Unknown network id');
-    }
-
+    console.log(`Network: [${network}]`);
+    return getNetworkByName(network.toLowerCase());
 }
 
 let namedAccounts = {
@@ -160,14 +106,18 @@ let gasReport = {
 
 function getEtherScan(chain){
     if (!chain)
-        chain = 137
+        chain = process.env.ETH_NETWORK
 
     let object = {};
 
     let api;
     switch (chain){
-        case 137:
-            api = process.env.ETHERSCAN_API
+        case 'POLYGON':
+            api = process.env.ETHERSCAN_API_POLYGON;
+            break;
+        case 'AVALANCHE':
+            api = process.env.ETHERSCAN_API_AVALANCHE;
+            break;
     }
 
     object.apiKey = api;

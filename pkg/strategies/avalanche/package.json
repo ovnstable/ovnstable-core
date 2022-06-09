@@ -1,0 +1,28 @@
+{
+  "name": "@overnight-contracts/straegies-fantom",
+  "version": "0.0.1",
+  "description": "Strategies Avalanche contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/contracts-upgradeable": "^4.5.2",
+    "@openzeppelin/hardhat-upgrades": "^1.17.0",
+    "@openzeppelin/upgrades-core": "^1.14.1",
+    "chai": "^4.3.6",
+    "dotenv": "^16.0.0",
+    "hardhat-gas-reporter": "^1.0.8"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
+    "ethers": "^5.6.4",
+    "hardhat-deploy": "^0.11.4"
+  }
+}

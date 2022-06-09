@@ -2,7 +2,7 @@ const {verify } = require("@overnight-contracts/common/utils/verify-utils");
 
 async function main() {
 
-    let items = ["Exchange", "PortfolioManager","UsdPlusToken", "Mark2Market"];
+    let items = ["StrategyAave"];
     await verify(items);
 }
 

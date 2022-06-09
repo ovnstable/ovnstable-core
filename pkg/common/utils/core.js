@@ -1,7 +1,12 @@
-
-
 let core;
 
+
+
+function avalanche(){
+    return {
+        pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
+    }
+}
 
 function fantomDev(){
     return {
@@ -14,7 +19,6 @@ function fantom(){
         pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
     }
 }
-
 
 function polygonDev(){
     return {
@@ -39,6 +43,8 @@ function getCoreAddresses(){
     let stand = process.env.STAND;
     console.log('STAND: ' + stand);
     switch (stand){
+        case "avalanche":
+            return avalanche();
         case "fantom_dev":
             return fantomDev();
         case "fantom":
