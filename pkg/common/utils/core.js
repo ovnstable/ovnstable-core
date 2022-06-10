@@ -1,7 +1,6 @@
 let core;
 
 
-
 function avalanche(){
     return {
         pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
@@ -43,6 +42,8 @@ function getCoreAddresses(){
     let stand = process.env.STAND;
     console.log('STAND: ' + stand);
     switch (stand){
+        case "avalanche_dev":
+            return avalancheDev();
         case "avalanche":
             return avalanche();
         case "fantom_dev":

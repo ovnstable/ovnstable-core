@@ -11,7 +11,7 @@ const chai = require("chai");
 chai.use(require('chai-bn')(BN));
 
 
-function strategyTest(strategy, network, assets, runStrategyLogic) {
+function strategyTest(strategyParams, network, assets, runStrategyLogic) {
 
     let values = [
         {
@@ -56,13 +56,13 @@ function strategyTest(strategy, network, assets, runStrategyLogic) {
         },
     ]
 
-    describe(`${strategy.name}`, function () {
+    describe(`${strategyParams.name}`, function () {
 
-        stakeUnstake(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
-        unstakeFull(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        stakeUnstake(strategyParams, network, assets, values, runStrategyLogic);
+        unstakeFull(strategyParams, network, assets, values, runStrategyLogic);
 
-        if (strategy.enabledReward) {
-            claimRewards(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        if (strategyParams.enabledReward) {
+            claimRewards(strategyParams, network, assets, values, runStrategyLogic);
         }
 
         if (strategy.neutralStrategy) {
@@ -72,7 +72,7 @@ function strategyTest(strategy, network, assets, runStrategyLogic) {
     });
 }
 
-function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
+function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic) {
 
     describe(`Stake/unstake`, function () {
 
@@ -81,11 +81,13 @@ function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic,
 
         let strategy;
         let usdc;
+        let strategyName;
 
         before(async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
+            strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
             const signers = await ethers.getSigners();
@@ -94,7 +96,7 @@ function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic,
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            if (isRunStrategyLogic) {
+            if (strategyParams.isRunStrategyLogic) {
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
@@ -216,7 +218,7 @@ function stakeUnstake(strategyName, network, assets, values, isRunStrategyLogic,
 }
 
 
-function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
+function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) {
 
     describe(`Stake/unstakeFull`, function () {
 
@@ -225,11 +227,13 @@ function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, 
 
         let strategy;
         let usdc;
+        let strategyName;
 
         before(async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
+            strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
             const signers = await ethers.getSigners();
@@ -238,7 +242,7 @@ function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, 
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            if (isRunStrategyLogic) {
+            if (strategyParams.isRunStrategyLogic) {
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
@@ -308,7 +312,7 @@ function unstakeFull(strategyName, network, assets, values, isRunStrategyLogic, 
 }
 
 
-function claimRewards(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
+function claimRewards(strategyParams, network, assets, values, runStrategyLogic) {
 
     describe(`Stake/ClaimRewards`, function () {
 
@@ -317,11 +321,13 @@ function claimRewards(strategyName, network, assets, values, isRunStrategyLogic,
 
         let strategy;
         let usdc;
+        let strategyName;
 
         before(async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
+            strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
             const signers = await ethers.getSigners();
@@ -330,7 +336,7 @@ function claimRewards(strategyName, network, assets, values, isRunStrategyLogic,
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            if (isRunStrategyLogic) {
+            if (strategyParams.isRunStrategyLogic) {
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
@@ -350,13 +356,18 @@ function claimRewards(strategyName, network, assets, values, isRunStrategyLogic,
                     await evmCheckpoint("default");
 
                     await usdc.transfer(recipient.address, toUSDC(stakeValue));
-
                     await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
                     await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
 
                     const sevenDays = 7 * 24 * 60 * 60 * 1000;
                     await ethers.provider.send("evm_increaseTime", [sevenDays])
                     await ethers.provider.send('evm_mine');
+
+                    if (strategyParams.doubleStakeReward) {
+                        await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                        await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
+                        await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    }
 
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
