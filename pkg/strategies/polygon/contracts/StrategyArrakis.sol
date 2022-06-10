@@ -10,7 +10,6 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
 import "./libraries/BalancerLibrary.sol";
-import "hardhat/console.sol";
 
 
 contract StrategyArrakis is Strategy, BalancerExchange {
@@ -151,14 +150,13 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         usdtToken.approve(address(arrakisRouter), usdtAmount);
 
         arrakisRouter.addLiquidityAndStake(
-            address(arrakisRewards), 
-            usdcAmount, 
-            usdtAmount, 
+            address(arrakisRewards),
+            usdcAmount,
+            usdtAmount,
             OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
             OvnMath.subBasisPoints(usdtAmount, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
         );
-        console.log("usdcToken.balanceOf(address(this))", usdcToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -196,8 +194,8 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         // 2. Get tokens USDC/USDT from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
         arrakisRouter.removeLiquidityAndUnstake(
-            address(arrakisRewards), 
-            amountLp, 
+            address(arrakisRewards),
+            amountLp,
             OvnMath.subBasisPoints(amountOut0Min, BASIS_POINTS_FOR_SLIPPAGE),
             OvnMath.subBasisPoints(amountOut1Min, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
@@ -205,7 +203,7 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
         // 3. Swap USDT to USDC
         swap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
-        
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -232,8 +230,8 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         // 3. Get usdc/usdt tokens from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
         arrakisRouter.removeLiquidityAndUnstake(
-            address(arrakisRewards), 
-            amountLp, 
+            address(arrakisRewards),
+            amountLp,
             OvnMath.subBasisPoints(amountLiq0, BASIS_POINTS_FOR_SLIPPAGE),
             OvnMath.subBasisPoints(amountLiq1, BASIS_POINTS_FOR_SLIPPAGE),
             address(this)
@@ -277,7 +275,6 @@ contract StrategyArrakis is Strategy, BalancerExchange {
             // check how many USDC tokens we will get if we sell USDT tokens now
             totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, usdtBalance);
         }
-        console.log("nav", usdcBalance + totalUsdtToUsdc);
         return usdcBalance + totalUsdtToUsdc;
 
     }
