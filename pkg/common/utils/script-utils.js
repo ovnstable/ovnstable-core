@@ -118,15 +118,19 @@ async function showM2M(blocknumber) {
 
     let m2m = await getContract('Mark2Market', process.env.STAND);
     let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
+    let pm = await getContract('PortfolioManager', process.env.STAND);
 
     let strategyAssets;
     let totalNetAssets;
+    let strategyWeights;
     if (blocknumber){
         strategyAssets = await m2m.strategyAssets({blockNumber: blocknumber});
         totalNetAssets = await m2m.totalNetAssets({blockNumber: blocknumber});
+        strategyWeights = await pm.getAllStrategyWeights({blockNumber: blocknumber});
     }else {
         strategyAssets = await m2m.strategyAssets();
         totalNetAssets = await m2m.totalNetAssets();
+        strategyWeights = await pm.getAllStrategyWeights();
     }
 
     let url;
@@ -144,13 +148,19 @@ async function showM2M(blocknumber) {
             throw Error('Unknown STAND: ' + process.env.STAND);
     }
 
-    let strategiesMapping = (await axios.get(url)).data;
+    let strategiesMapping = [];
+    try {
+        strategiesMapping = (await axios.get(url)).data;
+    } catch (e) {
+        console.log('Error: ' + e.message);
+    }
 
     let sum = 0;
 
     let items = [];
     for (let i = 0; i < strategyAssets.length; i++) {
         let asset = strategyAssets[i];
+        let weight = strategyWeights[i];
 
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
@@ -158,7 +168,16 @@ async function showM2M(blocknumber) {
             continue;
         }
 
-        items.push({name: mapping ? mapping.name : asset.strategy,netAssetValue: fromUSDC(asset.netAssetValue), liquidationValue: fromUSDC(asset.liquidationValue)});
+        items.push(
+            {
+                name: mapping ? mapping.name : asset.strategy,
+                netAssetValue: fromUSDC(asset.netAssetValue),
+                liquidationValue: fromUSDC(asset.liquidationValue),
+                targetWeight:  weight.targetWeight.toNumber() / 1000,
+                maxWeight: weight.maxWeight.toNumber() / 1000,
+                enabled: weight.enabled,
+                enabledReward: weight.enabledReward
+            });
         sum += fromUSDC(asset.netAssetValue);
     }
 

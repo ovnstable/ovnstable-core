@@ -6,6 +6,7 @@ const {
 const hre = require('hardhat');
 const {execProposal} = require("@overnight-contracts/common/utils/governance");
 const {fromUSDC, toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 async function main() {
 
@@ -15,8 +16,8 @@ async function main() {
             "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 4.5,
-            "maxWeight": 5.5,
+            "targetWeight": 11,
+            "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
@@ -43,7 +44,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 50,
+            "targetWeight": 38.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -52,11 +53,31 @@ async function main() {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 36,
+            "targetWeight": 29,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
-        }
+        },
+
+        {
+            "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
+            "name": "Dystopia USDC/DAI",
+            "minWeight": 0,
+            "targetWeight": 11,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0xF485d67Dd63874eB609FFD0A151B5dD693cB99ad",
+            "name": "Arrakis USDC/USDT*",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
     ]
 
 
@@ -69,7 +90,10 @@ async function main() {
         return value;
     })
 
+    await evmCheckpoint('Before');
     await changeWeightsAndBalance(weights);
+    await evmRestore('Before');
+
     // await createProposal(weights);
 
 }
