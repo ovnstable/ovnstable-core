@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/traderjoe/interfaces/IJoeRouter02.sol";
-import "../libraries/OvnMath.sol";
 
 library TraderJoeLibrary {
 
@@ -12,7 +11,7 @@ library TraderJoeLibrary {
         address inputToken,
         address outputToken,
         uint256 amountInput
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = inputToken;
@@ -29,7 +28,7 @@ library TraderJoeLibrary {
         address middleToken,
         address outputToken,
         uint256 amountInput
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         address[] memory path = new address[](3);
         path[0] = inputToken;
@@ -48,7 +47,7 @@ library TraderJoeLibrary {
         uint256 amountInput,
         uint256 amountOutMin,
         address recipient
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(traderJoeRouter), amountInput);
 
@@ -75,7 +74,7 @@ library TraderJoeLibrary {
         uint256 amountInput,
         uint256 amountOutMin,
         address recipient
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(traderJoeRouter), amountInput);
 
@@ -104,7 +103,7 @@ library TraderJoeLibrary {
         uint amountAMin,
         uint amountBMin,
         address to
-    ) public returns (uint amountA, uint amountB, uint liquidity) {
+    ) internal returns (uint amountA, uint amountB, uint liquidity) {
 
         IERC20(tokenA).approve(address(traderJoeRouter), amountADesired);
         IERC20(tokenB).approve(address(traderJoeRouter), amountBDesired);
@@ -130,7 +129,7 @@ library TraderJoeLibrary {
         uint amountAMin,
         uint amountBMin,
         address to
-    ) public returns (uint amountA, uint amountB) {
+    ) internal returns (uint amountA, uint amountB) {
 
         IERC20(lpToken).approve(address(traderJoeRouter), liquidity);
 

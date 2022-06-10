@@ -1,21 +1,9 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 
 module.exports = async ({deployments}) => {
-    const {deploy, save} = deployments;
-    const {deployer} = await getNamedAccounts();
+    const {save} = deployments;
 
-    const traderJoeLibrary = await deploy("TraderJoeLibrary", {
-        from: deployer
-    });
-
-    await deployProxy('StrategyEchidnaUsdc', deployments, save,
-        {
-            libraries: {
-                "TraderJoeLibrary": traderJoeLibrary.address,
-            }
-        },
-        ["external-library-linking"]
-    );
+    await deployProxy('StrategyEchidnaUsdc', deployments, save);
 };
 
 module.exports.tags = ['base', 'StrategyEchidnaUsdc'];

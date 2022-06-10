@@ -8,7 +8,6 @@ import "./libraries/OvnMath.sol";
 import "./libraries/TraderJoeLibrary.sol";
 
 
-/// @custom:oz-upgrades-unsafe-allow external-library-linking
 contract StrategyVectorUsdc is Strategy {
     using OvnMath for uint256;
 

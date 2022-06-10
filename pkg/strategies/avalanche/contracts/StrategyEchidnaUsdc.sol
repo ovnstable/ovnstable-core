@@ -10,7 +10,6 @@ import "./libraries/OvnMath.sol";
 import "./libraries/TraderJoeLibrary.sol";
 
 
-/// @custom:oz-upgrades-unsafe-allow external-library-linking
 contract StrategyEchidnaUsdc is Strategy {
     using OvnMath for uint256;
 

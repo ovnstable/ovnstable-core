@@ -1,12 +1,6 @@
 let core;
 
 
-function avalancheDev(){
-    return {
-        pm: "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9"
-    }
-}
-
 function avalanche(){
     return {
         pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
