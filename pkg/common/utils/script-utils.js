@@ -129,7 +129,22 @@ async function showM2M(blocknumber) {
         totalNetAssets = await m2m.totalNetAssets();
     }
 
-    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dict/strategies')).data;
+    let url;
+    switch(process.env.STAND){
+        case "polygon":
+            url = "https://app.overnight.fi/api/dict/strategies";
+            break
+        case "polygon_dev":
+            url = "https://dev.overnight.fi/api/dict/strategies";
+            break
+        case "avalanche":
+            url = "https://avax.overnight.fi/api/dict/strategies";
+            break;
+        default:
+            throw Error('Unknown STAND: ' + process.env.STAND);
+    }
+
+    let strategiesMapping = (await axios.get(url)).data;
 
     let sum = 0;
 

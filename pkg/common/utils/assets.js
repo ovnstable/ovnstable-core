@@ -98,6 +98,7 @@ let POLYGON = {
     arrakisRouter: "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c",
     oracleChainlinkUsdc: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
     oracleChainlinkUsdt: "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
+    oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
 }
 
 let DEFAULT = POLYGON;

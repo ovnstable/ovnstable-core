@@ -5,7 +5,9 @@ import "./core/Strategy.sol";
 import "./exchanges/DystopiaExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
+import "./connectors/aave/interfaces/IPriceFeed.sol";
 
+import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
 
 contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -20,6 +22,10 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     IDystopiaLP public gauge;
     IDystopiaLP public dystPair;
     bytes32 public poolIdUsdcTusdDaiUsdt;
+
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleDai;
+
 
     // --- events
 
@@ -67,7 +73,9 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         address _dystPair,
         address _dystRouter,
         address _balancerVault,
-        bytes32 _poolIdUsdcTusdDaiUsdt
+        bytes32 _poolIdUsdcTusdDaiUsdt,
+        address _oracleUsdc,
+        address _oracleDai
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -81,6 +89,9 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         _setDystopiaRouter(_dystRouter);
         setBalancerVault(_balancerVault);
         poolIdUsdcTusdDaiUsdt = _poolIdUsdcTusdDaiUsdt;
+
+        oracleUsdc = IPriceFeed(_oracleUsdc);
+        oracleDai = IPriceFeed(_oracleDai);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt);
     }
@@ -260,14 +271,14 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 daiBalance = daiToken.balanceOf(address(this));
 
@@ -283,13 +294,20 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
         uint256 usdcBalanceFromDai;
         if (daiBalance > 0) {
-            usdcBalanceFromDai = onSwap(
-                poolIdUsdcTusdDaiUsdt,
-                IVault.SwapKind.GIVEN_IN,
-                daiToken,
-                usdcToken,
-                daiBalance
-            );
+
+            if (nav) {
+                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+                uint256 priceDai = uint256(oracleDai.latestAnswer());
+                usdcBalanceFromDai = AaveBorrowLibrary.convertTokenAmountToTokenAmount(daiBalance, daiTokenDenominator, usdcTokenDenominator, priceDai, priceUsdc);
+            }else {
+                usdcBalanceFromDai = onSwap(
+                    poolIdUsdcTusdDaiUsdt,
+                    IVault.SwapKind.GIVEN_IN,
+                    daiToken,
+                    usdcToken,
+                    daiBalance
+                );
+            }
         }
 
         return usdcBalance + usdcBalanceFromDai;
