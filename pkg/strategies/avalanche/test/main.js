@@ -9,6 +9,17 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: false,
     },
+    {
+        name: 'StrategyEchidnaUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+        doubleStakeReward: true,
+    },
+    {
+        name: 'StrategyVectorUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
