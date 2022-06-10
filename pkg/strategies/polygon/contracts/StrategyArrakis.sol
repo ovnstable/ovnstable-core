@@ -1,31 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
 import "./core/Strategy.sol";
-
-import "./exchanges/UniswapV2Exchange.sol";
-
-import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
-import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
-import "./connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
-import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
-
-import "./connectors/aave/interfaces/IPriceFeed.sol";
-
+import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
 import "./connectors/arrakis/IArrakisRewards.sol";
-
-import "./exchanges/BalancerExchange.sol";
-import "./connectors/uniswap/v3/libraries/TickMath.sol";
 import "./connectors/arrakis/IArrakisVault.sol";
+import "./connectors/aave/interfaces/IPriceFeed.sol";
+import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
+import "./libraries/BalancerLibrary.sol";
+import "hardhat/console.sol";
 
 
 contract StrategyArrakis is Strategy, BalancerExchange {
     using OvnMath for uint256;
+
+    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4; // 0.04%
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -34,9 +25,6 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     IArrakisV1RouterStaking arrakisRouter;
     IArrakisRewards arrakisRewards;
     IArrakisVault arrakisVault;
-
-    IUniswapV3Pool uniswapV3Pool;
-    INonfungiblePositionManager uniswapPositionManager;
 
     bytes32 public balancerPoolIdStable; // Stable Pool
     bytes32 public balancerPoolIdWmatic; // Wmatic/USDC Pool
@@ -107,9 +95,6 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         arrakisRewards = IArrakisRewards(_arrakisRewards);
         arrakisVault = IArrakisVault(_arrakisVault);
 
-        uniswapV3Pool = IUniswapV3Pool(arrakisVault.pool());
-        uniswapPositionManager = INonfungiblePositionManager(_uniswapPositionManager);
-
         balancerPoolIdStable = _balancerPoolIdStable;
         balancerPoolIdWmatic = _balancerPoolIdWmatic;
         setBalancerVault(_balancerVault);
@@ -130,56 +115,51 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // 1. Swap USDC to needed USDT amount
-        _buyNeedAmountUsdt();
+        // 1. Calculate needed USDC to swap to USDT
+        (uint256 amountLiq0, uint256 amountLiq1) = arrakisVault.getUnderlyingBalances();
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 amountUsdcToSwap = _getAmountToSwap(
+            usdcBalance,
+            amountLiq0,
+            amountLiq1,
+            1,
+            1,
+            1,
+            balancerPoolIdStable,
+            usdcToken,
+            usdtToken
+        );
 
-        uint256 usdcAmount = usdcToken.balanceOf(address(this));
-        uint256 usdtAmount = usdtToken.balanceOf(address(this));
 
-        // 2. Calculating min amounts
-        (uint256 amount0In, uint256 amount1In, ) = arrakisVault.getMintAmounts(usdcAmount, usdtAmount);
+        // 2. Swap USDC to needed USDT amount
+        swap(
+            balancerPoolIdStable,
+            IVault.SwapKind.GIVEN_IN,
+            IAsset(address(usdcToken)),
+            IAsset(address(usdtToken)),
+            address(this),
+            address(this),
+            amountUsdcToSwap,
+            0
+        );
+
 
         // 3. Stake USDC/USDT to Arrakis
+        uint256 usdcAmount = usdcToken.balanceOf(address(this));
+        uint256 usdtAmount = usdtToken.balanceOf(address(this));
         usdcToken.approve(address(arrakisRouter), usdcAmount);
         usdtToken.approve(address(arrakisRouter), usdtAmount);
 
-        // 4. Add tokens to uniswap v3 pools across Arrakis
-        arrakisRouter.addLiquidityAndStake(address(arrakisRewards), usdcAmount, usdtAmount, amount0In, amount1In, address(this));
+        arrakisRouter.addLiquidityAndStake(
+            address(arrakisRewards), 
+            usdcAmount, 
+            usdtAmount, 
+            OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(usdtAmount, BASIS_POINTS_FOR_SLIPPAGE),
+            address(this)
+        );
+        console.log("usdcToken.balanceOf(address(this))", usdcToken.balanceOf(address(this)));
     }
-
-    function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
-
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
-        (uint256 amountLiq0, uint256 amountLiq1) = arrakisVault.getUnderlyingBalancesAtPrice(sqrtPriceX96);
-
-        if (amountLiq0 >= amountLiq1) {
-
-            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
-            uint256 usdcBalance = _amount;
-            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
-            // t=N/(r+1)
-            return needUsdtValue;
-        } else {
-            uint256 ratio = (amountLiq0 * 10 ** 18) / amountLiq1;
-            uint256 usdcBalance = _amount;
-            uint256 needUsdtValue = (usdcBalance * 10 ** 18) / (ratio + 10 ** 18);
-            // t=N/(r+1)
-            return needUsdtValue;
-        }
-    }
-
-    function _buyNeedAmountUsdt() internal {
-
-        uint256 neededUsdtBalance = _getNeedToByUsdt(usdcToken.balanceOf(address(this)));
-        uint256 currentUsdtBalance = usdtToken.balanceOf(address(this));
-
-        if (currentUsdtBalance <= neededUsdtBalance) {
-            neededUsdtBalance = neededUsdtBalance - currentUsdtBalance;
-            swap(balancerPoolIdStable, IVault.SwapKind.GIVEN_OUT, IAsset(address(usdcToken)), IAsset(address(usdtToken)), address(this), address(this), neededUsdtBalance);
-        }
-
-    }
-
 
     function _unstake(
         address _asset,
@@ -188,24 +168,44 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // 1. Calculating amount USDC/USDT
-        uint256 amountToUnstake = _amount + (_amount / 100 * 60);
-        uint256 usdtAmount = _getNeedToByUsdt(amountToUnstake);
-        uint256 usdcAmount = amountToUnstake - usdtAmount;
+        uint256 amount = OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE);
+        amount += 10;
 
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
+        // 1. Calculating need amount lp tokens - depends on amount USDC/USDT
+        (uint256 amount0Current, uint256 amount1Current) = arrakisVault.getUnderlyingBalances();
+        uint256 totalLpBalance = arrakisVault.totalSupply();
+        uint256 amountLp = _getAmountLpTokensToWithdraw(
+                amount,
+                amount0Current,
+                amount1Current,
+                arrakisVault.totalSupply(),
+                1,
+                1,
+                balancerPoolIdStable,
+                usdcToken,
+                usdtToken
+            );
 
-        // 2. Calculating need amount lp tokens - depends on amount USDC/USDT
-        uint256 amountLp = uint256(LiquidityAmounts.getLiquidityForAmounts(sqrtPriceX96, lowerTick, upperTick, usdcAmount, usdtAmount));
+        if (amountLp > totalLpBalance) {
+            amountLp = totalLpBalance;
+        }
 
-        // 3. Get tokens USDC/USDT from Arrakis
+        uint256 amountOut0Min = amount0Current * amountLp / totalLpBalance;
+        uint256 amountOut1Min = amount1Current * amountLp / totalLpBalance;
+
+        // 2. Get tokens USDC/USDT from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
-        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, 0, 0, address(this));
+        arrakisRouter.removeLiquidityAndUnstake(
+            address(arrakisRewards), 
+            amountLp, 
+            OvnMath.subBasisPoints(amountOut0Min, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(amountOut1Min, BASIS_POINTS_FOR_SLIPPAGE),
+            address(this)
+        );
 
-
-        // 4. Swap USDT to USDC
+        // 3. Swap USDT to USDC
         swap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, IAsset(address(usdtToken)), IAsset(address(usdcToken)), address(this), address(this), usdtToken.balanceOf(address(this)), 0);
-
+        
         return usdcToken.balanceOf(address(this));
     }
 
@@ -224,17 +224,20 @@ contract StrategyArrakis is Strategy, BalancerExchange {
 
 
         // 2. Calculating amount usdc/usdt under lp tokens
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
+        (uint256 amount0Current, uint256 amount1Current) = arrakisVault.getUnderlyingBalances();
+        uint256 amountLiq0 = amount0Current * amountLp / arrakisVault.totalSupply();
+        uint256 amountLiq1 = amount1Current * amountLp / arrakisVault.totalSupply();
 
-        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtPriceX96,
-            lowerTick,
-            upperTick,
-            LiquidityAmounts.toUint128(amountLp));
 
         // 3. Get usdc/usdt tokens from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
-        arrakisRouter.removeLiquidityAndUnstake(address(arrakisRewards), amountLp, 0, 0, address(this));
+        arrakisRouter.removeLiquidityAndUnstake(
+            address(arrakisRewards), 
+            amountLp, 
+            OvnMath.subBasisPoints(amountLiq0, BASIS_POINTS_FOR_SLIPPAGE),
+            OvnMath.subBasisPoints(amountLiq1, BASIS_POINTS_FOR_SLIPPAGE),
+            address(this)
+        );
 
 
         // 4. Swap USDT to USDC tokens on Balancer
@@ -252,54 +255,32 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         return _getTotal(false);
     }
 
-
-    function _uniswapPoolParams() internal view returns (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96){
-
-        uint160 lowerTick = TickMath.getSqrtRatioAtTick(arrakisVault.lowerTick());
-        uint160 upperTick = TickMath.getSqrtRatioAtTick(arrakisVault.upperTick());
-
-        (uint160 sqrtPriceX96,,,,,,) = uniswapV3Pool.slot0();
-
-        return (lowerTick, upperTick, sqrtPriceX96);
-    }
-
-
     function _getTotal(bool nav) internal view returns (uint256){
 
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
         uint256 balanceLp = arrakisRewards.balanceOf(address(this));
 
         if (balanceLp == 0)
             return 0;
 
-        (uint160 lowerTick, uint160 upperTick, uint160 sqrtPriceX96) = _uniswapPoolParams();
-        (uint256 amountLiq0, uint256 amountLiq1) = arrakisVault.getUnderlyingBalancesAtPrice(sqrtPriceX96);
-
-        uint256 totalSupply = arrakisVault.totalSupply();
-
-        uint256 usdcBalance = amountLiq0 * balanceLp / totalSupply;
-        uint256 usdtBalance = amountLiq1 * balanceLp / totalSupply;
-
-        // index 1 - USDC
-        uint256 totalUsdc = usdcToken.balanceOf(address(this)) + usdcBalance;
-
-        // index 2 - USDT
-        uint256 totalUsdt = usdtToken.balanceOf(address(this)) + usdtBalance;
-
+        (uint256 amount0Current, uint256 amount1Current) = arrakisVault.getUnderlyingBalances();
+        usdcBalance += amount0Current * balanceLp / arrakisVault.totalSupply();
+        usdtBalance += amount1Current * balanceLp / arrakisVault.totalSupply();
 
         uint256 totalUsdtToUsdc;
         if(nav){
             uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
             uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
-            totalUsdtToUsdc = ((totalUsdt * 1e6) * priceUsdt) / (1e6 * priceUsdc);
+            totalUsdtToUsdc = ((usdtBalance * 1e6) * priceUsdt) / (1e6 * priceUsdc);
         }else {
             // check how many USDC tokens we will get if we sell USDT tokens now
-            totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, totalUsdt);
+            totalUsdtToUsdc = onSwap(balancerPoolIdStable, IVault.SwapKind.GIVEN_IN, usdtToken, usdcToken, usdtBalance);
         }
-
-        return totalUsdc + totalUsdtToUsdc;
+        console.log("nav", usdcBalance + totalUsdtToUsdc);
+        return usdcBalance + totalUsdtToUsdc;
 
     }
-
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
@@ -319,8 +300,5 @@ contract StrategyArrakis is Strategy, BalancerExchange {
         } else {
             return 0;
         }
-
     }
-
-
 }
