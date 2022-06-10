@@ -4,6 +4,7 @@ const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
 const {DEFAULT} = require("./assets");
+const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 
 let wallet = undefined;
@@ -254,12 +255,13 @@ async function execTimelock(exec){
 
 async function changeWeightsAndBalance(weights){
 
+    await evmCheckpoint('Before');
 
-    let timelock = await getContract('OvnTimelockController', 'polygon');
-    let pm = await getContract('PortfolioManager', 'polygon');
-    let usdPlus = await getContract('UsdPlusToken', 'polygon');
+    let timelock = await getContract('OvnTimelockController' );
+    let pm = await getContract('PortfolioManager' );
+    let usdPlus = await getContract('UsdPlusToken' );
     let usdc = await getERC20('usdc' );
-    let exchange = await getContract('Exchange', 'polygon');
+    let exchange = await getContract('Exchange');
 
     console.log('M2M before:')
     await showM2M();
@@ -296,12 +298,13 @@ async function changeWeightsAndBalance(weights){
     console.log('M2M after:')
     await showM2M();
 
+    await evmRestore('Before');
 
 }
 
 async function checkTimeLockBalance(){
 
-    let timelock = await getContract('OvnTimelockController', 'polygon');
+    let timelock = await getContract('OvnTimelockController' );
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 

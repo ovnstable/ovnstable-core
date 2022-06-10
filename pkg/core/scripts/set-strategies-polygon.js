@@ -90,18 +90,15 @@ async function main() {
         return value;
     })
 
-    await evmCheckpoint('Before');
     await changeWeightsAndBalance(weights);
-    await evmRestore('Before');
-
     // await createProposal(weights);
 
 }
 
 
 async function createProposal(weights, weightsNew) {
-    let governor = await getContract('OvnGovernor', 'polygon');
-    let pm = await getContract('PortfolioManager', 'polygon');
+    let governor = await getContract('OvnGovernor' );
+    let pm = await getContract('PortfolioManager' );
 
     let addresses = [];
     let values = [];
