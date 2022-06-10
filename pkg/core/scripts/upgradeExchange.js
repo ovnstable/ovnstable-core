@@ -8,13 +8,12 @@ async function main() {
 
     let price = await getPrice();
 
-    let governor = await getContract('OvnGovernor', 'polygon');
-    let exchange = await getContract('Exchange', 'polygon');
+    let governor = await getContract('OvnGovernor');
+    let exchange = await getContract('Exchange');
 
     let addresses = [];
     let values = [];
     let abis = [];
-
 
 
     // await execTimelock(async (timelock)=>{
@@ -32,7 +31,7 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x461B064cd66598e3d2Bc99cdBC07fC5bf3251959']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x46c4E3FFbF4894Bb3653fcE48f464783C8109074']));
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
@@ -46,8 +45,6 @@ async function main() {
     const proposalId = tx.events.find((e) => e.event === 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
 }
-
-
 
 
 main()

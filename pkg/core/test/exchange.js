@@ -39,6 +39,35 @@ describe("Exchange", function () {
     });
 
 
+    describe('Payout: Abroad', function (){
+
+        sharedBeforeEach("Payout: Abroad", async () => {
+            const sum = toUSDC(10000);
+
+            await usdPlus.setExchanger(account);
+            await usdPlus.setLiquidityIndex('1044705455364278981063959942');
+            await usdPlus.setExchanger(exchange.address);
+
+            await usdc.approve(exchange.address, sum);
+            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+
+        });
+
+        it("Expect revert: Delta abroad ", async function () {
+            await usdc.transfer(pm.address, toUSDC(1));
+            await expectRevert(exchange.payout(), "Delta abroad");
+        });
+
+
+        it("Within abroad", async function () {
+            await usdc.transfer(pm.address, toUSDC(0.5));
+            await exchange.payout();
+        });
+
+
+    });
+
+
     describe("Mint 100 USD+ ", function () {
 
         let weights;

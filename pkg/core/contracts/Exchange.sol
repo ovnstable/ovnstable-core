@@ -70,6 +70,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
+    event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
 
     // ---  modifiers
 
@@ -269,6 +270,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
         uint256 totalUsdc = mark2market.totalNetAssets();
 
+
         uint difference;
         if (totalUsdc <= totalUsdPlusSupply) {
             difference = totalUsdPlusSupply - totalUsdc;
@@ -279,6 +281,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
         // in ray
         uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+        uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
+
+        uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+
+        if(delta <= 1000100 || 1000500 <= delta){
+            revert('Delta abroad');
+        }
+
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         // notify listener about payout done

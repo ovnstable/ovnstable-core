@@ -9,11 +9,16 @@ async function main() {
     await execTimelock(async (timelock)=>{
 
         await showM2M();
-        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
-        let tx = await exchange.connect(timelock).payout(await getPrice());
 
-        tx = await tx.wait();
-        const payoutEvent = tx.events.find((e) => e.event == 'PayoutEvent').args;
+        await exchange.connect(timelock).upgradeTo('0xcec91fC436dD80C3c4027D0bD9A1D25867d0E8aA');
+        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+
+        try {
+            let tx = await exchange.connect(timelock).payout(await getPrice());
+            await tx.wait();
+        } catch (e) {
+            console.log(e.message);
+        }
 
         await showM2M();
     })
