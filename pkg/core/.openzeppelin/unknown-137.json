@@ -19950,7 +19950,7 @@
             "label": "strategyWeights",
             "offset": 0,
             "slot": "254",
-            "type": "t_array(t_struct(StrategyWeight)9175_storage)dyn_storage",
+            "type": "t_array(t_struct(StrategyWeight)9232_storage)dyn_storage",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:25"
           },
@@ -19958,7 +19958,7 @@
             "label": "cashStrategy",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IStrategy)9341",
+            "type": "t_contract(IStrategy)9398",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:26"
           }
@@ -19968,7 +19968,7 @@
             "label": "address",
             "numberOfBytes": "20"
           },
-          "t_array(t_struct(StrategyWeight)9175_storage)dyn_storage": {
+          "t_array(t_struct(StrategyWeight)9232_storage)dyn_storage": {
             "label": "struct IPortfolioManager.StrategyWeight[]",
             "numberOfBytes": "32"
           },
@@ -19992,7 +19992,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IStrategy)9341": {
+          "t_contract(IStrategy)9398": {
             "label": "contract IStrategy",
             "numberOfBytes": "20"
           },
@@ -20026,7 +20026,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(StrategyWeight)9175_storage": {
+          "t_struct(StrategyWeight)9232_storage": {
             "label": "struct IPortfolioManager.StrategyWeight",
             "members": [
               {
