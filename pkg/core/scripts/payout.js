@@ -10,7 +10,6 @@ async function main() {
 
         await showM2M();
 
-        await exchange.connect(timelock).upgradeTo('0xcec91fC436dD80C3c4027D0bD9A1D25867d0E8aA');
         await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
         try {
