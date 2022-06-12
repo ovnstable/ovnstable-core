@@ -322,6 +322,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        lpTokenBalance += gauge.balanceOf(address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
