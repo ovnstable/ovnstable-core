@@ -1,15 +1,17 @@
+const {
+    changeWeightsAndBalance, getContract, getPrice, upgradeStrategy, showM2M, execTimelock, getERC20, initWallet,
+    getStrategy
+} = require("@overnight-contracts/common/utils/script-utils");
+
+const hre = require('hardhat');
+
+const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+async function main() {
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
-
-    const polygonPL = await ethers.getContract("PolygonPayoutListener");
-    const exchange = await ethers.getContract("Exchange");
-
-    await (await polygonPL.setExchanger(exchange.address)).wait();
+    // await evmCheckpoint('t1');
+    const polygonPL = await getContract("PolygonPayoutListener", "polygon");
 
 
     let pools = [
@@ -34,9 +36,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await polygonPL.setQsSyncPools(pools)).wait();
 
-    console.log('PolygonPayoutListener done');
+    // await evmRestore('t1');
 
-};
+}
 
-module.exports.tags = ['setting', 'SettingPolygonPayoutListener'];
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
 
