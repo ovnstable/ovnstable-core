@@ -414,6 +414,10 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
             dystPair.approve(address(userProxy), balance);
             userProxy.depositLpAndStake(address(dystPair), balance);
             console.log("balance LP after stake to penrose: %s", dystPair.balanceOf(address(this)));
+            address userProxyThis = penLens.userProxyByAccount(address(this));
+            address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+            lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+            console.log("lpTokenBalance in penrose: %s", lpTokenBalance);
         }
     }
 
