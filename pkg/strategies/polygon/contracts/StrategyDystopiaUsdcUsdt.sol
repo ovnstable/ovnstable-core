@@ -10,7 +10,6 @@ import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
 import "./libraries/AaveBorrowLibrary.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -173,9 +172,9 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
             address(this)
         );
 
-        uint256 balance = dystPair.balanceOf(address(this));
-        dystPair.approve(address(userProxy), balance);
-        userProxy.depositLpAndStake(address(dystPair), balance);
+        uint256 lpTokenBalance = dystPair.balanceOf(address(this));
+        dystPair.approve(address(userProxy), lpTokenBalance);
+        userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
     }
 
     function _unstake(
@@ -195,8 +194,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        console.log("lpTokenBalance: %s", lpTokenBalance);
-
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = dystPair.totalSupply();
@@ -219,15 +216,17 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
             userProxy.unstakeLpAndWithdraw(address(dystPair), lpTokensToWithdraw);
 
-            uint256 amountOutUsdcMin = reserveUsdc * lpTokensToWithdraw / totalLpBalance;
-            uint256 amountOutUsdtMin = reserveUsdt * lpTokensToWithdraw / totalLpBalance;
+            uint256 unstakedLPTokenBalance = dystPair.balanceOf(address(this));
+
+            uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
+            uint256 amountOutUsdtMin = reserveUsdt * unstakedLPTokenBalance / totalLpBalance;
 
             // remove liquidity
             _removeLiquidity(
                 address(usdcToken),
                 address(usdtToken),
                 address(dystPair),
-                lpTokensToWithdraw,
+                unstakedLPTokenBalance,
                 OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
                 OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
@@ -266,25 +265,24 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        console.log("lpTokenBalance: %s", lpTokenBalance);
         if (lpTokenBalance == 0) {
             return 0;
         }
 
         userProxy.unstakeLpAndWithdraw(address(dystPair), lpTokenBalance);
 
-        lpTokenBalance = dystPair.balanceOf(address(this));
-        if (lpTokenBalance > 0) {
+        uint256 unstakedLPTokenBalance = dystPair.balanceOf(address(this));
+        if (unstakedLPTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
-            uint256 amountOutUsdcMin = reserveUsdc * lpTokenBalance / totalLpBalance;
-            uint256 amountOutUsdtMin = reserveUsdt * lpTokenBalance / totalLpBalance;
+            uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
+            uint256 amountOutUsdtMin = reserveUsdt * unstakedLPTokenBalance / totalLpBalance;
 
             // remove liquidity
             _removeLiquidity(
                 address(usdcToken),
                 address(usdtToken),
                 address(dystPair),
-                lpTokenBalance,
+                unstakedLPTokenBalance,
                 OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
                 OvnMath.subBasisPoints(amountOutUsdtMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
@@ -323,7 +321,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        console.log("lpTokenBalance: %s", lpTokenBalance);
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveUsdt,) = dystPair.getReserves();
@@ -333,12 +330,11 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         uint256 usdcBalanceFromUsdt;
         if (usdtBalance > 0) {
-
             if (nav) {
                 uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
                 usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
-            }else {
+            } else {
                 usdcBalanceFromUsdt = onSwap(
                     poolIdUsdcTusdDaiUsdt,
                     IVault.SwapKind.GIVEN_IN,
@@ -357,15 +353,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         _unstakeFromDystopiaAndStakeToPenrose();
 
-        // Fetch amount of penPool LP currently staked
-        address userProxyThis = penLens.userProxyByAccount(address(this));
-        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        console.log("lpTokenBalance: %s", lpTokenBalance);
-        if (lpTokenBalance == 0) {
-            return 0;
-        }
-
         // claim rewards
         userProxy.claimStakingRewards();
 
@@ -373,7 +360,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         uint256 totalUsdc;
 
         uint256 dystBalance = dystToken.balanceOf(address(this));
-        console.log("dystBalance: %s", dystBalance);
         if (dystBalance > 0) {
             uint256 dystUsdc = _swapExactTokensForTokens(
                 address(dystToken),
@@ -382,12 +368,10 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 dystBalance,
                 address(this)
             );
-            console.log("dystUsdc: %s", dystUsdc);
             totalUsdc += dystUsdc;
         }
 
         uint256 penBalance = penToken.balanceOf(address(this));
-        console.log("penBalance: %s", penBalance);
         if (penBalance > 0) {
             uint256 penUsdc = _swapExactTokensForTokens(
                 address(penToken),
@@ -396,7 +380,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 penBalance,
                 address(this)
             );
-            console.log("penUsdc: %s", penUsdc);
             totalUsdc += penUsdc;
         }
 
@@ -407,14 +390,17 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
     function _unstakeFromDystopiaAndStakeToPenrose() internal {
         uint256 lpTokenBalance = gauge.balanceOf(address(this));
-        console.log("lpTokenBalance in dystopia: %s", lpTokenBalance);
         if (lpTokenBalance > 0) {
+            // claim rewards
+            address[] memory token = new address[](1);
+            token[0] = address(dystToken);
+            gauge.getReward(address(this), token);
+
+            // withdraw LP tokens and stake
             gauge.withdrawAll();
-            uint256 balance = dystPair.balanceOf(address(this));
-            console.log("balance LP before stake to penrose: %s", balance);
-            dystPair.approve(address(userProxy), balance);
-            userProxy.depositLpAndStake(address(dystPair), balance);
-            console.log("balance LP after stake to penrose: %s", dystPair.balanceOf(address(this)));
+            uint256 lpTokenBalance = dystPair.balanceOf(address(this));
+            dystPair.approve(address(userProxy), lpTokenBalance);
+            userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
         }
     }
 
