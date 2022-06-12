@@ -365,6 +365,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 address(dystToken),
                 address(wmaticToken),
                 address(usdcToken),
+                false,
+                false,
                 dystBalance,
                 address(this)
             );
@@ -377,6 +379,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 address(penToken),
                 address(wmaticToken),
                 address(usdcToken),
+                false,
+                false,
                 penBalance,
                 address(this)
             );
