@@ -81,6 +81,17 @@ async function main() {
     ]
 
 
+    let totalWeight = 0;
+    for (const weight of weights) {
+        totalWeight += weight.targetWeight * 1000;
+    }
+    console.log(`totalWeight: ${totalWeight}`)
+
+    if(totalWeight !== 100000) {
+        console.log(`Total weight not 100000`)
+        return
+    }
+
     weights = weights.map(value => {
 
         delete value.name

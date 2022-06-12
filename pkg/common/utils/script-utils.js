@@ -182,6 +182,10 @@ async function showM2M(blocknumber) {
         sum += fromUSDC(asset.netAssetValue);
     }
 
+    for (let i = 0; i < strategyAssets.length; i++) {
+        items[i].currentWeight = Number((100 * items[i].netAssetValue / sum).toFixed(3));
+    }
+
     console.table(items);
     console.log('Total m2m:  ' + fromUSDC(totalNetAssets.toNumber()));
 
@@ -195,6 +199,8 @@ async function showM2M(blocknumber) {
         }
         console.log('Total USD+: ' + totalUsdPlus);
     }
+
+    console.log(`current LI: ${(await usdPlus.liquidityIndex()).toString()}`)
 }
 
 
