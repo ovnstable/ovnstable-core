@@ -182,7 +182,7 @@ async function showM2M(blocknumber) {
         sum += fromUSDC(asset.netAssetValue);
     }
 
-    for (let i = 0; i < strategyAssets.length; i++) {
+    for (let i = 0; i < items.length; i++) {
         items[i].currentWeight = Number((100 * items[i].netAssetValue / sum).toFixed(3));
     }
 

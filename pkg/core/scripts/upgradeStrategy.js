@@ -29,7 +29,7 @@ async function main() {
         price
     );
     let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    const proposalId = tx.events.find((e) => e.event === 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
 }
 
