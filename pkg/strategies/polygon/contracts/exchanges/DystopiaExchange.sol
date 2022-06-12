@@ -19,14 +19,15 @@ abstract contract DystopiaExchange {
         address inputToken,
         address middleToken,
         address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
         uint256 amountInput,
         address recipient
     ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(dystRouter), amountInput);
 
-        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(middleToken), address(outputToken), amountInput);
-        
+        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(middleToken), address(outputToken), isStablePair0, isStablePair1, amountInput);
         if (amountOutMin == 0) {
             return 0;
         }
@@ -34,10 +35,10 @@ abstract contract DystopiaExchange {
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
         route[0].from = inputToken;
         route[0].to = middleToken;
-        route[0].stable = false;
+        route[0].stable = isStablePair0;
         route[1].from = middleToken;
         route[1].to = outputToken;
-        route[1].stable = true;
+        route[1].stable = isStablePair1;
 
         uint[] memory amounts = dystRouter.swapExactTokensForTokens(
             amountInput,
@@ -47,27 +48,29 @@ abstract contract DystopiaExchange {
             block.timestamp + 600
         );
     
-        return amounts[1];
+        return amounts[2];
     }
 
     function _getAmountsOut(
         address inputToken,
         address middleToken,
         address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
         uint256 amountInput
     ) internal view returns (uint256) {
 
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
         route[0].from = inputToken;
         route[0].to = middleToken;
-        route[0].stable = false;
+        route[0].stable = isStablePair0;
         route[1].from = middleToken;
         route[1].to = outputToken;
-        route[1].stable = true;
+        route[1].stable = isStablePair1;
 
         uint[] memory amounts = dystRouter.getAmountsOut(amountInput, route);
 
-        return amounts[1];
+        return amounts[2];
     }
 
     function _addLiquidity(

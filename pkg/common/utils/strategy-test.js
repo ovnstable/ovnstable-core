@@ -65,8 +65,8 @@ function strategyTest(strategyParams, network, assets, runStrategyLogic) {
             claimRewards(strategyParams, network, assets, values, runStrategyLogic);
         }
 
-        if (strategy.neutralStrategy) {
-            healthFactorBalance(strategy.name, network, assets, values, strategy.isRunStrategyLogic, runStrategyLogic);
+        if (strategyParams.neutralStrategy) {
+            healthFactorBalance(strategyParams, network, assets, values, runStrategyLogic);
         }
 
     });
@@ -388,7 +388,7 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
     });
 }
 
-function healthFactorBalance(strategyName, network, assets, values, isRunStrategyLogic, runStrategyLogic) {
+function healthFactorBalance(strategyParams, network, assets, values, runStrategyLogic) {
 
     describe(`HealthFactorBalance`, function () {
 
@@ -397,11 +397,13 @@ function healthFactorBalance(strategyName, network, assets, values, isRunStrateg
 
         let strategy;
         let usdc;
+        let strategyName;
 
         before(async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
+            strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
             const signers = await ethers.getSigners();
@@ -410,7 +412,7 @@ function healthFactorBalance(strategyName, network, assets, values, isRunStrateg
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setPortfolioManager(recipient.address);
-            if (isRunStrategyLogic) {
+            if (strategyParams.isRunStrategyLogic) {
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
