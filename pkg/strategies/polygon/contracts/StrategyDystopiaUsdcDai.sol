@@ -6,8 +6,11 @@ import "./exchanges/DystopiaExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
+import "./connectors/penrose/interface/IUserProxy.sol";
+import "./connectors/penrose/interface/IPenLens.sol";
+import "./libraries/AaveBorrowLibrary.sol";
 
-import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
+import "hardhat/console.sol";
 
 contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -26,12 +29,18 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
+    IERC20 public penToken;
+    IUserProxy public userProxy;
+    IPenLens public penLens;
+
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address daiToken, address dystToken, address wmaticToken, uint256 usdcTokenDenominator, uint256 daiTokenDenominator);
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address dystToken, address wmaticToken, address penToken,
+        uint256 usdcTokenDenominator, uint256 daiTokenDenominator);
 
-    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt);
+    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt,
+        address oracleUsdc, address oracleDai, address userProxy, address penLens);
 
 
     // ---  constructor
@@ -50,22 +59,25 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         address _usdcToken,
         address _daiToken,
         address _dystToken,
-        address _wmaticToken
+        address _wmaticToken,
+        address _penToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_daiToken != address(0), "Zero address not allowed");
         require(_dystToken != address(0), "Zero address not allowed");
         require(_wmaticToken != address(0), "Zero address not allowed");
+        require(_penToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         daiToken = IERC20(_daiToken);
         dystToken = IERC20(_dystToken);
         wmaticToken = IERC20(_wmaticToken);
+        penToken = IERC20(_penToken);
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         daiTokenDenominator = 10 ** IERC20Metadata(_daiToken).decimals();
 
-        emit StrategyUpdatedTokens(_usdcToken, _daiToken, _dystToken, _wmaticToken, usdcTokenDenominator, daiTokenDenominator);
+        emit StrategyUpdatedTokens(_usdcToken, _daiToken, _dystToken, _wmaticToken, _penToken, usdcTokenDenominator, daiTokenDenominator);
     }
 
     function setParams(
@@ -75,7 +87,9 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         address _balancerVault,
         bytes32 _poolIdUsdcTusdDaiUsdt,
         address _oracleUsdc,
-        address _oracleDai
+        address _oracleDai,
+        address _userProxy,
+        address _penLens
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -83,17 +97,23 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         require(_dystRouter != address(0), "Zero address not allowed");
         require(_balancerVault != address(0), "Zero address not allowed");
         require(_poolIdUsdcTusdDaiUsdt != "", "Empty pool id not allowed");
+        require(_oracleUsdc != address(0), "Zero address not allowed");
+        require(_oracleDai != address(0), "Zero address not allowed");
+        require(_userProxy != address(0), "Zero address not allowed");
+        require(_penLens != address(0), "Zero address not allowed");
 
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
         _setDystopiaRouter(_dystRouter);
         setBalancerVault(_balancerVault);
         poolIdUsdcTusdDaiUsdt = _poolIdUsdcTusdDaiUsdt;
-
         oracleUsdc = IPriceFeed(_oracleUsdc);
         oracleDai = IPriceFeed(_oracleDai);
+        userProxy = IUserProxy(_userProxy);
+        penLens = IPenLens(_penLens);
 
-        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt);
+        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
+            _oracleDai, _userProxy, _penLens);
     }
 
 
@@ -108,6 +128,8 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
+
+        _unstakeFromDystopiaAndStakeToPenrose();
 
         uint256 daiBalance;
 
@@ -152,9 +174,8 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         );
 
         uint256 balance = dystPair.balanceOf(address(this));
-
-        dystPair.approve(address(gauge), balance);
-        gauge.deposit(balance, 0);
+        dystPair.approve(address(userProxy), balance);
+        userProxy.depositLpAndStake(address(dystPair), balance);
     }
 
     function _unstake(
@@ -168,8 +189,13 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
+        _unstakeFromDystopiaAndStakeToPenrose();
 
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        // Fetch amount of penPool LP currently staked
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        console.log("lpTokenBalance: %s", lpTokenBalance);
 
         if (lpTokenBalance > 0) {
             // count amount to unstake
@@ -191,7 +217,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
                 lpTokensToWithdraw = lpTokenBalance;
             }
 
-            gauge.withdraw(lpTokensToWithdraw);
+            userProxy.unstakeLpAndWithdraw(address(dystPair), lpTokensToWithdraw);
 
             uint256 amountOutUsdcMin = reserveUsdc * lpTokensToWithdraw / totalLpBalance;
             uint256 amountOutDaiMin = reserveDai * lpTokensToWithdraw / totalLpBalance;
@@ -231,12 +257,23 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        gauge.withdrawAll();
-
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
-        uint256 lpTokenBalance = dystPair.balanceOf(address(this));
+        _unstakeFromDystopiaAndStakeToPenrose();
+
+        // Fetch amount of penPool LP currently staked
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        console.log("lpTokenBalance: %s", lpTokenBalance);
+        if (lpTokenBalance == 0) {
+            return 0;
+        }
+
+        userProxy.unstakeLpAndWithdraw(address(dystPair), lpTokenBalance);
+
+        lpTokenBalance = dystPair.balanceOf(address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
             uint256 amountOutUsdcMin = reserveUsdc * lpTokenBalance / totalLpBalance;
@@ -282,9 +319,11 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 daiBalance = daiToken.balanceOf(address(this));
 
-        (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
-
+        // Fetch amount of penPool LP currently staked
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        console.log("lpTokenBalance: %s", lpTokenBalance);
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
@@ -315,27 +354,67 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        address[] memory token = new address[](1);
-        token[0] = address(dystToken);
-        gauge.getReward(address(this), token);
+        _unstakeFromDystopiaAndStakeToPenrose();
+
+        // Fetch amount of penPool LP currently staked
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        console.log("lpTokenBalance: %s", lpTokenBalance);
+        if (lpTokenBalance == 0) {
+            return 0;
+        }
+
+        // claim rewards
+        userProxy.claimStakingRewards();
 
         // sell rewards
-        uint256 dystBalance = dystToken.balanceOf(address(this));
+        uint256 totalUsdc;
 
+        uint256 dystBalance = dystToken.balanceOf(address(this));
+        console.log("dystBalance: %s", dystBalance);
         if (dystBalance > 0) {
-            _swapExactTokensForTokens(
+            uint256 dystUsdc = _swapExactTokensForTokens(
                 address(dystToken),
                 address(wmaticToken),
                 address(usdcToken),
                 dystBalance,
                 address(this)
             );
+            console.log("dystUsdc: %s", dystUsdc);
+            totalUsdc += dystUsdc;
         }
 
-        uint256 totalUsdc = usdcToken.balanceOf(address(this));
-        usdcToken.transfer(_to, totalUsdc);
+        uint256 penBalance = penToken.balanceOf(address(this));
+        console.log("penBalance: %s", penBalance);
+        if (penBalance > 0) {
+            uint256 penUsdc = _swapExactTokensForTokens(
+                address(penToken),
+                address(wmaticToken),
+                address(usdcToken),
+                penBalance,
+                address(this)
+            );
+            console.log("penUsdc: %s", penUsdc);
+            totalUsdc += penUsdc;
+        }
+
+        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
 
         return totalUsdc;
-
     }
+
+    function _unstakeFromDystopiaAndStakeToPenrose() internal {
+        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        console.log("lpTokenBalance in dystopia: %s", lpTokenBalance);
+        if (lpTokenBalance > 0) {
+            gauge.withdrawAll();
+            uint256 balance = dystPair.balanceOf(address(this));
+            console.log("balance LP before stake to penrose: %s", balance);
+            dystPair.approve(address(userProxy), balance);
+            userProxy.depositLpAndStake(address(dystPair), balance);
+            console.log("balance LP after stake to penrose: %s", dystPair.balanceOf(address(this)));
+        }
+    }
+
 }
