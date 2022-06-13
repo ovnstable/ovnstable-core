@@ -5,7 +5,7 @@ const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toUSDC, fromUSDC} = require("./decimals");
 const {expect} = require("chai");
-const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach")
+const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach")
 const BN = require('bn.js');
 const chai = require("chai");
 chai.use(require('chai-bn')(BN));
@@ -29,7 +29,7 @@ function strategyTest(strategyParams, network, assets, runStrategyLogic) {
         {
             value: 2,
             deltaPercent: 5,
-        },   
+        },
         {
             value: 20,
             deltaPercent: 1,
@@ -83,7 +83,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
         let usdc;
         let strategyName;
 
-        before(async () => {
+        sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
@@ -128,10 +128,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
                 let netAssetValueCheck;
                 let liquidationValueCheck;
 
-                before(async () => {
-
-                    await evmCheckpoint("default");
-
+                sharedBeforeEach(`stake ${stakeValue}`, async () => {
 
                     await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
@@ -177,7 +174,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
                     let netAssetValueCheck;
                     let liquidationValueCheck;
 
-                    before(async () => {
+                    sharedBeforeEach(`unstake ${stakeValue}`, async () => {
 
                         let balanceUsdcBefore = new BN((await usdc.balanceOf(recipient.address)).toString());
 
@@ -193,8 +190,6 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
                         netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
                         liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
 
-
-                        await evmRestore("default");
                     });
 
                     it(`Balance USDC is in range`, async function () {
@@ -229,7 +224,7 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
         let usdc;
         let strategyName;
 
-        before(async () => {
+        sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
@@ -267,9 +262,7 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
                 let valueBN = new BN(toUSDC(stakeValue));
                 let DELTA = valueBN.muln(deltaPercent).divn(100);
 
-                before(async () => {
-
-                    await evmCheckpoint("default");
+                sharedBeforeEach(`unstake  ${stakeValue}`, async () => {
 
                     await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
@@ -284,8 +277,6 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
 
                     netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
-
-                    await evmRestore("default");
 
                 });
 
@@ -323,7 +314,7 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
         let usdc;
         let strategyName;
 
-        before(async () => {
+        sharedBeforeEach(`deploy`, async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
@@ -351,9 +342,7 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
 
                 let balanceUsdc;
 
-                before(async () => {
-
-                    await evmCheckpoint("default");
+                sharedBeforeEach(`rewards  ${stakeValue}`, async () => {
 
                     await usdc.transfer(recipient.address, toUSDC(stakeValue));
                     await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
@@ -373,7 +362,6 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
 
                     balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());
 
-                    await evmRestore("default");
                 });
 
 
@@ -399,7 +387,7 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
         let usdc;
         let strategyName;
 
-        before(async () => {
+        sharedBeforeEach(`deploy`, async () => {
             await hre.run("compile");
             await resetHardhat(network);
 
@@ -441,9 +429,7 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
 
                 let balancingDelta;
 
-                before(async () => {
-
-                    await evmCheckpoint("default");
+                sharedBeforeEach(`stake  ${stakeValue}`, async () => {
 
                     await usdc.transfer(recipient.address, toUSDC(stakeValue));
 
@@ -472,8 +458,6 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
                     realHealthFactor4 = new BN((await strategy.realHealthFactor()).toString());
-
-                    await evmRestore("default");
 
                 });
 

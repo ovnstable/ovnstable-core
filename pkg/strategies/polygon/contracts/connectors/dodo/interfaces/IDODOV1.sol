@@ -62,4 +62,21 @@ interface IDODOV1 {
     function _BASE_TOKEN_() external returns (address);
 
     function _QUOTE_TOKEN_() external returns (address);
+
+    function _K_() external view returns (uint256);
+
+    function _R_STATUS_() external view returns (RStatus);
+
+    function _TARGET_BASE_TOKEN_AMOUNT_() external view returns (uint256);
+
+    function _TARGET_QUOTE_TOKEN_AMOUNT_() external view returns (uint256);
+
+    function _BASE_BALANCE_() external view returns (uint256);
+
+    function _QUOTE_BALANCE_() external view returns (uint256);
+
+    function getOraclePrice() external view returns (uint256);
+
+    enum RStatus {ONE, ABOVE_ONE, BELOW_ONE}
+
 }

@@ -5,6 +5,7 @@ import "./core/Strategy.sol";
 import "./exchanges/DodoExchange.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
+import "./libraries/StrategyDodoLibrary.sol";
 import "./connectors/dodo/interfaces/IDODOV1.sol";
 import "./connectors/dodo/interfaces/IDODOV2.sol";
 import "./connectors/dodo/interfaces/IDODOMine.sol";
@@ -129,8 +130,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // add 0.06%
-        uint256 amountToUnstake = _amount * 10006/ 10000;
+        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool);
 
         // get lp tokens
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
