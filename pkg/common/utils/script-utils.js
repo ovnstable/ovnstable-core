@@ -5,7 +5,7 @@ const path = require('path'),
     fs = require('fs');
 const {DEFAULT} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-
+const BN = require('bn.js');
 
 let wallet = undefined;
 async function initWallet(ethers) {
@@ -314,11 +314,11 @@ async function checkTimeLockBalance(){
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
-    if (balance.toString() === "0"){
+    if (new BN(balance.toString()).lt(new BN("10000000000000000000"))){
         const tx = {
             from: wallet.address,
             to: timelock.address,
-            value: toE18(1),
+            value: toE18(10),
             nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
             gasLimit: 229059,
             gasPrice: await hre.ethers.provider.getGasPrice(),
