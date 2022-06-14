@@ -10,7 +10,6 @@ import "../connectors/balancer/interfaces/IVault.sol";
 import "../StrategyArrakisWmatic.sol";
 import "./OvnMath.sol";
 import "./AaveBorrowLibrary.sol";
-import "hardhat/console.sol";
 
 library StrategyArrakisWmaticLibrary {
 
@@ -40,13 +39,19 @@ library StrategyArrakisWmaticLibrary {
 
 
     function _addLiquidityAndStakeWithSlippage(StrategyArrakisWmatic self, uint256 usdcAmount, uint256 token0Amount) public {
+        if (usdcAmount != 0) {
+            self.usdcToken().approve(address(self.arrakisRouter()), usdcAmount);
+        }
+        if (token0Amount != 0) {
+            self.token0().approve(address(self.arrakisRouter()), token0Amount);
+        }
         if (self.usdcTokenInversion() == 0) {
             self.arrakisRouter().addLiquidityAndStake(
                 address(self.arrakisRewards()),
                 usdcAmount,
                 token0Amount,
-                OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
-                OvnMath.subBasisPoints(token0Amount, BASIS_POINTS_FOR_SLIPPAGE),
+                (usdcAmount == 0) ? 0 : OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
+                (token0Amount == 0) ? 0 : OvnMath.subBasisPoints(token0Amount, BASIS_POINTS_FOR_SLIPPAGE),
                 address(self)
             );
         } else {
@@ -54,8 +59,8 @@ library StrategyArrakisWmaticLibrary {
                 address(self.arrakisRewards()),
                 token0Amount,
                 usdcAmount,
-                OvnMath.subBasisPoints(token0Amount, BASIS_POINTS_FOR_SLIPPAGE),
-                OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
+                (token0Amount == 0) ? 0 : OvnMath.subBasisPoints(token0Amount, BASIS_POINTS_FOR_SLIPPAGE),
+                (usdcAmount == 0) ? 0 : OvnMath.subBasisPoints(usdcAmount, BASIS_POINTS_FOR_SLIPPAGE),
                 address(self)
             );
         }
@@ -124,8 +129,9 @@ library StrategyArrakisWmaticLibrary {
         uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
             params
         );
-        uint256 neededToken0 = (neededUsdc * amount1Current) / amount0Current;
         aavePool.withdraw(address(self.usdcToken()), neededUsdc, address(self));
+        (params.totalCollateralUsd, params.totalBorrowUsd,,,,) = aavePool.getUserAccountData(address(self));
+        uint256 neededToken0 = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
         aavePool.borrow(address(self.token0()), neededToken0, self.interestRateMode(), self.referralCode(), address(self));
         self.usdcToken().approve(address(self.arrakisRouter()), neededUsdc);
         self.token0().approve(address(self.arrakisRouter()), neededToken0);
