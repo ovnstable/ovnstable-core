@@ -33,7 +33,11 @@ async function main() {
             await tx.wait();
             break
         } catch (e) {
-            console.log(e.error)
+            if (e.error !== undefined) {
+                console.log(e.error)
+            } else {
+                console.log(e)
+            }
             await sleep(60000);
         }
     }
