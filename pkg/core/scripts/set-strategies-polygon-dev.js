@@ -3,40 +3,19 @@ const fs = require("fs");
 const {fromE18, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
-let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
-let ERC20Metadata = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol/IERC20Metadata.json'));
-
-let Exchange = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Exchange.json'));
-let PM = JSON.parse(fs.readFileSync('./deployments/polygon_dev/PortfolioManager.json'));
-let M2M = JSON.parse(fs.readFileSync('./deployments/polygon_dev/Mark2Market.json'));
-
-let {POLYGON, DEFAULT} = require('@overnight-contracts/common/utils/assets');
-const {showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {
+    getContract, showM2M, getPrice
+} = require("@overnight-contracts/common/utils/script-utils");
 
 
 async function main() {
     // need to run inside IDEA via node script running
     await hre.run("compile");
-    
-    let provider = ethers.provider;
 
-    console.log('Provider: ' + provider.connection.url);
-    let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
-    const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    let pm = await getContract('PortfolioManager');
 
-    let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
-    let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
-    let USDC = await ethers.getContractAt(ERC20.abi, POLYGON.usdc, wallet);
-    let m2m = await ethers.getContractAt(M2M.abi, M2M.address, wallet);
-
-
-    // await (await pm.setUsdc(FANTOM.usdc)).wait();
-    // console.log('pm.setUsdc done')
-    //
-    // await (await pm.setCashStrategy("0xd2381abf796Fc9c83ca977E9153812B64712754A")).wait();
-    // console.log('pm.setCashStrategy done');
+    console.log('M2M before:')
+    await showM2M();
 
 
     let aave = {
@@ -145,13 +124,14 @@ async function main() {
 
     console.log('TargetWeight: ' + sum);
 
-    await (await pm.setStrategyWeights(weights)).wait();
+    await (await pm.setStrategyWeights(weights, await getPrice())).wait();
     console.log("portfolio.setWeights done");
 
-    await (await pm.balance()).wait();
+    await (await pm.balance(await getPrice())).wait();
     console.log("portfolio.balance done");
 
-    await showM2M(m2m);
+    console.log('M2M after:')
+    await showM2M();
 
 }
 

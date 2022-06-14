@@ -165,9 +165,9 @@ async function showM2M(blocknumber) {
 
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
-        if (fromUSDC(asset.netAssetValue) === 0){
-            continue;
-        }
+        // if (fromUSDC(asset.netAssetValue) === 0){
+        //     continue;
+        // }
 
         items.push(
             {
