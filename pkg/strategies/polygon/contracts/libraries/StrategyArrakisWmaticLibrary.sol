@@ -130,9 +130,7 @@ library StrategyArrakisWmaticLibrary {
             params
         );
         aavePool.withdraw(address(self.usdcToken()), neededUsdc, address(self));
-        ( collateral,  borrow,,,,) = aavePool.getUserAccountData(address(self));
-        params.totalCollateralUsd = collateral;
-        params.totalBorrowUsd = borrow;
+        (params.totalCollateralUsd, params.totalBorrowUsd,,,,) = aavePool.getUserAccountData(address(self));
         uint256 neededToken0 = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
         aavePool.borrow(address(self.token0()), neededToken0, self.interestRateMode(), self.referralCode(), address(self));
         self.usdcToken().approve(address(self.arrakisRouter()), neededUsdc);
