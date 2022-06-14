@@ -200,8 +200,6 @@ contract StrategyArrakisWmatic is Strategy {
         // 4. Add liquidity to pool.
         uint256 usdcAmount = usdcToken.balanceOf(address(this)) - usdcStorage;
         uint256 token0Amount = token0.balanceOf(address(this));
-        usdcToken.approve(address(arrakisRouter), usdcAmount);
-        token0.approve(address(arrakisRouter), token0Amount);
         this._addLiquidityAndStakeWithSlippage(usdcAmount, token0Amount);
     }
 

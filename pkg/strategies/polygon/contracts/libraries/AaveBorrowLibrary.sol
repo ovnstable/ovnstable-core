@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/IPriceFeed.sol";
 import "../connectors/aave/interfaces/IPool.sol";
+import '../connectors/uniswap/v3/libraries/FullMath.sol';
 
 
 library AaveBorrowLibrary {
@@ -111,7 +112,11 @@ library AaveBorrowLibrary {
     ) internal pure returns (uint256 withdrawAmount) {
         uint256 reserve1InUsd = convertTokenAmountToUsd(params.reserve1, params.token1Denominator, params.price1);
         uint256 reserve0InUsd = convertTokenAmountToUsd(params.reserve0, params.token0Denominator, params.price0);
-        withdrawAmount = params.reserve0 * (params.totalCollateralUsd * params.LT - params.totalBorrowUsd * params.HF) / (reserve1InUsd * params.HF + reserve0InUsd * params.LT);
+        withdrawAmount = FullMath.mulDivRoundingUp(
+            params.reserve0, 
+            params.totalCollateralUsd * params.LT - params.totalBorrowUsd * params.HF, 
+            reserve1InUsd * params.HF + reserve0InUsd * params.LT
+        );
     }
 
     function getBorrowIfZeroAmountForBalance(
