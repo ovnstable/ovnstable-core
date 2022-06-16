@@ -29,7 +29,9 @@ async function main() {
     while (true) {
         await showM2M();
         try {
-            let tx = await exchange.payout(await getPrice());
+            let opts = await getPrice();
+            opts.gasLimit = "15000000"
+            let tx = await exchange.payout(opts);
             await tx.wait();
             break
         } catch (e) {
@@ -38,7 +40,7 @@ async function main() {
             } else {
                 console.log(e)
             }
-            await sleep(60000);
+            await sleep(30000);
         }
     }
     await showM2M();

@@ -16,7 +16,7 @@ async function main() {
             "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 2.50,
+            "targetWeight": 2.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -25,7 +25,7 @@ async function main() {
             "strategy": "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
             "name": "Arrakis USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 8.10,
+            "targetWeight": 5.5,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -44,7 +44,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 37.10,
+            "targetWeight": 37.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -63,7 +63,7 @@ async function main() {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 21.30,
+            "targetWeight": 23.50,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -101,8 +101,8 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await createProposal(weights);
+    // await changeWeightsAndBalance(weights);
+    await createProposal(weights);
 
 }
 
