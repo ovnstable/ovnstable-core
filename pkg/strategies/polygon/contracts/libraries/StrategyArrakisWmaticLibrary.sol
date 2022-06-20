@@ -144,7 +144,7 @@ library StrategyArrakisWmaticLibrary {
 
         (uint256 amount0Current, uint256 amount1Current) = _getUnderlyingBalances(self);
 
-        AaveBorrowLibrary.GetSupplyAmountForBalanceParams memory params = AaveBorrowLibrary.GetSupplyAmountForBalanceParams(
+        AaveBorrowLibrary.GetLpTokensForBalanceParams memory params = AaveBorrowLibrary.GetLpTokensForBalanceParams(
             collateral,
             borrow,
             amount0Current,
@@ -154,14 +154,11 @@ library StrategyArrakisWmaticLibrary {
             self.usdcTokenDenominator(),
             self.token0Denominator(),
             uint256(self.oracleChainlinkUsdc().latestAnswer()),
-            uint256(self.oracleChainlinkToken0().latestAnswer())
+            uint256(self.oracleChainlinkToken0().latestAnswer()),
+            self.arrakisVault().totalSupply()
         );
 
-
-        uint256 neededToken0 = AaveBorrowLibrary.getSupplyAmountForBalance(
-            params
-        );
-        uint256 amountLp = _getLiquidityForToken(self, neededToken0);
+        uint256 amountLp = AaveBorrowLibrary.getLpTokensForBalance(params);
         self.arrakisRewards().approve(address(self.arrakisRouter()), amountLp);
 
         (uint256 amount0, uint256 amount1) = _removeLiquidityAndUnstakeWithSlippage(self, amountLp);

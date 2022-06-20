@@ -6,6 +6,7 @@ import "../connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/IPriceFeed.sol";
 import "../connectors/aave/interfaces/IPool.sol";
 import '../connectors/uniswap/v3/libraries/FullMath.sol';
+import "hardhat/console.sol";
 
 
 library AaveBorrowLibrary {
@@ -79,20 +80,20 @@ library AaveBorrowLibrary {
     //     borrow1 = (totalBorrowUsd1 * HF + collateral1 * LT - totalCollateralUsd1 * LT) / (HF + LT * reserve0 / reserve1InToken0);
     // }
 
-    function getLpTokensForWithdraw(
-        uint256 totalLpBalance,
-        uint256 borrow1,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 token0Denominator,
-        uint256 token1Denominator,
-        uint256 price0,
-        uint256 price1
-    ) internal pure returns (uint256 lpTokensToWithdraw) {
-        uint256 borrow0 = convertTokenAmountToTokenAmount(borrow1, token1Denominator, token0Denominator, price1, price0);
-        uint256 reserve1InToken0 = convertTokenAmountToTokenAmount(reserve1, token1Denominator, token0Denominator, price1, price0);
-        lpTokensToWithdraw = totalLpBalance * (borrow0 + borrow1 * reserve0 / reserve1) / (reserve0 + reserve1InToken0);
-    }
+    // function getLpTokensForWithdraw(
+    //     uint256 totalLpBalance,
+    //     uint256 borrow1,
+    //     uint256 reserve0,
+    //     uint256 reserve1,
+    //     uint256 token0Denominator,
+    //     uint256 token1Denominator,
+    //     uint256 price0,
+    //     uint256 price1
+    // ) internal pure returns (uint256 lpTokensToWithdraw) {
+    //     uint256 borrow0 = convertTokenAmountToTokenAmount(borrow1, token1Denominator, token0Denominator, price1, price0);
+    //     uint256 reserve1InToken0 = convertTokenAmountToTokenAmount(reserve1, token1Denominator, token0Denominator, price1, price0);
+    //     lpTokensToWithdraw = totalLpBalance * (borrow0 + borrow1 * reserve0 / reserve1) / (reserve0 + reserve1InToken0);
+    // }
 
     struct GetWithdrawAmountForBalanceParams {
         uint256 totalCollateralUsd;
@@ -126,7 +127,7 @@ library AaveBorrowLibrary {
         withdrawAmount = convertUsdToTokenAmount(withdrawAmount, params.token1Denominator, params.price1);
     }
 
-    struct GetSupplyAmountForBalanceParams {
+    struct GetLpTokensForBalanceParams {
         uint256 totalCollateralUsd;
         uint256 totalBorrowUsd;
         uint256 reserve0;
@@ -137,14 +138,19 @@ library AaveBorrowLibrary {
         uint256 token1Denominator;
         uint256 price0;
         uint256 price1;
+        uint256 totalSuply;
     }
 
-    function getSupplyAmountForBalance(
-        GetSupplyAmountForBalanceParams memory params
-    ) internal pure returns (uint256 supplyAmount) {
+    function getLpTokensForBalance(
+        GetLpTokensForBalanceParams memory params
+    ) internal pure returns (uint256 lpTokens) {
         uint256 reserve1InUsd = convertTokenAmountToUsd(params.reserve1, params.token1Denominator, params.price1);
         uint256 reserve0InUsd = convertTokenAmountToUsd(params.reserve0, params.token0Denominator, params.price0);
-        supplyAmount = params.reserve1 * (params.totalBorrowUsd * params.HF - params.totalCollateralUsd * params.LT) / (reserve1InUsd * params.HF + reserve0InUsd * params.LT);
+        lpTokens = FullMath.mulDivRoundingUp(
+            params.totalSuply, 
+            params.totalBorrowUsd * params.HF - params.totalCollateralUsd * params.LT, 
+            reserve1InUsd * params.HF + reserve0InUsd * params.LT
+        );
     }
 
     function convertTokenAmountToTokenAmount(

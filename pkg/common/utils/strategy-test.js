@@ -441,13 +441,13 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
                     desiredHealthFactor1 = new BN((await strategy.healthFactor()).toString());
                     realHealthFactor1 = new BN((await strategy.realHealthFactor()).toString());
 
-                    desiredHealthFactor2 = desiredHealthFactor1.muln(100+1).divn(100);
+                    desiredHealthFactor2 = desiredHealthFactor1.muln(100+1).divn(100).div(new BN(10).pow(new BN(15))).mul(new BN(10).pow(new BN(15)));
                     await strategy.connect(recipient).setHealthFactor(desiredHealthFactor2.div(new BN(10).pow(new BN(15))).toString());
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
                     realHealthFactor2 = new BN((await strategy.realHealthFactor()).toString());
 
-                    desiredHealthFactor3 = desiredHealthFactor1.muln(100-1).divn(100);
+                    desiredHealthFactor3 = desiredHealthFactor1.muln(100-1).divn(100).div(new BN(10).pow(new BN(15))).mul(new BN(10).pow(new BN(15)));
                     await strategy.connect(recipient).setHealthFactor(desiredHealthFactor3.div(new BN(10).pow(new BN(15))).toString());
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
