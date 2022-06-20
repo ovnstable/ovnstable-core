@@ -32,6 +32,8 @@ async function main() {
             let opts = await getPrice();
             opts.gasLimit = "15000000"
             let tx = await exchange.payout(opts);
+            // let tx = await exchange.payout();
+            console.log(`tx.hash: ${tx.hash}`);
             await tx.wait();
             break
         } catch (e) {
