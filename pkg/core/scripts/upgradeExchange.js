@@ -31,14 +31,14 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x46c4E3FFbF4894Bb3653fcE48f464783C8109074']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x89AFF351bb960bA87375fe097328C3E967190b26']));
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal 2: Upgrade Strategies"),
+        ethers.utils.id(abis.toString()),
         price
     );
     let tx = await proposeTx.wait();

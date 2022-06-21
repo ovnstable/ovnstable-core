@@ -318,7 +318,7 @@ async function checkTimeLockBalance(){
         const tx = {
             from: wallet.address,
             to: timelock.address,
-            value: toE18(10),
+            value: toE18(1),
             nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
             gasLimit: 229059,
             gasPrice: await hre.ethers.provider.getGasPrice(),
