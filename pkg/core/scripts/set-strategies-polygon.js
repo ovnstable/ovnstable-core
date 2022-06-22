@@ -22,16 +22,6 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0x4F46fdDa6e3BE4bcb1eBDD3c8D5697F6F64ae69b",
-            "name": "Arrakis USDC/USDT",
-            "minWeight": 0,
-            "targetWeight": 4,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-
-        {
             "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
             "name": "Tetu USDC",
             "minWeight": 0,
@@ -63,7 +53,7 @@ async function main() {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 31.3,
+            "targetWeight": 35.3,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
