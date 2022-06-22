@@ -38,13 +38,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
 
-    it("main token is usd+", async function () {
-
-        let mainToken = await wrappedUsdPlus.mainToken();
-        expect(mainToken.toString()).to.equals(usdPlus.address);
-
-    });
-
     it("asset token is usd+", async function () {
 
         let assetToken = await wrappedUsdPlus.asset();
@@ -73,19 +66,19 @@ describe("WrappedUsdPlusToken", function () {
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
         let staticAmount = 1000;
-        let dynamicAmount = await wrappedUsdPlus.staticToDynamicAmount(staticAmount);
+        let dynamicAmount = await wrappedUsdPlus.convertToAssets(staticAmount);
         expect(dynamicAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.staticToDynamicAmount(staticAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToAssets(staticAmount);
         expect(dynamicAmount).to.equals(500);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.staticToDynamicAmount(staticAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToAssets(staticAmount);
         expect(dynamicAmount).to.equals(2000);
 
     });
@@ -96,19 +89,19 @@ describe("WrappedUsdPlusToken", function () {
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
         let staticAmount = 1000;
-        let dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
+        let dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
         expect(dynamicAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
         expect(dynamicAmount).to.equals(2000);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
         expect(dynamicAmount).to.equals(500);
 
     });
@@ -119,22 +112,22 @@ describe("WrappedUsdPlusToken", function () {
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
         let staticAmount = 1000;
-        let dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
-        let newStaticAmount = await wrappedUsdPlus.staticToDynamicAmount(dynamicAmount);
+        let dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
+        let newStaticAmount = await wrappedUsdPlus.convertToAssets(dynamicAmount);
         expect(newStaticAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
-        newStaticAmount = await wrappedUsdPlus.staticToDynamicAmount(dynamicAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
+        newStaticAmount = await wrappedUsdPlus.convertToAssets(dynamicAmount);
         expect(newStaticAmount).to.equals(staticAmount);
 
         liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
-        dynamicAmount = await wrappedUsdPlus.dynamicToStaticAmount(staticAmount);
-        newStaticAmount = await wrappedUsdPlus.staticToDynamicAmount(dynamicAmount);
+        dynamicAmount = await wrappedUsdPlus.convertToShares(staticAmount);
+        newStaticAmount = await wrappedUsdPlus.convertToAssets(dynamicAmount);
         expect(newStaticAmount).to.equals(staticAmount);
 
     });
@@ -156,7 +149,7 @@ describe("WrappedUsdPlusToken", function () {
         await wrappedUsdPlus.deposit(usdPlusAmountToWrap, account);
 
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(usdPlusAmountToWrap / 2);
-        expect(await wrappedUsdPlus.dynamicBalanceOf(account)).to.equals(usdPlusAmountToWrap);
+        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdPlusAmountToWrap);
 
     });
 
@@ -325,7 +318,7 @@ describe("WrappedUsdPlusToken", function () {
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
-        expect(await wrappedUsdPlus.assetsOf(account)).to.equals(0);
+        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
 
         await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
@@ -339,7 +332,7 @@ describe("WrappedUsdPlusToken", function () {
     });
 
 
-    it("assetsOf", async function () {
+    it("maxWithdraw", async function () {
 
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
@@ -347,7 +340,7 @@ describe("WrappedUsdPlusToken", function () {
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
-        expect(await wrappedUsdPlus.assetsOf(account)).to.equals(0);
+        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
 
         await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
@@ -356,11 +349,11 @@ describe("WrappedUsdPlusToken", function () {
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit);
-        expect(await wrappedUsdPlus.assetsOf(account)).to.equals(usdcAmountToDeposit);
+        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdcAmountToDeposit);
 
     });
 
-
+/*
     it("market test", async function () {
 
         await usdc.transfer(secondAccount.address, 100000000);
@@ -377,7 +370,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(await wrappedUsdPlus.balanceOf(secondAccount.address)).to.equals(0);
         expect(await usdc.balanceOf(secondAccount.address)).to.equals(99920016);
     });
-
+*/
 });
 
 

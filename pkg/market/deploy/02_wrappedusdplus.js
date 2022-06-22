@@ -8,7 +8,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('WrappedUsdPlusToken', {
         from: deployer,
-        args: ['0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f'],
+        args: [mockUsdPlusToken.address],
         log: true,
     });
 
