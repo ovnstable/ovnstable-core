@@ -15,9 +15,7 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
     /**
      * @param usdPlusTokenAddress The address of UsdPlusToken, this is `asset` in 4626 terms
      */
-    constructor(
-        address usdPlusTokenAddress
-    ) ERC20("StaticUsdPlusToken", "USD+"){
+    constructor(address usdPlusTokenAddress) ERC20("Wrapped USD+", "wUSD+") {
         _mainToken = UsdPlusToken(usdPlusTokenAddress);
     }
 

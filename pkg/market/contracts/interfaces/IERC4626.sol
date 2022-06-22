@@ -26,16 +26,6 @@ interface IERC4626 {
     );
 
     /**
-     * @dev Mints `shares` Vault shares to `receiver` by depositing exactly `amount` of underlying tokens.
-     */
-    function deposit(uint256 assets, address receiver) external returns (uint256);
-
-    /**
-     * @dev Redeems `shares` from `owner` and sends `assets` of underlying tokens to `receiver`.
-     */
-    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
-
-    /**
      * @dev The address of the underlying token used for the Vault uses for accounting,
      * depositing, and withdrawing
      **/
@@ -50,5 +40,15 @@ interface IERC4626 {
      * @dev Total number of underlying assets that depositor’s shares represent.
      **/
     function assetsOf(address depositor) external view returns (uint256);
+
+    /**
+     * @dev Mints `shares` Vault shares to `receiver` by depositing exactly `amount` of underlying tokens.
+     */
+    function deposit(uint256 assets, address receiver) external returns (uint256);
+
+    /**
+     * @dev Redeems `shares` from `owner` and sends `assets` of underlying tokens to `receiver`.
+     */
+    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
 
 }

@@ -1,18 +1,18 @@
 const {ethers} = require("hardhat");
-const fs = require("fs");
-
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const usdPlus = await ethers.getContract("UsdPlusToken");
+    const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
 
     await deploy('StaticUsdPlusToken', {
         from: deployer,
-        args: [usdPlus.address],
+        args: [mockUsdPlusToken.address],
         log: true,
     });
+
+    console.log("StaticUsdPlusToken created");
 };
 
-module.exports.tags = ['StaticUsdPlusToken'];
+module.exports.tags = ['base', 'StaticUsdPlusToken'];
