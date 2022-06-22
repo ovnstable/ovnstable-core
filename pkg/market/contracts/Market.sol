@@ -6,18 +6,18 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "./UsdPlusToken.sol";
-import "./StaticUsdPlusToken.sol";
-import "./Exchange.sol";
+import "./interfaces/IUsdPlusToken.sol";
+import "./interfaces/IWrappedUsdPlusToken.sol";
+import "./interfaces/IExchange.sol";
 
 contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IERC20 public usdcToken;
-    UsdPlusToken public usdPlusToken;
-    StaticUsdPlusToken public wrappedUsdPlusToken;
+    IUsdPlusToken public usdPlusToken;
+    IWrappedUsdPlusToken public wrappedUsdPlusToken;
 
-    Exchange public exchange;
+    IExchange public exchange;
 
 
     // --- events
@@ -82,8 +82,8 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         require(_wrappedUsdPlusToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
-        usdPlusToken = UsdPlusToken(_usdPlusToken);
-        wrappedUsdPlusToken = StaticUsdPlusToken(_wrappedUsdPlusToken);
+        usdPlusToken = IUsdPlusToken(_usdPlusToken);
+        wrappedUsdPlusToken = IWrappedUsdPlusToken(_wrappedUsdPlusToken);
 
         emit MarketUpdatedTokens(_usdcToken, _usdPlusToken, _wrappedUsdPlusToken);
     }
@@ -94,7 +94,7 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
         require(_exchange != address(0), "Zero address not allowed");
 
-        exchange = Exchange(_exchange);
+        exchange = IExchange(_exchange);
 
         emit MarketUpdatedParams(_exchange);
     }
@@ -102,11 +102,26 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     // --- logic
 
+    /**
+     * @dev Wrap `amount` of `asset` from `msg.sender` to WUSD+ of `receiver`.
+     *
+     * Emits a {Wrap} event.
+     *
+     * Requirements:
+     *
+     * - `asset` cannot be the zero address.
+     * - `amount` cannot be the zero.
+     * - `receiver` cannot be the zero address.
+     */
     function wrap(
         address asset,
         uint256 amount,
         address receiver
     ) external {
+        require(asset != address(0), "Zero address for asset not allowed");
+        require(amount != 0, "Zero amount not allowed");
+        require(receiver != address(0), "Zero address for receiver not allowed");
+
         if (asset == address(usdcToken)) {
             usdcToken.transferFrom(msg.sender, address(this), amount);
 
@@ -126,11 +141,26 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         emit Wrap(asset, amount, receiver);
     }
 
+    /**
+     * @dev Unwrap `amount` of WUSD+ from `msg.sender` to `asset` of `receiver`.
+     *
+     * Emits a {Unwrap} event.
+     *
+     * Requirements:
+     *
+     * - `asset` cannot be the zero address.
+     * - `amount` cannot be the zero.
+     * - `receiver` cannot be the zero address.
+     */
     function unwrap(
         address asset,
         uint256 amount,
         address receiver
     ) external {
+        require(asset != address(0), "Zero address for asset not allowed");
+        require(amount != 0, "Zero amount not allowed");
+        require(receiver != address(0), "Zero address for receiver not allowed");
+
         if (asset == address(usdcToken)) {
             wrappedUsdPlusToken.transferFrom(msg.sender, address(this), amount);
 

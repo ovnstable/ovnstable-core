@@ -236,7 +236,7 @@ contract MockUsdPlusToken is IERC20, Context {
         _transfer(sender, recipient, transferAmount);
 
         uint256 currentAllowance = _allowance(sender, _msgSender());
-        require(currentAllowance >= transferAmount, "UsdPlusToken: transfer amount exceeds allowance");
+        require(currentAllowance >= transferAmount, "MockUsdPlusToken: transfer amount exceeds allowance");
         unchecked {
             _approve(sender, _msgSender(), currentAllowance - transferAmount);
         }

@@ -3,20 +3,20 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./interfaces/IWrappedUsdPlusToken.sol";
-import "./UsdPlusToken.sol";
+import "./interfaces/IUsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 
 
 contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20 {
     using WadRayMath for uint256;
 
-    UsdPlusToken _mainToken;
+    IUsdPlusToken _mainToken;
 
     /**
      * @param usdPlusTokenAddress The address of UsdPlusToken, this is `asset` in 4626 terms
      */
-    constructor(address usdPlusTokenAddress) ERC20("Wrapped USD+", "wUSD+") {
-        _mainToken = UsdPlusToken(usdPlusTokenAddress);
+    constructor(address usdPlusTokenAddress) ERC20("Wrapped USD+", "WUSD+") {
+        _mainToken = IUsdPlusToken(usdPlusTokenAddress);
     }
 
     /// @inheritdoc ERC20
