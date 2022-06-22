@@ -8,7 +8,7 @@ async function main() {
     let price = await getPrice();
 
     let governor = await getContract('OvnGovernor', 'polygon');
-    let strategy = await getContract('StrategyDodoUsdc', 'polygon');
+    let strategy = await getContract('StrategyArrakis', 'polygon');
 
     let addresses = [];
     let values = [];
@@ -17,15 +17,14 @@ async function main() {
 
     addresses.push(strategy.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x65E7F08df26e8b84f7282867A709A2F75A137827']));
-
+    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x2D4f65Ce59a1A149c011184028086A2f4d4F7293']));
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
         addresses,
         values,
         abis,
-        ethers.utils.id("Proposal 2: Upgrade Strategies"),
+        ethers.utils.id(abis.toString()),
         price
     );
     let tx = await proposeTx.wait();

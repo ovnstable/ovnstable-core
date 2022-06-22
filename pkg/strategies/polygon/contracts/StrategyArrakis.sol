@@ -10,6 +10,8 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
 import "./libraries/BalancerLibrary.sol";
+import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
+import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
 
 
 contract StrategyArrakis is Strategy, BalancerExchange {
@@ -24,6 +26,9 @@ contract StrategyArrakis is Strategy, BalancerExchange {
     IArrakisV1RouterStaking arrakisRouter;
     IArrakisRewards arrakisRewards;
     IArrakisVault arrakisVault;
+
+    IUniswapV3Pool uniswapV3Pool;
+    INonfungiblePositionManager uniswapPositionManager;
 
     bytes32 public balancerPoolIdStable; // Stable Pool
     bytes32 public balancerPoolIdWmatic; // Wmatic/USDC Pool
