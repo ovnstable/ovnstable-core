@@ -17,6 +17,7 @@ describe("StaticUsdPlusToken", function () {
     let staticUsdPlus;
     let usdc;
     let market;
+    let noMockUsdPlus;
 
 
     sharedBeforeEach('deploy and setup', async () => {
@@ -25,14 +26,16 @@ describe("StaticUsdPlusToken", function () {
 
         await deployments.fixture(['test', 'base', 'setting']);
 
-        const {deployer, anotherAccount} = await getNamedAccounts();
+        const {deployer} = await getNamedAccounts();
         account = deployer;
-        secondAccount = anotherAccount;
+        const signers = await ethers.getSigners();
+        secondAccount = signers[1];
 
         usdPlus = await ethers.getContract("MockUsdPlusToken");
         staticUsdPlus = await ethers.getContract("StaticUsdPlusToken");
         usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         market = await ethers.getContract("Market");
+        noMockUsdPlus = await ethers.getContractAt("ERC20", '0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f');
 
     });
 
@@ -362,17 +365,19 @@ describe("StaticUsdPlusToken", function () {
 
     it("market test", async function () {
 
-        //await usdc.transfer(recipient.address, toUSDC(stakeValue));
-        let balanceUsdcBefore = new BN((await usdc.balanceOf(account)).toString());
-        console.log('balanceUsdcBefore ' + balanceUsdcBefore);
+        await usdc.transfer(secondAccount.address, 100000000);
 
-        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
-        await market.wrap(usdc.address, 100, account);
-        expect(await staticUsdPlus.balanceOf(account)).to.equals(100);
+        expect(await usdc.balanceOf(secondAccount.address)).to.equals(100000000);
+        expect(await staticUsdPlus.balanceOf(secondAccount.address)).to.equals(0);
+        await usdc.connect(secondAccount).approve(market.address, 100000000);
+        await market.connect(secondAccount).wrap(usdc.address, 100000000, secondAccount.address);
+        expect(await staticUsdPlus.balanceOf(secondAccount.address)).to.equals(95637103);
+        expect(await usdc.balanceOf(secondAccount.address)).to.equals(0);
 
-        await market.unwrap(usdc.address, 100, account);
-        expect(await staticUsdPlus.balanceOf(account)).to.equals(0);
-        expect(await usdc.balanceOf(account)).to.equals(100);
+        await staticUsdPlus.connect(secondAccount).approve(market.address, 95637103);
+        await market.connect(secondAccount).unwrap(usdc.address, 95637103, secondAccount.address);
+        expect(await staticUsdPlus.balanceOf(secondAccount.address)).to.equals(0);
+        expect(await usdc.balanceOf(secondAccount.address)).to.equals(99920016);
     });
 
 });

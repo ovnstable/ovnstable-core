@@ -8,7 +8,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploy('StaticUsdPlusToken', {
         from: deployer,
-        args: [mockUsdPlusToken.address],
+        args: ['0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f'],
         log: true,
     });
 

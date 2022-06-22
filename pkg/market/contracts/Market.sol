@@ -108,12 +108,21 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         address receiver
     ) external {
         if (asset == address(usdcToken)) {
-            usdcToken.transferFrom(msg.sender, address(exchange), amount);
+            usdcToken.transferFrom(msg.sender, address(this), amount);
+
+            usdcToken.approve(address(exchange), amount);
             uint256 usdPlusAmount = exchange.buy(asset, amount);
+
+            usdPlusToken.approve(address(wrappedUsdPlusToken), usdPlusAmount);
             uint256 wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(usdPlusAmount, receiver);
+
         } else if (asset == address(usdPlusToken)) {
+            usdPlusToken.transferFrom(msg.sender, address(this), amount);
+
+            usdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             uint256 wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(amount, receiver);
         }
+
         emit Wrap(asset, amount, receiver);
     }
 
@@ -123,12 +132,23 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         address receiver
     ) external {
         if (asset == address(usdcToken)) {
-            uint256 usdPlusAmount = wrappedUsdPlusToken.redeem(amount, address(this), receiver);
+            wrappedUsdPlusToken.transferFrom(msg.sender, address(this), amount);
+
+            wrappedUsdPlusToken.approve(address(wrappedUsdPlusToken), amount);
+            uint256 usdPlusAmount = wrappedUsdPlusToken.redeem(amount, address(this), address(this));
+
+            usdPlusToken.approve(address(exchange), usdPlusAmount);
             uint256 usdcAmount = exchange.redeem(asset, usdPlusAmount);
+
             usdcToken.transfer(receiver, usdcAmount);
+
         } else if (asset == address(usdPlusToken)) {
+            wrappedUsdPlusToken.transferFrom(msg.sender, address(this), amount);
+
+            wrappedUsdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             uint256 usdPlusAmount = wrappedUsdPlusToken.redeem(amount, receiver, receiver);
         }
+
         emit Unwrap(asset, amount, receiver);
     }
 }
