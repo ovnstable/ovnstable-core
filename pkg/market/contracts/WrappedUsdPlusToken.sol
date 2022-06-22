@@ -6,7 +6,6 @@ import "./interfaces/IWrappedUsdPlusToken.sol";
 import "./interfaces/IUsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 
-import "hardhat/console.sol";
 
 contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20 {
     using WadRayMath for uint256;
@@ -138,11 +137,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20 {
     }
 
     /// @inheritdoc IERC4626
-    function redeem(
-        uint256 shares,
-        address receiver,
-        address owner
-    ) external override returns (uint256) {
+    function redeem(uint256 shares, address receiver, address owner) external override returns (uint256) {
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
         require(owner != address(0), "Zero address for owner not allowed");

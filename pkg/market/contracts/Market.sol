@@ -33,13 +33,15 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     event Wrap(
         address asset,
         uint256 amount,
-        address receiver
+        address receiver,
+        uint256 wrappedUsdPlusAmount
     );
 
     event Unwrap(
         address asset,
         uint256 amount,
-        address receiver
+        address receiver,
+        uint256 unwrappedUsdPlusAmount
     );
 
 
@@ -122,6 +124,7 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
+        uint256 wrappedUsdPlusAmount;
         if (asset == address(usdcToken)) {
             usdcToken.transferFrom(msg.sender, address(this), amount);
 
@@ -129,16 +132,16 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             uint256 usdPlusAmount = exchange.buy(asset, amount);
 
             usdPlusToken.approve(address(wrappedUsdPlusToken), usdPlusAmount);
-            uint256 wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(usdPlusAmount, receiver);
+            wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(usdPlusAmount, receiver);
 
         } else if (asset == address(usdPlusToken)) {
             usdPlusToken.transferFrom(msg.sender, address(this), amount);
 
             usdPlusToken.approve(address(wrappedUsdPlusToken), amount);
-            uint256 wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(amount, receiver);
+            wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(amount, receiver);
         }
 
-        emit Wrap(asset, amount, receiver);
+        emit Wrap(asset, amount, receiver, wrappedUsdPlusAmount);
     }
 
     /**
@@ -161,6 +164,7 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
+        uint256 unwrappedUsdPlusAmount;
         if (asset == address(usdcToken)) {
             wrappedUsdPlusToken.transferFrom(msg.sender, address(this), amount);
 
@@ -168,17 +172,17 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             uint256 usdPlusAmount = wrappedUsdPlusToken.redeem(amount, address(this), address(this));
 
             usdPlusToken.approve(address(exchange), usdPlusAmount);
-            uint256 usdcAmount = exchange.redeem(asset, usdPlusAmount);
+            unwrappedUsdPlusAmount = exchange.redeem(asset, usdPlusAmount);
 
-            usdcToken.transfer(receiver, usdcAmount);
+            usdcToken.transfer(receiver, unwrappedUsdPlusAmount);
 
         } else if (asset == address(usdPlusToken)) {
             wrappedUsdPlusToken.transferFrom(msg.sender, address(this), amount);
 
             wrappedUsdPlusToken.approve(address(wrappedUsdPlusToken), amount);
-            uint256 usdPlusAmount = wrappedUsdPlusToken.redeem(amount, receiver, receiver);
+            unwrappedUsdPlusAmount = wrappedUsdPlusToken.redeem(amount, receiver, address(this));
         }
 
-        emit Unwrap(asset, amount, receiver);
+        emit Unwrap(asset, amount, receiver, unwrappedUsdPlusAmount);
     }
 }
