@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IERC4626.sol";
 
-interface IStaticUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
+interface IWrappedUsdPlusToken is IERC4626, IERC20, IERC20Metadata {
 
     /**
      * @dev Utility method to get the current UsdPlusToken balance of an user

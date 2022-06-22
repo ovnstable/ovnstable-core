@@ -2,12 +2,12 @@
 pragma solidity >=0.5.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./interfaces/IStaticUsdPlusToken.sol";
+import "./interfaces/IWrappedUsdPlusToken.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 
 
-contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
+contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20 {
     using WadRayMath for uint256;
 
     UsdPlusToken _mainToken;
@@ -61,27 +61,27 @@ contract StaticUsdPlusToken is IStaticUsdPlusToken, ERC20 {
         return transferAmount;
     }
 
-    /// @inheritdoc IStaticUsdPlusToken
+    /// @inheritdoc IWrappedUsdPlusToken
     function dynamicBalanceOf(address account) external view override returns (uint256){
         return staticToDynamicAmount(balanceOf(account));
     }
 
-    /// @inheritdoc IStaticUsdPlusToken
+    /// @inheritdoc IWrappedUsdPlusToken
     function staticToDynamicAmount(uint256 amount) public view override returns (uint256){
         return amount.rayMul(_mainToken.liquidityIndex());
     }
 
-    /// @inheritdoc IStaticUsdPlusToken
+    /// @inheritdoc IWrappedUsdPlusToken
     function dynamicToStaticAmount(uint256 amount) public view override returns (uint256){
         return amount.rayDiv(_mainToken.liquidityIndex());
     }
 
-    /// @inheritdoc IStaticUsdPlusToken
+    /// @inheritdoc IWrappedUsdPlusToken
     function rate() external view override returns (uint256){
         return _mainToken.liquidityIndex();
     }
 
-    /// @inheritdoc IStaticUsdPlusToken
+    /// @inheritdoc IWrappedUsdPlusToken
     function mainToken() external view override returns (address){
         return address(_mainToken);
     }

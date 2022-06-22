@@ -6,13 +6,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
 
-    await deploy('StaticUsdPlusToken', {
+    await deploy('WrappedUsdPlusToken', {
         from: deployer,
         args: ['0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f'],
         log: true,
     });
 
-    console.log("StaticUsdPlusToken created");
+    console.log("WrappedUsdPlusToken created");
 };
 
-module.exports.tags = ['base', 'StaticUsdPlusToken'];
+module.exports.tags = ['base', 'WrappedUsdPlusToken'];

@@ -12,9 +12,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const market = await ethers.getContract("Market");
 
     const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
-    const staticUsdPlusToken = await ethers.getContract("StaticUsdPlusToken");
+    const wrappedUsdPlusToken = await ethers.getContract("WrappedUsdPlusToken");
 
-    await (await market.setTokens(POLYGON.usdc, usdPlusToken, staticUsdPlusToken.address)).wait();
+    await (await market.setTokens(POLYGON.usdc, usdPlusToken, wrappedUsdPlusToken.address)).wait();
     await (await market.setParams(exchange)).wait();
 
     console.log("Market settings done");
