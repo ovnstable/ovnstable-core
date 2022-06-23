@@ -285,7 +285,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
-        if(delta <= 1000100 || 1000350 <= delta){
+        if(delta <= 1000100 || 1000450 <= delta){
             revert('Delta abroad');
         }
 

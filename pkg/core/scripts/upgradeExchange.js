@@ -31,7 +31,7 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x2773803121993bA87F93071013a1D0721996aEf9']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xe1e919B67143a656cE4aA4dD3f339b63eE98D61f']));
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
