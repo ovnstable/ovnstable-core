@@ -6,7 +6,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
 
-    await deployProxyWithArgs('WrappedUsdPlusToken', deployments, save, {}, [], [mockUsdPlusToken.address]);
+    let params = {factoryOptions:{}, unsafeAllow:[], args:[mockUsdPlusToken.address]};
+
+    await deployProxyWithArgs('WrappedUsdPlusToken', deployments, save, params);
 
     console.log("MockWrappedUsdPlusToken created");
 };

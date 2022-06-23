@@ -5,8 +5,8 @@ const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-i
 const fs = require('fs');
 
 
-async function deployProxyWithArgs(contractName, deployments, save, factoryOptions, unsafeAllow, args) {
-    return deployProxyMulti(contractName, contractName, deployments, save, factoryOptions, unsafeAllow, args);
+async function deployProxyWithArgs(contractName, deployments, save, params) {
+    return deployProxyMulti(contractName, contractName, deployments, save, params.factoryOptions, params.unsafeAllow, params.args);
 }
 
 async function deployProxy(contractName, deployments, save, factoryOptions, unsafeAllow) {
