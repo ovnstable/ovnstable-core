@@ -1,4 +1,4 @@
-const {deployProxyWithArgs} = require("@overnight-contracts/common/utils/deployProxy");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {ethers} = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -6,9 +6,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const usdPlusToken = await ethers.getContract("UsdPlusToken");
 
-    let params = {factoryOptions:{}, unsafeAllow:[], args:[usdPlusToken.address]};
+    let params = { args: [usdPlusToken.address] };
 
-    await deployProxyWithArgs('WrappedUsdPlusToken', deployments, save, params);
+    await deployProxy('WrappedUsdPlusToken', deployments, save, params);
 
     console.log("WrappedUsdPlusToken created");
 };
