@@ -5,11 +5,15 @@ const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-i
 const fs = require('fs');
 
 
-async function deployProxy(contractName, deployments, save, factoryOptions, unsafeAllow) {
-    return deployProxyMulti(contractName, contractName, deployments, save, factoryOptions, unsafeAllow);
+async function deployProxyWithArgs(contractName, deployments, save, factoryOptions, unsafeAllow, args) {
+    return deployProxyMulti(contractName, contractName, deployments, save, factoryOptions, unsafeAllow, args);
 }
 
-async function deployProxyMulti(contractName, factoryName, deployments, save, factoryOptions, unsafeAllow) {
+async function deployProxy(contractName, deployments, save, factoryOptions, unsafeAllow) {
+    return deployProxyMulti(contractName, contractName, deployments, save, factoryOptions, unsafeAllow, []);
+}
+
+async function deployProxyMulti(contractName, factoryName, deployments, save, factoryOptions, unsafeAllow, args) {
 
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
@@ -21,7 +25,7 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, fa
 
     if (!proxy) {
         console.log(`Proxy ${contractName} not found`)
-        proxy = await upgrades.deployProxy(contractFactory, {
+        proxy = await upgrades.deployProxy(contractFactory, args, {
             kind: 'uups',
             unsafeAllow: unsafeAllow
         });
@@ -76,4 +80,5 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, fa
 module.exports = {
     deployProxy: deployProxy,
     deployProxyMulti: deployProxyMulti,
+    deployProxyWithArgs: deployProxyWithArgs,
 };

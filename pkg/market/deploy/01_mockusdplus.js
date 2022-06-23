@@ -11,4 +11,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("MockUsdPlusToken created");
 };
 
-module.exports.tags = ['base', 'MockUsdPlusToken'];
+module.exports.tags = ['test', 'MockUsdPlusToken'];

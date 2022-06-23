@@ -21,7 +21,7 @@ describe("Market", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['test', 'base', 'setting']);
+        await deployments.fixture(['test', 'Market', 'SettingMarket']);
 
         const signers = await ethers.getSigners();
         account = signers[0];

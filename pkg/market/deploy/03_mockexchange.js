@@ -17,4 +17,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log("MockExchange created");
 };
 
-module.exports.tags = ['base', 'MockExchange'];
+module.exports.tags = ['test', 'MockExchange'];

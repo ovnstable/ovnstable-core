@@ -21,7 +21,7 @@ describe("WrappedUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['test', 'base', 'setting']);
+        await deployments.fixture(['test']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
