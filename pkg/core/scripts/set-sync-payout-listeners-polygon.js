@@ -23,6 +23,7 @@ async function main() {
         "0xB2094C94E8DE8d614000eC6802635524A79C30DA", // USD+/XZAR
         "0x421a018cC5839c4C0300AfB21C725776dc389B1a", // USD+/USDC
         "0x291E289C39cBAf5Ee158028d086d76Ffa141CFdA", // USD+/CLAM
+        "0xb8e91631f348dd1f47cb46f162df458a556c6f1e", // USD+/SPHERE
 
         // mesh usdPlus pools
         "0x68b7cEd0dBA382a0eC705d6d97608B7bA3CD8C55",  // USDC/USD+
@@ -34,7 +35,7 @@ async function main() {
         "0x143b882e58fd8c543da98c7d84063a5ae34925da"   // Parrotly Finance
     ]
 
-    await (await polygonPL.setQsSyncPools(pools)).wait();
+    await (await polygonPL.setQsSyncPools(pools, await getPrice())).wait();
 
     // await evmRestore('t1');
 
