@@ -24,6 +24,7 @@ async function main() {
         "0x421a018cC5839c4C0300AfB21C725776dc389B1a", // USD+/USDC
         "0x291E289C39cBAf5Ee158028d086d76Ffa141CFdA", // USD+/CLAM
         "0xb8e91631f348dd1f47cb46f162df458a556c6f1e", // USD+/SPHERE
+        "0xb160d25619c9311dff390c8208e49c39cf026f74", // USD+/FRAX
 
         // mesh usdPlus pools
         "0x68b7cEd0dBA382a0eC705d6d97608B7bA3CD8C55",  // USDC/USD+
