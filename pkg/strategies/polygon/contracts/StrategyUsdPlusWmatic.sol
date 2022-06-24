@@ -22,10 +22,11 @@ import "hardhat/console.sol";
 contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    uint8 public constant E_MODE_CATEGORY_ID = 1;
+    uint8 public constant E_MODE_CATEGORY_ID = 0;
     uint256 public constant INTEREST_RATE_MODE = 2;
     uint16 public constant REFERRAL_CODE = 0;
     uint256 constant BASIS_POINTS_FOR_STORAGE = 100; // 1%
+    uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4; // 0.04%
 
 
     // ---  fields
@@ -137,56 +138,101 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
         IERC20(address(usdPlus)).transferFrom(msg.sender, address(this), _amount);
 
-        console.log('1: USDC %s', usdc.balanceOf(address(this)) / 1e6);
-        console.log('1: USD+ %s', usdPlus.balanceOf(address(this)) / 1e6);
-        console.log('1: WMATIC %s', wmatic.balanceOf(address(this)) / 1e18);
+        _showBalances();
 
-        exchange.redeem(address(usdc), _amount);
+        _showBalances();
+        _borrowWmatic();
 
-        (uint256 reserve0, uint256 reserve1,) = dystVault.getReserves();
+        _showBalances();
+        _stakeDystopia();
+        _showBalances();
 
-        console.log('1: WMATIC reserve0 %s', reserve0 / 1e18);
-        console.log('1: USDC reserve1   %s', reserve1 / 1e6);
+        return 0;
+    }
 
+    function _stakeDystopia() internal {
+
+        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        uint256 wmaticAmount = wmatic.balanceOf(address(this));
+
+        console.log('USD+  %s', usdPlusAmount/ 1e6);
+        console.log('MATIC %s', wmaticAmount/ 1e18);
+
+        dystRouter.addLiquidity(
+            address(wmatic),
+            address(usdPlus),
+            false,
+            wmaticAmount,
+            usdPlusAmount,
+            (wmaticAmount < 10000) ? 0 : OvnMath.subBasisPoints(wmaticAmount, BASIS_POINTS_FOR_SLIPPAGE),
+            (usdPlusAmount < 10000) ? 0 : OvnMath.subBasisPoints(usdPlusAmount, BASIS_POINTS_FOR_SLIPPAGE),
+            address(this),
+            block.timestamp + 600
+        );
+    }
+
+    function _borrowWmatic() internal {
+
+        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+
+        uint256 balanceUsdPlus = usdPlus.balanceOf(address(this));
 
         // 1. Recalculate target amount and increese usdcStorage proportionately.
-        uint256 amount = OvnMath.subBasisPoints(usdc.balanceOf(address(this)) - usdcStorage, BASIS_POINTS_FOR_STORAGE);
-        usdcStorage = usdc.balanceOf(address(this)) - amount;
-
-        console.log('2: USDC %s', usdc.balanceOf(address(this)) / 1e6);
-        console.log('2: USD+ %s', usdPlus.balanceOf(address(this)) / 1e6);
-        console.log('2: WMATIC %s', wmatic.balanceOf(address(this)) / 1e18);
+        uint256 amount = OvnMath.subBasisPoints(balanceUsdPlus - usdcStorage, BASIS_POINTS_FOR_STORAGE);
+        usdcStorage = balanceUsdPlus - amount;
 
         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
-            usdc.balanceOf(address(this)),
-            reserve0,
-            reserve1,
+            balanceUsdPlus,
+            reserveUsdPlus,
+            reserveWmatic,
             liquidationThreshold,
             healthFactor,
-            wmaticDm,
             usdcDm,
-            uint256(oracleWmatic.latestAnswer()),
-            uint256(oracleUsdc.latestAnswer())
+            wmaticDm,
+            uint256(oracleUsdc.latestAnswer()),
+            uint256(oracleWmatic.latestAnswer())
         );
 
-        console.log('usdcCollateral %s', usdcCollateral);
-        console.log('wmaticBorrow %s', wmaticBorrow);
-
-
         IPool aavePool = _aavePool();
+
         usdc.approve(address(aavePool), usdcCollateral);
         aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
         aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE , REFERRAL_CODE, address(this));
-
-        console.log('3: USDC %s', usdc.balanceOf(address(this)) / 1e6);
-        console.log('3: USD+ %s', usdPlus.balanceOf(address(this)) / 1e6);
-        console.log('3: WMATIC %s', wmatic.balanceOf(address(this)) / 1e18);
-
-        return 0;
     }
 
     function _aavePool() internal returns (IPool aavePool){
         aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), E_MODE_CATEGORY_ID));
     }
 
+
+    function _showAave() internal {
+
+        IPool aave= _aavePool();
+
+        ( uint256 totalCollateralBase,
+        uint256 totalDebtBase,
+        uint256 availableBorrowsBase,
+        uint256 currentLiquidationThreshold,
+        uint256 ltv,
+        uint256 healthFactor) = aave.getUserAccountData(address(this));
+
+
+        console.log('---AAVE---');
+        console.log('totalCollateralBase:         %s', totalCollateralBase);
+        console.log('totalDebtBase:               %s', totalDebtBase);
+        console.log('availableBorrowsBase:        %s', availableBorrowsBase);
+        console.log('currentLiquidationThreshold: %s', currentLiquidationThreshold);
+        console.log('ltv:                         %s', ltv);
+        console.log('healthFactor:                %s', healthFactor);
+        console.log('');
+
+    }
+
+    function _showBalances() internal {
+        console.log('---Balances---');
+        console.log('USDC     %s', usdc.balanceOf(address(this)) / 1e6);
+        console.log('USD+     %s', usdPlus.balanceOf(address(this)) / 1e6);
+        console.log('WMATIC   %s', wmatic.balanceOf(address(this)) / 1e18);
+        console.log('Dystopia %s', dystVault.balanceOf(address(this)));
+    }
 }

@@ -8,8 +8,8 @@ let dystRouter = '0xbE75Dd16D029c6B32B7aD57A0FD9C1c20Dd2862e'; //DystRouter01
 let dystPair = '0x1A5FEBA5D5846B3b840312Bd04D76ddaa6220170'; //WMATIC/USD+
 let gauge = '0x7c9716266795a04ae1fbbd017dc2585fbf78076d'; //aka MasterChef
 
-let liquidationThreshold = 975;
-let healthFactor = 1026;
+let liquidationThreshold = 850;
+let healthFactor = 1500
 let balancingDelta = 1;
 
 module.exports = async (plugin) => {

@@ -41,15 +41,15 @@ describe("StaticUsdPlusToken", function () {
         console.log('Balance USD+: ' + await usdPlus.balanceOf(account) / 1e6);
         console.log('Balance USDC: ' + await usdc.balanceOf(account) / 1e6);
 
-        await usdc.approve(exchange.address, toUSDC(100));
-        await exchange.buy(POLYGON.usdc, toUSDC(100));
+        await usdc.approve(exchange.address, toUSDC(110));
+        await exchange.buy(POLYGON.usdc, toUSDC(110));
 
         console.log('Balance USD+: ' + await usdPlus.balanceOf(account) / 1e6);
         console.log('Balance USDC: ' + await usdc.balanceOf(account) / 1e6);
 
 
-        await usdPlus.approve(strategy.address, toUSDC(50));
-        await strategy.mint(toUSDC(50));
+        await usdPlus.approve(strategy.address, toUSDC(100));
+        await strategy.mint(toUSDC(100));
     });
 
 });
