@@ -44,7 +44,7 @@ describe("WrappedUsdPlusToken", function () {
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
-        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
+        expect(await wrappedUsdPlus.assetBalanceOf(account)).to.equals(0);
 
         await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
@@ -137,17 +137,17 @@ describe("WrappedUsdPlusToken", function () {
         await wrappedUsdPlus.deposit(usdPlusAmountToWrap, account);
 
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(usdPlusAmountToWrap / 2);
-        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdPlusAmountToWrap);
+        expect(await wrappedUsdPlus.assetBalanceOf(account)).to.equals(usdPlusAmountToWrap);
     });
 
-    it("maxWithdraw", async function () {
+    it("assetBalanceOf", async function () {
         let liquidityIndex = new BN(10).pow(new BN(27)); // 10^27
         await usdPlus.setLiquidityIndex(liquidityIndex.toString());
 
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
-        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
+        expect(await wrappedUsdPlus.assetBalanceOf(account)).to.equals(0);
 
         await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
@@ -156,7 +156,7 @@ describe("WrappedUsdPlusToken", function () {
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit);
-        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdcAmountToDeposit);
+        expect(await wrappedUsdPlus.assetBalanceOf(account)).to.equals(usdcAmountToDeposit);
     });
 
     it("rate same to usdPlus liquidity index", async function () {

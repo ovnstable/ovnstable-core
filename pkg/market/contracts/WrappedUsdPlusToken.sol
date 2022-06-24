@@ -179,6 +179,11 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     }
 
     /// @inheritdoc IWrappedUsdPlusToken
+    function assetBalanceOf(address owner) external view override returns (uint256) {
+        return convertToAssets(balanceOf(owner));
+    }
+
+    /// @inheritdoc IWrappedUsdPlusToken
     function rate() external view override returns (uint256) {
         return usdPlusToken.liquidityIndex();
     }

@@ -7,8 +7,13 @@ import "./IERC4626.sol";
 interface IWrappedUsdPlusToken is IERC20Upgradeable, IERC4626 {
 
     /**
+     * @return owner's balance of UsdPlusToken
+     **/
+    function assetBalanceOf(address owner) external view returns (uint256);
+
+    /**
      * @dev Returns UsdPlusToken liquidity index in e27 (ray)
-     * @return rate Rate between StaticUsdPlusToken and UsdPlusToken in e27 (ray)
+     * @return rate Rate between WrappedUsdPlusToken and UsdPlusToken in e27 (ray)
      **/
     function rate() external view returns (uint256);
 
