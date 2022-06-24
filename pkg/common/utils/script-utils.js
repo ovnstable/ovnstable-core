@@ -32,7 +32,8 @@ async function getContract(name, network){
     let ethers = hre.ethers;
     let wallet = await initWallet(ethers);
 
-    let contractJson = JSON.parse(fs.readFileSync(fromDir('..', path.join(network, name + ".json"))));
+    let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+    let contractJson = JSON.parse(fs.readFileSync(searchPath));
     return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
 
 }
