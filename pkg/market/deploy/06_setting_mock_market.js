@@ -15,7 +15,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await market.setTokens(POLYGON.usdc, mockUsdPlusToken.address, wrappedUsdPlusToken.address)).wait();
     await (await market.setParams(mockExchange.address)).wait();
 
-    console.log("Market settings done");
+    console.log("MockMarket settings done");
 };
 
-module.exports.tags = ['setting', 'SettingMarket'];
+module.exports.tags = ['test_setting', 'SettingMockMarket'];

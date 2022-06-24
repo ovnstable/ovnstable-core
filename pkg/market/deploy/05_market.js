@@ -7,4 +7,4 @@ module.exports = async ({deployments}) => {
     console.log("Market created");
 };
 
-module.exports.tags = ['base', 'Market'];
+module.exports.tags = ['base', 'test', 'Market'];
