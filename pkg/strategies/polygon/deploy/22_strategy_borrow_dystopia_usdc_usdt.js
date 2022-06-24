@@ -17,16 +17,18 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         from: deployer
     });
 
-    await deployProxy('StrategyBorrowDystopiaUsdcUsdt', deployments, save,
-        {
+    let params = {
+        factoryOptions: {
             libraries: {
                 "StrategyDystopiaUsdcUsdtLibrary": strategyDystopiaUsdcUsdtLibrary.address,
                 "BalancerLibrary": balancerLibrary.address,
                 "DystopiaLibrary": dystopiaLibrary.address,
             }
         },
-        ["external-library-linking"]
-    );
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyBorrowDystopiaUsdcUsdt', deployments, save, params);
 };
 
 module.exports.tags = ['base', 'StrategyBorrowDystopiaUsdcUsdt'];

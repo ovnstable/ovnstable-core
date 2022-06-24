@@ -13,15 +13,17 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         from: deployer
     });
 
-    await deployProxy('StrategyArrakisWeth', deployments, save,
-        {
+    let params = {
+        factoryOptions: {
             libraries: {
                 "StrategyArrakisWethLibrary": strategyArrakisWethLibrary.address,
                 "BalancerLibrary": balancerLibrary.address,
             }
         },
-        ["external-library-linking"]
-    );
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyArrakisWeth', deployments, save, params);
 };
 
 module.exports.tags = ['base', 'StrategyArrakisWeth'];
