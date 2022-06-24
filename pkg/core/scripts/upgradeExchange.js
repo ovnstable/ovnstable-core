@@ -31,14 +31,19 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xe1e919B67143a656cE4aA4dD3f339b63eE98D61f']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x7cd6c4e5bA83631d14A708e218F09A0da0EB1116']));
+
+    addresses.push(exchange.address);
+    values.push(0);
+    abis.push(exchange.interface.encodeFunctionData('setAbroad', [1000100, 1000350]));
+
 
     console.log('Creating a proposal...')
     const proposeTx = await governor.proposeExec(
         addresses,
         values,
         abis,
-        ethers.utils.id(abis.toString()),
+        ethers.utils.id(abis.toString() + new Date().toString()),
         price
     );
     let tx = await proposeTx.wait();

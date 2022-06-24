@@ -49,18 +49,24 @@ describe("Exchange", function () {
             await usdPlus.setExchanger(exchange.address);
 
             await usdc.approve(exchange.address, sum);
+
+            await exchange.setBuyFee(0, 100000);
+
             await (await exchange.buy(POLYGON.usdc, sum)).wait();
 
         });
 
-        it("Expect revert: Delta abroad ", async function () {
-            await usdc.transfer(pm.address, toUSDC(1));
-            await expectRevert(exchange.payout(), "Delta abroad");
+        it("Expect revert: Delta abroad:max ", async function () {
+            await usdc.transfer(pm.address, toUSDC(4));
+            await expectRevert(exchange.payout(), "Delta abroad:max");
         });
 
+        it("Expect revert: Delta abroad:min", async function () {
+            await expectRevert(exchange.payout(), "Delta abroad:min");
+        });
 
         it("Within abroad", async function () {
-            await usdc.transfer(pm.address, toUSDC(0.5));
+            await usdc.transfer(pm.address, toUSDC(2));
             await exchange.payout();
         });
 

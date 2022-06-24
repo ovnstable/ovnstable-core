@@ -49,6 +49,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
+    uint256 public abroadMin;
+    uint256 public abroadMax;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address usdc);
@@ -71,6 +74,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
     event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
+    event Abroad(uint256 min, uint256 max);
 
     // ---  modifiers
 
@@ -115,6 +119,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         payoutPeriod = 24 * 60 * 60;
 
         payoutTimeRange = 15 * 60;
+
+        abroadMin = 1000100;
+        abroadMax = 1000350;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -163,6 +170,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
+    }
+
+    function setAbroad(uint256 _min, uint256 _max) external onlyAdmin {
+        abroadMin = _min;
+        abroadMax = _max;
+        emit Abroad(abroadMin, abroadMax);
     }
 
     function setPayoutTimes(
@@ -285,8 +298,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
-        if(delta <= 1000100 || 1000450 <= delta){
-            revert('Delta abroad');
+        if(delta <= abroadMin){
+            revert('Delta abroad:min');
+        }
+
+        if(abroadMax <= delta){
+            revert('Delta abroad:max');
         }
 
         usdPlus.setLiquidityIndex(newLiquidityIndex);
