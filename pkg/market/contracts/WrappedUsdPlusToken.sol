@@ -15,21 +15,21 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    IUsdPlusToken public usdPlusToken;
+    IUsdPlusToken public asset;
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
     function initialize(address usdPlusTokenAddress) initializer public {
-        __ERC20_init("Wrapped USD+", "WUSD+");
+        __ERC20_init("Wrapped USD+", "wUSD+");
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(UPGRADER_ROLE, msg.sender);
 
-        usdPlusToken = IUsdPlusToken(usdPlusTokenAddress);
+        asset = IUsdPlusToken(usdPlusTokenAddress);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -45,23 +45,18 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     }
 
     /// @inheritdoc IERC4626
-    function asset() external view override returns (address) {
-        return address(usdPlusToken);
-    }
-
-    /// @inheritdoc IERC4626
     function totalAssets() external view override returns (uint256) {
         return convertToAssets(totalSupply());
     }
 
     /// @inheritdoc IERC4626
     function convertToShares(uint256 assets) public view override returns (uint256) {
-        return assets.rayDiv(usdPlusToken.liquidityIndex());
+        return assets.rayDiv(asset.liquidityIndex());
     }
 
     /// @inheritdoc IERC4626
     function convertToAssets(uint256 shares) public view override returns (uint256) {
-        return shares.rayMul(usdPlusToken.liquidityIndex());
+        return shares.rayMul(asset.liquidityIndex());
     }
 
     /// @inheritdoc IERC4626
@@ -79,9 +74,10 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         require(assets != 0, "Zero assets not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
-        usdPlusToken.transferFrom(msg.sender, address(this), assets);
+        asset.transferFrom(msg.sender, address(this), assets);
 
         uint256 shares = convertToShares(assets);
+
         _mint(receiver, shares);
 
         emit Deposit(msg.sender, receiver, assets, shares);
@@ -104,10 +100,11 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
-        transferFrom(msg.sender, address(this), shares);
+        uint256 assets = convertToAssets(shares);
+
+        asset.transferFrom(msg.sender, address(this), assets);
 
         _mint(receiver, shares);
-        uint256 assets = convertToAssets(shares);
 
         emit Deposit(msg.sender, receiver, assets, shares);
 
@@ -131,19 +128,20 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         require(owner != address(0), "Zero address for owner not allowed");
 
         uint256 shares = convertToShares(assets);
+
         if (owner != msg.sender) {
             uint256 currentAllowance = allowance(owner, msg.sender);
-            require(currentAllowance >= shares, "Redeem amount exceeds allowance");
+            require(currentAllowance >= shares, "Withdraw amount exceeds allowance");
             _approve(owner, msg.sender, currentAllowance - shares);
         }
 
         _burn(owner, shares);
 
-        usdPlusToken.transfer(receiver, assets);
+        asset.transfer(receiver, assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
-        return assets;
+        return shares;
     }
 
     /// @inheritdoc IERC4626
@@ -171,7 +169,8 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         _burn(owner, shares);
 
         uint256 assets = convertToAssets(shares);
-        usdPlusToken.transfer(receiver, assets);
+
+        asset.transfer(receiver, assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
@@ -179,13 +178,8 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     }
 
     /// @inheritdoc IWrappedUsdPlusToken
-    function assetBalanceOf(address owner) external view override returns (uint256) {
-        return convertToAssets(balanceOf(owner));
-    }
-
-    /// @inheritdoc IWrappedUsdPlusToken
     function rate() external view override returns (uint256) {
-        return usdPlusToken.liquidityIndex();
+        return asset.liquidityIndex();
     }
 
 }

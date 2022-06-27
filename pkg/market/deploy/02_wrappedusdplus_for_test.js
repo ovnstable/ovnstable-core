@@ -10,7 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deployProxy('WrappedUsdPlusToken', deployments, save, params);
 
-    console.log("MockWrappedUsdPlusToken created");
+    console.log("WrappedUsdPlusTokenForTest created");
 };
 
-module.exports.tags = ['test', 'MockWrappedUsdPlusToken'];
+module.exports.tags = ['test', 'WrappedUsdPlusTokenForTest'];

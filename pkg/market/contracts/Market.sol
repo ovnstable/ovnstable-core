@@ -6,11 +6,12 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import "./interfaces/IMarket.sol";
 import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IWrappedUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
 
-contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IERC20 public usdcToken;
@@ -119,7 +120,7 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         address asset,
         uint256 amount,
         address receiver
-    ) external {
+    ) external override {
         require(asset != address(0), "Zero address for asset not allowed");
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
@@ -139,6 +140,8 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
             usdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(amount, receiver);
+        } else {
+            revert('Asset not found');
         }
 
         emit Wrap(asset, amount, receiver, wrappedUsdPlusAmount);
@@ -159,7 +162,7 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         address asset,
         uint256 amount,
         address receiver
-    ) external {
+    ) external override {
         require(asset != address(0), "Zero address for asset not allowed");
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
@@ -181,6 +184,8 @@ contract Market is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
             wrappedUsdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             unwrappedUsdPlusAmount = wrappedUsdPlusToken.redeem(amount, receiver, address(this));
+        } else {
+            revert('Asset not found');
         }
 
         emit Unwrap(asset, amount, receiver, unwrappedUsdPlusAmount);

@@ -21,7 +21,7 @@ describe("Market", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['test', 'Market', 'SettingMockMarket']);
+        await deployments.fixture(['test', 'test_setting']);
 
         const signers = await ethers.getSigners();
         account = signers[0];
@@ -29,7 +29,7 @@ describe("Market", function () {
 
         usdPlus = await ethers.getContract("MockUsdPlusToken");
         wrappedUsdPlus = await ethers.getContract("WrappedUsdPlusToken");
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        usdc = await ethers.getContractAt("IERC20", POLYGON.usdc);
         market = await ethers.getContract("Market");
         exchange = await ethers.getContract("MockExchange");
 
@@ -133,7 +133,7 @@ describe("Market", function () {
 
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await exchange.setLiquidityIndex(liquidityIndex.toString());
 
         // unwrap usdc
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
@@ -156,7 +156,7 @@ describe("Market", function () {
         
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await exchange.setLiquidityIndex(liquidityIndex.toString());
 
         // unwrap usd+
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
@@ -182,7 +182,7 @@ describe("Market", function () {
 
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await exchange.setLiquidityIndex(liquidityIndex.toString());
 
         // unwrap usdc
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);        
@@ -208,7 +208,7 @@ describe("Market", function () {
         
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(liquidityIndex.toString());
+        await exchange.setLiquidityIndex(liquidityIndex.toString());
 
         // unwrap usd+
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
