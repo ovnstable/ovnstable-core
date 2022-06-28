@@ -7,24 +7,21 @@ const {getContract, getPrice, execTimelock, showM2M} = require("@overnight-contr
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
 
-let BalancerSwapPlace = JSON.parse(fs.readFileSync('./deployments/localhost/BalancerSwapPlace.json'));
-let Swapper = JSON.parse(fs.readFileSync('./deployments/localhost/Swapper.json'));
-
-
 async function main() {
 
 
     let balancerPoolUsdcTusdDaiUsdt = "0x0d34e5dd4d8f043557145598e4e2dc286b35fd4f";
     let balancerPoolUsdcDaiMaiUsdt = "0x06df3b2bbb68adc8b0e302443692037ed9f91b42";
 
-    let balancerSwapPlace = await ethers.getContractAt(BalancerSwapPlace.abi, BalancerSwapPlace.address);
-    let swapper = await ethers.getContractAt(Swapper.abi, Swapper.address);
+    let balancerSwapPlace = await getContract("BalancerSwapPlace", "polygon");
+    let swapper = await getContract("Swapper", "polygon");
 
     let balancerSwapPlaceType = await balancerSwapPlace.swapPlaceType();
 
     await swapper.swapPlaceRegister(
         balancerSwapPlaceType,
         balancerSwapPlace.address,
+        await getPrice()
     );
     console.log(`swapper.swapPlaceRegister done ${balancerSwapPlaceType} - ${balancerSwapPlace.address}`)
 
@@ -33,6 +30,7 @@ async function main() {
         POLYGON.usdt,
         balancerPoolUsdcTusdDaiUsdt,
         balancerSwapPlaceType,
+        await getPrice()
     );
     console.log(`swapper.swapPlaceInfoRegister done for ${balancerPoolUsdcTusdDaiUsdt}`)
 
@@ -41,6 +39,7 @@ async function main() {
         POLYGON.usdt,
         balancerPoolUsdcDaiMaiUsdt,
         balancerSwapPlaceType,
+        await getPrice()
     );
     console.log(`swapper.swapPlaceInfoRegister done for ${balancerPoolUsdcDaiMaiUsdt}`)
 
