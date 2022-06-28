@@ -13,6 +13,8 @@ import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPool.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
+import "./connectors/penrose/interface/IUserProxy.sol";
+import "./connectors/penrose/interface/IPenLens.sol";
 
 import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
 import {OvnMath} from "./libraries/OvnMath.sol";
@@ -34,6 +36,7 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     IExchange public exchange;
     IUsdPlusToken public usdPlus;
     IERC20 public usdc;
+    IERC20 public aUsdc;
     IERC20 public wmatic;
 
     uint256 public usdcDm;
@@ -43,6 +46,10 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     IDystopiaLP public dystRewards;
     IDystopiaLP public dystVault;
 
+
+    IERC20 public penToken;
+    IUserProxy public penProxy;
+    IPenLens public penLens;
 
 
     // Aave
@@ -89,28 +96,39 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
     function setTokens(
         address _usdc,
+        address _aUsdc,
         address _wmatic,
-        address _usdPlus
+        address _usdPlus,
+        address _penToken
     ) external onlyAdmin {
-        usdc= IERC20(_usdc);
-        wmatic= IERC20(_wmatic);
+        usdc = IERC20(_usdc);
+        aUsdc = IERC20(_aUsdc);
+        wmatic = IERC20(_wmatic);
         usdcDm = 10 ** IERC20Metadata(_usdc).decimals();
         wmaticDm = 10 ** IERC20Metadata(_wmatic).decimals();
 
         usdPlus = IUsdPlusToken(_usdPlus);
+
+        penToken = IERC20(_penToken);
     }
 
     function setParams(
         address _exchange,
         address _dystRewards,
         address _dystVault,
-        address _dystRouter
+        address _dystRouter,
+        address _penProxy,
+        address _penLens
     ) external onlyAdmin {
 
         dystRewards = IDystopiaLP(_dystRewards);
         dystVault = IDystopiaLP(_dystVault);
         dystRouter = IDystopiaRouter(_dystRouter);
+
         exchange = IExchange(_exchange);
+
+        penProxy = IUserProxy(_penProxy);
+        penLens = IPenLens(_penLens);
     }
 
     function setAaveParams(
@@ -132,7 +150,7 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         balancingDelta = _balancingDelta * 10 ** 15;
     }
 
-    function mint(uint256 _amount) external returns (uint256) {
+    function buy(uint256 _amount) external returns (uint256) {
         uint256 currentBalance = IERC20(address(usdPlus)).balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
@@ -144,19 +162,28 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         _borrowWmatic();
 
         _showBalances();
-        _stakeDystopia();
+        _stakeDystopiaToPenrose();
         _showBalances();
+
+        console.log('Nav %s', nav());
 
         return 0;
     }
 
-    function _stakeDystopia() internal {
+    function redeem(uint256 _amount) external returns (uint256) {
+        return 0;
+    }
 
+
+    function _stakeDystopiaToPenrose() internal {
+
+
+        // 1. Stake to Dystopia
         uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
         uint256 wmaticAmount = wmatic.balanceOf(address(this));
 
-        console.log('USD+  %s', usdPlusAmount/ 1e6);
-        console.log('MATIC %s', wmaticAmount/ 1e18);
+        usdPlus.approve(address(dystRouter), usdPlusAmount);
+        wmatic.approve(address(dystRouter), wmaticAmount);
 
         dystRouter.addLiquidity(
             address(wmatic),
@@ -169,6 +196,11 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
             address(this),
             block.timestamp + 600
         );
+
+        // 2. Stake to Penrose
+        uint256 lpTokenBalance = dystVault.balanceOf(address(this));
+        dystVault.approve(address(penProxy), lpTokenBalance);
+        penProxy.depositLpAndStake(address(dystVault), lpTokenBalance);
     }
 
     function _borrowWmatic() internal {
@@ -176,6 +208,8 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
         uint256 balanceUsdPlus = usdPlus.balanceOf(address(this));
+        uint256 redeemFeeAmount = (balanceUsdPlus * exchange.redeemFee()) / exchange.redeemFeeDenominator();
+        balanceUsdPlus = balanceUsdPlus - redeemFeeAmount;
 
         // 1. Recalculate target amount and increese usdcStorage proportionately.
         uint256 amount = OvnMath.subBasisPoints(balanceUsdPlus - usdcStorage, BASIS_POINTS_FOR_STORAGE);
@@ -193,11 +227,15 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
             uint256(oracleWmatic.latestAnswer())
         );
 
+
+        uint256 redeemUsdcCollateral = usdcCollateral + (usdcCollateral * exchange.redeemFee()) / exchange.redeemFeeDenominator() + 100;
+        exchange.redeem(address(usdc), redeemUsdcCollateral);
+
         IPool aavePool = _aavePool();
 
         usdc.approve(address(aavePool), usdcCollateral);
         aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
-        aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE , REFERRAL_CODE, address(this));
+        aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
     }
 
     function _aavePool() internal returns (IPool aavePool){
@@ -207,9 +245,9 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
     function _showAave() internal {
 
-        IPool aave= _aavePool();
+        IPool aave = _aavePool();
 
-        ( uint256 totalCollateralBase,
+        (uint256 totalCollateralBase,
         uint256 totalDebtBase,
         uint256 availableBorrowsBase,
         uint256 currentLiquidationThreshold,
@@ -234,5 +272,63 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         console.log('USD+     %s', usdPlus.balanceOf(address(this)) / 1e6);
         console.log('WMATIC   %s', wmatic.balanceOf(address(this)) / 1e18);
         console.log('Dystopia %s', dystVault.balanceOf(address(this)));
+
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+
+        console.log('Penrose %s', lpTokenBalance);
+
     }
+
+    function nav() public view returns (uint256){
+
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+
+        if (balanceLp == 0)
+            return 0;
+
+        (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
+        uint256 totalUsdPlus = poolUsdPlus;
+        uint256 totalUsdc = usdc.balanceOf(address(this)) + aUsdc.balanceOf(address(this));
+
+
+        // debt base (USD) convert to Wmatic amount
+        (, uint256 debtBase,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
+        uint256 aaveWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+
+        if (aaveWmatic < poolWmatic) {
+            uint256 deltaWmatic = poolWmatic - aaveWmatic;
+            totalUsdc += AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                deltaWmatic,
+                wmaticDm,
+                usdcDm,
+                uint256(oracleWmatic.latestAnswer()),
+                uint256(oracleUsdc.latestAnswer())
+            );
+
+        } else {
+            uint256 deltaWmatic = aaveWmatic - poolWmatic;
+            totalUsdc -= AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                deltaWmatic,
+                wmaticDm,
+                usdcDm,
+                uint256(oracleWmatic.latestAnswer()),
+                uint256(oracleUsdc.latestAnswer())
+            );
+        }
+
+        return totalUsdPlus + totalUsdc;
+    }
+
+    function _getLiquidity(uint256 balanceLp) public view returns (uint256, uint256) {
+        (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
+
+        uint256 amountLiq0 = amount0Current * balanceLp / dystVault.totalSupply();
+        uint256 amountLiq1 = amount1Current * balanceLp / dystVault.totalSupply();
+        return (amountLiq0, amountLiq1);
+    }
+
 }

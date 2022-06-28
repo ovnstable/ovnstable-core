@@ -21,4 +21,7 @@ interface IExchange {
 
     function payout() external;
 
+    function redeemFee() external view returns (uint256);
+    function redeemFeeDenominator() external view returns (uint256);
+
 }
