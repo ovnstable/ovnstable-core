@@ -3,6 +3,14 @@ pragma solidity >=0.8.0 <0.9.0;
 
 interface IExchange {
 
+    function buyFee() external view returns (uint256);
+
+    function buyFeeDenominator() external view returns (uint256);
+
+    function redeemFee() external view returns (uint256);
+
+    function redeemFeeDenominator() external view returns (uint256);
+
     function balance() external view returns (uint256);
 
     /**

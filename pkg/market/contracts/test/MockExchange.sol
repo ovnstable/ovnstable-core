@@ -69,5 +69,8 @@ contract MockExchange {
         return redeemAmount;
     }
 
+    function setLiquidityIndex(uint256 _liquidityIndex) external {
+        usdPlus.setLiquidityIndex(_liquidityIndex);
+    }
 
 }

@@ -1,7 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../connectors/uniswap/v2/IUniswapV2Router02.sol";
+interface IUniswapV2Router01 {
+
+    function WETH() external pure returns (address);
+
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+    external
+    payable
+    returns (uint[] memory amounts);
+
+    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
+
+}
 
 /**
  * @dev Contract for swap matic to usdc on Uniswap
@@ -9,7 +20,7 @@ import "../connectors/uniswap/v2/IUniswapV2Router02.sol";
 contract BuyonSwap {
 
     function buy(address _tokenAddress, address _router) public payable {
-        IUniswapV2Router02 router = IUniswapV2Router02(_router);
+        IUniswapV2Router01 router = IUniswapV2Router01(_router);
 
         address[] memory path = new address[](2);
         path[0] = router.WETH();

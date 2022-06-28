@@ -1,12 +1,8 @@
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 
-    await deploy('MockUsdPlusToken', {
-        from: deployer,
-        args: [],
-        log: true,
-    });
+module.exports = async ({deployments}) => {
+    const {save} = deployments;
+    await deployProxy('MockUsdPlusToken', deployments, save);
 
     console.log("MockUsdPlusToken created");
 };
