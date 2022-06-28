@@ -106,7 +106,62 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
     // --- logic
 
     /**
-     * @dev Wrap `amount` of `asset` from `msg.sender` to WUSD+ of `receiver`.
+     * @dev preview wrap `amount` of `asset` to wUSD+.
+     *
+     * This is an estimate amount, real amount may vary.
+     *
+     * Requirements:
+     *
+     * - `asset` cannot be the zero address.
+     * - `amount` cannot be the zero.
+     */
+    function previewWrap(
+        address asset,
+        uint256 amount
+    ) external view override returns (uint256) {
+        require(asset != address(0), "Zero address for asset not allowed");
+        require(amount != 0, "Zero amount not allowed");
+
+        if (asset == address(usdcToken)) {
+            uint256 buyFeeAmount = (amount * exchange.buyFee()) / exchange.buyFeeDenominator();
+            return wrappedUsdPlusToken.previewDeposit(amount - buyFeeAmount);
+        } else if (asset == address(usdPlusToken)) {
+            return wrappedUsdPlusToken.previewDeposit(amount);
+        } else {
+            revert('Asset not found');
+        }
+    }
+
+    /**
+     * @dev preview unwrap `amount` of wUSD+ to `asset`.
+     *
+     * This is an estimate amount, real amount may vary.
+     *
+     * Requirements:
+     *
+     * - `asset` cannot be the zero address.
+     * - `amount` cannot be the zero.
+     */
+    function previewUnwrap(
+        address asset,
+        uint256 amount
+    ) external view override returns (uint256) {
+        require(asset != address(0), "Zero address for asset not allowed");
+        require(amount != 0, "Zero amount not allowed");
+
+        if (asset == address(usdcToken)) {
+            uint256 usdPlusAmount = wrappedUsdPlusToken.previewRedeem(amount);
+            uint256 redeemFeeAmount = (usdPlusAmount * exchange.redeemFee()) / exchange.redeemFeeDenominator();
+            return usdPlusAmount - redeemFeeAmount;
+        } else if (asset == address(usdPlusToken)) {
+            return wrappedUsdPlusToken.previewRedeem(amount);
+        } else {
+            revert('Asset not found');
+        }
+    }
+
+    /**
+     * @dev Wrap `amount` of `asset` from `msg.sender` to wUSD+ of `receiver`.
      *
      * Emits a {Wrap} event.
      *
@@ -120,7 +175,7 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
         address asset,
         uint256 amount,
         address receiver
-    ) external override {
+    ) external override returns (uint256) {
         require(asset != address(0), "Zero address for asset not allowed");
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
@@ -140,15 +195,18 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
 
             usdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             wrappedUsdPlusAmount = wrappedUsdPlusToken.deposit(amount, receiver);
+
         } else {
             revert('Asset not found');
         }
 
         emit Wrap(asset, amount, receiver, wrappedUsdPlusAmount);
+
+        return wrappedUsdPlusAmount;
     }
 
     /**
-     * @dev Unwrap `amount` of WUSD+ from `msg.sender` to `asset` of `receiver`.
+     * @dev Unwrap `amount` of wUSD+ from `msg.sender` to `asset` of `receiver`.
      *
      * Emits a {Unwrap} event.
      *
@@ -162,7 +220,7 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
         address asset,
         uint256 amount,
         address receiver
-    ) external override {
+    ) external override returns (uint256) {
         require(asset != address(0), "Zero address for asset not allowed");
         require(amount != 0, "Zero amount not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
@@ -184,10 +242,14 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
 
             wrappedUsdPlusToken.approve(address(wrappedUsdPlusToken), amount);
             unwrappedUsdPlusAmount = wrappedUsdPlusToken.redeem(amount, receiver, address(this));
+
         } else {
             revert('Asset not found');
         }
 
         emit Unwrap(asset, amount, receiver, unwrappedUsdPlusAmount);
+
+        return unwrappedUsdPlusAmount;
     }
+
 }

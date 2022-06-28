@@ -45,15 +45,23 @@ describe("Market", function () {
 
         // wrap usdc
         await usdc.connect(userAccount).approve(market.address, 10000);
-        await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 10000, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 10000));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
 
         // unwrap usdc
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 9996));
         expect(await usdc.balanceOf(userAccount.address)).to.equals(9993);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
     it("wrap usdc / unwrap usd+", async function () {
@@ -64,16 +72,24 @@ describe("Market", function () {
 
         // wrap usdc
         await usdc.connect(userAccount).approve(market.address, 10000);
-        await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 10000, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 10000));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
         
         // unwrap usd+
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdPlus.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdPlus.address, 9996));
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(9996);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
     
     it("wrap usd+ / unwrap usdc", async function () {
@@ -86,16 +102,24 @@ describe("Market", function () {
 
         // wrap usd+
         await usdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdPlus.address, 9996, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdPlus.address, 9996));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
 
         // unwrap usdc
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);        
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 9996));
         expect(await usdc.balanceOf(userAccount.address)).to.equals(9993);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
     it("wrap usd+ / unwrap usd+", async function () {
@@ -108,15 +132,23 @@ describe("Market", function () {
 
         // wrap usd+
         await usdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdPlus.address, 9996, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdPlus.address, 9996));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
         
         // unwrap usd+
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdPlus.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdPlus.address, 9996));
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(9996);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
     
     it("wrap usdc / change liquidity index / unwrap usdc", async function () {
@@ -127,9 +159,13 @@ describe("Market", function () {
 
         // wrap usdc
         await usdc.connect(userAccount).approve(market.address, 10000);
-        await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 10000, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 10000));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
 
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
@@ -137,9 +173,13 @@ describe("Market", function () {
 
         // unwrap usdc
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 9996));
         expect(await usdc.balanceOf(userAccount.address)).to.equals(19985);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
     it("wrap usdc / change liquidity index / unwrap usd+", async function () {
@@ -150,9 +190,13 @@ describe("Market", function () {
 
         // wrap usdc
         await usdc.connect(userAccount).approve(market.address, 10000);
-        await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 10000, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 10000, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 10000));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
         
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
@@ -161,9 +205,13 @@ describe("Market", function () {
         // unwrap usd+
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdPlus.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdPlus.address, 9996));
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(19992);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
     
     it("wrap usd+ / change liquidity index / unwrap usdc", async function () {
@@ -176,9 +224,13 @@ describe("Market", function () {
 
         // wrap usd+
         await usdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdPlus.address, 9996, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdPlus.address, 9996));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
 
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
@@ -187,9 +239,13 @@ describe("Market", function () {
         // unwrap usdc
         expect(await usdc.balanceOf(userAccount.address)).to.equals(0);        
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 9996, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 9996));
         expect(await usdc.balanceOf(userAccount.address)).to.equals(19985);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
     it("wrap usd+ / change liquidity index / unwrap usd+", async function () {
@@ -202,9 +258,13 @@ describe("Market", function () {
 
         // wrap usd+
         await usdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdPlus.address, 9996, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdPlus.address, 9996));
         expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(9996);
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
         
         // change liquidity index
         let liquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
@@ -212,9 +272,13 @@ describe("Market", function () {
 
         // unwrap usd+
         await wrappedUsdPlus.connect(userAccount).approve(market.address, 9996);
-        await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address);
-        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdPlus.address, 9996, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdPlus.address, 9996, userAccount.address)).wait();
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdPlus.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdPlus.address, 9996));
         expect(await usdPlus.balanceOf(userAccount.address)).to.equals(19992);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
 });
