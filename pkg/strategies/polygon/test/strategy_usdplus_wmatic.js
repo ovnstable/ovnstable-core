@@ -60,6 +60,8 @@ describe("StaticUsdPlusToken", function () {
         let nav = fromUSDC(await strategy.nav());
 
         console.log('Nav ' + nav)
+
+        await strategy.redeem(toUSDC(50));
     });
 
 });

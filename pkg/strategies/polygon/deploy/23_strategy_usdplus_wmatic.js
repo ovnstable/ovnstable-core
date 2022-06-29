@@ -7,6 +7,7 @@ const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 let dystRouter = '0xbE75Dd16D029c6B32B7aD57A0FD9C1c20Dd2862e'; //DystRouter01
 let dystPair = '0x1A5FEBA5D5846B3b840312Bd04D76ddaa6220170'; //WMATIC/USD+
 let gauge = '0x7c9716266795a04ae1fbbd017dc2585fbf78076d'; //aka MasterChef
+let dystToken = '0x39aB6574c289c3Ae4d88500eEc792AB5B947A5Eb';
 
 
 let penToken = '0x9008D70A5282a936552593f410AbcBcE2F891A97';
@@ -22,7 +23,20 @@ module.exports = async (plugin) => {
     const {deployer} = await plugin.getNamedAccounts();
     const {save} = plugin.deployments;
 
-    await deployProxy('StrategyUsdPlusWmatic', plugin.deployments, save );
+    const dystopiaLibrary = await deploy("DystopiaLibrary", {
+        from: deployer
+    });
+
+    let params = {
+        factoryOptions: {
+            libraries: {
+                "DystopiaLibrary": dystopiaLibrary.address,
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyUsdPlusWmatic', plugin.deployments, save, params);
 
     const strategy = await ethers.getContract("StrategyUsdPlusWmatic");
 
@@ -39,6 +53,7 @@ module.exports = async (plugin) => {
             usdPlus.address,
             penToken,
             rebase.address,
+            dystToken
         )).wait();
 
         await (await strategy.setParams(

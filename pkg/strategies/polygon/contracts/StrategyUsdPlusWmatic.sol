@@ -16,13 +16,18 @@ import "./connectors/aave/interfaces/IPool.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
+import "./libraries/WadRayMath.sol";
 
 import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
 import {OvnMath} from "./libraries/OvnMath.sol";
+import {DystopiaLibrary} from "./libraries/DystopiaLibrary.sol";
+
 
 import "hardhat/console.sol";
 
 contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    using WadRayMath for uint256;
+
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint8 public constant E_MODE_CATEGORY_ID = 0;
@@ -44,12 +49,17 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     uint256 public redeemFee;
     uint256 public redeemFeeDenominator; // ~ 100 %
 
+    uint256 public nextPayoutTime;
+    uint256 public payoutPeriod;
+    uint256 public payoutTimeRange;
+
 
     // strategy
 
     IERC20 public usdc;
     IERC20 public aUsdc;
     IERC20 public wmatic;
+    IERC20 public dyst;
 
     uint256 public usdcDm;
     uint256 public wmaticDm;
@@ -76,6 +86,10 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     uint256 public balancingDelta;
     uint256 public realHealthFactor;
 
+
+    event Reward(uint256 amount);
+    event Payout();
+
     // ---  modifiers
 
     modifier onlyAdmin() {
@@ -101,6 +115,10 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
         redeemFee = 40;
         redeemFeeDenominator = 100000; // ~ 100 %
+
+        nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+        payoutPeriod = 24 * 60 * 60;
+        payoutTimeRange = 15 * 60;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -112,13 +130,27 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
     // --- Setters
 
+    function setPayoutTimes(
+        uint256 _nextPayoutTime,
+        uint256 _payoutPeriod,
+        uint256 _payoutTimeRange
+    ) external onlyAdmin {
+        require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
+        require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
+        require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
+        nextPayoutTime = _nextPayoutTime;
+        payoutPeriod = _payoutPeriod;
+        payoutTimeRange = _payoutTimeRange;
+    }
+
     function setTokens(
         address _usdc,
         address _aUsdc,
         address _wmatic,
         address _usdPlus,
         address _penToken,
-        address _rebase
+        address _rebase,
+        address _dyst
     ) external onlyAdmin {
         usdc = IERC20(_usdc);
         aUsdc = IERC20(_aUsdc);
@@ -129,6 +161,7 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         usdPlus = IUsdPlusToken(_usdPlus);
 
         penToken = IERC20(_penToken);
+        dyst = IERC20(_dyst);
 
         rebase = IRebaseToken(_rebase);
     }
@@ -188,7 +221,7 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         uint256 currentBalance = IERC20(address(usdPlus)).balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
-        IERC20(address(usdPlus)).transferFrom(msg.sender, address(this), _amount);
+        usdPlus.transferFrom(msg.sender, address(this), _amount);
 
         _borrowWmatic();
         _stakeDystopiaToPenrose();
@@ -201,9 +234,53 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     }
 
     function redeem(uint256 _amount) external returns (uint256) {
+        require(_amount != 0, "Zero amount");
+
+        uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
+        uint256 redeemAmount = _amount - redeemFeeAmount;
+
+        _unstake(redeemAmount);
+
+        rebase.burn(msg.sender, _amount);
+        usdPlus.transfer(msg.sender, redeemAmount);
+        return redeemAmount;
+    }
+
+
+    function _unstake(
+        uint256 _amount
+    ) internal returns (uint256) {
+
+        // 1. Recalculate target amount and decreese usdcStorage proportionately.
+        uint256 amount = OvnMath.subBasisPoints(_amount, BASIS_POINTS_FOR_STORAGE);
+        usdcStorage = usdcStorage - (_amount - amount);
+        amount += 10;
+
+        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+
+
+        uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
+            amount,
+            reserveWmatic,
+            reserveUsdPlus,
+            liquidationThreshold,
+            healthFactor,
+            usdcDm,
+            wmaticDm,
+            uint256(oracleUsdc.latestAnswer()),
+            uint256(oracleWmatic.latestAnswer())
+        );
+
+
+        console.log('Reserve WMATIC      %s', reserveWmatic / 1e18);
+        console.log('Reserve USD+        %s', reserveUsdPlus / 1e6);
+        console.log('Amount              %s', amount / 1e6);
+        console.log('UsdcStorage         %s', usdcStorage );
+        console.log('wmaticBorrow        %s', wmaticBorrow );
 
 
 
+        return 0;
     }
 
 
@@ -361,6 +438,102 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         uint256 amountLiq0 = amount0Current * balanceLp / dystVault.totalSupply();
         uint256 amountLiq1 = amount1Current * balanceLp / dystVault.totalSupply();
         return (amountLiq0, amountLiq1);
+    }
+
+
+
+    function _claimRewards() internal  {
+
+        // claim rewards
+        penProxy.claimStakingRewards();
+
+        // sell rewards
+        uint256 totalUsdc = 0;
+
+        uint256 dystBalance = dyst.balanceOf(address(this));
+        if (dystBalance > 0) {
+            uint256 dystUsdc = DystopiaLibrary._swapExactTokensForTokens(
+                dystRouter,
+                address(dyst),
+                address(wmatic),
+                address(usdc),
+                false,
+                false,
+                dystBalance,
+                address(this)
+            );
+            totalUsdc += dystUsdc;
+        }
+
+        uint256 penBalance = penToken.balanceOf(address(this));
+        if (penBalance > 0) {
+            uint256 penUsdc = DystopiaLibrary._swapExactTokensForTokens(
+                dystRouter,
+                address(penToken),
+                address(wmatic),
+                address(usdc),
+                false,
+                false,
+                penBalance,
+                address(this)
+            );
+            totalUsdc += penUsdc;
+        }
+
+        emit Reward(totalUsdc);
+    }
+
+
+    function _balance() internal {
+
+        // Balance HF
+    }
+
+    function payout() public {
+        _payout();
+    }
+
+    function _payout() internal {
+        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
+            return;
+        }
+
+        // 0. call claiming reward and balancing on PM
+        // 1. get current amount of NAV
+        // 2. get total sum of USDC we can get from any source
+        // 3. calc difference between total count of Rebase and USDC
+        // 4. update Rebase liquidity index
+
+        _claimRewards();
+        _balance();
+
+        uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
+        uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
+        uint256 totalUsdc = nav();
+
+
+        uint difference;
+        if (totalUsdc <= totalRebaseSupply) {
+            difference = totalRebaseSupply - totalUsdc;
+        } else {
+            difference = totalUsdc - totalRebaseSupply;
+        }
+
+        uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
+        // in ray
+        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalRebaseSupplyRay);
+        uint256 currentLiquidityIndex = rebase.liquidityIndex();
+
+        uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+
+        rebase.setLiquidityIndex(newLiquidityIndex);
+
+        emit Payout();
+
+        // update next payout time. Cycle for preventing gaps
+        for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
+            nextPayoutTime = nextPayoutTime + payoutPeriod;
+        }
     }
 
 }
