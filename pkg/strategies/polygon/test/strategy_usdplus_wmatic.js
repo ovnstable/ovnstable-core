@@ -8,6 +8,7 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromUSDC} = require("../../../common/utils/decimals");
 
 
 describe("StaticUsdPlusToken", function () {
@@ -16,6 +17,7 @@ describe("StaticUsdPlusToken", function () {
     let secondAccount;
     let strategy;
     let usdPlus;
+    let rebase;
     let usdc;
     let exchange;
 
@@ -23,16 +25,20 @@ describe("StaticUsdPlusToken", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(['test', 'StrategyUsdPlusWmatic']);
+        await deployments.fixture(['test', 'RebaseTokenTest', 'StrategyUsdPlusWmatic']);
 
         const {deployer, anotherAccount} = await getNamedAccounts();
         account = deployer;
         secondAccount = anotherAccount;
 
         strategy = await ethers.getContract("StrategyUsdPlusWmatic");
+        rebase = await ethers.getContract('RebaseToken');
         exchange = await ethers.getContractAt("IExchange", '0x6B3712943A913EB9A22B71D4210DE6158c519970');
         usdPlus = await ethers.getContractAt("IERC20", '0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f');
         usdc = await ethers.getContractAt("IERC20", POLYGON.usdc);
+
+
+        await rebase.setExchanger(strategy.address);
     });
 
 
@@ -49,7 +55,11 @@ describe("StaticUsdPlusToken", function () {
 
 
         await usdPlus.approve(strategy.address, toUSDC(100));
-        await strategy.mint(toUSDC(100));
+        await strategy.buy(toUSDC(100));
+
+        let nav = fromUSDC(await strategy.nav());
+
+        console.log('Nav ' + nav)
     });
 
 });

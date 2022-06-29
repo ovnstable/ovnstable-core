@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
+import "./interfaces/IRebaseToken.sol";
 import "./connectors/dystopia/interfaces/IDystopiaRouter.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
@@ -31,10 +32,21 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
     uint256 constant BASIS_POINTS_FOR_SLIPPAGE = 4; // 0.04%
 
 
-    // ---  fields
+    // --- rebase
 
     IExchange public exchange;
     IUsdPlusToken public usdPlus;
+    IRebaseToken public rebase;
+
+    uint256 public buyFee;
+    uint256 public buyFeeDenominator; // ~ 100 %
+
+    uint256 public redeemFee;
+    uint256 public redeemFeeDenominator; // ~ 100 %
+
+
+    // strategy
+
     IERC20 public usdc;
     IERC20 public aUsdc;
     IERC20 public wmatic;
@@ -83,6 +95,12 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(UPGRADER_ROLE, msg.sender);
+
+        buyFee = 40;
+        buyFeeDenominator = 100000; // ~ 100 %
+
+        redeemFee = 40;
+        redeemFeeDenominator = 100000; // ~ 100 %
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -99,7 +117,8 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         address _aUsdc,
         address _wmatic,
         address _usdPlus,
-        address _penToken
+        address _penToken,
+        address _rebase
     ) external onlyAdmin {
         usdc = IERC20(_usdc);
         aUsdc = IERC20(_aUsdc);
@@ -110,7 +129,22 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
         usdPlus = IUsdPlusToken(_usdPlus);
 
         penToken = IERC20(_penToken);
+
+        rebase = IRebaseToken(_rebase);
     }
+
+    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        buyFee = _fee;
+        buyFeeDenominator = _feeDenominator;
+    }
+
+    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        redeemFee = _fee;
+        redeemFeeDenominator = _feeDenominator;
+    }
+
 
     function setParams(
         address _exchange,
@@ -156,22 +190,20 @@ contract StrategyUsdPlusWmatic is Initializable, AccessControlUpgradeable, UUPSU
 
         IERC20(address(usdPlus)).transferFrom(msg.sender, address(this), _amount);
 
-        _showBalances();
-
-        _showBalances();
         _borrowWmatic();
-
-        _showBalances();
         _stakeDystopiaToPenrose();
-        _showBalances();
 
-        console.log('Nav %s', nav());
+        uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
+        uint256 buyAmount = _amount - buyFeeAmount;
+        rebase.mint(msg.sender, buyAmount);
 
-        return 0;
+        return buyAmount;
     }
 
     function redeem(uint256 _amount) external returns (uint256) {
-        return 0;
+
+
+
     }
 
 

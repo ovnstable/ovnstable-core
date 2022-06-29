@@ -22,11 +22,11 @@ module.exports = async (plugin) => {
     const {deployer} = await plugin.getNamedAccounts();
     const {save} = plugin.deployments;
 
-
-
     await deployProxy('StrategyUsdPlusWmatic', plugin.deployments, save );
 
     const strategy = await ethers.getContract("StrategyUsdPlusWmatic");
+
+    const rebase = await ethers.getContract('RebaseToken');
     const exchange = await getContract('Exchange');
     const usdPlus = await getContract('UsdPlusToken');
 
@@ -37,7 +37,8 @@ module.exports = async (plugin) => {
             POLYGON.amUsdc,
             POLYGON.wMatic,
             usdPlus.address,
-            penToken
+            penToken,
+            rebase.address,
         )).wait();
 
         await (await strategy.setParams(
