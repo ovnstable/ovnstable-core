@@ -9,6 +9,7 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
 import "./libraries/AaveBorrowLibrary.sol";
+import "./interfaces/ISwapper.sol";
 
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
@@ -32,6 +33,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     IUserProxy public userProxy;
     IPenLens public penLens;
 
+    ISwapper public swapper;
 
     // --- events
 
@@ -39,7 +41,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         uint256 usdcTokenDenominator, uint256 usdtTokenDenominator);
 
     event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt,
-        address oracleUsdc, address oracleUsdt, address userProxy, address penLens);
+        address oracleUsdc, address oracleUsdt, address userProxy, address penLens, address swapper);
 
 
     // ---  constructor
@@ -88,7 +90,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address _oracleUsdc,
         address _oracleUsdt,
         address _userProxy,
-        address _penLens
+        address _penLens,
+        address _swapper
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -100,6 +103,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         require(_oracleUsdt != address(0), "Zero address not allowed");
         require(_userProxy != address(0), "Zero address not allowed");
         require(_penLens != address(0), "Zero address not allowed");
+        require(_swapper != address(0), "Zero address not allowed");
 
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
@@ -110,9 +114,10 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         oracleUsdt = IPriceFeed(_oracleUsdt);
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
+        swapper = ISwapper(_swapper);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
-            _oracleUsdt, _userProxy, _penLens);
+            _oracleUsdt, _userProxy, _penLens, _swapper);
     }
 
 
@@ -134,6 +139,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         //TODO add parameter to _getAmountToSwap() second token amount
+        // TODO: dystopia method used from BalancerExchange
         uint256 amountUsdcToSwap = _getAmountToSwap(
             usdcBalance,
             reserveUsdc,
@@ -147,16 +153,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         );
 
         // swap usdc to usdt
-        swap(
-            poolIdUsdcTusdDaiUsdt,
-            IVault.SwapKind.GIVEN_IN,
-            IAsset(address(usdcToken)),
-            IAsset(address(usdtToken)),
-            address(this),
-            address(this),
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdcToken),
+            address(usdtToken),
             amountUsdcToSwap,
-            0
+            0,
+            5
         );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
@@ -235,16 +240,16 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        swap(
-            poolIdUsdcTusdDaiUsdt,
-            IVault.SwapKind.GIVEN_IN,
-            IAsset(address(usdtToken)),
-            IAsset(address(usdcToken)),
-            address(this),
-            address(this),
+
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdtToken),
+            address(usdcToken),
             usdtBalance,
-            0
+            0,
+            5
         );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -291,16 +296,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        swap(
-            poolIdUsdcTusdDaiUsdt,
-            IVault.SwapKind.GIVEN_IN,
-            IAsset(address(usdtToken)),
-            IAsset(address(usdcToken)),
-            address(this),
-            address(this),
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdtToken),
+            address(usdcToken),
             usdtBalance,
-            0
+            0,
+            5
         );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -336,13 +340,14 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
                 usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             } else {
-                usdcBalanceFromUsdt = onSwap(
-                    poolIdUsdcTusdDaiUsdt,
-                    IVault.SwapKind.GIVEN_IN,
-                    usdtToken,
-                    usdcToken,
-                    usdtBalance
+                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+                    address(usdtToken),
+                    address(usdcToken),
+                    usdtBalance,
+                    0,
+                    5
                 );
+                usdcBalanceFromUsdt = swapper.getAmountOut(swapParams);
             }
 
         }
