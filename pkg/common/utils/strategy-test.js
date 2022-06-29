@@ -104,7 +104,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
         });
 
         it("log gas", async () => {
-            await logStrategyGasUsage(strategyName, strategy, usdc, account.address)
+            await logStrategyGasUsage(strategyName, strategy, usdc, recipient)
         });
 
 
