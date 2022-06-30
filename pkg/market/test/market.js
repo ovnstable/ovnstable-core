@@ -281,6 +281,192 @@ describe("Market", function () {
         expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
     });
 
+    it("usd+ balance enough to unwrap if LiquidityIndex don't grow", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604144042764124558114376');
+
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(19631557);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 19631557);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 19631557, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 19631557, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 19631557));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224271);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
+    it("usd+ balance enough to unwrap if LiquidityIndex don't grow", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604134042764124558114376');
+
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(19631558);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 19631558);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 19631558, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 19631558, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 19631558));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224272);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
+    it("usd+ balance enough to unwrap if LiquidityIndex don't grow", async function () {
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(20232365);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 20232365);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 20232365, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 20232365, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 20232365));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224273);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
+    it("usd+ balance enough to unwrap if LiquidityIndex small grow", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604144042764124558114376');
+
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(19631557);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // set new LiquidityIndex
+        await exchange.setLiquidityIndex('1030604144052764124558114376');
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 19631557);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 19631557, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 19631557, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 19631557));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224271);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
+    it("usd+ balance enough to unwrap if LiquidityIndex small grow", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604144042764124558114376');
+
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(19631557);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // set new LiquidityIndex
+        await exchange.setLiquidityIndex('1030604168542764124558114376');
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 19631557);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 19631557, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 19631557, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 19631557));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224272);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
+    it("usd+ balance enough to unwrap if LiquidityIndex small grow", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604134042764124558114376');
+
+        // transfer usdc
+        await usdc.transfer(userAccount.address, 20240461);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20240461);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+
+        // wrap usdc
+        await usdc.connect(userAccount).approve(market.address, 20240461);
+        let wrappedAmount = await market.connect(userAccount).callStatic.wrap(usdc.address, 20240461, userAccount.address);
+        let receiptWrap = await (await market.connect(userAccount).wrap(usdc.address, 20240461, userAccount.address)).wait();
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(wrappedAmount);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(await market.previewWrap(usdc.address, 20240461));
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(19631558);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptWrap.events.find((e) => e.event === 'Wrap').args[3].toString()).to.equals(wrappedAmount.toString());
+
+        // set new LiquidityIndex
+        await exchange.setLiquidityIndex('1030604168542764124558114376');
+
+        // unwrap usdc
+        await wrappedUsdPlus.connect(userAccount).approve(market.address, 19631558);
+        let unwrappedAmount = await market.connect(userAccount).callStatic.unwrap(usdc.address, 19631558, userAccount.address);
+        let receiptUnwrap = await (await market.connect(userAccount).unwrap(usdc.address, 19631558, userAccount.address)).wait();
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(unwrappedAmount);
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(await market.previewUnwrap(usdc.address, 19631558));
+        expect(await usdc.balanceOf(userAccount.address)).to.equals(20224273);
+        expect(await wrappedUsdPlus.balanceOf(userAccount.address)).to.equals(0);
+        expect(receiptUnwrap.events.find((e) => e.event === 'Unwrap').args[3].toString()).to.equals(unwrappedAmount.toString());
+    });
+
 });
 
 

@@ -38,6 +38,21 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     override
     {}
 
+    function _convertToSharesUp(uint256 assets) internal view returns (uint256) {
+        return assets.rayDiv(asset.liquidityIndex());
+    }
+
+    function _convertToAssetsUp(uint256 shares) internal view returns (uint256) {
+        return shares.rayMul(asset.liquidityIndex());
+    }
+
+    function _convertToSharesDown(uint256 assets) internal view returns (uint256) {
+        return assets.rayDivDown(asset.liquidityIndex());
+    }
+
+    function _convertToAssetsDown(uint256 shares) internal view returns (uint256) {
+        return shares.rayMulDown(asset.liquidityIndex());
+    }
 
     /// @inheritdoc ERC20Upgradeable
     function decimals() public view override(ERC20Upgradeable) returns (uint8) {
@@ -46,17 +61,17 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     /// @inheritdoc IERC4626
     function totalAssets() external view override returns (uint256) {
-        return convertToAssets(totalSupply());
+        return _convertToAssetsDown(totalSupply());
     }
 
     /// @inheritdoc IERC4626
-    function convertToShares(uint256 assets) public view override returns (uint256) {
-        return assets.rayDiv(asset.liquidityIndex());
+    function convertToShares(uint256 assets) external view override returns (uint256) {
+        return _convertToSharesDown(assets);
     }
 
     /// @inheritdoc IERC4626
-    function convertToAssets(uint256 shares) public view override returns (uint256) {
-        return shares.rayMul(asset.liquidityIndex());
+    function convertToAssets(uint256 shares) external view override returns (uint256) {
+        return _convertToAssetsDown(shares);
     }
 
     /// @inheritdoc IERC4626
@@ -66,7 +81,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     /// @inheritdoc IERC4626
     function previewDeposit(uint256 assets) external view override returns (uint256) {
-        return convertToShares(assets);
+        return _convertToSharesDown(assets);
     }
 
     /// @inheritdoc IERC4626
@@ -76,9 +91,11 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
         asset.transferFrom(msg.sender, address(this), assets);
 
-        uint256 shares = convertToShares(assets);
+        uint256 shares = _convertToSharesDown(assets);
 
-        _mint(receiver, shares);
+        if (shares != 0) {
+            _mint(receiver, shares);
+        }
 
         emit Deposit(msg.sender, receiver, assets, shares);
 
@@ -92,7 +109,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     /// @inheritdoc IERC4626
     function previewMint(uint256 shares) external view override returns (uint256) {
-        return convertToAssets(shares);
+        return _convertToAssetsUp(shares);
     }
 
     /// @inheritdoc IERC4626
@@ -100,9 +117,11 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
-        uint256 assets = convertToAssets(shares);
+        uint256 assets = _convertToAssetsUp(shares);
 
-        asset.transferFrom(msg.sender, address(this), assets);
+        if (assets != 0) {
+            asset.transferFrom(msg.sender, address(this), assets);
+        }
 
         _mint(receiver, shares);
 
@@ -113,12 +132,12 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     /// @inheritdoc IERC4626
     function maxWithdraw(address owner) external view override returns (uint256) {
-        return convertToAssets(balanceOf(owner));
+        return _convertToAssetsDown(balanceOf(owner));
     }
 
     /// @inheritdoc IERC4626
     function previewWithdraw(uint256 assets) external view override returns (uint256) {
-        return convertToShares(assets);
+        return _convertToSharesUp(assets);
     }
 
     /// @inheritdoc IERC4626
@@ -127,7 +146,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         require(receiver != address(0), "Zero address for receiver not allowed");
         require(owner != address(0), "Zero address for owner not allowed");
 
-        uint256 shares = convertToShares(assets);
+        uint256 shares = _convertToSharesUp(assets);
 
         if (owner != msg.sender) {
             uint256 currentAllowance = allowance(owner, msg.sender);
@@ -135,7 +154,9 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
             _approve(owner, msg.sender, currentAllowance - shares);
         }
 
-        _burn(owner, shares);
+        if (shares != 0) {
+            _burn(owner, shares);
+        }
 
         asset.transfer(receiver, assets);
 
@@ -151,7 +172,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
     /// @inheritdoc IERC4626
     function previewRedeem(uint256 shares) external view override returns (uint256) {
-        return convertToAssets(shares);
+        return _convertToAssetsDown(shares);
     }
 
     /// @inheritdoc IERC4626
@@ -168,9 +189,11 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
 
         _burn(owner, shares);
 
-        uint256 assets = convertToAssets(shares);
+        uint256 assets = _convertToAssetsDown(shares);
 
-        asset.transfer(receiver, assets);
+        if (assets != 0) {
+            asset.transfer(receiver, assets);
+        }
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
