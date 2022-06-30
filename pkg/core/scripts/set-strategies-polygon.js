@@ -11,7 +11,7 @@ async function main() {
             "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 22.5,
+            "targetWeight": 2.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -20,7 +20,7 @@ async function main() {
             "strategy": "0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5",
             "name": "Tetu USDC",
             "minWeight": 0,
-            "targetWeight": 0.5,
+            "targetWeight": 20.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
