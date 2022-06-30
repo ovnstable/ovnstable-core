@@ -30,6 +30,14 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        fantom: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+
         polygon: {
             url: forkingUrl,
             accounts: accountsNetwork,
