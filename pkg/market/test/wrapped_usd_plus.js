@@ -664,6 +664,35 @@ describe("WrappedUsdPlusToken", function () {
         );
     });
 
+    it("bug", async function () {
+        // set LiquidityIndex
+        await exchange.setLiquidityIndex('1030604144042764124558114376');
+
+        // buy usd+
+        let wrappedAmount = 20240461;
+        await usdc.approve(exchange.address, wrappedAmount);
+        await exchange.buy(usdc.address, wrappedAmount);
+
+        // deposit wusd+
+        let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
+        await usdPlus.approve(wrappedUsdPlus.address, usdPlusBalanceBefore);
+        let mintedWrappedAmount = await wrappedUsdPlus.callStatic.deposit(usdPlusBalanceBefore, account);
+        await wrappedUsdPlus.deposit(usdPlusBalanceBefore, account);
+        let wrappedUsdPlusBalance = await wrappedUsdPlus.balanceOf(account);
+        expect(mintedWrappedAmount).to.equals(wrappedUsdPlusBalance);
+
+        // set new LiquidityIndex
+        await exchange.setLiquidityIndex('1030604168542764124558114376');
+
+        // redeem wusd+
+        let unwrappedAmount = await wrappedUsdPlus.callStatic.redeem(wrappedUsdPlusBalance, account, account);
+        await wrappedUsdPlus.redeem(wrappedUsdPlusBalance, account, account);
+        let usdPlusBalanceAfter = await usdPlus.balanceOf(account);
+        expect(usdPlusBalanceAfter).to.equals(unwrappedAmount);
+
+        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.be.oneOf([0, 1, 2]);
+    });
+
 });
 
 
