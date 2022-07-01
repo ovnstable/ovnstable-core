@@ -40,7 +40,6 @@ module.exports = async (plugin) => {
 
     const strategy = await ethers.getContract("StrategyUsdPlusWmatic");
 
-    const rebase = await ethers.getContract('RebaseToken');
     const exchange = await getContract('Exchange');
     const usdPlus = await getContract('UsdPlusToken');
 
@@ -52,7 +51,6 @@ module.exports = async (plugin) => {
             POLYGON.wMatic,
             usdPlus.address,
             penToken,
-            rebase.address,
             dystToken
         )).wait();
 
