@@ -10,7 +10,6 @@ import "../connectors/balancer/interfaces/IVault.sol";
 import "../StrategyBorrowDystopiaUsdcUsdt.sol";
 import "./OvnMath.sol";
 import "./AaveBorrowLibrary.sol";
-import "hardhat/console.sol";
 
 library StrategyDystopiaUsdcUsdtLibrary {
 
@@ -97,8 +96,7 @@ library StrategyDystopiaUsdcUsdtLibrary {
             return healthFactorCurrent;
         }
 
-        if (healthFactorCurrent > self.healthFactor()) {
-            _healthFactorBalanceILt(self);
+        if (healthFactorCurrent > self.healthFactor()) {            _healthFactorBalanceILt(self);
         } else {
             _healthFactorBalanceIGt(self);
         }

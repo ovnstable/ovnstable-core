@@ -136,12 +136,16 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
         uint256 unstakeLpBalance = amountToUnstake * usdcLPTokenTotalSupply / baseTarget;
+        uint256 userLPBalance = dodoMine.balanceOf(address(this));
+        if (unstakeLpBalance > userLPBalance) {
+            unstakeLpBalance = userLPBalance;
+        }
 
         // unstake lp tokens
         dodoMine.withdraw(unstakeLpBalance);
 
         // remove liquidity from pool
-        uint256 redeemedTokens = dodoV1UsdcUsdtPool.withdrawAllBase();
+        dodoV1UsdcUsdtPool.withdrawAllBase();
 
         // return all usdc tokens
         return usdcToken.balanceOf(address(this));

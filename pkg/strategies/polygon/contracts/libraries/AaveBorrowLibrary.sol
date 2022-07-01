@@ -6,7 +6,6 @@ import "../connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "../connectors/aave/interfaces/IPriceFeed.sol";
 import "../connectors/aave/interfaces/IPool.sol";
 import '../connectors/uniswap/v3/libraries/FullMath.sol';
-import "hardhat/console.sol";
 
 
 library AaveBorrowLibrary {
