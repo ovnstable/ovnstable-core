@@ -25,11 +25,11 @@ describe("Liquidity Index", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["RebaseUsdPlusWmatic"]);
+        await deployments.fixture(["RebaseToken"]);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
-        rebase = await ethers.getContract("RebaseUsdPlusWmatic");
+        rebase = await ethers.getContract("RebaseToken");
         await rebase.setExchanger(account);
     });
 
@@ -39,7 +39,7 @@ describe("Liquidity Index", function () {
         let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
         await rebase.setLiquidityIndex(newLiquidityIndex.toString());
 
-        await logGas(rebase.mint(account, 1), "RebaseUsdPlusWmatic", "mint");
+        await logGas(rebase.mint(account, 1), "RebaseToken", "mint");
 
         let scaledBalance = await rebase.scaledBalanceOf(account);
         console.log("ScaledBalance rebase: " + scaledBalance);
@@ -382,11 +382,11 @@ describe("Total Mint/Burn/Supply", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["RebaseUsdPlusWmatic"]);
+        await deployments.fixture(["RebaseToken"]);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
-        rebase = await ethers.getContract("RebaseUsdPlusWmatic");
+        rebase = await ethers.getContract("RebaseToken");
         await rebase.setExchanger(account);
     });
 
@@ -450,11 +450,11 @@ describe("ERC20", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["RebaseUsdPlusWmatic"]);
+        await deployments.fixture(["RebaseToken"]);
 
         const accounts = await getNamedAccounts();
         account = accounts.deployer;
-        rebase = await ethers.getContract("RebaseUsdPlusWmatic");
+        rebase = await ethers.getContract("RebaseToken");
         await rebase.setExchanger(account);
 
         await rebase.setName('LP USD+/WMATIC', 'USD+/WMATIC')

@@ -38,6 +38,13 @@ async function getContract(name, network){
 
 }
 
+async function getAbi(name){
+
+    let searchPath = fromDir(require('app-root-path').path, path.join(name + ".json"));
+    return JSON.parse(fs.readFileSync(searchPath)).abi;
+
+}
+
 async function getStrategy(address){
 
     let ethers = hre.ethers;
@@ -339,5 +346,6 @@ module.exports = {
     getStrategy: getStrategy,
     changeWeightsAndBalance: changeWeightsAndBalance,
     upgradeStrategy: upgradeStrategy,
-    execTimelock: execTimelock
+    execTimelock: execTimelock,
+    getAbi: getAbi
 }

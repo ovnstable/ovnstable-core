@@ -6,11 +6,13 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "./interfaces/IMark2Market.sol";
-import "./interfaces/IPortfolioManager.sol";
-import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
-import "./PayoutListener.sol";
+import "./interfaces/IRebaseToken.sol";
+import "./interfaces/IUsdPlusToken.sol";
+import "./interfaces/IExchange.sol";
+import "./interfaces/IMarketStrategy.sol";
+
+import "hardhat/console.sol";
 
 contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -19,16 +21,24 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
 
     // ---  fields
 
-    UsdPlusToken public usdPlus;
-    IERC20 public usdc;
+    IExchange public exchange;
+    IMarketStrategy public strategy;
+    IUsdPlusToken public usdPlus;
+    IRebaseToken public rebase;
 
-    IPortfolioManager public portfolioManager; //portfolio manager contract
+    address collector;
 
     uint256 public buyFee;
     uint256 public buyFeeDenominator; // ~ 100 %
 
     uint256 public redeemFee;
     uint256 public redeemFeeDenominator; // ~ 100 %
+
+    uint256 public tvlFee;
+    uint256 public tvlFeeDenominator; // ~ 100 %
+
+    uint256 public profitFee;
+    uint256 public profitFeeDenominator; // ~ 100 %
 
     uint256 public nextPayoutTime;
     uint256 public payoutPeriod;
@@ -39,27 +49,20 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address usdc);
-    event Mark2MarketUpdated(address mark2market);
-    event PortfolioManagerUpdated(address portfolioManager);
+    event TokensUpdated(address usdPlus, address rebase);
+
+    event CollectorUpdated(address collector);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event TvlFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event ProfitFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
+
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
-    event PayoutListenerUpdated(address payoutListener);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
-    event PayoutEvent(
-        uint256 totalUsdPlus,
-        uint256 totalUsdc,
-        uint256 totallyAmountPaid,
-        uint256 newLiquidityIndex
-    );
-    event PaidBuyFee(uint256 amount, uint256 feeAmount);
-    event PaidRedeemFee(uint256 amount, uint256 feeAmount);
+    event PayoutEvent(uint256 tvlFee, uint256 profitFee, uint256 profit, uint256 loss);
     event NextPayoutTime(uint256 nextPayoutTime);
-    event OnNotEnoughLimitRedeemed(address token, uint256 amount);
-    event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
-    event Abroad(uint256 min, uint256 max);
+
 
     // ---  modifiers
 
@@ -93,20 +96,22 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
         _grantRole(UPGRADER_ROLE, msg.sender);
         _grantRole(PAUSABLE_ROLE, msg.sender);
 
-        buyFee = 40;
+        buyFee = 40; // 0.04%
         buyFeeDenominator = 100000; // ~ 100 %
 
-        redeemFee = 40;
+        redeemFee = 40; // 0.04%
         redeemFeeDenominator = 100000; // ~ 100 %
 
-        nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+        tvlFee = 1000; // 1%
+        tvlFeeDenominator = 100000; // ~ 100 %
 
+        profitFee = 10000; // 10%
+        profitFeeDenominator = 100000; // ~ 100 %
+
+        nextPayoutTime = 1637193600;  // 1637193600 = 2021-11-18T00:00:00Z
         payoutPeriod = 24 * 60 * 60;
-
         payoutTimeRange = 15 * 60;
 
-        abroadMin = 1000100;
-        abroadMax = 1000350;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -118,29 +123,24 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
 
     // ---  setters
 
-    function setTokens(address _usdPlus, address _usdc) external onlyAdmin {
+    function setCollector(address _collector ) external onlyAdmin {
+        require(_collector != address(0), "Zero address not allowed");
+        collector = _collector;
+        emit CollectorUpdated(_collector);
+
+    }
+
+    function setTokens(address _usdPlus, address _rebase) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
-        usdPlus = UsdPlusToken(_usdPlus);
-        usdc = IERC20(_usdc);
-        emit TokensUpdated(_usdPlus, _usdc);
+        require(_rebase != address(0), "Zero address not allowed");
+        usdPlus = IUsdPlusToken(_usdPlus);
+        rebase = IRebaseToken(_rebase);
+        emit TokensUpdated(_usdPlus, _rebase);
     }
 
-    function setPortfolioManager(address _portfolioManager) external onlyAdmin {
-        require(_portfolioManager != address(0), "Zero address not allowed");
-        portfolioManager = IPortfolioManager(_portfolioManager);
-        emit PortfolioManagerUpdated(_portfolioManager);
-    }
-
-    function setMark2Market(address _mark2market) external onlyAdmin {
-        require(_mark2market != address(0), "Zero address not allowed");
-        mark2market = IMark2Market(_mark2market);
-        emit Mark2MarketUpdated(_mark2market);
-    }
-
-    function setPayoutListener(address _payoutListener) external onlyAdmin {
-        payoutListener = IPayoutListener(_payoutListener);
-        emit PayoutListenerUpdated(_payoutListener);
+    function setMarketStrategy(address _strategy) external onlyAdmin {
+        require(_strategy != address(0), "Zero address not allowed");
+        strategy = IMarketStrategy(_strategy);
     }
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
@@ -157,11 +157,20 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-    function setAbroad(uint256 _min, uint256 _max) external onlyAdmin {
-        abroadMin = _min;
-        abroadMax = _max;
-        emit Abroad(abroadMin, abroadMax);
+    function setTvlFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        tvlFee = _fee;
+        tvlFeeDenominator = _feeDenominator;
+        emit TvlFeeUpdated(redeemFee, redeemFeeDenominator);
     }
+
+    function setProfitFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        profitFee = _fee;
+        profitFeeDenominator = _feeDenominator;
+        emit ProfitFeeUpdated(redeemFee, redeemFeeDenominator);
+    }
+
 
     function setPayoutTimes(
         uint256 _nextPayoutTime,
@@ -192,59 +201,41 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
         return usdPlus.balanceOf(msg.sender);
     }
 
-    /**
-     * @param _addrTok Token to withdraw
-     * @param _amount Amount of USD+ tokens to burn
-     * @return Amount of minted to caller tokens
-     */
-    function buy(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
 
-        uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
+    function buy(uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+        uint256 currentBalance = usdPlus.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
-        IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
-        portfolioManager.deposit(IERC20(_addrTok), _amount);
+        usdPlus.transferFrom(msg.sender, address(strategy), _amount);
+        strategy.stake(_amount);
 
         uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
         uint256 buyAmount = _amount - buyFeeAmount;
-        emit PaidBuyFee(buyAmount, buyFeeAmount);
 
-        usdPlus.mint(msg.sender, buyAmount);
+        rebase.mint(msg.sender, buyAmount);
 
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
 
         return buyAmount;
     }
 
-    /**
-     * @param _addrTok Token to withdraw
-     * @param _amount Amount of USD+ tokens to burn
-     * @return Amount of unstacked and transferred to caller tokens
-     */
-    function redeem(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
+
+    function redeem(uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
 
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
         uint256 redeemAmount = _amount - redeemFeeAmount;
-        emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
 
-        //TODO: Real unstacked amount may be different to redeemAmount
-        uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
+        uint256 unstakedAmount = strategy.unstake(redeemAmount);
 
         // Or just burn from sender
-        usdPlus.burn(msg.sender, _amount);
+        rebase.burn(msg.sender, _amount);
 
-        // TODO: check threshhold limits to withdraw deposite
-        require(
-            IERC20(_addrTok).balanceOf(address(this)) >= unstakedAmount,
-            "Not enough for transfer unstakedAmount"
-        );
-        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+        require(usdPlus.balanceOf(address(this)) >= unstakedAmount, "Not enough for transfer unstakedAmount");
+        usdPlus.transfer(msg.sender, redeemAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
-        return unstakedAmount;
+        return redeemAmount;
     }
 
     function payout() public whenNotPaused {
@@ -256,54 +247,49 @@ contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgrade
             return;
         }
 
-        // 0. call claiming reward and balancing on PM
-        // 1. get current amount of USD+
-        // 2. get total sum of USDC we can get from any source
-        // 3. calc difference between total count of USD+ and USDC
-        // 4. update USD+ liquidity index
 
-        portfolioManager.claimAndBalance();
+        strategy.claimRewards();
+        strategy.healthFactorBalance();
 
-        uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-        uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
-        uint256 totalUsdc = mark2market.totalNetAssets();
+        uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
+        uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
+        uint256 totalUsdc = strategy.netAssetValue();
 
 
-        uint difference;
-        if (totalUsdc <= totalUsdPlusSupply) {
-            difference = totalUsdPlusSupply - totalUsdc;
-        } else {
-            difference = totalUsdc - totalUsdPlusSupply;
+        uint256 fee;
+        uint256 tvlFeeAmount;
+        uint256 profitFeeAmount;
+        uint256 profit;
+        uint256 loss;
+
+        if (totalUsdc > totalRebaseSupply) {
+            profit = totalUsdc - totalRebaseSupply;
+
+            tvlFeeAmount = (profit * tvlFee) / 365 / tvlFeeDenominator;
+            profit = profit - tvlFeeAmount;
+
+            profitFeeAmount = (profit * profitFee ) / profitFeeDenominator;
+            profit = profit - profitFeeAmount;
+
+            fee = tvlFeeAmount + profitFeeAmount;
+        }else {
+            loss = totalRebaseSupply - totalUsdc;
         }
+
+        totalUsdc = totalUsdc - fee;
 
         uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
         // in ray
-        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
-        uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
+        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalRebaseSupplyRay);
+        rebase.setLiquidityIndex(newLiquidityIndex);
 
-        uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
-        if(delta <= abroadMin){
-            revert('Delta abroad:min');
+        if(fee > 0){
+            require(collector != address(0), "Collector address zero");
+            rebase.mint(collector, fee);
         }
 
-        if(abroadMax <= delta){
-            revert('Delta abroad:max');
-        }
-
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
-
-        // notify listener about payout done
-        if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone();
-        }
-
-        emit PayoutEvent(
-            totalUsdPlusSupply,
-            totalUsdc,
-            difference,
-            newLiquidityIndex
-        );
+        emit PayoutEvent(tvlFeeAmount, profitFeeAmount, profit, loss);
 
         // update next payout time. Cycle for preventing gaps
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
