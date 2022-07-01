@@ -11,6 +11,7 @@ let penToken = '0x9008D70A5282a936552593f410AbcBcE2F891A97';
 let userProxy = '0xc9Ae7Dac956f82074437C6D40f67D6a5ABf3E34b';
 let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
 let swapper = '0xf69f73Cac304A0433Ba414819E3e024Fd1Ce4fC8';
+let synapseSwap = '0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5';
 
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyDystopiaUsdcUsdt");
@@ -26,7 +27,8 @@ module.exports = async () => {
         POLYGON.oracleChainlinkUsdt,
         userProxy,
         penLens,
-        swapper
+        swapper,
+        synapseSwap
     )).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
