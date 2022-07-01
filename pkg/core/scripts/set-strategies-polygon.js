@@ -11,7 +11,7 @@ async function main() {
             "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 12.7,
+            "targetWeight": 2.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -30,7 +30,7 @@ async function main() {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 20.2,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
