@@ -95,9 +95,12 @@ let arrays = [
         name: 'StrategyDystopiaUsdcDai',
         enabledReward: true,
     },
-
     {
         name: 'StrategyBorrowMeshSwapUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategySynapseUsdc',
         enabledReward: true,
     },
 
