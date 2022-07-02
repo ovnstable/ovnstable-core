@@ -10,6 +10,7 @@ import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
 import "./libraries/AaveBorrowLibrary.sol";
 import "./interfaces/ISwapper.sol";
+import "./connectors/synapse/interfaces/ISwap.sol";
 
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
@@ -35,13 +36,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
     ISwapper public swapper;
 
+    ISwap public synapseSwap;
+
     // --- events
 
     event StrategyUpdatedTokens(address usdcToken, address usdtToken, address dystToken, address wmaticToken, address penToken,
         uint256 usdcTokenDenominator, uint256 usdtTokenDenominator);
 
     event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt,
-        address oracleUsdc, address oracleUsdt, address userProxy, address penLens, address swapper);
+        address oracleUsdc, address oracleUsdt, address userProxy, address penLens, address swapper, address synapseSwap);
 
 
     // ---  constructor
@@ -91,7 +94,8 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address _oracleUsdt,
         address _userProxy,
         address _penLens,
-        address _swapper
+        address _swapper,
+        address _synapseSwap
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -104,6 +108,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         require(_userProxy != address(0), "Zero address not allowed");
         require(_penLens != address(0), "Zero address not allowed");
         require(_swapper != address(0), "Zero address not allowed");
+        require(_synapseSwap != address(0), "Zero address not allowed");
 
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
@@ -115,9 +120,10 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
         swapper = ISwapper(_swapper);
+        synapseSwap = ISwap(_synapseSwap);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
-            _oracleUsdt, _userProxy, _penLens, _swapper);
+            _oracleUsdt, _userProxy, _penLens, _swapper, _synapseSwap);
     }
 
 
@@ -153,15 +159,11 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         );
 
         // swap usdc to usdt
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(usdcToken),
-            address(usdtToken),
-            amountUsdcToSwap,
-            0,
-            5
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
+        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
+        uint256 minUsdtAmount = synapseSwap.calculateSwap(usdcTokenIndex, usdtTokenIndex, amountUsdcToSwap);
+        usdcToken.approve(address(synapseSwap), amountUsdcToSwap);
+        synapseSwap.swap(usdcTokenIndex, usdtTokenIndex, amountUsdcToSwap, minUsdtAmount, block.timestamp);
 
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
@@ -240,16 +242,11 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(usdtToken),
-            address(usdcToken),
-            usdtBalance,
-            0,
-            5
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
+        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
+        uint256 minUsdcAmount = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
+        usdtToken.approve(address(synapseSwap), usdtBalance);
+        synapseSwap.swap(usdtTokenIndex, usdcTokenIndex, usdtBalance, minUsdcAmount, block.timestamp);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -296,15 +293,11 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(usdtToken),
-            address(usdcToken),
-            usdtBalance,
-            0,
-            5
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
+        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
+        uint256 minUsdcAmount = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
+        usdtToken.approve(address(synapseSwap), usdtBalance);
+        synapseSwap.swap(usdtTokenIndex, usdcTokenIndex, usdtBalance, minUsdcAmount, block.timestamp);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -340,14 +333,9 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
                 usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             } else {
-                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                    address(usdtToken),
-                    address(usdcToken),
-                    usdtBalance,
-                    0,
-                    5
-                );
-                usdcBalanceFromUsdt = swapper.getAmountOut(swapParams);
+                uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
+                uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
+                usdcBalanceFromUsdt = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
             }
 
         }

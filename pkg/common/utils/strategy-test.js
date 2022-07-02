@@ -59,6 +59,7 @@ function strategyTest(strategyParams, network, assets, runStrategyLogic) {
     describe(`${strategyParams.name}`, function () {
 
         stakeUnstake(strategyParams, network, assets, values, runStrategyLogic);
+
         unstakeFull(strategyParams, network, assets, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
