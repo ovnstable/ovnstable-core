@@ -27,8 +27,7 @@ module.exports = async () => {
         POLYGON.oracleChainlinkDai,
         userProxy,
         penLens,
-        swapper,
-                       synapseSwap
+        synapseSwap
     )).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
