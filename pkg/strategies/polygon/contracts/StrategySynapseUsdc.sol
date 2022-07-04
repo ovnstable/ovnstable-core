@@ -93,8 +93,12 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         amounts[1] = 0;
         amounts[2] = _amount;
         amounts[3] = 0;
-        uint256 totalLP = nUsdLPToken.totalSupply();
-        uint256 minToMint = totalLP * _amount.subBasisPoints(4) / swap.getTokenBalance(2);
+        uint256[] memory minAmounts = new uint256[](4);
+        minAmounts[0] = 0;
+        minAmounts[1] = 0;
+        minAmounts[2] = _amount.subBasisPoints(4);
+        minAmounts[3] = 0;
+        uint256 minToMint = swap.calculateTokenAmount(minAmounts, true);
         usdcToken.approve(address(swap), _amount);
         uint256 nUsdLPTokenAmount = swap.addLiquidity(amounts, minToMint, block.timestamp);
 
@@ -112,8 +116,12 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         // unstake
-        uint256 totalLP = nUsdLPToken.totalSupply();
-        uint256 balanceLP = totalLP * _amount.addBasisPoints(4) / swap.getTokenBalance(2);
+        uint256[] memory amounts = new uint256[](4);
+        amounts[0] = 0;
+        amounts[1] = 0;
+        amounts[2] = _amount.addBasisPoints(4) + 1;
+        amounts[3] = 0;
+        uint256 balanceLP = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (balanceLP > amount) {
             balanceLP = amount;
@@ -139,40 +147,34 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         miniChefV2.withdraw(pid, amount, address(this));
 
         // remove liquidity
-        uint256 totalLP = nUsdLPToken.totalSupply();
-        uint256 usdcBalance = swap.getTokenBalance(2) * amount / totalLP;
+        uint256 usdcBalance = swap.calculateRemoveLiquidityOneToken(amount, 2);
         nUsdLPToken.approve(address(swap), amount);
-        swap.removeLiquidityOneToken(amount, 2, usdcBalance.subBasisPoints(4), block.timestamp);
+        swap.removeLiquidityOneToken(amount, 2, usdcBalance, block.timestamp);
 
         return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue(true);
+        return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue(false);
+        return _totalValue();
     }
 
-    function _totalValue(bool nav) internal view returns (uint256) {
+    function _totalValue() internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount > 0) {
-            if (nav) {
-                uint256 totalLP = nUsdLPToken.totalSupply();
-                usdcBalance += swap.getTokenBalance(2) * amount / totalLP;
-            } else {
-                usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
-            }
-
+            usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
         }
 
         return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
+
         // claim rewards
         miniChefV2.harvest(pid, address(this));
 
