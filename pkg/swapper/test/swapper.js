@@ -10,7 +10,7 @@ let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 
-describe("StaticUsdPlusToken", function () {
+describe("Swapper", function () {
 
     let account;
     let secondAccount;

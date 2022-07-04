@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./ISwapPlace.sol";
 import "./ISwapper.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -11,6 +13,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
+
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // ---  fields
 
@@ -135,9 +139,13 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     // ---  logic
 
     function swap(SwapParams calldata params) external override returns (uint256) {
-        IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
-
         SwapRoute[] memory swapRoutes = swapPath(params);
+        return swapBySwapRoutes(params, swapRoutes);
+    }
+
+    function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) public override returns (uint256) {
+        IERC20Upgradeable(params.tokenIn).safeTransferFrom(msg.sender, address(this), params.amountIn);
+
         uint256 amountOut;
         for (uint i; i < swapRoutes.length; i++) {
             amountOut += swapRoutes[i].amountOut;
@@ -146,7 +154,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
         for (uint i; i < swapRoutes.length; i++) {
             SwapRoute memory swapRoute = swapRoutes[i];
-            IERC20(swapRoute.tokenIn).transfer(swapRoute.swapPlace, swapRoute.amountIn);
+            IERC20Upgradeable(swapRoute.tokenIn).safeTransfer(swapRoute.swapPlace, swapRoute.amountIn);
             ISwapPlace(swapRoute.swapPlace).swap(swapRoute);
         }
 
@@ -156,7 +164,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             "balanceOut lower than amountOut"
         );
 
-        IERC20(params.tokenOut).transfer(msg.sender, balanceOut);
+        IERC20Upgradeable(params.tokenOut).safeTransfer(msg.sender, balanceOut);
         return balanceOut;
     }
 

@@ -30,7 +30,7 @@ interface ISwapper is Structures {
         string swapPlaceType
     );
 
-    
+
     // ---  structures
 
     struct SwapPlaceInfo {
@@ -50,6 +50,8 @@ interface ISwapper is Structures {
     // ---  logic
 
     function swap(SwapParams calldata params) external returns (uint256);
+
+    function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) external returns (uint256);
 
     function getAmountOut(SwapParams calldata params) external view returns (uint256);
 

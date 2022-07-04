@@ -5,8 +5,12 @@ import "../ISwapPlace.sol";
 import "../connector/balancer/BalancerStuff.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 contract BalancerSwapPlace is ISwapPlace {
+
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     IVault public balancerVault = IVault(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
@@ -18,7 +22,7 @@ contract BalancerSwapPlace is ISwapPlace {
 
         bytes32 poolId = IBalancerPool(route.pool).getPoolId();
 
-        IERC20(route.tokenIn).approve(address(balancerVault), IERC20(route.tokenIn).balanceOf(address(this)));
+        IERC20Upgradeable(route.tokenIn).safeIncreaseAllowance(address(balancerVault), IERC20(route.tokenIn).balanceOf(address(this)));
 
         IVault.SingleSwap memory singleSwap = IVault.SingleSwap(
             poolId,
