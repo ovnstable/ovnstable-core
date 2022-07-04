@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IMarketStrategy {
+interface IHedgeStrategy {
 
     event Reward(uint256 amount);
     event PortfolioManagerUpdated(address value);
@@ -19,14 +19,15 @@ interface IMarketStrategy {
     ) external;
 
     function unstake(
-        uint256 _amount // minimum expected value for unstaking in USDC
+        uint256 _amount,
+        address _to     // minimum expected value for unstaking in USDC
     ) external returns (uint256); // Real unstake value
 
     function netAssetValue() external view returns (uint256); // Return value in USDC - denominator 6
 
     function claimRewards() external returns (uint256); // Return received amount in USDC - denominator 6
 
-    function healthFactorBalance() external; // Balancing aave health factor
+    function balance() external; // Balancing aave health factor
 
     function setHealthFactor(uint256 healthFactor) external; // Aave healthFactor setter
 }

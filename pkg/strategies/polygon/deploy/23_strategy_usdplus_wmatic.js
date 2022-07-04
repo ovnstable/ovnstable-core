@@ -50,6 +50,8 @@ module.exports = async (plugin) => {
 
     if (strategy){
 
+        await (await strategy.setExchanger('0x4b5e0af6AE8Ef52c304CD55f546342ca0d3050bf'));
+
         await (await strategy.setTokens(
             POLYGON.usdc,
             POLYGON.amUsdc,

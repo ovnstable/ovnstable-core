@@ -7,8 +7,10 @@ const {DEFAULT} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 
+let ethers = require('hardhat').ethers;
+
 let wallet = undefined;
-async function initWallet(ethers) {
+async function initWallet() {
 
     if (wallet)
         return wallet;

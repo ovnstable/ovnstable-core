@@ -10,7 +10,7 @@ import "./libraries/WadRayMath.sol";
 import "./interfaces/IRebaseToken.sol";
 import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
-import "./interfaces/IMarketStrategy.sol";
+import "./interfaces/IHedgeStrategy.sol";
 
 
 contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
@@ -21,8 +21,9 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     // ---  fields
 
     IExchange public exchange;
-    IMarketStrategy public strategy;
+    IHedgeStrategy public strategy;
     IUsdPlusToken public usdPlus;
+    IERC20 public usdc;
     IRebaseToken public rebase;
 
     address collector;
@@ -48,7 +49,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address rebase);
+    event TokensUpdated(address usdPlus, address rebase, address usdc);
 
     event CollectorUpdated(address collector);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -129,17 +130,19 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     }
 
-    function setTokens(address _usdPlus, address _rebase) external onlyAdmin {
+    function setTokens(address _usdPlus, address _rebase, address _usdc) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_rebase != address(0), "Zero address not allowed");
+        require(_usdc != address(0), "Zero address not allowed");
         usdPlus = IUsdPlusToken(_usdPlus);
         rebase = IRebaseToken(_rebase);
-        emit TokensUpdated(_usdPlus, _rebase);
+        usdc = IERC20(_usdc);
+        emit TokensUpdated(_usdPlus, _rebase, _usdc);
     }
 
-    function setMarketStrategy(address _strategy) external onlyAdmin {
+    function setStrategy(address _strategy) external onlyAdmin {
         require(_strategy != address(0), "Zero address not allowed");
-        strategy = IMarketStrategy(_strategy);
+        strategy = IHedgeStrategy(_strategy);
     }
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
@@ -224,7 +227,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
         uint256 redeemAmount = _amount - redeemFeeAmount;
 
-        uint256 unstakedAmount = strategy.unstake(redeemAmount);
+        uint256 unstakedAmount = strategy.unstake(redeemAmount, address(this));
 
         // Or just burn from sender
         rebase.burn(msg.sender, _amount);
@@ -248,7 +251,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
 
         strategy.claimRewards();
-        strategy.healthFactorBalance();
+
+        exchange.buy(address(usdc), usdc.balanceOf(address(this)));
+        usdPlus.transfer(address(strategy), usdPlus.balanceOf(address(this)));
+        strategy.stake(usdPlus.balanceOf(address(this)));
+
+        strategy.balance();
 
         uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
         uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();

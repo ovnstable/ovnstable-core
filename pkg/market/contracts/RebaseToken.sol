@@ -59,12 +59,6 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
     // ---  setters
 
     function setName(string memory name, string memory symbol) external onlyAdmin {
-//        require(name != "", "Empty value");
-//        require(_name == "", "Value already initialized");
-//
-//        require(symbol != "", "Empty value");
-//        require(symbol == "", "Value already initialized");
-
         _name = name;
         _symbol = symbol;
 

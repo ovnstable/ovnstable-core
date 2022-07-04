@@ -34,7 +34,7 @@ describe("HedgeExchanger", function () {
 
         await deployments.fixture(['HedgeExchanger', 'MockUsdPlusToken', 'RebaseToken']);
 
-        strategy = await deployMockContract(mockDeployer, await getAbi('IMarketStrategy'));
+        strategy = await deployMockContract(mockDeployer, await getAbi('IHedgeStrategy'));
         rebase = await ethers.getContract('RebaseToken')
         usdPlus = await ethers.getContract('MockUsdPlusToken');
 
@@ -43,10 +43,12 @@ describe("HedgeExchanger", function () {
 
         exchange = await ethers.getContract("HedgeExchanger");
 
-        await exchange.setTokens(usdPlus.address, rebase.address);
-        await exchange.setMarketStrategy(strategy.address);
+        await exchange.setTokens(usdPlus.address, rebase.address, POLYGON.usdc);
+        await exchange.setStrategy(strategy.address);
         await exchange.setCollector(collector.address);
         await rebase.setExchanger(exchange.address);
+
+        await usdPlus.setExchanger(account);
 
     });
 
@@ -118,7 +120,7 @@ describe("HedgeExchanger", function () {
 
             await strategy.mock.stake.returns();
             await strategy.mock.claimRewards.returns(toUSDC(10));
-            await strategy.mock.healthFactorBalance.returns();
+            await strategy.mock.balance.returns();
             await strategy.mock.netAssetValue.returns(toUSDC(110));
 
             await usdPlus.mint(account, sum);
@@ -157,7 +159,7 @@ describe("HedgeExchanger", function () {
 
             await strategy.mock.stake.returns();
             await strategy.mock.claimRewards.returns(toUSDC(10));
-            await strategy.mock.healthFactorBalance.returns();
+            await strategy.mock.balance.returns();
             await strategy.mock.netAssetValue.returns(toUSDC(90));
 
             await usdPlus.mint(account, sum);
