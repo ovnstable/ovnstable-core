@@ -16,7 +16,7 @@ const {waffle} = require("hardhat");
 const {getAbi} = require("@overnight-contracts/common/utils/script-utils");
 const {deployMockContract, provider} = waffle;
 
-describe("MarketExchanger", function () {
+describe("HedgeExchanger", function () {
 
     let account;
     let exchange;
@@ -32,7 +32,7 @@ describe("MarketExchanger", function () {
 
         collector = provider.createEmptyWallet();
 
-        await deployments.fixture(['MarketExchanger', 'MockUsdPlusToken', 'RebaseToken']);
+        await deployments.fixture(['HedgeExchanger', 'MockUsdPlusToken', 'RebaseToken']);
 
         strategy = await deployMockContract(mockDeployer, await getAbi('IMarketStrategy'));
         rebase = await ethers.getContract('RebaseToken')
@@ -41,7 +41,7 @@ describe("MarketExchanger", function () {
         const {deployer} = await getNamedAccounts();
         account = deployer;
 
-        exchange = await ethers.getContract("MarketExchanger");
+        exchange = await ethers.getContract("HedgeExchanger");
 
         await exchange.setTokens(usdPlus.address, rebase.address);
         await exchange.setMarketStrategy(strategy.address);

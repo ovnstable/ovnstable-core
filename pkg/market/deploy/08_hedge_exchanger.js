@@ -3,9 +3,9 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    await deployProxy('MarketExchanger', deployments, save);
+    await deployProxy('HedgeExchanger', deployments, save);
 
-    console.log("MarketExchanger created");
+    console.log("HedgeExchanger created");
 };
 
-module.exports.tags = ['MarketExchanger'];
+module.exports.tags = ['HedgeExchanger'];

@@ -12,9 +12,8 @@ import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
 import "./interfaces/IMarketStrategy.sol";
 
-import "hardhat/console.sol";
 
-contract MarketExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
