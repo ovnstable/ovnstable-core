@@ -139,35 +139,24 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         (uint256 reserveUsdc, uint256 reserveUsdt,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
 
-        _unstakeFromDystopiaAndStakeToPenrose();
-
-        uint256 usdtBalance;
-
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        //TODO add parameter to _getAmountToSwap() second token amount
-        // TODO: dystopia method used from BalancerExchange
-        uint256 amountUsdcToSwap = _getAmountToSwap(
+        uint256 amountUsdcToSwap = _getAmountToken0(
             usdcBalance,
             reserveUsdc,
             reserveUsdt,
             usdcTokenDenominator,
             usdtTokenDenominator,
             1,
-            poolIdUsdcTusdDaiUsdt,
-            usdcToken,
-            usdtToken
+            address(usdcToken),
+            address(usdtToken)
         );
 
         // swap usdc to usdt
-        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
-        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
-        uint256 minUsdtAmount = synapseSwap.calculateSwap(usdcTokenIndex, usdtTokenIndex, amountUsdcToSwap);
-        usdcToken.approve(address(synapseSwap), amountUsdcToSwap);
-        synapseSwap.swap(usdcTokenIndex, usdtTokenIndex, amountUsdcToSwap, minUsdtAmount, block.timestamp);
+        _synapseSwap(address(usdcToken), address(usdtToken), amountUsdcToSwap);
 
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
-        usdtBalance = usdtToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
         _addLiquidity(
             address(usdcToken),
@@ -195,8 +184,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         (uint256 reserveUsdc, uint256 reserveUsdt,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
 
-        _unstakeFromDystopiaAndStakeToPenrose();
-
         // Fetch amount of penPool LP currently staked
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
@@ -204,17 +191,16 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = dystPair.totalSupply();
-
-            uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+            uint256 lpTokensToWithdraw = _getAmountLpTokens(
                 OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE),
                 reserveUsdc,
                 reserveUsdt,
                 totalLpBalance,
                 usdcTokenDenominator,
                 usdtTokenDenominator,
-                poolIdUsdcTusdDaiUsdt,
-                usdcToken,
-                usdtToken
+                1,
+                address(usdcToken),
+                address(usdtToken)
             );
 
             if (lpTokensToWithdraw > lpTokenBalance) {
@@ -242,11 +228,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
-        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
-        uint256 minUsdcAmount = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
-        usdtToken.approve(address(synapseSwap), usdtBalance);
-        synapseSwap.swap(usdtTokenIndex, usdcTokenIndex, usdtBalance, minUsdcAmount, block.timestamp);
+        _synapseSwap(address(usdtToken), address(usdcToken), usdtBalance);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -260,8 +242,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         (uint256 reserveUsdc, uint256 reserveUsdt,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
-
-        _unstakeFromDystopiaAndStakeToPenrose();
 
         // Fetch amount of penPool LP currently staked
         address userProxyThis = penLens.userProxyByAccount(address(this));
@@ -293,11 +273,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
-        uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
-        uint256 minUsdcAmount = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
-        usdtToken.approve(address(synapseSwap), usdtBalance);
-        synapseSwap.swap(usdtTokenIndex, usdcTokenIndex, usdtBalance, minUsdcAmount, block.timestamp);
+        _synapseSwap(address(usdtToken), address(usdcToken), usdtBalance);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -318,7 +294,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        lpTokenBalance += gauge.balanceOf(address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveUsdt,) = dystPair.getReserves();
@@ -333,9 +308,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
                 usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             } else {
-                uint8 usdtTokenIndex = synapseSwap.getTokenIndex(address(usdtToken));
-                uint8 usdcTokenIndex = synapseSwap.getTokenIndex(address(usdcToken));
-                usdcBalanceFromUsdt = synapseSwap.calculateSwap(usdtTokenIndex, usdcTokenIndex, usdtBalance);
+                usdcBalanceFromUsdt = _synapseCalculateSwap(address(usdtToken), address(usdcToken), usdtBalance);
             }
 
         }
@@ -344,8 +317,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-
-        _unstakeFromDystopiaAndStakeToPenrose();
 
         // claim rewards
         userProxy.claimStakingRewards();
@@ -386,20 +357,75 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         return totalUsdc;
     }
 
-    function _unstakeFromDystopiaAndStakeToPenrose() internal {
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
-        if (lpTokenBalance > 0) {
-            // claim rewards
-            address[] memory token = new address[](1);
-            token[0] = address(dystToken);
-            gauge.getReward(address(this), token);
+    function _synapseCalculateSwap(
+        address tokenFrom,
+        address tokenTo,
+        uint256 dx
+    ) internal view returns (uint256) {
+        uint8 tokenIndexFrom = synapseSwap.getTokenIndex(address(tokenFrom));
+        uint8 tokenIndexTo = synapseSwap.getTokenIndex(address(tokenTo));
+        return synapseSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
+    }
 
-            // withdraw LP tokens and stake
-            gauge.withdrawAll();
-            uint256 lpTokenBalance = dystPair.balanceOf(address(this));
-            dystPair.approve(address(userProxy), lpTokenBalance);
-            userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+    function _synapseSwap(
+        address tokenFrom,
+        address tokenTo,
+        uint256 dx
+    ) internal returns (uint256) {
+        IERC20(tokenFrom).approve(address(synapseSwap), dx);
+        uint8 tokenIndexFrom = synapseSwap.getTokenIndex(address(tokenFrom));
+        uint8 tokenIndexTo = synapseSwap.getTokenIndex(address(tokenTo));
+        uint256 minDy = synapseSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
+        return synapseSwap.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
+    }
+
+    /**
+     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function _getAmountToken0(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision,
+        address token0,
+        address token1
+    ) internal view returns (uint256) {
+        uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = _synapseCalculateSwap(token0, token1, amount0);
+            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
         }
+
+        return amount0;
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function _getAmountLpTokens(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalLpBalance,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision,
+        address token0,
+        address token1
+    ) internal view returns (uint256) {
+        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+            uint256 amount0 = _synapseCalculateSwap(token1, token0, amount1);
+            lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+        }
+        return lpBalance;
     }
 
 }
