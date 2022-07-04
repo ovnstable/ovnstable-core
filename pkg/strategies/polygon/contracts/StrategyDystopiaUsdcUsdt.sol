@@ -8,9 +8,8 @@ import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
-import "./libraries/AaveBorrowLibrary.sol";
-import "./interfaces/ISwapper.sol";
 import "./connectors/synapse/interfaces/ISwap.sol";
+import "./libraries/AaveBorrowLibrary.sol";
 
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
@@ -34,9 +33,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     IUserProxy public userProxy;
     IPenLens public penLens;
 
-    ISwapper public swapper;
-
-    ISwap public synapseSwap;
+    ISwap public swapper;
 
     // --- events
 
@@ -44,7 +41,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         uint256 usdcTokenDenominator, uint256 usdtTokenDenominator);
 
     event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdDaiUsdt,
-        address oracleUsdc, address oracleUsdt, address userProxy, address penLens, address swapper, address synapseSwap);
+        address oracleUsdc, address oracleUsdt, address userProxy, address penLens, address swapper);
 
 
     // ---  constructor
@@ -94,8 +91,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address _oracleUsdt,
         address _userProxy,
         address _penLens,
-        address _swapper,
-        address _synapseSwap
+        address _swapper
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -108,7 +104,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         require(_userProxy != address(0), "Zero address not allowed");
         require(_penLens != address(0), "Zero address not allowed");
         require(_swapper != address(0), "Zero address not allowed");
-        require(_synapseSwap != address(0), "Zero address not allowed");
 
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
@@ -119,11 +114,10 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         oracleUsdt = IPriceFeed(_oracleUsdt);
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
-        swapper = ISwapper(_swapper);
-        synapseSwap = ISwap(_synapseSwap);
+        swapper = ISwap(_swapper);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
-            _oracleUsdt, _userProxy, _penLens, _swapper, _synapseSwap);
+            _oracleUsdt, _userProxy, _penLens, _swapper);
     }
 
 
@@ -362,9 +356,9 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address tokenTo,
         uint256 dx
     ) internal view returns (uint256) {
-        uint8 tokenIndexFrom = synapseSwap.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = synapseSwap.getTokenIndex(address(tokenTo));
-        return synapseSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
+        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
+        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
+        return swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
     }
 
     function _synapseSwap(
@@ -372,11 +366,11 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         address tokenTo,
         uint256 dx
     ) internal returns (uint256) {
-        IERC20(tokenFrom).approve(address(synapseSwap), dx);
-        uint8 tokenIndexFrom = synapseSwap.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = synapseSwap.getTokenIndex(address(tokenTo));
-        uint256 minDy = synapseSwap.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
-        return synapseSwap.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
+        IERC20(tokenFrom).approve(address(swapper), dx);
+        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
+        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
+        uint256 minDy = swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
+        return swapper.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
     }
 
     /**
