@@ -27,10 +27,15 @@ module.exports = async (plugin) => {
         from: deployer
     });
 
+    const usdPlusWmaticLibrary = await deploy("UsdPlusWmaticLibrary", {
+        from: deployer
+    });
+
     let params = {
         factoryOptions: {
             libraries: {
                 "DystopiaLibrary": dystopiaLibrary.address,
+                "UsdPlusWmaticLibrary": usdPlusWmaticLibrary.address
             }
         },
         unsafeAllow: ["external-library-linking"]
