@@ -59,6 +59,7 @@ function strategyTest(strategyParams, network, assets, runStrategyLogic) {
     describe(`${strategyParams.name}`, function () {
 
         stakeUnstake(strategyParams, network, assets, values, runStrategyLogic);
+
         unstakeFull(strategyParams, network, assets, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
@@ -104,7 +105,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
         });
 
         it("log gas", async () => {
-            await logStrategyGasUsage(strategyName, strategy, usdc, account.address)
+            await logStrategyGasUsage(strategyName, strategy, usdc, recipient)
         });
 
 

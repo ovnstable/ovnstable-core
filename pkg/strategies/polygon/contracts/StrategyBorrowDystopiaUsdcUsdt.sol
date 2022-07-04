@@ -13,7 +13,6 @@ import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/aave/interfaces/IPoolAddressesProvider.sol";
 import "./exchanges/BalancerExchange.sol";
 import "./libraries/OvnMath.sol";
-import "hardhat/console.sol";
 
 import {AaveBorrowLibrary} from "./libraries/AaveBorrowLibrary.sol";
 import {BalancerLibrary} from "./libraries/BalancerLibrary.sol";

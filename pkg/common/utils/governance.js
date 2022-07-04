@@ -1,10 +1,28 @@
 const {fromOvnGov, fromE18} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet} = require("./script-utils");
+const {getContract, initWallet, getPrice} = require("./script-utils");
 const hre = require('hardhat');
 
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+
+
+async function createProposal(addresses, values, abis){
+
+    let governor = await getContract('OvnGovernor');
+
+    console.log('Creating a proposal...')
+    const proposeTx = await governor.proposeExec(
+        addresses,
+        values,
+        abis,
+        ethers.utils.id(new Date().toString()),
+        await getPrice()
+    );
+    let tx = await proposeTx.wait();
+    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
+    console.log('Proposal id ' + proposalId)
+}
 
 async function execProposal(id) {
 
@@ -69,4 +87,5 @@ async function execProposal(id) {
 
 module.exports = {
     execProposal: execProposal,
+    createProposal: createProposal,
 }

@@ -10,6 +10,7 @@ let gauge = '0x9c3Afbc9D0540168C6D4f3dA0F48FeBA6a3A7d2a'; //aka MasterChef
 let penToken = '0x9008D70A5282a936552593f410AbcBcE2F891A97';
 let userProxy = '0xc9Ae7Dac956f82074437C6D40f67D6a5ABf3E34b';
 let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
+let swapper = '0xf69f73Cac304A0433Ba414819E3e024Fd1Ce4fC8';
 
 module.exports = async () => {
     const strategy = await ethers.getContract("StrategyDystopiaUsdcDai");
@@ -24,7 +25,8 @@ module.exports = async () => {
         POLYGON.oracleChainlinkUsdc,
         POLYGON.oracleChainlinkDai,
         userProxy,
-        penLens
+        penLens,
+        swapper
     )).wait();
     await (await strategy.setPortfolioManager(core.pm)).wait();
 

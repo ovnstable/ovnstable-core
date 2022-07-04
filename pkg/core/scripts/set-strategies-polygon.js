@@ -1,12 +1,7 @@
 const {
-    changeWeightsAndBalance, getContract, getPrice, upgradeStrategy, showM2M, execTimelock, getERC20, initWallet,
-    getStrategy
+    changeWeightsAndBalance, getContract, getPrice
 } = require("@overnight-contracts/common/utils/script-utils");
 
-const hre = require('hardhat');
-const {execProposal} = require("@overnight-contracts/common/utils/governance");
-const {fromUSDC, toUSDC} = require("@overnight-contracts/common/utils/decimals");
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 async function main() {
 
@@ -30,30 +25,30 @@ async function main() {
             "enabled": true,
             "enabledReward": true
         },
-        {
-            "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
-            "name": "Dystopia USDC/USDT",
-            "minWeight": 0,
-            "targetWeight": 35.3,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
+
         {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 20,
+            "targetWeight": 20.2,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
-
+        {
+            "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
+            "name": "Dystopia USDC/USDT",
+            "minWeight": 0,
+            "targetWeight": 35.2,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
         {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 41.7,
+            "targetWeight": 41.6,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true

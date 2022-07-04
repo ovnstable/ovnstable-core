@@ -9,19 +9,19 @@ async function logStrategyGasUsage(contractName, strategy, usdc, account) {
     await usdc.transfer(strategy.address, toUSDC(100));
 
     await logGas(
-        strategy.stake(usdc.address, toUSDC(100)),
+        strategy.connect(account).stake(usdc.address, toUSDC(100)),
         contractName,
         "stake"
     );
 
     await logGas(
-        strategy.unstake(usdc.address, toUSDC(50), account, false),
+        strategy.connect(account).unstake(usdc.address, toUSDC(50), account.address, false),
         contractName,
         "unstake"
     );
 
     await logGas(
-        strategy.unstake(usdc.address, 0, account, true),
+        strategy.connect(account).unstake(usdc.address, 0, account.address, true),
         contractName,
         "unstakeFull"
     );

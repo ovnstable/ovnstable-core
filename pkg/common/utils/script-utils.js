@@ -133,9 +133,9 @@ async function showM2M(blocknumber) {
     let totalNetAssets;
     let strategyWeights;
     if (blocknumber){
-        strategyAssets = await m2m.strategyAssets({blockNumber: blocknumber});
-        totalNetAssets = await m2m.totalNetAssets({blockNumber: blocknumber});
-        strategyWeights = await pm.getAllStrategyWeights({blockNumber: blocknumber});
+        strategyAssets = await m2m.strategyAssets({blockTag: blocknumber});
+        totalNetAssets = await m2m.totalNetAssets({blockTag: blocknumber});
+        strategyWeights = await pm.getAllStrategyWeights({ blockTag: blocknumber });
     }else {
         strategyAssets = await m2m.strategyAssets();
         totalNetAssets = await m2m.totalNetAssets();
@@ -201,7 +201,7 @@ async function showM2M(blocknumber) {
 
         let totalUsdPlus;
         if (blocknumber){
-            totalUsdPlus = (await usdPlus.totalSupply({blockNumber: blocknumber})) /10 ** 6
+            totalUsdPlus = (await usdPlus.totalSupply({blockTag: blocknumber})) /10 ** 6
         }else {
             totalUsdPlus = (await usdPlus.totalSupply()) /10 ** 6
         }
