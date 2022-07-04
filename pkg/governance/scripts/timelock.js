@@ -4,6 +4,8 @@ const ethers = hre.ethers;
 
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
+const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
+
 const {getContract, getERC20, showM2M, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
 
 let strategyDystopiaUsdcDai = JSON.parse(fs.readFileSync('../strategies/polygon/deployments/localhost/StrategyDystopiaUsdcDai.json'));
@@ -16,9 +18,9 @@ let gaugeUsdcDai = '0x9c3Afbc9D0540168C6D4f3dA0F48FeBA6a3A7d2a'; //aka MasterChe
 let penToken = '0x9008D70A5282a936552593f410AbcBcE2F891A97';
 let userProxy = '0xc9Ae7Dac956f82074437C6D40f67D6a5ABf3E34b';
 let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
-let swapper = '0xf69f73Cac304A0433Ba414819E3e024Fd1Ce4fC8';
 let dystPairUsdcUsdt = '0x4570da74232c1A784E77c2a260F85cdDA8e7d47B'; //sAMM-USDC/USDT
 let gaugeUsdcUsdt = '0x7c9716266795a04ae1fbbd017dc2585fbf78076d'; //aka MasterChef
+let synapseSwap = '0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5';
 
 
 async function main() {
@@ -30,11 +32,12 @@ async function main() {
         let strategyUsdcDai = await ethers.getContractAt(strategyDystopiaUsdcDai.abi, strategyDystopiaUsdcDai.address);
         let strategyUsdcUsdt = await ethers.getContractAt(strategyDystopiaUsdcUsdt.abi, strategyDystopiaUsdcUsdt.address);
         let exchange = await getContract('Exchange');
+        let portfolioManager = await getContract('PortfolioManager');
 
-        await exchange.connect(timelock).upgradeTo(strategyDystopiaUsdcDai.address);
-        await exchange.connect(timelock).upgradeTo(strategyDystopiaUsdcUsdt.address);
+        await strategyUsdcDai.connect(timelock).upgradeTo('0xb7496d0e2d315937dEF6D6B2aCB1Eda7001adDBc');
+        await strategyUsdcUsdt.connect(timelock).upgradeTo('0x14585808B8CC38C7A7ef685C19303088D95f36d3');
 
-        await (await strategyUsdcDai.setParams(
+        await (await strategyUsdcDai.connect(timelock).setParams(
                 gaugeUsdcDai,
                 dystPairUsdcDai,
                 dystRouter,
@@ -46,7 +49,7 @@ async function main() {
                 penLens,
                 synapseSwap
             )).wait();
-        await (await strategyUsdcUsdt.setParams(
+        await (await strategyUsdcUsdt.connect(timelock).setParams(
                 gaugeUsdcUsdt,
                 dystPairUsdcUsdt,
                 dystRouter,
@@ -62,12 +65,16 @@ async function main() {
         await showM2M();
 
         let usdc = await getERC20('usdc');
-        await usdc.approve(exchange.address, toUSDC(1000000));
-        await exchange.buy(usdc.address, toUSDC(1000000));
+        await usdc.approve(exchange.address, toUSDC(500000));
+        await exchange.buy(usdc.address, toUSDC(500000));
+
+        await portfolioManager.connect(timelock).balance();
 
         await showM2M();
 
-        await exchange.redeem(usdc.address, toUSDC(1000000));
+        await exchange.redeem(usdc.address, toUSDC(500000));
+
+        await portfolioManager.connect(timelock).balance();
 
         await showM2M();
     });
