@@ -3,28 +3,34 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./libraries/OvnMath.sol";
-import "./exchanges/UniswapV2Exchange.sol";
+import "./libraries/TraderJoeLibrary.sol";
 import "./connectors/synapse/interfaces/ISwap.sol";
 import "./connectors/synapse/interfaces/IMiniChefV2.sol";
+import "./connectors/platypus/interfaces/IPool.sol";
+import "./connectors/traderjoe/interfaces/IJoeRouter02.sol";
 
 
-contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
+contract StrategySynapseUsdce is Strategy {
     using OvnMath for uint256;
 
     IERC20 public usdcToken;
+    IERC20 public usdceToken;
+    IERC20 public wAvaxToken;
     IERC20 public nUsdLPToken;
     IERC20 public synToken;
 
     ISwap public swap;
     IMiniChefV2 public miniChefV2;
+    IPool public platypus;
+    IJoeRouter02 public traderJoeRouter;
     uint256 public pid;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address nUsdLPToken, address synToken);
+    event StrategyUpdatedTokens(address usdcToken, address usdceToken, address wAvaxToken, address nUsdLPToken, address synToken);
 
-    event StrategyUpdatedParams(address swap, address miniChefV2, address sushiSwapRouter, uint256 pid);
+    event StrategyUpdatedParams(address swap, address miniChefV2, address platypus, address traderJoeRouter, uint256 pid);
 
 
     // ---  constructor
@@ -41,39 +47,48 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
     function setTokens(
         address _usdcToken,
+        address _usdceToken,
+        address _wAvaxToken,
         address _nUsdLPToken,
         address _synToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
+        require(_usdceToken != address(0), "Zero address not allowed");
+        require(_wAvaxToken != address(0), "Zero address not allowed");
         require(_nUsdLPToken != address(0), "Zero address not allowed");
         require(_synToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
+        usdceToken = IERC20(_usdceToken);
+        wAvaxToken = IERC20(_wAvaxToken);
         nUsdLPToken = IERC20(_nUsdLPToken);
         synToken = IERC20(_synToken);
 
-        emit StrategyUpdatedTokens(_usdcToken, _nUsdLPToken, _synToken);
+        emit StrategyUpdatedTokens(_usdcToken, _usdceToken, _wAvaxToken, _nUsdLPToken, _synToken);
     }
 
     function setParams(
         address _swap,
         address _miniChefV2,
-        address _sushiSwapRouter,
+        address _platypus,
+        address _traderJoeRouter,
         uint64 _pid
     ) external onlyAdmin {
 
         require(_swap != address(0), "Zero address not allowed");
         require(_miniChefV2 != address(0), "Zero address not allowed");
-        require(_sushiSwapRouter != address(0), "Zero address not allowed");
+        require(_platypus != address(0), "Zero address not allowed");
+        require(_traderJoeRouter != address(0), "Zero address not allowed");
         require(_pid != 0, "Zero value not allowed");
 
         swap = ISwap(_swap);
         miniChefV2 = IMiniChefV2(_miniChefV2);
-        _setUniswapRouter(_sushiSwapRouter);
+        platypus = IPool(_platypus);
+        traderJoeRouter = IJoeRouter02(_traderJoeRouter);
         pid = _pid;
 
-        emit StrategyUpdatedParams(_swap, _miniChefV2, _sushiSwapRouter, _pid);
+        emit StrategyUpdatedParams(_swap, _miniChefV2, _platypus, _traderJoeRouter, _pid);
     }
 
 
@@ -86,15 +101,35 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // swap usdc to usdce
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+            address(usdcToken),
+            address(usdceToken),
+            usdcBalance
+        );
+        console.log("potentialOutcome: %s", potentialOutcome);
+        usdcToken.approve(address(platypus), usdcBalance);
+        platypus.swap(
+            address(usdcToken),
+            address(usdceToken),
+            usdcBalance,
+            potentialOutcome.subBasisPoints(4),
+            address(this),
+            block.timestamp
+        );
+
         // add liquidity
+        uint256 usdceBalance = usdceToken.balanceOf(address(this));
+        console.log("usdceBalance: %s", usdceBalance);
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
         amounts[1] = 0;
-        amounts[2] = _amount.subBasisPoints(4);
+        amounts[2] = usdceBalance.subBasisPoints(4);
         amounts[3] = 0;
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
-        amounts[2] = _amount;
-        usdcToken.approve(address(swap), _amount);
+        amounts[2] = usdceBalance;
+        usdceToken.approve(address(swap), usdceBalance);
         uint256 nUsdLPTokenAmount = swap.addLiquidity(amounts, minToMint, block.timestamp);
 
         // stake
@@ -110,11 +145,18 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        // get usdce amount
+        (uint256 amountUsdce,) = platypus.quotePotentialSwap(
+            address(usdcToken),
+            address(usdceToken),
+            _amount
+        );
+
         // unstake
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
         amounts[1] = 0;
-        amounts[2] = _amount.addBasisPoints(4) + 1;
+        amounts[2] = amountUsdce.addBasisPoints(10) + 1;
         amounts[3] = 0;
         uint256 balanceLP = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
@@ -125,7 +167,24 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
         // remove liquidity
         nUsdLPToken.approve(address(swap), balanceLP);
-        swap.removeLiquidityOneToken(balanceLP, 2, _amount, block.timestamp);
+        swap.removeLiquidityOneToken(balanceLP, 2, amountUsdce, block.timestamp);
+
+        // swap usdce to usdc
+        uint256 usdceBalance = usdceToken.balanceOf(address(this));
+        (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+            address(usdceToken),
+            address(usdcToken),
+            usdceBalance
+        );
+        usdceToken.approve(address(platypus), usdceBalance);
+        platypus.swap(
+            address(usdceToken),
+            address(usdcToken),
+            usdceBalance,
+            potentialOutcome.subBasisPoints(4),
+            address(this),
+            block.timestamp
+        );
 
         return usdcToken.balanceOf(address(this));
     }
@@ -149,6 +208,23 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         nUsdLPToken.approve(address(swap), amount);
         swap.removeLiquidityOneToken(amount, 2, usdcBalance, block.timestamp);
 
+        // swap usdce to usdc
+        uint256 usdceBalance = usdceToken.balanceOf(address(this));
+        (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+            address(usdceToken),
+            address(usdcToken),
+            usdceBalance
+        );
+        usdceToken.approve(address(platypus), usdceBalance);
+        platypus.swap(
+            address(usdceToken),
+            address(usdcToken),
+            usdceBalance,
+            potentialOutcome.subBasisPoints(4),
+            address(this),
+            block.timestamp
+        );
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -165,7 +241,13 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount > 0) {
-            usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
+            uint256 usdceBalance = swap.calculateRemoveLiquidityOneToken(amount, 2);
+            (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+                address(usdceToken),
+                address(usdcToken),
+                usdceBalance
+            );
+            usdcBalance += potentialOutcome;
         }
 
         return usdcBalance;
@@ -185,13 +267,27 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
 
         uint256 synBalance = synToken.balanceOf(address(this));
         if (synBalance > 0) {
-            uint256 synUsdc = _swapExactTokensForTokens(
+            uint256 amountOutMin = TraderJoeLibrary.getAmountsOut(
+                traderJoeRouter,
                 address(synToken),
+                address(wAvaxToken),
                 address(usdcToken),
-                synBalance,
-                address(this)
+                synBalance
             );
-            totalUsdc += synUsdc;
+
+            if (amountOutMin > 0) {
+                uint256 synUsdc = TraderJoeLibrary.swapExactTokensForTokens(
+                    traderJoeRouter,
+                    address(synToken),
+                    address(wAvaxToken),
+                    address(usdcToken),
+                    synBalance,
+                    amountOutMin.subBasisPoints(4),
+                    address(this)
+                );
+
+                totalUsdc += synUsdc;
+            }
         }
 
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
