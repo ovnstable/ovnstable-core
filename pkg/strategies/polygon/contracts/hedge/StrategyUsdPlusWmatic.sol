@@ -248,9 +248,6 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 redeemFeeAmount = (balanceUsdPlus * exchange.redeemFee()) / exchange.redeemFeeDenominator();
         balanceUsdPlus = balanceUsdPlus - redeemFeeAmount;
 
-        // 1. Recalculate target amount and increese usdcStorage proportionately.
-        uint256 amount = OvnMath.subBasisPoints(balanceUsdPlus - usdcStorage, BASIS_POINTS_FOR_STORAGE);
-        usdcStorage = balanceUsdPlus - amount;
 
         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
             balanceUsdPlus,

@@ -7,10 +7,9 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
 
-    if (hre.ovn.deploy) {
+    if (!hre.ovn.noDeploy) {
         await deployProxyMulti('HedgeExchangerUsdPlusWmatic', 'HedgeExchanger', deployments, save, null);
         console.log("HedgeExchangerUsdPlusWmatic created");
-
 
         await deployProxyMulti('RebaseTokenUsdPlusWmatic', 'RebaseToken', deployments, save, null);
         console.log("RebaseTokenUsdPlusWmatic created");

@@ -7,7 +7,7 @@ async function main() {
 
     let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
 
-    await (await exchanger.payout()).wait();
+    await (await exchanger.payout(await getPrice())).wait();
 }
 
 main()
