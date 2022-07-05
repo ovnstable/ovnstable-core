@@ -250,13 +250,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         }
 
 
-        strategy.claimRewards();
-
+        strategy.claimRewards(address(this));
         exchange.buy(address(usdc), usdc.balanceOf(address(this)));
         usdPlus.transfer(address(strategy), usdPlus.balanceOf(address(this)));
         strategy.stake(usdPlus.balanceOf(address(this)));
 
-        strategy.balance();
+//        strategy.balance();
 
         uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
         uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
