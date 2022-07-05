@@ -25,7 +25,7 @@ interface IHedgeStrategy {
 
     function netAssetValue() external view returns (uint256); // Return value in USDC - denominator 6
 
-    function claimRewards() external returns (uint256); // Return received amount in USDC - denominator 6
+    function claimRewards(address to) external returns (uint256); // Return received amount in USDC - denominator 6
 
     function balance() external; // Balancing aave health factor
 

@@ -145,6 +145,11 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         strategy = IHedgeStrategy(_strategy);
     }
 
+    function setExchanger(address _exchanger) external onlyAdmin {
+        require(_exchanger != address(0), "Zero address not allowed");
+        exchange = IExchange(_exchanger);
+    }
+
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         buyFee = _fee;
@@ -250,13 +255,8 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         }
 
 
-        strategy.claimRewards();
-
-        exchange.buy(address(usdc), usdc.balanceOf(address(this)));
-        usdPlus.transfer(address(strategy), usdPlus.balanceOf(address(this)));
-        strategy.stake(usdPlus.balanceOf(address(this)));
-
-        strategy.balance();
+        strategy.claimRewards(address(this));
+        usdc.transfer(address(strategy), usdc.balanceOf(address(this)));
 
         uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
         uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
