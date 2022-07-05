@@ -44,7 +44,7 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
     let upgradeTo = process.env.DEPLOY_PROXY == "true" ? true : false;
     console.log('DEPLOY_PROXY: ' + upgradeTo)
     let impl;
-    if (upgradeTo && !hre.ovn.impl) {
+    if (upgradeTo || !hre.ovn.impl) {
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
 

@@ -108,7 +108,6 @@ contract StrategySynapseUsdce is Strategy {
             address(usdceToken),
             usdcBalance
         );
-        console.log("potentialOutcome: %s", potentialOutcome);
         usdcToken.approve(address(platypus), usdcBalance);
         platypus.swap(
             address(usdcToken),
@@ -121,7 +120,6 @@ contract StrategySynapseUsdce is Strategy {
 
         // add liquidity
         uint256 usdceBalance = usdceToken.balanceOf(address(this));
-        console.log("usdceBalance: %s", usdceBalance);
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
         amounts[1] = 0;
