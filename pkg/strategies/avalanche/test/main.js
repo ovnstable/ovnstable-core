@@ -7,18 +7,19 @@ let arrays = [
     {
         name: 'StrategyAave',
         enabledReward: false,
-        isRunStrategyLogic: false,
     },
     {
         name: 'StrategyEchidnaUsdc',
         enabledReward: true,
-        isRunStrategyLogic: false,
         doubleStakeReward: true,
     },
     {
         name: 'StrategyVectorUsdc',
         enabledReward: true,
-        isRunStrategyLogic: false,
+    },
+    {
+        name: 'StrategySynapseUsdce',
+        enabledReward: true,
     },
 ];
 

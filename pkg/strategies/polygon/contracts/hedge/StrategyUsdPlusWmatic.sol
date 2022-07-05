@@ -20,7 +20,6 @@ import {OvnMath} from "../libraries/OvnMath.sol";
 import {DystopiaLibrary} from "../libraries/DystopiaLibrary.sol";
 import {UsdPlusWmaticLibrary} from "./libraries/UsdPlusWmaticLibrary.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyUsdPlusWmatic is HedgeStrategy {
     using WadRayMath for uint256;

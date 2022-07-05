@@ -3,7 +3,9 @@ dotenv.config({path:__dirname+ '/../../../.env'});
 
 let AVALANCHE = {
     traderJoeRouter: "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",
+    platypus: "0x66357dCaCe80431aee0A7507e2E361B7e2402370",
     usdc: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+    usdce: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     wAvax: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
