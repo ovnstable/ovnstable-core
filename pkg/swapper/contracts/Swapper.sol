@@ -149,14 +149,50 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         return swapBySwapRoutes(params, swapRoutes);
     }
 
+    function swapExact(SwapParamsExact calldata params) external override returns (uint256) {
+        string memory swapPlaceType = poolSwapPlaceTypes[params.pool];
+        require(bytes(swapPlaceType).length > 0, "Not found swapPlaceType for pool");
+
+        address swapPlace = swapPlaces[swapPlaceType];
+        require(swapPlace != address(0x0), "Not found swapPlaceType for pool");
+
+        SwapRoute[] memory swapRoutes = new SwapRoute[](1);
+        swapRoutes[0] = SwapRoute(
+            params.tokenIn,
+            params.tokenOut,
+            params.amountIn,
+            0,
+            swapPlace,
+            params.pool
+        );
+        return swapBySwapRoutes(
+            params.tokenIn, params.amountIn,
+            params.tokenOut, params.amountOutMin,
+            swapRoutes
+        );
+
+    }
+
     function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) public override returns (uint256) {
-        IERC20Upgradeable(params.tokenIn).safeTransferFrom(msg.sender, address(this), params.amountIn);
+        return swapBySwapRoutes(
+            params.tokenIn, params.amountIn,
+            params.tokenOut, params.amountOutMin,
+            swapRoutes
+        );
+    }
+
+    function swapBySwapRoutes(
+        address tokenIn, uint256 amountIn,
+        address tokenOut, uint256 amountOutMin,
+        SwapRoute[] memory swapRoutes
+    ) public override returns (uint256) {
+        IERC20Upgradeable(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
 
         uint256 amountOut;
         for (uint i; i < swapRoutes.length; i++) {
             amountOut += swapRoutes[i].amountOut;
         }
-        require(amountOut >= params.amountOutMin, "amountOut less than needed");
+        require(amountOut >= amountOutMin, "amountOut less than needed");
 
         for (uint i; i < swapRoutes.length; i++) {
             SwapRoute memory swapRoute = swapRoutes[i];
@@ -164,13 +200,13 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             ISwapPlace(swapRoute.swapPlace).swap(swapRoute);
         }
 
-        uint256 balanceOut = IERC20(params.tokenOut).balanceOf(address(this));
+        uint256 balanceOut = IERC20(tokenOut).balanceOf(address(this));
         require(
             balanceOut >= amountOut,
             "balanceOut lower than amountOut"
         );
 
-        IERC20Upgradeable(params.tokenOut).safeTransfer(msg.sender, balanceOut);
+        IERC20Upgradeable(tokenOut).safeTransfer(msg.sender, balanceOut);
         return balanceOut;
     }
 

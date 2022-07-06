@@ -48,6 +48,8 @@ describe("Swapper", function () {
     });
 
     it("register swap info", async function () {
+        let tmpSwapPlaceType = "BalancerSwapPlace";
+        let tmpPool = "0x3333333333333333333333333333333333333333";
 
         let swapPlaceLength1 = await swapper.swapPlaceInfoLength(POLYGON.usdc, POLYGON.usdt);
         expect(swapPlaceLength1).eq(0);
@@ -55,9 +57,9 @@ describe("Swapper", function () {
         let swapPlaceLength2 = await swapper.swapPlaceInfoLength(POLYGON.usdt, POLYGON.usdc);
         expect(swapPlaceLength2).eq(0);
 
+        let swapPlaceType = await swapper.poolSwapPlaceTypes(tmpPool);
+        expect(swapPlaceType).eq("");
 
-        let tmpSwapPlaceType = "BalancerSwapPlace";
-        let tmpPool = "0x3333333333333333333333333333333333333333";
         await swapper.swapPlaceInfoRegister(
             POLYGON.usdc,
             POLYGON.usdt,
@@ -66,7 +68,7 @@ describe("Swapper", function () {
         );
 
 
-        let swapPlaceType = await swapper.poolSwapPlaceTypes(tmpPool);
+        swapPlaceType = await swapper.poolSwapPlaceTypes(tmpPool);
         expect(swapPlaceType).eq(tmpSwapPlaceType);
 
         swapPlaceLength1 = await swapper.swapPlaceInfoLength(POLYGON.usdc, POLYGON.usdt);
