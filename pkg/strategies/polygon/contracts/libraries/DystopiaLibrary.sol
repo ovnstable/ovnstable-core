@@ -7,9 +7,6 @@ import "../libraries/OvnMath.sol";
 
 library DystopiaLibrary {
 
-    // function _setDystopiaRouter(address _dystRouter) internal {
-    //     dystRouter = IDystopiaRouter(_dystRouter);
-    // }
 
     function _swapExactTokensForTokens(
         IDystopiaRouter dystRouter,
@@ -44,7 +41,57 @@ library DystopiaLibrary {
             recipient,
             block.timestamp + 600
         );
-    
+
+        return amounts[2];
+    }
+
+    function _swap(
+        IDystopiaRouter dystRouter,
+        address inputToken,
+        address outputToken,
+        bool isStablePair,
+        uint256 amountInput,
+        address recipient
+    ) public returns (uint256) {
+
+        IERC20(inputToken).approve(address(dystRouter), amountInput);
+
+        uint256 amountOutMin = _getAmountOut(dystRouter, address(inputToken), address(outputToken), isStablePair,  amountInput);
+        if (amountOutMin == 0) {
+            return 0;
+        }
+
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = inputToken;
+        route[0].to = outputToken;
+        route[0].stable = isStablePair;
+
+        uint[] memory amounts = dystRouter.swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            route,
+            recipient,
+            block.timestamp + 600
+        );
+
+        return amounts[2];
+    }
+
+    function _getAmountOut(
+        IDystopiaRouter dystRouter,
+        address inputToken,
+        address outputToken,
+        bool isStablePair,
+        uint256 amountInput
+    ) public view returns (uint256) {
+
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = inputToken;
+        route[0].to = outputToken;
+        route[0].stable = isStablePair;
+
+        uint[] memory amounts = dystRouter.getAmountsOut(amountInput, route);
+
         return amounts[2];
     }
 

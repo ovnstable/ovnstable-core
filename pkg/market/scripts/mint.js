@@ -14,8 +14,8 @@ async function main() {
     console.log("Rebase: " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
 
-    await (await usdPlus.approve(exchanger.address, toUSDC(5), await getPrice())).wait();
-    await (await exchanger.buy(toUSDC(5), await getPrice())).wait();
+    await (await usdPlus.approve(exchanger.address, toUSDC(1), await getPrice())).wait();
+    await (await exchanger.buy(toUSDC(1), await getPrice())).wait();
 
     console.log("Rebase: " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))

@@ -24,7 +24,7 @@ module.exports = async (plugin) => {
     const {save} = plugin.deployments;
 
 
-    if (!hre.ovn.noDeploy) {
+    if (hre.ovn === undefined || !hre.ovn.noDeploy) {
 
         const dystopiaLibrary = await deploy("DystopiaLibrary", {
             from: deployer
@@ -48,7 +48,7 @@ module.exports = async (plugin) => {
 
     }
 
-    if (hre.ovn.setting) {
+    if (hre.ovn === undefined || hre.ovn.setting) {
 
         const strategy = await ethers.getContract("StrategyUsdPlusWmatic");
 

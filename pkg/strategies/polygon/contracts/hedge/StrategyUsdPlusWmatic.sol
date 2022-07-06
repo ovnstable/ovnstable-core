@@ -20,6 +20,8 @@ import {OvnMath} from "../libraries/OvnMath.sol";
 import {DystopiaLibrary} from "../libraries/DystopiaLibrary.sol";
 import {UsdPlusWmaticLibrary} from "./libraries/UsdPlusWmaticLibrary.sol";
 
+import "hardhat/console.sol";
+
 
 contract StrategyUsdPlusWmatic is HedgeStrategy {
     using WadRayMath for uint256;
@@ -187,12 +189,27 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
         aave.withdraw(address(usdc), getUsdc, address(this));
 
-        usdc.approve(address(exchange), usdc.balanceOf(address(this)));
-        exchange.buy(address(usdc), usdc.balanceOf(address(this)));
+        _convertTokensToUsdPlus();
 
         return usdPlus.balanceOf(address(this));
     }
 
+    function _convertTokensToUsdPlus() internal {
+
+        if(wmatic.balanceOf(address(this)) > 0){
+            DystopiaLibrary._swap(
+                dystRouter,
+                address(wmatic),
+                address(usdPlus),
+                false,
+                wmatic.balanceOf(address(this)),
+                address(this)
+            );
+        }
+
+        usdc.approve(address(exchange), usdc.balanceOf(address(this)));
+        exchange.buy(address(usdc), usdc.balanceOf(address(this)));
+    }
 
     function _removeLiquidity(uint256 amountLp) internal returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
@@ -350,7 +367,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
                 dystRouter,
                 address(dyst),
                 address(wmatic),
-                address(usdc),
+                address(usdPlus),
                 false,
                 false,
                 dystBalance,
@@ -365,7 +382,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
                 dystRouter,
                 address(penToken),
                 address(wmatic),
-                address(usdc),
+                address(usdPlus),
                 false,
                 false,
                 penBalance,
@@ -374,7 +391,6 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             totalUsdc += penUsdc;
         }
 
-        usdc.transfer(_to, usdc.balanceOf(address(this)));
         return totalUsdc;
     }
 
@@ -400,42 +416,42 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     }
 
-//    function _showAave() internal {
-//
-//        IPool aave = _aavePool();
-//
-//        (uint256 totalCollateralBase,
-//        uint256 totalDebtBase,
-//        uint256 availableBorrowsBase,
-//        uint256 currentLiquidationThreshold,
-//        uint256 ltv,
-//        uint256 healthFactor) = aave.getUserAccountData(address(this));
-//
-//
-//        console.log('---AAVE---');
-//        console.log('totalCollateralBase:         %s', totalCollateralBase);
-//        console.log('totalDebtBase:               %s', totalDebtBase);
-//        console.log('availableBorrowsBase:        %s', availableBorrowsBase);
-//        console.log('currentLiquidationThreshold: %s', currentLiquidationThreshold);
-//        console.log('ltv:                         %s', ltv);
-//        console.log('healthFactor:                %s', healthFactor);
-//        console.log('');
-//
-//    }
-//
-//    function _showBalances() internal {
-//        console.log('---Balances---');
-//        console.log('USDC     %s', usdc.balanceOf(address(this)));
-//        console.log('USD+     %s', usdPlus.balanceOf(address(this)));
-//        console.log('WMATIC   %s', wmatic.balanceOf(address(this)));
-//        console.log('Dystopia %s', dystVault.balanceOf(address(this)));
-//
-//        address userProxyThis = penLens.userProxyByAccount(address(this));
-//        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-//        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-//
-//        console.log('Penrose %s', lpTokenBalance);
-//
-//    }
+    function _showAave() internal {
+
+        IPool aave = _aavePool();
+
+        (uint256 totalCollateralBase,
+        uint256 totalDebtBase,
+        uint256 availableBorrowsBase,
+        uint256 currentLiquidationThreshold,
+        uint256 ltv,
+        uint256 healthFactor) = aave.getUserAccountData(address(this));
+
+
+        console.log('---AAVE---');
+        console.log('totalCollateralBase:         %s', totalCollateralBase);
+        console.log('totalDebtBase:               %s', totalDebtBase);
+        console.log('availableBorrowsBase:        %s', availableBorrowsBase);
+        console.log('currentLiquidationThreshold: %s', currentLiquidationThreshold);
+        console.log('ltv:                         %s', ltv);
+        console.log('healthFactor:                %s', healthFactor);
+        console.log('');
+
+    }
+
+    function _showBalances() internal {
+        console.log('---Balances---');
+        console.log('USDC     %s', usdc.balanceOf(address(this)));
+        console.log('USD+     %s', usdPlus.balanceOf(address(this)));
+        console.log('WMATIC   %s', wmatic.balanceOf(address(this)));
+        console.log('Dystopia %s', dystVault.balanceOf(address(this)));
+
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+
+        console.log('Penrose %s', lpTokenBalance);
+
+    }
 
 }

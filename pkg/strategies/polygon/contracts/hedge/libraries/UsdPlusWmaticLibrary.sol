@@ -37,9 +37,34 @@ library UsdPlusWmaticLibrary {
 
         (params.totalCollateralUsd, params.totalBorrowUsd,,,,) = aave.getUserAccountData(address(self));
 
-        uint256 neededToken0 = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
-        aave.borrow(address(self.wmatic()), neededToken0, self.INTEREST_RATE_MODE(), self.REFERRAL_CODE(), address(self));
+        uint256 wmaticAmount = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
+        aave.borrow(address(self.wmatic()), wmaticAmount, self.INTEREST_RATE_MODE(), self.REFERRAL_CODE(), address(self));
 
+        self.usdc().approve(address(self.exchange()), neededUsdc);
+        self.exchange().buy(address(self.usdc()), neededUsdc);
+
+        uint256 usdPlusAmount = self.usdPlus().balanceOf(address(self));
+
+        _addLiquidity(self, wmaticAmount, usdPlusAmount);
+    }
+
+    function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount , uint256 usdPlusAmount) internal {
+
+        self.dystRouter().addLiquidity(
+            address(self.wmatic()),
+            address(self.usdPlus()),
+            false,
+            wmaticAmount,
+            usdPlusAmount,
+            (wmaticAmount < 10000) ? 0 : OvnMath.subBasisPoints(wmaticAmount, self.BASIS_POINTS_FOR_SLIPPAGE()),
+            (usdPlusAmount < 10000) ? 0 : OvnMath.subBasisPoints(usdPlusAmount, self.BASIS_POINTS_FOR_SLIPPAGE()),
+            address(self),
+            block.timestamp + 600
+        );
+
+        uint256 lpTokenBalance = self.dystVault().balanceOf(address(self));
+        self.dystVault().approve(address(self.penProxy()), lpTokenBalance);
+        self.penProxy().depositLpAndStake(address(self.dystVault()), lpTokenBalance);
     }
 
     function _aavePool(StrategyUsdPlusWmatic self) public returns (IPool aavePool){
@@ -88,7 +113,8 @@ library UsdPlusWmaticLibrary {
         self.dystVault().approve(address(self.dystRouter()), amountLp);
         (uint256 amountWmatic, uint256 amountUsdPlus) = _removeLiquidity(self,amountLp);
 
-        self.exchange().redeem(address(self), amountUsdPlus);
+        self.usdPlus().approve(address(self.exchange()), amountUsdPlus);
+        self.exchange().redeem(address(self.usdc()), amountUsdPlus);
 
         uint256 amountUsdc = self.usdc().balanceOf(address(self));
         self.usdc().approve(address(aave), amountUsdc);

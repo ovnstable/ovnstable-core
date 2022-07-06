@@ -1,6 +1,7 @@
 const { verify } = require("@overnight-contracts/common/utils/verify-utils");
 const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 async function main() {
 

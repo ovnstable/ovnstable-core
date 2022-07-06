@@ -12,6 +12,7 @@ import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
 import "./interfaces/IHedgeStrategy.sol";
 
+import "hardhat/console.sol";
 
 contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -254,9 +255,8 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
             return;
         }
 
-
         strategy.claimRewards(address(this));
-        usdc.transfer(address(strategy), usdc.balanceOf(address(this)));
+        strategy.balance();
 
         uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
         uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
@@ -271,8 +271,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         if (totalUsdc > totalRebaseSupply) {
             profit = totalUsdc - totalRebaseSupply;
-
-            tvlFeeAmount = (profit * tvlFee) / 365 / tvlFeeDenominator;
+            tvlFeeAmount = ((profit * 1e3) * tvlFee) / 365 / tvlFeeDenominator;
             profit = profit - tvlFeeAmount;
 
             profitFeeAmount = (profit * profitFee ) / profitFeeDenominator;
