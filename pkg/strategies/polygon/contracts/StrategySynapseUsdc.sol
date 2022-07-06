@@ -153,19 +153,23 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount > 0) {
-            usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
+            if (nav) {
+                usdcBalance += swap.calculateRemoveLiquidityOneToken(1e18, 2) * amount / 1e18;
+            } else {
+                usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
+            }
         }
 
         return usdcBalance;

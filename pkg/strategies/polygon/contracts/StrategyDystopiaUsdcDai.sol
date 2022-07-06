@@ -188,7 +188,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
             // count amount to unstake
             uint256 totalLpBalance = dystPair.totalSupply();
             uint256 lpTokensToWithdraw = _getAmountLpTokens(
-                OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE) + 10,
                 reserveUsdc,
                 reserveDai,
                 totalLpBalance,

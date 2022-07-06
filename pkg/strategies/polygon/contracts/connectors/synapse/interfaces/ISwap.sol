@@ -11,6 +11,8 @@ interface ISwap {
 
     function getTokenIndex(address tokenAddress) external view returns (uint8);
 
+    function getAdminBalance(uint256 index) external view returns (uint256);
+
     function getTokenBalance(uint8 index) external view returns (uint256);
 
     function getVirtualPrice() external view returns (uint256);

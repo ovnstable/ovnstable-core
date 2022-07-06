@@ -227,25 +227,35 @@ contract StrategySynapseUsdce is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount > 0) {
-            uint256 usdceBalance = swap.calculateRemoveLiquidityOneToken(amount, 2);
-            (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
-                address(usdceToken),
-                address(usdcToken),
-                usdceBalance
-            );
-            usdcBalance += potentialOutcome;
+            if (nav) {
+                uint256 usdceBalance = swap.calculateRemoveLiquidityOneToken(1e18, 2);
+                (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+                    address(usdceToken),
+                    address(usdcToken),
+                    usdceBalance
+                );
+                usdcBalance += potentialOutcome * amount / 1e18;
+            } else {
+                uint256 usdceBalance = swap.calculateRemoveLiquidityOneToken(amount, 2);
+                (uint256 potentialOutcome,) = platypus.quotePotentialSwap(
+                    address(usdceToken),
+                    address(usdcToken),
+                    usdceBalance
+                );
+                usdcBalance += potentialOutcome;
+            }
         }
 
         return usdcBalance;
