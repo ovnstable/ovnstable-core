@@ -30,7 +30,7 @@ async function main() {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 20.2,
+            "targetWeight": 30,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -39,7 +39,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 35.2,
+            "targetWeight": 13.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -48,7 +48,7 @@ async function main() {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 36.6,
+            "targetWeight": 13.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -57,7 +57,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 5,
+            "targetWeight": 40,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
