@@ -226,7 +226,12 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         SwapPlaceInfo[] storage swapPlaceInfoList = swapPlaceInfos[params.tokenIn][params.tokenOut];
         require(swapPlaceInfoList.length > 0, "Cant find swapPlace by tokens");
 
-        uint256 iterations = params.partsAmount;
+        uint256 iterations;
+        if (params.partsAmount == 0) {
+            iterations = swapPlaceInfoList.length;
+        } else {
+            iterations = params.partsAmount;
+        }
         uint256 iterationAmount = params.amountIn / iterations;
 
 
@@ -240,6 +245,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         // 2. find best swaps
         uint256 lastCommittedIndex = calc(
             params,
+            iterations,
             iterationAmount,
             contexts
         );
@@ -294,6 +300,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     function calc(
         SwapParams calldata params,
+        uint256 iterations,
         uint256 iterationAmount,
         CalcContext[] memory contexts
     ) internal view returns (uint256){
@@ -305,7 +312,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             uint256 committedIndex = findBestSwapAndCommit(contexts);
 
             iterationsDone++;
-            if (iterationsDone >= params.partsAmount) {
+            if (iterationsDone >= iterations) {
                 lastCommittedIndex = committedIndex;
                 break;
             }
@@ -313,7 +320,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             // 3. Recalc next amount out for committed
             uint256 amountIn;
             uint256 multiplayer = contexts[committedIndex].committedIndex + 1;
-            if (multiplayer == params.partsAmount) {
+            if (multiplayer == iterations) {
                 amountIn = params.amountIn;
             } else {
                 amountIn = iterationAmount * multiplayer;
