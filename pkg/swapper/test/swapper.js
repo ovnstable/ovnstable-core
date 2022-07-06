@@ -65,6 +65,10 @@ describe("Swapper", function () {
             tmpSwapPlaceType,
         );
 
+
+        let swapPlaceType = await swapper.poolSwapPlaceTypes(tmpPool);
+        expect(swapPlaceType).eq(tmpSwapPlaceType);
+
         swapPlaceLength1 = await swapper.swapPlaceInfoLength(POLYGON.usdc, POLYGON.usdt);
         expect(swapPlaceLength1).eq(1);
 

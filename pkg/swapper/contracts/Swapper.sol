@@ -18,9 +18,14 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     // ---  fields
 
+    // token's pair to swap place info list
     mapping(address => mapping(address => SwapPlaceInfo[])) public swapPlaceInfos;
 
+    // swap place type to swap place address
     mapping(string => address) public swapPlaces;
+
+    // pool address to swap place type
+    mapping(address => string) public poolSwapPlaceTypes;
 
     // ---  constructor
 
@@ -73,6 +78,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             }
         }
 
+        poolSwapPlaceTypes[pool] = swapPlaceType;
         swapPlaceInfos[token0][token1].push(SwapPlaceInfo(pool, swapPlaceType));
         swapPlaceInfos[token1][token0].push(SwapPlaceInfo(pool, swapPlaceType));
 
