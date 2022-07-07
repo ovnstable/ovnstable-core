@@ -191,7 +191,54 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         _convertTokensToUsdPlus();
 
+
+        uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
+        (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
+        
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+        
+        uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+            OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
+            reserveWmatic,
+            reserveUsdPlus,
+            amountLp,
+            usdcDm,
+            wmaticDm,
+            address(usdPlus),
+            address(wmatic)
+        );
+        penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
+        _removeLiquidity(lpTokensToWithdraw);
+    
+        _convertTokensToUsdPlus();
+
         return usdPlus.balanceOf(address(this));
+    }
+
+    function _getAmountLpTokensToWithdraw(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalLpBalance,
+        uint256 denominator0,
+        uint256 denominator1,
+        address token0,
+        address token1
+    ) public view returns (uint256) {
+        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+            
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = token1;
+        route[0].to = token0;
+        route[0].stable = true;
+        uint256 amount0 = dystRouter.getAmountsOut(amount1, route)[2];
+
+        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+        
+        return lpBalance;
     }
 
     function _convertTokensToUsdPlus() internal {
