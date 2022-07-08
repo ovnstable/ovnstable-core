@@ -194,11 +194,11 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
         (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
-        
+
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
         amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-        
+
         uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
             OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
             reserveWmatic,
@@ -211,7 +211,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         );
         penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
         _removeLiquidity(lpTokensToWithdraw);
-    
+
         _convertTokensToUsdPlus();
 
         return usdPlus.balanceOf(address(this));
@@ -229,7 +229,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     ) public view returns (uint256) {
         uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
         uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            
+
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
         route[0].from = token1;
         route[0].to = token0;
@@ -237,7 +237,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 amount0 = dystRouter.getAmountsOut(amount1, route)[2];
 
         lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-        
+
         return lpBalance;
     }
 
@@ -351,7 +351,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             return 0;
 
         (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
-        uint256 totalUsdPlus = poolUsdPlus;
+        uint256 totalUsdPlus = poolUsdPlus + usdPlus.balanceOf(address(this));
         uint256 totalUsdc = usdc.balanceOf(address(this)) + aUsdc.balanceOf(address(this));
 
 
