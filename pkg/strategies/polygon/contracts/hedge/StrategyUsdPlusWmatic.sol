@@ -192,29 +192,33 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         _convertTokensToUsdPlus();
 
 
-        uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
-        (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
+        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        if(_amount > usdPlusAmount){
 
-        address userProxyThis = penLens.userProxyByAccount(address(this));
-        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-        amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+            uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
+            (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
 
-        uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-            OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
-            reserveWmatic,
-            reserveUsdPlus,
-            amountLp,
-            usdcDm,
-            wmaticDm,
-            address(usdPlus),
-            address(wmatic)
-        );
-        penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
-        _removeLiquidity(lpTokensToWithdraw);
+            address userProxyThis = penLens.userProxyByAccount(address(this));
+            address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+            amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
 
-        _convertTokensToUsdPlus();
+            uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+                OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
+                reserveWmatic,
+                reserveUsdPlus,
+                amountLp,
+                usdcDm,
+                wmaticDm,
+                address(usdPlus),
+                address(wmatic)
+            );
+            penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
+            _removeLiquidity(lpTokensToWithdraw);
 
-        return usdPlus.balanceOf(address(this));
+            _convertTokensToUsdPlus();
+        }
+
+        return _amount;
     }
 
     function _getAmountLpTokensToWithdraw(
