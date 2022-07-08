@@ -16,8 +16,8 @@ let dystopiaRouter = '0xbE75Dd16D029c6B32B7aD57A0FD9C1c20Dd2862e';
 
 async function main() {
 
-    await test();
-    //await proposal();
+    // await test();
+    await proposal();
 
 }
 
@@ -27,13 +27,18 @@ async function test() {
 
         await showM2M();
 
-        let strategySynapseUsdc = await getContract('StrategySynapseUsdc', 'localhost');
-        await strategySynapseUsdc.connect(timelock).upgradeTo('0x391670F093050c08c1D220b03d160c2eA37B457f');
+        let strategySynapseUsdc = await getContract('StrategySynapseUsdc' );
+        await strategySynapseUsdc.connect(timelock).upgradeTo('0x2E6E4356437f8955138C9F4B2D7981Ee458133b6');
         await strategySynapseUsdc.connect(timelock).setTokens(POLYGON.usdc, nUsdLPToken, synToken, POLYGON.usdPlus);
         await strategySynapseUsdc.connect(timelock).setParams(swap, miniChefV2, sushiSwapRouter, pid, dystopiaRouter);
 
         let exchange = await getContract('Exchange');
-        await (await exchange.payout()).wait();
+
+        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+        let tx = await (await exchange.payout()).wait();
+
+        const amount = tx.events.find((e) => e.event == 'Harvest').args.amount;
+        console.log('Syn: ' + amount.toString())
 
         await showM2M();
     });
