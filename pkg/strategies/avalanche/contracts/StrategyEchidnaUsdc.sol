@@ -132,18 +132,23 @@ contract StrategyEchidnaUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue(bool nav) internal view returns (uint256) {
         uint256 userLPBalance = rewardPool.balanceOf(address(this));
         uint256 liability = platypusLPUsdc.liability();
         uint256 totalSupply = platypusLPUsdc.totalSupply();
-        return userLPBalance * liability / totalSupply;
+        uint256 totalValue = userLPBalance * liability / totalSupply;
+        if (nav) {
+            return totalValue;
+        } else {
+            return totalValue.subBasisPoints(4);
+        }
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {

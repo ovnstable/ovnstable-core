@@ -246,7 +246,7 @@ async function upgradeStrategy(strategy, newImplAddress) {
 async function execTimelock(exec){
 
 
-    let timelock = await getContract('OvnTimelockController', 'polygon');
+    let timelock = await getContract('OvnTimelockController' );
 
 
     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')

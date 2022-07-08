@@ -123,15 +123,19 @@ contract StrategyVectorUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
-        return poolHelper.depositTokenBalance();
+    function _totalValue(bool nav) internal view returns (uint256) {
+        if (nav) {
+            return poolHelper.depositTokenBalance();
+        } else {
+            return poolHelper.depositTokenBalance().subBasisPoints(4);
+        }
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
