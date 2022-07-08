@@ -6,6 +6,7 @@ import "./libraries/OvnMath.sol";
 import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/synapse/interfaces/ISwap.sol";
 import "./connectors/synapse/interfaces/IMiniChefV2.sol";
+import "./connectors/dystopia/interfaces/IDystopiaRouter.sol";
 
 
 contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
@@ -19,12 +20,14 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
     IMiniChefV2 public miniChefV2;
     uint256 public pid;
 
+    IERC20 public usdPlusToken;
+    IDystopiaRouter public dystopiaRouter;
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address nUsdLPToken, address synToken);
+    event StrategyUpdatedTokens(address usdcToken, address nUsdLPToken, address synToken, address usdPlusToken);
 
-    event StrategyUpdatedParams(address swap, address miniChefV2, address sushiSwapRouter, uint256 pid);
+    event StrategyUpdatedParams(address swap, address miniChefV2, address sushiSwapRouter, uint256 pid, address dystopiaRouter);
 
 
     // ---  constructor
@@ -42,38 +45,44 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
     function setTokens(
         address _usdcToken,
         address _nUsdLPToken,
-        address _synToken
+        address _synToken,
+        address _usdPlusToken
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
         require(_nUsdLPToken != address(0), "Zero address not allowed");
         require(_synToken != address(0), "Zero address not allowed");
+        require(_usdPlusToken != address(0), "Zero address not allowed");
 
         usdcToken = IERC20(_usdcToken);
         nUsdLPToken = IERC20(_nUsdLPToken);
         synToken = IERC20(_synToken);
+        usdPlusToken = IERC20(_usdPlusToken);
 
-        emit StrategyUpdatedTokens(_usdcToken, _nUsdLPToken, _synToken);
+        emit StrategyUpdatedTokens(_usdcToken, _nUsdLPToken, _synToken, _usdPlusToken);
     }
 
     function setParams(
         address _swap,
         address _miniChefV2,
         address _sushiSwapRouter,
-        uint64 _pid
+        uint64 _pid,
+        address _dystopiaRouter
     ) external onlyAdmin {
 
         require(_swap != address(0), "Zero address not allowed");
         require(_miniChefV2 != address(0), "Zero address not allowed");
         require(_sushiSwapRouter != address(0), "Zero address not allowed");
         require(_pid != 0, "Zero value not allowed");
+        require(_dystopiaRouter != address(0), "Zero address not allowed");
 
         swap = ISwap(_swap);
         miniChefV2 = IMiniChefV2(_miniChefV2);
         _setUniswapRouter(_sushiSwapRouter);
         pid = _pid;
+        dystopiaRouter = IDystopiaRouter(_dystopiaRouter);
 
-        emit StrategyUpdatedParams(_swap, _miniChefV2, _sushiSwapRouter, _pid);
+        emit StrategyUpdatedParams(_swap, _miniChefV2, _sushiSwapRouter, _pid, _dystopiaRouter);
     }
 
 
@@ -191,7 +200,10 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         if (synBalance > 0) {
             uint256 synUsdc = _swapExactTokensForTokens(
                 address(synToken),
+                address(usdPlusToken),
                 address(usdcToken),
+                false,
+                true,
                 synBalance,
                 address(this)
             );
@@ -206,4 +218,61 @@ contract StrategySynapseUsdc is Strategy, UniswapV2Exchange {
         return totalUsdc;
     }
 
+    function _getAmountsOut(
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = inputToken;
+        route[0].to = middleToken;
+        route[0].stable = isStablePair0;
+        route[1].from = middleToken;
+        route[1].to = outputToken;
+        route[1].stable = isStablePair1;
+
+        uint[] memory amounts = dystopiaRouter.getAmountsOut(amountInput, route);
+
+        return amounts[2];
+    }
+
+    function _swapExactTokensForTokens(
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
+        uint256 amountInput,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(dystopiaRouter), amountInput);
+
+        uint256 amountOutMin = _getAmountsOut(address(inputToken), address(middleToken), address(outputToken), isStablePair0, isStablePair1, amountInput);
+        if (amountOutMin == 0) {
+            return 0;
+        }
+
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = inputToken;
+        route[0].to = middleToken;
+        route[0].stable = isStablePair0;
+        route[1].from = middleToken;
+        route[1].to = outputToken;
+        route[1].stable = isStablePair1;
+
+        uint[] memory amounts = dystopiaRouter.swapExactTokensForTokens(
+            amountInput,
+            0,
+            route,
+            recipient,
+            block.timestamp + 600
+        );
+
+        return amounts[2];
+    }
 }

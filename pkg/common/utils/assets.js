@@ -58,6 +58,7 @@ let FANTOM = {
 }
 
 let POLYGON = {
+    usdPlus: "0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f",
     idleUsdc: "0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1",
     usdc: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
     usdt: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
