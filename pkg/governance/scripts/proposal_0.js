@@ -54,7 +54,7 @@ async function proposal() {
 
     addresses.push(strategySynapseUsdc.address);
     values.push(0);
-    abis.push(strategySynapseUsdc.interface.encodeFunctionData('upgradeTo', ['0x391670F093050c08c1D220b03d160c2eA37B457f']));
+    abis.push(strategySynapseUsdc.interface.encodeFunctionData('upgradeTo', ['0x2E6E4356437f8955138C9F4B2D7981Ee458133b6']));
 
     addresses.push(strategySynapseUsdc.address);
     values.push(0);
