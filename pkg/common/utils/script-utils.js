@@ -305,11 +305,14 @@ async function changeWeightsAndBalance(weights){
         params: [timelock.address],
     });
 
-    await usdc.approve(exchange.address, toUSDC(10));
-    await exchange.buy(usdc.address, toUSDC(10));
 
-    await usdPlus.approve(exchange.address, toUSDC(10));
-    await exchange.redeem(usdc.address, toUSDC(10));
+    if (fromUSDC(await usdc.balanceOf(wallet.address)) > 10){
+        await usdc.approve(exchange.address, toUSDC(10));
+        await exchange.buy(usdc.address, toUSDC(10));
+
+        await usdPlus.approve(exchange.address, toUSDC(10));
+        await exchange.redeem(usdc.address, toUSDC(10));
+    }
 
     console.log('M2M after:')
     await showM2M();
