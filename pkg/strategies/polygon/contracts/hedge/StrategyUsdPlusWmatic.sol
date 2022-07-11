@@ -295,8 +295,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             false,
             wmaticAmount,
             usdPlusAmount,
-            (wmaticAmount < 10000) ? 0 : OvnMath.subBasisPoints(wmaticAmount, BASIS_POINTS_FOR_SLIPPAGE),
-            (usdPlusAmount < 10000) ? 0 : OvnMath.subBasisPoints(usdPlusAmount, BASIS_POINTS_FOR_SLIPPAGE),
+            0,
+            0,
             address(this),
             block.timestamp + 600
         );
@@ -329,7 +329,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         );
 
 
-        uint256 redeemUsdcCollateral = usdcCollateral + (usdcCollateral * exchange.redeemFee()) / exchange.redeemFeeDenominator() + 100;
+        uint256 redeemUsdcCollateral = ((usdcCollateral * 1e6) / 9996 / 1e2) - usdc.balanceOf(address(this));
         exchange.redeem(address(usdc), redeemUsdcCollateral);
 
         IPool aavePool = _aavePool();
@@ -458,7 +458,6 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         if (healthFactorCurrent > healthFactor) {
             this._healthFactorBalanceILt();
-            _stakeDystopiaToPenrose();
         } else {
             this._healthFactorBalanceIGt();
         }

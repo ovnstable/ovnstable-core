@@ -5,6 +5,7 @@ import "../../libraries/AaveBorrowLibrary.sol";
 import "../../connectors/dystopia/interfaces/IDystopiaLP.sol";
 import {OvnMath} from "../../libraries/OvnMath.sol";
 
+import "hardhat/console.sol";
 
 library UsdPlusWmaticLibrary {
 
@@ -50,17 +51,21 @@ library UsdPlusWmaticLibrary {
 
     function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount , uint256 usdPlusAmount) internal {
 
+        self.usdPlus().approve(address(self.dystRouter()), usdPlusAmount);
+        self.wmatic().approve(address(self.dystRouter()), wmaticAmount);
+
         self.dystRouter().addLiquidity(
             address(self.wmatic()),
             address(self.usdPlus()),
             false,
             wmaticAmount,
             usdPlusAmount,
-            (wmaticAmount < 10000) ? 0 : OvnMath.subBasisPoints(wmaticAmount, self.BASIS_POINTS_FOR_SLIPPAGE()),
-            (usdPlusAmount < 10000) ? 0 : OvnMath.subBasisPoints(usdPlusAmount, self.BASIS_POINTS_FOR_SLIPPAGE()),
+            0,
+            0,
             address(self),
             block.timestamp + 600
         );
+
 
         uint256 lpTokenBalance = self.dystVault().balanceOf(address(self));
         self.dystVault().approve(address(self.penProxy()), lpTokenBalance);
