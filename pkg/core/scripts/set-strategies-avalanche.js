@@ -21,7 +21,7 @@ async function main() {
             "strategy": "0x50D3560397864a3c7a24116D0dcd27A27Ef852c7",
             "name": "Vector USDC",
             "minWeight": 0,
-            "targetWeight": 50,
+            "targetWeight": 35,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -31,7 +31,7 @@ async function main() {
             "strategy": "0xc2c84ca763572c6aF596B703Df9232b4313AD4e3",
             "name": "Echidna USDC",
             "minWeight": 0,
-            "targetWeight": 47,
+            "targetWeight": 32,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -41,7 +41,7 @@ async function main() {
             "strategy": "0x22EcC33bF964eD13d18419FDaE725919a757f230",
             "name": "Synapse USDC.e",
             "minWeight": 0,
-            "targetWeight": 0.5,
+            "targetWeight": 30.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -57,6 +57,17 @@ async function main() {
 
         return value;
     })
+
+    let totalWeight = 0;
+    for (const weight of weights) {
+        totalWeight += weight.targetWeight * 1000;
+    }
+    console.log(`totalWeight: ${totalWeight}`)
+
+    if (totalWeight !== 100000) {
+        console.log(`Total weight not 100000`)
+        return
+    }
 
     // await changeWeightsAndBalance(weights);
     await proposal(weights);
