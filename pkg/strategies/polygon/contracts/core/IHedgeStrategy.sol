@@ -13,6 +13,13 @@ interface IHedgeStrategy {
     event Balance(uint256 healthFactor);
     event SetHealthFactor(uint256 healthFactor);
 
+    struct BalanceItem {
+        address token;
+        uint256 amountUSDC;
+        uint256 amount;
+        bool    borrowed;
+    }
+
     function stake(
         uint256 _amount // value for staking in asset
     ) external;
@@ -29,4 +36,7 @@ interface IHedgeStrategy {
     function balance() external ; // Balancing aave health factor
 
     function setHealthFactor(uint256 healthFactor) external; // Aave healthFactor setter
+
+    function balances() external view returns (BalanceItem[] memory ); // Balancing aave health factor
+
 }

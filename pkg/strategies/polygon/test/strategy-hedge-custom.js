@@ -41,7 +41,27 @@ describe("StrategyUsdPlusWmatic", function () {
             await usdPlus.transfer(strategy.address, toUSDC(10));
             await strategy.stake(toUSDC(10));
 
-            console.log('Nav ' + fromUSDC(await strategy.netAssetValue()));
+
+            let balances = await strategy.balances();
+
+            let items = [];
+
+            let totalNav = 0;
+            for (let i = 0; i < balances.length; i++) {
+                let balance = balances[i];
+                balance = {token: balance[0], amountUSDC: balance[1] / 1e6, amount: balance[2].toString(), borrowed: balance[3]};
+                items.push(balance)
+
+                if (balance.borrowed)
+                    totalNav -=balance.amountUSDC;
+                else
+                    totalNav += balance.amountUSDC;
+            }
+
+
+            console.table(items);
+            console.log('Nav        :' + fromUSDC(await strategy.netAssetValue()));
+            console.log('Total Nav  :' + totalNav);
 
             await strategy.unstake(toUSDC(9), account);
             console.log('Nav ' + fromUSDC(await strategy.netAssetValue()));

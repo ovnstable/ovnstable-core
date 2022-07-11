@@ -52,8 +52,8 @@ module.exports = async (plugin) => {
 
         const strategy = await ethers.getContract("StrategyUsdPlusWmatic");
 
-        const exchange = await getContract('Exchange');
-        const usdPlus = await getContract('UsdPlusToken');
+        const exchange = await getContract('Exchange', 'polygon');
+        const usdPlus = await getContract('UsdPlusToken', 'polygon');
 
         if (strategy){
 
