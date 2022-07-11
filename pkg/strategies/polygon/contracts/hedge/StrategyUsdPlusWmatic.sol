@@ -295,8 +295,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             false,
             wmaticAmount,
             usdPlusAmount,
-            0,
-            0,
+            (wmaticAmount < 10000) ? 0 : (OvnMath.subBasisPoints(wmaticAmount, BASIS_POINTS_FOR_SLIPPAGE)),
+            (usdPlusAmount < 10000) ? 0 : (OvnMath.subBasisPoints(usdPlusAmount, 2 * BASIS_POINTS_FOR_SLIPPAGE)),
             address(this),
             block.timestamp + 600
         );
@@ -312,8 +312,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
         uint256 balanceUsdPlus = usdPlus.balanceOf(address(this));
-        uint256 redeemFeeAmount = (balanceUsdPlus * exchange.redeemFee()) / exchange.redeemFeeDenominator();
-        balanceUsdPlus = balanceUsdPlus - redeemFeeAmount;
+        balanceUsdPlus = balanceUsdPlus * (exchange.redeemFeeDenominator() -  exchange.redeemFee()) /  exchange.redeemFeeDenominator();
 
 
         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
@@ -329,7 +328,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         );
 
 
-        uint256 redeemUsdcCollateral = ((usdcCollateral * 1e6) / 9996 / 1e2) - usdc.balanceOf(address(this));
+        uint256 redeemUsdcCollateral = usdcCollateral * exchange.redeemFeeDenominator() / (exchange.redeemFeeDenominator() -  exchange.redeemFee());
         exchange.redeem(address(usdc), redeemUsdcCollateral);
 
         IPool aavePool = _aavePool();
@@ -493,6 +492,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         if (healthFactorCurrent > healthFactor) {
             this._healthFactorBalanceILt();
+            _stakeDystopiaToPenrose();
         } else {
             this._healthFactorBalanceIGt();
         }
