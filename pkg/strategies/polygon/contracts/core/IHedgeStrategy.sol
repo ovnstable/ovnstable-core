@@ -10,7 +10,6 @@ interface IHedgeStrategy {
     event Stake(uint256 amount);
     event Unstake(uint256 amount, uint256 amountReceived);
 
-    event Balance(uint256 healthFactor);
     event SetHealthFactor(uint256 healthFactor);
 
     struct BalanceItem {

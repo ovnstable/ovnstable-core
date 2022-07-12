@@ -90,10 +90,7 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
     }
 
     function balance() external override onlyExchanger {
-        uint256 healthFactor = _balance();
-        if (healthFactor > 0) {
-            emit Balance(healthFactor);
-        }
+        _balance();
     }
 
     function setHealthFactor(uint256 healthFactor) external override onlyExchanger {

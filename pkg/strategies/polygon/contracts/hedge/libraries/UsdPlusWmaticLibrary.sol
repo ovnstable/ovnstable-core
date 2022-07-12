@@ -49,7 +49,7 @@ library UsdPlusWmaticLibrary {
         _addLiquidity(self, wmaticAmount, usdPlusAmount);
     }
 
-    function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount , uint256 usdPlusAmount) internal {
+    function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount , uint256 usdPlusAmount) public {
 
         self.usdPlus().approve(address(self.dystRouter()), usdPlusAmount);
         self.wmatic().approve(address(self.dystRouter()), wmaticAmount);
@@ -60,8 +60,8 @@ library UsdPlusWmaticLibrary {
             false,
             wmaticAmount,
             usdPlusAmount,
-            0,
-            0,
+            (wmaticAmount < 10000) ? 0 : (OvnMath.subBasisPoints(wmaticAmount, self.BASIS_POINTS_FOR_SLIPPAGE())),
+            (usdPlusAmount < 10000) ? 0 : (OvnMath.subBasisPoints(usdPlusAmount, 2 * self.BASIS_POINTS_FOR_SLIPPAGE())),
             address(self),
             block.timestamp + 600
         );
@@ -77,7 +77,7 @@ library UsdPlusWmaticLibrary {
     }
 
 
-    function _removeLiquidity(StrategyUsdPlusWmatic self, uint256 amountLp) internal returns (uint256 amountWmatic, uint256 amountUsdPlus) {
+    function _removeLiquidity(StrategyUsdPlusWmatic self, uint256 amountLp) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
         (uint256 amountLiq0, uint256 amountLiq1) = self._getLiquidity( amountLp);
         (amountWmatic, amountUsdPlus) = self.dystRouter().removeLiquidity(

@@ -255,13 +255,11 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
             return;
         }
 
-        strategy.claimRewards(address(this));
+        strategy.claimRewards(address(strategy));
         strategy.balance();
 
-        uint256 totalRebaseSupplyRay = rebase.scaledTotalSupply();
-        uint256 totalRebaseSupply = totalRebaseSupplyRay.rayToWad();
-        uint256 totalUsdc = strategy.netAssetValue();
-
+        uint256 totalRebase = rebase.totalSupply();       // Total supply with liq index
+        uint256 totalUsdc = strategy.netAssetValue();     // Strategy NAV
 
         uint256 fee;
         uint256 tvlFeeAmount;
@@ -269,8 +267,9 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         uint256 profit;
         uint256 loss;
 
-        if (totalUsdc > totalRebaseSupply) {
-            profit = totalUsdc - totalRebaseSupply;
+
+        if (totalUsdc > totalRebase) {
+            profit = totalUsdc - totalRebase;
             tvlFeeAmount = ((profit * 1e3) * tvlFee) / 365 / tvlFeeDenominator;
             profit = profit - tvlFeeAmount;
 
@@ -279,14 +278,15 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
             fee = tvlFeeAmount + profitFeeAmount;
         }else {
-            loss = totalRebaseSupply - totalUsdc;
+            loss = totalRebase - totalUsdc;
         }
 
         totalUsdc = totalUsdc - fee;
 
-        uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
-        // in ray
-        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalRebaseSupplyRay);
+        uint256 totalUsdcRay = totalUsdc.wadToRay();
+
+        // USE rebase.SCALED_TOTAL_SUPPLY() = Total supply WITHOUT liq index
+        uint256 newLiquidityIndex = totalUsdcRay.rayDiv(rebase.scaledTotalSupply());
         rebase.setLiquidityIndex(newLiquidityIndex);
 
 
