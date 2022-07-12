@@ -39,7 +39,7 @@ async function main() {
             "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
             "name": "Dystopia USDC/USDT",
             "minWeight": 0,
-            "targetWeight": 18.4,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -48,7 +48,7 @@ async function main() {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
-            "targetWeight": 18.6,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -57,7 +57,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 40,
+            "targetWeight": 47,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -86,8 +86,8 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await createProposal(weights);
+    // await changeWeightsAndBalance(weights);
+    await createProposal(weights);
 
 }
 
