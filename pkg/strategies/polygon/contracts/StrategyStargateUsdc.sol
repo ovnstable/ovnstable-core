@@ -25,7 +25,7 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address stgToken);
+    event StrategyUpdatedTokens(address usdcToken, address stgToken, uint256 usdcTokenDenominator);
 
     event StrategyUpdatedParams(address stargateRouter, address pool, address lpStaking, uint256 pid, address sushiSwapRouter);
 
@@ -55,7 +55,7 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
 
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
 
-        emit StrategyUpdatedTokens(_usdcToken, _stgToken);
+        emit StrategyUpdatedTokens(_usdcToken, _stgToken, usdcTokenDenominator);
     }
 
     function setParams(
