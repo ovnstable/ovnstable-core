@@ -5,7 +5,7 @@ import "./core/Strategy.sol";
 import "./libraries/OvnMath.sol";
 import "./exchanges/UniswapV2Exchange.sol";
 import "./connectors/stargate/interfaces/IStargateRouter.sol";
-import "./connectors/stargate/interfaces/IPool.sol";
+import "./connectors/stargate/interfaces/IStargatePool.sol";
 import "./connectors/stargate/interfaces/ILPStaking.sol";
 
 
@@ -16,9 +16,11 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
     IERC20 public stgToken;
 
     IStargateRouter public stargateRouter;
-    IPool public pool;
+    IStargatePool public pool;
     ILPStaking public lpStaking;
     uint256 public pid;
+
+    uint256 public usdcTokenDenominator;
 
 
     // --- events
@@ -51,6 +53,8 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
         usdcToken = IERC20(_usdcToken);
         stgToken = IERC20(_stgToken);
 
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+
         emit StrategyUpdatedTokens(_usdcToken, _stgToken);
     }
 
@@ -68,7 +72,7 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
         require(_sushiSwapRouter != address(0), "Zero address not allowed");
 
         stargateRouter = IStargateRouter(_stargateRouter);
-        pool = IPool(_pool);
+        pool = IStargatePool(_pool);
         lpStaking = ILPStaking(_lpStaking);
         pid = _pid;
         _setUniswapRouter(_sushiSwapRouter);
@@ -107,7 +111,7 @@ contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
 
         // unstake
         uint256 usdcAmount = _amount + 10;
-        uint256 lpBalance = usdcAmount * 1e6 / pool.amountLPtoLD(1e6);
+        uint256 lpBalance = usdcAmount * usdcTokenDenominator / pool.amountLPtoLD(usdcTokenDenominator);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
         if (lpBalance > amount) {
             lpBalance = amount;

@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IPool is IERC20 {
+interface IStargatePool is IERC20 {
 
     function poolId() external view returns (uint256);
 

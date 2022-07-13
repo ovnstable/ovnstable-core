@@ -6,8 +6,10 @@ import "./libraries/OvnMath.sol";
 import "./exchanges/UniswapV2Exchange.sol";
 import "./exchanges/SynapseExchange.sol";
 import "./connectors/stargate/interfaces/IStargateRouter.sol";
-import "./connectors/stargate/interfaces/IPool.sol";
+import "./connectors/stargate/interfaces/IStargatePool.sol";
 import "./connectors/stargate/interfaces/ILPStaking.sol";
+import "./connectors/aave/interfaces/IPriceFeed.sol";
+import "./libraries/AaveBorrowLibrary.sol";
 
 
 contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
@@ -18,16 +20,24 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
     IERC20 public stgToken;
 
     IStargateRouter public stargateRouter;
-    IPool public pool;
+    IStargatePool public pool;
     ILPStaking public lpStaking;
     uint256 public pid;
+
+    uint256 public usdcTokenDenominator;
+    uint256 public usdtTokenDenominator;
+
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleUsdt;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address stgToken);
+    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address stgToken, uint256 usdcTokenDenominator,
+        uint256 usdtTokenDenominator);
 
-    event StrategyUpdatedParams(address stargateRouter, address pool, address lpStaking, uint256 pid, address sushiSwapRouter, address synapseSwap);
+    event StrategyUpdatedParams(address stargateRouter, address pool, address lpStaking, uint256 pid,
+        address sushiSwapRouter, address synapseSwap, address oracleUsdc, address oracleUsdt);
 
 
     // ---  constructor
@@ -56,7 +66,10 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         usdtToken = IERC20(_usdtToken);
         stgToken = IERC20(_stgToken);
 
-        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _stgToken);
+        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
+        usdtTokenDenominator = 10 ** IERC20Metadata(_usdtToken).decimals();
+
+        emit StrategyUpdatedTokens(_usdcToken, _usdtToken, _stgToken, usdcTokenDenominator, usdtTokenDenominator);
     }
 
     function setParams(
@@ -65,7 +78,9 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         address _lpStaking,
         uint256 _pid,
         address _sushiSwapRouter,
-        address _synapseSwap
+        address _synapseSwap,
+        address _oracleUsdc,
+        address _oracleUsdt
     ) external onlyAdmin {
 
         require(_stargateRouter != address(0), "Zero address not allowed");
@@ -73,15 +88,20 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         require(_lpStaking != address(0), "Zero address not allowed");
         require(_sushiSwapRouter != address(0), "Zero address not allowed");
         require(_synapseSwap != address(0), "Zero address not allowed");
+        require(_oracleUsdc != address(0), "Zero address not allowed");
+        require(_oracleUsdt != address(0), "Zero address not allowed");
 
         stargateRouter = IStargateRouter(_stargateRouter);
-        pool = IPool(_pool);
+        pool = IStargatePool(_pool);
         lpStaking = ILPStaking(_lpStaking);
         pid = _pid;
         _setUniswapRouter(_sushiSwapRouter);
         _setSynapseSwap(_synapseSwap);
 
-        emit StrategyUpdatedParams(_stargateRouter, _pool, _lpStaking, _pid, _sushiSwapRouter, _synapseSwap);
+        oracleUsdc = IPriceFeed(_oracleUsdc);
+        oracleUsdt = IPriceFeed(_oracleUsdt);
+
+        emit StrategyUpdatedParams(_stargateRouter, _pool, _lpStaking, _pid, _sushiSwapRouter, _synapseSwap, _oracleUsdc, _oracleUsdt);
     }
 
 
@@ -120,7 +140,7 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         // unstake
         uint256 usdcAmount = _amount.addBasisPoints(4) + 10;
         uint256 usdtAmount = _synapseCalculateSwap(address(usdcToken), address(usdtToken), usdcAmount);
-        uint256 lpBalance = usdtAmount * 1e6 / pool.amountLPtoLD(1e6);
+        uint256 lpBalance = usdtAmount * usdtTokenDenominator / pool.amountLPtoLD(usdtTokenDenominator);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
         if (lpBalance > amount) {
             lpBalance = amount;
@@ -178,7 +198,9 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         if (amount > 0) {
             uint256 usdtBalance = pool.amountLPtoLD(amount);
             if (nav) {
-                usdcBalance += _synapseCalculateSwap(address(usdtToken), address(usdcToken), 1e6) * usdtBalance / 1e6;
+                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+                uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
+                usdcBalance += AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             } else {
                 usdcBalance += _synapseCalculateSwap(address(usdtToken), address(usdcToken), usdtBalance);
             }

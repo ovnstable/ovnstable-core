@@ -23,7 +23,8 @@ module.exports = async ({deployments}) => {
         const strategy = await ethers.getContract("StrategyStargateUsdt");
 
         await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, stgToken)).wait();
-        await (await strategy.setParams(stargateRouter, pool, lpStaking, pid, sushiSwapRouter, synapseSwap)).wait();
+        await (await strategy.setParams(stargateRouter, pool, lpStaking, pid, sushiSwapRouter, synapseSwap,
+            POLYGON.oracleChainlinkUsdc, POLYGON.oracleChainlinkUsdt,)).wait();
         await (await strategy.setPortfolioManager(core.pm)).wait();
 
         console.log('StrategyStargateUsdt setting done');
