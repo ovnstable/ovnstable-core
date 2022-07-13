@@ -103,6 +103,14 @@ let arrays = [
         name: 'StrategySynapseUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyStargateUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyStargateUsdt',
+        enabledReward: true,
+    },
 
 ];
 
