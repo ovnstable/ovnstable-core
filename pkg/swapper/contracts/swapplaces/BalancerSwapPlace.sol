@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "../ISwapPlace.sol";
-import "../connector/balancer/BalancerStuff.sol";
+import "../connector/BalancerStuff.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -18,7 +18,7 @@ contract BalancerSwapPlace is ISwapPlace {
         return "BalancerSwapPlace";
     }
 
-    function swap(SwapRoute calldata route) external override returns (uint256){
+    function swap(SwapRoute calldata route) external override returns (uint256) {
 
         bytes32 poolId = IBalancerPool(route.pool).getPoolId();
 
@@ -49,7 +49,7 @@ contract BalancerSwapPlace is ISwapPlace {
         address tokenOut,
         uint256 amountIn,
         address pool
-    ) external override view returns (uint256){
+    ) external override view returns (uint256) {
 
         bytes32 poolId = IBalancerPool(pool).getPoolId();
 
