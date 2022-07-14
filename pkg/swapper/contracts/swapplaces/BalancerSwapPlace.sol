@@ -27,8 +27,8 @@ contract BalancerSwapPlace is ISwapPlace {
         IVault.SingleSwap memory singleSwap = IVault.SingleSwap(
             poolId,
             IVault.SwapKind.GIVEN_IN,
-            IAsset(route.tokenIn),
-            IAsset(route.tokenOut),
+            route.tokenIn,
+            route.tokenOut,
             route.amountIn,
             new bytes(0)
         );
@@ -54,14 +54,14 @@ contract BalancerSwapPlace is ISwapPlace {
         bytes32 poolId = IBalancerPool(pool).getPoolId();
 
         (, IVault.PoolSpecialization poolSpecialization) = balancerVault.getPool(poolId);
-        (IERC20[] memory tokens, uint256[] memory balances,) = balancerVault.getPoolTokens(poolId);
-        (uint256 indexIn, uint256 indexOut) = getIndexes(IERC20(tokenIn), IERC20(tokenOut), tokens);
+        (address[] memory tokens, uint256[] memory balances,) = balancerVault.getPoolTokens(poolId);
+        (uint256 indexIn, uint256 indexOut) = getIndexes(tokenIn, tokenOut, tokens);
 
 
         IPoolSwapStructs.SwapRequest memory swapRequest;
         swapRequest.kind = IVault.SwapKind.GIVEN_IN;
-        swapRequest.tokenIn = IERC20(tokenIn);
-        swapRequest.tokenOut = IERC20(tokenOut);
+        swapRequest.tokenIn = tokenIn;
+        swapRequest.tokenOut = tokenOut;
         swapRequest.amount = amountIn;
 
         if (poolSpecialization == IVault.PoolSpecialization.GENERAL) {
@@ -89,9 +89,9 @@ contract BalancerSwapPlace is ISwapPlace {
 
 
     function getIndexes(
-        IERC20 tokenIn,
-        IERC20 tokenOut,
-        IERC20[] memory tokens
+        address tokenIn,
+        address tokenOut,
+        address[] memory tokens
     ) internal pure returns (uint256, uint256){
         uint256 indexIn = type(uint256).max;
         uint256 indexOut = type(uint256).max;

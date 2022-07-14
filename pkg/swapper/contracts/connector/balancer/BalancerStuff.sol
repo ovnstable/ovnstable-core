@@ -18,11 +18,6 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-interface IAsset {
-    // solhint-disable-previous-line no-empty-blocks
-}
-
-
 interface IVault {
 
     enum PoolSpecialization {GENERAL, MINIMAL_SWAP_INFO, TWO_TOKEN}
@@ -31,7 +26,7 @@ interface IVault {
     function getPool(bytes32 poolId) external view returns (address, PoolSpecialization);
 
 
-    function getPoolTokenInfo(bytes32 poolId, IERC20 token)
+    function getPoolTokenInfo(bytes32 poolId, address token)
     external
     view
     returns (
@@ -46,7 +41,7 @@ interface IVault {
     external
     view
     returns (
-        IERC20[] memory tokens,
+        address[] memory tokens,
         uint256[] memory balances,
         uint256 lastChangeBlock
     );
@@ -64,8 +59,8 @@ interface IVault {
     struct SingleSwap {
         bytes32 poolId;
         SwapKind kind;
-        IAsset assetIn;
-        IAsset assetOut;
+        address assetIn;
+        address assetOut;
         uint256 amount;
         bytes userData;
     }
@@ -82,8 +77,8 @@ interface IVault {
 interface IPoolSwapStructs {
     struct SwapRequest {
         IVault.SwapKind kind;
-        IERC20 tokenIn;
-        IERC20 tokenOut;
+        address tokenIn;
+        address tokenOut;
         uint256 amount;
         // Misc data
         bytes32 poolId;
