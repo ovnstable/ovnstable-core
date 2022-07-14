@@ -222,7 +222,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
 
-        uint256 buyFeeAmount = 0;
+        uint256 buyFeeAmount;
         uint256 buyAmount = _amount;
 
         if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
@@ -247,7 +247,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
 
-        uint256 redeemFeeAmount = 0;
+        uint256 redeemFeeAmount;
         uint256 redeemAmount = _amount;
 
         if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
