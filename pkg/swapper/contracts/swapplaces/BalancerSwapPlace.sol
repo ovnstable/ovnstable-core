@@ -58,7 +58,7 @@ contract BalancerSwapPlace is ISwapPlace {
         (uint256 indexIn, uint256 indexOut) = getIndexes(tokenIn, tokenOut, tokens);
 
 
-        IPoolSwapStructs.SwapRequest memory swapRequest;
+        IBalancerPool.SwapRequest memory swapRequest;
         swapRequest.kind = IVault.SwapKind.GIVEN_IN;
         swapRequest.tokenIn = tokenIn;
         swapRequest.tokenOut = tokenOut;

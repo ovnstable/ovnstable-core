@@ -15,9 +15,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-
 interface IVault {
 
     enum PoolSpecialization {GENERAL, MINIMAL_SWAP_INFO, TWO_TOKEN}
@@ -74,7 +71,9 @@ interface IVault {
 
 }
 
-interface IPoolSwapStructs {
+
+interface IBalancerPool {
+
     struct SwapRequest {
         IVault.SwapKind kind;
         address tokenIn;
@@ -87,9 +86,6 @@ interface IPoolSwapStructs {
         address to;
         bytes userData;
     }
-}
-
-interface IBalancerPool is IPoolSwapStructs {
 
     function getPoolId() external view returns (bytes32);
 
