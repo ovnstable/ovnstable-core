@@ -26,6 +26,7 @@ task('deploy', 'deploy')
 
 task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
     .addFlag('reset', 'Reset files')
+    .addFlag('deploy', 'Run deploy')
     .setAction(async (args, hre, runSuper) => {
 
         await fs.copyFile('.openzeppelin/unknown-137.json', '.openzeppelin/unknown-31337.json', (e) => {
@@ -45,6 +46,11 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             if (err) return console.log(err);
         });
 
+
+        if (args.deploy)
+            args.noDeploy = false;
+        else
+            args.noDeploy = true;
 
         if (args.reset)
             args.noReset = false;

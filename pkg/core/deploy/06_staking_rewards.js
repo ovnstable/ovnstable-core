@@ -10,4 +10,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     console.log('Deploy StakingRewards done');
 };
 
-module.exports.tags = ['base', 'StakingRewards'];
+module.exports.tags = ['StakingRewards'];

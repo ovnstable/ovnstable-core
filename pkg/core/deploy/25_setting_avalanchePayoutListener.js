@@ -22,5 +22,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['setting', 'SettingAvalanchePayoutListener'];
+module.exports.tags = [ 'SettingAvalanchePayoutListener'];
 

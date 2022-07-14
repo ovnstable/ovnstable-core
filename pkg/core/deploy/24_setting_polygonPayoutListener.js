@@ -38,5 +38,5 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 };
 
-module.exports.tags = ['setting', 'SettingPolygonPayoutListener'];
+module.exports.tags = ['SettingPolygonPayoutListener'];
 
