@@ -16,6 +16,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     using WadRayMath for uint256;
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
+    bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
 
     // ---  fields
 
@@ -221,9 +222,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
 
-        uint256 buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
-        uint256 buyAmount = _amount - buyFeeAmount;
-        emit PaidBuyFee(buyAmount, buyFeeAmount);
+        uint256 buyFeeAmount = 0;
+        uint256 buyAmount = _amount;
+
+        if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
+            buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
+            buyAmount = _amount - buyFeeAmount;
+            emit PaidBuyFee(buyAmount, buyFeeAmount);
+        }
 
         usdPlus.mint(msg.sender, buyAmount);
 
@@ -240,9 +246,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function redeem(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
         require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
 
-        uint256 redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
-        uint256 redeemAmount = _amount - redeemFeeAmount;
-        emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
+
+        uint256 redeemFeeAmount = 0;
+        uint256 redeemAmount = _amount;
+
+        if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
+            redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
+            redeemAmount = _amount - redeemFeeAmount;
+            emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
+        }
 
         //TODO: Real unstacked amount may be different to redeemAmount
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);

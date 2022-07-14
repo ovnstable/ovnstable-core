@@ -271,12 +271,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
-        uint256 balanceUsdPlus = usdPlus.balanceOf(address(this));
-        balanceUsdPlus = balanceUsdPlus * (exchange.redeemFeeDenominator() -  exchange.redeemFee()) /  exchange.redeemFeeDenominator();
-
-
         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
-            balanceUsdPlus,
+            usdPlus.balanceOf(address(this)),
             reserveUsdPlus,
             reserveWmatic,
             liquidationThreshold,
@@ -288,8 +284,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         );
 
 
-        uint256 redeemUsdcCollateral = usdcCollateral * exchange.redeemFeeDenominator() / (exchange.redeemFeeDenominator() -  exchange.redeemFee());
-        exchange.redeem(address(usdc), redeemUsdcCollateral);
+        exchange.redeem(address(usdc), usdcCollateral-usdc.balanceOf(address(this)));
 
         IPool aavePool = _aavePool();
 

@@ -5,4 +5,4 @@ module.exports = async ({deployments}) => {
     await deployProxy('AvalanchePayoutListener', deployments, save);
 };
 
-module.exports.tags = ['base', 'AvalanchePayoutListener'];
+module.exports.tags = [ 'AvalanchePayoutListener'];

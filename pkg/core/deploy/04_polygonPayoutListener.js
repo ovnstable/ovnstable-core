@@ -5,4 +5,4 @@ module.exports = async ({deployments}) => {
     await deployProxy('PolygonPayoutListener', deployments, save);
 };
 
-module.exports.tags = ['base','PolygonPayoutListener'];
+module.exports.tags = ['PolygonPayoutListener'];

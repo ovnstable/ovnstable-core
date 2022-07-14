@@ -10,6 +10,11 @@ let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
 
+const {waffle} = require("hardhat");
+const {getAbi} = require("@overnight-contracts/common/utils/script-utils");
+const {deployMockContract, provider} = waffle;
+
+
 describe("Exchange", function () {
 
     let account;
@@ -25,11 +30,18 @@ describe("Exchange", function () {
         await hre.run("compile");
         await resetHardhat('polygon');
 
+        const [mockDeployer] = provider.getWallets();
+        let payoutListener = await deployMockContract(mockDeployer, await getAbi('IPayoutListener'));
+        await payoutListener.mock.payoutDone.returns();
+
         await deployments.fixture(['setting', 'base', 'test', 'MockStrategies', 'ExchangeMultiCallWrapper']);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
         exchange = await ethers.getContract("Exchange");
+
+        await exchange.setPayoutListener(payoutListener.address);
+
         usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract('PortfolioManager');
         m2m = await ethers.getContract('Mark2Market');
@@ -68,6 +80,51 @@ describe("Exchange", function () {
         it("Within abroad", async function () {
             await usdc.transfer(pm.address, toUSDC(2));
             await exchange.payout();
+        });
+
+
+    });
+
+    describe('FreeRider: Buy/Redeem', function (){
+
+        sharedBeforeEach("FreeRider", async () => {
+            await usdPlus.setExchanger(exchange.address);
+            await exchange.setBuyFee(10000, 100000);  // 10%
+            await exchange.setRedeemFee(10000, 100000); // 10%
+        });
+
+        it("[Simple] User [buy/redeem] USD+ and pay fee", async function () {
+            let sum = toUSDC(100);
+            await usdc.approve(exchange.address, sum);
+            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+
+            let balanceUsdPlus = await usdPlus.balanceOf(account);
+            expect(90).to.equal(fromUSDC(balanceUsdPlus));
+
+            let balanceBefore = fromUSDC(await usdc.balanceOf(account));
+            await usdPlus.approve(exchange.address, toUSDC(10));
+            await exchange.redeem(POLYGON.usdc, toUSDC(10));
+            let balanceAfter = fromUSDC(await usdc.balanceOf(account));
+
+            expect(9).to.equal(balanceAfter-balanceBefore);
+        });
+
+        it("[Free Rider] User [buy/redeem] USD+ and NOT pay fee", async function () {
+            let sum = toUSDC(10);
+            await usdc.approve(exchange.address, sum);
+
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), account);
+            await exchange.buy(POLYGON.usdc, sum);
+            expect(10).to.equal(fromUSDC(await usdPlus.balanceOf(account)));
+
+
+            let balanceBefore = fromUSDC(await usdc.balanceOf(account));
+            await usdPlus.approve(exchange.address, sum);
+            await exchange.redeem(POLYGON.usdc, sum);
+            let balanceAfter = fromUSDC(await usdc.balanceOf(account));
+
+            expect(10).to.equal(balanceAfter-balanceBefore);
+
         });
 
 

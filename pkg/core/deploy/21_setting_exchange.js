@@ -10,8 +10,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const usdPlus = await ethers.getContract("UsdPlusToken");
     const m2m = await ethers.getContract("Mark2Market");
     const pm = await ethers.getContract("PortfolioManager");
-    //const payoutListener = await ethers.getContract("PolygonPayoutListener");
-    const payoutListener = await ethers.getContract("AvalanchePayoutListener");
 
     console.log("exchange.setToken: usdPlus " + usdPlus.address + " usdc: " + DEFAULT.usdc);
     let tx = await exchange.setTokens(usdPlus.address, DEFAULT.usdc);
@@ -29,10 +27,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await tx.wait();
     console.log("exchange.setMark2Market done");
 
-    console.log("exchange.setPayoutListener: " + payoutListener.address);
-    tx = await exchange.setPayoutListener(payoutListener.address);
-    await tx.wait();
-    console.log("exchange.setPayoutListener done");
 };
 
 module.exports.tags = ['setting', 'SettingExchange'];
