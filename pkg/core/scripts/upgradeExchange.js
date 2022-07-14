@@ -1,14 +1,8 @@
-const hre = require("hardhat");
-const {getContract, getPrice, execTimelock, getERC20} = require("@overnight-contracts/common/utils/script-utils");
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
-const ethers = hre.ethers;
-
+const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
-    let price = await getPrice();
-
-    let governor = await getContract('OvnGovernor');
     let exchange = await getContract('Exchange');
 
     let addresses = [];
@@ -16,39 +10,12 @@ async function main() {
     let abis = [];
 
 
-    // await execTimelock(async (timelock)=>{
-    //
-    //     await exchange.connect(timelock).upgradeTo('0x461B064cd66598e3d2Bc99cdBC07fC5bf3251959')
-    //
-    //     let usdc = await getERC20('usdc' );
-    //
-    //     await usdc.approve(exchange.address, toUSDC(10));
-    //     await exchange.buy(usdc.address, toUSDC(10));
-    //
-    //
-    // });
-
-
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x7cd6c4e5bA83631d14A708e218F09A0da0EB1116']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0x98Db3ff85F35353B9282613c105fF274DFBD2812']));
 
-    addresses.push(exchange.address);
-    values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('setAbroad', [1000100, 1000350]));
+    await createProposal(addresses, values, abis);
 
-
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id(abis.toString() + new Date().toString()),
-        price
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event === 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
 }
 
 
