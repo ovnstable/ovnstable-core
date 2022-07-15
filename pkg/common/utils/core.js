@@ -7,6 +7,12 @@ function avalanche(){
     }
 }
 
+function bsc(){
+    return {
+        pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
+    }
+}
+
 function fantomDev(){
     return {
         pm: "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9"
@@ -42,10 +48,10 @@ function getCoreAddresses(){
     let stand = process.env.STAND;
     console.log('STAND: ' + stand);
     switch (stand){
-        case "avalanche_dev":
-            return avalancheDev();
         case "avalanche":
             return avalanche();
+        case "bsc":
+            return bsc();
         case "fantom_dev":
             return fantomDev();
         case "fantom":

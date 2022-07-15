@@ -146,14 +146,17 @@ async function showM2M(blocknumber) {
 
     let url;
     switch(process.env.STAND){
-        case "polygon":
-            url = "https://app.overnight.fi/api/dict/strategies";
-            break
-        case "polygon_dev":
-            url = "https://dev.overnight.fi/api/dict/strategies";
-            break
         case "avalanche":
             url = "https://avax.overnight.fi/api/dict/strategies";
+            break;
+        case "bsc":
+            url = "https://bnb.overnight.fi/api/dict/strategies";
+            break;
+        case "polygon":
+            url = "https://app.overnight.fi/api/dict/strategies";
+            break;
+        case "polygon_dev":
+            url = "https://dev.overnight.fi/api/dict/strategies";
             break;
         default:
             throw Error('Unknown STAND: ' + process.env.STAND);

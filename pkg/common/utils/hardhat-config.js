@@ -30,13 +30,19 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
-        fantom: {
+        bsc: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
         },
 
+        fantom: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
 
         polygon: {
             url: forkingUrl,
@@ -113,18 +119,22 @@ let gasReport = {
 }
 
 function getEtherScan(chain){
-    if (!chain)
+    if (!chain) {
         chain = process.env.ETH_NETWORK
+    }
 
     let object = {};
 
     let api;
-    switch (chain){
-        case 'POLYGON':
-            api = process.env.ETHERSCAN_API_POLYGON;
-            break;
+    switch (chain) {
         case 'AVALANCHE':
             api = process.env.ETHERSCAN_API_AVALANCHE;
+            break;
+        case 'BSC':
+            api = process.env.ETHERSCAN_API_BSC;
+            break;
+        case 'POLYGON':
+            api = process.env.ETHERSCAN_API_POLYGON;
             break;
     }
 
