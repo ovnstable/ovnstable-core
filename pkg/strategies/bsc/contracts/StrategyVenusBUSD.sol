@@ -6,14 +6,14 @@ import "./connectors/venus/interfaces/VenusInterface.sol";
 
 contract StrategyVenusBUSD is Strategy {
 
-    IERC20 public usdcToken;
+    IERC20 public busdToken;
 
     VenusInterface public vBusdToken;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken);
+    event StrategyUpdatedTokens(address busdToken);
 
     event StrategyUpdatedParams(address vBusdToken);
 
@@ -31,14 +31,14 @@ contract StrategyVenusBUSD is Strategy {
     // --- Setters
 
     function setTokens(
-        address _usdcToken
+        address _busdToken
     ) external onlyAdmin {
 
-        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_busdToken != address(0), "Zero address not allowed");
 
-        usdcToken = IERC20(_usdcToken);
+        busdToken = IERC20(_busdToken);
 
-        emit StrategyUpdatedTokens(_usdcToken);
+        emit StrategyUpdatedTokens(_busdToken);
     }
 
     function setParams(
@@ -60,9 +60,9 @@ contract StrategyVenusBUSD is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
-        usdcToken.approve(address(vBusdToken), _amount);
+        busdToken.approve(address(vBusdToken), _amount);
         vBusdToken.mint(_amount);
     }
 
@@ -72,7 +72,7 @@ contract StrategyVenusBUSD is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
         uint256 withdrawAmount = vBusdToken.redeemUnderlying(_amount);
         return withdrawAmount;
@@ -83,7 +83,7 @@ contract StrategyVenusBUSD is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
         uint256 amount = vBusdToken.balanceOf(address(this));
         uint256 withdrawAmount = vBusdToken.redeem(amount);

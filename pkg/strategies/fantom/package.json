@@ -1,5 +1,5 @@
 {
-  "name": "@overnight-contracts/straegies-fantom",
+  "name": "@overnight-contracts/strategies-fantom",
   "version": "0.0.1",
   "description": "Strategies Fantom contracts",
   "main": "hardhat.config",

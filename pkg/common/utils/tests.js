@@ -17,7 +17,7 @@ async function resetHardhat(network) {
     let block = blockNumber(network);
     if (block == 0) {
         const provider = new ethers.providers.JsonRpcProvider(node_url(network));
-        block = await provider.getBlockNumber();
+        block = await provider.getBlockNumber() - 31;
     }
 
     await hre.network.provider.request({

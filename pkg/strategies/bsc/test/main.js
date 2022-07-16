@@ -30,6 +30,6 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
 describe("BSC", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'BSC', BSC, runStrategyLogic);
+        strategyTest(value, 'BSC', BSC.busd, runStrategyLogic);
     })
 });

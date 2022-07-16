@@ -143,6 +143,6 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 describe("Polygon", function () {
 
     arrays.forEach(value => {
-        strategyTest(value, 'POLYGON', POLYGON, runStrategyLogic);
+        strategyTest(value, 'POLYGON', POLYGON.usdc, runStrategyLogic);
     })
 });
