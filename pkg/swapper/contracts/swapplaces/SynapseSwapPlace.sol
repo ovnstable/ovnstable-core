@@ -20,7 +20,15 @@ contract SynapseSwapPlace is ISwapPlace {
         IERC20Upgradeable(route.tokenIn).safeIncreaseAllowance(route.pool, IERC20(route.tokenIn).balanceOf(address(this)));
         uint8 tokenInIndex = ISwap(route.pool).getTokenIndex(route.tokenIn);
         uint8 tokenOutIndex = ISwap(route.pool).getTokenIndex(route.tokenOut);
-        return ISwap(route.pool).swap(tokenInIndex, tokenOutIndex, route.amountIn, route.amountOut, block.timestamp);
+        uint256 transferBackAmount = ISwap(route.pool).swap(
+            tokenInIndex,
+            tokenOutIndex,
+            route.amountIn,
+            route.amountOut,
+            block.timestamp
+        );
+        IERC20(route.tokenOut).transfer(msg.sender, IERC20(route.tokenOut).balanceOf(address(this)));
+        return transferBackAmount;
     }
 
 
