@@ -73,8 +73,11 @@ function wrapWithTitle(title, str) {
     return title === undefined ? str : `${title} at step "${str}"`;
 }
 
-async function evmCheckpoint(label) {
-    const provider = await getProvider();
+async function evmCheckpoint(label, provider) {
+
+    if (!provider)
+        provider = await getProvider();
+
     let prevSnapshot = SNAPSHOTS_BY_LABELS[label];
 
     if (prevSnapshot !== undefined) {
@@ -84,8 +87,12 @@ async function evmCheckpoint(label) {
     SNAPSHOTS_BY_LABELS[label] = await takeSnapshot(provider);
 }
 
-async function evmRestore(label) {
-    const provider = await getProvider();
+
+async function evmRestore(label, provider) {
+
+    if (!provider)
+        provider = await getProvider();
+
     let prevSnapshot = SNAPSHOTS_BY_LABELS[label];
 
     if (prevSnapshot !== undefined) {
@@ -94,6 +101,7 @@ async function evmRestore(label) {
         throw Error(`Missing snapshot for label: ${label}`);
     }
 }
+
 
 module.exports = {
     sharedBeforeEach,

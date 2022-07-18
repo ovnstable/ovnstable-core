@@ -1,47 +1,65 @@
-const { verify } = require("@overnight-contracts/common/utils/verify-utils");
+const {verify} = require("@overnight-contracts/common/utils/verify-utils");
 const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {fromE18} = require("../../common/utils/decimals");
 
 async function main() {
 
 
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
-    // await evmCheckpoint('test');
-    try {
-        let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
-        let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-        let usdPlus = await getContract('UsdPlusToken');
 
-        // await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
+    let strategy = await getContract('StrategyUsdPlusWmatic', 'localhost');
+    let items = await strategy.balances();
 
-        let newVar = await getPrice();
-        newVar.gasLimit = 15000000;
-        console.log('Rebase: ' + await rebase.liquidityIndex());
-        console.log('Rebase: ' + await rebase.balanceOf('0x5CB01385d3097b6a189d1ac8BA3364D900666445'));
-        console.log('Usd+ balance: ' + await usdPlus.balanceOf('0xEb7f1622980bfF682635E35076bd3115814254A7'));
+    let arrays = [];
+    for (let i = 0; i < items.length; i++) {
 
-        let tx = await (await exchanger.payout(newVar)).wait();
+        let item = items[i];
 
-        // await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-        // await (await exchanger.payout(await getPrice())).wait();
-        const args = tx.events.find((e) => e.event == 'PayoutEvent').args;
+        arrays.push({
+            name: item[0],
+            amountUSDC: fromUSDC(item[1].toString()),
+            amount: fromE18(item[2].toString()),
+            borrowed: item[3].toString()
+        })
 
-
-        console.log('tvlFee: ' + args.tvlFee.toString());
-        console.log('profitFee: ' + args.profitFee.toString());
-        console.log('profit: ' + args.profit.toString());
-        console.log('loss: ' + args.loss.toString());
-        // console.log('rewards: ' + tx.events.find((e) => e.event == 'Reward').args.amount.toString());
-
-        console.log('Rebase: ' + await rebase.balanceOf('0x5CB01385d3097b6a189d1ac8BA3364D900666445'));
-        console.log('Rebase: ' + await rebase.liquidityIndex());
-        console.log('Usd+ balance: ' + await usdPlus.balanceOf('0xEb7f1622980bfF682635E35076bd3115814254A7'));
-    } catch (e) {
-        console.log(e)
     }
 
-    // await evmRestore('test');
+    console.table(arrays);
+
+    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
+    let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
+
+    let newVar = await getPrice();
+    newVar.gasLimit = 15000000;
+    console.log('Liq index:    ' + await rebase.liquidityIndex());
+    console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
+    console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
+
+    await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
+    await (await exchanger.payout(await getPrice())).wait();
+
+    items = await strategy.balances();
+
+    arrays = [];
+    for (let i = 0; i < items.length; i++) {
+
+        let item = items[i];
+
+        arrays.push({
+            name: item[0],
+            amountUSDC: fromUSDC(item[1].toString()),
+            amount: fromE18(item[2].toString()),
+            borrowed: item[3].toString()
+        })
+
+    }
+
+    console.table(arrays);
+
+    console.log('Liq index:    ' + await rebase.liquidityIndex());
+    console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
+    console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
 }
 
 main()

@@ -5,9 +5,11 @@ const fse = require('fs-extra');
 const {
     TASK_NODE,
     TASK_TEST,
+    TASK_RUN,
     TASK_NODE_GET_PROVIDER,
     TASK_NODE_SERVER_READY,
 } = require('hardhat/builtin-tasks/task-names');
+const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -63,4 +65,19 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         await runSuper(args);
 
 
+    });
+
+
+task(TASK_RUN, 'Run task')
+    .addFlag('reset', 'Reset ')
+    .setAction(async (args, hre, runSuper) => {
+
+
+        if (args.reset)
+            await evmCheckpoint('task', hre.network.provider);
+
+        await runSuper(args);
+
+        if (args.reset)
+            await evmRestore('task', hre.network.provider);
     });

@@ -61,7 +61,7 @@ library UsdPlusWmaticLibrary {
             wmaticAmount,
             usdPlusAmount,
             (wmaticAmount < 10000) ? 0 : (OvnMath.subBasisPoints(wmaticAmount, self.BASIS_POINTS_FOR_SLIPPAGE())),
-            (usdPlusAmount < 10000) ? 0 : (OvnMath.subBasisPoints(usdPlusAmount, 2 * self.BASIS_POINTS_FOR_SLIPPAGE())),
+            (usdPlusAmount < 10000) ? 0 : (OvnMath.subBasisPoints(usdPlusAmount, self.BASIS_POINTS_FOR_SLIPPAGE())),
             address(self),
             block.timestamp + 600
         );

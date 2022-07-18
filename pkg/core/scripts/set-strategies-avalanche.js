@@ -21,7 +21,7 @@ async function main() {
             "strategy": "0x50D3560397864a3c7a24116D0dcd27A27Ef852c7",
             "name": "Vector USDC",
             "minWeight": 0,
-            "targetWeight": 35,
+            "targetWeight": 20,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -41,22 +41,12 @@ async function main() {
             "strategy": "0x22EcC33bF964eD13d18419FDaE725919a757f230",
             "name": "Synapse USDC.e",
             "minWeight": 0,
-            "targetWeight": 30.5,
+            "targetWeight": 45.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
     ]
-
-
-    weights = weights.map(value => {
-
-        delete value.name
-        value.targetWeight = value.targetWeight * 1000;
-        value.maxWeight = value.maxWeight * 1000;
-
-        return value;
-    })
 
     let totalWeight = 0;
     for (const weight of weights) {
@@ -68,6 +58,17 @@ async function main() {
         console.log(`Total weight not 100000`)
         return
     }
+
+    weights = weights.map(value => {
+
+        delete value.name
+        value.targetWeight = value.targetWeight * 1000;
+        value.maxWeight = value.maxWeight * 1000;
+
+        return value;
+    })
+
+
 
     // await changeWeightsAndBalance(weights);
     await proposal(weights);
