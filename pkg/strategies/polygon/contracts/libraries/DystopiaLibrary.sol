@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/dystopia/interfaces/IDystopiaRouter.sol";
 import "../libraries/OvnMath.sol";
 
+import "hardhat/console.sol";
+
 library DystopiaLibrary {
 
 
@@ -61,7 +63,7 @@ library DystopiaLibrary {
             return 0;
         }
 
-        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](1);
         route[0].from = inputToken;
         route[0].to = outputToken;
         route[0].stable = isStablePair;
@@ -74,7 +76,7 @@ library DystopiaLibrary {
             block.timestamp + 600
         );
 
-        return amounts[2];
+        return amounts[1];
     }
 
     function _getAmountOut(
@@ -85,14 +87,14 @@ library DystopiaLibrary {
         uint256 amountInput
     ) public view returns (uint256) {
 
-        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](1);
         route[0].from = inputToken;
         route[0].to = outputToken;
         route[0].stable = isStablePair;
 
         uint[] memory amounts = dystRouter.getAmountsOut(amountInput, route);
 
-        return amounts[2];
+        return amounts[1];
     }
 
     function _getAmountsOut(
