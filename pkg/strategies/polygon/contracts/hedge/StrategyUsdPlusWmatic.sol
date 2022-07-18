@@ -76,66 +76,66 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
 
 
-    function setTokens(
-        address _usdc,
-        address _aUsdc,
-        address _wmatic,
-        address _usdPlus,
-        address _penToken,
-        address _dyst
-    ) external onlyAdmin {
-        usdc = IERC20(_usdc);
-        aUsdc = IERC20(_aUsdc);
-        wmatic = IERC20(_wmatic);
-        usdcDm = 10 ** IERC20Metadata(_usdc).decimals();
-        wmaticDm = 10 ** IERC20Metadata(_wmatic).decimals();
-
-        usdPlus = IERC20(_usdPlus);
-        setAsset(_usdPlus);
-
-        penToken = IERC20(_penToken);
-        dyst = IERC20(_dyst);
-
-    }
-
-
-    function setParams(
-        address _exchanger,
-        address _dystRewards,
-        address _dystVault,
-        address _dystRouter,
-        address _penProxy,
-        address _penLens
-    ) external onlyAdmin {
-
-        dystRewards = IDystopiaLP(_dystRewards);
-        dystVault = IDystopiaLP(_dystVault);
-        dystRouter = IDystopiaRouter(_dystRouter);
-
-        penProxy = IUserProxy(_penProxy);
-        penLens = IPenLens(_penLens);
-
-        exchange = IExchange(_exchanger);
-    }
-
-    function setAaveParams(
-        address _aavePoolAddressesProvider,
-        address _oracleUsdc,
-        address _oracleWmatic,
-        uint256 _liquidationThreshold,
-        uint256 _healthFactor,
-        uint256 _balancingDelta
-    ) external onlyAdmin {
-
-        aavePoolAddressesProvider = IPoolAddressesProvider(_aavePoolAddressesProvider);
-        oracleUsdc = IPriceFeed(_oracleUsdc);
-        oracleWmatic = IPriceFeed(_oracleWmatic);
-
-        liquidationThreshold = _liquidationThreshold * 10 ** 15;
-        healthFactor = _healthFactor * 10 ** 15;
-        realHealthFactor = 0;
-        balancingDelta = _balancingDelta * 10 ** 15;
-    }
+//    function setTokens(
+//        address _usdc,
+//        address _aUsdc,
+//        address _wmatic,
+//        address _usdPlus,
+//        address _penToken,
+//        address _dyst
+//    ) external onlyAdmin {
+//        usdc = IERC20(_usdc);
+//        aUsdc = IERC20(_aUsdc);
+//        wmatic = IERC20(_wmatic);
+//        usdcDm = 10 ** IERC20Metadata(_usdc).decimals();
+//        wmaticDm = 10 ** IERC20Metadata(_wmatic).decimals();
+//
+//        usdPlus = IERC20(_usdPlus);
+//        setAsset(_usdPlus);
+//
+//        penToken = IERC20(_penToken);
+//        dyst = IERC20(_dyst);
+//
+//    }
+//
+//
+//    function setParams(
+//        address _exchanger,
+//        address _dystRewards,
+//        address _dystVault,
+//        address _dystRouter,
+//        address _penProxy,
+//        address _penLens
+//    ) external onlyAdmin {
+//
+//        dystRewards = IDystopiaLP(_dystRewards);
+//        dystVault = IDystopiaLP(_dystVault);
+//        dystRouter = IDystopiaRouter(_dystRouter);
+//
+//        penProxy = IUserProxy(_penProxy);
+//        penLens = IPenLens(_penLens);
+//
+//        exchange = IExchange(_exchanger);
+//    }
+//
+//    function setAaveParams(
+//        address _aavePoolAddressesProvider,
+//        address _oracleUsdc,
+//        address _oracleWmatic,
+//        uint256 _liquidationThreshold,
+//        uint256 _healthFactor,
+//        uint256 _balancingDelta
+//    ) external onlyAdmin {
+//
+//        aavePoolAddressesProvider = IPoolAddressesProvider(_aavePoolAddressesProvider);
+//        oracleUsdc = IPriceFeed(_oracleUsdc);
+//        oracleWmatic = IPriceFeed(_oracleWmatic);
+//
+//        liquidationThreshold = _liquidationThreshold * 10 ** 15;
+//        healthFactor = _healthFactor * 10 ** 15;
+//        realHealthFactor = 0;
+//        balancingDelta = _balancingDelta * 10 ** 15;
+//    }
 
     function _stake(uint256 _amount) internal override  {
 
@@ -152,74 +152,74 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 _amount
     ) internal override returns (uint256) {
 
-        // uint256 amount = _amount + ((_amount * exchange.redeemFee()) / exchange.redeemFeeDenominator());
+         uint256 amount = _amount + ((_amount * exchange.redeemFee()) / exchange.redeemFeeDenominator());
 
-        // (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
-        // uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
-        //     amount,
-        //     reserveUsdPlus,
-        //     reserveWmatic,
-        //     liquidationThreshold,
-        //     healthFactor,
-        //     usdcDm,
-        //     wmaticDm,
-        //     uint256(oracleUsdc.latestAnswer()),
-        //     uint256(oracleWmatic.latestAnswer())
-        // );
+         uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
+             amount,
+             reserveUsdPlus,
+             reserveWmatic,
+             liquidationThreshold,
+             healthFactor,
+             usdcDm,
+             wmaticDm,
+             uint256(oracleUsdc.latestAnswer()),
+             uint256(oracleWmatic.latestAnswer())
+         );
 
-        // IPool aave = _aavePool();
-        // (, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
-        // uint256 wmaticBorrowNative = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+         IPool aave = _aavePool();
+         (, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
+         uint256 wmaticBorrowNative = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, wmaticDm, uint256(oracleWmatic.latestAnswer()));
 
-        // uint256 borrowAmount;
-        // uint256 getUsdc;
+         uint256 borrowAmount;
+         uint256 getUsdc;
 
-        // if (wmaticBorrow > wmaticBorrowNative) {
-        //     borrowAmount = wmaticBorrowNative;
-        //     getUsdc = MAX_UINT_VALUE;
-        // } else {
-        //     borrowAmount = wmaticBorrow;
-        //     getUsdc = amount - (wmaticBorrow * reserveUsdPlus) / reserveWmatic;
-        // }
+         if (wmaticBorrow > wmaticBorrowNative) {
+             borrowAmount = wmaticBorrowNative;
+             getUsdc = MAX_UINT_VALUE;
+         } else {
+             borrowAmount = wmaticBorrow;
+             getUsdc = amount - (wmaticBorrow * reserveUsdPlus) / reserveWmatic;
+         }
 
-        // uint256 amountLp = _getLiquidityForToken(borrowAmount);
-        // penProxy.unstakeLpAndWithdraw(address(dystVault), amountLp);
-        // dystVault.approve(address(dystRouter), amountLp);
-        // this._removeLiquidity(amountLp);
+         uint256 amountLp = _getLiquidityForToken(borrowAmount);
+         penProxy.unstakeLpAndWithdraw(address(dystVault), amountLp);
+         dystVault.approve(address(dystRouter), amountLp);
+         this._removeLiquidity(amountLp);
 
-        // wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-        // aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-        // aave.withdraw(address(usdc), getUsdc, address(this));
+         wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+         aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+         aave.withdraw(address(usdc), getUsdc, address(this));
 
-        // _convertTokensToUsdPlus();
+         _convertTokensToUsdPlus();
 
 
-        // uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-        // if(_amount > usdPlusAmount){
+         uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+         if(_amount > usdPlusAmount){
 
-        //     uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
-        //     (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
+             uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
+             (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
 
-        //     address userProxyThis = penLens.userProxyByAccount(address(this));
-        //     address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-        //     amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+             address userProxyThis = penLens.userProxyByAccount(address(this));
+             address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+             amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
 
-        //     uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-        //         OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
-        //         reserveWmatic,
-        //         reserveUsdPlus,
-        //         amountLp,
-        //         usdcDm,
-        //         wmaticDm,
-        //         address(usdPlus),
-        //         address(wmatic)
-        //     );
-        //     penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
-        //     this._removeLiquidity(lpTokensToWithdraw);
+             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+                 OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
+                 reserveWmatic,
+                 reserveUsdPlus,
+                 amountLp,
+                 usdcDm,
+                 wmaticDm,
+                 address(usdPlus),
+                 address(wmatic)
+             );
+             penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
+             this._removeLiquidity(lpTokensToWithdraw);
 
-        //     _convertTokensToUsdPlus();
-        // }
+             _convertTokensToUsdPlus();
+         }
 
         return _amount;
     }
@@ -269,28 +269,28 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _borrowWmatic() internal {
 
-        // (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
-        // (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
-        //     usdPlus.balanceOf(address(this)),
-        //     reserveUsdPlus,
-        //     reserveWmatic,
-        //     liquidationThreshold,
-        //     healthFactor,
-        //     usdcDm,
-        //     wmaticDm,
-        //     uint256(oracleUsdc.latestAnswer()),
-        //     uint256(oracleWmatic.latestAnswer())
-        // );
+         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
+             usdPlus.balanceOf(address(this)),
+             reserveUsdPlus,
+             reserveWmatic,
+             liquidationThreshold,
+             healthFactor,
+             usdcDm,
+             wmaticDm,
+             uint256(oracleUsdc.latestAnswer()),
+             uint256(oracleWmatic.latestAnswer())
+         );
 
 
-        // exchange.redeem(address(usdc), usdcCollateral-usdc.balanceOf(address(this)));
+         exchange.redeem(address(usdc), usdcCollateral-usdc.balanceOf(address(this)));
 
-        // IPool aavePool = _aavePool();
+         IPool aavePool = _aavePool();
 
-        // usdc.approve(address(aavePool), usdcCollateral);
-        // aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
-        // aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
+         usdc.approve(address(aavePool), usdcCollateral);
+         aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
+         aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
     }
 
     function _aavePool() public returns (IPool aavePool){
@@ -314,7 +314,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log(chainlinkUsdMatic);
         // console.log(dystUsdpMatic);
 
-        
+
         aaveCollateralPercent = (150 * chainlinkUsdUsdc * chainlinkUsdMatic * 10 ** 18) / (150 * chainlinkUsdUsdc * chainlinkUsdMatic + 75 * dystUsdpMatic * 10 ** 8);
         aaveBorrowAndPoolMaticPercent = aaveCollateralPercent * 75 / 150;
         poolUsdpPercent = aaveBorrowAndPoolMaticPercent * dystUsdpMatic * 10 ** 8 / (chainlinkUsdUsdc * chainlinkUsdMatic);
@@ -323,19 +323,19 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("aaveCollateralPercent", aaveCollateralPercent);
         // console.log("aaveBorrowAndPoolMaticPercent", aaveBorrowAndPoolMaticPercent);
         // console.log("poolUsdpPercent", poolUsdpPercent);
-        
+
 
         (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
         uint256 poolWmatic;
         uint256 poolUsdPlus;
-        
+
         {
         address userProxyThis = penLens.userProxyByAccount(address(this));
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
         uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
         (poolWmatic, poolUsdPlus) = _getLiquidity(balanceLp);
         }
-        
+
         uint256 NAV;
         uint256 poolMaticUsd = AaveBorrowLibrary.convertTokenAmountToUsd(poolWmatic, wmaticDm, uint256(oracleWmatic.latestAnswer()));
         uint256 poolUsdpUsd = AaveBorrowLibrary.convertTokenAmountToUsd(poolUsdPlus, usdcDm, uint256(oracleUsdc.latestAnswer()));
@@ -345,7 +345,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("poolUsdpUsd", poolUsdpUsd);
         NAV = poolMaticUsd + poolUsdpUsd + aaveCollateralUsd - aaveBorrowUsd;
         // console.log("NAV", NAV);
-        
+
 
         // console.log("aaveCollateralUsdNeeded", NAV*aaveCollateralPercent/10**18);
         // console.log("aaveBorrowUsdNeeded", NAV*aaveBorrowAndPoolMaticPercent/10**18);
@@ -362,7 +362,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             return (1, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
                 aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
                 poolUsdpUsd - NAV*poolUsdpPercent/10**18
-                );    
+                );
         } else {
             return (2, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
                 aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
@@ -527,88 +527,89 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _balance() internal override returns (uint256) {
 
-        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas();
-
-        if (caseNumber == 1) {
-
-            poolUsdpUsdDelta = AaveBorrowLibrary.convertUsdToTokenAmount(poolUsdpUsdDelta, usdcDm, uint256(oracleUsdc.latestAnswer()));
-
-            address userProxyThis = penLens.userProxyByAccount(address(this));
-            address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-            uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-            (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
-            
-            uint256 lpforusdp = poolUsdpUsdDelta * balanceLp / poolUsdPlus;
-            
-            penProxy.unstakeLpAndWithdraw(address(dystVault), lpforusdp);
-            dystVault.approve(address(dystRouter), lpforusdp);
-            (uint256 amountWmatic, uint256 amountUsdPlus) = this._removeLiquidity(lpforusdp);
-            exchange.redeem(address(usdc), amountUsdPlus);
-
-            IPool aave = _aavePool();
-            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
-            aave.withdraw(address(usdc), aaveUsdc, address(this));
-
-            DystopiaLibrary._swap(
-                    dystRouter,
-                    address(usdc),
-                    address(wmatic),
-                    false,
-                    usdc.balanceOf(address(this)),
-                    address(this));
-            
-            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-        }
-
-        if (caseNumber == 2) {
-            IPool aave = _aavePool();
-            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
-            aave.withdraw(address(usdc), aaveUsdc, address(this));
-
-            DystopiaLibrary._swap(
-                    dystRouter,
-                    address(usdc),
-                    address(wmatic),
-                    false,
-                    aaveBorrowUsdNeeded / 100,
-                    address(this));
-
-            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-
-            usdc.approve(address(exchange), usdc.balanceOf(address(this)));
-            exchange.buy(address(usdc), usdc.balanceOf(address(this)));
-
-            (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
-
-            uint256 amountUsdcToSwap = _getAmountToken0(
-                usdPlus.balanceOf(address(this)),
-                amount1Current,
-                amount0Current,
-                usdcDm,
-                wmaticDm,
-                1,
-                address(usdPlus),
-                address(wmatic)
-            );
-
-            DystopiaLibrary._swap(
-                    dystRouter,
-                    address(usdPlus),
-                    address(wmatic),
-                    false,
-                    amountUsdcToSwap,
-                    address(this));
-
-            uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-            uint256 wmaticAmount = wmatic.balanceOf(address(this));
-
-            this._addLiquidity(wmaticAmount, usdPlusAmount);
-        }
-
-        (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
-        return healthFactorCurrent;
+//        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas();
+//
+//        if (caseNumber == 1) {
+//
+//            poolUsdpUsdDelta = AaveBorrowLibrary.convertUsdToTokenAmount(poolUsdpUsdDelta, usdcDm, uint256(oracleUsdc.latestAnswer()));
+//
+//            address userProxyThis = penLens.userProxyByAccount(address(this));
+//            address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+//            uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+//            (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
+//
+//            uint256 lpforusdp = poolUsdpUsdDelta * balanceLp / poolUsdPlus;
+//
+//            penProxy.unstakeLpAndWithdraw(address(dystVault), lpforusdp);
+//            dystVault.approve(address(dystRouter), lpforusdp);
+//            (uint256 amountWmatic, uint256 amountUsdPlus) = this._removeLiquidity(lpforusdp);
+//            exchange.redeem(address(usdc), amountUsdPlus);
+//
+//            IPool aave = _aavePool();
+//            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
+//            aave.withdraw(address(usdc), aaveUsdc, address(this));
+//
+//            DystopiaLibrary._swap(
+//                    dystRouter,
+//                    address(usdc),
+//                    address(wmatic),
+//                    false,
+//                    usdc.balanceOf(address(this)),
+//                    address(this));
+//
+//            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+//            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+//        }
+//
+//        if (caseNumber == 2) {
+//            IPool aave = _aavePool();
+//            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
+//            aave.withdraw(address(usdc), aaveUsdc, address(this));
+//
+//            DystopiaLibrary._swap(
+//                    dystRouter,
+//                    address(usdc),
+//                    address(wmatic),
+//                    false,
+//                    aaveBorrowUsdNeeded / 100,
+//                    address(this));
+//
+//            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+//            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+//
+//            usdc.approve(address(exchange), usdc.balanceOf(address(this)));
+//            exchange.buy(address(usdc), usdc.balanceOf(address(this)));
+//
+//            (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
+//
+//            uint256 amountUsdcToSwap = _getAmountToken0(
+//                usdPlus.balanceOf(address(this)),
+//                amount1Current,
+//                amount0Current,
+//                usdcDm,
+//                wmaticDm,
+//                1,
+//                address(usdPlus),
+//                address(wmatic)
+//            );
+//
+//            DystopiaLibrary._swap(
+//                    dystRouter,
+//                    address(usdPlus),
+//                    address(wmatic),
+//                    false,
+//                    amountUsdcToSwap,
+//                    address(this));
+//
+//            uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+//            uint256 wmaticAmount = wmatic.balanceOf(address(this));
+//
+//            this._addLiquidity(wmaticAmount, usdPlusAmount);
+//        }
+//
+//        (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
+//        return healthFactorCurrent;
+        return 0;
     }
 
 

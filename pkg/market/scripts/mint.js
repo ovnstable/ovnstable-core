@@ -11,7 +11,7 @@ async function main() {
 
     let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
     let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'localhost');
+    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
 
     console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
     console.log("Rebase:  " + fromUSDC(await rebase.totalSupply()))
@@ -40,7 +40,9 @@ async function main() {
     // await (await exchanger.buy(toUSDC(1), params)).wait();
 
     // console.log("NAV : " + fromUSDC(await strategy.netAssetValue()))
-    await (await strategy.balanceValue()).wait();
+    let params = await getPrice();
+    params.gasLimit = 15000000;
+    await (await strategy.balanceAll(params)).wait();
     // await (await strategy.test()).wait();
 
     console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
