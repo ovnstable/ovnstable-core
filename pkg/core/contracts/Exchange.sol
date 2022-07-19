@@ -17,6 +17,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     // ---  fields
 
@@ -86,6 +87,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     modifier onlyPausable() {
         require(hasRole(PAUSABLE_ROLE, msg.sender), "Restricted to Pausable");
+        _;
+    }
+
+    modifier onlyPortfolioAgent() {
+        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
@@ -173,7 +179,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-    function setAbroad(uint256 _min, uint256 _max) external onlyAdmin {
+    function setAbroad(uint256 _min, uint256 _max) external onlyPortfolioAgent {
         abroadMin = _min;
         abroadMax = _max;
         emit Abroad(abroadMin, abroadMax);
