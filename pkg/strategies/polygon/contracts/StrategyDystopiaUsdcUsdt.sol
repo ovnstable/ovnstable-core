@@ -8,8 +8,8 @@ import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
-import "./connectors/synapse/interfaces/ISwap.sol";
 import "./libraries/AaveBorrowLibrary.sol";
+import "./interfaces/ISwapper.sol";
 
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
@@ -33,7 +33,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     IUserProxy public userProxy;
     IPenLens public penLens;
 
-    ISwap public swapper;
+    ISwapper public swapper;
 
     // --- events
 
@@ -114,7 +114,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         oracleUsdt = IPriceFeed(_oracleUsdt);
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
-        swapper = ISwap(_swapper);
+        swapper = ISwapper(_swapper);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
             _oracleUsdt, _userProxy, _penLens, _swapper);
@@ -146,7 +146,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         );
 
         // swap usdc to usdt
-        _synapseSwap(address(usdcToken), address(usdtToken), amountUsdcToSwap);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdcToken),
+            address(usdtToken),
+            amountUsdcToSwap,
+            0,
+            5
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
@@ -189,12 +197,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE) + 10,
                 reserveUsdc,
                 reserveUsdt,
-                totalLpBalance,
-                usdcTokenDenominator,
-                usdtTokenDenominator,
-                1,
-                address(usdcToken),
-                address(usdtToken)
+                totalLpBalance
             );
 
             if (lpTokensToWithdraw > lpTokenBalance) {
@@ -222,7 +225,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        _synapseSwap(address(usdtToken), address(usdcToken), usdtBalance);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdtToken),
+            address(usdcToken),
+            usdtBalance,
+            0,
+            5
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -267,7 +278,15 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
         // swap usdt to usdc
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        _synapseSwap(address(usdtToken), address(usdcToken), usdtBalance);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdtToken),
+            address(usdcToken),
+            usdtBalance,
+            0,
+            5
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -302,7 +321,14 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
                 uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
                 usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
             } else {
-                usdcBalanceFromUsdt = _synapseCalculateSwap(address(usdtToken), address(usdcToken), usdtBalance);
+                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+                    address(usdtToken),
+                    address(usdcToken),
+                    usdtBalance,
+                    0,
+                    5
+                );
+                usdcBalanceFromUsdt = swapper.getAmountOut(swapParams);
             }
 
         }
@@ -351,27 +377,6 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         return totalUsdc;
     }
 
-    function _synapseCalculateSwap(
-        address tokenFrom,
-        address tokenTo,
-        uint256 dx
-    ) internal view returns (uint256) {
-        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
-        return swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
-    }
-
-    function _synapseSwap(
-        address tokenFrom,
-        address tokenTo,
-        uint256 dx
-    ) internal returns (uint256) {
-        IERC20(tokenFrom).approve(address(swapper), dx);
-        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
-        uint256 minDy = swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
-        return swapper.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
-    }
 
     /**
      * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
@@ -390,7 +395,14 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
     ) internal view returns (uint256) {
         uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
         for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = _synapseCalculateSwap(token0, token1, amount0);
+            ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+                token0,
+                token1,
+                amount0,
+                0,
+                5
+            );
+            uint256 amount1 = swapper.getAmountOut(swapParams);
             amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
         }
 
@@ -399,26 +411,26 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
 
     /**
      * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
      */
     function _getAmountLpTokens(
         uint256 amount0Total,
         uint256 reserve0,
         uint256 reserve1,
-        uint256 totalLpBalance,
-        uint256 denominator0,
-        uint256 denominator1,
-        uint256 precision,
-        address token0,
-        address token1
+        uint256 totalLpBalance
     ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
-        for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            uint256 amount0 = _synapseCalculateSwap(token1, token0, amount1);
-            lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-        }
+        uint256 lpBalance = (totalLpBalance * amount0Total * usdtTokenDenominator) / (reserve0 * usdtTokenDenominator + reserve1 * usdcTokenDenominator);
+
+        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdtToken),
+            address(usdcToken),
+            amount1,
+            0,
+            5
+        );
+        uint256 amount0 = swapper.getAmountOut(swapParams);
+        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+
         return lpBalance;
     }
 

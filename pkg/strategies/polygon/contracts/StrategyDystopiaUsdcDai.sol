@@ -8,8 +8,8 @@ import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
 import "./connectors/penrose/interface/IPenLens.sol";
-import "./connectors/synapse/interfaces/ISwap.sol";
 import "./libraries/AaveBorrowLibrary.sol";
+import "./interfaces/ISwapper.sol";
 
 
 contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {
@@ -33,7 +33,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     IUserProxy public userProxy;
     IPenLens public penLens;
 
-    ISwap public swapper;
+    ISwapper public swapper;
 
 
     // --- events
@@ -115,7 +115,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         oracleDai = IPriceFeed(_oracleDai);
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
-        swapper = ISwap(_swapper);
+        swapper = ISwapper(_swapper);
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
             _oracleDai, _userProxy, _penLens, _swapper);
@@ -147,7 +147,15 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         );
 
         // swap usdc to usdt
-        _synapseSwap(address(usdcToken), address(daiToken), amountUsdcToSwap);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(usdcToken),
+            address(daiToken),
+            amountUsdcToSwap,
+            0,
+            5
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
@@ -191,12 +199,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
                 OvnMath.addBasisPoints(_amount, BASIS_POINTS_FOR_SLIPPAGE) + 10,
                 reserveUsdc,
                 reserveDai,
-                totalLpBalance,
-                usdcTokenDenominator,
-                daiTokenDenominator,
-                1,
-                address(usdcToken),
-                address(daiToken)
+                totalLpBalance
             );
 
             if (lpTokensToWithdraw > lpTokenBalance) {
@@ -224,7 +227,16 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
         // swap dai to usdc
         uint256 daiBalance = daiToken.balanceOf(address(this));
-        _synapseSwap(address(daiToken), address(usdcToken), daiBalance);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(daiToken),
+            address(usdcToken),
+            daiBalance,
+            0,
+            5
+        );
+
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -269,7 +281,15 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
 
         // swap dai to usdc
         uint256 daiBalance = daiToken.balanceOf(address(this));
-        _synapseSwap(address(daiToken), address(usdcToken), daiBalance);
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(daiToken),
+            address(usdcToken),
+            daiBalance,
+            0,
+            5
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -304,7 +324,14 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
                 uint256 priceDai = uint256(oracleDai.latestAnswer());
                 usdcBalanceFromDai = AaveBorrowLibrary.convertTokenAmountToTokenAmount(daiBalance, daiTokenDenominator, usdcTokenDenominator, priceDai, priceUsdc);
             } else {
-                usdcBalanceFromDai = _synapseCalculateSwap(address(daiToken), address(usdcToken), daiBalance);
+                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+                    address(daiToken),
+                    address(usdcToken),
+                    daiBalance,
+                    0,
+                    5
+                );
+                usdcBalanceFromDai = swapper.getAmountOut(swapParams);
             }
         }
 
@@ -352,28 +379,6 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         return totalUsdc;
     }
 
-    function _synapseCalculateSwap(
-        address tokenFrom,
-        address tokenTo,
-        uint256 dx
-    ) internal view returns (uint256) {
-        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
-        return swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
-    }
-
-    function _synapseSwap(
-        address tokenFrom,
-        address tokenTo,
-        uint256 dx
-    ) internal returns (uint256) {
-        IERC20(tokenFrom).approve(address(swapper), dx);
-        uint8 tokenIndexFrom = swapper.getTokenIndex(address(tokenFrom));
-        uint8 tokenIndexTo = swapper.getTokenIndex(address(tokenTo));
-        uint256 minDy = swapper.calculateSwap(tokenIndexFrom, tokenIndexTo, dx);
-        return swapper.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
-    }
-
     /**
      * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
      *
@@ -391,7 +396,14 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
     ) internal view returns (uint256) {
         uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
         for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = _synapseCalculateSwap(token0, token1, amount0);
+            ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+                token0,
+                token1,
+                amount0,
+                0,
+                5
+            );
+            uint256 amount1 = swapper.getAmountOut(swapParams);
             amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
         }
 
@@ -407,19 +419,21 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         uint256 amount0Total,
         uint256 reserve0,
         uint256 reserve1,
-        uint256 totalLpBalance,
-        uint256 denominator0,
-        uint256 denominator1,
-        uint256 precision,
-        address token0,
-        address token1
+        uint256 totalLpBalance
     ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
-        for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            uint256 amount0 = _synapseCalculateSwap(token1, token0, amount1);
-            lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-        }
+        uint256 lpBalance = (totalLpBalance * amount0Total * daiTokenDenominator) / (reserve0 * daiTokenDenominator + reserve1 * usdcTokenDenominator);
+
+        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(daiToken),
+            address(usdcToken),
+            amount1,
+            0,
+            5
+        );
+        uint256 amount0 = swapper.getAmountOut(swapParams);
+        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+
         return lpBalance;
     }
 

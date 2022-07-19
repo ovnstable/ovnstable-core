@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./ISwapPlace.sol";
 import "./ISwapper.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -12,11 +14,18 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant OPERATOR = keccak256("OPERATOR");
 
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
     // ---  fields
 
+    // token's pair to swap place info list
     mapping(address => mapping(address => SwapPlaceInfo[])) public swapPlaceInfos;
 
+    // swap place type to swap place address
     mapping(string => address) public swapPlaces;
+
+    // pool address to swap place type
+    mapping(address => string) public poolSwapPlaceTypes;
 
     // ---  constructor
 
@@ -69,6 +78,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             }
         }
 
+        poolSwapPlaceTypes[pool] = swapPlaceType;
         swapPlaceInfos[token0][token1].push(SwapPlaceInfo(pool, swapPlaceType));
         swapPlaceInfos[token1][token0].push(SwapPlaceInfo(pool, swapPlaceType));
 
@@ -135,28 +145,68 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     // ---  logic
 
     function swap(SwapParams calldata params) external override returns (uint256) {
-        IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
-
         SwapRoute[] memory swapRoutes = swapPath(params);
+        return swapBySwapRoutes(params, swapRoutes);
+    }
+
+    function swapExact(SwapParamsExact calldata params) external override returns (uint256) {
+        string memory swapPlaceType = poolSwapPlaceTypes[params.pool];
+        require(bytes(swapPlaceType).length > 0, "Not found swapPlaceType for pool");
+
+        address swapPlace = swapPlaces[swapPlaceType];
+        require(swapPlace != address(0x0), "Not found swapPlaceType for pool");
+
+        SwapRoute[] memory swapRoutes = new SwapRoute[](1);
+        swapRoutes[0] = SwapRoute(
+            params.tokenIn,
+            params.tokenOut,
+            params.amountIn,
+            0,
+            swapPlace,
+            params.pool
+        );
+        return swapBySwapRoutes(
+            params.tokenIn, params.amountIn,
+            params.tokenOut, params.amountOutMin,
+            swapRoutes
+        );
+
+    }
+
+    function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) public override returns (uint256) {
+        return swapBySwapRoutes(
+            params.tokenIn, params.amountIn,
+            params.tokenOut, params.amountOutMin,
+            swapRoutes
+        );
+    }
+
+    function swapBySwapRoutes(
+        address tokenIn, uint256 amountIn,
+        address tokenOut, uint256 amountOutMin,
+        SwapRoute[] memory swapRoutes
+    ) public override returns (uint256) {
+        IERC20Upgradeable(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+
         uint256 amountOut;
         for (uint i; i < swapRoutes.length; i++) {
             amountOut += swapRoutes[i].amountOut;
         }
-        require(amountOut >= params.amountOutMin, "amountOut less than needed");
+        require(amountOut >= amountOutMin, "amountOut less than needed");
 
         for (uint i; i < swapRoutes.length; i++) {
             SwapRoute memory swapRoute = swapRoutes[i];
-            IERC20(swapRoute.tokenIn).transfer(swapRoute.swapPlace, swapRoute.amountIn);
+            IERC20Upgradeable(swapRoute.tokenIn).safeTransfer(swapRoute.swapPlace, swapRoute.amountIn);
             ISwapPlace(swapRoute.swapPlace).swap(swapRoute);
         }
 
-        uint256 balanceOut = IERC20(params.tokenOut).balanceOf(address(this));
+        uint256 balanceOut = IERC20(tokenOut).balanceOf(address(this));
         require(
             balanceOut >= amountOut,
             "balanceOut lower than amountOut"
         );
 
-        IERC20(params.tokenOut).transfer(msg.sender, balanceOut);
+        IERC20Upgradeable(tokenOut).safeTransfer(msg.sender, balanceOut);
         return balanceOut;
     }
 
@@ -176,7 +226,12 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         SwapPlaceInfo[] storage swapPlaceInfoList = swapPlaceInfos[params.tokenIn][params.tokenOut];
         require(swapPlaceInfoList.length > 0, "Cant find swapPlace by tokens");
 
-        uint256 iterations = params.partsAmount;
+        uint256 iterations;
+        if (params.partsAmount == 0) {
+            iterations = swapPlaceInfoList.length;
+        } else {
+            iterations = params.partsAmount;
+        }
         uint256 iterationAmount = params.amountIn / iterations;
 
 
@@ -190,6 +245,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         // 2. find best swaps
         uint256 lastCommittedIndex = calc(
             params,
+            iterations,
             iterationAmount,
             contexts
         );
@@ -244,6 +300,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     function calc(
         SwapParams calldata params,
+        uint256 iterations,
         uint256 iterationAmount,
         CalcContext[] memory contexts
     ) internal view returns (uint256){
@@ -255,7 +312,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             uint256 committedIndex = findBestSwapAndCommit(contexts);
 
             iterationsDone++;
-            if (iterationsDone >= params.partsAmount) {
+            if (iterationsDone >= iterations) {
                 lastCommittedIndex = committedIndex;
                 break;
             }
@@ -263,7 +320,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
             // 3. Recalc next amount out for committed
             uint256 amountIn;
             uint256 multiplayer = contexts[committedIndex].committedIndex + 1;
-            if (multiplayer == params.partsAmount) {
+            if (multiplayer == iterations) {
                 amountIn = params.amountIn;
             } else {
                 amountIn = iterationAmount * multiplayer;

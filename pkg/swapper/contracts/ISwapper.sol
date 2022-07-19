@@ -30,7 +30,7 @@ interface ISwapper is Structures {
         string swapPlaceType
     );
 
-    
+
     // ---  structures
 
     struct SwapPlaceInfo {
@@ -43,13 +43,31 @@ interface ISwapper is Structures {
         address tokenOut;
         uint256 amountIn;
         uint256 amountOutMin;
-        uint256 partsAmount;
+        uint256 partsAmount; // if zero - then would be used pools amount for pair
+    }
+
+    struct SwapParamsExact {
+        address tokenIn;
+        address tokenOut;
+        uint256 amountIn;
+        uint256 amountOutMin;
+        address pool; // pool for 100% swap without comparing available prices
     }
 
 
     // ---  logic
 
     function swap(SwapParams calldata params) external returns (uint256);
+
+    function swapExact(SwapParamsExact calldata params) external returns (uint256);
+
+    function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) external returns (uint256);
+
+    function swapBySwapRoutes(
+        address tokenIn, uint256 amountIn,
+        address tokenOut, uint256 amountOutMin,
+        SwapRoute[] memory swapRoutes
+    ) external returns (uint256);
 
     function getAmountOut(SwapParams calldata params) external view returns (uint256);
 
