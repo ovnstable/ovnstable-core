@@ -1,6 +1,6 @@
 require('hardhat-deploy');
 require('@openzeppelin/hardhat-upgrades');
-require("@nomiclabs/hardhat-etherscan");
+//require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter")
 require("@nomiclabs/hardhat-waffle");
 require('@overnight-contracts/common/utils/hardhat-ovn');

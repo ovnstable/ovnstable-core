@@ -31,7 +31,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     uint256 public constant INTEREST_RATE_MODE = 2;
     uint16 public constant REFERRAL_CODE = 0;
     uint256 public constant BASIS_POINTS_FOR_STORAGE = 100; // 1%
-    uint256 public constant BASIS_POINTS_FOR_SLIPPAGE = 100; // 1%
+    uint256 public constant BASIS_POINTS_FOR_SLIPPAGE = 400; // 4%
     uint256 public constant MAX_UINT_VALUE = type(uint256).max;
 
     IExchange public exchange;
@@ -152,74 +152,74 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 _amount
     ) internal override returns (uint256) {
 
-         uint256 amount = _amount + ((_amount * exchange.redeemFee()) / exchange.redeemFeeDenominator());
+        //  uint256 amount = _amount + ((_amount * exchange.redeemFee()) / exchange.redeemFeeDenominator());
 
-         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+        //  (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
-         uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
-             amount,
-             reserveUsdPlus,
-             reserveWmatic,
-             liquidationThreshold,
-             healthFactor,
-             usdcDm,
-             wmaticDm,
-             uint256(oracleUsdc.latestAnswer()),
-             uint256(oracleWmatic.latestAnswer())
-         );
+        //  uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
+        //      amount,
+        //      reserveUsdPlus,
+        //      reserveWmatic,
+        //      liquidationThreshold,
+        //      healthFactor,
+        //      usdcDm,
+        //      wmaticDm,
+        //      uint256(oracleUsdc.latestAnswer()),
+        //      uint256(oracleWmatic.latestAnswer())
+        //  );
 
-         IPool aave = _aavePool();
-         (, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
-         uint256 wmaticBorrowNative = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        //  IPool aave = _aavePool();
+        //  (, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
+        //  uint256 wmaticBorrowNative = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, wmaticDm, uint256(oracleWmatic.latestAnswer()));
 
-         uint256 borrowAmount;
-         uint256 getUsdc;
+        //  uint256 borrowAmount;
+        //  uint256 getUsdc;
 
-         if (wmaticBorrow > wmaticBorrowNative) {
-             borrowAmount = wmaticBorrowNative;
-             getUsdc = MAX_UINT_VALUE;
-         } else {
-             borrowAmount = wmaticBorrow;
-             getUsdc = amount - (wmaticBorrow * reserveUsdPlus) / reserveWmatic;
-         }
+        //  if (wmaticBorrow > wmaticBorrowNative) {
+        //      borrowAmount = wmaticBorrowNative;
+        //      getUsdc = MAX_UINT_VALUE;
+        //  } else {
+        //      borrowAmount = wmaticBorrow;
+        //      getUsdc = amount - (wmaticBorrow * reserveUsdPlus) / reserveWmatic;
+        //  }
 
-         uint256 amountLp = _getLiquidityForToken(borrowAmount);
-         penProxy.unstakeLpAndWithdraw(address(dystVault), amountLp);
-         dystVault.approve(address(dystRouter), amountLp);
-         this._removeLiquidity(amountLp);
+        //  uint256 amountLp = _getLiquidityForToken(borrowAmount);
+        //  penProxy.unstakeLpAndWithdraw(address(dystVault), amountLp);
+        //  dystVault.approve(address(dystRouter), amountLp);
+        //  this._removeLiquidity(amountLp);
 
-         wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-         aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-         aave.withdraw(address(usdc), getUsdc, address(this));
+        //  wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+        //  aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+        //  aave.withdraw(address(usdc), getUsdc, address(this));
 
-         _convertTokensToUsdPlus();
+        //  _convertTokensToUsdPlus();
 
 
-         uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-         if(_amount > usdPlusAmount){
+        //  uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        //  if(_amount > usdPlusAmount){
 
-             uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
-             (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
+        //      uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
+        //      (reserveWmatic, reserveUsdPlus,) = dystVault.getReserves();
 
-             address userProxyThis = penLens.userProxyByAccount(address(this));
-             address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-             amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+        //      address userProxyThis = penLens.userProxyByAccount(address(this));
+        //      address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        //      amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
 
-             uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
-                 OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
-                 reserveWmatic,
-                 reserveUsdPlus,
-                 amountLp,
-                 usdcDm,
-                 wmaticDm,
-                 address(usdPlus),
-                 address(wmatic)
-             );
-             penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
-             this._removeLiquidity(lpTokensToWithdraw);
+        //      uint256 lpTokensToWithdraw = _getAmountLpTokensToWithdraw(
+        //          OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
+        //          reserveWmatic,
+        //          reserveUsdPlus,
+        //          amountLp,
+        //          usdcDm,
+        //          wmaticDm,
+        //          address(usdPlus),
+        //          address(wmatic)
+        //      );
+        //      penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
+        //      this._removeLiquidity(lpTokensToWithdraw);
 
-             _convertTokensToUsdPlus();
-         }
+        //      _convertTokensToUsdPlus();
+        //  }
 
         return _amount;
     }
@@ -269,28 +269,28 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _borrowWmatic() internal {
 
-         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+        //  (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
 
-         (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
-             usdPlus.balanceOf(address(this)),
-             reserveUsdPlus,
-             reserveWmatic,
-             liquidationThreshold,
-             healthFactor,
-             usdcDm,
-             wmaticDm,
-             uint256(oracleUsdc.latestAnswer()),
-             uint256(oracleWmatic.latestAnswer())
-         );
+        //  (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
+        //      usdPlus.balanceOf(address(this)),
+        //      reserveUsdPlus,
+        //      reserveWmatic,
+        //      liquidationThreshold,
+        //      healthFactor,
+        //      usdcDm,
+        //      wmaticDm,
+        //      uint256(oracleUsdc.latestAnswer()),
+        //      uint256(oracleWmatic.latestAnswer())
+        //  );
 
 
-         exchange.redeem(address(usdc), usdcCollateral-usdc.balanceOf(address(this)));
+        //  exchange.redeem(address(usdc), usdcCollateral-usdc.balanceOf(address(this)));
 
-         IPool aavePool = _aavePool();
+        //  IPool aavePool = _aavePool();
 
-         usdc.approve(address(aavePool), usdcCollateral);
-         aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
-         aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
+        //  usdc.approve(address(aavePool), usdcCollateral);
+        //  aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
+        //  aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
     }
 
     function _aavePool() public returns (IPool aavePool){
@@ -314,9 +314,9 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log(chainlinkUsdMatic);
         // console.log(dystUsdpMatic);
 
+        aaveCollateralPercent = (healthFactor * chainlinkUsdUsdc * chainlinkUsdMatic * 10 ** 18) / (healthFactor * chainlinkUsdUsdc * chainlinkUsdMatic + liquidationThreshold * dystUsdpMatic * 10 ** 8);
+        aaveBorrowAndPoolMaticPercent = aaveCollateralPercent * liquidationThreshold / healthFactor;
 
-        aaveCollateralPercent = (150 * chainlinkUsdUsdc * chainlinkUsdMatic * 10 ** 18) / (150 * chainlinkUsdUsdc * chainlinkUsdMatic + 75 * dystUsdpMatic * 10 ** 8);
-        aaveBorrowAndPoolMaticPercent = aaveCollateralPercent * 75 / 150;
         poolUsdpPercent = aaveBorrowAndPoolMaticPercent * dystUsdpMatic * 10 ** 8 / (chainlinkUsdUsdc * chainlinkUsdMatic);
         }
 
@@ -358,49 +358,54 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("poolUsdpUsdDelta", poolUsdpUsd - NAV*poolUsdpPercent/10**18);
         // console.log("");
 
-        if (NAV*poolUsdpPercent/10**18 < poolUsdpUsd) {
+        if (poolUsdpUsd > NAV*poolUsdpPercent/10**18) {
             return (1, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
                 aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
                 poolUsdpUsd - NAV*poolUsdpPercent/10**18
                 );
-        } else {
+        } else if (aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && NAV*poolUsdpPercent/10**18 > poolUsdpUsd){
             return (2, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
                 aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
                 NAV*poolUsdpPercent/10**18 - poolUsdpUsd
                 );
+        } else if (NAV*aaveBorrowAndPoolMaticPercent/10**18 > aaveBorrowUsd && NAV*poolUsdpPercent/10**18 > poolUsdpUsd) {
+            return (3, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
+                    NAV*aaveBorrowAndPoolMaticPercent/10**18 - aaveBorrowUsd,
+                    NAV*poolUsdpPercent/10**18 - poolUsdpUsd
+                    );
         }
     }
 
     function balances() external view override returns (BalanceItem[] memory){
 
         // debt base (USD) convert to Wmatic amount
-        (, uint256 debtBase,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
-        uint256 aaveWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, wmaticDm, uint256(oracleWmatic.latestAnswer()));
-        uint256 usdcWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, usdcDm, uint256(oracleUsdc.latestAnswer()));
+        // (, uint256 debtBase,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
+        // uint256 aaveWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        // uint256 usdcWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, usdcDm, uint256(oracleUsdc.latestAnswer()));
 
         BalanceItem[] memory items = new BalanceItem[](4);
-        items[0]= BalanceItem(address(wmatic), usdcWmatic, aaveWmatic, true);
+        // items[0]= BalanceItem(address(wmatic), usdcWmatic, aaveWmatic, true);
 
-        uint256 amountAusdc= aUsdc.balanceOf(address(this)) + usdc.balanceOf(address(this));
-        items[1] = BalanceItem(address(aUsdc), amountAusdc, amountAusdc, false);
+        // uint256 amountAusdc= aUsdc.balanceOf(address(this)) + usdc.balanceOf(address(this));
+        // items[1] = BalanceItem(address(aUsdc), amountAusdc, amountAusdc, false);
 
-        address userProxyThis = penLens.userProxyByAccount(address(this));
-        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-        uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-        (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
+        // address userProxyThis = penLens.userProxyByAccount(address(this));
+        // address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+        // uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+        // (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
 
-        poolUsdPlus += usdPlus.balanceOf(address(this));
+        // poolUsdPlus += usdPlus.balanceOf(address(this));
 
-        usdcWmatic = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
-            poolWmatic,
-            wmaticDm,
-            usdcDm,
-            uint256(oracleWmatic.latestAnswer()),
-            uint256(oracleUsdc.latestAnswer())
-        );
+        // usdcWmatic = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+        //     poolWmatic,
+        //     wmaticDm,
+        //     usdcDm,
+        //     uint256(oracleWmatic.latestAnswer()),
+        //     uint256(oracleUsdc.latestAnswer())
+        // );
 
-        items[2]= BalanceItem(address(wmatic), usdcWmatic, poolWmatic, false);
-        items[3]= BalanceItem(address(usdPlus), poolUsdPlus, poolUsdPlus, false);
+        // items[2]= BalanceItem(address(wmatic), usdcWmatic, poolWmatic, false);
+        // items[3]= BalanceItem(address(usdPlus), poolUsdPlus, poolUsdPlus, false);
 
         return items;
     }
@@ -527,89 +532,125 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _balance() internal override returns (uint256) {
 
-//        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas();
-//
-//        if (caseNumber == 1) {
-//
-//            poolUsdpUsdDelta = AaveBorrowLibrary.convertUsdToTokenAmount(poolUsdpUsdDelta, usdcDm, uint256(oracleUsdc.latestAnswer()));
-//
-//            address userProxyThis = penLens.userProxyByAccount(address(this));
-//            address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-//            uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-//            (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
-//
-//            uint256 lpforusdp = poolUsdpUsdDelta * balanceLp / poolUsdPlus;
-//
-//            penProxy.unstakeLpAndWithdraw(address(dystVault), lpforusdp);
-//            dystVault.approve(address(dystRouter), lpforusdp);
-//            (uint256 amountWmatic, uint256 amountUsdPlus) = this._removeLiquidity(lpforusdp);
-//            exchange.redeem(address(usdc), amountUsdPlus);
-//
-//            IPool aave = _aavePool();
-//            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
-//            aave.withdraw(address(usdc), aaveUsdc, address(this));
-//
-//            DystopiaLibrary._swap(
-//                    dystRouter,
-//                    address(usdc),
-//                    address(wmatic),
-//                    false,
-//                    usdc.balanceOf(address(this)),
-//                    address(this));
-//
-//            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-//            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-//        }
-//
-//        if (caseNumber == 2) {
-//            IPool aave = _aavePool();
-//            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
-//            aave.withdraw(address(usdc), aaveUsdc, address(this));
-//
-//            DystopiaLibrary._swap(
-//                    dystRouter,
-//                    address(usdc),
-//                    address(wmatic),
-//                    false,
-//                    aaveBorrowUsdNeeded / 100,
-//                    address(this));
-//
-//            wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-//            aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-//
-//            usdc.approve(address(exchange), usdc.balanceOf(address(this)));
-//            exchange.buy(address(usdc), usdc.balanceOf(address(this)));
-//
-//            (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
-//
-//            uint256 amountUsdcToSwap = _getAmountToken0(
-//                usdPlus.balanceOf(address(this)),
-//                amount1Current,
-//                amount0Current,
-//                usdcDm,
-//                wmaticDm,
-//                1,
-//                address(usdPlus),
-//                address(wmatic)
-//            );
-//
-//            DystopiaLibrary._swap(
-//                    dystRouter,
-//                    address(usdPlus),
-//                    address(wmatic),
-//                    false,
-//                    amountUsdcToSwap,
-//                    address(this));
-//
-//            uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-//            uint256 wmaticAmount = wmatic.balanceOf(address(this));
-//
-//            this._addLiquidity(wmaticAmount, usdPlusAmount);
-//        }
-//
-//        (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
-//        return healthFactorCurrent;
-        return 0;
+        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas();
+
+       if (caseNumber == 1) {
+
+           poolUsdpUsdDelta = AaveBorrowLibrary.convertUsdToTokenAmount(poolUsdpUsdDelta, usdcDm, uint256(oracleUsdc.latestAnswer()));
+
+           address userProxyThis = penLens.userProxyByAccount(address(this));
+           address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
+           uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+           (uint256 poolWmatic, uint256 poolUsdPlus) = _getLiquidity(balanceLp);
+
+           uint256 lpforusdp = poolUsdpUsdDelta * balanceLp / poolUsdPlus;
+
+           penProxy.unstakeLpAndWithdraw(address(dystVault), lpforusdp);
+           dystVault.approve(address(dystRouter), lpforusdp);
+           (uint256 amountWmatic, uint256 amountUsdPlus) = this._removeLiquidity(lpforusdp);
+           exchange.redeem(address(usdc), amountUsdPlus);
+
+           IPool aave = _aavePool();
+           uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
+           aave.withdraw(address(usdc), aaveUsdc, address(this));
+
+           DystopiaLibrary._swap(
+                   dystRouter,
+                   address(usdc),
+                   address(wmatic),
+                   false,
+                   usdc.balanceOf(address(this)),
+                   address(this));
+
+           wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+           aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+       }
+
+       if (caseNumber == 2) {
+           IPool aave = _aavePool();
+           uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
+           aave.withdraw(address(usdc), aaveUsdc, address(this));
+
+           DystopiaLibrary._swap(
+                   dystRouter,
+                   address(usdc),
+                   address(wmatic),
+                   false,
+                   aaveBorrowUsdNeeded / 100,
+                   address(this));
+
+           wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
+           aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
+
+           usdc.approve(address(exchange), usdc.balanceOf(address(this)));
+           exchange.buy(address(usdc), usdc.balanceOf(address(this)));
+
+           (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
+
+           uint256 amountUsdcToSwap = _getAmountToken0(
+               usdPlus.balanceOf(address(this)),
+               amount1Current,
+               amount0Current,
+               usdcDm,
+               wmaticDm,
+               1,
+               address(usdPlus),
+               address(wmatic)
+           );
+
+           DystopiaLibrary._swap(
+                   dystRouter,
+                   address(usdPlus),
+                   address(wmatic),
+                   false,
+                   amountUsdcToSwap,
+                   address(this));
+
+           uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+           uint256 wmaticAmount = wmatic.balanceOf(address(this));
+
+           this._addLiquidity(wmaticAmount, usdPlusAmount);
+       }
+
+
+        if (caseNumber == 3) {
+            IPool aave = _aavePool();
+            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsdNeeded, usdcDm, uint256(oracleUsdc.latestAnswer()));
+            aave.withdraw(address(usdc), aaveUsdc, address(this));
+            uint256 aaveMatic = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsdNeeded, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+            aave.borrow(address(wmatic), aaveMatic, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
+
+            _convertTokensToUsdPlus();
+
+            (uint256 amount0Current, uint256 amount1Current,) = dystVault.getReserves();
+
+            uint256 amountUsdcToSwap = _getAmountToken0(
+                usdPlus.balanceOf(address(this)),
+                amount1Current,
+                amount0Current,
+                usdcDm,
+                wmaticDm,
+                1,
+                address(usdPlus),
+                address(wmatic)
+            );
+
+            DystopiaLibrary._swap(
+                    dystRouter,
+                    address(usdPlus),
+                    address(wmatic),
+                    false,
+                    amountUsdcToSwap,
+                    address(this));
+
+            uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+            uint256 wmaticAmount = wmatic.balanceOf(address(this));
+
+            this._addLiquidity(wmaticAmount, usdPlusAmount);
+        }
+
+       (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
+       return healthFactorCurrent;
     }
 
 
