@@ -16,6 +16,8 @@ module.exports = async () => {
     const strategy = await ethers.getContract("StrategyDystopiaUsdcDai");
 
     await (await strategy.setTokens(POLYGON.usdc, POLYGON.dai, dystToken, POLYGON.wMatic, penToken)).wait();
+    console.log(`setTokens done for ${strategy.address}`)
+
     await (await strategy.setParams(
         gauge,
         dystPair,
@@ -28,6 +30,8 @@ module.exports = async () => {
         penLens,
         swapper
     )).wait();
+    console.log(`setParams done for ${strategy.address}`)
+
     await (await strategy.setPortfolioManager(core.pm)).wait();
 
     console.log('StrategyDystopiaUsdcDai setting done');
