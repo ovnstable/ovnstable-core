@@ -26,10 +26,6 @@ module.exports = async (plugin) => {
 
     if (hre.ovn === undefined || !hre.ovn.noDeploy) {
 
-        const dystopiaLibrary = await deploy("DystopiaLibrary", {
-            from: deployer
-        });
-
         const usdPlusWmaticLibrary = await deploy("UsdPlusWmaticLibrary", {
             from: deployer
         });
@@ -37,7 +33,6 @@ module.exports = async (plugin) => {
         let params = {
             factoryOptions: {
                 libraries: {
-                    "DystopiaLibrary": dystopiaLibrary.address,
                     "UsdPlusWmaticLibrary": usdPlusWmaticLibrary.address
                 }
             },

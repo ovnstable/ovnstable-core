@@ -89,15 +89,11 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         return totalUsdc;
     }
 
-    function balance() external override onlyExchanger {
+    function balance() external override {
         _balance();
     }
 
-    function setHealthFactor(uint256 healthFactor) external override onlyExchanger {
-        _setHealthFactor(healthFactor);
 
-        emit SetHealthFactor(healthFactor);
-    }
 
     function _stake(
         uint256 _amount
@@ -119,9 +115,6 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
 
     }
 
-    function _setHealthFactor(uint256 _healthFactor) internal virtual {
-
-    }
 
     uint256[49] private __gap;
 }

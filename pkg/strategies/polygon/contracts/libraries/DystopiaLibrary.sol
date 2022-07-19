@@ -19,7 +19,7 @@ library DystopiaLibrary {
         bool isStablePair1,
         uint256 amountInput,
         address recipient
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(dystRouter), amountInput);
 
@@ -54,7 +54,7 @@ library DystopiaLibrary {
         bool isStablePair,
         uint256 amountInput,
         address recipient
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(dystRouter), amountInput);
 
@@ -85,7 +85,7 @@ library DystopiaLibrary {
         address outputToken,
         bool isStablePair,
         uint256 amountInput
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](1);
         route[0].from = inputToken;
@@ -105,7 +105,7 @@ library DystopiaLibrary {
         bool isStablePair0,
         bool isStablePair1,
         uint256 amountInput
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
         route[0].from = inputToken;
@@ -129,7 +129,7 @@ library DystopiaLibrary {
         uint amountAMin,
         uint amountBMin,
         address to
-    ) public returns (uint amountA, uint amountB, uint liquidity) {
+    ) internal returns (uint amountA, uint amountB, uint liquidity) {
 
         IERC20(tokenA).approve(address(dystRouter), amountADesired);
         IERC20(tokenB).approve(address(dystRouter), amountBDesired);
@@ -157,7 +157,7 @@ library DystopiaLibrary {
         uint amountAMin,
         uint amountBMin,
         address to
-    ) public returns (uint amountA, uint amountB) {
+    ) internal returns (uint amountA, uint amountB) {
 
         IERC20(lpToken).approve(address(dystRouter), liquidity);
 

@@ -3,53 +3,16 @@ pragma solidity ^0.8.0;
 import "../StrategyUsdPlusWmatic.sol";
 import "../../libraries/AaveBorrowLibrary.sol";
 import "../../connectors/dystopia/interfaces/IDystopiaLP.sol";
+import "../../connectors/dystopia/interfaces/IDystopiaRouter.sol";
 import {OvnMath} from "../../libraries/OvnMath.sol";
+import {DystopiaLibrary} from "../../libraries/DystopiaLibrary.sol";
 
 import "hardhat/console.sol";
 
 library UsdPlusWmaticLibrary {
 
 
-    function _healthFactorBalanceILt(StrategyUsdPlusWmatic self) public  {
-        IPool aave = _aavePool(self);
-
-        (uint256 collateral, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
-        (uint256 reserveWmatic, uint256 reserveUsdPlus, ) =  self.dystVault().getReserves();
-
-        AaveBorrowLibrary.GetWithdrawAmountForBalanceParams memory params = AaveBorrowLibrary.GetWithdrawAmountForBalanceParams(
-            collateral,
-            borrow,
-            reserveUsdPlus,
-            reserveWmatic,
-            self.liquidationThreshold(),
-            self.healthFactor(),
-            self.usdcDm(),
-            self.wmaticDm(),
-            uint256(self.oracleUsdc().latestAnswer()),
-            uint256(self.oracleWmatic().latestAnswer())
-        );
-
-        uint256 neededUsdc = AaveBorrowLibrary.getWithdrawAmountForBalance(
-            params
-        );
-
-
-        aave.withdraw(address(self.usdc()), neededUsdc, address(self));
-
-        (params.totalCollateralUsd, params.totalBorrowUsd,,,,) = aave.getUserAccountData(address(self));
-
-        uint256 wmaticAmount = AaveBorrowLibrary.getBorrowIfZeroAmountForBalance(params);
-        aave.borrow(address(self.wmatic()), wmaticAmount, self.INTEREST_RATE_MODE(), self.REFERRAL_CODE(), address(self));
-
-        self.usdc().approve(address(self.exchange()), neededUsdc);
-        self.exchange().buy(address(self.usdc()), neededUsdc);
-
-        uint256 usdPlusAmount = self.usdPlus().balanceOf(address(self));
-
-        _addLiquidity(self, wmaticAmount, usdPlusAmount);
-    }
-
-    function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount , uint256 usdPlusAmount) public {
+    function _addLiquidity(StrategyUsdPlusWmatic self, uint256 wmaticAmount, uint256 usdPlusAmount) public {
 
         self.usdPlus().approve(address(self.dystRouter()), usdPlusAmount);
         self.wmatic().approve(address(self.dystRouter()), wmaticAmount);
@@ -79,7 +42,7 @@ library UsdPlusWmaticLibrary {
 
     function _removeLiquidity(StrategyUsdPlusWmatic self, uint256 amountLp) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
-        (uint256 amountLiq0, uint256 amountLiq1) = self._getLiquidity( amountLp);
+        (uint256 amountLiq0, uint256 amountLiq1) = _getLiquidityByLp(self, amountLp);
         (amountWmatic, amountUsdPlus) = self.dystRouter().removeLiquidity(
             address(self.wmatic()),
             address(self.usdPlus()),
@@ -94,38 +57,289 @@ library UsdPlusWmaticLibrary {
     }
 
 
-    function _healthFactorBalanceIGt(StrategyUsdPlusWmatic self) public {
-        IPool aave = _aavePool(self);
-        (uint256 collateral, uint256 borrow,,,,) = aave.getUserAccountData(address(self));
-        (uint256 reserveWmatic, uint256 reserveUsdPlus, ) =  self.dystVault().getReserves();
-
-        AaveBorrowLibrary.GetLpTokensForBalanceParams memory params = AaveBorrowLibrary.GetLpTokensForBalanceParams(
-            collateral,
-            borrow,
-            reserveUsdPlus,
-            reserveWmatic,
-            self.liquidationThreshold(),
-            self.healthFactor(),
-            self.usdcDm(),
-            self.wmaticDm(),
-            uint256(self.oracleUsdc().latestAnswer()),
-            uint256(self.oracleWmatic().latestAnswer()),
-            self.dystVault().totalSupply()
-        );
-
-        uint256 amountLp = AaveBorrowLibrary.getLpTokensForBalance(params);
-        self.penProxy().unstakeLpAndWithdraw(address(self.dystVault()), amountLp);
-        self.dystVault().approve(address(self.dystRouter()), amountLp);
-        (uint256 amountWmatic, uint256 amountUsdPlus) = _removeLiquidity(self,amountLp);
-
-        self.usdPlus().approve(address(self.exchange()), amountUsdPlus);
-        self.exchange().redeem(address(self.usdc()), amountUsdPlus);
-
-        uint256 amountUsdc = self.usdc().balanceOf(address(self));
-        self.usdc().approve(address(aave), amountUsdc);
-        aave.supply(address(self.usdc()), amountUsdc, address(self), self.REFERRAL_CODE());
-
-        self.wmatic().approve(address(aave), amountWmatic);
-        aave.repay(address(self.wmatic()), amountWmatic, self.INTEREST_RATE_MODE(), address(self));
+    function _getLiquidityForToken(StrategyUsdPlusWmatic self, uint256 token0Borrow) public view returns (uint256) {
+        (uint256 amount0, uint256 amount1,) = self.dystVault().getReserves();
+        uint256 amountLp = token0Borrow * self.dystVault().totalSupply() / amount0;
+        return amountLp;
     }
+
+
+    function _convertTokensToUsdPlus(StrategyUsdPlusWmatic self) public {
+
+        IERC20 wmatic = self.wmatic();
+        IERC20 usdc = self.usdc();
+        IERC20 usdPlus = self.usdPlus();
+
+        if (wmatic.balanceOf(address(self)) > 0) {
+            DystopiaLibrary._swap(
+                self.dystRouter(),
+                address(wmatic),
+                address(usdPlus),
+                false,
+                wmatic.balanceOf(address(self)),
+                address(self)
+            );
+        }
+
+        usdc.approve(address(self.exchange()), usdc.balanceOf(address(self)));
+        self.exchange().buy(address(usdc), usdc.balanceOf(address(self)));
+    }
+
+
+    function _getAmountToken0(
+        StrategyUsdPlusWmatic self,
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision,
+        address token0,
+        address token1
+    ) public view returns (uint256) {
+        uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = DystopiaLibrary._getAmountOut(self.dystRouter(), token0, token1, false, amount0);
+            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
+        }
+
+        return amount0;
+    }
+
+    function _getLiquidity(StrategyUsdPlusWmatic self) public view returns (uint256, uint256){
+
+        address userProxyThis = self.penLens().userProxyByAccount(address(self));
+        address stakingAddress = self.penLens().stakingRewardsByDystPool(address(self.dystVault()));
+        uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+
+        return _getLiquidityByLp(self, balanceLp);
+    }
+
+    function _getLiquidityByLp(StrategyUsdPlusWmatic self, uint256 balanceLp) public view returns (uint256, uint256){
+
+        (uint256 amount0Current, uint256 amount1Current,) = self.dystVault().getReserves();
+
+        uint256 amountLiq0 = amount0Current * balanceLp / self.dystVault().totalSupply();
+        uint256 amountLiq1 = amount1Current * balanceLp / self.dystVault().totalSupply();
+        return (amountLiq0, amountLiq1);
+    }
+
+    function _getAmountLpTokensToWithdraw(
+        StrategyUsdPlusWmatic self,
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalLpBalance,
+        uint256 denominator0,
+        uint256 denominator1,
+        address token0,
+        address token1
+    ) public view returns (uint256) {
+        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+
+        IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](2);
+        route[0].from = token1;
+        route[0].to = token0;
+        route[0].stable = true;
+        uint256 amount0 = self.dystRouter().getAmountsOut(amount1, route)[2];
+
+        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+
+        return lpBalance;
+    }
+
+    function _caseNumber1(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta) public {
+
+        delta.poolUsdpUsdDelta = AaveBorrowLibrary.convertUsdToTokenAmount(delta.poolUsdpUsdDelta, self.usdcDm(), uint256(self.oracleUsdc().latestAnswer()));
+
+        {
+            address userProxyThis = self.penLens().userProxyByAccount(address(self));
+            address stakingAddress = self.penLens().stakingRewardsByDystPool(address(self.dystVault()));
+            uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
+            (, uint256 poolUsdPlus) = _getLiquidityByLp(self, balanceLp);
+            uint256 lpforusdp = delta.poolUsdpUsdDelta * balanceLp / poolUsdPlus;
+
+            self.penProxy().unstakeLpAndWithdraw(address(self.dystVault()), lpforusdp);
+            self.dystVault().approve(address(self.dystRouter()), lpforusdp);
+
+            (, uint256 amountUsdPlus) = _removeLiquidity(self, lpforusdp);
+            self.exchange().redeem(address(self.usdc()), amountUsdPlus);
+        }
+
+        {
+            IPool aave = _aavePool(self);
+
+            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(delta.aaveCollateralUsdNeeded, self.usdcDm(), uint256(self.oracleUsdc().latestAnswer()));
+            aave.withdraw(address(self.usdc()), aaveUsdc, address(self));
+
+            DystopiaLibrary._swap(
+                self.dystRouter(),
+                address(self.usdc()),
+                address(self.wmatic()),
+                false,
+                self.usdc().balanceOf(address(self)),
+                address(self));
+
+            self.wmatic().approve(address(aave), self.wmatic().balanceOf(address(self)));
+            aave.repay(address(self.wmatic()), self.wmatic().balanceOf(address(self)), self.INTEREST_RATE_MODE(), address(self));
+        }
+    }
+
+    function _caseNumber2(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta) public {
+
+        uint256 usdcDm = self.usdcDm();
+        uint256 wmaticDm = self.wmaticDm();
+
+        {
+            IPool aave = _aavePool(self);
+            IERC20 wmatic = self.wmatic();
+            IERC20 usdc = self.usdc();
+
+            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(delta.aaveCollateralUsdNeeded, usdcDm, uint256(self.oracleUsdc().latestAnswer()));
+            aave.withdraw(address(usdc), aaveUsdc, address(self));
+
+            DystopiaLibrary._swap(
+                self.dystRouter(),
+                address(usdc),
+                address(wmatic),
+                false,
+                delta.aaveBorrowUsdNeeded / 100,
+                address(self));
+
+            wmatic.approve(address(aave), wmatic.balanceOf(address(self)));
+            aave.repay(address(wmatic), wmatic.balanceOf(address(self)), self.INTEREST_RATE_MODE(), address(self));
+
+            usdc.approve(address(self.exchange()), usdc.balanceOf(address(self)));
+            self.exchange().buy(address(usdc), usdc.balanceOf(address(self)));
+        }
+        {
+
+            IERC20 wmatic = self.wmatic();
+            IERC20 usdPlus = self.usdPlus();
+
+            (uint256 amount0Current, uint256 amount1Current,) = self.dystVault().getReserves();
+
+            uint256 amountUsdcToSwap = _getAmountToken0(
+                self,
+                usdPlus.balanceOf(address(self)),
+                amount1Current,
+                amount0Current,
+                usdcDm,
+                wmaticDm,
+                1,
+                address(usdPlus),
+                address(wmatic)
+            );
+
+            DystopiaLibrary._swap(
+                self.dystRouter(),
+                address(usdPlus),
+                address(wmatic),
+                false,
+                amountUsdcToSwap,
+                address(self));
+
+            uint256 usdPlusAmount = usdPlus.balanceOf(address(self));
+            uint256 wmaticAmount = wmatic.balanceOf(address(self));
+
+            _addLiquidity(self, wmaticAmount, usdPlusAmount);
+        }
+    }
+
+
+    function _caseNumber3(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta) public {
+
+
+        {
+            IERC20 wmatic = self.wmatic();
+            IERC20 usdc = self.usdc();
+
+            IPool aave = _aavePool(self);
+            uint256 aaveUsdc = AaveBorrowLibrary.convertUsdToTokenAmount(delta.aaveCollateralUsdNeeded, self.usdcDm(), uint256(self.oracleUsdc().latestAnswer()));
+            aave.withdraw(address(usdc), aaveUsdc, address(self));
+            uint256 aaveMatic = AaveBorrowLibrary.convertUsdToTokenAmount(delta.aaveBorrowUsdNeeded, self.wmaticDm(), uint256(self.oracleWmatic().latestAnswer()));
+            aave.borrow(address(wmatic), aaveMatic, self.INTEREST_RATE_MODE(), self.REFERRAL_CODE(), address(self));
+
+            _convertTokensToUsdPlus(self);
+
+        }
+
+        {
+
+            IERC20 usdPlus = self.usdPlus();
+            IERC20 wmatic = self.wmatic();
+
+            (uint256 amount0Current, uint256 amount1Current,) = self.dystVault().getReserves();
+
+            uint256 amountUsdcToSwap = _getAmountToken0(
+                self,
+                usdPlus.balanceOf(address(self)),
+                amount1Current,
+                amount0Current,
+                self.usdcDm(),
+                self.wmaticDm(),
+                1,
+                address(usdPlus),
+                address(wmatic)
+            );
+
+            DystopiaLibrary._swap(
+                self.dystRouter(),
+                address(usdPlus),
+                address(wmatic),
+                false,
+                amountUsdcToSwap,
+                address(self));
+
+            uint256 usdPlusAmount = usdPlus.balanceOf(address(self));
+            uint256 wmaticAmount = wmatic.balanceOf(address(self));
+
+            _addLiquidity(self, wmaticAmount, usdPlusAmount);
+        }
+    }
+
+
+
+    function claimRewards(StrategyUsdPlusWmatic self) public returns (uint256){
+
+        // claim rewards
+        self.penProxy().claimStakingRewards();
+
+        // sell rewards
+        uint256 totalUsdc = 0;
+
+        uint256 dystBalance = self.dyst().balanceOf(address(self));
+        if (dystBalance > 0) {
+            uint256 dystUsdc = DystopiaLibrary._swapExactTokensForTokens(
+                self.dystRouter(),
+                address(self.dyst()),
+                address(self.wmatic()),
+                address(self.usdPlus()),
+                false,
+                false,
+                dystBalance,
+                address(self)
+            );
+            totalUsdc += dystUsdc;
+        }
+
+        uint256 penBalance = self.penToken().balanceOf(address(self));
+        if (penBalance > 0) {
+            uint256 penUsdc = DystopiaLibrary._swapExactTokensForTokens(
+                self.dystRouter(),
+                address(self.penToken()),
+                address(self.wmatic()),
+                address(self.usdPlus()),
+                false,
+                false,
+                penBalance,
+                address(self)
+            );
+            totalUsdc += penUsdc;
+        }
+
+        return totalUsdc;
+    }
+
 }

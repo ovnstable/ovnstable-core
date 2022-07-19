@@ -4,10 +4,8 @@ const fse = require('fs-extra');
 
 const {
     TASK_NODE,
-    TASK_TEST,
+    TASK_COMPILE,
     TASK_RUN,
-    TASK_NODE_GET_PROVIDER,
-    TASK_NODE_SERVER_READY,
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 
@@ -80,4 +78,15 @@ task(TASK_RUN, 'Run task')
 
         if (args.reset)
             await evmRestore('task', hre.network.provider);
+    });
+
+
+
+task(TASK_COMPILE, 'Compile')
+    .setAction(async (args, hre, runSuper) => {
+
+        args.quiet = true;
+
+        await runSuper(args);
+
     });

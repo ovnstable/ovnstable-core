@@ -35,9 +35,32 @@ async function main() {
     console.log('Liq index:    ' + await rebase.liquidityIndex());
     console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
     console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
+    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
 
-    await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-    await (await exchanger.payout(await getPrice())).wait();
+    // await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
+
+    while (true){
+
+        let opts = await getPrice();
+        opts.gasLimit = "15000000"
+
+        try {
+            await exchanger.estimateGas.payout(opts);
+        } catch (e) {
+            console.log(e)
+            await sleep(30000);
+            continue;
+        }
+
+        try {
+            await (await exchanger.payout(opts)).wait();
+            break;
+        } catch (e) {
+            console.log(e)
+            await sleep(30000);
+            continue;
+        }
+    }
 
     items = await strategy.balances();
 
@@ -60,6 +83,7 @@ async function main() {
     console.log('Liq index:    ' + await rebase.liquidityIndex());
     console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
     console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
+    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
 }
 
 main()
@@ -69,3 +93,7 @@ main()
         process.exit(1);
     });
 
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
