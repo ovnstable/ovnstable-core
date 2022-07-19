@@ -1,7 +1,5 @@
-const {verify} = require("@overnight-contracts/common/utils/verify-utils");
-const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const {fromE18} = require("../../common/utils/decimals");
 
 async function main() {
@@ -26,7 +24,6 @@ async function main() {
 
     console.table(arrays);
 
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
     let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
 
     let newVar = await getPrice();
@@ -36,30 +33,7 @@ async function main() {
     console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
     console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
 
-    // await (await exchanger.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-
-    while (true){
-
-        let opts = await getPrice();
-        opts.gasLimit = "15000000"
-
-        try {
-            await exchanger.estimateGas.payout(opts);
-        } catch (e) {
-            console.log(e)
-            await sleep(30000);
-            continue;
-        }
-
-        try {
-            await (await exchanger.payout(opts)).wait();
-            break;
-        } catch (e) {
-            console.log(e)
-            await sleep(30000);
-            continue;
-        }
-    }
+    await (await strategy.balance(newVar)).wait();
 
     items = await strategy.balances();
 
