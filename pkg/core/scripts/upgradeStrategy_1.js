@@ -1,14 +1,12 @@
 const hre = require("hardhat");
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice, execTimelock, initWallet, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 const ethers = hre.ethers;
 
 
 async function main() {
 
-    let price = await getPrice();
-
-    let governor = await getContract('OvnGovernor', 'polygon');
     let strategy1 = await getContract('StrategyDystopiaUsdcUsdt', 'polygon');
     let strategy2 = await getContract('StrategyDystopiaUsdcDai', 'polygon');
 
@@ -16,9 +14,7 @@ async function main() {
     let values = [];
     let abis = [];
 
-
     let {POLYGON} = require('@overnight-contracts/common/utils/assets');
-    let {core} = require('@overnight-contracts/common/utils/core');
 
     let dystToken = '0x39aB6574c289c3Ae4d88500eEc792AB5B947A5Eb';
     let dystPair = '0x4570da74232c1A784E77c2a260F85cdDA8e7d47B'; //sAMM-USDC/USDT
@@ -77,20 +73,11 @@ async function main() {
         swapper
     ]));
 
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id(abis.toString()),
-        price
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event === 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
+
+    await createProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+
 }
-
-
 
 
 main()

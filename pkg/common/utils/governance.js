@@ -2,6 +2,7 @@ const {fromOvnGov, fromE18} = require("./decimals");
 const {expect} = require("chai");
 const {getContract, initWallet, getPrice} = require("./script-utils");
 const hre = require('hardhat');
+const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
@@ -22,6 +23,34 @@ async function createProposal(addresses, values, abis){
     let tx = await proposeTx.wait();
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
+}
+
+async function testProposal(addresses, values, abis){
+
+    await execTimelock(async (timelock)=>{
+
+        await showM2M();
+
+        for (let i = 0; i < addresses.length; i++) {
+
+            let address = addresses[i];
+            let abi = abis[i];
+
+            let tx = {
+                from: timelock.address,
+                to: address,
+                value: 0,
+                data: abi,
+                gasLimit: 15000000
+            }
+
+            console.log(`Transaction: index: [${i}] address: [${address}]`)
+            await timelock.sendTransaction(tx)
+
+        }
+
+        await showM2M();
+    })
 }
 
 async function execProposal(id) {
@@ -88,4 +117,5 @@ async function execProposal(id) {
 module.exports = {
     execProposal: execProposal,
     createProposal: createProposal,
+    testProposal: testProposal,
 }
