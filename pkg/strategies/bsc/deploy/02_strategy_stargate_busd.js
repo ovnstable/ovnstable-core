@@ -4,11 +4,11 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {core} = require('@overnight-contracts/common/utils/core');
 
-let stgToken = '0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590';
-let stargateRouter = '0x45A01E4e04F14f7A4a6702c74187c5F6222033cd';
-let pool = '0x1205f31718499dBf1fCa446663B532Ef87481fe1';
-let lpStaking = '0x8731d54E9D02c286767d56ac03e8037C07e01e98';
-let pid = 0;
+let stgToken = '0xB0D502E938ed5f4df2E681fE6E419ff29631d62b';
+let stargateRouter = '0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8';
+let pool = '0x98a5737749490856b401DB5Dc27F522fC314A4e1';
+let lpStaking = '0x3052A0F6ab15b4AE1df39962d5DdEFacA86DaB47';
+let pid = 1;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;

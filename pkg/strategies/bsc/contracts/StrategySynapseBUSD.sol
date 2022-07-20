@@ -7,11 +7,12 @@ import "./libraries/PancakeSwapLibrary.sol";
 import "./connectors/synapse/interfaces/ISwap.sol";
 import "./connectors/synapse/interfaces/IMiniChefV2.sol";
 
+import "hardhat/console.sol";
 
 contract StrategySynapseBUSD is Strategy {
     using OvnMath for uint256;
 
-    IERC20 public usdcToken;
+    IERC20 public busdToken;
     IERC20 public nUsdLPToken;
     IERC20 public synToken;
 
@@ -23,7 +24,7 @@ contract StrategySynapseBUSD is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address nUsdLPToken, address synToken);
+    event StrategyUpdatedTokens(address busdToken, address nUsdLPToken, address synToken);
 
     event StrategyUpdatedParams(address swap, address miniChefV2, address pancakeRouter, uint256 pid);
 
@@ -41,20 +42,20 @@ contract StrategySynapseBUSD is Strategy {
     // --- Setters
 
     function setTokens(
-        address _usdcToken,
+        address _busdToken,
         address _nUsdLPToken,
         address _synToken
     ) external onlyAdmin {
 
-        require(_usdcToken != address(0), "Zero address not allowed");
+        require(_busdToken != address(0), "Zero address not allowed");
         require(_nUsdLPToken != address(0), "Zero address not allowed");
         require(_synToken != address(0), "Zero address not allowed");
 
-        usdcToken = IERC20(_usdcToken);
+        busdToken = IERC20(_busdToken);
         nUsdLPToken = IERC20(_nUsdLPToken);
         synToken = IERC20(_synToken);
 
-        emit StrategyUpdatedTokens(_usdcToken, _nUsdLPToken, _synToken);
+        emit StrategyUpdatedTokens(_busdToken, _nUsdLPToken, _synToken);
     }
 
     function setParams(
@@ -85,22 +86,26 @@ contract StrategySynapseBUSD is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
         // add liquidity
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
-        amounts[1] = 0;
-        amounts[2] = _amount.subBasisPoints(4);
+        amounts[1] = _amount.subBasisPoints(4);
+        amounts[2] = 0;
         amounts[3] = 0;
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
-        amounts[2] = _amount;
-        usdcToken.approve(address(swap), _amount);
+        amounts[1] = _amount;
+        busdToken.approve(address(swap), _amount);
+        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
         uint256 nUsdLPTokenAmount = swap.addLiquidity(amounts, minToMint, block.timestamp);
+        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
         // stake
+        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
         nUsdLPToken.approve(address(miniChefV2), nUsdLPTokenAmount);
         miniChefV2.deposit(pid, nUsdLPTokenAmount, address(this));
+        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -109,26 +114,31 @@ contract StrategySynapseBUSD is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
         // unstake
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
-        amounts[1] = 0;
-        amounts[2] = _amount.addBasisPoints(4) + 1;
+        amounts[1] = _amount.addBasisPoints(4) + 1;
+        amounts[2] = 0;
         amounts[3] = 0;
-        uint256 balanceLP = swap.calculateTokenAmount(amounts, false);
+        uint256 lpBalance = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
-        if (balanceLP > amount) {
-            balanceLP = amount;
+        if (lpBalance > amount) {
+            lpBalance = amount;
         }
-        miniChefV2.withdraw(pid, balanceLP, address(this));
+        console.log("lpBalance: %s", lpBalance);
+        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
+        miniChefV2.withdraw(pid, lpBalance, address(this));
+        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
 
         // remove liquidity
-        nUsdLPToken.approve(address(swap), balanceLP);
-        swap.removeLiquidityOneToken(balanceLP, 2, _amount, block.timestamp);
+        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
+        nUsdLPToken.approve(address(swap), lpBalance);
+        swap.removeLiquidityOneToken(lpBalance, 1, _amount, block.timestamp);
+        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
-        return usdcToken.balanceOf(address(this));
+        return busdToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -136,21 +146,27 @@ contract StrategySynapseBUSD is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(busdToken), "Some token not compatible");
 
         // unstake
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount == 0) {
-            return usdcToken.balanceOf(address(this));
+            return busdToken.balanceOf(address(this));
         }
+        console.log("amount: %s", amount);
+        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
         miniChefV2.withdraw(pid, amount, address(this));
+        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
 
         // remove liquidity
-        uint256 usdcBalance = swap.calculateRemoveLiquidityOneToken(amount, 2);
+        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
+        uint256 busdBalance = swap.calculateRemoveLiquidityOneToken(amount, 1);
+        console.log("busdBalance: %s", busdBalance);
         nUsdLPToken.approve(address(swap), amount);
-        swap.removeLiquidityOneToken(amount, 2, usdcBalance, block.timestamp);
+        swap.removeLiquidityOneToken(amount, 1, busdBalance, block.timestamp);
+        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
-        return usdcToken.balanceOf(address(this));
+        return busdToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -162,18 +178,19 @@ contract StrategySynapseBUSD is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 busdBalance = busdToken.balanceOf(address(this));
 
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (amount > 0) {
             if (nav) {
-                usdcBalance += swap.calculateRemoveLiquidityOneToken(1e18, 2) * amount / 1e18;
+                busdBalance += swap.calculateRemoveLiquidityOneToken(1e18, 1) * amount / 1e18;
             } else {
-                usdcBalance += swap.calculateRemoveLiquidityOneToken(amount, 2);
+                busdBalance += swap.calculateRemoveLiquidityOneToken(amount, 1);
             }
         }
+        console.log("busdBalance: %s", busdBalance);
 
-        return usdcBalance;
+        return busdBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -186,36 +203,38 @@ contract StrategySynapseBUSD is Strategy {
         miniChefV2.harvest(pid, address(this));
 
         // sell rewards
-        uint256 totalUsdc;
+        uint256 totalBusd;
 
         uint256 synBalance = synToken.balanceOf(address(this));
+        console.log("synBalance: %s", synBalance);
         if (synBalance > 0) {
             uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
                 address(synToken),
-                address(usdcToken),
+                address(busdToken),
                 synBalance
             );
+            console.log("amountOutMin: %s", amountOutMin);
 
             if (amountOutMin > 0) {
-                uint256 synUsdc = PancakeSwapLibrary.swapExactTokensForTokens(
+                uint256 synBusd = PancakeSwapLibrary.swapExactTokensForTokens(
                     pancakeRouter,
                     address(synToken),
-                    address(usdcToken),
+                    address(busdToken),
                     synBalance,
                     amountOutMin,
                     address(this)
                 );
-                totalUsdc += synUsdc;
+                console.log("synBusd: %s", synBusd);
+                totalBusd += synBusd;
             }
         }
 
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        if (usdcBalance > 0) {
-            usdcToken.transfer(_to, usdcBalance);
+        if (totalBusd > 0) {
+            busdToken.transfer(_to, totalBusd);
         }
 
-        return totalUsdc;
+        return totalBusd;
     }
 
 }

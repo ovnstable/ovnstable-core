@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "./connectors/venus/interfaces/VenusInterface.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyVenusBUSD is Strategy {
 
     IERC20 public busdToken;
@@ -62,8 +64,12 @@ contract StrategyVenusBUSD is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
+        console.log("busdToken before stake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken before stake: ", vBusdToken.balanceOf(address(this)));
         busdToken.approve(address(vBusdToken), _amount);
         vBusdToken.mint(_amount);
+        console.log("busdToken after stake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken after stake: ", vBusdToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -74,8 +80,12 @@ contract StrategyVenusBUSD is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        uint256 withdrawAmount = vBusdToken.redeemUnderlying(_amount);
-        return withdrawAmount;
+        console.log("busdToken before unstake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken before stake: ", vBusdToken.balanceOf(address(this)));
+        vBusdToken.redeemUnderlying(_amount);
+        console.log("busdToken after unstake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken after unstake: ", vBusdToken.balanceOf(address(this)));
+        return busdToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -85,9 +95,12 @@ contract StrategyVenusBUSD is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        uint256 amount = vBusdToken.balanceOf(address(this));
-        uint256 withdrawAmount = vBusdToken.redeem(amount);
-        return withdrawAmount;
+        console.log("busdToken before unstake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken before stake: ", vBusdToken.balanceOf(address(this)));
+        vBusdToken.redeem(vBusdToken.balanceOf(address(this)));
+        console.log("busdToken after unstake: ", busdToken.balanceOf(address(this)));
+        console.log("vBusdToken after unstake: ", vBusdToken.balanceOf(address(this)));
+        return busdToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -99,7 +112,9 @@ contract StrategyVenusBUSD is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18;
+        uint256 balance = vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18;
+        console.log("balance: ", balance);
+        return balance;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
