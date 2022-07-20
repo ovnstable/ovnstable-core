@@ -16,7 +16,8 @@ async function main() {
     console.log("Rebase:  " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
     console.log('HF:      ' + fromUSDC(await strategy.currentHealthFactor()));
-    console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
+    console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
+    console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
 
     let items = await strategy.balances();
 
@@ -44,7 +45,8 @@ async function main() {
     console.log("Rebase:  " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
     console.log('HF:      ' + fromUSDC(await strategy.currentHealthFactor()));
-    console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
+    console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
+    console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
 
 
     items = await strategy.balances();
