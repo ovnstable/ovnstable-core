@@ -65,10 +65,14 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     uint256 public balancingDelta;
     uint256 public realHealthFactor;
 
+
+    // method 0--nothing, 1--stake, 2--unstake
     struct Delta {
         uint256 aaveCollateralUsdNeeded;
         uint256 aaveBorrowUsdNeeded;
         uint256 poolUsdpUsdDelta;
+        uint256 method;
+        uint256 amount;
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -142,12 +146,42 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _stake(uint256 _amount) internal override {
 
-        _borrowWmatic();
+        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas(1, _amount);
 
-        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-        uint256 wmaticAmount = wmatic.balanceOf(address(this));
+        console.log("stake case", caseNumber);
 
-        this._addLiquidity(wmaticAmount, usdPlusAmount);
+        Delta memory delta = Delta(
+            aaveCollateralUsdNeeded,
+            aaveBorrowUsdNeeded,
+            poolUsdpUsdDelta, 1, _amount
+        );
+
+        if (caseNumber == 1) {
+            this._caseNumber1(delta);
+        }
+
+        if (caseNumber == 2) {
+            this._caseNumber2(delta);
+        }
+
+        if (caseNumber == 3) {
+            this._caseNumber3(delta);
+        }
+
+        if (caseNumber == 4) {
+            this._caseNumber4(delta);
+        }
+
+        if (caseNumber == 5) {
+            this._caseNumber5(delta);
+        }
+
+        if (caseNumber == 6) {
+            this._caseNumber6(delta);
+        }
+
+        (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
+        realHealthFactor = healthFactorCurrent;
     }
 
 
@@ -155,81 +189,44 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 _amount
     ) internal override returns (uint256) {
 
-        uint256 amount = _amount + ((_amount * exchange.redeemFee()) / exchange.redeemFeeDenominator());
+        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas(2, _amount);
 
-        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
+        console.log("unstake case", caseNumber);
 
-        uint256 wmaticBorrow = AaveBorrowLibrary.getBorrowForWithdraw(
-            amount,
-            reserveUsdPlus,
-            reserveWmatic,
-            liquidationThreshold,
-            healthFactor,
-            usdcDm,
-            wmaticDm,
-            uint256(oracleUsdc.latestAnswer()),
-            uint256(oracleWmatic.latestAnswer())
+        Delta memory delta = Delta(
+            aaveCollateralUsdNeeded,
+            aaveBorrowUsdNeeded,
+            poolUsdpUsdDelta, 2, _amount
         );
 
-        IPool aave = _aavePool();
-        (, uint256 borrow,,,,) = aave.getUserAccountData(address(this));
-        uint256 wmaticBorrowNative = AaveBorrowLibrary.convertUsdToTokenAmount(borrow, wmaticDm, uint256(oracleWmatic.latestAnswer()));
-
-        uint256 borrowAmount;
-        uint256 getUsdc;
-
-        if (wmaticBorrow > wmaticBorrowNative) {
-            borrowAmount = wmaticBorrowNative;
-            getUsdc = MAX_UINT_VALUE;
-        } else {
-            borrowAmount = wmaticBorrow;
-            getUsdc = amount - (wmaticBorrow * reserveUsdPlus) / reserveWmatic;
+        if (caseNumber == 1) {
+            this._caseNumber1(delta);
         }
 
-        uint256 amountLp = this._getLiquidityForToken(borrowAmount);
-        penProxy.unstakeLpAndWithdraw(address(dystVault), amountLp);
-        dystVault.approve(address(dystRouter), amountLp);
-        this._removeLiquidity(amountLp);
-
-        wmatic.approve(address(aave), wmatic.balanceOf(address(this)));
-        aave.repay(address(wmatic), wmatic.balanceOf(address(this)), INTEREST_RATE_MODE, address(this));
-        aave.withdraw(address(usdc), getUsdc, address(this));
-
-        this._convertTokensToUsdPlus();
-
-        if (_amount > usdPlus.balanceOf(address(this))) {
-            _getNeedUsdPlus(_amount);
+        if (caseNumber == 2) {
+            this._caseNumber2(delta);
         }
+
+        if (caseNumber == 3) {
+            this._caseNumber3(delta);
+        }
+
+        if (caseNumber == 4) {
+            this._caseNumber4(delta);
+        }
+
+        if (caseNumber == 5) {
+            this._caseNumber5(delta);
+        }
+
+        if (caseNumber == 6) {
+            this._caseNumber6(delta);
+        }
+
+        (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
+        realHealthFactor = healthFactorCurrent;
 
         return _amount;
-    }
-
-
-    function _getNeedUsdPlus(uint256 _amount) internal {
-
-
-        uint256 neededUsdPlus = _amount - usdPlus.balanceOf(address(this));
-        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
-
-        address userProxyThis = penLens.userProxyByAccount(address(this));
-        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
-        uint256 amountLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-
-        uint256 lpTokensToWithdraw = this._getAmountLpTokensToWithdraw(
-            OvnMath.addBasisPoints(neededUsdPlus, BASIS_POINTS_FOR_SLIPPAGE),
-            reserveWmatic,
-            reserveUsdPlus,
-            amountLp,
-            usdcDm,
-            wmaticDm,
-            address(usdPlus),
-            address(wmatic)
-        );
-        penProxy.unstakeLpAndWithdraw(address(dystVault), lpTokensToWithdraw);
-        this._removeLiquidity(lpTokensToWithdraw);
-
-        this._convertTokensToUsdPlus();
-
     }
 
     function _borrowWmatic() internal {
@@ -341,12 +338,14 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _balance() internal override returns (uint256) {
 
-        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas();
+        (uint256 caseNumber, uint256 aaveCollateralUsdNeeded, uint256 aaveBorrowUsdNeeded, uint256 poolUsdpUsdDelta) = getDeltas(0, 0);
+
+        console.log("case", caseNumber);
 
         Delta memory delta = Delta(
             aaveCollateralUsdNeeded,
             aaveBorrowUsdNeeded,
-            poolUsdpUsdDelta
+            poolUsdpUsdDelta, 0, 0
         );
 
         if (caseNumber == 1) {
@@ -361,6 +360,18 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             this._caseNumber3(delta);
         }
 
+        if (caseNumber == 4) {
+            this._caseNumber4(delta);
+        }
+
+        if (caseNumber == 5) {
+            this._caseNumber5(delta);
+        }
+
+        if (caseNumber == 6) {
+            this._caseNumber6(delta);
+        }
+
         (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
         realHealthFactor = healthFactorCurrent;
 
@@ -373,7 +384,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     }
 
 
-    function getDeltas() public view returns (uint256, uint256, uint256, uint256){
+    function getDeltas(uint256 method, uint256 amount) public view returns (uint256, uint256, uint256, uint256){
 
         uint256 aaveCollateralPercent;
         uint256 aaveBorrowAndPoolMaticPercent;
@@ -419,6 +430,11 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("poolMaticUsd", poolMaticUsd);
         // console.log("poolUsdpUsd", poolUsdpUsd);
         NAV = poolMaticUsd + poolUsdpUsd + aaveCollateralUsd - aaveBorrowUsd;
+        if (method == 1) {
+            NAV += amount;
+        } else if (method == 1) {
+            NAV -= amount;
+        }
         // console.log("NAV", NAV);
 
 
@@ -426,25 +442,40 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("aaveBorrowUsdNeeded", NAV*aaveBorrowAndPoolMaticPercent/10**18);
         // console.log("poolMaticUsdNeeded", NAV*aaveBorrowAndPoolMaticPercent/10**18);
         // console.log("poolUsdpUsdNeeded", NAV*poolUsdpPercent/10**18);
-        // console.log("");
-        // console.log("aaveCollateralUsdDelta", aaveCollateralUsd - NAV*aaveCollateralPercent/10**18);
+        console.log("");
+        // console.log("aaveCollateralUsdDelta", NAV*aaveCollateralPercent/10**18 - aaveCollateralUsd);
         // console.log("aaveBorrowUsdDelta", aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18);
         // console.log("poolMaticUsdDelta", poolMaticUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18);
         // console.log("poolUsdpUsdDelta", poolUsdpUsd - NAV*poolUsdpPercent/10**18);
         // console.log("");
 
-        if (poolUsdpUsd > NAV*poolUsdpPercent/10**18) {
+        if (poolUsdpUsd > NAV*poolUsdpPercent/10**18 && aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && aaveCollateralUsd > NAV*aaveCollateralPercent/10**18) {
             return (1, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
             aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
             poolUsdpUsd - NAV*poolUsdpPercent/10**18
             );
-        } else if (aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && NAV*poolUsdpPercent/10**18 > poolUsdpUsd){
+        } else if (aaveCollateralUsd > NAV*aaveCollateralPercent/10**18 && aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && NAV*poolUsdpPercent/10**18 > poolUsdpUsd){
             return (2, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
             aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
             NAV*poolUsdpPercent/10**18 - poolUsdpUsd
             );
-        } else if (NAV*aaveBorrowAndPoolMaticPercent/10**18 > aaveBorrowUsd && NAV*poolUsdpPercent/10**18 > poolUsdpUsd) {
+        } else if (aaveCollateralUsd > NAV*aaveCollateralPercent/10**18 && NAV*aaveBorrowAndPoolMaticPercent/10**18 > aaveBorrowUsd && NAV*poolUsdpPercent/10**18 > poolUsdpUsd) {
             return (3, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
+            NAV*aaveBorrowAndPoolMaticPercent/10**18 - aaveBorrowUsd,
+            NAV*poolUsdpPercent/10**18 - poolUsdpUsd
+            );
+        } else if (NAV*aaveCollateralPercent/10**18 > aaveCollateralUsd && aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && poolUsdpUsd > NAV*poolUsdpPercent/10**18) {
+            return (4, NAV*aaveCollateralPercent/10**18 - aaveCollateralUsd,
+            aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
+            poolUsdpUsd - NAV*poolUsdpPercent/10**18
+            );
+        } else if (NAV*aaveCollateralPercent/10**18 > aaveCollateralUsd && NAV*aaveBorrowAndPoolMaticPercent/10**18 > aaveBorrowUsd && poolUsdpUsd > NAV*poolUsdpPercent/10**18) {
+            return (5, NAV*aaveCollateralPercent/10**18 - aaveCollateralUsd,
+            NAV*aaveBorrowAndPoolMaticPercent/10**18 - aaveBorrowUsd,
+            poolUsdpUsd - NAV*poolUsdpPercent/10**18
+            );
+        } else if (NAV*aaveCollateralPercent/10**18 > aaveCollateralUsd && NAV*aaveBorrowAndPoolMaticPercent/10**18 > aaveBorrowUsd && NAV*poolUsdpPercent/10**18 > poolUsdpUsd) {
+            return (6, NAV*aaveCollateralPercent/10**18 - aaveCollateralUsd,
             NAV*aaveBorrowAndPoolMaticPercent/10**18 - aaveBorrowUsd,
             NAV*poolUsdpPercent/10**18 - poolUsdpUsd
             );

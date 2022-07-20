@@ -56,7 +56,7 @@ library DystopiaLibrary {
         address recipient
     ) internal returns (uint256) {
 
-        IERC20(inputToken).approve(address(dystRouter), amountInput);
+        IERC20(inputToken).approve(address(dystRouter), type(uint256).max);
 
         uint256 amountOutMin = _getAmountOut(dystRouter, address(inputToken), address(outputToken), isStablePair,  amountInput);
         if (amountOutMin == 0) {
