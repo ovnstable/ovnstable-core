@@ -8,7 +8,6 @@ import "./connectors/stargate/interfaces/IStargateRouter.sol";
 import "./connectors/stargate/interfaces/IStargatePool.sol";
 import "./connectors/stargate/interfaces/ILPStaking.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyStargateBUSD is Strategy {
     using OvnMath for uint256;
@@ -90,17 +89,13 @@ contract StrategyStargateBUSD is Strategy {
 
         // add liquidity
         uint256 busdBalance = busdToken.balanceOf(address(this));
-        console.log("busdBalance before: %s", busdBalance);
         busdToken.approve(address(stargateRouter), busdBalance);
         stargateRouter.addLiquidity(uint16(pool.poolId()), busdBalance, address(this));
-        console.log("busdBalance after: %s", busdToken.balanceOf(address(this)));
 
         // stake
         uint256 lpBalance = pool.balanceOf(address(this));
-        console.log("lpBalance before: %s", lpBalance);
         pool.approve(address(lpStaking), lpBalance);
         lpStaking.deposit(pid, lpBalance);
-        console.log("lpBalance after: %s", pool.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -113,23 +108,16 @@ contract StrategyStargateBUSD is Strategy {
 
         // unstake
         uint256 busdAmount = _amount + 1e13;
-        console.log("_amount: %s", _amount);
-        console.log("busdAmount: %s", busdAmount);
         uint256 lpBalance = busdAmount * 1e6 / pool.amountLPtoLD(1e6);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
         if (lpBalance > amount) {
             lpBalance = amount;
         }
-        console.log("lpBalance: %s", lpBalance);
-        console.log("lpBalance before: %s", pool.balanceOf(address(this)));
         lpStaking.withdraw(pid, lpBalance);
-        console.log("lpBalance after: %s", pool.balanceOf(address(this)));
 
         // remove liquidity
-        console.log("busdBalance before: %s", busdToken.balanceOf(address(this)));
         pool.approve(address(stargateRouter), lpBalance);
         stargateRouter.instantRedeemLocal(uint16(pool.poolId()), lpBalance, address(this));
-        console.log("busdBalance after: %s", busdToken.balanceOf(address(this)));
 
         return busdToken.balanceOf(address(this));
     }
@@ -146,16 +134,11 @@ contract StrategyStargateBUSD is Strategy {
         if (amount == 0) {
             return busdToken.balanceOf(address(this));
         }
-        console.log("amount: %s", amount);
-        console.log("lpBalance before: %s", pool.balanceOf(address(this)));
         lpStaking.withdraw(pid, amount);
-        console.log("lpBalance after: %s", pool.balanceOf(address(this)));
 
         // remove liquidity
-        console.log("busdBalance before: %s", busdToken.balanceOf(address(this)));
         pool.approve(address(stargateRouter), amount);
         stargateRouter.instantRedeemLocal(uint16(pool.poolId()), amount, address(this));
-        console.log("busdBalance after: %s", busdToken.balanceOf(address(this)));
 
         return busdToken.balanceOf(address(this));
     }
@@ -175,7 +158,6 @@ contract StrategyStargateBUSD is Strategy {
         if (amount > 0) {
             busdBalance += pool.amountLPtoLD(amount);
         }
-        console.log("busdBalance: ", busdBalance);
 
         return busdBalance;
     }
@@ -193,7 +175,6 @@ contract StrategyStargateBUSD is Strategy {
         uint256 totalBusd;
 
         uint256 stgBalance = stgToken.balanceOf(address(this));
-        console.log("stgBalance: %s", stgBalance);
         if (stgBalance > 0) {
             uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
@@ -201,7 +182,6 @@ contract StrategyStargateBUSD is Strategy {
                 address(busdToken),
                 stgBalance
             );
-            console.log("amountOutMin: %s", amountOutMin);
 
             if (amountOutMin > 0) {
                 uint256 stgBusd = PancakeSwapLibrary.swapExactTokensForTokens(
@@ -212,7 +192,6 @@ contract StrategyStargateBUSD is Strategy {
                     amountOutMin,
                     address(this)
                 );
-                console.log("stgBusd: %s", stgBusd);
                 totalBusd += stgBusd;
             }
         }

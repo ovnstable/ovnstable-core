@@ -7,7 +7,6 @@ import "./libraries/PancakeSwapLibrary.sol";
 import "./connectors/synapse/interfaces/ISwap.sol";
 import "./connectors/synapse/interfaces/IMiniChefV2.sol";
 
-import "hardhat/console.sol";
 
 contract StrategySynapseBUSD is Strategy {
     using OvnMath for uint256;
@@ -97,15 +96,11 @@ contract StrategySynapseBUSD is Strategy {
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
         amounts[1] = _amount;
         busdToken.approve(address(swap), _amount);
-        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
         uint256 nUsdLPTokenAmount = swap.addLiquidity(amounts, minToMint, block.timestamp);
-        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
         // stake
-        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
         nUsdLPToken.approve(address(miniChefV2), nUsdLPTokenAmount);
         miniChefV2.deposit(pid, nUsdLPTokenAmount, address(this));
-        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -127,16 +122,11 @@ contract StrategySynapseBUSD is Strategy {
         if (lpBalance > amount) {
             lpBalance = amount;
         }
-        console.log("lpBalance: %s", lpBalance);
-        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
         miniChefV2.withdraw(pid, lpBalance, address(this));
-        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
 
         // remove liquidity
-        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
         nUsdLPToken.approve(address(swap), lpBalance);
         swap.removeLiquidityOneToken(lpBalance, 1, _amount, block.timestamp);
-        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
         return busdToken.balanceOf(address(this));
     }
@@ -153,18 +143,12 @@ contract StrategySynapseBUSD is Strategy {
         if (amount == 0) {
             return busdToken.balanceOf(address(this));
         }
-        console.log("amount: %s", amount);
-        console.log("nUsdLPToken balance before: %s", nUsdLPToken.balanceOf(address(this)));
         miniChefV2.withdraw(pid, amount, address(this));
-        console.log("nUsdLPToken balance after: %s", nUsdLPToken.balanceOf(address(this)));
 
         // remove liquidity
-        console.log("busdToken balance before: %s", busdToken.balanceOf(address(this)));
         uint256 busdBalance = swap.calculateRemoveLiquidityOneToken(amount, 1);
-        console.log("busdBalance: %s", busdBalance);
         nUsdLPToken.approve(address(swap), amount);
         swap.removeLiquidityOneToken(amount, 1, busdBalance, block.timestamp);
-        console.log("busdToken balance after: %s", busdToken.balanceOf(address(this)));
 
         return busdToken.balanceOf(address(this));
     }
@@ -188,7 +172,6 @@ contract StrategySynapseBUSD is Strategy {
                 busdBalance += swap.calculateRemoveLiquidityOneToken(amount, 1);
             }
         }
-        console.log("busdBalance: %s", busdBalance);
 
         return busdBalance;
     }
@@ -206,7 +189,6 @@ contract StrategySynapseBUSD is Strategy {
         uint256 totalBusd;
 
         uint256 synBalance = synToken.balanceOf(address(this));
-        console.log("synBalance: %s", synBalance);
         if (synBalance > 0) {
             uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
@@ -214,7 +196,6 @@ contract StrategySynapseBUSD is Strategy {
                 address(busdToken),
                 synBalance
             );
-            console.log("amountOutMin: %s", amountOutMin);
 
             if (amountOutMin > 0) {
                 uint256 synBusd = PancakeSwapLibrary.swapExactTokensForTokens(
@@ -225,7 +206,6 @@ contract StrategySynapseBUSD is Strategy {
                     amountOutMin,
                     address(this)
                 );
-                console.log("synBusd: %s", synBusd);
                 totalBusd += synBusd;
             }
         }
