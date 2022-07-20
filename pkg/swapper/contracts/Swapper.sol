@@ -244,7 +244,9 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         require(swapPlaceInfoList.length > 0, "Cant find swapPlace by tokens");
 
         uint256 iterations;
-        if (params.partsAmount == 0) {
+        if (swapPlaceInfoList.length == 1) {
+            iterations = 1;
+        } else if (params.partsAmount == 0) {
             iterations = swapPlaceInfoList.length;
         } else {
             iterations = params.partsAmount;
