@@ -15,6 +15,7 @@ async function main() {
 
     console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
     console.log("Rebase:  " + fromUSDC(await rebase.totalSupply()))
+    console.log('HF:      ' + fromUSDC(await strategy.currentHealthFactor()));
 
     let items = await strategy.balances();
 
@@ -34,19 +35,20 @@ async function main() {
 
     console.table(arrays);
 
-    // await (await usdPlus.approve(exchanger.address, toUSDC(1), await getPrice())).wait();
-    // let params = await getPrice();
-    // params.gasLimit = 15000000;
-    // await (await exchanger.buy(toUSDC(1), params)).wait();
-
-    // console.log("NAV : " + fromUSDC(await strategy.netAssetValue()))
+    await (await usdPlus.approve(exchanger.address, toUSDC(100), await getPrice())).wait();
     let params = await getPrice();
     params.gasLimit = 15000000;
-    await (await strategy.balanceAll(params)).wait();
+    await (await exchanger.buy(toUSDC(100), params)).wait();
+
+    // console.log("NAV : " + fromUSDC(await strategy.netAssetValue()))
+    // let params = await getPrice();
+    // params.gasLimit = 15000000;
+    // await (await strategy.balanceAll(params)).wait();
     // await (await strategy.test()).wait();
 
     console.log("NAV :    " + fromUSDC(await strategy.netAssetValue()))
     console.log("Rebase:  " + fromUSDC(await rebase.totalSupply()))
+    console.log('HF:      ' + fromUSDC(await strategy.currentHealthFactor()));
 
 
     items = await strategy.balances();
