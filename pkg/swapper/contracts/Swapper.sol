@@ -27,6 +27,9 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     // pool address to swap place type
     mapping(address => string) public poolSwapPlaceTypes;
 
+    // default split parts for common swap request
+    uint256 public defaultSplitPartsAmount;
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -60,6 +63,11 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     // --- setters
+
+    function setParams(uint256 _defaultSplitPartsAmount) external {
+        defaultSplitPartsAmount = _defaultSplitPartsAmount;
+        emit ParamsUpdated(defaultSplitPartsAmount);
+    }
 
     function swapPlaceInfoRegister(
         address token0,
@@ -144,12 +152,24 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     // ---  logic
 
-    function swap(SwapParams calldata params) external override returns (uint256) {
+    function swapCommon(address tokenIn, address tokenOut, uint256 amountIn) external override returns (uint256) {
+        SwapParams memory params = SwapParams(
+            tokenIn,
+            tokenOut,
+            amountIn,
+            0,
+            defaultSplitPartsAmount
+        );
+        return swap(params);
+    }
+
+
+    function swap(SwapParams memory params) public override returns (uint256) {
         SwapRoute[] memory swapRoutes = swapPath(params);
         return swapBySwapRoutes(params, swapRoutes);
     }
 
-    function swapExact(SwapParamsExact calldata params) external override returns (uint256) {
+    function swapExact(SwapParamsExact memory params) external override returns (uint256) {
         string memory swapPlaceType = poolSwapPlaceTypes[params.pool];
         require(bytes(swapPlaceType).length > 0, "Not found swapPlaceType for pool");
 
@@ -173,7 +193,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     }
 
-    function swapBySwapRoutes(SwapParams calldata params, SwapRoute[] memory swapRoutes) public override returns (uint256) {
+    function swapBySwapRoutes(SwapParams memory params, SwapRoute[] memory swapRoutes) public override returns (uint256) {
         return swapBySwapRoutes(
             params.tokenIn, params.amountIn,
             params.tokenOut, params.amountOutMin,
@@ -202,15 +222,15 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
         uint256 balanceOut = IERC20(tokenOut).balanceOf(address(this));
         require(
-            balanceOut >= amountOut,
-            "balanceOut lower than amountOut"
+            balanceOut >= amountOutMin,
+            "balanceOut lower than amountOutMin"
         );
 
         IERC20Upgradeable(tokenOut).safeTransfer(msg.sender, balanceOut);
         return balanceOut;
     }
 
-    function getAmountOut(SwapParams calldata params) external override view returns (uint256) {
+    function getAmountOut(SwapParams memory params) external override view returns (uint256) {
         SwapRoute[] memory swapRoutes = swapPath(params);
         uint256 amountOut;
         for (uint i; i < swapRoutes.length; i++) {
@@ -219,10 +239,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         return amountOut;
     }
 
-    function swapPath(SwapParams calldata params) public override view returns (SwapRoute[] memory) {
-        require(params.partsAmount > 0, "partsAmount must be above zero");
-        require(params.amountIn >= params.partsAmount, "amountIn must be non less than partsAmount");
-
+    function swapPath(SwapParams memory params) public override view returns (SwapRoute[] memory) {
         SwapPlaceInfo[] storage swapPlaceInfoList = swapPlaceInfos[params.tokenIn][params.tokenOut];
         require(swapPlaceInfoList.length > 0, "Cant find swapPlace by tokens");
 
@@ -232,6 +249,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
         } else {
             iterations = params.partsAmount;
         }
+        require(params.amountIn >= iterations, "amountIn must be non less than iterations");
         uint256 iterationAmount = params.amountIn / iterations;
 
 
@@ -273,7 +291,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
 
     function prepareContext(
         SwapPlaceInfo[] storage swapPlaceInfoList,
-        SwapParams calldata params,
+        SwapParams memory params,
         uint256 iterationAmount
     ) internal view returns (CalcContext[] memory contexts){
         contexts = new CalcContext[](swapPlaceInfoList.length);
@@ -299,7 +317,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function calc(
-        SwapParams calldata params,
+        SwapParams memory params,
         uint256 iterations,
         uint256 iterationAmount,
         CalcContext[] memory contexts
@@ -361,7 +379,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function recalcLastCommittedWithDelta(
-        SwapParams calldata params,
+        SwapParams memory params,
         uint256 iterationAmount,
         CalcContext[] memory contexts,
         uint256 committedIndex,
@@ -384,7 +402,7 @@ contract Swapper is ISwapper, Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function makeSwapRoutes(
-        SwapParams calldata params,
+        SwapParams memory params,
         CalcContext[] memory contexts
     ) internal pure returns (SwapRoute[] memory swapRoutes){
 

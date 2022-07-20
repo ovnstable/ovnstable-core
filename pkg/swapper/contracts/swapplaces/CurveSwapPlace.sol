@@ -25,10 +25,7 @@ contract CurveSwapPlace is ISwapPlace {
             IERC20(route.tokenIn).balanceOf(address(this))
         );
         (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(route.tokenIn, route.tokenOut, route.pool);
-        console.log("indexIn: ", uint256(int256(indexIn)));
-        console.log("indexOut: ", uint256(int256(indexOut)));
-        console.log("route.amountIn: ", route.amountIn);
-        console.log("route.amountOut: ", route.amountOut);
+
         uint256 transferBackAmount;
         if (isUnderlying) {
             transferBackAmount = IStableSwapPool(route.pool).exchange_underlying(
@@ -45,7 +42,6 @@ contract CurveSwapPlace is ISwapPlace {
                 0
             );
         }
-        console.log("transferBackAmount: ", transferBackAmount);
 
         IERC20(route.tokenOut).transfer(msg.sender, IERC20(route.tokenOut).balanceOf(address(this)));
         return transferBackAmount;
@@ -58,12 +54,7 @@ contract CurveSwapPlace is ISwapPlace {
         uint256 amountIn,
         address pool
     ) external override view returns (uint256) {
-        console.log("getAmountOut in");
-
         (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(tokenIn, tokenOut, pool);
-        console.log("indexIn: ", uint256(int256(indexIn)));
-        console.log("indexOut: ", uint256(int256(indexOut)));
-        console.log("isUnderlying: ", isUnderlying);
         if (isUnderlying) {
             return IStableSwapPool(pool).get_dy_underlying(indexIn, indexOut, amountIn);
         } else {

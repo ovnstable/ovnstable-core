@@ -133,6 +133,58 @@ describe("CurveSwapPlace", function () {
         expect(totalAmountOut.eq(tokenOutBalanceDelta));
     });
 
+
+    it("swap common", async function () {
+
+        let params = {
+            tokenIn: POLYGON.usdc,
+            tokenOut: POLYGON.usdt,
+            amountIn: "1000000000000",
+            amountOutMin: 0,
+            partsAmount: 10,
+        };
+
+        let tokenIn = await ethers.getContractAt("IERC20", params.tokenIn);
+        let tokenOut = await ethers.getContractAt("IERC20", params.tokenOut);
+
+        let tokenInBalanceBefore = new BN((await tokenIn.balanceOf(account)).toString());
+        let tokenOutBalanceBefore = new BN((await tokenOut.balanceOf(account)).toString());
+
+        console.log(`tokenInBalanceBefore: ${tokenInBalanceBefore}`)
+        console.log(`tokenOutBalanceBefore: ${tokenOutBalanceBefore}`)
+
+        let path = await swapper.swapPath(params);
+        let totalAmountIn = new BN(0);
+        let totalAmountOut = new BN(0);
+        for (let i = 0; i < path.length; i++) {
+            let swapRoute = path[i];
+            totalAmountIn = totalAmountIn.add(new BN(swapRoute.amountIn.toString()));
+            totalAmountOut = totalAmountOut.add(new BN(swapRoute.amountOut.toString()));
+        }
+
+        await (await tokenIn.approve(swapper.address, params.amountIn));
+        await (await swapper.swapCommon(
+            params.tokenIn,
+            params.tokenOut,
+            params.amountIn,
+        )).wait();
+
+        let tokenInBalanceAfter = new BN((await tokenIn.balanceOf(account)).toString());
+        let tokenOutBalanceAfter = new BN((await tokenOut.balanceOf(account)).toString());
+
+        let tokenInBalanceDelta = tokenInBalanceAfter.sub(tokenInBalanceBefore);
+        let tokenOutBalanceDelta = tokenOutBalanceAfter.sub(tokenOutBalanceBefore);
+
+        console.log(`tokenInBalanceAfter: ${tokenInBalanceAfter}`)
+        console.log(`tokenOutBalanceAfter: ${tokenOutBalanceAfter}`)
+
+        console.log(`tokenInBalanceDelta: ${tokenInBalanceDelta}`)
+        console.log(`tokenOutBalanceDelta: ${tokenOutBalanceDelta}`)
+
+        expect(totalAmountIn.eq(tokenInBalanceDelta.neg()));
+        expect(totalAmountOut.eq(tokenOutBalanceDelta));
+    });
+
     // // uncomment to see gas usage
     // it("check path and swap estimate gas", async function () {
     //
