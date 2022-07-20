@@ -3,15 +3,15 @@ const {deployments, getNamedAccounts, ethers} = require("hardhat");
 const {resetHardhat} = require("./tests");
 const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
-const {toUSDC, fromUSDC} = require("./decimals");
+const {toE6, toE18} = require("./decimals");
 const {expect} = require("chai");
-const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach")
-const BN = require('bn.js');
+const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
+const BigNumber = require('bignumber.js');
 const chai = require("chai");
-chai.use(require('chai-bn')(BN));
+chai.use(require('chai-bignumber')());
 
 
-function strategyTest(strategyParams, network, assets, runStrategyLogic) {
+function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
         {
@@ -58,22 +58,22 @@ function strategyTest(strategyParams, network, assets, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
 
-        stakeUnstake(strategyParams, network, assets, values, runStrategyLogic);
+        stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
 
-        unstakeFull(strategyParams, network, assets, values, runStrategyLogic);
+        unstakeFull(strategyParams, network, assetAddress, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
-            claimRewards(strategyParams, network, assets, values, runStrategyLogic);
+            claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
         }
 
         if (strategyParams.neutralStrategy) {
-            healthFactorBalance(strategyParams, network, assets, values, runStrategyLogic);
+            healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic);
         }
 
     });
 }
 
-function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic) {
+function stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic) {
 
     describe(`Stake/unstake`, function () {
 
@@ -81,8 +81,10 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
         let recipient;
 
         let strategy;
-        let usdc;
         let strategyName;
+
+        let asset;
+        let toAsset = function() {};
 
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
@@ -101,107 +103,119 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
-            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+            asset = await ethers.getContractAt("ERC20", assetAddress);
+            let decimals = await asset.decimals();
+            if (decimals === 18) {
+                toAsset = toE18;
+            } else {
+                toAsset = toE6;
+            }
         });
 
         it("log gas", async () => {
-            await logStrategyGasUsage(strategyName, strategy, usdc, recipient)
+            await logStrategyGasUsage(strategyName, strategy, asset, recipient)
         });
-
 
         values.forEach(item => {
 
             let stakeValue = item.value;
             let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
 
-
             let unstakeValue = stakeValue / 2;
 
             describe(`Stake ${stakeValue}`, function () {
 
-                let balanceUsdc;
+                let balanceAsset;
                 let expectedNetAsset;
                 let expectedLiquidation;
 
-                let valueBN = new BN(toUSDC(stakeValue));
-                let DELTA = valueBN.muln(deltaPercent).divn(100);
+                let VALUE;
+                let DELTA;
 
                 let netAssetValueCheck;
                 let liquidationValueCheck;
 
-                sharedBeforeEach(`stake ${stakeValue}`, async () => {
+                sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
-                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                    let assetValue = toAsset(stakeValue);
+                    VALUE = new BigNumber(assetValue);
+                    DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
-                    let balanceUsdcBefore = new BN((await usdc.balanceOf(recipient.address)).toString());
+                    await asset.transfer(recipient.address, assetValue);
 
-                    expectedNetAsset = new BN((await strategy.netAssetValue()).toString()).add(valueBN);
-                    expectedLiquidation = new BN((await strategy.liquidationValue()).toString()).add(valueBN);
+                    let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).plus(VALUE);
+                    expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).plus(VALUE);
 
-                    let balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
+                    await asset.connect(recipient).transfer(strategy.address, assetValue);
+                    await strategy.connect(recipient).stake(asset.address, assetValue);
 
-                    balanceUsdc = balanceUsdcBefore.sub(balanceUsdcAfter);
+                    let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                    netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
-                    liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
+                    balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
+
+                    netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
+                    liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
                 });
 
-                it(`Balance USDC is in range`, async function () {
-                    greatLess(balanceUsdc, valueBN, DELTA);
+                it(`Balance asset is in range`, async function () {
+                    greatLess(balanceAsset, VALUE, DELTA);
                 });
 
-                it(`NetAssetValue USDC is in range`, async function () {
+                it(`NetAssetValue asset is in range`, async function () {
                     greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
                 });
 
-                it(`LiquidationValue USDC is in range`, async function () {
+                it(`LiquidationValue asset is in range`, async function () {
                     greatLess(liquidationValueCheck, expectedLiquidation, DELTA);
                 });
 
 
                 describe(`UnStake ${unstakeValue}`, function () {
 
-                    let balanceUsdc;
+                    let balanceAsset;
                     let expectedNetAsset;
                     let expectedLiquidation;
 
-                    let valueBN = new BN(toUSDC(unstakeValue));
-                    let DELTA = valueBN.muln(deltaPercent).divn(100); // 5%
+                    let VALUE;
+                    let DELTA;
 
                     let netAssetValueCheck;
                     let liquidationValueCheck;
 
-                    sharedBeforeEach(`unstake ${stakeValue}`, async () => {
+                    sharedBeforeEach(`Unstake ${unstakeValue}`, async () => {
 
-                        let balanceUsdcBefore = new BN((await usdc.balanceOf(recipient.address)).toString());
+                        let assetValue = toAsset(unstakeValue);
+                        VALUE = new BigNumber(assetValue);
+                        DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
-                        expectedNetAsset = new BN((await strategy.netAssetValue()).toString()).sub(valueBN);
-                        expectedLiquidation = new BN((await strategy.liquidationValue()).toString()).sub(valueBN);
+                        let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                        await strategy.connect(recipient).unstake(usdc.address, toUSDC(unstakeValue), recipient.address, false);
+                        expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
+                        expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
 
-                        let balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
+                        await strategy.connect(recipient).unstake(asset.address, assetValue, recipient.address, false);
 
-                        balanceUsdc = balanceUsdcAfter.sub(balanceUsdcBefore);
+                        let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                        netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
-                        liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
+                        balanceAsset = balanceAssetAfter.minus(balanceAssetBefore);
+
+                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
+                        liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
                     });
 
-                    it(`Balance USDC is in range`, async function () {
-                        greatLess(balanceUsdc, valueBN, DELTA);
+                    it(`Balance asset is in range`, async function () {
+                        greatLess(balanceAsset, VALUE, DELTA);
                     });
 
-                    it(`NetAssetValue USDC is in range`, async function () {
+                    it(`NetAssetValue asset is in range`, async function () {
                         greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
                     });
 
-                    it(`LiquidationValue USDC is in range`, async function () {
+                    it(`LiquidationValue asset is in range`, async function () {
                         greatLess(liquidationValueCheck, expectedLiquidation, DELTA);
                     });
 
@@ -214,7 +228,7 @@ function stakeUnstake(strategyParams, network, assets, values, runStrategyLogic)
 }
 
 
-function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) {
+function unstakeFull(strategyParams, network, assetAddress, values, runStrategyLogic) {
 
     describe(`Stake/unstakeFull`, function () {
 
@@ -222,8 +236,10 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
         let recipient;
 
         let strategy;
-        let usdc;
         let strategyName;
+
+        let asset;
+        let toAsset = function() {};
 
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
@@ -242,7 +258,13 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
-            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+            asset = await ethers.getContractAt("ERC20", assetAddress);
+            let decimals = await asset.decimals();
+            if (decimals === 18) {
+                toAsset = toE18;
+            } else {
+                toAsset = toE6;
+            }
         });
 
 
@@ -253,58 +275,61 @@ function unstakeFull(strategyParams, network, assets, values, runStrategyLogic) 
 
             describe(`Stake ${stakeValue} => UnstakeFull`, function () {
 
-                let balanceUsdcAfter;
+                let balanceAssetAfter;
 
                 let liquidationValueAfterStake;
 
                 let netAssetValueCheck;
                 let liquidationValueCheck;
 
-                let valueBN = new BN(toUSDC(stakeValue));
-                let DELTA = valueBN.muln(deltaPercent).divn(100);
+                let VALUE;
+                let DELTA;
 
-                sharedBeforeEach(`unstake  ${stakeValue}`, async () => {
+                sharedBeforeEach(`Unstake ${stakeValue}`, async () => {
 
-                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                    let assetValue = toAsset(stakeValue);
+                    VALUE = new BigNumber(assetValue);
+                    DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
-                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    await asset.transfer(recipient.address, assetValue);
 
-                    liquidationValueAfterStake = new BN((await strategy.liquidationValue()).toString());
+                    await asset.connect(recipient).transfer(strategy.address, assetValue);
+                    await strategy.connect(recipient).stake(asset.address, assetValue);
 
-                    await strategy.connect(recipient).unstake(usdc.address, 0, recipient.address, true);
+                    liquidationValueAfterStake = new BigNumber((await strategy.liquidationValue()).toString());
 
-                    balanceUsdcAfter = new BN((await usdc.balanceOf(recipient.address)).toString());
+                    await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true);
 
-                    netAssetValueCheck = new BN((await strategy.netAssetValue()).toString());
-                    liquidationValueCheck = new BN((await strategy.liquidationValue()).toString());
+                    balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                });
-
-
-                it(`Balance USDC = liquidation value`, async function () {
-                    greatLess(balanceUsdcAfter, liquidationValueAfterStake, DELTA);
-                });
-
-                it(`NetAssetValue USDC is 0`, async function () {
-                    expect(netAssetValueCheck.toString()).to.equal('0');
-                });
-
-                it(`LiquidationValue USDC 0`, async function () {
-                    expect(liquidationValueCheck.toString()).to.equal('0');
+                    netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
+                    liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
                 });
 
+                it(`Balance asset = liquidation value`, async function () {
+                    greatLess(balanceAssetAfter, liquidationValueAfterStake, DELTA);
+                });
+
+                it(`NetAssetValue asset is 0`, async function () {
+                    expect(netAssetValueCheck.toFixed()).to.equal('0');
+                });
+
+                it(`LiquidationValue asset is 0`, async function () {
+                    expect(liquidationValueCheck.toFixed()).to.equal('0');
+
+                });
 
             });
 
         });
 
     });
+
 }
 
 
-function claimRewards(strategyParams, network, assets, values, runStrategyLogic) {
+function claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic) {
 
     describe(`Stake/ClaimRewards`, function () {
 
@@ -312,8 +337,10 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
         let recipient;
 
         let strategy;
-        let usdc;
         let strategyName;
+
+        let asset;
+        let toAsset = function() {};
 
         sharedBeforeEach(`deploy`, async () => {
             await hre.run("compile");
@@ -332,7 +359,13 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
-            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+            asset = await ethers.getContractAt("ERC20", assetAddress);
+            let decimals = await asset.decimals();
+            if (decimals === 18) {
+                toAsset = toE18;
+            } else {
+                toAsset = toE6;
+            }
         });
 
         values.forEach(item => {
@@ -341,43 +374,45 @@ function claimRewards(strategyParams, network, assets, values, runStrategyLogic)
 
             describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
-                let balanceUsdc;
+                let balanceAsset;
 
-                sharedBeforeEach(`rewards  ${stakeValue}`, async () => {
+                sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
-                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
-                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    let assetValue = toAsset(stakeValue);
+
+                    await asset.transfer(recipient.address, assetValue);
+                    await asset.connect(recipient).transfer(strategy.address, assetValue);
+                    await strategy.connect(recipient).stake(asset.address, assetValue);
 
                     const sevenDays = 7 * 24 * 60 * 60 * 1000;
                     await ethers.provider.send("evm_increaseTime", [sevenDays])
                     await ethers.provider.send('evm_mine');
 
                     if (strategyParams.doubleStakeReward) {
-                        await usdc.transfer(recipient.address, toUSDC(stakeValue));
-                        await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                        await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                        await asset.transfer(recipient.address, assetValue);
+                        await asset.connect(recipient).transfer(strategy.address, assetValue);
+                        await strategy.connect(recipient).stake(asset.address, assetValue);
                     }
 
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
-                    balanceUsdc = new BN((await usdc.balanceOf(recipient.address)).toString());
+                    balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                 });
 
-
-                it(`Balance USDC is not 0`, async function () {
-                    expect(balanceUsdc.toNumber()).to.greaterThan(0);
+                it(`Balance asset is not 0`, async function () {
+                    expect(balanceAsset.toNumber()).to.greaterThan(0);
                 });
-
 
             });
 
         });
+
     });
+
 }
 
-function healthFactorBalance(strategyParams, network, assets, values, runStrategyLogic) {
+function healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic) {
 
     describe(`HealthFactorBalance`, function () {
 
@@ -385,8 +420,10 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
         let recipient;
 
         let strategy;
-        let usdc;
         let strategyName;
+
+        let asset;
+        toAsset = function() {};
 
         sharedBeforeEach(`deploy`, async () => {
             await hre.run("compile");
@@ -405,7 +442,13 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
                 await runStrategyLogic(strategyName, strategy.address);
             }
 
-            usdc = await ethers.getContractAt(ERC20, assets.usdc);
+            asset = await ethers.getContractAt("ERC20", assetAddress);
+            let decimals = await asset.decimals();
+            if (decimals === 18) {
+                toAsset = toE18;
+            } else {
+                toAsset = toE6;
+            }
         });
 
 
@@ -430,38 +473,39 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
 
                 let balancingDelta;
 
-                sharedBeforeEach(`stake  ${stakeValue}`, async () => {
+                sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
-                    await usdc.transfer(recipient.address, toUSDC(stakeValue));
+                    let assetValue = toAsset(stakeValue);
 
-                    await usdc.connect(recipient).transfer(strategy.address, toUSDC(stakeValue));
-                    balancingDelta = new BN((await strategy.balancingDelta()).toString());
-                    await strategy.connect(recipient).stake(usdc.address, toUSDC(stakeValue));
+                    await asset.transfer(recipient.address, assetValue);
+
+                    await asset.connect(recipient).transfer(strategy.address, assetValue);
+                    balancingDelta = new BigNumber((await strategy.balancingDelta()).toString());
+                    await strategy.connect(recipient).stake(asset.address, assetValue);
 
                     await strategy.grepRealHealthFactor();
-                    desiredHealthFactor1 = new BN((await strategy.healthFactor()).toString());
-                    realHealthFactor1 = new BN((await strategy.realHealthFactor()).toString());
+                    desiredHealthFactor1 = new BigNumber((await strategy.healthFactor()).toString());
+                    realHealthFactor1 = new BigNumber((await strategy.realHealthFactor()).toString());
 
-                    desiredHealthFactor2 = desiredHealthFactor1.muln(100+1).divn(100).div(new BN(10).pow(new BN(15))).mul(new BN(10).pow(new BN(15)));
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor2.div(new BN(10).pow(new BN(15))).toString());
+                    desiredHealthFactor2 = desiredHealthFactor1.times(100+1).div(100).div(new BigNumber(10).pow(15)).times(new BigNumber(10).pow(15));
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor2.div(new BigNumber(10).pow(15)).toFixed());
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
-                    realHealthFactor2 = new BN((await strategy.realHealthFactor()).toString());
+                    realHealthFactor2 = new BigNumber((await strategy.realHealthFactor()).toString());
 
-                    desiredHealthFactor3 = desiredHealthFactor1.muln(100-1).divn(100).div(new BN(10).pow(new BN(15))).mul(new BN(10).pow(new BN(15)));
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor3.div(new BN(10).pow(new BN(15))).toString());
+                    desiredHealthFactor3 = desiredHealthFactor1.times(100-1).div(100).div(new BigNumber(10).pow(15)).times(new BigNumber(10).pow(15));
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor3.div(new BigNumber(10).pow(15)).toFixed());
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
-                    realHealthFactor3 = new BN((await strategy.realHealthFactor()).toString());
+                    realHealthFactor3 = new BigNumber((await strategy.realHealthFactor()).toString());
 
                     desiredHealthFactor4 = desiredHealthFactor1;
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor4.div(new BN(10).pow(new BN(15))).toString());
+                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor4.div(new BigNumber(10).pow(15)).toFixed());
                     await strategy.connect(recipient).healthFactorBalance();
                     await strategy.grepRealHealthFactor();
-                    realHealthFactor4 = new BN((await strategy.realHealthFactor()).toString());
+                    realHealthFactor4 = new BigNumber((await strategy.realHealthFactor()).toString());
 
                 });
-
 
                 it(`HealthFactor after Stake`, async function () {
                     greatLess(desiredHealthFactor1, realHealthFactor1, balancingDelta);
@@ -488,18 +532,18 @@ function healthFactorBalance(strategyParams, network, assets, values, runStrateg
 
 function greatLess(value, expected, delta) {
 
-    let maxValue = expected.add(delta);
-    let minValue = expected.sub(delta);
+    let maxValue = expected.plus(delta);
+    let minValue = expected.minus(delta);
 
     let lte = value.lte(maxValue);
     let gte = value.gte(minValue);
 
-    let valueNumber = value.div(new BN(10).pow(new BN(6))).toString();
-    let minValueNumber = minValue.div(new BN(10).pow(new BN(6))).toString();
-    let maxValueNumber = maxValue.div(new BN(10).pow(new BN(6))).toString();
+    let valueNumber = value.div(new BigNumber(10).pow(6)).toFixed();
+    let minValueNumber = minValue.div(new BigNumber(10).pow(6)).toFixed();
+    let maxValueNumber = maxValue.div(new BigNumber(10).pow(6)).toFixed();
 
-    let minSub = (value.sub(minValue)).div(new BN(10).pow(new BN(6))).toString();
-    let maxSub = (value.sub(maxValue)).div(new BN(10).pow(new BN(6))).toString();
+    let minSub = (value.minus(minValue)).div(new BigNumber(10).pow(6)).toFixed();
+    let maxSub = (value.minus(maxValue)).div(new BigNumber(10).pow(6)).toFixed();
 
     expect(gte).to.equal(true, `Value[${valueNumber}] less than Min Value[${minValueNumber}] dif:[${minSub}]`);
     expect(lte).to.equal(true, `Value[${valueNumber}] great than Max Value[${maxValueNumber}] dif:[${maxSub}]`);

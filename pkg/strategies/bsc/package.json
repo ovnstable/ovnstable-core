@@ -1,7 +1,7 @@
 {
-  "name": "@overnight-contracts/strategies-fantom",
+  "name": "@overnight-contracts/strategies-bsc",
   "version": "0.0.1",
-  "description": "Strategies Fantom contracts",
+  "description": "Strategies BSC contracts",
   "main": "hardhat.config",
   "directories": {
     "test": "test"

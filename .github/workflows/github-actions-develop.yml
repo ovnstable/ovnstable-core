@@ -42,7 +42,7 @@ jobs:
 
       - name: Run strategy Polygon
         if: github.event.inputs.chain == 'POLYGON'
-        run: yarn workspace @overnight-contracts/straegies-polygon test
+        run: yarn workspace @overnight-contracts/strategies-polygon test
         env:
           ETH_NODE_URI_POLYGON: ${{ secrets.ETH_NODE_URI_POLYGON }}
           HARDHAT_BLOCK_NUMBER_POLYGON: ${{ github.event.inputs.blockNumber}}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run strategy Fantom
         if: github.event.inputs.chain == 'FANTOM'
-        run: yarn workspace @overnight-contracts/straegies-fantom test
+        run: yarn workspace @overnight-contracts/strategies-fantom test
         env:
           ETH_NODE_URI_FANTOM: ${{ secrets.ETH_NODE_URI_FANTOM }}
           HARDHAT_BLOCK_NUMBER_FANTOM: ${{ github.event.inputs.blockNumber}}

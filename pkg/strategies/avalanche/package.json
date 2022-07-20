@@ -1,5 +1,5 @@
 {
-  "name": "@overnight-contracts/straegies-avalanche",
+  "name": "@overnight-contracts/strategies-avalanche",
   "version": "0.0.1",
   "description": "Strategies Avalanche contracts",
   "main": "hardhat.config",

@@ -14,13 +14,19 @@ function greatLess(value, expected, delta, msg) {
 }
 
 async function resetHardhat(network) {
+    let block = blockNumber(network);
+    if (block == 0) {
+        const provider = new ethers.providers.JsonRpcProvider(node_url(network));
+        block = await provider.getBlockNumber() - 31;
+    }
+
     await hre.network.provider.request({
         method: "hardhat_reset",
         params: [
             {
                 forking: {
                     jsonRpcUrl: node_url(network),
-                    blockNumber: blockNumber(network),
+                    blockNumber: block,
                 },
             },
         ],

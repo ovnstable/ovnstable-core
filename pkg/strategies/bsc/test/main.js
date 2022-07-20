@@ -1,24 +1,19 @@
-const {AVALANCHE} = require('@overnight-contracts/common/utils/assets');
+const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 
 let id = process.env.TEST_STRATEGY;
 
 let arrays = [
     {
-        name: 'StrategyAave',
+        name: 'StrategyVenusBUSD',
         enabledReward: false,
     },
     {
-        name: 'StrategyEchidnaUsdc',
-        enabledReward: true,
-        doubleStakeReward: true,
-    },
-    {
-        name: 'StrategyVectorUsdc',
+        name: 'StrategyStargateBUSD',
         enabledReward: true,
     },
     {
-        name: 'StrategySynapseUsdce',
+        name: 'StrategySynapseBUSD',
         enabledReward: true,
     },
 ];
@@ -28,13 +23,13 @@ if (id !== undefined && id !== "") {
     arrays = arrays.filter(value => value.name === id);
 }
 
+console.log(`Run tests [${arrays.map(value => value.name)}]`);
+
 async function runStrategyLogic(strategyName, strategyAddress) {
 }
 
-console.log(`Run tests [${arrays.map(value => value.name)}]`);
-
-describe("Avalanche", function () {
+describe("BSC", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'AVALANCHE', AVALANCHE.usdc, runStrategyLogic);
+        strategyTest(value, 'BSC', BSC.busd, runStrategyLogic);
     })
 });

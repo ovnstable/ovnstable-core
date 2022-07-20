@@ -11,6 +11,13 @@ let AVALANCHE = {
     wAvax: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
 }
 
+let BSC = {
+    wBnb: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    busd: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+    vBusd: "0x95c78222B3D6e262426483D42CfA53685A67Ab9D",
+    pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+}
+
 let FANTOM = {
     usdc: "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75",
     amUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
@@ -117,6 +124,9 @@ function setDefault(network) {
         case 'AVALANCHE':
             DEFAULT = AVALANCHE;
             break;
+        case 'BSC':
+            DEFAULT = BSC;
+            break;
         case 'FANTOM':
             DEFAULT = FANTOM;
             break;
@@ -129,9 +139,10 @@ function setDefault(network) {
 }
 
 module.exports = {
-    POLYGON: POLYGON,
-    FANTOM: FANTOM,
     AVALANCHE: AVALANCHE,
+    BSC: BSC,
+    FANTOM: FANTOM,
+    POLYGON: POLYGON,
     DEFAULT: DEFAULT,
     setDefault: setDefault
 }
