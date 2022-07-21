@@ -8,6 +8,10 @@ interface ISwapper is Structures {
 
     // --- events
 
+    event ParamsUpdated(
+        uint256 defaultSplitPartsAmount
+    );
+
     event SwapPlaceInfoRegistered(
         address indexed token0,
         address indexed token1,
@@ -57,6 +61,11 @@ interface ISwapper is Structures {
 
     // ---  logic
 
+    /*
+     * Call swap with params with amountOutMin = 0 and partsAmount = default in contract
+     */
+    function swapCommon(address tokenIn, address tokenOut, uint256 amountIn) external returns (uint256);
+
     function swap(SwapParams calldata params) external returns (uint256);
 
     function swapExact(SwapParamsExact calldata params) external returns (uint256);
@@ -69,6 +78,10 @@ interface ISwapper is Structures {
         SwapRoute[] memory swapRoutes
     ) external returns (uint256);
 
+    /*
+     * Returned value could be higher than a real swap result because of some protocols
+     * algorithms which are different on calculation value for out and values on real swap.
+     */
     function getAmountOut(SwapParams calldata params) external view returns (uint256);
 
     function swapPath(SwapParams calldata params) external view returns (SwapRoute[] memory);
