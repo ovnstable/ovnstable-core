@@ -13,17 +13,19 @@ async function main() {
     let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
     let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
 
-    let usdc = await getERC20('usdc');
+    // let usdc = await getERC20('usdc');
+    //
+    // await usdc.approve(exchangeUsdPlus.address, toUSDC(7000));
+    // await exchangeUsdPlus.buy(usdc.address, toUSDC(7000));
 
-    await usdc.approve(exchangeUsdPlus.address, toUSDC(9520));
-    await exchangeUsdPlus.buy(usdc.address, toUSDC(9520));
 
     await showETSM2M();
 
-    await (await usdPlus.approve(exchanger.address, toUSDC(9520), await getPrice())).wait();
+    let wallet= await initWallet();
+    await (await usdPlus.approve(exchanger.address, await usdPlus.balanceOf(wallet.address), await getPrice())).wait();
     let params = await getPrice();
     params.gasLimit = 15000000;
-    await (await exchanger.buy(toUSDC(9520), params)).wait();
+    await (await exchanger.buy(await usdPlus.balanceOf(wallet.address), params)).wait();
 
     await showETSM2M();
 }
@@ -36,11 +38,16 @@ async function showETSM2M() {
     let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
     let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
 
+    console.log('User balances:')
     console.log("Rebase:       " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus:      " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
-    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
+    console.log('')
+
+    console.log('ETS balances:')
     console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
     console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
+    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
+    console.log('Liq index:    ' + await rebase.liquidityIndex());
 
 
     let items = await strategy.balances();
