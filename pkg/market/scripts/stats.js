@@ -1,6 +1,7 @@
 const { verify } = require("@overnight-contracts/common/utils/verify-utils");
 const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18} = require("../../common/utils/decimals");
 
 async function main() {
 
@@ -12,7 +13,32 @@ async function main() {
 
     console.log("Rebase: " + fromUSDC(await rebase.balanceOf(wallet.address)))
     console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
-    console.log("nav: " + fromUSDC(await strategy.netAssetValue()))
+
+    let items = await strategy.balances();
+
+    let arrays = [];
+    for (let i = 0; i < items.length; i++) {
+
+        let item = items[i];
+
+        arrays.push({
+            name: item[0],
+            amountUSDC: fromUSDC(item[1].toString()),
+            amount: fromE18(item[2].toString()),
+            borrowed: item[3].toString()
+        })
+
+    }
+
+    console.table(arrays);
+
+    console.log('Liq index:    ' + await rebase.liquidityIndex());
+    let rebaseTotal = fromUSDC(await rebase.totalSupply());
+    console.log('Total Rebase: ' + rebaseTotal);
+    let netAssetValue = fromUSDC(await strategy.netAssetValue());
+    console.log('Total NAV:    ' + netAssetValue);
+    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
+    console.log('Diff:         '  + (rebaseTotal - netAssetValue));
 }
 
 main()

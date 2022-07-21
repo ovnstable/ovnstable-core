@@ -39,33 +39,12 @@ async function main() {
 
 
     let balance = await rebase.balanceOf(wallet.address);
-    await (await rebase.approve(exchanger.address, balance, await getPrice())).wait();
-    await (await exchanger.redeem(balance, await getPrice())).wait();
-
-    console.log("Rebase:  " + fromUSDC(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
-    console.log('HF:      ' + fromUSDC(await strategy.currentHealthFactor()));
-    console.log('Total Rebase: ' + fromUSDC(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromUSDC(await strategy.netAssetValue()));
+    let newVar = await getPrice();
+    newVar.gasLimit = 15000000;
+    await (await rebase.approve(exchanger.address, balance, newVar)).wait();
+    await (await exchanger.redeem(balance, newVar)).wait();
 
 
-    items = await strategy.balances();
-
-    arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            name: item[0],
-            amountUSDC: fromUSDC(item[1].toString()),
-            amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
 }
 
 main()

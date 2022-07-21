@@ -223,12 +223,12 @@ library UsdPlusWmaticLibrary {
         _aavePool(self).borrow(address(self.wmatic()), aaveMatic, self.INTEREST_RATE_MODE(), self.REFERRAL_CODE(), address(self));
     }
 
-    function _swapUspPlusToToken(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta, address _to, uint256 amount) public {
+    function _swapUspPlusToToken(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta, address _to, uint256 amount, bool stable) public {
         DystopiaLibrary._swap(
             self.dystRouter(),
             address(self.usdPlus()),
             _to,
-            false,
+            stable,
             amount,
             address(self));
     }
@@ -250,7 +250,7 @@ library UsdPlusWmaticLibrary {
 
         _convertTokensToUsdPlus(self);
 
-        _swapUspPlusToToken(self, delta, address(self.wmatic()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0));
+        _swapUspPlusToToken(self, delta, address(self.wmatic()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0), false);
         _repayAllWmatic(self);
     }
 
@@ -273,7 +273,7 @@ library UsdPlusWmaticLibrary {
 
         _convertTokensToUsdPlus(self);
 
-        _pushAllUsdpToPool(self, delta);    
+        _pushAllUsdpToPool(self, delta);
     }
 
     function _caseNumber4(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta) public {
@@ -282,7 +282,7 @@ library UsdPlusWmaticLibrary {
 
         _convertTokensToUsdPlus(self);
 
-        _swapUspPlusToToken(self, delta, address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0));
+        _swapUspPlusToToken(self, delta, address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0), true);
         _supplyCurrentUsdcAmount(self, delta, delta.aaveCollateralUsdNeeded / 100);
         _swapUsdcToWmatic(self, delta, self.usdc().balanceOf(address(self)));
 
@@ -297,18 +297,18 @@ library UsdPlusWmaticLibrary {
 
         _convertTokensToUsdPlus(self);
 
-        _swapUspPlusToToken(self, delta, address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0));
+        _swapUspPlusToToken(self, delta, address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta.method == 2 ? delta.amount : 0), true);
         _supplyCurrentUsdcAmount(self, delta, self.usdc().balanceOf(address(self)));
     }
 
 
     function _caseNumber6(StrategyUsdPlusWmatic self, StrategyUsdPlusWmatic.Delta memory delta) public {
-        
+
         _borrowNeededWmatic(self, delta);
 
         _convertTokensToUsdPlus(self);
 
-        _swapUspPlusToToken(self, delta, address(self.usdc()), delta.aaveCollateralUsdNeeded / 100);
+        _swapUspPlusToToken(self, delta, address(self.usdc()), delta.aaveCollateralUsdNeeded / 100, true);
         _supplyCurrentUsdcAmount(self, delta, self.usdc().balanceOf(address(self)));
         _pushAllUsdpToPool(self, delta);
     }

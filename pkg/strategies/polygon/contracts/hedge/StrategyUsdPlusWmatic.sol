@@ -229,32 +229,6 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         return _amount;
     }
 
-    function _borrowWmatic() internal {
-
-        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = dystVault.getReserves();
-
-        (uint256 usdcCollateral, uint256 wmaticBorrow) = AaveBorrowLibrary.getCollateralAndBorrowForSupplyAndBorrow(
-            usdPlus.balanceOf(address(this)),
-            reserveUsdPlus,
-            reserveWmatic,
-            liquidationThreshold,
-            healthFactor,
-            usdcDm,
-            wmaticDm,
-            uint256(oracleUsdc.latestAnswer()),
-            uint256(oracleWmatic.latestAnswer())
-        );
-
-
-        exchange.redeem(address(usdc), usdcCollateral - usdc.balanceOf(address(this)));
-
-        IPool aavePool = _aavePool();
-
-        usdc.approve(address(aavePool), usdcCollateral);
-        aavePool.supply(address(usdc), usdcCollateral, address(this), REFERRAL_CODE);
-        aavePool.borrow(address(wmatic), wmaticBorrow, INTEREST_RATE_MODE, REFERRAL_CODE, address(this));
-    }
-
     function _aavePool() public returns (IPool aavePool){
         aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), E_MODE_CATEGORY_ID));
     }
