@@ -70,6 +70,7 @@ let POLYGON = {
     usdc: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
     usdt: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
     dai: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+    tusd: "0x2e1AD108fF1D8C782fcBbB89AAd783aC49586756",
     amUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
     am3CRV: "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
     am3CRVgauge: "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c",
@@ -110,6 +111,7 @@ let POLYGON = {
     oracleChainlinkUsdc: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
     oracleChainlinkUsdt: "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
+    oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
 }
 
