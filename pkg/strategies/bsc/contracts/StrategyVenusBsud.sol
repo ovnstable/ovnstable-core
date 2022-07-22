@@ -5,7 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "./connectors/venus/interfaces/VenusInterface.sol";
 
 
-contract StrategyVenusBUSD is Strategy {
+contract StrategyVenusBusd is Strategy {
 
     IERC20 public busdToken;
 

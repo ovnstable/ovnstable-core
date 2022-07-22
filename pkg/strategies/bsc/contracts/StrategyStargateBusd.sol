@@ -9,7 +9,7 @@ import "./connectors/stargate/interfaces/IStargatePool.sol";
 import "./connectors/stargate/interfaces/ILPStaking.sol";
 
 
-contract StrategyStargateBUSD is Strategy {
+contract StrategyStargateBusd is Strategy {
     using OvnMath for uint256;
 
     IERC20 public busdToken;

@@ -8,7 +8,7 @@ import "./connectors/synapse/interfaces/ISwap.sol";
 import "./connectors/synapse/interfaces/IMiniChefV2.sol";
 
 
-contract StrategySynapseBUSD is Strategy {
+contract StrategySynapseBusd is Strategy {
     using OvnMath for uint256;
 
     IERC20 public busdToken;
@@ -88,14 +88,15 @@ contract StrategySynapseBUSD is Strategy {
         require(_asset == address(busdToken), "Some token not compatible");
 
         // add liquidity
+        uint256 busdBalance = busdToken.balanceOf(address(this));
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
-        amounts[1] = _amount.subBasisPoints(4);
+        amounts[1] = busdBalance.subBasisPoints(4);
         amounts[2] = 0;
         amounts[3] = 0;
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
-        amounts[1] = _amount;
-        busdToken.approve(address(swap), _amount);
+        amounts[1] = busdBalance;
+        busdToken.approve(address(swap), busdBalance);
         uint256 nUsdLPTokenAmount = swap.addLiquidity(amounts, minToMint, block.timestamp);
 
         // stake

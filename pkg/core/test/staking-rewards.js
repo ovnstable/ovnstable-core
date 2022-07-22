@@ -1,13 +1,12 @@
 const hre = require("hardhat");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {expect} = require("chai");
-const BN = require('bn.js');
+const BigNumber = require('bignumber.js');
 const chai = require("chai");
-chai.use(require('chai-bn')(BN));
-const {toUSDC, fromUSDC, toE18} = require("@overnight-contracts/common/utils/decimals");
+chai.use(require('chai-bignumber')());
+const {toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 const {POLYGON} = require('@overnight-contracts/common/utils/assets');
-const {fromE18} = require("../../common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
@@ -51,10 +50,10 @@ describe("StakingRewards", function () {
         await stakingRewards.updateRewardProgram(rewardRate, periodFinish);
         await rewardToken.mint(stakingRewards.address, toE18(100));
 
-        let value = new BN("932210947561").muln(100); // 100$ * 100 = 10 000
-        await stakingToken.mint(account.address, value.toString());
-        await stakingToken.mint(user1.address, value.toString());
-        await stakingToken.mint(user2.address, value.toString());
+        let value = new BigNumber("932210947561").times(100); // 100$ * 100 = 10 000
+        await stakingToken.mint(account.address, value.toFixed());
+        await stakingToken.mint(user1.address, value.toFixed());
+        await stakingToken.mint(user2.address, value.toFixed());
 
     });
 
@@ -105,10 +104,10 @@ describe("StakingRewards", function () {
 
     it('Stake/Withdraw = balances equals', async function (){
 
-        let stakingBalanceBefore = await stakingToken.balanceOf(account.address);
+        let stakingBalanceBefore = (await stakingToken.balanceOf(account.address)).toString();
         await stake(account);
 
-        await expectStakingBalanceBN(account, new BN(0));
+        await expectStakingBalanceBN(account, "0");
 
         await addDays(1);
         await getRewards([account]);
@@ -181,7 +180,7 @@ describe("StakingRewards", function () {
     });
 
     async function rewardBalance(amount) {
-        let value = await rewardToken.balanceOf(stakingRewards.address);
+        let value = (await rewardToken.balanceOf(stakingRewards.address)).toString();
         let number = Number.parseInt(fromE18(value));
         console.log(`Reward balance ${value}:${number}`);
         expect(amount).to.eq(number);
@@ -204,21 +203,21 @@ describe("StakingRewards", function () {
     }
 
     async function expectEarned(user, number) {
-        expect(number).to.equal(Number.parseInt(fromE18(await stakingRewards.earned(user.address))));
+        expect(number).to.equal(Number.parseInt(fromE18((await stakingRewards.earned(user.address)).toString())));
 
-        console.log(`${user.address}: Earned rewards: ${await stakingRewards.earned(user.address)}: ${fromE18(await stakingRewards.earned(user.address))}`);
+        console.log(`${user.address}: Earned rewards: ${await stakingRewards.earned(user.address)}: ${fromE18((await stakingRewards.earned(user.address)).toString())}`);
     }
 
     async function expectStakingBalanceBN(user, number) {
-        expect(number.toString()).to.equal((await stakingToken.balanceOf(user.address)).toString());
+        expect(number).to.equal((await stakingToken.balanceOf(user.address)).toString());
 
-        console.log(`${user.address}: Balance staking: ${await stakingToken.balanceOf(user.address)}: ${fromE18(await stakingToken.balanceOf(user.address))}`);
+        console.log(`${user.address}: Balance staking: ${await stakingToken.balanceOf(user.address)}: ${fromE18((await stakingToken.balanceOf(user.address)).toString())}`);
     }
 
     async function expectBalance(user, number) {
-        expect(number).to.equal(Number.parseInt(fromE18(await rewardToken.balanceOf(user.address))));
+        expect(number).to.equal(Number.parseInt(fromE18((await rewardToken.balanceOf(user.address)).toString())));
 
-        console.log(`${user.address}: Balance rewards: ${await rewardToken.balanceOf(user.address)}: ${fromE18(await rewardToken.balanceOf(user.address))}`);
+        console.log(`${user.address}: Balance rewards: ${await rewardToken.balanceOf(user.address)}: ${fromE18((await rewardToken.balanceOf(user.address)).toString())}`);
     }
 
     async function stake(user) {

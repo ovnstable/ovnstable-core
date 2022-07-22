@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -11,6 +11,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 import "./PayoutListener.sol";
+
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -22,7 +23,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // ---  fields
 
     UsdPlusToken public usdPlus;
-    IERC20 public usdc;
+    IERC20 public asset;
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
     IMark2Market public mark2market;
@@ -56,7 +57,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address usdc);
+    event TokensUpdated(address usdPlus, address asset);
     event Mark2MarketUpdated(address mark2market);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -67,7 +68,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(
         uint256 totalUsdPlus,
-        uint256 totalUsdc,
+        uint256 totalAsset,
         uint256 totallyAmountPaid,
         uint256 newLiquidityIndex
     );
@@ -140,12 +141,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  setters
 
-    function setTokens(address _usdPlus, address _usdc) external onlyAdmin {
+    function setTokens(address _usdPlus, address _asset) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
+        require(_asset != address(0), "Zero address not allowed");
         usdPlus = UsdPlusToken(_usdPlus);
-        usdc = IERC20(_usdc);
-        emit TokensUpdated(_usdPlus, _usdc);
+        asset = IERC20(_asset);
+        emit TokensUpdated(_usdPlus, _asset);
     }
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
@@ -215,12 +216,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     /**
-     * @param _addrTok Token to withdraw
-     * @param _amount Amount of USD+ tokens to burn
-     * @return Amount of minted to caller tokens
+     * @param _addrTok Asset to spend
+     * @param _amount Amount of asset to spend
+     * @return Amount of minted USD+ to caller
      */
     function buy(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(usdc), "Only USDC tokens currently available for buy");
+        require(_addrTok == address(asset), "Only asset available for buy");
 
         uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
@@ -228,13 +229,22 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
         portfolioManager.deposit(IERC20(_addrTok), _amount);
 
-        uint256 buyFeeAmount;
-        uint256 buyAmount = _amount;
+        uint256 usdPlusAmount;
+        if (IERC20Metadata(_addrTok).decimals() == 18) {
+            usdPlusAmount = _amount / 1e12;
+        } else {
+            usdPlusAmount = _amount;
+        }
+        require(usdPlusAmount > 0, "Amount of tokens is zero");
 
-        if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
-            buyFeeAmount = (_amount * buyFee) / buyFeeDenominator;
-            buyAmount = _amount - buyFeeAmount;
+        uint256 buyFeeAmount;
+        uint256 buyAmount;
+        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+            buyFeeAmount = (usdPlusAmount * buyFee) / buyFeeDenominator;
+            buyAmount = usdPlusAmount - buyFeeAmount;
             emit PaidBuyFee(buyAmount, buyFeeAmount);
+        } else {
+            buyAmount = usdPlusAmount;
         }
 
         usdPlus.mint(msg.sender, buyAmount);
@@ -245,30 +255,39 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     /**
-     * @param _addrTok Token to withdraw
-     * @param _amount Amount of USD+ tokens to burn
-     * @return Amount of unstacked and transferred to caller tokens
+     * @param _addrTok Asset to redeem
+     * @param _amount Amount of USD+ to burn
+     * @return Amount of asset unstacked and transferred to caller
      */
     function redeem(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(usdc), "Only USDC tokens currently available for redeem");
+        require(_addrTok == address(asset), "Only asset available for redeem");
 
+        require(_amount > 0, "Amount of tokens is zero");
 
-        uint256 redeemFeeAmount;
-        uint256 redeemAmount = _amount;
-
-        if(!hasRole(FREE_RIDER_ROLE, msg.sender)){
-            redeemFeeAmount = (_amount * redeemFee) / redeemFeeDenominator;
-            redeemAmount = _amount - redeemFeeAmount;
-            emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
+        uint256 assetAmount;
+        if (IERC20Metadata(_addrTok).decimals() == 18) {
+            assetAmount = _amount * 1e12;
+        } else {
+            assetAmount = _amount;
         }
 
-        //TODO: Real unstacked amount may be different to redeemAmount
+        uint256 redeemFeeAmount;
+        uint256 redeemAmount;
+        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+            redeemFeeAmount = (assetAmount * redeemFee) / redeemFeeDenominator;
+            redeemAmount = assetAmount - redeemFeeAmount;
+            emit PaidRedeemFee(redeemAmount, redeemFeeAmount);
+        } else {
+            redeemAmount = assetAmount;
+        }
+
+        //TODO: Real unstaked amount may be different to redeemAmount
         uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
 
-        // TODO: check threshhold limits to withdraw deposite
+        // TODO: check threshold limits to withdraw deposit
         require(
             IERC20(_addrTok).balanceOf(address(this)) >= unstakedAmount,
             "Not enough for transfer unstakedAmount"
@@ -291,36 +310,39 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // 0. call claiming reward and balancing on PM
         // 1. get current amount of USD+
-        // 2. get total sum of USDC we can get from any source
-        // 3. calc difference between total count of USD+ and USDC
+        // 2. get total sum of asset we can get from any source
+        // 3. calc difference between total count of USD+ and asset
         // 4. update USD+ liquidity index
 
         portfolioManager.claimAndBalance();
 
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
-        uint256 totalUsdc = mark2market.totalNetAssets();
+        uint256 totalAsset = mark2market.totalNetAssets();
 
-
-        uint difference;
-        if (totalUsdc <= totalUsdPlusSupply) {
-            difference = totalUsdPlusSupply - totalUsdc;
-        } else {
-            difference = totalUsdc - totalUsdPlusSupply;
+        if (IERC20Metadata(address(asset)).decimals() == 18) {
+            totalAsset = totalAsset / 1e12;
         }
 
-        uint256 totalUsdcSupplyRay = totalUsdc.wadToRay();
+        uint difference;
+        if (totalAsset <= totalUsdPlusSupply) {
+            difference = totalUsdPlusSupply - totalAsset;
+        } else {
+            difference = totalAsset - totalUsdPlusSupply;
+        }
+
+        uint256 totalAssetSupplyRay = totalAsset.wadToRay();
         // in ray
-        uint256 newLiquidityIndex = totalUsdcSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
         uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
-        if(delta <= abroadMin){
+        if (delta <= abroadMin) {
             revert('Delta abroad:min');
         }
 
-        if(abroadMax <= delta){
+        if (abroadMax <= delta) {
             revert('Delta abroad:max');
         }
 
@@ -333,7 +355,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         emit PayoutEvent(
             totalUsdPlusSupply,
-            totalUsdc,
+            totalAsset,
             difference,
             newLiquidityIndex
         );

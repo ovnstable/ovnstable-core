@@ -5,15 +5,15 @@ let id = process.env.TEST_STRATEGY;
 
 let arrays = [
     {
-        name: 'StrategyVenusBUSD',
+        name: 'StrategyVenusBusd',
         enabledReward: false,
     },
     {
-        name: 'StrategyStargateBUSD',
+        name: 'StrategyStargateBusd',
         enabledReward: true,
     },
     {
-        name: 'StrategySynapseBUSD',
+        name: 'StrategySynapseBusd',
         enabledReward: true,
     },
 ];
