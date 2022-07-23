@@ -2,7 +2,7 @@ const hre = require("hardhat");
 const fs = require("fs");
 const {initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const BN = require("bn.js");
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -24,7 +24,7 @@ async function main() {
 
     console.log('Set PM');
 
-    let amount = toUSDC(50);
+    let amount = toE6(50);
     await (await usdc.transfer(strategyArrakisWeth.address, amount, price)).wait();
 
     console.log('Transfer');

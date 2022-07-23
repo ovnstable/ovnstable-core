@@ -1,13 +1,13 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
 let {POLYGON, DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
 
 const {evmCheckpoint, evmRestore} = require('@overnight-contracts/common/utils/sharedBeforeEach')
-const {fromUSDC} = require("../../common/utils/decimals");
+const {fromE6} = require("../../common/utils/decimals");
 
 
 describe("AnalyticsPlatform", function () {
@@ -48,8 +48,8 @@ describe("AnalyticsPlatform", function () {
 
             strategy = await ethers.getContractAt("IStrategy", strategy.address);
 
-            await usdc.transfer(platform.address, toUSDC(10))
-            await platform.addStrategy(strategy.address, toUSDC(10));
+            await usdc.transfer(platform.address, toE6(10))
+            await platform.addStrategy(strategy.address, toE6(10));
 
             strategies = await platform.getStrategies();
             nav = await strategy.netAssetValue();
@@ -65,7 +65,7 @@ describe("AnalyticsPlatform", function () {
         });
 
         it("Strategy netAssetValue = $10", async function () {
-            expect(nav).to.equal(toUSDC(10));
+            expect(nav).to.equal(toE6(10));
         });
 
         describe("Remove Strategy", function () {
@@ -99,7 +99,7 @@ describe("AnalyticsPlatform", function () {
             });
 
             it("Strategy netAssetValue = $0", async function () {
-                expect(nav).to.equal(toUSDC(0));
+                expect(nav).to.equal(toE6(0));
             });
 
         });
@@ -115,12 +115,12 @@ describe("AnalyticsPlatform", function () {
 
             await evmCheckpoint("default");
 
-            usdcBalanceBefore = fromUSDC(await usdc.balanceOf(account));
-            await usdc.transfer(platform.address, toUSDC(10));
+            usdcBalanceBefore = fromE6(await usdc.balanceOf(account));
+            await usdc.transfer(platform.address, toE6(10));
 
             await platform.takeBank(account);
 
-            usdcBalanceAfter = fromUSDC(await usdc.balanceOf(account));
+            usdcBalanceAfter = fromE6(await usdc.balanceOf(account));
 
             await evmRestore("default");
 
@@ -153,12 +153,12 @@ describe("AnalyticsPlatform", function () {
 
             strategy = await ethers.getContractAt("IStrategy", strategy.address);
 
-            await usdc.transfer(platform.address, toUSDC(10))
-            await platform.addStrategy(strategy.address, toUSDC(10));
+            await usdc.transfer(platform.address, toE6(10))
+            await platform.addStrategy(strategy.address, toE6(10));
 
-            usdcBalanceBefore = fromUSDC(await usdc.balanceOf(platform.address));
+            usdcBalanceBefore = fromE6(await usdc.balanceOf(platform.address));
             await platform.claimRewardsAndBalance();
-            usdcBalanceAfter = fromUSDC(await usdc.balanceOf(platform.address));
+            usdcBalanceAfter = fromE6(await usdc.balanceOf(platform.address));
 
             diff = usdcBalanceAfter - usdcBalanceBefore;
         });

@@ -1,6 +1,6 @@
 const { verify } = require("@overnight-contracts/common/utils/verify-utils");
 const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const {fromE18} = require("../../common/utils/decimals");
 
 async function main() {
@@ -11,8 +11,8 @@ async function main() {
     let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
     let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
 
-    console.log("Rebase: " + fromUSDC(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus: " + fromUSDC(await usdPlus.balanceOf(wallet.address)))
+    console.log("Rebase: " + fromE6(await rebase.balanceOf(wallet.address)))
+    console.log("usdPlus: " + fromE6(await usdPlus.balanceOf(wallet.address)))
 
     let items = await strategy.balances();
 
@@ -23,7 +23,7 @@ async function main() {
 
         arrays.push({
             name: item[0],
-            amountUSDC: fromUSDC(item[1].toString()),
+            amountUSDC: fromE6(item[1].toString()),
             amount: fromE18(item[2].toString()),
             borrowed: item[3].toString()
         })
@@ -33,11 +33,11 @@ async function main() {
     console.table(arrays);
 
     console.log('Liq index:    ' + await rebase.liquidityIndex());
-    let rebaseTotal = fromUSDC(await rebase.totalSupply());
+    let rebaseTotal = fromE6(await rebase.totalSupply());
     console.log('Total Rebase: ' + rebaseTotal);
-    let netAssetValue = fromUSDC(await strategy.netAssetValue());
+    let netAssetValue = fromE6(await strategy.netAssetValue());
     console.log('Total NAV:    ' + netAssetValue);
-    console.log('HF:           ' + fromUSDC(await strategy.currentHealthFactor()));
+    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
     console.log('Diff:         '  + (rebaseTotal - netAssetValue));
 }
 

@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, toUSDC, fromUSDC} = require("../utils/decimals");
+const {fromE18, toE6, fromE6} = require("../utils/decimals");
 const {expect} = require("chai");
 const ethers = hre.ethers;
 
@@ -121,8 +121,8 @@ async function main() {
 
             let item = items[i];
             console.log("Strategy: " + item.strategy);
-            console.log("NetAsset: " + fromUSDC(item.netAssetValue));
-            console.log("LiqValue: " + fromUSDC(item.liquidationValue));
+            console.log("NetAsset: " + fromE6(item.netAssetValue));
+            console.log("LiqValue: " + fromE6(item.liquidationValue));
         }
     }
 
@@ -245,10 +245,10 @@ async function main() {
 
         //
         console.log('Approve');
-        await(await usdc.approve(exchangeOld.address, toUSDC(1))).wait();
+        await(await usdc.approve(exchangeOld.address, toE6(1))).wait();
 
         console.log('Buy');
-        await  (await exchangeOld.buy(usdc.address, toUSDC(1))).wait();
+        await  (await exchangeOld.buy(usdc.address, toE6(1))).wait();
 
     }
 

@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18, toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
 const {

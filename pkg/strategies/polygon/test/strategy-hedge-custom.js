@@ -3,8 +3,8 @@ const {deployments, ethers, getNamedAccounts} = require("hardhat");
 const hre = require("hardhat");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach, evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
-const {fromUSDC} = require("../../../common/utils/decimals");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
+const {fromE6} = require("../../../common/utils/decimals");
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 
 
@@ -38,8 +38,8 @@ describe("StrategyUsdPlusWmatic", function () {
 
             await strategy.setExchanger(account);
 
-            await usdPlus.transfer(strategy.address, toUSDC(10));
-            await strategy.stake(toUSDC(10));
+            await usdPlus.transfer(strategy.address, toE6(10));
+            await strategy.stake(toE6(10));
 
 
             let balances = await strategy.balances();
@@ -60,11 +60,11 @@ describe("StrategyUsdPlusWmatic", function () {
 
 
             console.table(items);
-            console.log('Nav        :' + fromUSDC(await strategy.netAssetValue()));
+            console.log('Nav        :' + fromE6(await strategy.netAssetValue()));
             console.log('Total Nav  :' + totalNav);
 
-            await strategy.unstake(toUSDC(9), account);
-            console.log('Nav ' + fromUSDC(await strategy.netAssetValue()));
+            await strategy.unstake(toE6(9), account);
+            console.log('Nav ' + fromE6(await strategy.netAssetValue()));
 
             await strategy.balance();
 

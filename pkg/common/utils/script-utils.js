@@ -1,4 +1,4 @@
-const {fromE18, fromUSDC, toE18, toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
@@ -115,8 +115,8 @@ async function showPlatform(platform, blocknumber) {
 
         let contract = await hre.ethers.getContractAt(StrategyJson.abi, asset, wallet);
 
-        let nav = fromUSDC(await contract.netAssetValue());
-        let liq = fromUSDC(await contract.liquidationValue());
+        let nav = fromE6(await contract.netAssetValue());
+        let liq = fromE6(await contract.liquidationValue());
 
         items.push({name: mapping ? mapping.name : asset,netAssetValue: nav, liquidationValue: liq});
     }
@@ -178,21 +178,21 @@ async function showM2M(blocknumber) {
 
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
-        // if (fromUSDC(asset.netAssetValue) === 0){
+        // if (fromE6(asset.netAssetValue) === 0){
         //     continue;
         // }
 
         items.push(
             {
                 name: mapping ? mapping.name : asset.strategy,
-                netAssetValue: fromUSDC(asset.netAssetValue),
-                liquidationValue: fromUSDC(asset.liquidationValue),
+                netAssetValue: fromE6(asset.netAssetValue),
+                liquidationValue: fromE6(asset.liquidationValue),
                 targetWeight:  weight.targetWeight.toNumber() / 1000,
                 maxWeight: weight.maxWeight.toNumber() / 1000,
                 enabled: weight.enabled,
                 enabledReward: weight.enabledReward
             });
-        sum += fromUSDC(asset.netAssetValue);
+        sum += fromE6(asset.netAssetValue);
     }
 
     for (let i = 0; i < items.length; i++) {
@@ -200,7 +200,7 @@ async function showM2M(blocknumber) {
     }
 
     console.table(items);
-    console.log('Total m2m:  ' + fromUSDC(totalNetAssets.toNumber()));
+    console.log('Total m2m:  ' + fromE6(totalNetAssets.toNumber()));
 
     if (usdPlus){
 
@@ -309,12 +309,12 @@ async function changeWeightsAndBalance(weights){
     });
 
 
-    if (fromUSDC(await usdc.balanceOf(wallet.address)) > 10){
-        await usdc.approve(exchange.address, toUSDC(10));
-        await exchange.buy(usdc.address, toUSDC(10));
+    if (fromE6(await usdc.balanceOf(wallet.address)) > 10){
+        await usdc.approve(exchange.address, toE6(10));
+        await exchange.buy(usdc.address, toE6(10));
 
-        await usdPlus.approve(exchange.address, toUSDC(10));
-        await exchange.redeem(usdc.address, toUSDC(10));
+        await usdPlus.approve(exchange.address, toE6(10));
+        await exchange.redeem(usdc.address, toE6(10));
     }
 
     console.log('M2M after:')

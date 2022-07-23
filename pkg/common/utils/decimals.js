@@ -8,7 +8,7 @@ module.exports = {
     toE6: (value) => value * 10 ** 6,
     fromE6: (value) => value / 10 ** 6,
 
-    toUSDC: (value) => value * 10 ** 6,
-    fromUSDC: (value) => value / 10 ** 6,
+    toE6: (value) => value * 10 ** 6,
+    fromE6: (value) => value / 10 ** 6,
 
 }
