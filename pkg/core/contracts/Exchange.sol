@@ -216,21 +216,21 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     /**
-     * @param _addrTok Asset to spend
+     * @param _asset Asset to spend
      * @param _amount Amount of asset to spend
      * @return Amount of minted USD+ to caller
      */
-    function buy(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(asset), "Only asset available for buy");
+    function buy(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+        require(_asset == address(asset), "Only asset available for buy");
 
-        uint256 currentBalance = IERC20(_addrTok).balanceOf(msg.sender);
+        uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
-        IERC20(_addrTok).transferFrom(msg.sender, address(portfolioManager), _amount);
-        portfolioManager.deposit(IERC20(_addrTok), _amount);
+        IERC20(_asset).transferFrom(msg.sender, address(portfolioManager), _amount);
+        portfolioManager.deposit(IERC20(_asset), _amount);
 
         uint256 usdPlusAmount;
-        if (IERC20Metadata(_addrTok).decimals() == 18) {
+        if (IERC20Metadata(_asset).decimals() == 18) {
             usdPlusAmount = _amount / 1e12;
         } else {
             usdPlusAmount = _amount;
@@ -255,17 +255,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     /**
-     * @param _addrTok Asset to redeem
+     * @param _asset Asset to redeem
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function redeem(address _addrTok, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_addrTok == address(asset), "Only asset available for redeem");
+    function redeem(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+        require(_asset == address(asset), "Only asset available for redeem");
 
         require(_amount > 0, "Amount of tokens is zero");
 
         uint256 assetAmount;
-        if (IERC20Metadata(_addrTok).decimals() == 18) {
+        if (IERC20Metadata(_asset).decimals() == 18) {
             assetAmount = _amount * 1e12;
         } else {
             assetAmount = _amount;
@@ -282,17 +282,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         //TODO: Real unstaked amount may be different to redeemAmount
-        uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_addrTok), redeemAmount);
+        uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_asset), redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
 
         // TODO: check threshold limits to withdraw deposit
         require(
-            IERC20(_addrTok).balanceOf(address(this)) >= unstakedAmount,
+            IERC20(_asset).balanceOf(address(this)) >= unstakedAmount,
             "Not enough for transfer unstakedAmount"
         );
-        IERC20(_addrTok).transfer(msg.sender, unstakedAmount);
+        IERC20(_asset).transfer(msg.sender, unstakedAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
 
