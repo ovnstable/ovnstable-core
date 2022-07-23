@@ -180,8 +180,8 @@ describe("StakingRewards", function () {
     });
 
     async function rewardBalance(amount) {
-        let value = (await rewardToken.balanceOf(stakingRewards.address)).toString();
-        let number = Number.parseInt(fromE18(value));
+        let value = await rewardToken.balanceOf(stakingRewards.address);
+        let number = Number.parseInt(fromE18(value.toString()));
         console.log(`Reward balance ${value}:${number}`);
         expect(amount).to.eq(number);
     }

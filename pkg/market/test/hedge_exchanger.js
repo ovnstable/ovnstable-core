@@ -1,6 +1,6 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {toUSDC, fromOvn, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 const {greatLess} = require("@overnight-contracts/common/utils/tests");

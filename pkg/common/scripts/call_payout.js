@@ -21,7 +21,7 @@ async function main() {
     let wallet = await new ethers.Wallet(secrets.polygon.pk_test, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    console.log('Balance wallet: ' + fromE18(balance.toString()))
 
     let ovn = await ethers.getContract("OvernightToken");
     console.log("ovn: " + ovn.address);

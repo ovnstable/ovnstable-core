@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, fromOvnGov, toUSDC, fromUSDC} = require("../utils/decimals");
+const {fromE18, toUSDC, fromUSDC} = require("../utils/decimals");
 const {expect} = require("chai");
 const ethers = hre.ethers;
 
@@ -324,14 +324,14 @@ async function initWallet() {
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance));
+    console.log('Balance wallet: ' + fromE18(balance.toString()));
 
     return wallet;
 }
 
 async function execProposal(governator, ovn, id, wallet) {
 
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1));
+    let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1)).toString());
     console.log('Quorum: ' + quorum);
 
     const proposalId = id;
@@ -352,7 +352,7 @@ async function execProposal(governator, ovn, id, wallet) {
     let item = await governator.proposals(proposalId);
     console.log('Votes for: ' + item.forVotes / 10 ** 18);
 
-    let total = fromOvnGov(await ovn.getVotes(wallet.address));
+    let total = fromE18((await ovn.getVotes(wallet.address)).toString());
     console.log('Delegated ' + total)
 
     let waitBlock = 200;
@@ -387,7 +387,7 @@ async function showBalances( ownerAddress) {
     let m2m = await ethers.getContractAt(Mark2Market.abi, Mark2Market.address );
 
     let prices = await m2m.assetPrices();
-   console.log('TotalUSDC: ' + fromE18(prices.totalUsdcPrice));
+    console.log('TotalUSDC: ' + fromE18(prices.totalUsdcPrice.toString()));
 
     let idleUSDC = await ethers.getContractAt(ERC20.abi, '0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1');
     let USDC = await ethers.getContractAt(ERC20.abi, '0x2791bca1f2de4661ed88a30c99a7a9449aa84174');

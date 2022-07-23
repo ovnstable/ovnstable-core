@@ -4,7 +4,8 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
 const hre = require("hardhat");
 
-const {fromOvnGov} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18} = require("@overnight-contracts/common/utils/decimals");
+const BigNumber = require('bignumber.js');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
 const { solidity } =  require("ethereum-waffle");
@@ -96,12 +97,12 @@ describe("Governance", function () {
         let votes = ethers.utils.parseUnits("100.0", 18);
         await ovnToken.mint(account, votes);
 
-        let totalSupply = fromOvnGov(await ovnToken.totalSupply());
-        expect(totalSupply).to.eq(200);
+        let totalSupply = new BigNumber(fromE18((await ovnToken.totalSupply()).toString()));
+        expect(totalSupply.toNumber()).to.eq(200);
 
         await ovnToken.delegate(account)
-        let totalDelegated = fromOvnGov(await ovnToken.getVotes(account))
-        expect(totalDelegated).to.eq(200);
+        let totalDelegated = new BigNumber(fromE18((await ovnToken.getVotes(account)).toString()));
+        expect(totalDelegated.toNumber()).to.eq(200);
 
     });
 
@@ -123,7 +124,7 @@ describe("Governance", function () {
             ethers.utils.id("Proposal #3: Set Buy fee"),
         );
 
-        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon')-1));
+        let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1)).toString());
         console.log('Quorum: ' + quorum);
         console.log('For votes: ' + forVotesCount)
 
@@ -160,7 +161,7 @@ describe("Governance", function () {
             ethers.utils.id("Proposal #3: Set Buy fee"),
         );
 
-        let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber('polygon')-1));
+        let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber('polygon') - 1)).toString());
         console.log('Quorum: ' + quorum);
         console.log('For votes: ' + forVotesCount)
 
@@ -243,8 +244,8 @@ describe("Governance", function () {
         expect(redeemFee).to.eq(45);
         expect(redeemFeeDenominator).to.eq(1000000);
 
-        let balanceGovToken = fromOvnGov(await ovnToken.balanceOf(account));
-        expect(balanceGovToken).to.eq(300)
+        let balanceGovToken = new BigNumber(fromE18((await ovnToken.balanceOf(account)).toString()));
+        expect(balanceGovToken.toNumber()).to.eq(300)
     });
 
     it("Change state contract by Proposal", async function () {
