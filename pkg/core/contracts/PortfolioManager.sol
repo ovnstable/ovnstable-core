@@ -430,8 +430,4 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         }
     }
 
-    function getCashStrategy() public override view returns (address) {
-        return address(cashStrategy);
-    }
-
 }

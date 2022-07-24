@@ -37,6 +37,4 @@ interface IPortfolioManager {
 
     function healthFactorBalance() external;
 
-    function getCashStrategy() external view returns (address);
-
 }
