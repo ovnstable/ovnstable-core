@@ -8,40 +8,32 @@ async function main() {
     let weights = [
         {
             "strategy": "0xA2007Ae378d95C7c5Fe9f166DB17307d32cb8893",
-            "name": "Venus BUSD",
+            "name": "Venus Busd",
             "minWeight": 0,
-            "targetWeight": 5,
+            "targetWeight": 2.5,
             "maxWeight": 5,
             "enabled": true,
             "enabledReward": true
         },
         {
-            "strategy": "0x50D3560397864a3c7a24116D0dcd27A27Ef852c7",
-            "name": "Stargate BUSD",
+            "strategy": "0xe4Be0f206828Be0B5D48142F465aBD4e57dB58D4",
+            "name": "Stargate Busd",
             "minWeight": 0,
-            "targetWeight": 47.5,
+            "targetWeight": 48,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
         {
-            "strategy": "0x22EcC33bF964eD13d18419FDaE725919a757f230",
-            "name": "Synapse BUSD",
+            "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
+            "name": "Synapse Busd",
             "minWeight": 0,
-            "targetWeight": 47.5,
+            "targetWeight": 49.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
     ]
-
-    weights = weights.map(value => {
-        delete value.name
-        value.targetWeight = value.targetWeight * 1000;
-        value.maxWeight = value.maxWeight * 1000;
-
-        return value;
-    })
 
     let totalWeight = 0;
     for (const weight of weights) {
@@ -54,8 +46,17 @@ async function main() {
         return
     }
 
+    weights = weights.map(value => {
+        delete value.name
+        value.targetWeight = value.targetWeight * 1000;
+        value.maxWeight = value.maxWeight * 1000;
+
+        return value;
+    })
+
     // await changeWeightsAndBalance(weights);
-    await proposal(weights);
+    // await proposal(weights);
+    // await setWeights(weights);
 }
 
 async function proposal(weights) {

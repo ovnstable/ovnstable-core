@@ -3,9 +3,10 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const {DEFAULT} = require("./assets");
+const {DEFAULT, BSC} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
+const ERC20 = require("./abi/IERC20.json");
 
 let ethers = require('hardhat').ethers;
 
@@ -65,6 +66,17 @@ async function getERC20(name){
     const ERC20 = require("./abi/IERC20.json");
 
     return await ethers.getContractAt(ERC20, DEFAULT[name], wallet);
+
+}
+
+async function getCoreAsset(){
+
+
+    if (process.env.ETH_NETWORK === 'BSC'){
+        return await getERC20('busd');
+    }else {
+        return await getERC20('usdc');
+    }
 
 }
 
@@ -145,12 +157,14 @@ async function showM2M(blocknumber) {
     }
 
     let url;
+    let fromAsset = fromE6;
     switch(process.env.STAND){
         case "avalanche":
             url = "https://avax.overnight.fi/api/dict/strategies";
             break;
         case "bsc":
-            url = "https://bnb.overnight.fi/api/dict/strategies";
+            url = "https://bsc.overnight.fi/api/dict/strategies";
+            fromAsset = fromE18;
             break;
         case "polygon":
             url = "https://app.overnight.fi/api/dict/strategies";
@@ -178,37 +192,33 @@ async function showM2M(blocknumber) {
 
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
-        // if (fromE6(asset.netAssetValue) === 0){
-        //     continue;
-        // }
-
         items.push(
             {
                 name: mapping ? mapping.name : asset.strategy,
-                netAssetValue: fromE6(asset.netAssetValue),
-                liquidationValue: fromE6(asset.liquidationValue),
+                netAssetValue: fromAsset(asset.netAssetValue.toString()),
+                liquidationValue: fromAsset(asset.liquidationValue.toString()),
                 targetWeight:  weight.targetWeight.toNumber() / 1000,
                 maxWeight: weight.maxWeight.toNumber() / 1000,
                 enabled: weight.enabled,
                 enabledReward: weight.enabledReward
             });
-        sum += fromE6(asset.netAssetValue);
+        sum += parseFloat(fromAsset(asset.netAssetValue.toString()));
     }
 
     for (let i = 0; i < items.length; i++) {
-        items[i].currentWeight = Number((100 * items[i].netAssetValue / sum).toFixed(3));
+        items[i].currentWeight = Number((100 * parseFloat(items[i].netAssetValue) / sum).toFixed(3));
     }
 
     console.table(items);
-    console.log('Total m2m:  ' + fromE6(totalNetAssets.toNumber()));
+    console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString()));
 
     if (usdPlus){
 
         let totalUsdPlus;
         if (blocknumber){
-            totalUsdPlus = (await usdPlus.totalSupply({blockTag: blocknumber})) /10 ** 6
+            totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
         }else {
-            totalUsdPlus = (await usdPlus.totalSupply()) /10 ** 6
+            totalUsdPlus = fromE6(await usdPlus.totalSupply());
         }
         console.log('Total USD+: ' + totalUsdPlus);
     }
@@ -226,6 +236,9 @@ async function getPrice(){
         params.gasLimit = 15000000;
     else if(process.env.ETH_NETWORK === 'AVALANCHE')
         params.gasLimit = 8000000;
+    else if (process.env.ETH_NETWORK === 'BSC'){
+        params = {gasPrice: "5000000000"}; // BSC gasPrice always 5 GWEI
+    }
 
     return params;
 }
@@ -359,6 +372,7 @@ module.exports = {
     getPrice: getPrice,
     getContract: getContract,
     getERC20: getERC20,
+    getCoreAsset: getCoreAsset,
     getStrategy: getStrategy,
     changeWeightsAndBalance: changeWeightsAndBalance,
     upgradeStrategy: upgradeStrategy,
