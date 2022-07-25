@@ -17,7 +17,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     await (await pm.setExchanger(exchange.address)).wait();
+    console.log("pm.setExchanger done");
+
     await (await pm.setAsset(asset)).wait();
+    console.log("pm.setAsset done");
+
 };
 
 module.exports.tags = ['setting', 'SettingPM'];
