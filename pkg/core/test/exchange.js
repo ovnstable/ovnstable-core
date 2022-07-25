@@ -1,15 +1,15 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {toUSDC, fromOvn, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, fromE6, toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
-const BN = require('bignumber.js');
+const BigNumber = require('bignumber.js');
 const {greatLess, resetHardhat} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
-const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
-let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
+let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
-
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 const {waffle} = require("hardhat");
 const {getAbi} = require("@overnight-contracts/common/utils/script-utils");
 const {deployMockContract, provider} = waffle;
@@ -20,15 +20,19 @@ describe("Exchange", function () {
     let account;
     let exchange;
     let pm;
-    let usdc;
     let usdPlus;
     let m2m;
     let multiCallWrapper;
 
+    let asset;
+    let toAsset = function() {};
+    let fromAsset = function() {};
+
+
     sharedBeforeEach("deploy contracts", async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
-        await resetHardhat('polygon');
+        await resetHardhat(process.env.STAND);
 
         const [mockDeployer] = provider.getWallets();
         let payoutListener = await deployMockContract(mockDeployer, await getAbi('IPayoutListener'));
@@ -45,31 +49,39 @@ describe("Exchange", function () {
         usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract('PortfolioManager');
         m2m = await ethers.getContract('Mark2Market');
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
         multiCallWrapper = await ethers.getContract('ExchangeMultiCallWrapper');
 
+        if (process.env.STAND === 'bsc') {
+            asset = await ethers.getContractAt("ERC20", DEFAULT.busd);
+            toAsset = toE18;
+            fromAsset = fromE18;
+        } else {
+            asset = await ethers.getContractAt("ERC20", DEFAULT.usdc);
+            toAsset = toE6;
+            fromAsset = fromE6;
+        }
     });
 
 
     describe('Payout: Abroad', function (){
 
         sharedBeforeEach("Payout: Abroad", async () => {
-            const sum = toUSDC(10000);
+            const sum = toAsset(10000);
 
             await usdPlus.setExchanger(account);
             await usdPlus.setLiquidityIndex('1044705455364278981063959942');
             await usdPlus.setExchanger(exchange.address);
 
-            await usdc.approve(exchange.address, sum);
+            await asset.approve(exchange.address, sum);
 
             await exchange.setBuyFee(0, 100000);
 
-            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+            await (await exchange.buy(asset.address, sum)).wait();
 
         });
 
         it("Expect revert: Delta abroad:max ", async function () {
-            await usdc.transfer(pm.address, toUSDC(4));
+            await asset.transfer(pm.address, toAsset(4));
             await expectRevert(exchange.payout(), "Delta abroad:max");
         });
 
@@ -78,7 +90,7 @@ describe("Exchange", function () {
         });
 
         it("Within abroad", async function () {
-            await usdc.transfer(pm.address, toUSDC(2));
+            await asset.transfer(pm.address, toAsset(2));
             await exchange.payout();
         });
 
@@ -93,37 +105,62 @@ describe("Exchange", function () {
             await exchange.setRedeemFee(10000, 100000); // 10%
         });
 
+        it("Buy revert", async function () {
+            let sumAsset = toAsset(0);
+            await asset.approve(exchange.address, sumAsset);
+            await expectRevert(exchange.buy(asset.address, sumAsset), "Amount of asset is zero");
+
+            if (process.env.STAND === 'bsc') {
+                let sumAsset = '10000000000';
+                await asset.approve(exchange.address, sumAsset);
+                await expectRevert(exchange.buy(asset.address, sumAsset), "Amount of USD+ is zero");
+            }
+        });
+
+        it("Redeem revert", async function () {
+            let sumAsset = toAsset(100);
+            await asset.approve(exchange.address, sumAsset);
+            await (await exchange.buy(asset.address, sumAsset)).wait();
+
+            let sumUsdPlus = toE6(0);
+            await usdPlus.approve(exchange.address, sumUsdPlus);
+            await expectRevert(exchange.redeem(asset.address, sumUsdPlus), "Amount of USD+ is zero");
+        });
+
         it("[Simple] User [buy/redeem] USD+ and pay fee", async function () {
-            let sum = toUSDC(100);
-            await usdc.approve(exchange.address, sum);
-            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+            let sumAsset = toAsset(100);
+            await asset.approve(exchange.address, sumAsset);
+            await (await exchange.buy(asset.address, sumAsset)).wait();
 
             let balanceUsdPlus = await usdPlus.balanceOf(account);
-            expect(90).to.equal(fromUSDC(balanceUsdPlus));
+            expect(90).to.equal(fromE6(balanceUsdPlus));
 
-            let balanceBefore = fromUSDC(await usdc.balanceOf(account));
-            await usdPlus.approve(exchange.address, toUSDC(10));
-            await exchange.redeem(POLYGON.usdc, toUSDC(10));
-            let balanceAfter = fromUSDC(await usdc.balanceOf(account));
+            let balanceBefore = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
+            let sumUsdPlus = toE6(10);
+            await usdPlus.approve(exchange.address, sumUsdPlus);
+            await exchange.redeem(asset.address, sumUsdPlus);
+            let balanceAfter = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
+            let assetBalance = await asset.balanceOf(account);
 
-            expect(9).to.equal(balanceAfter-balanceBefore);
+            expect(9).to.equal(balanceAfter.minus(balanceBefore).toNumber());
         });
 
         it("[Free Rider] User [buy/redeem] USD+ and NOT pay fee", async function () {
-            let sum = toUSDC(10);
-            await usdc.approve(exchange.address, sum);
+            let sumAsset = toAsset(10);
+            await asset.approve(exchange.address, sumAsset);
 
             await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), account);
-            await exchange.buy(POLYGON.usdc, sum);
-            expect(10).to.equal(fromUSDC(await usdPlus.balanceOf(account)));
+            await exchange.buy(asset.address, sumAsset);
+            expect(10).to.equal(fromE6(await usdPlus.balanceOf(account)));
 
 
-            let balanceBefore = fromUSDC(await usdc.balanceOf(account));
-            await usdPlus.approve(exchange.address, sum);
-            await exchange.redeem(POLYGON.usdc, sum);
-            let balanceAfter = fromUSDC(await usdc.balanceOf(account));
+            let balanceBefore = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
+            let sumUsdPlus = toE6(10);
+            await usdPlus.approve(exchange.address, sumUsdPlus);
+            await exchange.redeem(asset.address, sumUsdPlus);
+            let balanceAfter = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
 
-            expect(10).to.equal(balanceAfter-balanceBefore);
+            expect(10).to.equal(balanceAfter.minus(balanceBefore).toNumber());
 
         });
 
@@ -136,29 +173,29 @@ describe("Exchange", function () {
         let weights;
         let strategyAssets;
         let balanceUserUsdPlus;
-        let balanceUserUSDC;
+        let balanceUserAsset;
         let vaultBalance;
 
         sharedBeforeEach("buy usd+", async () => {
-            const sum = toUSDC(100);
+            const sum = toAsset(100);
 
-            balanceUserUSDC = fromUSDC(await usdc.balanceOf(account));
+            balanceUserAsset = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
 
-            await usdc.approve(exchange.address, sum);
+            await asset.approve(exchange.address, sum);
 
-            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+            await (await exchange.buy(asset.address, sum)).wait();
 
             strategyAssets = await m2m.strategyAssets();
 
-            vaultBalance = 0;
+            vaultBalance = new BigNumber(0);
             for (let i = 0; i < strategyAssets.length; i++) {
-                vaultBalance += fromUSDC(strategyAssets[i].netAssetValue);
+                vaultBalance = vaultBalance.plus(new BigNumber(fromAsset(strategyAssets[i].netAssetValue.toString())));
             }
 
             console.log('Vault balance ' + vaultBalance);
 
             weights = await pm.getAllStrategyWeights();
-            balanceUserUsdPlus = fromOvn(await usdPlus.balanceOf(account));
+            balanceUserUsdPlus = fromE6(await usdPlus.balanceOf(account));
 
             let totalSellAssets = await m2m.totalNetAssets();
             console.log("totalSellAssets " + totalSellAssets);
@@ -166,20 +203,20 @@ describe("Exchange", function () {
             console.log("totalBuyAssets " + totalBuyAssets);
         });
 
-        it("balance USDC must be less than 100 ", async function () {
-            expect(fromUSDC(await usdc.balanceOf(account))).to.eq(balanceUserUSDC - 100)
+        it("balance asset must be less than 100 ", async function () {
+            expect(new BigNumber(fromAsset((await asset.balanceOf(account)).toString())).toNumber()).to.eq(balanceUserAsset - 100)
         });
 
         it("Balance USD+ should 99.96", function () {
             expect(balanceUserUsdPlus.toString()).to.eq("99.96")
         });
 
-        it("total vault balance (USDC) should greater than 99.96 (USDC)", function () {
-            expect(vaultBalance).to.greaterThanOrEqual(99.96);
+        it("total vault balance (asset) should greater than 99.96 (asset)", function () {
+            expect(vaultBalance.toNumber()).to.greaterThanOrEqual(99.96);
         });
 
-        it("total vault balance (USDC) should less than 100.04 (USDC)", function () {
-            expect(vaultBalance).to.lessThanOrEqual(100.04);
+        it("total vault balance (asset) should less than 100.04 (asset)", function () {
+            expect(vaultBalance.toNumber()).to.lessThanOrEqual(100.04);
         });
 
         it("asset amounts match asset weights", function () {
@@ -191,13 +228,13 @@ describe("Exchange", function () {
                 let asset = findAssetPrice(weight.strategy, strategyAssets);
 
                 let target = weight.targetWeight / 1000;
-                let balance = fromUSDC(asset.netAssetValue)
+                let balance = new BigNumber(fromAsset(asset.netAssetValue.toString()));
 
-                let targetValue = totalValue / 100 * target;
-                let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
+                let targetValue = new BigNumber(totalValue / 100 * target);
+                let message = 'Balance ' + balance.toFixed() + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
                 console.log(message);
 
-                greatLess(balance, targetValue, 1, message);
+                greatLess(balance, targetValue, new BigNumber(1));
             }
         });
 
@@ -206,47 +243,52 @@ describe("Exchange", function () {
             let weights;
             let strategyAssets;
             let balanceUserUsdPlus;
-            let balanceUserUSDC;
+            let balanceUserAsset;
             let totalBalance;
+            let cashStrategy;
 
             sharedBeforeEach("redeem usd+", async () => {
-                balanceUserUSDC = fromUSDC(await usdc.balanceOf(account));
-                await usdPlus.approve(exchange.address, toUSDC(50));
-                let result = await exchange.redeem(usdc.address, toUSDC(50));
+                balanceUserAsset = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
+
+                let sumUsdPlus = toE6(50);
+                await usdPlus.approve(exchange.address, sumUsdPlus);
+                let result = await exchange.redeem(asset.address, sumUsdPlus);
                 await result.wait();
 
                 strategyAssets = await m2m.strategyAssets();
 
-                totalBalance = 0;
+                totalBalance = new BigNumber(0);
                 for (let i = 0; i < strategyAssets.length; i++) {
-                    totalBalance += fromUSDC(strategyAssets[i].netAssetValue);
+                    totalBalance = totalBalance.plus(new BigNumber(fromAsset(strategyAssets[i].netAssetValue.toString())));
                 }
 
-                console.log('Vault balance ' + totalBalance);
+                console.log('Vault balance ' + totalBalance.toFixed());
 
                 weights = await pm.getAllStrategyWeights();
-                balanceUserUsdPlus = fromOvn(await usdPlus.balanceOf(account));
+                balanceUserUsdPlus = fromE6(await usdPlus.balanceOf(account));
 
                 let totalSellAssets = await m2m.totalNetAssets();
                 console.log("totalSellAssets " + totalSellAssets);
                 let totalBuyAssets = await m2m.totalLiquidationAssets();
                 console.log("totalBuyAssets " + totalBuyAssets);
+
+                cashStrategy = await pm.cashStrategy();
             });
 
-            it("balance USDC must be more than 50", async function () {
-                greatLess(fromUSDC(await usdc.balanceOf(account)), balanceUserUSDC + 50, 1);
+            it("balance asset must be more than 50", async function () {
+                greatLess(new BigNumber(fromAsset((await asset.balanceOf(account)).toString())), balanceUserAsset.plus(50), new BigNumber(1));
             });
 
             it("Balance USD+ should 49.96", function () {
                 expect(balanceUserUsdPlus.toString()).to.eq("49.96")
             });
 
-            it("total vault balance (USDC) should be 50 (USDC)", function () {
-                expect(new BN(totalBalance).toFixed(0)).to.eq("50");
+            it("total vault balance (asset) should be 50 (asset)", function () {
+                expect(totalBalance.toFixed(0)).to.eq("50");
             });
 
-            it("total vault balance (USDC) should eq 50 (USDC)", function () {
-                expect(new BN(totalBalance).toFixed(0)).to.eq("50");
+            it("total vault balance (asset) should eq 50 (asset)", function () {
+                expect(totalBalance.toFixed(0)).to.eq("50");
             });
 
             it("asset amounts match asset weights", function () {
@@ -258,13 +300,26 @@ describe("Exchange", function () {
                     let asset = findAssetPrice(weight.strategy, strategyAssets);
 
                     let target = weight.targetWeight / 1000;
-                    let balance = fromUSDC(asset.netAssetValue)
+                    let balance = new BigNumber(fromAsset(asset.netAssetValue.toString()));
 
-                    let targetValue = totalValue / 100 * target;
-                    let message = 'Balance ' + balance + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
+                    let targetValue = new BigNumber(totalValue / 100 * target);
+                    let message = 'Balance ' + balance.toFixed() + " weight " + target + " asset " + weight.strategy + " target value " + targetValue;
                     console.log(message);
 
-                    // greatLess(balance, targetValue, 1, message); //TODO FIX
+                    if (cashStrategy === weight.strategy) {
+                        expect(balance.gte(0)).to.equal(true);
+                        expect(balance.lte(targetValue)).to.equal(true);
+                    } else {
+                        let totalWeightWithoutCashStrategy = 0;
+                        for (let j = 0; j < weights.length; j++) {
+                            if (cashStrategy !== weights[j].strategy) {
+                                totalWeightWithoutCashStrategy += weights[j].targetWeight / 1000;
+                            }
+                        }
+                        let maxValue = new BigNumber(totalValue * target / totalWeightWithoutCashStrategy);
+                        expect(balance.gte(targetValue)).to.equal(true);
+                        expect(balance.lte(maxValue)).to.equal(true);
+                    }
                 }
             });
 
@@ -275,43 +330,124 @@ describe("Exchange", function () {
     describe("Multi call", function () {
 
         sharedBeforeEach("buy usd+", async () => {
-            const sum = toUSDC(100);
+            const sum = toAsset(100);
 
             // buy 100 usd+
-            await usdc.approve(exchange.address, sum);
-            await (await exchange.buy(POLYGON.usdc, sum)).wait();
+            await asset.approve(exchange.address, sum);
+            await (await exchange.buy(asset.address, sum)).wait();
 
-            // transfer 100 usd+ and 100 usdc to multicall tester
-            await usdc.transfer(multiCallWrapper.address, sum);
+            // transfer 100 usd+ and 100 asset to multicall tester
+            await asset.transfer(multiCallWrapper.address, sum);
             await usdPlus.transfer(multiCallWrapper.address, (await usdPlus.balanceOf(account)).toString());
         });
 
         it("two buys should fail", async function () {
             await expectRevert(
-                multiCallWrapper.buy2(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1)),
                 "Only once in block"
             );
         });
 
         it("buy into redeem fail", async function () {
             await expectRevert(
-                multiCallWrapper.buyRedeem(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toE6(1)),
                 "Only once in block"
             );
         });
 
         it("two redeems should fail", async function () {
             await expectRevert(
-                multiCallWrapper.redeem2(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                multiCallWrapper.redeem2(asset.address, usdPlus.address, toE6(1), toE6(1)),
                 "Only once in block"
             );
         });
 
         it("redeem into buy should fail", async function () {
             await expectRevert(
-                multiCallWrapper.redeemBuy(usdc.address, usdPlus.address, toUSDC(1), toUSDC(1)),
+                multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toE6(1), toAsset(1)),
                 "Only once in block"
             );
+        });
+
+    });
+
+    describe("Payout", function () {
+
+        let mockPL;
+
+        sharedBeforeEach('deploy', async () => {
+            await deployments.fixture(['MockPayoutListener']);
+            mockPL = await ethers.getContract("MockPayoutListener");
+
+            await exchange.setBuyFee(25, 100000);
+        });
+
+
+        it("Mint, Payout should increase liq index", async function () {
+
+            // unset PL if was set on deploy stage
+            await (await exchange.setPayoutListener(ZERO_ADDRESS)).wait();
+
+            const sum = toAsset(100000);
+            await (await asset.approve(exchange.address, sum)).wait();
+            await (await exchange.buy(asset.address, sum)).wait();
+
+            let totalNetAssets = new BigNumber(fromAsset((await m2m.totalNetAssets()).toString()));
+            let totalLiqAssets = new BigNumber(fromAsset((await m2m.totalLiquidationAssets()).toString()));
+            let liquidationIndex = await usdPlus.liquidityIndex();
+            let balanceUsdPlusUser = fromE6(await usdPlus.balanceOf(account));
+
+            // wait 1 days
+            const days = 1 * 24 * 60 * 60;
+            await ethers.provider.send("evm_increaseTime", [days])
+            await ethers.provider.send('evm_mine');
+
+            let receipt = await (await exchange.payout()).wait();
+            console.log(`Payout: gas used: ${receipt.gasUsed}`);
+
+            let totalNetAssetsNew = new BigNumber(fromAsset((await m2m.totalNetAssets()).toString()));
+            let totalLiqAssetsNew = new BigNumber(fromAsset((await m2m.totalLiquidationAssets()).toString()));
+            let liquidationIndexNew = await usdPlus.liquidityIndex();
+            let balanceUsdPlusUserNew = fromE6(await usdPlus.balanceOf(account));
+
+            console.log(`Total net assets ${totalNetAssets.toFixed()}->${totalNetAssetsNew.toFixed()}`);
+            console.log(`Total liq assets ${totalLiqAssets.toFixed()}->${totalLiqAssetsNew.toFixed()}`);
+            console.log(`Liq index ${liquidationIndex}->${liquidationIndexNew}`);
+            console.log(`Balance usd+ ${balanceUsdPlusUser}->${balanceUsdPlusUserNew}`);
+
+            expect(liquidationIndexNew.toString()).to.not.eq(liquidationIndex.toString());
+            expect(totalNetAssetsNew.gte(totalNetAssets)).to.equal(true);
+            expect(totalLiqAssetsNew.gte(totalLiqAssets)).to.equal(true);
+            expect(balanceUsdPlusUserNew).to.greaterThan(balanceUsdPlusUser);
+        });
+
+        it("Call payout with PayoutListener", async function () {
+
+            // unset PL if was set on deploy stage
+            await (await exchange.setPayoutListener(ZERO_ADDRESS)).wait();
+
+            const sum = toAsset(100000);
+            await (await asset.approve(exchange.address, sum)).wait();
+            await (await exchange.buy(asset.address, sum)).wait();
+
+            // wait 1 days
+            const days = 1 * 24 * 60 * 60;
+            await ethers.provider.send("evm_increaseTime", [days])
+            await ethers.provider.send('evm_mine');
+
+            // when not set mock PL payout should pass ok
+            evmCheckpoint('before_payout');
+            let payoutReceipt = await (await exchange.payout()).wait();
+            const payoutEvent = payoutReceipt.events.find((e) => e.event === 'PayoutEvent');
+            expect(payoutEvent).to.not.be.undefined;
+            evmRestore('before_payout');
+
+            let receipt = await (await exchange.setPayoutListener(mockPL.address)).wait();
+            const updatedEvent = receipt.events.find((e) => e.event === 'PayoutListenerUpdated');
+            expect(updatedEvent.args[0]).to.equals(mockPL.address);
+
+            await expectRevert(mockPL.payoutDone(), 'MockPayoutListener.payoutDone() called');
+            await expectRevert(exchange.payout(), 'MockPayoutListener.payoutDone() called');
         });
 
     });

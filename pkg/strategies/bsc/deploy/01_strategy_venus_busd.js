@@ -8,20 +8,20 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     if (hre.ovn === undefined || !hre.ovn.noDeploy) {
-        await deployProxy('StrategyVenusBUSD', deployments, save);
+        await deployProxy('StrategyVenusBusd', deployments, save);
 
-        console.log('StrategyVenusBUSD deploy done');
+        console.log('StrategyVenusBusd deploy done');
     }
 
     if (hre.ovn === undefined || hre.ovn.setting) {
-        const strategy = await ethers.getContract('StrategyVenusBUSD');
+        const strategy = await ethers.getContract('StrategyVenusBusd');
 
         await (await strategy.setPortfolioManager(core.pm)).wait();
         await (await strategy.setTokens(BSC.busd)).wait();
         await (await strategy.setParams(BSC.vBusd)).wait();
 
-        console.log('StrategyVenusBUSD setting done');
+        console.log('StrategyVenusBusd setting done');
     }
 };
 
-module.exports.tags = ['base', 'StrategyVenusBUSD'];
+module.exports.tags = ['base', 'StrategyVenusBusd'];

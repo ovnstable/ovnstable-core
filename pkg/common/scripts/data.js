@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, toUSDC, fromOvn} = require("../utils/decimals");
+const {fromE18, toE6, fromE6} = require("../utils/decimals");
 const ethers = hre.ethers;
 
 let OVN = JSON.parse(fs.readFileSync('./deployments/old_polygon/OvernightToken.json'));
@@ -16,7 +16,7 @@ async function main() {
     let wallet = await new ethers.Wallet("", provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    console.log('Balance wallet: ' + fromE18(balance.toString()))
 
     let portfolioManager = await ethers.getContractAt(PM.abi, "0xEa250cbf97b47522fda27a2875868491509Ca393", wallet);
     let exchange = await ethers.getContractAt(Exchange.abi, "0x2f7ECA37123f70Fd60D9339C622B14Dd0e515b7E", wallet);
@@ -30,15 +30,15 @@ async function main() {
 
     await exchange.setTokens(ovn.address, USDC.address)
 
-    console.log('Balance ovn: ' + fromOvn(await ovn.balanceOf(wallet.address)))
-    console.log('Balance usdc: ' + fromOvn(await USDC.balanceOf(wallet.address)))
+    console.log('Balance ovn: ' + fromE6(await ovn.balanceOf(wallet.address)))
+    console.log('Balance usdc: ' + fromE6(await USDC.balanceOf(wallet.address)))
 
-    let sum = toUSDC(1);
+    let sum = toE6(1);
     await USDC.approve(exchange.address, sum);
     await exchange.buy(USDC.address, sum);
 
-    console.log('Balance ovn: ' + fromOvn(await ovn.balanceOf(wallet.address)))
-    console.log('Balance usdc: ' + fromOvn(await USDC.balanceOf(wallet.address)))
+    console.log('Balance ovn: ' + fromE6(await ovn.balanceOf(wallet.address)))
+    console.log('Balance usdc: ' + fromE6(await USDC.balanceOf(wallet.address)))
 }
 
 

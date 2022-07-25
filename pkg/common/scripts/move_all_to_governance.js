@@ -37,7 +37,7 @@ async function main() {
     await printRules(aave, 'Aave');
 
     await (await ovnToken.mint(wallet.address, toE18(100_000_000))).wait();
-    console.log('OVN balance: ' + fromE18(await ovnToken.balanceOf(wallet.address)));
+    console.log('OVN balance: ' + fromE18((await ovnToken.balanceOf(wallet.address)).toString()));
 
     await moveRules(ovnToken, wallet.address , timeLock.address);
     await printRules(ovnToken, 'OvnToken');

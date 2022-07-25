@@ -9,7 +9,6 @@ chai.use(solidity);
 
 describe("PreOvnToken", function () {
 
-
     let token;
     let account;
     let user1;
@@ -36,7 +35,6 @@ describe("PreOvnToken", function () {
         expect(0).to.eq(await token.balanceOf(account));
     });
 
-
     it("Mint -> throw: Restricted to admin", async function () {
         await expectRevert(token.connect(user1).mint(user1.address, 100), 'Restricted to admin');
     });
@@ -44,7 +42,5 @@ describe("PreOvnToken", function () {
     it("Burn -> throw: Restricted to admin", async function () {
         await expectRevert(token.connect(user1).burn(user1.address, 100), 'Restricted to admin');
     });
-
-
 
 });

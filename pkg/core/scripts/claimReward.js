@@ -29,7 +29,7 @@ async function main() {
 
     let value = await stakingRewardQsUsdcWeth.paid(wallet.address);
     console.log('Paid: '+ value);
-    console.log('Paid: '+ fromE18(value ));
+    console.log('Paid: '+ fromE18(value.toString()));
 
     // addresses.push(preOvn.address);
     // values.push(0);

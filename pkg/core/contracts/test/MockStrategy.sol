@@ -6,13 +6,13 @@ import "../interfaces/IStrategy.sol";
 
 contract MockStrategy is IStrategy {
 
-    IERC20 public usdcToken;
+    IERC20 public asset;
 
     // --- Setters
 
-    constructor(address _usdcToken, uint256 nonce)  {
-        require(_usdcToken != address(0), "Zero address not allowed");
-        usdcToken = IERC20(_usdcToken);
+    constructor(address _asset, uint256 nonce)  {
+        require(_asset != address(0), "Zero address not allowed");
+        asset = IERC20(_asset);
     }
 
 
@@ -31,24 +31,24 @@ contract MockStrategy is IStrategy {
         address _beneficiary,
         bool targetIsZero
     ) external override returns (uint256) {
-        uint256 balance = usdcToken.balanceOf(address(this));
+        uint256 balance = asset.balanceOf(address(this));
         if (targetIsZero) {
-            usdcToken.transfer(_beneficiary, balance);
+            asset.transfer(_beneficiary, balance);
             return balance;
         } else {
             require(balance >= _amount, "MockStrategy: unstake more than balance");
-            usdcToken.transfer(_beneficiary, _amount);
+            asset.transfer(_beneficiary, _amount);
             return _amount;
         }
     }
 
 
     function netAssetValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this));
+        return asset.balanceOf(address(this));
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this));
+        return asset.balanceOf(address(this));
     }
 
     function claimRewards(address _to) external override returns (uint256) {

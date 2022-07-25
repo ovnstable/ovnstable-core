@@ -1,4 +1,4 @@
-const {fromOvnGov, fromE18} = require("./decimals");
+const {fromE18} = require("./decimals");
 const {expect} = require("chai");
 const {getContract, initWallet, getPrice} = require("./script-utils");
 const hre = require('hardhat');
@@ -61,9 +61,9 @@ async function execProposal(id) {
 
     await ovn.delegate(wallet.address);
 
-    let quorum = fromOvnGov(await governator.quorum(await ethers.provider.getBlockNumber() - 1));
+    let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber() - 1)).toString());
     console.log('Quorum: ' + quorum);
-    console.log('OVN balance user: ' + fromE18(await ovn.balanceOf(wallet.address)));
+    console.log('OVN balance user: ' + fromE18((await ovn.balanceOf(wallet.address)).toString()));
 
     const proposalId = id;
 
@@ -91,7 +91,7 @@ async function execProposal(id) {
     item = await governator.connect(wallet).proposals(proposalId);
     console.log('Votes for: ' + item.forVotes / 10 ** 18);
 
-    let total = fromOvnGov(await ovn.getVotes(wallet.address));
+    let total = fromE18((await ovn.getVotes(wallet.address)).toString());
     console.log('Delegated ' + total)
 
     let waitBlock = 200;

@@ -11,8 +11,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const m2m = await ethers.getContract("Mark2Market");
     const pm = await ethers.getContract("PortfolioManager");
 
-    console.log("exchange.setToken: usdPlus " + usdPlus.address + " usdc: " + DEFAULT.usdc);
-    let tx = await exchange.setTokens(usdPlus.address, DEFAULT.usdc);
+    let asset;
+    if (process.env.STAND === 'bsc') {
+        asset = DEFAULT.busd;
+    } else {
+        asset = DEFAULT.usdc;
+    }
+
+    console.log("exchange.setToken: usdPlus " + usdPlus.address + " asset: " + asset);
+    let tx = await exchange.setTokens(usdPlus.address, asset);
     await tx.wait();
     console.log("exchange.setTokens done");
 

@@ -8,7 +8,7 @@ const {logGas} = require("@overnight-contracts/common/utils/gas");
 
 const hre = require("hardhat");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
-const {toOvn, fromOvn} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
@@ -357,15 +357,15 @@ describe("Liquidity Index", function () {
 
         let newLiquidityIndex = new BN("1022809482605723771055655202");
         await rebase.setLiquidityIndex(newLiquidityIndex.toString());
-        await rebase.mint(account, toOvn(100));
+        await rebase.mint(account, toE6(100));
 
-        let balance = fromOvn(await rebase.balanceOf(account));
+        let balance = fromE6(await rebase.balanceOf(account));
         console.log("Balance rebase: " + balance);
         expect(balance).to.equals(100)
 
-        await rebase.approve(tmpUser.address, toOvn(100));
+        await rebase.approve(tmpUser.address, toE6(100));
 
-        let allowance = fromOvn(await rebase.allowance(account, tmpUser.address));
+        let allowance = fromE6(await rebase.allowance(account, tmpUser.address));
         console.log("allowance rebase: " + allowance);
         expect(allowance).to.equals(100);
 
@@ -394,28 +394,28 @@ describe("Total Mint/Burn/Supply", function () {
     it("Total Supply", async function () {
 
         await rebase.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await rebase.mint(account, toOvn(100));
+        await rebase.mint(account, toE6(100));
 
-        let balance = fromOvn(await rebase.totalSupply());
+        let balance = fromE6(await rebase.totalSupply());
         expect(balance).to.equals(100)
 
         await rebase.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
 
-        balance = fromOvn(await rebase.totalSupply());
+        balance = fromE6(await rebase.totalSupply());
         expect(balance).to.equals(100.977699)
     });
 
     it("Total Mint", async function () {
 
         await rebase.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await rebase.mint(account, toOvn(100));
+        await rebase.mint(account, toE6(100));
 
-        let balance = fromOvn(await rebase.totalMint());
+        let balance = fromE6(await rebase.totalMint());
         expect(balance).to.equals(100);
 
         await rebase.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
 
-        balance = fromOvn(await rebase.totalMint());
+        balance = fromE6(await rebase.totalMint());
         expect(balance).to.equals(100.977699)
 
     });
@@ -423,16 +423,16 @@ describe("Total Mint/Burn/Supply", function () {
     it("Total Burn", async function () {
 
         await rebase.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await rebase.mint(account, toOvn(100));
-        await rebase.burn(account, toOvn(50));
+        await rebase.mint(account, toE6(100));
+        await rebase.burn(account, toE6(50));
 
-        let balance = fromOvn(await rebase.totalBurn());
+        let balance = fromE6(await rebase.totalBurn());
         expect(balance).to.equals(50);
 
 
         await rebase.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
 
-        balance = fromOvn(await rebase.totalBurn());
+        balance = fromE6(await rebase.totalBurn());
         expect(balance).to.equals(50.48885)
     });
 

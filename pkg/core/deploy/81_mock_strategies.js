@@ -9,17 +9,23 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const pm = await ethers.getContract("PortfolioManager");
     const exchange = await ethers.getContract("Exchange");
 
-
+    let asset;
+    if (process.env.STAND === 'bsc') {
+        asset = DEFAULT.busd;
+    } else {
+        asset = DEFAULT.usdc;
+    }
 
     let mockStrategy1 = await deploy("MockStrategy", {
         from: deployer,
-        args: [DEFAULT.usdc, 1],
+        args: [asset, 1],
         log: true,
         skipIfAlreadyDeployed: false
     });
+
     let mockStrategy2 = await deploy("MockStrategy", {
         from: deployer,
-        args: [DEFAULT.usdc, 2],
+        args: [asset, 2],
         log: true,
         skipIfAlreadyDeployed: false
     });
@@ -41,7 +47,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         enabled: true,
         enabledReward: true,
     }
-
 
     let weights = [
         strategy1,

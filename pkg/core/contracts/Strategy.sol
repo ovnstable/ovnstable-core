@@ -30,6 +30,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     override
     {}
 
+
     // ---  modifiers
 
     modifier onlyPortfolioManager() {
@@ -41,6 +42,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
     }
+
 
     // --- setters
 
@@ -57,13 +59,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     // --- logic
 
-
     function stake(
-        address _asset, // USDC
-        uint256 _amount // value for staking in USDC
+        address _asset,
+        uint256 _amount
     ) external override onlyPortfolioManager {
-        emit Stake(_amount);
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
+        emit Stake(_amount);
     }
 
     function unstake(
@@ -74,7 +75,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     ) external override onlyPortfolioManager returns (uint256) {
         uint256 withdrawAmount;
         if (_targetIsZero) {
-            emit Reward(_claimRewards(_beneficiary));
+            uint256 totalAsset = _claimRewards(_beneficiary);
+            if (totalAsset > 0) {
+                emit Reward(totalAsset);
+            }
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
@@ -88,9 +92,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
-        uint256 totalUsdc = _claimRewards(_to);
-        emit Reward(totalUsdc);
-        return totalUsdc;
+        uint256 totalAsset = _claimRewards(_to);
+        if (totalAsset > 0) {
+            emit Reward(totalAsset);
+        }
+        return totalAsset;
     }
 
     function healthFactorBalance() external override onlyPortfolioManager {
@@ -102,7 +108,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function setHealthFactor(uint256 healthFactor) external override onlyPortfolioManager {
         _setHealthFactor(healthFactor);
-
         emit SetHealthFactor(healthFactor);
     }
 
@@ -117,18 +122,18 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset,
         uint256 _amount,
         address _beneficiary
-    ) internal virtual returns (uint256){
+    ) internal virtual returns (uint256) {
         revert("Not implemented");
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
-    ) internal virtual returns (uint256){
+    ) internal virtual returns (uint256) {
         revert("Not implemented");
     }
 
-    function _claimRewards(address _to) internal virtual returns (uint256){
+    function _claimRewards(address _to) internal virtual returns (uint256) {
         revert("Not implemented");
     }
 

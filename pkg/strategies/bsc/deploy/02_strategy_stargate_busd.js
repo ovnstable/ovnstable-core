@@ -14,19 +14,20 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     if (hre.ovn === undefined || !hre.ovn.noDeploy) {
-        await deployProxy('StrategyStargateBUSD', deployments, save);
-        console.log('StrategyStargateBUSD deploy done');
+        await deployProxy('StrategyStargateBusd', deployments, save);
+
+        console.log('StrategyStargateBusd deploy done');
     }
 
     if (hre.ovn === undefined || hre.ovn.setting) {
-        const strategy = await ethers.getContract('StrategyStargateBUSD');
+        const strategy = await ethers.getContract('StrategyStargateBusd');
 
         await (await strategy.setPortfolioManager(core.pm)).wait();
         await (await strategy.setTokens(BSC.busd, stgToken)).wait();
         await (await strategy.setParams(stargateRouter, pool, lpStaking, BSC.pancakeRouter, pid)).wait();
 
-        console.log('StrategyStargateBUSD setting done');
+        console.log('StrategyStargateBusd setting done');
     }
 };
 
-module.exports.tags = ['base', 'StrategyStargateBUSD'];
+module.exports.tags = ['base', 'StrategyStargateBusd'];

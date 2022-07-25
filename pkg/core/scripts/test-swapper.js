@@ -2,7 +2,7 @@ const hre = require("hardhat");
 const ethers = hre.ethers;
 const {getContract, getPrice, execTimelock, showM2M, changeWeightsAndBalance, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
-const {toUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {core} = require("@overnight-contracts/common/utils/core");
 
@@ -35,11 +35,11 @@ async function main() {
             await upgradeTo(timelock);
 
             let exchange = await getContract('Exchange');
-            await usdc.approve(exchange.address, toUSDC(sum));
+            await usdc.approve(exchange.address, toE6(sum));
             console.log('bbbb2');
 
 
-            let tx = await exchange.buy(POLYGON.usdc, toUSDC(sum));
+            let tx = await exchange.buy(POLYGON.usdc, toE6(sum));
             report.buyGasLimit = tx.gasLimit.toString();
 
             await showM2M();

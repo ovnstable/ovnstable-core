@@ -15,24 +15,24 @@ interface IStrategy {
     event SetHealthFactor(uint256 healthFactor);
 
     function stake(
-        address _asset, // USDC
-        uint256 _amount // value for staking in USDC
+        address _asset,
+        uint256 _amount
     ) external;
 
     function unstake(
-        address _asset, // USDC
-        uint256 _amount, // minimum expected value for unstaking in USDC
-        address _beneficiary, // PortfolioManager
-        bool targetIsZero // allow unstake full value
-    ) external returns (uint256); // Real unstake value
+        address _asset,
+        uint256 _amount,
+        address _beneficiary,
+        bool targetIsZero
+    ) external returns (uint256);
 
-    function netAssetValue() external view returns (uint256); // Return value in USDC - denominator 6
+    function netAssetValue() external view returns (uint256);
 
-    function liquidationValue() external view returns (uint256); // Return value in USDC - denominator 6
+    function liquidationValue() external view returns (uint256);
 
-    function claimRewards(address _to) external returns (uint256); // Return received amount in USDC - denominator 6
+    function claimRewards(address _to) external returns (uint256);
 
-    function healthFactorBalance() external; // Balancing aave health factor
+    function healthFactorBalance() external;
 
-    function setHealthFactor(uint256 healthFactor) external; // Aave healthFactor setter
+    function setHealthFactor(uint256 healthFactor) external;
 }

@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, toUSDC, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18, toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const ethers = hre.ethers;
 
 let ERC20 = JSON.parse(fs.readFileSync('./artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'));
@@ -26,7 +26,7 @@ async function main() {
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    console.log('Balance wallet: ' + fromE18(balance.toString()))
 
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
@@ -105,10 +105,10 @@ async function main() {
     console.log("portfolio.setWeights done");
 
 
-    // await (await USDC.approve(exchange.address, toUSDC(50))).wait();
+    // await (await USDC.approve(exchange.address, toE6(50))).wait();
     // console.log('Approve USDC done');
     //
-    // await (await exchange.buy(FANTOM.usdc, toUSDC(50) )).wait();
+    // await (await exchange.buy(FANTOM.usdc, toE6(50) )).wait();
     //
 
     // await (await pm.balance()).wait();

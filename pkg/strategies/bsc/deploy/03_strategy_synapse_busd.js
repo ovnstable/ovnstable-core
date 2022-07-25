@@ -14,20 +14,20 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     if (hre.ovn === undefined || !hre.ovn.noDeploy) {
-        await deployProxy('StrategySynapseBUSD', deployments, save);
+        await deployProxy('StrategySynapseBusd', deployments, save);
 
-        console.log('StrategySynapseBUSD deploy done');
+        console.log('StrategySynapseBusd deploy done');
     }
 
     if (hre.ovn === undefined || hre.ovn.setting) {
-        const strategy = await ethers.getContract('StrategySynapseBUSD');
+        const strategy = await ethers.getContract('StrategySynapseBusd');
 
         await (await strategy.setPortfolioManager(core.pm)).wait();
         await (await strategy.setTokens(BSC.busd, nUsdLPToken, synToken)).wait();
         await (await strategy.setParams(swap, miniChefV2, BSC.pancakeRouter, pid)).wait();
 
-        console.log('StrategySynapseBUSD setting done');
+        console.log('StrategySynapseBusd setting done');
     }
 };
 
-module.exports.tags = ['base', 'StrategySynapseBUSD'];
+module.exports.tags = ['base', 'StrategySynapseBusd'];

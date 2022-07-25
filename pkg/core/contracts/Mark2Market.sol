@@ -89,19 +89,19 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
     }
 
     function _totalAssets(bool liquidation) internal view returns (uint256) {
-        uint256 totalUsdcPrice = 0;
+        uint256 totalAssetPrice = 0;
         IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
 
         for (uint8 i = 0; i < weights.length; i++) {
             IStrategy strategy = IStrategy(weights[i].strategy);
             if (liquidation) {
-                totalUsdcPrice += strategy.liquidationValue();
+                totalAssetPrice += strategy.liquidationValue();
             } else {
-                totalUsdcPrice += strategy.netAssetValue();
+                totalAssetPrice += strategy.netAssetValue();
             }
         }
 
-        return totalUsdcPrice;
+        return totalAssetPrice;
     }
 
 }

@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const {deployments, getNamedAccounts, ethers} = require("hardhat");
-const {resetHardhat} = require("./tests");
+const {resetHardhat, greatLess} = require("./tests");
 const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toE6, toE18} = require("./decimals");
@@ -528,25 +528,6 @@ function healthFactorBalance(strategyParams, network, assetAddress, values, runS
         });
 
     });
-}
-
-function greatLess(value, expected, delta) {
-
-    let maxValue = expected.plus(delta);
-    let minValue = expected.minus(delta);
-
-    let lte = value.lte(maxValue);
-    let gte = value.gte(minValue);
-
-    let valueNumber = value.div(new BigNumber(10).pow(6)).toFixed();
-    let minValueNumber = minValue.div(new BigNumber(10).pow(6)).toFixed();
-    let maxValueNumber = maxValue.div(new BigNumber(10).pow(6)).toFixed();
-
-    let minSub = (value.minus(minValue)).div(new BigNumber(10).pow(6)).toFixed();
-    let maxSub = (value.minus(maxValue)).div(new BigNumber(10).pow(6)).toFixed();
-
-    expect(gte).to.equal(true, `Value[${valueNumber}] less than Min Value[${minValueNumber}] dif:[${minSub}]`);
-    expect(lte).to.equal(true, `Value[${valueNumber}] great than Max Value[${maxValueNumber}] dif:[${maxSub}]`);
 }
 
 module.exports = {

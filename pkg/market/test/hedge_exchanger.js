@@ -1,6 +1,6 @@
 const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
-const {toUSDC, fromOvn, fromUSDC} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
 const BN = require('bignumber.js');
 const {greatLess} = require("@overnight-contracts/common/utils/tests");
@@ -59,7 +59,7 @@ describe("HedgeExchanger", function () {
         let sum;
 
         sharedBeforeEach("buy:revert", async () => {
-            sum = toUSDC(100);
+            sum = toE6(100);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
@@ -78,7 +78,7 @@ describe("HedgeExchanger", function () {
 
 
         sharedBeforeEach("buy", async () => {
-            const sum = toUSDC(100);
+            const sum = toE6(100);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
@@ -88,11 +88,11 @@ describe("HedgeExchanger", function () {
         });
 
         it("Balance: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(account))).to.eq(99.96)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(99.96)
         });
 
         it("Balance: usd+", async function () {
-            expect(fromUSDC(await usdPlus.balanceOf(account))).to.eq(0)
+            expect(fromE6(await usdPlus.balanceOf(account))).to.eq(0)
         });
 
     });
@@ -102,8 +102,8 @@ describe("HedgeExchanger", function () {
 
 
         sharedBeforeEach("redeem", async () => {
-            const sum = toUSDC(100);
-            const sumRedeem = toUSDC(50);
+            const sum = toE6(100);
+            const sumRedeem = toE6(50);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
@@ -114,11 +114,11 @@ describe("HedgeExchanger", function () {
         });
 
         it("Balance: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(account))).to.eq(49.96)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(49.96)
         });
 
         it("Balance: usd+", async function () {
-            expect(fromUSDC(await usdPlus.balanceOf(account))).to.eq(49.98)
+            expect(fromE6(await usdPlus.balanceOf(account))).to.eq(49.98)
         });
 
     });
@@ -129,8 +129,8 @@ describe("HedgeExchanger", function () {
         let sumRedeem;
 
         sharedBeforeEach("redeem:revert", async () => {
-            sum = toUSDC(100);
-            sumRedeem = toUSDC(50);
+            sum = toE6(100);
+            sumRedeem = toE6(50);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
@@ -152,14 +152,14 @@ describe("HedgeExchanger", function () {
         let payoutTx;
 
         sharedBeforeEach("payout", async () => {
-            const sum = toUSDC(100);
+            const sum = toE6(100);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
             await exchange.buy(sum);
 
-            await usdPlus.mint(strategy.address, toUSDC(10));
+            await usdPlus.mint(strategy.address, toE6(10));
 
             payoutTx = await exchange.payout();
 
@@ -172,11 +172,11 @@ describe("HedgeExchanger", function () {
         });
 
         it("Balance: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(account))).to.eq(108.748439)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(108.748439)
         });
 
         it("Balance collector: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(collector.address))).to.eq(1.251561)
+            expect(fromE6(await rebase.balanceOf(collector.address))).to.eq(1.251561)
         });
 
 
@@ -187,14 +187,14 @@ describe("HedgeExchanger", function () {
         let payoutTx;
 
         sharedBeforeEach("payout", async () => {
-            const sum = toUSDC(100);
+            const sum = toE6(100);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
             await exchange.buy(sum);
 
-            await usdPlus.burn(strategy.address, toUSDC(10));
+            await usdPlus.burn(strategy.address, toE6(10));
 
             payoutTx = await exchange.payout();
 
@@ -207,11 +207,11 @@ describe("HedgeExchanger", function () {
         });
 
         it("Balance: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(account))).to.eq(90)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(90)
         });
 
         it("Balance collector: rebase", async function () {
-            expect(fromUSDC(await rebase.balanceOf(collector.address))).to.eq(0)
+            expect(fromE6(await rebase.balanceOf(collector.address))).to.eq(0)
         });
 
 
@@ -222,7 +222,7 @@ describe("HedgeExchanger", function () {
 
 
         sharedBeforeEach("payout", async () => {
-            const sum = toUSDC(100);
+            const sum = toE6(100);
 
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);

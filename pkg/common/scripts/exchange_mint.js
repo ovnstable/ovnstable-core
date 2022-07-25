@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {fromE18, fromUSDC} = require("../utils/decimals");
+const {fromE18, fromE6} = require("../utils/decimals");
 const {evmCheckpoint, evmRestore} = require("../test/common/sharedBeforeEach")
 const ethers = hre.ethers;
 
@@ -21,7 +21,7 @@ async function main() {
     let wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    console.log('Balance wallet: ' + fromE18(balance.toString()))
 
     let exchange = await ethers.getContractAt(Exchange.abi, Exchange.address, wallet);
     let pm = await ethers.getContractAt(PM.abi, PM.address, wallet);
@@ -41,7 +41,7 @@ async function main() {
         // let balanceUSDC = await USDC.balanceOf(wallet.address);
         // await USDC.approve(exchange.address, balanceUSDC);
         //
-        // console.log('Balance USDC: ' + fromUSDC(balanceUSDC) )
+        // console.log('Balance USDC: ' + fromE6(balanceUSDC) )
         // await exchange.buy(USDC.address, balanceUSDC);
         // await exchange.payout();
 

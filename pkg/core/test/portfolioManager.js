@@ -1,9 +1,9 @@
 const {expect} = require("chai");
 const chai = require("chai");
 const {deployments, ethers, getNamedAccounts, upgrades} = require("hardhat");
-
+const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
 const hre = require("hardhat");
-let {POLYGON} = require('@overnight-contracts/common/utils/assets');
+let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const {constants} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
@@ -16,7 +16,7 @@ chai.use(solidity);
 
 describe("PortfolioManager set new cash strategy", function () {
 
-    let usdc;
+    let asset;
     let mockCashStrategyA;
     let mockCashStrategyB;
     let pm;
@@ -24,22 +24,29 @@ describe("PortfolioManager set new cash strategy", function () {
     sharedBeforeEach(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
+        await resetHardhat(process.env.STAND);
 
         const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
 
         await deployments.fixture(['base', 'setting', 'test']);
 
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        let assetAddress;
+        if (process.env.STAND === 'bsc') {
+            assetAddress = DEFAULT.busd;
+        } else {
+            assetAddress = DEFAULT.usdc;
+        }
+        asset = await ethers.getContractAt("ERC20", assetAddress);
         mockCashStrategyA = await deploy("MockStrategy", {
             from: deployer,
-            args: [POLYGON.usdc, 1],
+            args: [assetAddress, 1],
             log: true,
             skipIfAlreadyDeployed: false
         });
         mockCashStrategyB = await deploy("MockStrategy", {
             from: deployer,
-            args: [POLYGON.usdc, 2],
+            args: [assetAddress, 2],
             log: true,
             skipIfAlreadyDeployed: false
         });
@@ -50,7 +57,7 @@ describe("PortfolioManager set new cash strategy", function () {
         await pm.deployTransaction.wait();
         await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
-        await pm.setUsdc(usdc.address);
+        await pm.setAsset(asset.address);
     });
 
 
@@ -67,8 +74,8 @@ describe("PortfolioManager set new cash strategy", function () {
             .to.emit(pm, "CashStrategyAlreadySet")
             .withArgs(mockCashStrategyA.address);
 
-        expect(await usdc.balanceOf(mockCashStrategyA.address)).to.equal(0);
-        expect(await usdc.balanceOf(mockCashStrategyB.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyA.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyB.address)).to.equal(0);
 
         await expect(pm.setCashStrategy(mockCashStrategyB.address))
             .to.not.emit(pm, "CashStrategyRestaked")
@@ -78,25 +85,25 @@ describe("PortfolioManager set new cash strategy", function () {
             .to.emit(pm, "CashStrategyAlreadySet")
             .withArgs(mockCashStrategyB.address);
 
-        expect(await usdc.balanceOf(mockCashStrategyA.address)).to.equal(0);
-        expect(await usdc.balanceOf(mockCashStrategyB.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyA.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyB.address)).to.equal(0);
     });
 
     it("Set new cash strategy when prev have liquidity", async function () {
 
         await pm.setCashStrategy(mockCashStrategyA.address);
 
-        await usdc.transfer(mockCashStrategyA.address, 1234);
+        await asset.transfer(mockCashStrategyA.address, 1234);
 
-        expect(await usdc.balanceOf(mockCashStrategyA.address)).to.equal(1234);
-        expect(await usdc.balanceOf(mockCashStrategyB.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyA.address)).to.equal(1234);
+        expect(await asset.balanceOf(mockCashStrategyB.address)).to.equal(0);
 
         await expect(pm.setCashStrategy(mockCashStrategyB.address))
             .to.emit(pm, "CashStrategyRestaked")
             .withArgs(1234);
 
-        expect(await usdc.balanceOf(mockCashStrategyA.address)).to.equal(0);
-        expect(await usdc.balanceOf(mockCashStrategyB.address)).to.equal(1234);
+        expect(await asset.balanceOf(mockCashStrategyA.address)).to.equal(0);
+        expect(await asset.balanceOf(mockCashStrategyB.address)).to.equal(1234);
 
     });
 
@@ -137,7 +144,7 @@ describe("PortfolioManager not set cash strategy", function () {
 
 describe("PortfolioManager", function () {
 
-    let usdc;
+    let asset;
     let cashStrategy;
     let nonCashStrategy;
     let account;
@@ -146,6 +153,7 @@ describe("PortfolioManager", function () {
     sharedBeforeEach(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
+        await resetHardhat(process.env.STAND);
 
         const {deploy} = deployments;
         const {deployer} = await getNamedAccounts();
@@ -153,16 +161,22 @@ describe("PortfolioManager", function () {
 
         await deployments.fixture(['test']);
 
-        usdc = await ethers.getContractAt("ERC20", POLYGON.usdc);
+        let assetAddress;
+        if (process.env.STAND === 'bsc') {
+            assetAddress = DEFAULT.busd;
+        } else {
+            assetAddress = DEFAULT.usdc;
+        }
+        asset = await ethers.getContractAt("ERC20", assetAddress);
         cashStrategy = await deploy("MockStrategy", {
             from: deployer,
-            args: [POLYGON.usdc, 1],
+            args: [assetAddress, 1],
             log: true,
             skipIfAlreadyDeployed: false
         });
         nonCashStrategy = await deploy("MockStrategy", {
             from: deployer,
-            args: [POLYGON.usdc, 2],
+            args: [assetAddress, 2],
             log: true,
             skipIfAlreadyDeployed: false
         });
@@ -173,7 +187,7 @@ describe("PortfolioManager", function () {
         await pm.deployTransaction.wait();
         await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
-        await pm.setUsdc(usdc.address);
+        await pm.setAsset(asset.address);
         await pm.setExchanger(deployer);
 
 
@@ -200,63 +214,63 @@ describe("PortfolioManager", function () {
 
     it("Deposit less then cash limit", async function () {
 
-        await usdc.transfer(pm.address, 100);
-        await pm.deposit(usdc.address, 100);
+        await asset.transfer(pm.address, 100);
+        await pm.deposit(asset.address, 100);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(10);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
-        await usdc.transfer(pm.address, 5);
-        await pm.deposit(usdc.address, 5);
+        await asset.transfer(pm.address, 5);
+        await pm.deposit(asset.address, 5);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(15);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(15);
 
     });
 
     it("Deposit more then cash limit", async function () {
 
-        await usdc.transfer(pm.address, 100);
-        await pm.deposit(usdc.address, 100);
+        await asset.transfer(pm.address, 100);
+        await pm.deposit(asset.address, 100);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(10);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
-        await usdc.transfer(pm.address, 100);
-        await pm.deposit(usdc.address, 100);
+        await asset.transfer(pm.address, 100);
+        await pm.deposit(asset.address, 100);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(180);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(20);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
 
     });
 
     it("Withdraw less then cash amount", async function () {
 
-        await usdc.transfer(pm.address, 100);
-        await pm.deposit(usdc.address, 100);
+        await asset.transfer(pm.address, 100);
+        await pm.deposit(asset.address, 100);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(10);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
-        await pm.withdraw(usdc.address, 5);
+        await pm.withdraw(asset.address, 5);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(5);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(5);
 
     });
 
     it("Withdraw more then cash amount", async function () {
 
-        await usdc.transfer(pm.address, 200);
-        await pm.deposit(usdc.address, 200);
+        await asset.transfer(pm.address, 200);
+        await pm.deposit(asset.address, 200);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(180);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(20);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
 
-        await pm.withdraw(usdc.address, 100);
+        await pm.withdraw(asset.address, 100);
 
-        expect(await usdc.balanceOf(nonCashStrategy.address)).to.equal(90);
-        expect(await usdc.balanceOf(cashStrategy.address)).to.equal(10);
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
     });
 

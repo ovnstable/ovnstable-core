@@ -12,7 +12,7 @@ async function main() {
     let wallet = await new ethers.Wallet("", provider);
     console.log('Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance))
+    console.log('Balance wallet: ' + fromE18(balance.toString()))
 
     let gasPrice = await provider.getGasPrice();
     console.log('Gas price: ' + gasPrice)
