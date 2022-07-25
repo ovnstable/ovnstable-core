@@ -19,7 +19,7 @@ async function main() {
             "strategy": "0xe4Be0f206828Be0B5D48142F465aBD4e57dB58D4",
             "name": "Stargate Busd",
             "minWeight": 0,
-            "targetWeight": 48,
+            "targetWeight": 17.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -28,7 +28,7 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse Busd",
             "minWeight": 0,
-            "targetWeight": 49.5,
+            "targetWeight": 80,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -56,7 +56,7 @@ async function main() {
 
     // await changeWeightsAndBalance(weights);
     // await proposal(weights);
-    // await setWeights(weights);
+    await setWeights(weights);
 }
 
 async function proposal(weights) {
