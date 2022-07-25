@@ -2,7 +2,7 @@ require('hardhat-deploy');
 require('@openzeppelin/hardhat-upgrades');
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter")
-
+require('@overnight-contracts/common/utils/hardhat-ovn');
 const config = require("../common/utils/hardhat-config");
 
 module.exports = {
