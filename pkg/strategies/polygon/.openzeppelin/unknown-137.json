@@ -680,6 +680,31 @@
       "address": "0xfb45117c7F894A97575f5D8a466c8F07C49Ed460",
       "txHash": "0x1a9bb2cdf68e346d83b1d76e1635aebeb04f6a6653e5827e27111eede2bb8195",
       "kind": "uups"
+    },
+    {
+      "address": "0x25c5bdeA89b2a831fF8957856C220c559F5570De",
+      "txHash": "0x3fd7c6002c3995fcd7f1b8ccf59a489447f56d06367213fbea4398b85cbb2b5d",
+      "kind": "uups"
+    },
+    {
+      "address": "0x19451E08a39eeDB5F93B9afC29450D005F344A95",
+      "txHash": "0xab3e8191e4235f5407b25b68eb3f25a15cb588c850191b36b56860c572199de9",
+      "kind": "uups"
+    },
+    {
+      "address": "0xD72C875e556146570B591d97719eA6fEE8720Fc1",
+      "txHash": "0x58db6ff097c3f400105cc9acdc67fda4eeac5cf42e1008369e0e6bef1d178c5d",
+      "kind": "uups"
+    },
+    {
+      "address": "0x2853F9d0a5E52852F4b2e022aa582D910f702B73",
+      "txHash": "0xcf607710152d3266599d5a1c22e48405fa985971bdba89853f6e1e250e654882",
+      "kind": "uups"
+    },
+    {
+      "address": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
+      "txHash": "0xfc2c392f9daac1a4baa4ed2058047ce761e9eb6aaff0e4fb991e1678509c9d6d",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -47469,7 +47494,7 @@
             "label": "dystRouter",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IDystopiaRouter)33925",
+            "type": "t_contract(IDystopiaRouter)27123",
             "contract": "DystopiaExchange",
             "src": "contracts/exchanges/DystopiaExchange.sol:12"
           },
@@ -47533,7 +47558,7 @@
             "label": "gauge",
             "offset": 0,
             "slot": "357",
-            "type": "t_contract(IDystopiaLP)33809",
+            "type": "t_contract(IDystopiaLP)27007",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:25"
           },
@@ -47541,7 +47566,7 @@
             "label": "dystPair",
             "offset": 0,
             "slot": "358",
-            "type": "t_contract(IDystopiaLP)33809",
+            "type": "t_contract(IDystopiaLP)27007",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:26"
           },
@@ -47549,7 +47574,7 @@
             "label": "oracleUsdc",
             "offset": 0,
             "slot": "359",
-            "type": "t_contract(IPriceFeed)30770",
+            "type": "t_contract(IPriceFeed)23968",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:28"
           },
@@ -47557,7 +47582,7 @@
             "label": "oracleTusd",
             "offset": 0,
             "slot": "360",
-            "type": "t_contract(IPriceFeed)30770",
+            "type": "t_contract(IPriceFeed)23968",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:29"
           },
@@ -47573,7 +47598,7 @@
             "label": "userProxy",
             "offset": 0,
             "slot": "362",
-            "type": "t_contract(IUserProxy)35361",
+            "type": "t_contract(IUserProxy)28559",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:32"
           },
@@ -47581,7 +47606,7 @@
             "label": "penLens",
             "offset": 0,
             "slot": "363",
-            "type": "t_contract(IPenLens)35060",
+            "type": "t_contract(IPenLens)28258",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:33"
           },
@@ -47589,7 +47614,7 @@
             "label": "swapper",
             "offset": 0,
             "slot": "364",
-            "type": "t_contract(ISwapper)44459",
+            "type": "t_contract(ISwapper)37657",
             "contract": "StrategyDystopiaUsdcTusd",
             "src": "contracts/StrategyDystopiaUsdcTusd.sol:35"
           }
@@ -47615,11 +47640,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IDystopiaLP)33809": {
+          "t_contract(IDystopiaLP)27007": {
             "label": "contract IDystopiaLP",
             "numberOfBytes": "20"
           },
-          "t_contract(IDystopiaRouter)33925": {
+          "t_contract(IDystopiaRouter)27123": {
             "label": "contract IDystopiaRouter",
             "numberOfBytes": "20"
           },
@@ -47627,19 +47652,19 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IPenLens)35060": {
+          "t_contract(IPenLens)28258": {
             "label": "contract IPenLens",
             "numberOfBytes": "20"
           },
-          "t_contract(IPriceFeed)30770": {
+          "t_contract(IPriceFeed)23968": {
             "label": "contract IPriceFeed",
             "numberOfBytes": "20"
           },
-          "t_contract(ISwapper)44459": {
+          "t_contract(ISwapper)37657": {
             "label": "contract ISwapper",
             "numberOfBytes": "20"
           },
-          "t_contract(IUserProxy)35361": {
+          "t_contract(IUserProxy)28559": {
             "label": "contract IUserProxy",
             "numberOfBytes": "20"
           },

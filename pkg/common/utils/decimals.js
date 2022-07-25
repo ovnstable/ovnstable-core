@@ -3,7 +3,7 @@ const BigNumber = require('bignumber.js');
 module.exports = {
 
     toE18: (value) => {
-        return new BigNumber(value).times(new BigNumber(10).pow(18)).toFixed(4)
+        return new BigNumber(value).times(new BigNumber(10).pow(18)).toFixed(0)
     },
     fromE18: (value) => {
         return new BigNumber(value).div(new BigNumber(10).pow(18)).toFixed(4)

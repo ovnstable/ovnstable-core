@@ -11,10 +11,10 @@ async function main() {
     let wallet = await initWallet(ethers);
 
     let timeLock = await getContract('OvnTimelockController');
-    let strategy = await getContract('StrategyAave');
+    let strategy = await getContract('StrategyDystopiaUsdcTusd');
 
     await moveRules(strategy, wallet.address , timeLock.address);
-    await printRules(strategy, 'Aave');
+    await printRules(strategy, 'StrategyDystopiaUsdcTusd');
 
     async function moveRules(contract, oldAddress, newAddress) {
 
