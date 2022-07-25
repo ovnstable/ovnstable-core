@@ -219,7 +219,15 @@ async function showM2M(blocknumber) {
 
 async function getPrice(){
     let value = process.env.GAS_PRICE.toString() + "000000000";
-    return {maxFeePerGas: value, maxPriorityFeePerGas: value};
+
+    let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
+
+    if (process.env.ETH_NETWORK === 'POLYGON')
+        params.gasLimit = 15000000;
+    else if(process.env.ETH_NETWORK === 'AVALANCHE')
+        params.gasLimit = 8000000;
+
+    return params;
 }
 
 

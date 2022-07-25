@@ -4,7 +4,7 @@ const {getContract, getPrice, execTimelock, showM2M} = require("@overnight-contr
 
 async function main() {
 
-    let exchange = await getContract('Exchange', 'polygon');
+    let exchange = await getContract('Exchange' );
     //
     // await execTimelock(async (timelock)=>{
     //
@@ -30,7 +30,6 @@ async function main() {
         await showM2M();
         try {
             let opts = await getPrice();
-            opts.gasLimit = "15000000"
 
             try {
                 await exchange.estimateGas.payout(opts);
