@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
 import "./exchanges/DystopiaExchange.sol";
-import "./exchanges/BalancerExchange.sol";
 import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
 import "./connectors/aave/interfaces/IPriceFeed.sol";
 import "./connectors/penrose/interface/IUserProxy.sol";
@@ -11,8 +10,9 @@ import "./connectors/penrose/interface/IPenLens.sol";
 import "./libraries/AaveBorrowLibrary.sol";
 import "./interfaces/ISwapper.sol";
 
+contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
-contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchange {
+    uint256 public constant BASIS_POINTS_FOR_SLIPPAGE_EIGHT = 8;
 
     IERC20 public usdcToken;
     IERC20 public tusdToken;
@@ -24,7 +24,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
 
     IDystopiaLP public gauge;
     IDystopiaLP public dystPair;
-    bytes32 public poolIdUsdcTusdTusdUsdt;
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleTusd;
@@ -41,7 +40,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
     event StrategyUpdatedTokens(address usdcToken, address usdtToken, address dystToken, address wmaticToken, address penToken,
         uint256 usdcTokenDenominator, uint256 tusdTokenDenominator);
 
-    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter, address balancerVault, bytes32 poolIdUsdcTusdTusdUsdt,
+    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter,
         address oracleUsdc, address oracleTusd, address userProxy, address penLens, address swapper);
 
 
@@ -86,8 +85,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
         address _gauge,
         address _dystPair,
         address _dystRouter,
-        address _balancerVault,
-        bytes32 _poolIdUsdcTusdTusdUsdt,
         address _oracleUsdc,
         address _oracleTusd,
         address _userProxy,
@@ -98,8 +95,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
         require(_gauge != address(0), "Zero address not allowed");
         require(_dystPair != address(0), "Zero address not allowed");
         require(_dystRouter != address(0), "Zero address not allowed");
-        require(_balancerVault != address(0), "Zero address not allowed");
-        require(_poolIdUsdcTusdTusdUsdt != "", "Empty pool id not allowed");
         require(_oracleUsdc != address(0), "Zero address not allowed");
         require(_oracleTusd != address(0), "Zero address not allowed");
         require(_userProxy != address(0), "Zero address not allowed");
@@ -109,16 +104,13 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
         gauge = IDystopiaLP(_gauge);
         dystPair = IDystopiaLP(_dystPair);
         _setDystopiaRouter(_dystRouter);
-        setBalancerVault(_balancerVault);
-        poolIdUsdcTusdTusdUsdt = _poolIdUsdcTusdTusdUsdt;
         oracleUsdc = IPriceFeed(_oracleUsdc);
         oracleTusd = IPriceFeed(_oracleTusd);
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
         swapper = ISwapper(_swapper);
 
-        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdTusdUsdt, _oracleUsdc,
-            _oracleTusd, _userProxy, _penLens, _swapper);
+        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _oracleUsdc, _oracleTusd, _userProxy, _penLens, _swapper);
     }
 
 
@@ -151,8 +143,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
             address(usdcToken),
             address(tusdToken),
             amountUsdcToSwap,
-            0,
-            5
+            OvnMath.subBasisPoints(amountUsdcToSwap*(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
+            1
         );
         IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
         swapper.swap(swapParams);
@@ -231,13 +223,12 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
             address(tusdToken),
             address(usdcToken),
             tusdBalance,
-            0,
-            5
+            OvnMath.subBasisPoints(tusdBalance/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
+            1
         );
 
         IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
         swapper.swap(swapParams);
-
         return usdcToken.balanceOf(address(this));
     }
 
@@ -256,7 +247,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
         address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
         uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance == 0) {
-            return 0;
+            return usdcToken.balanceOf(address(this));
         }
 
         userProxy.unstakeLpAndWithdraw(address(dystPair), lpTokenBalance);
@@ -285,8 +276,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
             address(tusdToken),
             address(usdcToken),
             tusdBalance,
-            0,
-            5
+            OvnMath.subBasisPoints(tusdBalance/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
+            1
         );
         IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
         swapper.swap(swapParams);
@@ -329,7 +320,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
                     address(usdcToken),
                     tusdBalance,
                     0,
-                    5
+                    1
                 );
                 usdcBalanceFromTusd = swapper.getAmountOut(swapParams);
             }
@@ -341,7 +332,12 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        userProxy.claimStakingRewards();
+        address userProxyThis = penLens.userProxyByAccount(address(this));
+        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        if (lpTokenBalance > 0) {
+            userProxy.claimStakingRewards();
+        }
 
         // sell rewards
         uint256 totalUsdc;
@@ -374,7 +370,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
             totalUsdc += penUsdc;
         }
 
-        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
+        usdcToken.transfer(_to, totalUsdc);
 
         return totalUsdc;
     }
@@ -400,8 +396,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
                 token0,
                 token1,
                 amount0,
-                0,
-                5
+                OvnMath.subBasisPoints(amount0*(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
+                1
             );
             uint256 amount1 = swapper.getAmountOut(swapParams);
             amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
@@ -428,8 +424,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange, BalancerExchang
             address(tusdToken),
             address(usdcToken),
             amount1,
-            0,
-            5
+            OvnMath.subBasisPoints(amount1/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
+            1
         );
         uint256 amount0 = swapper.getAmountOut(swapParams);
         lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);

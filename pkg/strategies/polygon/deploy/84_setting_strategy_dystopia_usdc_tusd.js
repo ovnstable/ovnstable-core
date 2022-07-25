@@ -22,8 +22,6 @@ module.exports = async () => {
         gauge,
         dystPair,
         dystRouter,
-        POLYGON.balancerVault,
-        POLYGON.balancerPoolIdUsdcTusdDaiUsdt,
         POLYGON.oracleChainlinkUsdc,
         POLYGON.oracleChainlinkDai,
         userProxy,
