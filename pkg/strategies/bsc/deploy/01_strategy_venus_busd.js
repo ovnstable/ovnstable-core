@@ -3,6 +3,7 @@ const {ethers} = require("hardhat");
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {core} = require('@overnight-contracts/common/utils/core');
+const hre = require("hardhat");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
