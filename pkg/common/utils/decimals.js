@@ -1,5 +1,4 @@
 const BigNumber = require('bignumber.js');
-const {toE18, toE6, fromE18} = require("./decimals");
 
 module.exports = {
 
@@ -17,18 +16,18 @@ module.exports = {
     toAsset: (value) =>{
 
         if (process.env.ETH_NETWORK === 'BSC'){
-            return toE18(value);
+            return this.toE18(value);
         }else {
-            return toE6(value);
+            return this.toE6(value);
         }
     },
 
     fromAsset: (value) =>{
 
         if (process.env.ETH_NETWORK === 'BSC'){
-            return fromE18(value);
+            return this.fromE18(value);
         }else {
-            return fromE18(value);
+            return this.fromE18(value);
         }
     }
 }
