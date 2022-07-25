@@ -68,23 +68,7 @@ let arrays = [
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyArrakisWeth',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyArrakisUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyArrakisWmatic',
-        enabledReward: true,
-    },
-    {
         name: 'StrategyMeshSwapUsdcUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyBorrowMeshSwapUsdcUsdt',
         enabledReward: true,
     },
     {
@@ -93,10 +77,6 @@ let arrays = [
     },
     {
         name: 'StrategyDystopiaUsdcDai',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyBorrowMeshSwapUsdt',
         enabledReward: true,
     },
     {
