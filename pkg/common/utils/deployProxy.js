@@ -83,6 +83,29 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
     }
 
     await save(contractName, proxyDeployments);
+
+
+    // Enable verification contract after deploy
+    if (hre.ovn.verify){
+
+        console.log(`Verify proxy [${proxy.address}] ....`);
+
+        await hre.run("verify:verify", {
+            address: proxy.address,
+            constructorArguments: [args],
+        });
+
+        const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
+
+        console.log(`Verify impl [${currentImplAddress}] ....`);
+
+        await hre.run("verify:verify", {
+            address: currentImplAddress,
+            constructorArguments: [],
+        });
+    }
+
+
     return proxyDeployments;
 }
 
