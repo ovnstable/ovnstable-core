@@ -302,7 +302,19 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             );
         }
 
-        return totalUsdPlus + totalUsdc;
+
+        uint256 wmaticBalance = wmatic.balanceOf(address(this));
+        console.log("wmaticBalance: ", wmaticBalance);
+
+//
+        uint256 wmaticBalanceUsd = AaveBorrowLibrary.convertTokenAmountToUsd(wmaticBalance, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        uint256 wmaticBalanceUsdc = wmaticBalanceUsd / 100;
+
+        console.log("wmaticBalanceUsdc: ", wmaticBalanceUsdc);
+        console.log("sum1: ", totalUsdPlus + totalUsdc + wmaticBalanceUsdc);
+        console.log("sum2: ", totalUsdPlus + totalUsdc);
+
+        return totalUsdPlus + totalUsdc + wmaticBalanceUsdc;
     }
 
 
