@@ -48,6 +48,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     uint256 public lastBlockNumber;
 
+    uint256 public abroadMin;
 
     // ---  events
 
@@ -64,7 +65,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     event EventExchange(string label, uint256 amount, uint256 fee, address sender);
     event PayoutEvent(uint256 tvlFee, uint256 profitFee, uint256 profit, uint256 loss);
     event NextPayoutTime(uint256 nextPayoutTime);
-
+    event Abroad(uint256 min);
 
     // ---  modifiers
 
@@ -114,6 +115,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         payoutPeriod = 24 * 60 * 60;
         payoutTimeRange = 15 * 60;
 
+        abroadMin = 1000400;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -179,6 +181,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         profitFeeDenominator = _feeDenominator;
         emit ProfitFeeUpdated(redeemFee, redeemFeeDenominator);
     }
+
+    function setAbroad(uint256 _min) external onlyAdmin {
+        abroadMin = _min;
+        emit Abroad(abroadMin);
+    }
+
 
 
     function setPayoutTimes(
@@ -300,8 +308,15 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         // USE rebase.SCALED_TOTAL_SUPPLY() = Total supply WITHOUT liq index
         uint256 newLiquidityIndex = totalUsdcRay.rayDiv(rebase.scaledTotalSupply());
-        rebase.setLiquidityIndex(newLiquidityIndex);
+        uint256 currentLiquidityIndex = rebase.liquidityIndex();
 
+        uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+
+        if (delta <= abroadMin) {
+            revert('Delta abroad:min');
+        }
+
+        rebase.setLiquidityIndex(newLiquidityIndex);
 
         if(fee > 0){
             require(collector != address(0), "Collector address zero");
