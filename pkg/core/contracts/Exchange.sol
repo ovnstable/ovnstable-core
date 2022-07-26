@@ -23,7 +23,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // ---  fields
 
     UsdPlusToken public usdPlus;
-    IERC20 public asset;
+    IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
     IMark2Market public mark2market;
@@ -145,7 +145,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
         usdPlus = UsdPlusToken(_usdPlus);
-        asset = IERC20(_asset);
+        usdc = IERC20(_asset);
         emit TokensUpdated(_usdPlus, _asset);
     }
 
@@ -221,7 +221,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @return Amount of minted USD+ to caller
      */
     function buy(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_asset == address(asset), "Only asset available for buy");
+        require(_asset == address(usdc), "Only asset available for buy");
 
         uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
@@ -229,7 +229,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_amount > 0, "Amount of asset is zero");
 
         uint256 usdPlusAmount;
-        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
+        uint256 assetDecimals = IERC20Metadata(address(_asset)).decimals();
         uint256 usdPlusDecimals = usdPlus.decimals();
         if (assetDecimals > usdPlusDecimals) {
             usdPlusAmount = _amount / (10 ** (assetDecimals - usdPlusDecimals));
@@ -265,12 +265,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @return Amount of asset unstacked and transferred to caller
      */
     function redeem(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
-        require(_asset == address(asset), "Only asset available for redeem");
+        require(_asset == address(usdc), "Only asset available for redeem");
 
         require(_amount > 0, "Amount of USD+ is zero");
 
         uint256 assetAmount;
-        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
+        uint256 assetDecimals = IERC20Metadata(address(_asset)).decimals();
         uint256 usdPlusDecimals = usdPlus.decimals();
         if (assetDecimals > usdPlusDecimals) {
             assetAmount = _amount * (10 ** (assetDecimals - usdPlusDecimals));
@@ -329,7 +329,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
         uint256 totalAsset = mark2market.totalNetAssets();
 
-        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
+        uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
         uint256 usdPlusDecimals = usdPlus.decimals();
         if (assetDecimals > usdPlusDecimals) {
             totalAsset = totalAsset / (10 ** (assetDecimals - usdPlusDecimals));
