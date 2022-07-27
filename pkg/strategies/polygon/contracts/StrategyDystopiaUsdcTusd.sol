@@ -176,13 +176,13 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
             (reserveUsdc, reserveTusd,) = dystPair.getReserves();
 
-            uint256 amountBMin = usdcBalance * reserveTusd / reserveUsdc;
-            if (amountBMin > tusdBalance) {
-                amountBMin = tusdBalance;
+            uint256 amountTusdMin = usdcBalance * reserveTusd / reserveUsdc;
+            if (amountTusdMin > tusdBalance) {
+                amountTusdMin = tusdBalance;
             }
-            uint256 amountAMin = tusdBalance * reserveUsdc / reserveTusd;
-            if (amountAMin > usdcBalance) {
-                amountAMin = usdcBalance;
+            uint256 amountUsdcMin = tusdBalance * reserveUsdc / reserveTusd;
+            if (amountUsdcMin > usdcBalance) {
+                amountUsdcMin = usdcBalance;
             }
 
             _addLiquidity(
@@ -190,8 +190,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
                 address(tusdToken),
                 usdcBalance,
                 tusdBalance,
-                OvnMath.subBasisPoints(amountAMin, BASIS_POINTS_FOR_SLIPPAGE),
-                OvnMath.subBasisPoints(amountBMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountTusdMin, BASIS_POINTS_FOR_SLIPPAGE),
                 address(this)
             );
 
@@ -199,8 +199,11 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         }
 
         uint256 lpTokenBalance = dystPair.balanceOf(address(this));
-        dystPair.approve(address(userProxy), lpTokenBalance);
-        userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+
+        if (lpTokenBalance > 0) {
+            dystPair.approve(address(userProxy), lpTokenBalance);
+            userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+        }
     }
 
     function _unstake(
