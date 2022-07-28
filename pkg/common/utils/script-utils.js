@@ -35,9 +35,14 @@ async function getContract(name, network){
     let ethers = hre.ethers;
     let wallet = await initWallet(ethers);
 
-    let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
-    let contractJson = JSON.parse(fs.readFileSync(searchPath));
-    return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
+    try {
+        let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        let contractJson = JSON.parse(fs.readFileSync(searchPath));
+        return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
+    } catch (e) {
+        console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
+        throw new Error(e);
+    }
 
 }
 
@@ -137,24 +142,7 @@ async function showPlatform(platform, blocknumber) {
 }
 
 
-async function showM2M(blocknumber) {
-
-    let m2m = await getContract('Mark2Market', process.env.STAND);
-    let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
-    let pm = await getContract('PortfolioManager', process.env.STAND);
-
-    let strategyAssets;
-    let totalNetAssets;
-    let strategyWeights;
-    if (blocknumber){
-        strategyAssets = await m2m.strategyAssets({blockTag: blocknumber});
-        totalNetAssets = await m2m.totalNetAssets({blockTag: blocknumber});
-        strategyWeights = await pm.getAllStrategyWeights({ blockTag: blocknumber });
-    }else {
-        strategyAssets = await m2m.strategyAssets();
-        totalNetAssets = await m2m.totalNetAssets();
-        strategyWeights = await pm.getAllStrategyWeights();
-    }
+async function getStrategyMapping(){
 
     let url;
     let fromAsset = fromE6;
@@ -182,6 +170,31 @@ async function showM2M(blocknumber) {
     } catch (e) {
         console.log('Error: ' + e.message);
     }
+
+    return strategiesMapping;
+}
+
+async function showM2M(blocknumber) {
+
+    let m2m = await getContract('Mark2Market', process.env.STAND);
+    let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
+    let pm = await getContract('PortfolioManager', process.env.STAND);
+
+    let strategyAssets;
+    let totalNetAssets;
+    let strategyWeights;
+    if (blocknumber){
+        strategyAssets = await m2m.strategyAssets({blockTag: blocknumber});
+        totalNetAssets = await m2m.totalNetAssets({blockTag: blocknumber});
+        strategyWeights = await pm.getAllStrategyWeights({ blockTag: blocknumber });
+    }else {
+        strategyAssets = await m2m.strategyAssets();
+        totalNetAssets = await m2m.totalNetAssets();
+        strategyWeights = await pm.getAllStrategyWeights();
+    }
+
+
+    let strategiesMapping = await getStrategyMapping();
 
     let sum = 0;
 
@@ -366,6 +379,7 @@ async function checkTimeLockBalance(){
 }
 
 module.exports = {
+    getStrategyMapping: getStrategyMapping,
     initWallet: initWallet,
     showM2M: showM2M,
     showPlatform: showPlatform,
