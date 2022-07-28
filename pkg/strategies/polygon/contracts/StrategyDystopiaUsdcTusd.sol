@@ -34,6 +34,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
     ISwapper public swapper;
 
+    uint256 public stakeStep;
+
 
     // --- events
 
@@ -89,7 +91,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         address _oracleTusd,
         address _userProxy,
         address _penLens,
-        address _swapper
+        address _swapper,
+        uint256 _stakeStep
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -109,6 +112,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         userProxy = IUserProxy(_userProxy);
         penLens = IPenLens(_penLens);
         swapper = ISwapper(_swapper);
+        stakeStep = _stakeStep;
 
         emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _oracleUsdc, _oracleTusd, _userProxy, _penLens, _swapper);
     }
@@ -126,46 +130,80 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         (uint256 reserveUsdc, uint256 reserveTusd,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveTusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = _getAmountToken0(
-            usdcBalance,
-            reserveUsdc,
-            reserveTusd,
-            usdcTokenDenominator,
-            tusdTokenDenominator,
-            1,
-            address(usdcToken),
-            address(tusdToken)
-        );
+        uint256 usdcFullBalance = usdcToken.balanceOf(address(this));
 
-        // swap usdc to usdt
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(usdcToken),
-            address(tusdToken),
-            amountUsdcToSwap,
-            OvnMath.subBasisPoints(amountUsdcToSwap*(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-            1
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        while (usdcFullBalance > 0) {
+            uint256 usdcBalance = stakeStep;
+            if (usdcFullBalance < usdcBalance) {
+                usdcBalance = usdcFullBalance;
+            }
+            
+            uint256 usdcBalanceFromTusd2 = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                tusdToken.balanceOf(address(this)), 
+                tusdTokenDenominator, 
+                usdcTokenDenominator, 
+                uint256(oracleTusd.latestAnswer()), 
+                uint256(oracleUsdc.latestAnswer())
+            );
+            
+            uint256 amountUsdcToSwap = (usdcBalance - usdcBalanceFromTusd2) / 2;
 
-        // add liquidity
-        usdcBalance = usdcToken.balanceOf(address(this));
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+            uint256 tusdBalanceFromUsdc = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                amountUsdcToSwap, 
+                usdcTokenDenominator, 
+                tusdTokenDenominator, 
+                uint256(oracleUsdc.latestAnswer()), 
+                uint256(oracleTusd.latestAnswer())
+            );
+            
+            uint256 supposedTusdBalance = _getAmountsOut(address(usdcToken), address(tusdToken), true, amountUsdcToSwap); 
 
-        _addLiquidity(
-            address(usdcToken),
-            address(tusdToken),
-            usdcBalance,
-            tusdBalance,
-            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
-            OvnMath.subBasisPoints(tusdBalance, BASIS_POINTS_FOR_SLIPPAGE),
-            address(this)
-        );
+            if (supposedTusdBalance < OvnMath.subBasisPoints(tusdBalanceFromUsdc, 8)) {
+                break;
+            }
+
+            _swapExactTokensForTokens(
+                address(usdcToken),
+                address(tusdToken),
+                true,
+                amountUsdcToSwap,
+                address(this),
+                OvnMath.subBasisPoints(tusdBalanceFromUsdc, 8)
+            );
+
+            usdcBalance = usdcToken.balanceOf(address(this));
+            uint256 tusdBalance = tusdToken.balanceOf(address(this));
+
+            (reserveUsdc, reserveTusd,) = dystPair.getReserves();
+
+            uint256 amountTusdMin = usdcBalance * reserveTusd / reserveUsdc;
+            if (amountTusdMin > tusdBalance) {
+                amountTusdMin = tusdBalance;
+            }
+            uint256 amountUsdcMin = tusdBalance * reserveUsdc / reserveTusd;
+            if (amountUsdcMin > usdcBalance) {
+                amountUsdcMin = usdcBalance;
+            }
+
+            _addLiquidity(
+                address(usdcToken),
+                address(tusdToken),
+                usdcBalance,
+                tusdBalance,
+                OvnMath.subBasisPoints(amountUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
+                OvnMath.subBasisPoints(amountTusdMin, BASIS_POINTS_FOR_SLIPPAGE),
+                address(this)
+            );
+
+            usdcFullBalance = usdcToken.balanceOf(address(this));
+        }
 
         uint256 lpTokenBalance = dystPair.balanceOf(address(this));
-        dystPair.approve(address(userProxy), lpTokenBalance);
-        userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+
+        if (lpTokenBalance > 0) {
+            dystPair.approve(address(userProxy), lpTokenBalance);
+            userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+        }
     }
 
     function _unstake(
@@ -202,34 +240,35 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
             uint256 unstakedLPTokenBalance = dystPair.balanceOf(address(this));
 
-            uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
-            uint256 amountOutTusdMin = reserveTusd * unstakedLPTokenBalance / totalLpBalance;
-
             // remove liquidity
             _removeLiquidity(
                 address(usdcToken),
                 address(tusdToken),
                 address(dystPair),
                 unstakedLPTokenBalance,
-                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
-                OvnMath.subBasisPoints(amountOutTusdMin, BASIS_POINTS_FOR_SLIPPAGE),
+                0,
+                0,
                 address(this)
             );
         }
 
-        // swap tusd to usdc
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            tusdBalance,
-            OvnMath.subBasisPoints(tusdBalance/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-            1
-        );
+        if (tusdToken.balanceOf(address(this)) > 0) {
+            _swapExactTokensForTokens(
+                address(tusdToken),
+                address(usdcToken),
+                true,
+                tusdToken.balanceOf(address(this)),
+                address(this),
+                0
+            );
+        }
 
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
-        return usdcToken.balanceOf(address(this));
+        uint256 returnValue = usdcToken.balanceOf(address(this));
+
+        if (returnValue > _amount) {
+            returnValue = _amount;
+        }
+        return returnValue;
     }
 
     function _unstakeFull(
@@ -255,8 +294,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         uint256 unstakedLPTokenBalance = dystPair.balanceOf(address(this));
         if (unstakedLPTokenBalance > 0) {
             uint256 totalLpBalance = dystPair.totalSupply();
-            uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
-            uint256 amountOutTusdMin = reserveTusd * unstakedLPTokenBalance / totalLpBalance;
 
             // remove liquidity
             _removeLiquidity(
@@ -264,23 +301,21 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
                 address(tusdToken),
                 address(dystPair),
                 unstakedLPTokenBalance,
-                OvnMath.subBasisPoints(amountOutUsdcMin, BASIS_POINTS_FOR_SLIPPAGE),
-                OvnMath.subBasisPoints(amountOutTusdMin, BASIS_POINTS_FOR_SLIPPAGE),
+                0,
+                0,
                 address(this)
             );
         }
 
-        // swap tusd to usdc
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+        if (tusdToken.balanceOf(address(this)) > 0) {
+            _swapExactTokensForTokens(
             address(tusdToken),
             address(usdcToken),
-            tusdBalance,
-            OvnMath.subBasisPoints(tusdBalance/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-            1
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+            true,
+            tusdToken.balanceOf(address(this)),
+            address(this),
+            0);
+        }
 
         return usdcToken.balanceOf(address(this));
     }
@@ -313,16 +348,15 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             if (nav) {
                 uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
                 uint256 priceTusd = uint256(oracleTusd.latestAnswer());
-                usdcBalanceFromTusd = AaveBorrowLibrary.convertTokenAmountToTokenAmount(tusdBalance, tusdTokenDenominator, usdcTokenDenominator, priceTusd, priceUsdc);
-            } else {
-                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                    address(tusdToken),
-                    address(usdcToken),
-                    tusdBalance,
-                    0,
-                    1
+                usdcBalanceFromTusd = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                    tusdBalance, 
+                    tusdTokenDenominator, 
+                    usdcTokenDenominator, 
+                    priceTusd, 
+                    priceUsdc
                 );
-                usdcBalanceFromTusd = swapper.getAmountOut(swapParams);
+            } else {
+                usdcBalanceFromTusd = _getAmountsOut(address(tusdToken), address(usdcToken), true, tusdBalance); 
             }
         }
 
@@ -376,37 +410,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
     }
 
     /**
-     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountToken0(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1,
-        uint256 precision,
-        address token0,
-        address token1
-    ) internal view returns (uint256) {
-        uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
-        for (uint i = 0; i < precision; i++) {
-            ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                token0,
-                token1,
-                amount0,
-                OvnMath.subBasisPoints(amount0*(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-                1
-            );
-            uint256 amount1 = swapper.getAmountOut(swapParams);
-            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
-        }
-
-        return amount0;
-    }
-
-    /**
      * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
      *
      * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
@@ -420,14 +423,9 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         uint256 lpBalance = (totalLpBalance * amount0Total * tusdTokenDenominator) / (reserve0 * tusdTokenDenominator + reserve1 * usdcTokenDenominator);
 
         uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            amount1,
-            OvnMath.subBasisPoints(amount1/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-            1
-        );
-        uint256 amount0 = swapper.getAmountOut(swapParams);
+
+        uint256 amount0 = _getAmountsOut(address(tusdToken), address(usdcToken), true, amount1); 
+
         lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
 
         return lpBalance;

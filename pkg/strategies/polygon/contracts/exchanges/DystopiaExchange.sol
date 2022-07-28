@@ -59,7 +59,8 @@ abstract contract DystopiaExchange {
         address outputToken,
         bool isStablePair0,
         uint256 amountInput,
-        address recipient
+        address recipient,
+        uint256 amountOutMin
     ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(dystRouter), amountInput);
@@ -76,7 +77,7 @@ abstract contract DystopiaExchange {
 
         uint[] memory amounts = dystRouter.swapExactTokensForTokens(
             amountInput,
-            0,
+            amountOutMin,
             route,
             recipient,
             block.timestamp + 600
