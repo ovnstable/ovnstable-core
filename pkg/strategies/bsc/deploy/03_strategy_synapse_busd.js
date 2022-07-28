@@ -1,9 +1,6 @@
-const {ethers} = require("hardhat");
-
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {BSC} = require('@overnight-contracts/common/utils/assets');
-const {core} = require('@overnight-contracts/common/utils/core');
-const hre = require("hardhat");
+const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
 let nUsdLPToken = '0xa4b7Bc06EC817785170C2DbC1dD3ff86CDcdcc4C';
 let synToken = '0xa4080f1778e69467E905B8d6F72f6e441f9e9484';
@@ -14,21 +11,16 @@ let pid = 1;
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    if (hre.ovn === undefined || !hre.ovn.noDeploy) {
-        await deployProxy('StrategySynapseBusd', deployments, save);
 
-        console.log('StrategySynapseBusd deploy done');
-    }
+    await deploySection(async (name) => {
+        await deployProxy(name, deployments, save);
+    });
 
-    if (hre.ovn === undefined || hre.ovn.setting) {
-        const strategy = await ethers.getContract('StrategySynapseBusd');
-
-        await (await strategy.setPortfolioManager(core.pm)).wait();
+    await settingSection(async (strategy) => {
         await (await strategy.setTokens(BSC.busd, nUsdLPToken, synToken)).wait();
         await (await strategy.setParams(swap, miniChefV2, BSC.pancakeRouter, pid)).wait();
+    });
 
-        console.log('StrategySynapseBusd setting done');
-    }
 };
 
-module.exports.tags = ['base', 'StrategySynapseBusd'];
+module.exports.tags = ['StrategySynapseBusd'];

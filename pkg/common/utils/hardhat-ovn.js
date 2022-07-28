@@ -23,8 +23,10 @@ task('deploy', 'deploy')
             noDeploy: args.noDeploy,
             setting: args.setting,
             impl: args.impl,
-            verify: args.verify
+            verify: args.verify,
+            tags: args.tags,
         }
+
         await hre.run('deploy:main', args);
     });
 
@@ -35,12 +37,15 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
     .addFlag('last', 'Use last block from RPC')
     .setAction(async (args, hre, runSuper) => {
 
-        await fs.copyFile('.openzeppelin/unknown-137.json', '.openzeppelin/unknown-31337.json', (e) => {
+
+        const srcDir = `deployments/` + process.env.STAND;
+
+        const chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
+        await fs.copyFile(`.openzeppelin/unknown-${chainId}.json`, '.openzeppelin/unknown-31337.json', (e) => {
             if (e)
                 console.error(e)
         });
 
-        const srcDir = `deployments/` + process.env.STAND;
         const destDir = `deployments/localhost`;
 
         await fse.copySync(srcDir, destDir, {overwrite: true}, function (err) {
