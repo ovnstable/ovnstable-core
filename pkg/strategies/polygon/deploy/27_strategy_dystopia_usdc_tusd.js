@@ -1,8 +1,9 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
-const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {POLYGON, BSC} = require("@overnight-contracts/common/utils/assets");
 const {core} = require("@overnight-contracts/common/utils/core");
+const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
 let dystToken = '0x39aB6574c289c3Ae4d88500eEc792AB5B947A5Eb';
 let dystPair = '0xA498a892AD0D3F70AA449798023AA1F4A0888268'; //sAMM-USDC/TUSD
@@ -18,13 +19,11 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
 
-    if (hre.ovn === undefined || !hre.ovn.noDeploy) {
-        await deployProxy('StrategyDystopiaUsdcTusd', deployments, save);
-    }
+    await deploySection(async (name) => {
+        await deployProxy(name, deployments, save);
+    });
 
-    if (hre.ovn === undefined || hre.ovn.setting) {
-
-        const strategy = await ethers.getContract("StrategyDystopiaUsdcTusd");
+    await settingSection(async (strategy) => {
 
         await (await strategy.setTokens(POLYGON.usdc, POLYGON.tusd, dystToken, POLYGON.wMatic, penToken)).wait();
         console.log(`setTokens done for ${strategy.address}`)
@@ -42,9 +41,7 @@ module.exports = async ({deployments}) => {
         )).wait();
         console.log(`setParams done for ${strategy.address}`)
 
-        await (await strategy.setPortfolioManager(core.pm)).wait();
+    });
 
-        console.log('StrategyDystopiaUsdcTusd setting done');
-    }
 }
 module.exports.tags = ['StrategyDystopiaUsdcTusd'];

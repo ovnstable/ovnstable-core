@@ -1,4 +1,7 @@
 const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
+const {ethers} = require("hardhat");
+const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {core} = require("@overnight-contracts/common/utils/core");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -9,6 +12,23 @@ module.exports = async ({deployments}) => {
     // await deployProxyMulti('StrategyImpermaxQsMaticUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
     // await deployProxyMulti('StrategyImpermaxQsWethUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
     // await deployProxyMulti('StrategyImpermaxQsMaiUsdt', 'StrategyImpermaxQsUsdt', deployments, save);
+
+    await impermaxQsUsdt(POLYGON.imxbTokenQsUsdcUsdt, "StrategyImpermaxQsUsdcUsdt");
+
+    // Uncomment for individual deploy
+    // await impermaxQsUsdt(POLYGON.imxbTokenQsMaticUsdt, "StrategyImpermaxQsMaticUsdt");
+    // await impermaxQsUsdt(POLYGON.imxbTokenQsWethUsdt, "StrategyImpermaxQsWethUsdt");
+    // await impermaxQsUsdt(POLYGON.imxbTokenQsMaiUsdt, "StrategyImpermaxQsMaiUsdt");
 };
 
-module.exports.tags = ['base', 'StrategyImpermaxQsUsdt'];
+async function impermaxQsUsdt(imxbToken, strategyName) {
+    const strategy = await ethers.getContract(strategyName);
+
+    await (await strategy.setTokens(POLYGON.usdc, POLYGON.usdt, imxbToken)).wait();
+    await (await strategy.setParams(POLYGON.impermaxRouter, POLYGON.balancerVault, POLYGON.balancerPoolIdUsdcTusdDaiUsdt)).wait();
+    await (await strategy.setPortfolioManager(core.pm)).wait();
+
+    console.log(`${strategyName} setting done`);
+}
+
+module.exports.tags = ['StrategyImpermaxQsUsdt'];
