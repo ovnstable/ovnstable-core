@@ -7,6 +7,7 @@ const {DEFAULT, BSC} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const ERC20 = require("./abi/IERC20.json");
+const {core} = require("./core");
 
 let ethers = require('hardhat').ethers;
 
@@ -25,7 +26,39 @@ async function initWallet() {
 
     return wallet;
 }
+async function deploySection(exec){
 
+    if (hre.ovn === undefined || !hre.ovn.noDeploy){
+
+        let strategyName = hre.ovn.tags;
+
+        try {
+            await exec(strategyName);
+            console.log(`[${strategyName}] deploy done`)
+        } catch (e) {
+            console.error(`[${strategyName}] deploy fail: ` + e);
+        }
+    }
+}
+
+async function settingSection(exec){
+
+    if (hre.ovn === undefined || hre.ovn.setting){
+
+        let strategyName = hre.ovn.tags;
+        try {
+            let strategy = await ethers.getContract(strategyName);
+
+            await (await strategy.setPortfolioManager(core.pm)).wait();
+
+            await exec(strategy);
+            console.log(`[${strategyName}] setting done`)
+        } catch (e) {
+            console.error(`[${strategyName}] setting fail: ` + e);
+        }
+
+    }
+}
 
 async function getContract(name, network){
 
@@ -365,7 +398,25 @@ async function checkTimeLockBalance(){
 
 }
 
+async function getChainId(){
+
+
+    switch (process.env.ETH_NETWORK){
+        case "POLYGON":
+            return 137;
+        case "BSC":
+            return 56;
+        case "AVALANCHE":
+            return 43114;
+        case "FANTOM":
+            return 250;
+        default:
+            throw new Error("Unknown chain");
+    }
+}
+
 module.exports = {
+    getChainId: getChainId,
     initWallet: initWallet,
     showM2M: showM2M,
     showPlatform: showPlatform,
@@ -377,5 +428,7 @@ module.exports = {
     changeWeightsAndBalance: changeWeightsAndBalance,
     upgradeStrategy: upgradeStrategy,
     execTimelock: execTimelock,
-    getAbi: getAbi
+    getAbi: getAbi,
+    deploySection: deploySection,
+    settingSection: settingSection,
 }
