@@ -49,7 +49,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 55,
+            "targetWeight": 45,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -58,7 +58,7 @@ async function main() {
             "strategy": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
             "name": "Penros USDC/TUSD",
             "minWeight": 0,
-            "targetWeight": 5,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -88,7 +88,7 @@ async function main() {
     })
 
     // await changeWeightsAndBalance(weights);
-    // await createProposalWeights(weights);
+    await createProposalWeights(weights);
     // await setWeights(weights);
 
 }
