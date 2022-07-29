@@ -29,9 +29,9 @@ function toAsset(value){
 
 function fromAsset(value){
     if (process.env.ETH_NETWORK === 'BSC'){
-        return this.fromE18(value);
+        return fromE18(value);
     }else {
-        return this.fromE18(value);
+        return fromE6(value);
     }
 }
 
