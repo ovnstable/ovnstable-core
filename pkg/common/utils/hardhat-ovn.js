@@ -41,7 +41,14 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         const srcDir = `deployments/` + process.env.STAND;
 
         const chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
-        await fs.copyFile(`.openzeppelin/unknown-${chainId}.json`, '.openzeppelin/unknown-31337.json', (e) => {
+        let fileName;
+        if (Number.parseInt(chainId) === 137){
+            fileName = 'polygon.json'
+        }else {
+            fileName = `unknown-${chainId}.json`;
+        }
+
+        await fs.copyFile(`.openzeppelin/${fileName}`, '.openzeppelin/unknown-31337.json', (e) => {
             if (e)
                 console.error(e)
         });
