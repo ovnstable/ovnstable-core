@@ -49,16 +49,26 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 45,
+            "targetWeight": 52,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
         {
             "strategy": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
-            "name": "Penros USDC/TUSD",
+            "name": "Penrose USDC/TUSD",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 6,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
+            "name": "Penrose USDC/USDT",
+            "minWeight": 0,
+            "targetWeight": 2,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
