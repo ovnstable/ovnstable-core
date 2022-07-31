@@ -137,26 +137,26 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             if (usdcFullBalance < usdcBalance) {
                 usdcBalance = usdcFullBalance;
             }
-            
+
             uint256 usdcBalanceFromTusd2 = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
-                tusdToken.balanceOf(address(this)), 
-                tusdTokenDenominator, 
-                usdcTokenDenominator, 
-                uint256(oracleTusd.latestAnswer()), 
+                tusdToken.balanceOf(address(this)),
+                tusdTokenDenominator,
+                usdcTokenDenominator,
+                uint256(oracleTusd.latestAnswer()),
                 uint256(oracleUsdc.latestAnswer())
             );
-            
+
             uint256 amountUsdcToSwap = (usdcBalance - usdcBalanceFromTusd2) / 2;
 
             uint256 tusdBalanceFromUsdc = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
-                amountUsdcToSwap, 
-                usdcTokenDenominator, 
-                tusdTokenDenominator, 
-                uint256(oracleUsdc.latestAnswer()), 
+                amountUsdcToSwap,
+                usdcTokenDenominator,
+                tusdTokenDenominator,
+                uint256(oracleUsdc.latestAnswer()),
                 uint256(oracleTusd.latestAnswer())
             );
-            
-            uint256 supposedTusdBalance = _getAmountsOut(address(usdcToken), address(tusdToken), true, amountUsdcToSwap); 
+
+            uint256 supposedTusdBalance = _getAmountsOut(address(usdcToken), address(tusdToken), true, amountUsdcToSwap);
 
             if (supposedTusdBalance < OvnMath.subBasisPoints(tusdBalanceFromUsdc, 8)) {
                 break;
@@ -213,6 +213,11 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Some token not compatible");
+
+        uint256 currentUsdcBalance = usdcToken.balanceOf(address(this));
+        if(currentUsdcBalance >= _amount)
+            return _amount;
+
 
         (uint256 reserveUsdc, uint256 reserveTusd,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveTusd > 10 ** 15, 'Liquidity lpToken reserves too low');
@@ -349,14 +354,14 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
                 uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
                 uint256 priceTusd = uint256(oracleTusd.latestAnswer());
                 usdcBalanceFromTusd = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
-                    tusdBalance, 
-                    tusdTokenDenominator, 
-                    usdcTokenDenominator, 
-                    priceTusd, 
+                    tusdBalance,
+                    tusdTokenDenominator,
+                    usdcTokenDenominator,
+                    priceTusd,
                     priceUsdc
                 );
             } else {
-                usdcBalanceFromTusd = _getAmountsOut(address(tusdToken), address(usdcToken), true, tusdBalance); 
+                usdcBalanceFromTusd = _getAmountsOut(address(tusdToken), address(usdcToken), true, tusdBalance);
             }
         }
 
@@ -424,7 +429,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
         uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
 
-        uint256 amount0 = _getAmountsOut(address(tusdToken), address(usdcToken), true, amount1); 
+        uint256 amount0 = _getAmountsOut(address(tusdToken), address(usdcToken), true, amount1);
 
         lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
 
