@@ -130,7 +130,7 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool);
+        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool) + 1;
 
         // get lp tokens
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
