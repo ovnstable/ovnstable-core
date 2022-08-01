@@ -7,25 +7,16 @@ async function main() {
 
 
 
-    let usdPlus = await getContract('UsdPlusToken', 'polygon');
-    let exchangeUsdPlus = await getContract('Exchange', 'polygon');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
-
-    // let usdc = await getERC20('usdc');
-    //
-    // await usdc.approve(exchangeUsdPlus.address, toE6(7000));
-    // await exchangeUsdPlus.buy(usdc.address, toE6(7000));
+    let usdPlus = await getContract('UsdPlusToken' );
+    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic' );
 
 
     await showETSM2M();
 
-    let wallet= await initWallet();
-    await (await usdPlus.approve(exchanger.address, await usdPlus.balanceOf(wallet.address), await getPrice())).wait();
+    await (await usdPlus.approve(exchanger.address, toE6(5), await getPrice())).wait();
     let params = await getPrice();
     params.gasLimit = 15000000;
-    await (await exchanger.buy(await usdPlus.balanceOf(wallet.address), params)).wait();
+    await (await exchanger.buy(toE6(5), params)).wait();
 
     await showETSM2M();
 }
@@ -34,9 +25,9 @@ async function showETSM2M() {
 
     let wallet = await initWallet();
 
-    let usdPlus = await getContract('UsdPlusToken', 'polygon');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
+    let usdPlus = await getContract('UsdPlusToken' );
+    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
+    let strategy = await getContract('StrategyUsdPlusWmatic');
 
     console.log('User balances:')
     console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))

@@ -17,9 +17,6 @@ library UsdPlusWmaticLibrary {
         self.usdPlus().approve(address(self.dystRouter()), type(uint256).max);
         self.wmatic().approve(address(self.dystRouter()), wmaticAmount);
 
-        console.log('WMATIC: %s', self.wmatic().balanceOf(address(self)) / 1e18);
-        console.log('USD+:   %s', self.wmatic().balanceOf(address(self)) / 1e6);
-
         self.dystRouter().addLiquidity(
             address(self.wmatic()),
             address(self.usdPlus()),
@@ -261,9 +258,9 @@ library UsdPlusWmaticLibrary {
 
         _withdrawNeededUsdcInUsd(self, delta);
 
-        _convertTokensToUsdPlus(self);
-
+//        _convertTokensToUsdPlus(self); leads to an error during the exchange _swapUsdcToWmatic()
         _swapUsdcToWmatic(self, delta, delta.aaveBorrowUsdNeeded / 100);
+
         _repayAllWmatic(self);
         _pushAllUsdpToPool(self, delta);
     }
