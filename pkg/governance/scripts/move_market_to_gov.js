@@ -1,10 +1,9 @@
-const {initWallet, getContract, getPrice, getStrategyMapping} = require("@overnight-contracts/common/utils/script-utils");
+const {initWallet, getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 
 /**
  * Что делает скрипт?
  *
- * Передает права с dev аккаунта на timelock по всем указанным стратегиям.
- * Список стратегий подставляем руками в скрипт
+ * Передает права с dev аккаунта на timelock по HedgeExchange, RebaseToken.
  *
  * Какие права передаются?
  * - DEFAULT_ADMIN_ROLE - дает админские права на контракт
@@ -28,14 +27,18 @@ const {initWallet, getContract, getPrice, getStrategyMapping} = require("@overni
  */
 async function main() {
 
-
     let names = [
-        'StrategyUsdPlusWmatic',
-    ]
+        'HedgeExchangerUsdPlusWmatic',
+        'RebaseTokenUsdPlusWmatic',
+    ];
+
 
     await showRules(names);
+
     await moveRulesAll(names);
+
     await showRules(names);
+
 
 }
 
