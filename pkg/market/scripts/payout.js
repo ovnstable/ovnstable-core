@@ -1,17 +1,12 @@
-const {verify} = require("@overnight-contracts/common/utils/verify-utils");
 const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {fromE6} = require("@overnight-contracts/common/utils/decimals");
 const {fromE18} = require("../../common/utils/decimals");
 
 async function main() {
 
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic', 'polygon_dev');
+    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic');
 
-    let usdPlus = await getContract('UsdPlusToken', 'polygon');
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
-
-    while (true){
+    while (true) {
 
         await showETSM2M();
 
@@ -55,9 +50,9 @@ async function showETSM2M() {
 
     let wallet = await initWallet();
 
-    let usdPlus = await getContract('UsdPlusToken', 'polygon');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
+    let usdPlus = await getContract('UsdPlusToken');
+    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
+    let strategy = await getContract('StrategyUsdPlusWmatic');
 
     console.log('User balances:')
     console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))

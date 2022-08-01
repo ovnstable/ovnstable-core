@@ -17,14 +17,17 @@ library UsdPlusWmaticLibrary {
         self.usdPlus().approve(address(self.dystRouter()), type(uint256).max);
         self.wmatic().approve(address(self.dystRouter()), wmaticAmount);
 
+        console.log('WMATIC: %s', self.wmatic().balanceOf(address(self)) / 1e18);
+        console.log('USD+:   %s', self.wmatic().balanceOf(address(self)) / 1e6);
+
         self.dystRouter().addLiquidity(
             address(self.wmatic()),
             address(self.usdPlus()),
             false,
             wmaticAmount,
             usdPlusAmount,
-            (wmaticAmount < 10000) ? 0 : (OvnMath.subBasisPoints(wmaticAmount, self.BASIS_POINTS_FOR_SLIPPAGE())),
-            (usdPlusAmount < 10000) ? 0 : (OvnMath.subBasisPoints(usdPlusAmount, self.BASIS_POINTS_FOR_SLIPPAGE())),
+            0,
+            0,
             address(self),
             block.timestamp + 600
         );
