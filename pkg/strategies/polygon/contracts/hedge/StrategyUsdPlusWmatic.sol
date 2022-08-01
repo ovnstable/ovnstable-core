@@ -82,67 +82,66 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         __Strategy_init();
     }
 
+    function setTokens(
+        address _usdc,
+        address _aUsdc,
+        address _wmatic,
+        address _usdPlus,
+        address _penToken,
+        address _dyst
+    ) external onlyAdmin {
+        usdc = IERC20(_usdc);
+        aUsdc = IERC20(_aUsdc);
+        wmatic = IERC20(_wmatic);
+        usdcDm = 10 ** IERC20Metadata(_usdc).decimals();
+        wmaticDm = 10 ** IERC20Metadata(_wmatic).decimals();
 
-    //    function setTokens(
-    //        address _usdc,
-    //        address _aUsdc,
-    //        address _wmatic,
-    //        address _usdPlus,
-    //        address _penToken,
-    //        address _dyst
-    //    ) external onlyAdmin {
-    //        usdc = IERC20(_usdc);
-    //        aUsdc = IERC20(_aUsdc);
-    //        wmatic = IERC20(_wmatic);
-    //        usdcDm = 10 ** IERC20Metadata(_usdc).decimals();
-    //        wmaticDm = 10 ** IERC20Metadata(_wmatic).decimals();
-    //
-    //        usdPlus = IERC20(_usdPlus);
-    //        setAsset(_usdPlus);
-    //
-    //        penToken = IERC20(_penToken);
-    //        dyst = IERC20(_dyst);
-    //
-    //    }
-    //
-    //
-    //    function setParams(
-    //        address _exchanger,
-    //        address _dystRewards,
-    //        address _dystVault,
-    //        address _dystRouter,
-    //        address _penProxy,
-    //        address _penLens
-    //    ) external onlyAdmin {
-    //
-    //        dystRewards = IDystopiaLP(_dystRewards);
-    //        dystVault = IDystopiaLP(_dystVault);
-    //        dystRouter = IDystopiaRouter(_dystRouter);
-    //
-    //        penProxy = IUserProxy(_penProxy);
-    //        penLens = IPenLens(_penLens);
-    //
-    //        exchange = IExchange(_exchanger);
-    //    }
-    //
-    //    function setAaveParams(
-    //        address _aavePoolAddressesProvider,
-    //        address _oracleUsdc,
-    //        address _oracleWmatic,
-    //        uint256 _liquidationThreshold,
-    //        uint256 _healthFactor,
-    //        uint256 _balancingDelta
-    //    ) external onlyAdmin {
-    //
-    //        aavePoolAddressesProvider = IPoolAddressesProvider(_aavePoolAddressesProvider);
-    //        oracleUsdc = IPriceFeed(_oracleUsdc);
-    //        oracleWmatic = IPriceFeed(_oracleWmatic);
-    //
-    //        liquidationThreshold = _liquidationThreshold * 10 ** 15;
-    //        healthFactor = _healthFactor * 10 ** 15;
-    //        realHealthFactor = 0;
-    //        balancingDelta = _balancingDelta * 10 ** 15;
-    //    }
+        usdPlus = IERC20(_usdPlus);
+        setAsset(_usdPlus);
+
+        penToken = IERC20(_penToken);
+        dyst = IERC20(_dyst);
+
+    }
+
+
+    function setParams(
+        address _exchanger,
+        address _dystRewards,
+        address _dystVault,
+        address _dystRouter,
+        address _penProxy,
+        address _penLens
+    ) external onlyAdmin {
+
+        dystRewards = IDystopiaLP(_dystRewards);
+        dystVault = IDystopiaLP(_dystVault);
+        dystRouter = IDystopiaRouter(_dystRouter);
+
+        penProxy = IUserProxy(_penProxy);
+        penLens = IPenLens(_penLens);
+
+        exchange = IExchange(_exchanger);
+    }
+
+    function setAaveParams(
+        address _aavePoolAddressesProvider,
+        address _oracleUsdc,
+        address _oracleWmatic,
+        uint256 _liquidationThreshold,
+        uint256 _healthFactor,
+        uint256 _balancingDelta
+    ) external onlyAdmin {
+
+        aavePoolAddressesProvider = IPoolAddressesProvider(_aavePoolAddressesProvider);
+        oracleUsdc = IPriceFeed(_oracleUsdc);
+        oracleWmatic = IPriceFeed(_oracleWmatic);
+
+        liquidationThreshold = _liquidationThreshold * 10 ** 15;
+        healthFactor = _healthFactor * 10 ** 15;
+        realHealthFactor = 0;
+        balancingDelta = _balancingDelta * 10 ** 15;
+    }
 
     function _stake(uint256 _amount) internal override {
 
@@ -180,6 +179,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             this._caseNumber6(delta);
         }
 
+        // TODO: set realHealthFactor instead useless healthFactorCurrent
         (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
         realHealthFactor = healthFactorCurrent;
     }
@@ -223,12 +223,14 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             this._caseNumber6(delta);
         }
 
+        // TODO: set realHealthFactor instead useless healthFactorCurrent
         (,,,,,uint256 healthFactorCurrent) = IPool(_aavePool()).getUserAccountData(address(this));
         realHealthFactor = healthFactorCurrent;
 
         return _amount;
     }
 
+    //TODO: remove underscore if public
     function _aavePool() public returns (IPool aavePool){
         aavePool = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider), E_MODE_CATEGORY_ID));
     }
@@ -237,6 +239,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     function balances() external view override returns (BalanceItem[] memory){
 
         // debt base (USD) convert to Wmatic amount
+        //TODO: use _aavePool method if same
         (, uint256 debtBase,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
         uint256 aaveWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, wmaticDm, uint256(oracleWmatic.latestAnswer()));
         uint256 usdcWmatic = AaveBorrowLibrary.convertUsdToTokenAmount(debtBase, usdcDm, uint256(oracleUsdc.latestAnswer()));
@@ -299,7 +302,19 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             );
         }
 
-        return totalUsdPlus + totalUsdc;
+
+        uint256 wmaticBalance = wmatic.balanceOf(address(this));
+        console.log("wmaticBalance: ", wmaticBalance);
+
+//
+        uint256 wmaticBalanceUsd = AaveBorrowLibrary.convertTokenAmountToUsd(wmaticBalance, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        uint256 wmaticBalanceUsdc = wmaticBalanceUsd / 100;
+
+        console.log("wmaticBalanceUsdc: ", wmaticBalanceUsdc);
+        console.log("sum1: ", totalUsdPlus + totalUsdc + wmaticBalanceUsdc);
+        console.log("sum2: ", totalUsdPlus + totalUsdc);
+
+        return totalUsdPlus + totalUsdc + wmaticBalanceUsdc;
     }
 
 
@@ -322,6 +337,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             poolUsdpUsdDelta, 0, 0
         );
 
+        //TODO: try to use readable enums and readable method names
         if (caseNumber == 1) {
             this._caseNumber1(delta);
         }
@@ -359,11 +375,13 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
 
     function getDeltas(uint256 method, uint256 amount) public view returns (uint256, uint256, uint256, uint256){
+        //TODO: make getDeltas return Delta struct
 
         uint256 aaveCollateralPercent;
         uint256 aaveBorrowAndPoolMaticPercent;
         uint256 poolUsdpPercent;
 
+        //TODO: may be extract to method
         {
             uint256 chainlinkUsdUsdc = uint256(oracleUsdc.latestAnswer());
             uint256 chainlinkUsdMatic = uint256(oracleWmatic.latestAnswer());
@@ -384,11 +402,12 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("aaveBorrowAndPoolMaticPercent", aaveBorrowAndPoolMaticPercent);
         // console.log("poolUsdpPercent", poolUsdpPercent);
 
-
+        // TODO: use method _aavePool if same
         (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = IPool(AaveBorrowLibrary.getAavePool(address(aavePoolAddressesProvider))).getUserAccountData(address(this));
         uint256 poolWmatic;
         uint256 poolUsdPlus;
 
+        //TODO: extract to method
         {
             address userProxyThis = penLens.userProxyByAccount(address(this));
             address stakingAddress = penLens.stakingRewardsByDystPool(address(dystVault));
@@ -396,6 +415,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
             (poolWmatic, poolUsdPlus) = this._getLiquidityByLp(balanceLp);
         }
 
+        // TODO: move definition to usage
         uint256 NAV;
         uint256 poolMaticUsd = AaveBorrowLibrary.convertTokenAmountToUsd(poolWmatic, wmaticDm, uint256(oracleWmatic.latestAnswer()));
         uint256 poolUsdpUsd = AaveBorrowLibrary.convertTokenAmountToUsd(poolUsdPlus, usdcDm, uint256(oracleUsdc.latestAnswer()));
@@ -404,9 +424,10 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("poolMaticUsd", poolMaticUsd);
         // console.log("poolUsdpUsd", poolUsdpUsd);
         NAV = poolMaticUsd + poolUsdpUsd + aaveCollateralUsd - aaveBorrowUsd;
+
         if (method == 1) {
             NAV += amount;
-        } else if (method == 1) {
+        } else if (method == 2) {
             NAV -= amount;
         }
         // console.log("NAV", NAV);
@@ -423,6 +444,9 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         // console.log("poolUsdpUsdDelta", poolUsdpUsd - NAV*poolUsdpPercent/10**18);
         // console.log("");
 
+        //TODO: split by bracnches
+        //TODO: add revert for unexpected branches
+        //TODO: move computations out to vars or context struct for readability
         if (poolUsdpUsd > NAV*poolUsdpPercent/10**18 && aaveBorrowUsd > NAV*aaveBorrowAndPoolMaticPercent/10**18 && aaveCollateralUsd > NAV*aaveCollateralPercent/10**18) {
             return (1, aaveCollateralUsd - NAV*aaveCollateralPercent/10**18,
             aaveBorrowUsd - NAV*aaveBorrowAndPoolMaticPercent/10**18,
