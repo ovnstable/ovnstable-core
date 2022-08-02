@@ -11,6 +11,11 @@ const chai = require("chai");
 chai.use(require('chai-bignumber')());
 
 
+hre.ovn = {
+    setting: true,
+    noDeploy: false
+}
+
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
@@ -57,6 +62,8 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
     ]
 
     describe(`${strategyParams.name}`, function () {
+
+        hre.ovn.tags = strategyParams.name;
 
         stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
 

@@ -108,6 +108,13 @@ task(TASK_RUN, 'Run task')
     .addFlag('reset', 'Reset ')
     .setAction(async (args, hre, runSuper) => {
 
+        hre.ovn = {
+            noDeploy: args.noDeploy,
+            setting: args.setting,
+            impl: args.impl,
+            verify: args.verify,
+            tags: args.tags,
+        }
 
         if (args.reset)
             await evmCheckpoint('task', hre.network.provider);

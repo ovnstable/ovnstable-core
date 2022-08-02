@@ -28,7 +28,10 @@ async function initWallet() {
 }
 async function deploySection(exec){
 
-    if (hre.ovn === undefined || !hre.ovn.noDeploy){
+    if (hre.ovn === undefined)
+        hre.ovn = {};
+
+    if (!hre.ovn.noDeploy){
 
         let strategyName = hre.ovn.tags;
 
@@ -43,7 +46,10 @@ async function deploySection(exec){
 
 async function settingSection(exec){
 
-    if (hre.ovn === undefined || hre.ovn.setting){
+    if (hre.ovn === undefined)
+        hre.ovn = {};
+
+    if (hre.ovn.setting){
 
         let strategyName = hre.ovn.tags;
         try {
