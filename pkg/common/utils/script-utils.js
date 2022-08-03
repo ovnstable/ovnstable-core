@@ -434,12 +434,53 @@ async function getChainId(){
     }
 }
 
+
+async function showHedgeM2M() {
+
+    let wallet = await initWallet();
+
+    let usdPlus = await getContract('UsdPlusToken');
+    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
+    let strategy = await getContract('StrategyUsdPlusWmatic');
+
+    console.log('User balances:')
+    console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))
+    console.log("usdPlus:      " + fromE6(await usdPlus.balanceOf(wallet.address)))
+    console.log('')
+
+    console.log('ETS balances:')
+    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
+    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
+    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
+    console.log('Liq index:    ' + await rebase.liquidityIndex());
+
+
+    let items = await strategy.balances();
+
+    let arrays = [];
+    for (let i = 0; i < items.length; i++) {
+
+        let item = items[i];
+
+        arrays.push({
+            name: item[0],
+            amountUSDC: fromE6(item[1].toString()),
+            amount: fromE18(item[2].toString()),
+            borrowed: item[3].toString()
+        })
+
+    }
+
+    console.table(arrays);
+}
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     initWallet: initWallet,
     showM2M: showM2M,
     showPlatform: showPlatform,
+    showHedgeM2M: showHedgeM2M,
     getPrice: getPrice,
     getContract: getContract,
     getERC20: getERC20,
@@ -451,4 +492,5 @@ module.exports = {
     getAbi: getAbi,
     deploySection: deploySection,
     settingSection: settingSection,
+    checkTimeLockBalance: checkTimeLockBalance,
 }

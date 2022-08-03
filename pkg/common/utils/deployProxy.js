@@ -3,6 +3,7 @@ const hre = require("hardhat");
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
 const fs = require('fs');
+const {getContract, checkTimeLockBalance} = require("./script-utils");
 
 
 async function deployProxy(contractName, deployments, save, params) {
@@ -103,6 +104,27 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
             address: currentImplAddress,
             constructorArguments: [],
         });
+    }
+
+    if (hre.ovn.gov){
+
+
+        let timelock = await getContract('OvnTimelockController');
+
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [timelock.address],
+        });
+
+        const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
+        await checkTimeLockBalance();
+
+        let contract = await getContract(contractName);
+        await contract.connect(timelockAccount).upgradeTo(impl.impl);
+
+        console.log(`[Gov] upgradeTo completed `)
     }
 
 

@@ -79,6 +79,9 @@ function blockNumber(networkName) {
 function getNodeUrl(){
     return node_url(process.env.ETH_NETWORK.toLowerCase());
 }
+function getBlockNumber(){
+    return blockNumber(process.env.ETH_NETWORK.toLowerCase())
+}
 
 module.exports = {
     getNodeUrl: getNodeUrl,
@@ -86,4 +89,5 @@ module.exports = {
     accounts: accounts,
     getGasPrice: getGasPrice,
     blockNumber: blockNumber,
+    getBlockNumber: getBlockNumber,
 }

@@ -9,14 +9,14 @@ const {
     TASK_TEST,
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
-const {node_url} = require("../utils/network");
-const {getNodeUrl} = require("./network");
+const {getNodeUrl, getBlockNumber} = require("./network");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
     .addFlag('setting', 'Run setting contract')
     .addFlag('impl', 'Deploy only implementation without upgradeTo')
     .addFlag('verify', 'Enable verify contracts')
+    .addFlag('gov', 'Deploy to local by impression account')
     .setAction(async (args, hre) => {
 
         hre.ovn = {
@@ -25,6 +25,7 @@ task('deploy', 'deploy')
             impl: args.impl,
             verify: args.verify,
             tags: args.tags,
+            gov: args.gov
         }
 
         await hre.run('deploy:main', args);
@@ -63,6 +64,22 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         await fs.writeFile('deployments/localhost/.chainId', '31337', function (err) {
             if (err) return console.log(err);
         });
+
+
+        let nodeUrl = getNodeUrl();
+        const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
+
+        if (args.wait){
+
+            let currentBlock = await provider.getBlockNumber();
+            let needBlock = getBlockNumber() + 30;
+
+            if (needBlock + 30 > currentBlock ){
+                await sleep(3000);
+                currentBlock = await provider.getBlockNumber();
+            }
+        }
+
 
         if (args.last) {
 
@@ -153,3 +170,51 @@ task(TASK_TEST, 'test')
 
         await evmRestore('task', hre.network.provider);
     });
+
+
+
+task('simulate', 'Simulate transaction on local node')
+    .addParam('hash', 'Hash transaction')
+    .setAction(async (args, hre, runSuper) => {
+
+
+        let hash = args.hash;
+
+        console.log(`Simulate transaction by hash: [${hash}]`);
+
+        await evmCheckpoint('simulate', hre.network.provider);
+
+        let nodeUrl = getNodeUrl();
+        const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
+
+        let receipt = await provider.getTransactionReceipt(hash);
+        let transaction = await provider.getTransaction(hash);
+
+
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [receipt.from],
+        });
+
+        const fromSigner = await hre.ethers.getSigner(receipt.from);
+
+        const tx = {
+            from: receipt.from,
+            to: receipt.to,
+            value: 0,
+            nonce: await hre.ethers.provider.getTransactionCount(receipt.from, "latest"),
+            gasLimit: 15000000,
+            gasPrice: 150000000000, // 150 GWEI
+            data: transaction.data
+        }
+        await fromSigner.sendTransaction(tx);
+
+        await evmRestore('simulate', hre.network.provider);
+
+    });
+
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
