@@ -12,6 +12,9 @@ async function deployProxy(contractName, deployments, save, params) {
 
 async function deployProxyMulti(contractName, factoryName, deployments, save, params) {
 
+    if (hre.ovn === undefined)
+        hre.ovn = {};
+
     let factoryOptions;
     let unsafeAllow;
     let args;
