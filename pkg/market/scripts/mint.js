@@ -1,64 +1,23 @@
-const { verify } = require("@overnight-contracts/common/utils/verify-utils");
-const {getContract, initWallet, getPrice, getERC20} = require("@overnight-contracts/common/utils/script-utils");
-const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {fromE18} = require("../../common/utils/decimals");
+const {getContract, getPrice, showHedgeM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
 
+    let usdPlus = await getContract('UsdPlusToken');
+    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic');
 
-    let usdPlus = await getContract('UsdPlusToken' );
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic' );
 
-
-    await showETSM2M();
+    await showHedgeM2M();
 
     await (await usdPlus.approve(exchanger.address, toE6(5), await getPrice())).wait();
     let params = await getPrice();
     params.gasLimit = 15000000;
     await (await exchanger.buy(toE6(5), params)).wait();
 
-    await showETSM2M();
+    await showHedgeM2M();
 }
 
-async function showETSM2M() {
-
-    let wallet = await initWallet();
-
-    let usdPlus = await getContract('UsdPlusToken' );
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
-    let strategy = await getContract('StrategyUsdPlusWmatic');
-
-    console.log('User balances:')
-    console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus:      " + fromE6(await usdPlus.balanceOf(wallet.address)))
-    console.log('')
-
-    console.log('ETS balances:')
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
-
-
-    let items = await strategy.balances();
-
-    let arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-}
 
 main()
     .then(() => process.exit(0))

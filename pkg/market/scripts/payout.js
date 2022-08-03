@@ -1,6 +1,4 @@
-const {getContract, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {fromE18} = require("../../common/utils/decimals");
+const {getContract, getPrice, showHedgeM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 async function main() {
 
@@ -8,7 +6,7 @@ async function main() {
 
     while (true) {
 
-        await showETSM2M();
+        await showHedgeM2M();
 
         let opts = await getPrice();
         opts.gasLimit = "15000000"
@@ -31,7 +29,8 @@ async function main() {
         }
     }
 
-    await showETSM2M();
+    await showHedgeM2M();
+
 }
 
 main()
@@ -46,41 +45,3 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function showETSM2M() {
-
-    let wallet = await initWallet();
-
-    let usdPlus = await getContract('UsdPlusToken');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
-    let strategy = await getContract('StrategyUsdPlusWmatic');
-
-    console.log('User balances:')
-    console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus:      " + fromE6(await usdPlus.balanceOf(wallet.address)))
-    console.log('')
-
-    console.log('ETS balances:')
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
-
-
-    let items = await strategy.balances();
-
-    let arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-}

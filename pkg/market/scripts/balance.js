@@ -1,62 +1,17 @@
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {fromE18} = require("../../common/utils/decimals");
+const {getContract, getPrice, showHedgeM2M} = require("@overnight-contracts/common/utils/script-utils");
 
 async function main() {
 
+    let strategy = await getContract('StrategyUsdPlusWmatic');
 
-    let strategy = await getContract('StrategyUsdPlusWmatic', 'polygon_dev');
-    let items = await strategy.balances();
+    await showHedgeM2M();
 
-    let arrays = [];
-    for (let i = 0; i < items.length; i++) {
+    let params = await getPrice();
+    params.gasLimit = 15000000;
 
-        let item = items[i];
+    await (await strategy.balance(params)).wait();
 
-        arrays.push({
-            name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic', 'polygon_dev');
-
-    let newVar = await getPrice();
-    newVar.gasLimit = 15000000;
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
-
-    await (await strategy.balance(newVar)).wait();
-
-    items = await strategy.balances();
-
-    arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
+    await showHedgeM2M();
 }
 
 main()
