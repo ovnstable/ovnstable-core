@@ -10,6 +10,7 @@ import "./connectors/dodo/interfaces/IDODOV1.sol";
 import "./connectors/dodo/interfaces/IDODOV2.sol";
 import "./connectors/dodo/interfaces/IDODOMine.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
     using OvnMath for uint256;
@@ -130,12 +131,12 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool) + 1;
+        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool);
 
         // get lp tokens
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 unstakeLpBalance = amountToUnstake * usdcLPTokenTotalSupply / baseTarget;
+        uint256 unstakeLpBalance = (amountToUnstake * usdcLPTokenTotalSupply / baseTarget) + 1 ;
         uint256 userLPBalance = dodoMine.balanceOf(address(this));
         if (unstakeLpBalance > userLPBalance) {
             unstakeLpBalance = userLPBalance;

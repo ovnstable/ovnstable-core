@@ -77,6 +77,8 @@ interface IDODOV1 {
 
     function getOraclePrice() external view returns (uint256);
 
+    function getWithdrawBasePenalty(uint256 amountLp) external view returns (uint256);
+
     enum RStatus {ONE, ABOVE_ONE, BELOW_ONE}
 
 }
