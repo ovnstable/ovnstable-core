@@ -1,5 +1,5 @@
 const {
-    changeWeightsAndBalance, getContract, getPrice, showM2M
+    getContract, getPrice, showM2M
 } = require("@overnight-contracts/common/utils/script-utils");
 const BN = require('bignumber.js');
 
@@ -8,23 +8,23 @@ async function main() {
 
 
     // let dai = new BN(3.3);
-    let usdt = new BN(3.2);
-    let tusd = new BN(3.5);
+    let dodo = new BN(17.1);
+    let tusd = new BN(11.9);
 
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 10; i++) {
 
         console.log('Before')
         // console.log('DAI:  ' + dai.toNumber())
-        console.log('USDT: ' + usdt.toNumber())
+        console.log('DODO: ' + dodo.toNumber())
         console.log('TUSD: ' + tusd.toNumber())
 
         // dai = dai.minus(0.1);
-        usdt = usdt.minus(0.1);
+        dodo = dodo.minus(0.1);
         tusd = tusd.plus(0.1);
 
         console.log('After')
         // console.log('DAI:  ' + dai.toNumber())
-        console.log('USDT: ' + usdt.toNumber())
+        console.log('DODO: ' + dodo.toNumber())
         console.log('TUSD: ' + tusd.toNumber())
 
         let weights = [
@@ -51,16 +51,7 @@ async function main() {
                 "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
                 "name": "Dodo USDC",
                 "minWeight": 0,
-                "targetWeight": 27,
-                "maxWeight": 100,
-                "enabled": false,
-                "enabledReward": true
-            },
-            {
-                "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
-                "name": "Dystopia USDC/USDT",
-                "minWeight": 0,
-                "targetWeight": usdt.toNumber(),
+                "targetWeight": dodo.toNumber(),
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -69,7 +60,7 @@ async function main() {
                 "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
                 "name": "Dystopia USDC/DAI",
                 "minWeight": 0,
-                "targetWeight": 3.3,
+                "targetWeight": 10,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -78,7 +69,7 @@ async function main() {
                 "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
                 "name": "Synapse USDC",
                 "minWeight": 0,
-                "targetWeight": 60,
+                "targetWeight": 48,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -90,6 +81,16 @@ async function main() {
                 "targetWeight": tusd.toNumber(),
                 "maxWeight": 100,
                 "enabled": true,
+                "enabledReward": true
+            },
+
+            {
+                "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
+                "name": "Penrose USDC/USDT",
+                "minWeight": 0,
+                "targetWeight": 10,
+                "maxWeight": 100,
+                "enabled": false,
                 "enabledReward": true
             },
 
@@ -116,8 +117,6 @@ async function main() {
             return value;
         })
 
-        // await changeWeightsAndBalance(weights);
-        // await createProposal(weights);
 
         console.log('Show m2m before')
         await showM2M();
@@ -141,6 +140,7 @@ async function setWeights(weights) {
     while (true) {
 
         try {
+            console.log('Try to balance ...')
             let opts = await getPrice();
 
             try {
@@ -151,6 +151,7 @@ async function setWeights(weights) {
                 continue;
             }
 
+            console.log('Run balance ...')
             let tx = await pm.balance(opts);
             // let tx = await exchange.payout();
             console.log(`tx.hash: ${tx.hash}`);
@@ -171,37 +172,6 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function createProposal(weights, weightsNew) {
-    let governor = await getContract('OvnGovernor');
-    let pm = await getContract('PortfolioManager');
-
-    let addresses = [];
-    let values = [];
-    let abis = [];
-
-
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
-
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []));
-
-
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id(abis.toString()),
-        await getPrice()
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
-
-}
 
 
 main()
