@@ -31,7 +31,7 @@ async function main() {
             "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
             "name": "Dodo USDC",
             "minWeight": 0,
-            "targetWeight": 27,
+            "targetWeight": 23.6,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -58,9 +58,9 @@ async function main() {
             "strategy": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
             "name": "Penrose USDC/TUSD",
             "minWeight": 0,
-            "targetWeight": 6,
+            "targetWeight": 9.4,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
 
@@ -70,7 +70,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 2,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
 
@@ -98,8 +98,8 @@ async function main() {
     })
 
     // await changeWeightsAndBalance(weights);
-    await createProposalWeights(weights);
-    // await setWeights(weights);
+    // await createProposalWeights(weights);
+    await setWeights(weights);
 
 }
 
