@@ -8,8 +8,8 @@ async function main() {
 
 
     // let dai = new BN(3.3);
-    let dodo = new BN(17.1);
-    let tusd = new BN(11.9);
+    let dodo = new BN(14.7);
+    let tusd = new BN(14.3);
 
     for (let i = 0; i < 10; i++) {
 
@@ -19,8 +19,13 @@ async function main() {
         console.log('TUSD: ' + tusd.toNumber())
 
         // dai = dai.minus(0.1);
-        dodo = dodo.minus(0.1);
-        tusd = tusd.plus(0.1);
+        // dodo = dodo.minus(0.3);
+        // tusd = tusd.plus(0.3);
+
+        if (tusd.toNumber() > 15){
+            console.log('Finish balance.')
+            return
+        }
 
         console.log('After')
         // console.log('DAI:  ' + dai.toNumber())
@@ -90,7 +95,7 @@ async function main() {
                 "minWeight": 0,
                 "targetWeight": 10,
                 "maxWeight": 100,
-                "enabled": false,
+                "enabled": true,
                 "enabledReward": true
             },
 
