@@ -30,6 +30,14 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        optimism: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+
         bsc: {
             url: forkingUrl,
             accounts: accountsNetwork,
@@ -135,6 +143,9 @@ function getEtherScan(chain){
             break;
         case 'POLYGON':
             api = process.env.ETHERSCAN_API_POLYGON;
+            break;
+        case 'OPTIMISM':
+            api = process.env.ETHERSCAN_API_OPTIMISM;
             break;
     }
 

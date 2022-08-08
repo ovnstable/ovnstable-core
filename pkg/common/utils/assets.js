@@ -18,6 +18,10 @@ let BSC = {
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
 }
 
+let OPTIMISM = {
+    usdc: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+}
+
 let FANTOM = {
     usdc: "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75",
     amUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
@@ -135,6 +139,9 @@ function setDefault(network) {
         case 'POLYGON':
             DEFAULT = POLYGON;
             break;
+        case "OPTIMISM":
+            DEFAULT = OPTIMISM;
+            break
         default:
             throw new Error('Unknown network');
     }
@@ -145,6 +152,7 @@ module.exports = {
     BSC: BSC,
     FANTOM: FANTOM,
     POLYGON: POLYGON,
+    OPTIMISM: OPTIMISM,
     DEFAULT: DEFAULT,
     setDefault: setDefault
 }

@@ -49,11 +49,8 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
         console.log(`Proxy ${contractName} found -> ` + proxy.address)
     }
 
-    // set false for local testing
-    let upgradeTo = process.env.DEPLOY_PROXY == "true" ? true : false;
-    console.log('DEPLOY_PROXY: ' + upgradeTo)
     let impl;
-    if (upgradeTo && (hre.ovn && !hre.ovn.impl)) {
+    if (hre.ovn && !hre.ovn.impl) {
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
 

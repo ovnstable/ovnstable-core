@@ -50,13 +50,13 @@ function accounts(networkName) {
 
 function getGasPrice() {
 
-    let gasPrice = 50; //50 gwei
 
-    if (process.env.GAS_PRICE) {
-        gasPrice = Number.parseInt(process.env.GAS_PRICE);
-    }
+    let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
 
-    let wei = web3.utils.toWei(new BN(gasPrice), 'Gwei').toNumber();
+    if (gasPrice === undefined || gasPrice === 0)
+        throw new Error("Unknown gasPpice");
+
+    let wei = gasPrice * 1e9;
     console.log(`Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
 
     return wei;
