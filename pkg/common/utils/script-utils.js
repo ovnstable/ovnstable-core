@@ -200,6 +200,9 @@ async function getStrategyMapping(){
         case "polygon_dev":
             url = "https://dev.overnight.fi/api/dict/strategies";
             break;
+        case "optimism":
+            url = "https://op.overnight.fi/api/dict/strategies";
+            break;
         default:
             throw Error('Unknown STAND: ' + process.env.STAND);
     }
