@@ -10,8 +10,13 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection(async (strategy) => {
-        await (await strategy.setTokens(OPTIMISM.usdc, OPTIMISM.aUsdc)).wait();
-        await (await strategy.setParams(OPTIMISM.aaveProvider)).wait();
+        await (await strategy.setParams(
+            {
+                usdc: OPTIMISM.usdc,
+                aUsdc: OPTIMISM.aUsdc,
+                aaveProvider: OPTIMISM.aaveProvider
+            }
+        )).wait();
     });
 
 };

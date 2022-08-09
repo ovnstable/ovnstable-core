@@ -15,10 +15,16 @@ contract StrategyAave is Strategy {
 
 
     // --- events
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedTokens(address usdcToken, address aUsdcToken);
 
-    event StrategyUpdatedParams(address aaveProvider);
+    // --- structs
+
+    struct StrategyParams {
+        address usdc;
+        address aUsdc;
+        address aaveProvider;
+    }
 
 
     // ---  constructor
@@ -33,29 +39,12 @@ contract StrategyAave is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdcToken,
-        address _aUsdcToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdcToken = IERC20(params.usdc);
+        aUsdcToken = IERC20(params.aUsdc);
+        aaveProvider = IPoolAddressesProvider(params.aaveProvider);
 
-        require(_usdcToken != address(0), "Zero address not allowed");
-        require(_aUsdcToken != address(0), "Zero address not allowed");
-
-        usdcToken = IERC20(_usdcToken);
-        aUsdcToken = IERC20(_aUsdcToken);
-
-        emit StrategyUpdatedTokens(_usdcToken, _aUsdcToken);
-    }
-
-    function setParams(
-        address _aaveProvider
-    ) external onlyAdmin {
-
-        require(_aaveProvider != address(0), "Zero address not allowed");
-
-        aaveProvider = IPoolAddressesProvider(_aaveProvider);
-
-        emit StrategyUpdatedParams(_aaveProvider);
+        emit StrategyUpdatedParams();
     }
 
 
