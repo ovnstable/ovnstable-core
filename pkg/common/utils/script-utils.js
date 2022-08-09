@@ -55,7 +55,8 @@ async function settingSection(exec){
         try {
             let strategy = await ethers.getContract(strategyName);
 
-            await (await strategy.setPortfolioManager(core.pm)).wait();
+            let pm = await getContract('PortfolioManager', process.env.STAND);
+            await (await strategy.setPortfolioManager(pm.address)).wait();
 
             await exec(strategy);
             console.log(`[${strategyName}] setting done`)
@@ -429,6 +430,8 @@ async function getChainId(){
             return 43114;
         case "FANTOM":
             return 250;
+        case "OPTIMISM":
+            return 10;
         default:
             throw new Error("Unknown chain");
     }
@@ -474,10 +477,17 @@ async function showHedgeM2M() {
     console.table(arrays);
 }
 
+async function getDevWallet(){
+
+    let provider = ethers.provider;
+    return await new ethers.Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
+}
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     initWallet: initWallet,
+    getDevWallet: getDevWallet,
     showM2M: showM2M,
     showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,
