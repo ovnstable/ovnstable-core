@@ -2,8 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "./libraries/UniswapV3Library.sol";
 import "./connectors/aave/v3/interfaces/IPoolAddressesProvider.sol";
 import "./connectors/aave/v3/interfaces/IPool.sol";
+import "./connectors/aave/v3/interfaces/IRewardsController.sol";
 
 
 contract StrategyAave is Strategy {
@@ -12,6 +14,11 @@ contract StrategyAave is Strategy {
     IERC20 public aUsdcToken;
 
     IPoolAddressesProvider public aaveProvider;
+
+    IRewardsController public rewardsController;
+    address public uniswapV3Router;
+    IERC20 public opToken;
+    uint24 public poolFee;
 
 
     // --- events
@@ -24,6 +31,10 @@ contract StrategyAave is Strategy {
         address usdc;
         address aUsdc;
         address aaveProvider;
+        address rewardsController;
+        address uniswapV3Router;
+        address op;
+        uint24 poolFee;
     }
 
 
@@ -43,6 +54,10 @@ contract StrategyAave is Strategy {
         usdcToken = IERC20(params.usdc);
         aUsdcToken = IERC20(params.aUsdc);
         aaveProvider = IPoolAddressesProvider(params.aaveProvider);
+        rewardsController = IRewardsController(params.rewardsController);
+        uniswapV3Router = params.uniswapV3Router;
+        opToken = IERC20(params.op);
+        poolFee = params.poolFee;
 
         emit StrategyUpdatedParams();
     }
@@ -54,6 +69,7 @@ contract StrategyAave is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
+
         require(_asset == address(usdcToken), "Some token not compatible");
 
         IPool pool = IPool(aaveProvider.getPool());
@@ -101,7 +117,39 @@ contract StrategyAave is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+
+        // claim rewards
+        uint256 aUsdcBalance = aUsdcToken.balanceOf(address(this));
+        if (aUsdcBalance == 0) {
+            return 0;
+        }
+
+        address[] memory assets = new address[](1);
+        assets[0] = address(aUsdcToken);
+        (address[] memory rewardsList, uint256[] memory claimedAmounts) = rewardsController.claimAllRewardsToSelf(assets);
+
+        // sell rewards
+        uint256 totalUsdc;
+
+        uint256 opBalance = opToken.balanceOf(address(this));
+        if (opBalance > 0) {
+            uint256 opUsdc = UniswapV3Library._uniswapV3InputSingleSwap(
+                uniswapV3Router,
+                address(opToken),
+                address(usdcToken),
+                poolFee,
+                opBalance,
+                0,
+                address(this)
+            );
+            totalUsdc += opUsdc;
+        }
+
+        if (totalUsdc > 0) {
+            usdcToken.transfer(_beneficiary, totalUsdc);
+        }
+
+        return totalUsdc;
     }
 
 }

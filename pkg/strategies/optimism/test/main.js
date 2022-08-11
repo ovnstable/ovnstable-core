@@ -6,7 +6,15 @@ let id = process.env.TEST_STRATEGY;
 let arrays = [
     {
         name: 'StrategyAave',
-        enabledReward: false,
+        enabledReward: true,
+    },
+    {
+        name: 'StrategySynapseUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyVelodromeUsdcDai',
+        enabledReward: true,
     },
 ];
 
