@@ -18,8 +18,20 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection(async (strategy) => {
-        await (await strategy.setTokens(OPTIMISM.usdc, nUsdLPToken, synToken, OPTIMISM.weth)).wait();
-        await (await strategy.setParams(swap, miniChefV2, pid, OPTIMISM.uniswapV3Router, poolFee0, poolFee1)).wait();
+        await (await strategy.setParams(
+            {
+                usdcToken: OPTIMISM.usdc,
+                nUsdLPToken: nUsdLPToken,
+                synToken: synToken,
+                wethToken: OPTIMISM.weth,
+                swap: swap,
+                miniChefV2: miniChefV2,
+                pid: pid,
+                uniswapV3Router: OPTIMISM.uniswapV3Router,
+                poolFee0: poolFee0,
+                poolFee1: poolFee1
+            }
+        )).wait();
     });
 };
 

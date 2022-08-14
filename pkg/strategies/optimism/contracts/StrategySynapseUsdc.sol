@@ -27,9 +27,22 @@ contract StrategySynapseUsdc is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address nUsdLPToken, address synToken, address wethToken);
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedParams(address swap, address miniChefV2, uint256 pid, address uniswapV3Router, uint24 poolFee0, uint24 poolFee1);
+    // --- structs
+
+    struct StrategyParams {
+        address usdcToken;
+        address nUsdLPToken;
+        address synToken;
+        address wethToken;
+        address swap;
+        address miniChefV2;
+        uint64 pid;
+        address uniswapV3Router;
+        uint24 poolFee0;
+        uint24 poolFee1;
+    }
 
 
     // ---  constructor
@@ -44,51 +57,23 @@ contract StrategySynapseUsdc is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdcToken,
-        address _nUsdLPToken,
-        address _synToken,
-        address _wethToken
-    ) external onlyAdmin {
 
-        require(_usdcToken != address(0), "Zero address not allowed");
-        require(_nUsdLPToken != address(0), "Zero address not allowed");
-        require(_synToken != address(0), "Zero address not allowed");
-        require(_wethToken != address(0), "Zero address not allowed");
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdcToken = IERC20(params.usdcToken);
+        nUsdLPToken = IERC20(params.nUsdLPToken);
+        synToken = IERC20(params.synToken);
+        wethToken = IERC20(params.wethToken);
 
-        usdcToken = IERC20(_usdcToken);
-        nUsdLPToken = IERC20(_nUsdLPToken);
-        synToken = IERC20(_synToken);
-        wethToken = IERC20(_wethToken);
+        swap = ISwap(params.swap);
+        miniChefV2 = IMiniChefV2(params.miniChefV2);
+        pid = params.pid;
+        uniswapV3Router = params.uniswapV3Router;
+        poolFee0 = params.poolFee0;
+        poolFee1 = params.poolFee1;
 
-        emit StrategyUpdatedTokens(_usdcToken, _nUsdLPToken, _synToken, _wethToken);
+        emit StrategyUpdatedParams();
     }
 
-    function setParams(
-        address _swap,
-        address _miniChefV2,
-        uint64 _pid,
-        address _uniswapV3Router,
-        uint24 _poolFee0,
-        uint24 _poolFee1
-    ) external onlyAdmin {
-
-        require(_swap != address(0), "Zero address not allowed");
-        require(_miniChefV2 != address(0), "Zero address not allowed");
-        require(_pid != 0, "Zero value not allowed");
-        require(_uniswapV3Router != address(0), "Zero address not allowed");
-        require(_poolFee0 != 0, "Zero value not allowed");
-        require(_poolFee1 != 0, "Zero value not allowed");
-
-        swap = ISwap(_swap);
-        miniChefV2 = IMiniChefV2(_miniChefV2);
-        pid = _pid;
-        uniswapV3Router = _uniswapV3Router;
-        poolFee0 = _poolFee0;
-        poolFee1 = _poolFee1;
-
-        emit StrategyUpdatedParams(_swap, _miniChefV2, _pid, _uniswapV3Router, _poolFee0, _poolFee1);
-    }
 
 
     // --- logic
@@ -103,7 +88,9 @@ contract StrategySynapseUsdc is Strategy {
         // add liquidity
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 0;
-        amounts[1] = _amount.subBasisPoints(4, 1e4);
+        amounts[1] = _amount.subBasisPoints(4, 1e4); // 0.04%
+
+        // calculating minimum LP tokens which we will receive at staking
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
         amounts[1] = _amount;
         usdcToken.approve(address(swap), _amount);
@@ -125,7 +112,7 @@ contract StrategySynapseUsdc is Strategy {
         // unstake
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 0;
-        amounts[1] = _amount.addBasisPoints(4, 1e4) + 1;
+        amounts[1] = _amount.addBasisPoints(4, 1e4) + 1; // 0.04% slippage + 1 for rounding
         uint256 balanceLP = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (balanceLP > amount) {
@@ -199,7 +186,7 @@ contract StrategySynapseUsdc is Strategy {
 
         uint256 synBalance = synToken.balanceOf(address(this));
         if (synBalance > 0) {
-            uint256 synUsdc = UniswapV3Library._uniswapV3InputMultihopSwap(
+            uint256 synUsdc = UniswapV3Library.multiSwap(
                 uniswapV3Router,
                 address(synToken),
                 address(wethToken),

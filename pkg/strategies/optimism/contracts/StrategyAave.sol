@@ -133,7 +133,7 @@ contract StrategyAave is Strategy {
 
         uint256 opBalance = opToken.balanceOf(address(this));
         if (opBalance > 0) {
-            uint256 opUsdc = UniswapV3Library._uniswapV3InputSingleSwap(
+            uint256 opUsdc = UniswapV3Library.singleSwap(
                 uniswapV3Router,
                 address(opToken),
                 address(usdcToken),

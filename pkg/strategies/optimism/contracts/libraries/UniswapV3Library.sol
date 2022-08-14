@@ -8,7 +8,7 @@ import "../connectors/uniswap/v3/interfaces/IV3SwapRouter.sol";
 
 library UniswapV3Library {
 
-    function _uniswapV3InputSingleSwap(
+    function singleSwap(
         address swapRouter,
         address tokenIn,
         address tokenOut,
@@ -33,7 +33,7 @@ library UniswapV3Library {
         amountOut = ISwapRouter02(swapRouter).exactInputSingle(params);
     }
 
-    function _uniswapV3InputMultihopSwap(
+    function multiSwap(
         address swapRouter,
         address tokenIn,
         address tokenMid,
