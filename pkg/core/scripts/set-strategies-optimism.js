@@ -8,7 +8,17 @@ async function main() {
             "strategy": "0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 100,
+            "targetWeight": 2.5,
+            "maxWeight": 5,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0xF7d693CE960e70721F0353F967360046Ba7d4eFA",
+            "name": "Synapse USDC",
+            "minWeight": 0,
+            "targetWeight": 97.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -60,7 +70,6 @@ async function proposal(weights) {
 async function setWeights(weights) {
     let pm = await getContract('PortfolioManager', 'optimism');
 
-    await (await pm.setCashStrategy('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76'));
     await (await pm.setStrategyWeights(weights)).wait();
     await (await pm.balance()).wait();
 }
