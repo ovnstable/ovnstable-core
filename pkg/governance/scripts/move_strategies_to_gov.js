@@ -30,7 +30,8 @@ async function main() {
 
 
     let names = [
-        'StrategyUsdPlusWmatic',
+        'StrategyAave',
+        'StrategySynapseUsdc',
     ]
 
     await showRules(names);
