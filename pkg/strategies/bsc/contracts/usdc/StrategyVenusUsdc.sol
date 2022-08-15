@@ -2,21 +2,21 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./connectors/venus/interfaces/VenusInterface.sol";
+import "../connectors/venus/interfaces/VenusInterface.sol";
 
 
-contract StrategyVenusBusd is Strategy {
+contract StrategyVenusUsdc is Strategy {
 
-    IERC20 public busdToken;
+    IERC20 public usdcToken;
 
-    VenusInterface public vBusdToken;
+    VenusInterface public vUsdcToken;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address busdToken);
+    event StrategyUpdatedTokens(address usdcToken);
 
-    event StrategyUpdatedParams(address vBusdToken);
+    event StrategyUpdatedParams(address vUsdcToken);
 
 
     // ---  constructor
@@ -32,25 +32,25 @@ contract StrategyVenusBusd is Strategy {
     // --- Setters
 
     function setTokens(
-        address _busdToken
+        address _usdcToken
     ) external onlyAdmin {
 
-        require(_busdToken != address(0), "Zero address not allowed");
+        require(_usdcToken != address(0), "Zero address not allowed");
 
-        busdToken = IERC20(_busdToken);
+        usdcToken = IERC20(_usdcToken);
 
-        emit StrategyUpdatedTokens(_busdToken);
+        emit StrategyUpdatedTokens(_usdcToken);
     }
 
     function setParams(
-        address _vBusdToken
+        address _vUsdcToken
     ) external onlyAdmin {
 
-        require(_vBusdToken != address(0), "Zero address not allowed");
+        require(_vUsdcToken != address(0), "Zero address not allowed");
 
-        vBusdToken = VenusInterface(_vBusdToken);
+        vUsdcToken = VenusInterface(_vUsdcToken);
 
-        emit StrategyUpdatedParams(_vBusdToken);
+        emit StrategyUpdatedParams(_vUsdcToken);
     }
 
 
@@ -61,10 +61,10 @@ contract StrategyVenusBusd is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        busdToken.approve(address(vBusdToken), _amount);
-        vBusdToken.mint(_amount);
+        usdcToken.approve(address(vUsdcToken), _amount);
+        vUsdcToken.mint(_amount);
     }
 
     function _unstake(
@@ -73,11 +73,11 @@ contract StrategyVenusBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        vBusdToken.redeemUnderlying(_amount);
+        vUsdcToken.redeemUnderlying(_amount);
 
-        return busdToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -85,11 +85,11 @@ contract StrategyVenusBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        vBusdToken.redeem(vBusdToken.balanceOf(address(this)));
+        vUsdcToken.redeem(vUsdcToken.balanceOf(address(this)));
 
-        return busdToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -101,7 +101,7 @@ contract StrategyVenusBusd is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18;
+        return vUsdcToken.balanceOf(address(this)) * vUsdcToken.exchangeRateStored() / 1e18;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {

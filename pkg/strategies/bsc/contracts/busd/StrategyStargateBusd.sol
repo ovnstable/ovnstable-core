@@ -2,11 +2,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/PancakeSwapLibrary.sol";
-import "./connectors/stargate/interfaces/IStargateRouter.sol";
-import "./connectors/stargate/interfaces/IStargatePool.sol";
-import "./connectors/stargate/interfaces/ILPStaking.sol";
+import "../libraries/OvnMath.sol";
+import "../libraries/PancakeSwapLibrary.sol";
+import "../connectors/stargate/interfaces/IStargateRouter.sol";
+import "../connectors/stargate/interfaces/IStargatePool.sol";
+import "../connectors/stargate/interfaces/ILPStaking.sol";
 
 
 contract StrategyStargateBusd is Strategy {

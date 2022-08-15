@@ -16,6 +16,26 @@ let arrays = [
         name: 'StrategySynapseBusd',
         enabledReward: true,
     },
+    {
+        name: 'StrategyVenusUsdc',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategySynapseUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyVenusUsdt',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategyStargateUsdt',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategySynapseUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -30,6 +50,16 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
 describe("BSC", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'BSC', BSC.busd, runStrategyLogic);
+        switch (process.env.STAND) {
+            case 'bsc_usdc':
+                strategyTest(value, 'BSC', BSC.usdc, runStrategyLogic);
+                break;
+            case 'bsc_usdt':
+                strategyTest(value, 'BSC', BSC.usdt, runStrategyLogic);
+                break;
+            default:
+                strategyTest(value, 'BSC', BSC.busd, runStrategyLogic);
+                break;
+        }
     })
 });
