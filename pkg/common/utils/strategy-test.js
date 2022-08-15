@@ -63,7 +63,6 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
 
-        hre.ovn.tags = strategyParams.name;
 
         stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
 
@@ -96,6 +95,9 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
             await resetHardhat(network);
+
+            hre.ovn.tags = strategyParams.name;
+            hre.ovn.setting = true;
 
             strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
@@ -252,6 +254,9 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
             await hre.run("compile");
             await resetHardhat(network);
 
+            hre.ovn.tags = strategyParams.name;
+            hre.ovn.setting = true;
+
             strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
@@ -353,6 +358,9 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             await hre.run("compile");
             await resetHardhat(network);
 
+            hre.ovn.tags = strategyParams.name;
+            hre.ovn.setting = true;
+
             strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
 
@@ -435,6 +443,9 @@ function healthFactorBalance(strategyParams, network, assetAddress, values, runS
         sharedBeforeEach(`deploy`, async () => {
             await hre.run("compile");
             await resetHardhat(network);
+
+            hre.ovn.tags = strategyParams.name;
+            hre.ovn.setting = true;
 
             strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
