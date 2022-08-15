@@ -16,8 +16,18 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection(async (strategy) => {
-        await (await strategy.setTokens(BSC.usdt, nUsdLPToken, synToken)).wait();
-        await (await strategy.setParams(swap, miniChefV2, BSC.pancakeRouter, pid)).wait();
+        await (await strategy.setParams(
+            {
+                usdtToken: BSC.usdt,
+                nUsdLPToken: nUsdLPToken,
+                synToken: synToken,
+                busdToken: BSC.busd,
+                swap: swap,
+                miniChefV2: miniChefV2,
+                pancakeRouter: BSC.pancakeRouter,
+                pid: pid
+            }
+        )).wait();
     });
 };
 

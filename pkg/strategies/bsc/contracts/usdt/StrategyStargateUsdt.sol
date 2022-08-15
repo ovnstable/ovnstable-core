@@ -14,6 +14,7 @@ contract StrategyStargateUsdt is Strategy {
 
     IERC20 public usdtToken;
     IERC20 public stgToken;
+    IERC20 public busdToken;
 
     IStargateRouter public stargateRouter;
     IStargatePool public pool;
@@ -24,9 +25,21 @@ contract StrategyStargateUsdt is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdtToken, address stgToken);
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedParams(address stargateRouter, address pool, address lpStaking, address pancakeRouter, uint256 pid);
+
+    // --- structs
+
+    struct StrategyParams {
+        address usdtToken;
+        address stgToken;
+        address busdToken;
+        address stargateRouter;
+        address pool;
+        address lpStaking;
+        address pancakeRouter;
+        uint256 pid;
+    }
 
 
     // ---  constructor
@@ -41,40 +54,18 @@ contract StrategyStargateUsdt is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdtToken,
-        address _stgToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdtToken = IERC20(params.usdtToken);
+        stgToken = IERC20(params.stgToken);
+        busdToken = IERC20(params.busdToken);
 
-        require(_usdtToken != address(0), "Zero address not allowed");
-        require(_stgToken != address(0), "Zero address not allowed");
+        stargateRouter = IStargateRouter(params.stargateRouter);
+        pool = IStargatePool(params.pool);
+        lpStaking = ILPStaking(params.lpStaking);
+        pancakeRouter = IPancakeRouter02(params.pancakeRouter);
+        pid = params.pid;
 
-        usdtToken = IERC20(_usdtToken);
-        stgToken = IERC20(_stgToken);
-
-        emit StrategyUpdatedTokens(_usdtToken, _stgToken);
-    }
-
-    function setParams(
-        address _stargateRouter,
-        address _pool,
-        address _lpStaking,
-        address _pancakeRouter,
-        uint256 _pid
-    ) external onlyAdmin {
-
-        require(_stargateRouter != address(0), "Zero address not allowed");
-        require(_pool != address(0), "Zero address not allowed");
-        require(_lpStaking != address(0), "Zero address not allowed");
-        require(_pancakeRouter != address(0), "Zero address not allowed");
-
-        stargateRouter = IStargateRouter(_stargateRouter);
-        pool = IStargatePool(_pool);
-        lpStaking = ILPStaking(_lpStaking);
-        pancakeRouter = IPancakeRouter02(_pancakeRouter);
-        pid = _pid;
-
-        emit StrategyUpdatedParams(_stargateRouter, _pool, _lpStaking, _pancakeRouter, _pid);
+        emit StrategyUpdatedParams();
     }
 
 
@@ -107,7 +98,7 @@ contract StrategyStargateUsdt is Strategy {
         require(_asset == address(usdtToken), "Some token not compatible");
 
         // unstake
-        uint256 usdtAmount = _amount + 10;
+        uint256 usdtAmount = _amount + 1e13;
         uint256 lpBalance = usdtAmount * 1e6 / pool.amountLPtoLD(1e6);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
         if (lpBalance > amount) {
@@ -179,6 +170,7 @@ contract StrategyStargateUsdt is Strategy {
             uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
                 address(stgToken),
+                address(busdToken),
                 address(usdtToken),
                 stgBalance
             );
@@ -187,6 +179,7 @@ contract StrategyStargateUsdt is Strategy {
                 uint256 stgUsdt = PancakeSwapLibrary.swapExactTokensForTokens(
                     pancakeRouter,
                     address(stgToken),
+                    address(busdToken),
                     address(usdtToken),
                     stgBalance,
                     amountOutMin,

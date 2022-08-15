@@ -10,8 +10,12 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection(async (strategy) => {
-        await (await strategy.setTokens(BSC.usdt)).wait();
-        await (await strategy.setParams(BSC.vUsdt)).wait();
+        await (await strategy.setParams(
+            {
+                usdtToken: BSC.usdt,
+                vUsdtToken: BSC.vUsdt
+            }
+        )).wait();
     });
 };
 

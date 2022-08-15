@@ -14,6 +14,7 @@ contract StrategySynapseUsdt is Strategy {
     IERC20 public usdtToken;
     IERC20 public nUsdLPToken;
     IERC20 public synToken;
+    IERC20 public busdToken;
 
     ISwap public swap;
     IMiniChefV2 public miniChefV2;
@@ -23,9 +24,21 @@ contract StrategySynapseUsdt is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdtToken, address nUsdLPToken, address synToken);
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedParams(address swap, address miniChefV2, address pancakeRouter, uint256 pid);
+
+    // --- structs
+
+    struct StrategyParams {
+        address usdtToken;
+        address nUsdLPToken;
+        address synToken;
+        address busdToken;
+        address swap;
+        address miniChefV2;
+        address pancakeRouter;
+        uint256 pid;
+    }
 
 
     // ---  constructor
@@ -40,41 +53,18 @@ contract StrategySynapseUsdt is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdtToken,
-        address _nUsdLPToken,
-        address _synToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdtToken = IERC20(params.usdtToken);
+        nUsdLPToken = IERC20(params.nUsdLPToken);
+        synToken = IERC20(params.synToken);
+        busdToken = IERC20(params.busdToken);
 
-        require(_usdtToken != address(0), "Zero address not allowed");
-        require(_nUsdLPToken != address(0), "Zero address not allowed");
-        require(_synToken != address(0), "Zero address not allowed");
+        swap = ISwap(params.swap);
+        miniChefV2 = IMiniChefV2(params.miniChefV2);
+        pancakeRouter = IPancakeRouter02(params.pancakeRouter);
+        pid = params.pid;
 
-        usdtToken = IERC20(_usdtToken);
-        nUsdLPToken = IERC20(_nUsdLPToken);
-        synToken = IERC20(_synToken);
-
-        emit StrategyUpdatedTokens(_usdtToken, _nUsdLPToken, _synToken);
-    }
-
-    function setParams(
-        address _swap,
-        address _miniChefV2,
-        address _pancakeRouter,
-        uint64 _pid
-    ) external onlyAdmin {
-
-        require(_swap != address(0), "Zero address not allowed");
-        require(_miniChefV2 != address(0), "Zero address not allowed");
-        require(_pancakeRouter != address(0), "Zero address not allowed");
-        require(_pid != 0, "Zero value not allowed");
-
-        swap = ISwap(_swap);
-        miniChefV2 = IMiniChefV2(_miniChefV2);
-        pancakeRouter = IPancakeRouter02(_pancakeRouter);
-        pid = _pid;
-
-        emit StrategyUpdatedParams(_swap, _miniChefV2, _pancakeRouter, _pid);
+        emit StrategyUpdatedParams();
     }
 
 
@@ -194,6 +184,7 @@ contract StrategySynapseUsdt is Strategy {
             uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
                 address(synToken),
+                address(busdToken),
                 address(usdtToken),
                 synBalance
             );
@@ -202,6 +193,7 @@ contract StrategySynapseUsdt is Strategy {
                 uint256 synUsdt = PancakeSwapLibrary.swapExactTokensForTokens(
                     pancakeRouter,
                     address(synToken),
+                    address(busdToken),
                     address(usdtToken),
                     synBalance,
                     amountOutMin,

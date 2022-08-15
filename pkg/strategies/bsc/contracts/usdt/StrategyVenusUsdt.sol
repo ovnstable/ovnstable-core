@@ -14,9 +14,15 @@ contract StrategyVenusUsdt is Strategy {
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdtToken);
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedParams(address vUsdtToken);
+
+    // --- structs
+
+    struct StrategyParams {
+        address usdtToken;
+        address vUsdtToken;
+    }
 
 
     // ---  constructor
@@ -31,26 +37,11 @@ contract StrategyVenusUsdt is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdtToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdtToken = IERC20(params.usdtToken);
+        vUsdtToken = VenusInterface(params.vUsdtToken);
 
-        require(_usdtToken != address(0), "Zero address not allowed");
-
-        usdtToken = IERC20(_usdtToken);
-
-        emit StrategyUpdatedTokens(_usdtToken);
-    }
-
-    function setParams(
-        address _vUsdtToken
-    ) external onlyAdmin {
-
-        require(_vUsdtToken != address(0), "Zero address not allowed");
-
-        vUsdtToken = VenusInterface(_vUsdtToken);
-
-        emit StrategyUpdatedParams(_vUsdtToken);
+        emit StrategyUpdatedParams();
     }
 
 
