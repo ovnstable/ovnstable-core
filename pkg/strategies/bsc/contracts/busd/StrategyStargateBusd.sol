@@ -107,6 +107,7 @@ contract StrategyStargateBusd is Strategy {
         require(_asset == address(busdToken), "Some token not compatible");
 
         // unstake
+        // add 1e13 to unstake more than requested
         uint256 busdAmount = _amount + 1e13;
         uint256 lpBalance = busdAmount * 1e6 / pool.amountLPtoLD(1e6);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));

@@ -82,6 +82,7 @@ contract StrategySynapseUsdc is Strategy {
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
         amounts[1] = 0;
+        // sub 4 bp to calculate min amount
         amounts[2] = usdcBalance.subBasisPoints(4);
         amounts[3] = 0;
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
@@ -106,6 +107,7 @@ contract StrategySynapseUsdc is Strategy {
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
         amounts[1] = 0;
+        // add 4 bp to unstake more than requested
         amounts[2] = _amount.addBasisPoints(4) + 1;
         amounts[3] = 0;
         uint256 lpBalance = swap.calculateTokenAmount(amounts, false);

@@ -83,6 +83,7 @@ contract StrategySynapseUsdt is Strategy {
         amounts[0] = 0;
         amounts[1] = 0;
         amounts[2] = 0;
+        // sub 4 bp to calculate min amount
         amounts[3] = usdtBalance.subBasisPoints(4);
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
         amounts[3] = usdtBalance;
@@ -107,6 +108,7 @@ contract StrategySynapseUsdt is Strategy {
         amounts[0] = 0;
         amounts[1] = 0;
         amounts[2] = 0;
+        // add 4 bp to unstake more than requested
         amounts[3] = _amount.addBasisPoints(4) + 1;
         uint256 lpBalance = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));

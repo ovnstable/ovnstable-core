@@ -91,6 +91,7 @@ contract StrategySynapseBusd is Strategy {
         uint256 busdBalance = busdToken.balanceOf(address(this));
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
+        // sub 4 bp to calculate min amount
         amounts[1] = busdBalance.subBasisPoints(4);
         amounts[2] = 0;
         amounts[3] = 0;
@@ -115,6 +116,7 @@ contract StrategySynapseBusd is Strategy {
         // unstake
         uint256[] memory amounts = new uint256[](4);
         amounts[0] = 0;
+        // add 4 bp to unstake more than requested
         amounts[1] = _amount.addBasisPoints(4) + 1;
         amounts[2] = 0;
         amounts[3] = 0;

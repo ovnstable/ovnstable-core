@@ -98,6 +98,7 @@ contract StrategyStargateUsdt is Strategy {
         require(_asset == address(usdtToken), "Some token not compatible");
 
         // unstake
+        // add 1e13 to unstake more than requested
         uint256 usdtAmount = _amount + 1e13;
         uint256 lpBalance = usdtAmount * 1e6 / pool.amountLPtoLD(1e6);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
