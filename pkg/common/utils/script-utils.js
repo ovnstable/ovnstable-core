@@ -113,12 +113,16 @@ async function getERC20(name){
 
 }
 
-async function getCoreAsset(){
+async function getCoreAsset() {
 
 
-    if (process.env.ETH_NETWORK === 'BSC'){
+    if (process.env.STAND === 'bsc') {
         return await getERC20('busd');
-    }else {
+    } else if (process.env.STAND === 'bsc_usdc') {
+        return await getERC20('usdc');
+    } else if (process.env.STAND === 'bsc_usdt') {
+        return await getERC20('usdt');
+    } else {
         return await getERC20('usdc');
     }
 
@@ -198,6 +202,12 @@ async function getStrategyMapping(){
             break;
         case "polygon_dev":
             url = "https://dev.overnight.fi/api/dict/strategies";
+            break;
+        case "bsc_usdc":
+            url = "https://api.overnight.fi/bsc_usdc/dict/strategies";
+            break;
+        case "bsc_usdt":
+            url = "https://api.overnight.fi/bsc_usdt/dict/strategies";
             break;
         default:
             throw Error('Unknown STAND: ' + process.env.STAND);
