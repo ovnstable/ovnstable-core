@@ -81,11 +81,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize() initializer public {
+    function initialize(string calldata name, string calldata symbol) initializer public {
         __Context_init_unchained();
 
-        _name = "USD+";
-        _symbol = "USD+";
+        _name = name;
+        _symbol = symbol;
 
         __AccessControl_init();
         __UUPSUpgradeable_init();
