@@ -99,6 +99,7 @@ contract StrategyStargateUsdt is Strategy {
 
         // unstake
         // add 1e13 to unstake more than requested
+        // TODO Not working with big amounts: return less amount > 100 000 !!!!! Need FIXED before deploy to production
         uint256 usdtAmount = _amount + 1e13;
         uint256 lpBalance = usdtAmount * 1e6 / pool.amountLPtoLD(1e6);
         (uint256 amount,) = lpStaking.userInfo(pid, address(this));
