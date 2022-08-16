@@ -55,7 +55,8 @@ async function settingSection(exec){
         try {
             let strategy = await ethers.getContract(strategyName);
 
-            await (await strategy.setPortfolioManager(core.pm)).wait();
+            let pm = await getContract('PortfolioManager');
+            await (await strategy.setPortfolioManager(pm.address)).wait();
 
             await exec(strategy);
             console.log(`[${strategyName}] setting done`)
