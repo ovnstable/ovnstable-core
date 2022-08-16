@@ -1,6 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
-
 pragma solidity >=0.8.0 <0.9.0;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface ILPStaking {
+
+    function userInfo(uint256 _pid, address _user) external view returns (uint256 amount, uint256 rewardDebt);
+
+    function pendingStargate(uint256 _pid, address _user) external view returns (uint256);
+
+    function deposit(uint256 _pid, uint256 _amount) external;
+
+    function withdraw(uint256 _pid, uint256 _amount) external;
+
+}
+
+
+interface IStargatePool is IERC20 {
+
+    function poolId() external view returns (uint256);
+
+    function amountLPtoLD(uint256 _amountLP) external view returns (uint256);
+
+}
 
 interface IStargateRouter {
     struct lzTxObj {

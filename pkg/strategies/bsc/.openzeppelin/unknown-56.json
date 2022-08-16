@@ -1131,15 +1131,15 @@
             "slot": "301",
             "type": "t_contract(IERC20)2379",
             "contract": "StrategyVenusUsdt",
-            "src": "contracts/usdt/StrategyVenusUsdt.sol:10"
+            "src": "contracts/usdt/StrategyVenusUsdt.sol:9"
           },
           {
             "label": "vUsdtToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(VenusInterface)5662",
+            "type": "t_contract(VenusInterface)4262",
             "contract": "StrategyVenusUsdt",
-            "src": "contracts/usdt/StrategyVenusUsdt.sol:12"
+            "src": "contracts/usdt/StrategyVenusUsdt.sol:11"
           }
         ],
         "types": {
@@ -1167,7 +1167,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(VenusInterface)5662": {
+          "t_contract(VenusInterface)4262": {
             "label": "contract VenusInterface",
             "numberOfBytes": "20"
           },

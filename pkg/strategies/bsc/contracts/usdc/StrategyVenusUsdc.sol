@@ -2,8 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "../connectors/venus/interfaces/VenusInterface.sol";
-
+import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyVenusUsdc is Strategy {
 

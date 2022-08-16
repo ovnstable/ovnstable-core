@@ -2,11 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "../libraries/OvnMath.sol";
-import "../libraries/PancakeSwapLibrary.sol";
-import "../connectors/synapse/interfaces/ISwap.sol";
-import "../connectors/synapse/interfaces/IMiniChefV2.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategySynapseBusd is Strategy {
     using OvnMath for uint256;
