@@ -2,13 +2,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/TraderJoeLibrary.sol";
-import "./connectors/synapse/interfaces/ISwap.sol";
-import "./connectors/synapse/interfaces/IMiniChefV2.sol";
-import "./connectors/platypus/interfaces/IPool.sol";
-import "./connectors/traderjoe/interfaces/IJoeRouter02.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Platypus.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategySynapseUsdce is Strategy {
     using OvnMath for uint256;
