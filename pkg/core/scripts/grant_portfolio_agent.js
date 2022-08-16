@@ -7,7 +7,7 @@ async function main() {
 
    let wallet = await initWallet();
    await (await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), wallet.address)).wait();
-   await (await exchange.setAbroad(1000100, 40000950)).wait();
+   await (await exchange.setAbroad(1000001, 40000950)).wait();
 }
 
 

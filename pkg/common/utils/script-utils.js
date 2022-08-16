@@ -300,7 +300,7 @@ async function getPrice(){
     else if(process.env.ETH_NETWORK === 'AVALANCHE')
         params.gasLimit = 8000000;
     else if (process.env.ETH_NETWORK === 'BSC'){
-        params = {gasPrice: "5000000000"}; // BSC gasPrice always 5 GWEI
+        params = {gasPrice: "5000000000", gasLimit:  8000000}; // BSC gasPrice always 5 GWEI
     }
 
     return params;
