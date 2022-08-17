@@ -13,7 +13,7 @@ library UniswapV2Library {
         uint256 amountInput,
         uint256 amountOutMin,
         address to
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(uniswapRouter), amountInput);
 
@@ -37,7 +37,7 @@ library UniswapV2Library {
         address inputToken,
         address outputToken,
         uint256 amountInput
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
 
         address[] memory path = new address[](2);
         path[0] = inputToken;

@@ -9,30 +9,11 @@ let masterMeerkat = '0xa2B417088D63400d211A4D5EB3C4C5363f834764';
 let pid = 7;
 let synapseSwap = '0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5';
 
-module.exports = async (plugin) => {
-    const {deploy, save} = plugin.deployments;
-    const {deployer} = await plugin.getNamedAccounts();
+module.exports = async ({deployments}) => {
+    const {save} = deployments;
 
     await deploySection(async (name) => {
-        const synapseLibrary = await deploy("SynapseLibrary", {
-            from: deployer
-        });
-
-        const uniswapV2Library = await deploy("UniswapV2Library", {
-            from: deployer
-        });
-
-        let params = {
-            factoryOptions: {
-                libraries: {
-                    "SynapseLibrary": synapseLibrary.address,
-                    "UniswapV2Library": uniswapV2Library.address,
-                }
-            },
-            unsafeAllow: ["external-library-linking"]
-        };
-
-        await deployProxy(name, plugin.deployments, save, params);
+        await deployProxy(name, deployments, save);
     });
 
     await settingSection(async (strategy) => {
