@@ -4,6 +4,9 @@ const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test'
 const IController = require("./abi/tetu/IController.json");
 const MasterMerkat = require("./abi/mmf/MasterMerkat.json");
 
+const hre = require("hardhat");
+let ethers = hre.ethers;
+
 let id = process.env.TEST_STRATEGY;
 
 let arrays = [
