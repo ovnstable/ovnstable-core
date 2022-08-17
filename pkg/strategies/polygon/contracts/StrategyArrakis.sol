@@ -2,16 +2,12 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./connectors/uniswap/v3/libraries/TickMath.sol";
-import "./connectors/arrakis/IArrakisV1RouterStaking.sol";
-import "./connectors/arrakis/IArrakisRewards.sol";
-import "./connectors/arrakis/IArrakisVault.sol";
-import "./connectors/aave/interfaces/IPriceFeed.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/BalancerLibrary.sol";
-import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
-import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Arrakis.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyArrakis is Strategy, BalancerExchange {

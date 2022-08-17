@@ -2,8 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./connectors/aave/v2/ILendingPoolAddressesProvider.sol";
-import "./connectors/aave/v2/ILendingPool.sol";
+import "@overnight-contracts/connectors/contracts/stuff/AaveV2.sol";
 
 contract StrategyAave is Strategy {
 

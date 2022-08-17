@@ -2,12 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./libraries/OvnMath.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/stargate/interfaces/IStargateRouter.sol";
-import "./connectors/stargate/interfaces/IStargatePool.sol";
-import "./connectors/stargate/interfaces/ILPStaking.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Stargate.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyStargateUsdc is Strategy, UniswapV2Exchange {
     using OvnMath for uint256;

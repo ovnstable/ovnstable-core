@@ -2,11 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/mstable/interfaces/IMasset.sol";
-import "./connectors/mstable/interfaces/ISavingsContract.sol";
-import "./connectors/mstable/interfaces/IBoostedVaultWithLockup.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Mstable.sol";
 
 contract StrategyMStable is Strategy, BalancerExchange, UniswapV2Exchange {
 
@@ -198,8 +197,8 @@ contract StrategyMStable is Strategy, BalancerExchange, UniswapV2Exchange {
         uint256 wmaticBalance = wmaticToken.balanceOf(address(this));
         if (wmaticBalance != 0) {
             uint256 wmaticUsdc = _swapExactTokensForTokens(
-                address(wmaticToken), 
-                address(usdcToken), 
+                address(wmaticToken),
+                address(usdcToken),
                 wmaticBalance,
                 address(this)
             );

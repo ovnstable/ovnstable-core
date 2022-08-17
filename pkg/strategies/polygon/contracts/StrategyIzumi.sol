@@ -5,14 +5,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "./core/Strategy.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/uniswap/v3/interfaces/INonfungiblePositionManager.sol";
-import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
-import "./connectors/izumi/interfaces/IMiningFixRangeBoost.sol";
-import "./connectors/uniswap/v3/interfaces/ISwapRouterV3.sol";
-import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
-import "./connectors/balancer/interfaces/IVault.sol";
-import "./connectors/curve/interfaces/IStableSwapPool.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Izumi.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 contract StrategyIzumi is Strategy, UniswapV2Exchange, IERC721Receiver {
 
@@ -372,11 +370,11 @@ contract StrategyIzumi is Strategy, UniswapV2Exchange, IERC721Receiver {
         }
 
         _swapExactTokensForTokens(
-            address(iziToken), 
-            address(wethToken), 
-            balanceIzi, 
+            address(iziToken),
+            address(wethToken),
+            balanceIzi,
             address(this)
-        );        
+        );
     }
 
     function _swapYinWeth() internal {

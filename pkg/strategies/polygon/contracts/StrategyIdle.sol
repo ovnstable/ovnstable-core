@@ -2,8 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/idle/interfaces/IIdleToken.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Idle.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 
 contract StrategyIdle is Strategy, UniswapV2Exchange {
 

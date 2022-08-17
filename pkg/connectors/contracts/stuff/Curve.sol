@@ -14,13 +14,30 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 pragma experimental ABIEncoderV2;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 interface IStableSwapPool {
 
-    function coins(uint256 i) external view returns (address);
+    function add_liquidity(uint256[3] memory _amounts, uint256 _min_mint_amount, bool _use_underlying) external returns (uint256);
+
+    function add_liquidity(uint256[2] memory _amounts, uint256 _min_mint_amount) external returns (uint256);
+
+    function remove_liquidity(uint256 _amount, uint256[3] memory _min_amounts, bool _use_underlying) external returns (uint256[3] memory);
+
+    function remove_liquidity(uint256 _amount, uint256[2] memory _min_amounts) external returns (uint256[2] memory);
 
     function underlying_coins(uint256 i) external view returns (address);
+
+    function lp_token() external view returns (address);
+
+    function calc_token_amount(uint256[3] memory _amounts, bool _is_deposit) external view returns (uint256);
+
+    function calc_token_amount(uint256[2] memory _amounts, bool _is_deposit) external view returns (uint256);
+
+    function coins(uint256 i) external view returns (address);
+
+    function get_virtual_price() external view returns (uint256);
 
     // Get the amount of coin j(received) one would receive for swapping _dx of coin i(send).
     function get_dy(int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
@@ -37,6 +54,40 @@ interface IStableSwapPool {
 
     function exchange_underlying(int128 sendToken, int128 receivedToken, uint256 _dx, uint256 _min_dy) external returns (uint256);
 
+    function calc_withdraw_one_coin(uint256 _token_amount, int128 i) external view returns (uint256);
+
+    function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount) external returns (uint256);
+
+    function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount, bool _use_underlying) external returns (uint256);
+
 }
 
+interface IRewardsOnlyGauge is IERC20 {
+
+    function deposit(uint256 _value, address _addr, bool _claim_rewards) external;
+
+    function deposit(uint256 _value, address _addr) external;
+
+    function deposit(uint256 _value, bool _claim_rewards) external;
+
+    function deposit(uint256 _value) external;
+
+    function withdraw(uint256 _value, bool _claim_rewards) external;
+
+    function withdraw(uint256 _value) external;
+
+    function lp_token() external returns (address);
+
+    function claim_rewards(address _addr, address _receiver) external;
+
+    function claim_rewards(address _addr) external;
+
+    function claim_rewards() external;
+
+    function claimed_reward(address _addr, address _token) external returns (uint256);
+
+    function claimable_reward(address _addr, address _token) external returns (uint256);
+
+    function claimable_reward_write(address _addr, address _token) external returns (uint256);
+}
 

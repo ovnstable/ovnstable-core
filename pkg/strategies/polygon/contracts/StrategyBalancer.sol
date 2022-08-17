@@ -2,11 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/balancer/interfaces/IVault.sol";
-import "./connectors/balancer/MerkleOrchard.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyBalancer is Strategy, BalancerExchange, UniswapV2Exchange {
 

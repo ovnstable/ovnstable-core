@@ -2,15 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/DystopiaExchange.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
-import "./connectors/aave/interfaces/IPriceFeed.sol";
-import "./connectors/penrose/interface/IUserProxy.sol";
-import "./connectors/penrose/interface/IPenLens.sol";
-import "./libraries/AaveBorrowLibrary.sol";
 import "./interfaces/ISwapper.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
