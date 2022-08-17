@@ -149,6 +149,7 @@ contract StrategyMMFUsdcUsdt is Strategy {
         // deposit lpTokens to masterMeerkat
         uint256 lpBalance = meerkatPair.balanceOf(address(this));
         meerkatPair.approve(address(masterMeerkat), type(uint256).max);
+        // send address(0x0) for referrer
         masterMeerkat.deposit(pid, lpBalance, address(0x0));
     }
 
@@ -321,6 +322,7 @@ contract StrategyMMFUsdcUsdt is Strategy {
         // claim rewards
         (uint256 lpBalance, ) = masterMeerkat.userInfo(pid, address(this));
         if (lpBalance > 0) {
+            // send 0 to claim rewards and send address(0x0) for referrer
             masterMeerkat.deposit(pid, 0, address(0x0));
         }
 
