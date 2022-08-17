@@ -2,27 +2,66 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "./libraries/OvnMath.sol";
+import "./libraries/UniswapV3Library.sol";
+import "./connectors/uniswap/v3/libraries/LiquidityAmounts.sol";
+import "./connectors/uniswap/v3/interfaces/IUniswapV3Pool.sol";
+import "./connectors/velodrome/interfaces/IRouter.sol";
+import "./connectors/velodrome/interfaces/IGauge.sol";
+import "./connectors/velodrome/interfaces/IPair.sol";
 import "./connectors/chainlink/interfaces/IPriceFeed.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyVelodromeUsdcDai is Strategy {
+    using OvnMath for uint256;
+
+    uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
+    uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
 
     IERC20 public usdcToken;
     IERC20 public daiToken;
-    IERC20 public wmaticToken;
+    IERC20 public wethToken;
+    IERC20 public veloToken;
 
     uint256 public usdcTokenDenominator;
     uint256 public daiTokenDenominator;
 
+    IRouter public router;
+    IGauge public gauge;
+    IPair public pair;
+
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
+
+    IUniswapV3Pool public uniswapV3PoolUsdcDai;
+    address public uniswapV3Router;
+    uint24 public poolFee0;
+    uint24 public poolFee1;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address wmaticToken);
+    event StrategyUpdatedParams();
 
-    event StrategyUpdatedParams(address oracleUsdc, address oracleDai);
+
+    // --- structs
+
+    struct StrategyParams {
+        address usdcToken;
+        address daiToken;
+        address wethToken;
+        address veloToken;
+        address router;
+        address gauge;
+        address pair;
+        address oracleUsdc;
+        address oracleDai;
+        address uniswapV3PoolUsdcDai;
+        address uniswapV3Router;
+        uint24 poolFee0;
+        uint24 poolFee1;
+    }
 
 
     // ---  constructor
@@ -37,68 +76,28 @@ contract StrategyVelodromeUsdcDai is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _usdcToken,
-        address _daiToken,
-        address _dystToken,
-        address _wmaticToken,
-        address _penToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        usdcToken = IERC20(params.usdcToken);
+        daiToken = IERC20(params.daiToken);
+        wethToken = IERC20(params.wethToken);
+        veloToken = IERC20(params.veloToken);
 
-        require(_usdcToken != address(0), "Zero address not allowed");
-        require(_daiToken != address(0), "Zero address not allowed");
-        require(_dystToken != address(0), "Zero address not allowed");
-        require(_wmaticToken != address(0), "Zero address not allowed");
-        require(_penToken != address(0), "Zero address not allowed");
+        usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
+        daiTokenDenominator = 10 ** IERC20Metadata(params.daiToken).decimals();
 
-        usdcToken = IERC20(_usdcToken);
-        daiToken = IERC20(_daiToken);
-        dystToken = IERC20(_dystToken);
-        wmaticToken = IERC20(_wmaticToken);
-        penToken = IERC20(_penToken);
-        usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
-        daiTokenDenominator = 10 ** IERC20Metadata(_daiToken).decimals();
+        router = IRouter(params.router);
+        gauge = IGauge(params.gauge);
+        pair = IPair(params.pair);
 
-        emit StrategyUpdatedTokens(_usdcToken, _daiToken, _dystToken, _wmaticToken, _penToken, usdcTokenDenominator, daiTokenDenominator);
-    }
+        oracleUsdc = IPriceFeed(params.oracleUsdc);
+        oracleDai = IPriceFeed(params.oracleDai);
 
-    function setParams(
-        address _gauge,
-        address _dystPair,
-        address _dystRouter,
-        address _balancerVault,
-        bytes32 _poolIdUsdcTusdDaiUsdt,
-        address _oracleUsdc,
-        address _oracleDai,
-        address _userProxy,
-        address _penLens,
-        address _swapper
-    ) external onlyAdmin {
+        uniswapV3PoolUsdcDai = IUniswapV3Pool(params.uniswapV3PoolUsdcDai);
+        uniswapV3Router = params.uniswapV3Router;
+        poolFee0 = params.poolFee0;
+        poolFee1 = params.poolFee1;
 
-        require(_gauge != address(0), "Zero address not allowed");
-        require(_dystPair != address(0), "Zero address not allowed");
-        require(_dystRouter != address(0), "Zero address not allowed");
-        require(_balancerVault != address(0), "Zero address not allowed");
-        require(_poolIdUsdcTusdDaiUsdt != "", "Empty pool id not allowed");
-        require(_oracleUsdc != address(0), "Zero address not allowed");
-        require(_oracleDai != address(0), "Zero address not allowed");
-        require(_userProxy != address(0), "Zero address not allowed");
-        require(_penLens != address(0), "Zero address not allowed");
-        require(_swapper != address(0), "Zero address not allowed");
-
-        gauge = IDystopiaLP(_gauge);
-        dystPair = IDystopiaLP(_dystPair);
-        _setDystopiaRouter(_dystRouter);
-        setBalancerVault(_balancerVault);
-        poolIdUsdcTusdDaiUsdt = _poolIdUsdcTusdDaiUsdt;
-        oracleUsdc = IPriceFeed(_oracleUsdc);
-        oracleDai = IPriceFeed(_oracleDai);
-        userProxy = IUserProxy(_userProxy);
-        penLens = IPenLens(_penLens);
-        swapper = ISwapper(_swapper);
-
-        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _balancerVault, _poolIdUsdcTusdDaiUsdt, _oracleUsdc,
-            _oracleDai, _userProxy, _penLens, _swapper);
+        emit StrategyUpdatedParams();
     }
 
 
@@ -114,7 +113,18 @@ contract StrategyVelodromeUsdcDai is Strategy {
         (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveDai > 10 ** 15, 'Liquidity lpToken reserves too low');
 
+        // get amount to swap
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
+
+        (uint160 sqrtPriceX96,,,,,,) = uniswapV3PoolUsdcDai.slot0();
+        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            MIN_SQRT_RATIO,
+            MAX_SQRT_RATIO,
+            uniswapV3PoolUsdcDai.liquidity()
+        );
+
+        uint256 needUsdtValue = (_amount * amountLiq1) / (amountLiq0 + amountLiq1);
         uint256 amountUsdcToSwap = _getAmountToken0(
             usdcBalance,
             reserveUsdc,
@@ -126,7 +136,7 @@ contract StrategyVelodromeUsdcDai is Strategy {
             address(daiToken)
         );
 
-        // swap usdc to usdt
+        // swap usdc to dai
         ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
             address(usdcToken),
             address(daiToken),
@@ -140,20 +150,24 @@ contract StrategyVelodromeUsdcDai is Strategy {
         // add liquidity
         usdcBalance = usdcToken.balanceOf(address(this));
         uint256 daiBalance = daiToken.balanceOf(address(this));
-
-        _addLiquidity(
+        usdcToken.approve(address(router), usdcBalance);
+        daiToken.approve(address(router), daiBalance);
+        router.addLiquidity(
             address(usdcToken),
             address(daiToken),
+            true,
             usdcBalance,
             daiBalance,
-            OvnMath.subBasisPoints(usdcBalance, BASIS_POINTS_FOR_SLIPPAGE),
-            OvnMath.subBasisPoints(daiBalance, BASIS_POINTS_FOR_SLIPPAGE),
-            address(this)
+            usdcBalance.subBasisPoints(4, 1e4),
+            daiBalance.subBasisPoints(4, 1e4),
+            address(this),
+            block.timestamp
         );
 
-        uint256 lpTokenBalance = dystPair.balanceOf(address(this));
-        dystPair.approve(address(userProxy), lpTokenBalance);
-        userProxy.depositLpAndStake(address(dystPair), lpTokenBalance);
+        // deposit
+        uint256 lpTokenBalance = pair.balanceOf(address(this));
+        pair.approve(address(gauge), lpTokenBalance);
+        gauge.deposit(lpTokenBalance, 0);
     }
 
     function _unstake(
@@ -286,13 +300,10 @@ contract StrategyVelodromeUsdcDai is Strategy {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 daiBalance = daiToken.balanceOf(address(this));
 
-        // Fetch amount of penPool LP currently staked
-        address userProxyThis = penLens.userProxyByAccount(address(this));
-        address stakingAddress = penLens.stakingRewardsByDystPool(address(dystPair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        address lpTokenBalance = gauge.balanceOf(address(this));
         if (lpTokenBalance > 0) {
-            uint256 totalLpBalance = dystPair.totalSupply();
-            (uint256 reserveUsdc, uint256 reserveDai,) = dystPair.getReserves();
+            uint256 totalLpBalance = pair.totalSupply();
+            (uint256 reserveUsdc, uint256 reserveDai,) = pair.getReserves();
             usdcBalance += reserveUsdc * lpTokenBalance / totalLpBalance;
             daiBalance += reserveDai * lpTokenBalance / totalLpBalance;
         }
@@ -304,13 +315,7 @@ contract StrategyVelodromeUsdcDai is Strategy {
                 uint256 priceDai = uint256(oracleDai.latestAnswer());
                 usdcBalanceFromDai = AaveBorrowLibrary.convertTokenAmountToTokenAmount(daiBalance, daiTokenDenominator, usdcTokenDenominator, priceDai, priceUsdc);
             } else {
-                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                    address(daiToken),
-                    address(usdcToken),
-                    daiBalance,
-                    0,
-                    5
-                );
+                //TODO
                 usdcBalanceFromDai = swapper.getAmountOut(swapParams);
             }
         }
@@ -321,100 +326,35 @@ contract StrategyVelodromeUsdcDai is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        userProxy.claimStakingRewards();
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(veloToken);
+        gauge.getReward(address(this), tokens);
 
         // sell rewards
         uint256 totalUsdc;
 
-        uint256 dystBalance = dystToken.balanceOf(address(this));
-        if (dystBalance > 0) {
-            uint256 dystUsdc = _swapExactTokensForTokens(
-                address(dystToken),
-                address(wmaticToken),
+        uint256 veloBalance = veloToken.balanceOf(address(this));
+        if (veloBalance > 0) {
+            uint256 veloUsdc = UniswapV3Library._uniswapV3InputMultihopSwap(
+                uniswapV3Router,
+                address(veloToken),
+                address(wethToken),
                 address(usdcToken),
-                false,
-                false,
-                dystBalance,
+                poolFee0,
+                poolFee1,
+                veloBalance,
+                0,
                 address(this)
             );
-            totalUsdc += dystUsdc;
+
+            totalUsdc += veloUsdc;
         }
 
-        uint256 penBalance = penToken.balanceOf(address(this));
-        if (penBalance > 0) {
-            uint256 penUsdc = _swapExactTokensForTokens(
-                address(penToken),
-                address(wmaticToken),
-                address(usdcToken),
-                false,
-                false,
-                penBalance,
-                address(this)
-            );
-            totalUsdc += penUsdc;
+        if (totalUsdc > 0) {
+            usdcToken.transfer(_to, totalUsdc);
         }
-
-        usdcToken.transfer(_to, usdcToken.balanceOf(address(this)));
 
         return totalUsdc;
-    }
-
-    /**
-     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountToken0(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1,
-        uint256 precision,
-        address token0,
-        address token1
-    ) internal view returns (uint256) {
-        uint256 amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
-        for (uint i = 0; i < precision; i++) {
-            ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                token0,
-                token1,
-                amount0,
-                0,
-                5
-            );
-            uint256 amount1 = swapper.getAmountOut(swapParams);
-            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
-        }
-
-        return amount0;
-    }
-
-    /**
-     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountLpTokens(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 totalLpBalance
-    ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total * daiTokenDenominator) / (reserve0 * daiTokenDenominator + reserve1 * usdcTokenDenominator);
-
-        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(daiToken),
-            address(usdcToken),
-            amount1,
-            0,
-            5
-        );
-        uint256 amount0 = swapper.getAmountOut(swapParams);
-        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-
-        return lpBalance;
     }
 
 }

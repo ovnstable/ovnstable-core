@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../connectors/uniswap/v3/interfaces/ISwapRouter02.sol";
-import "../connectors/uniswap/v3/interfaces/IV3SwapRouter.sol";
 
 
 library UniswapV3Library {

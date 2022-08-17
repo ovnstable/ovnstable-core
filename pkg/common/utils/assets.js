@@ -26,6 +26,8 @@ let OPTIMISM = {
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    oracleChainlinkUsdc: "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3",
+    oracleChainlinkDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
 }
 
 let FANTOM = {
