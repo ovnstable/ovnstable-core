@@ -62,7 +62,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
 
-    event EventExchange(string label, uint256 amount, uint256 fee, address sender);
+    event EventExchange(string label, uint256 amount, uint256 fee, address sender, string refferal);
     event PayoutEvent(uint256 tvlFee, uint256 profitFee, uint256 profit, uint256 loss);
     event NextPayoutTime(uint256 nextPayoutTime);
     event Abroad(uint256 min);
@@ -219,7 +219,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
 
-    function buy(uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+    function buy(uint256 _amount, string calldata referral) external whenNotPaused oncePerBlock returns (uint256) {
         uint256 currentBalance = usdPlus.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
@@ -235,7 +235,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         rebase.mint(msg.sender, buyAmount);
 
-        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
+        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender, referral);
 
         return buyAmount;
     }
@@ -257,7 +257,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         require(usdPlus.balanceOf(address(this)) >= unstakedAmount, "Not enough for transfer unstakedAmount");
         usdPlus.transfer(msg.sender, redeemAmount);
 
-        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
+        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
         return redeemAmount;
     }
