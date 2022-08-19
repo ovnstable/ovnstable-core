@@ -121,7 +121,7 @@ let POLYGON = {
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
     oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
-    wallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
 }
 
 let DEFAULT = POLYGON;

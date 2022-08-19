@@ -18,7 +18,8 @@ contract StrategyClearpoolUsdc is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFeeCpoolUsdc;
 
-    address public wallet;
+    // corporative address
+    address public rewardWallet;
 
 
     // --- events
@@ -35,7 +36,7 @@ contract StrategyClearpoolUsdc is Strategy {
         address poolMaster;
         address uniswapV3Router;
         uint24 poolFeeCpoolUsdc;
-        address wallet;
+        address rewardWallet;
     }
 
 
@@ -62,7 +63,7 @@ contract StrategyClearpoolUsdc is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeCpoolUsdc = params.poolFeeCpoolUsdc;
 
-        wallet = params.wallet;
+        rewardWallet = params.rewardWallet;
 
         usdcToken.approve(address(poolBase), type(uint256).max);
 
@@ -131,10 +132,10 @@ contract StrategyClearpoolUsdc is Strategy {
             poolMaster.withdrawReward(pools);
         }
 
-        // send rewards to wallet
+        // send rewards to rewardWallet
         uint256 cpoolBalance = cpoolToken.balanceOf(address(this));
         if (cpoolBalance > 0) {
-            cpoolToken.transfer(wallet, cpoolBalance);
+            cpoolToken.transfer(rewardWallet, cpoolBalance);
         }
 
         return 0;

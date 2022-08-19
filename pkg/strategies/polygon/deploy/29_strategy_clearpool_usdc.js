@@ -23,7 +23,7 @@ module.exports = async ({deployments}) => {
                 poolMaster: poolMaster,
                 uniswapV3Router: POLYGON.uniswapV3Router,
                 poolFeeCpoolUsdc: poolFeeCpoolUsdc,
-                wallet: POLYGON.wallet
+                rewardWallet: POLYGON.rewardWallet
             }
         )).wait();
     });
