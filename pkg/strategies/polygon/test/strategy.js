@@ -104,6 +104,10 @@ let arrays = [
         enabledReward: true,
         isRunStrategyLogic: true
     },
+    {
+        name: 'StrategyClearpoolUsdc',
+        enabledReward: true,
+    },
 
 ];
 

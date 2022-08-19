@@ -390,7 +390,6 @@ contract StrategyIzumi is Strategy, UniswapV2Exchange, IERC721Receiver {
             address(wethToken),
             3000, // pool fee 0.3%
             address(this),
-            block.timestamp + 600,
             balanceYin,
             0,
             0
@@ -413,7 +412,6 @@ contract StrategyIzumi is Strategy, UniswapV2Exchange, IERC721Receiver {
             address(usdcToken),
             500, // pool fee 0.05%
             address(this),
-            block.timestamp + 600,
             balanceWeth,
             0,
             0
