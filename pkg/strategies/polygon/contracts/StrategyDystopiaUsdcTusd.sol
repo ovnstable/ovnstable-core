@@ -221,19 +221,23 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             );
         }
 
-        // swap tusd to usdc
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            tusdBalance,
-            0,
-            1
-        );
+        if (tusdToken.balanceOf(address(this)) > 0) {
+            _swapExactTokensForTokens(
+                address(tusdToken),
+                address(usdcToken),
+                true,
+                tusdToken.balanceOf(address(this)),
+                address(this),
+                0
+            );
+        }
 
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
-        return usdcToken.balanceOf(address(this));
+        uint256 returnValue = usdcToken.balanceOf(address(this));
+
+        if (returnValue > _amount) {
+            returnValue = _amount;
+        }
+        return returnValue;
     }
 
     function _unstakeFull(
@@ -272,17 +276,15 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             );
         }
 
-        // swap tusd to usdc
-        uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            tusdBalance,
-            0,
-            1
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        if (tusdToken.balanceOf(address(this)) > 0) {
+            _swapExactTokensForTokens(
+                address(tusdToken),
+                address(usdcToken),
+                true,
+                tusdToken.balanceOf(address(this)),
+                address(this),
+                0);
+        }
 
         return usdcToken.balanceOf(address(this));
     }
@@ -323,14 +325,7 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
                     priceUsdc
                 );
             } else {
-                ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-                    address(tusdToken),
-                    address(usdcToken),
-                    tusdBalance,
-                    0,
-                    1
-                );
-                usdcBalanceFromTusd = swapper.getAmountOut(swapParams);
+                usdcBalanceFromTusd = _getAmountsOut(address(tusdToken), address(usdcToken), true, tusdBalance);
             }
         }
 
@@ -384,6 +379,28 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
     }
 
     /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function _getAmountLpTokens(
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 totalLpBalance
+    ) internal view returns (uint256) {
+        uint256 lpBalance = (totalLpBalance * amount0Total * tusdTokenDenominator) / (reserve0 * tusdTokenDenominator + reserve1 * usdcTokenDenominator);
+
+        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
+
+        uint256 amount0 = _getAmountsOut(address(tusdToken), address(usdcToken), true, amount1);
+
+        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+
+        return lpBalance;
+    }
+
+    /**
     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
     *
     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
@@ -412,33 +429,6 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         }
 
         return amount0;
-    }
-
-    /**
-     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountLpTokens(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 totalLpBalance
-    ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total * tusdTokenDenominator) / (reserve0 * tusdTokenDenominator + reserve1 * usdcTokenDenominator);
-
-        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            amount1,
-            OvnMath.subBasisPoints(amount1/(10**12), BASIS_POINTS_FOR_SLIPPAGE_EIGHT),
-            1
-        );
-        uint256 amount0 = swapper.getAmountOut(swapParams);
-        lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-
-        return lpBalance;
     }
 
 }

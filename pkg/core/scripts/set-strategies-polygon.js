@@ -49,7 +49,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 65,
+            "targetWeight": 64.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -69,6 +69,16 @@ async function main() {
             "name": "Penrose USDC/USDT",
             "minWeight": 0,
             "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0xa7625F964C93f8A62DBed06BaFFDAF8C20025d77",
+            "name": "ClearPool USDC",
+            "minWeight": 0,
+            "targetWeight": 0.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -97,9 +107,9 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
+    await changeWeightsAndBalance(weights);
     // await createProposalWeights(weights);
-    await setWeights(weights);
+    // await setWeights(weights);
 
 }
 
@@ -134,7 +144,7 @@ async function setWeights(weights) {
     let opts = await getPrice();
 
     await (await pm.setStrategyWeights(weights, await getPrice())).wait();
-    // await (await pm.balance(opts)).wait();
+    await (await pm.balance(opts)).wait();
 
     console.log('Show m2m after')
     await showM2M()
