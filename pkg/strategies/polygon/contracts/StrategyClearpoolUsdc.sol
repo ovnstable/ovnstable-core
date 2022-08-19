@@ -18,6 +18,8 @@ contract StrategyClearpoolUsdc is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFeeCpoolUsdc;
 
+    address public wallet;
+
 
     // --- events
 
@@ -33,6 +35,7 @@ contract StrategyClearpoolUsdc is Strategy {
         address poolMaster;
         address uniswapV3Router;
         uint24 poolFeeCpoolUsdc;
+        address wallet;
     }
 
 
@@ -59,6 +62,10 @@ contract StrategyClearpoolUsdc is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeCpoolUsdc = params.poolFeeCpoolUsdc;
 
+        wallet = params.wallet;
+
+        usdcToken.approve(address(poolBase), type(uint256).max);
+
         emit StrategyUpdatedParams();
     }
 
@@ -73,7 +80,6 @@ contract StrategyClearpoolUsdc is Strategy {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        usdcToken.approve(address(poolBase), usdcBalance);
         poolBase.provide(usdcBalance);
     }
 
@@ -125,29 +131,13 @@ contract StrategyClearpoolUsdc is Strategy {
             poolMaster.withdrawReward(pools);
         }
 
-        // sell rewards
-        uint256 totalUsdc;
-
+        // send rewards to wallet
         uint256 cpoolBalance = cpoolToken.balanceOf(address(this));
         if (cpoolBalance > 0) {
-            uint256 cpoolUsdc = UniswapV3Library.singleSwap(
-                uniswapV3Router,
-                address(cpoolToken),
-                address(usdcToken),
-                poolFeeCpoolUsdc,
-                address(this),
-                cpoolBalance,
-                0
-            );
-
-            totalUsdc += cpoolUsdc;
+            cpoolToken.transfer(wallet, cpoolBalance);
         }
 
-        if (totalUsdc > 0) {
-            usdcToken.transfer(_beneficiary, totalUsdc);
-        }
-
-        return totalUsdc;
+        return 0;
     }
 
 }
