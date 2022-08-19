@@ -2,6 +2,8 @@
 pragma solidity >=0.5.0;
 pragma abicoder v2;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 interface INonfungiblePositionManager {
     /// @notice Emitted when liquidity is increased for a position NFT
     /// @dev Also emitted when a token is minted
@@ -190,7 +192,6 @@ interface ISwapRouter is IUniswapV3SwapCallback {
         address tokenOut;
         uint24 fee;
         address recipient;
-        uint256 deadline;
         uint256 amountIn;
         uint256 amountOutMinimum;
         uint160 sqrtPriceLimitX96;
@@ -204,7 +205,6 @@ interface ISwapRouter is IUniswapV3SwapCallback {
     struct ExactInputParams {
         bytes path;
         address recipient;
-        uint256 deadline;
         uint256 amountIn;
         uint256 amountOutMinimum;
     }
@@ -219,7 +219,6 @@ interface ISwapRouter is IUniswapV3SwapCallback {
         address tokenOut;
         uint24 fee;
         address recipient;
-        uint256 deadline;
         uint256 amountOut;
         uint256 amountInMaximum;
         uint160 sqrtPriceLimitX96;
@@ -233,7 +232,6 @@ interface ISwapRouter is IUniswapV3SwapCallback {
     struct ExactOutputParams {
         bytes path;
         address recipient;
-        uint256 deadline;
         uint256 amountOut;
         uint256 amountInMaximum;
     }
@@ -848,4 +846,57 @@ library TickMath {
 
         tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
     }
+}
+
+library UniswapV3Library {
+
+    function singleSwap(
+        ISwapRouter swapRouter,
+        address tokenIn,
+        address tokenOut,
+        uint24 fee,
+        address recipient,
+        uint256 amountIn,
+        uint256 amountOutMinimum
+    ) internal returns (uint256 amountOut) {
+
+        IERC20(tokenIn).approve(address(swapRouter), amountIn);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        fee: fee,
+        recipient: recipient,
+        amountIn: amountIn,
+        amountOutMinimum: amountOutMinimum,
+        sqrtPriceLimitX96: 0
+        });
+
+        amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function multiSwap(
+        ISwapRouter swapRouter,
+        address tokenIn,
+        address tokenMid,
+        address tokenOut,
+        uint24 fee0,
+        uint24 fee1,
+        address recipient,
+        uint256 amountIn,
+        uint256 amountOutMinimum
+    ) internal returns (uint256 amountOut) {
+
+        IERC20(tokenIn).approve(address(swapRouter), amountIn);
+
+        ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
+        path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
+        recipient: recipient,
+        amountIn: amountIn,
+        amountOutMinimum: amountOutMinimum
+        });
+
+        amountOut = swapRouter.exactInput(params);
+    }
+
 }

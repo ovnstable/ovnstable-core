@@ -105,7 +105,7 @@ let POLYGON = {
     balancerPoolIdWmaticMtaWeth: "0x614b5038611729ed49e0ded154d8a5d3af9d1d9e00010000000000000000001d",
     uniswapV3PositionManager: "0xc36442b4a4522e871399cd717abdd847ab11fe88",
     uniswapV3Pool: "0x3F5228d0e7D75467366be7De2c31D0d098bA2C23",
-    uniswapV3Router: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     izumiBoost: "0x01cc44fc1246d17681b325926865cdb6242277a5",
     uniswapNftToken: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
     aaveCurve: "0x445fe580ef8d70ff569ab36e80c647af338db351",
@@ -121,6 +121,7 @@ let POLYGON = {
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
     oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
 }
 
 let DEFAULT = POLYGON;
