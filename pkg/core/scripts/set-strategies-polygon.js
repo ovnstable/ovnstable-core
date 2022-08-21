@@ -49,7 +49,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 64.5,
+            "targetWeight": 59.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -78,7 +78,7 @@ async function main() {
             "strategy": "0xa7625F964C93f8A62DBed06BaFFDAF8C20025d77",
             "name": "ClearPool USDC",
             "minWeight": 0,
-            "targetWeight": 0.5,
+            "targetWeight": 5.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -107,8 +107,8 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await createProposalWeights(weights);
+    // await changeWeightsAndBalance(weights);
+    await createProposalWeights(weights);
     // await setWeights(weights);
 
 }
