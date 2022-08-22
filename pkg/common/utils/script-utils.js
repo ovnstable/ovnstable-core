@@ -7,7 +7,7 @@ const {DEFAULT} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {core} = require("./core");
-const {fromAsset} = require("./decimals");
+const {fromAsset, toAsset} = require("./decimals");
 
 let ethers = require('hardhat').ethers;
 
@@ -485,10 +485,41 @@ async function showHedgeM2M() {
     console.table(arrays);
 }
 
+async function transferETH(amount, to) {
+
+    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+    let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+
+    await walletWithProvider.sendTransaction({
+        to: to,
+        value: ethers.utils.parseEther(amount+"")
+    });
+
+    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
+}
+
+async function transferUSDPlus(amount, to){
+
+    let usdPlus = await getContract('UsdPlusToken');
+
+    await execTimelock(async (timelock)=>{
+        let exchange = await usdPlus.exchange();
+
+        await usdPlus.connect(timelock).setExchanger(timelock.address);
+        await usdPlus.connect(timelock).mint(to, toAsset(amount));
+        await usdPlus.connect(timelock).setExchanger(exchange);
+    });
+
+    console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
+}
+
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     initWallet: initWallet,
+    transferETH: transferETH,
+    transferUSDPlus: transferUSDPlus,
     showM2M: showM2M,
     showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,
