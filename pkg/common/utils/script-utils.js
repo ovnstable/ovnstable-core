@@ -7,7 +7,7 @@ const {DEFAULT} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {core} = require("./core");
-const {fromAsset, toAsset} = require("./decimals");
+const {fromAsset, toAsset } = require("./decimals");
 
 let ethers = require('hardhat').ethers;
 
@@ -455,16 +455,20 @@ async function showHedgeM2M() {
     let strategy = await getContract('StrategyUsdPlusWmatic');
 
     console.log('User balances:')
-    console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus:      " + fromE6(await usdPlus.balanceOf(wallet.address)))
-    console.log('')
+    let user = [];
+    user.push({name: 'Rebase', value: fromE6(await rebase.balanceOf(wallet.address))});
+    user.push({name: 'usdPlus', value: fromE6(await usdPlus.balanceOf(wallet.address))});
+
+    console.table(user);
 
     console.log('ETS balances:')
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
+    let values = [];
+    values.push({name: 'Total Rebase', value: fromE6(await rebase.totalSupply())});
+    values.push({name: 'Total NAV', value: fromAsset(await strategy.netAssetValue())});
+    values.push({name: 'Liq index', value: (await rebase.liquidityIndex()).toString()});
+    values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
 
+    console.table(values)
 
     let items = await strategy.balances();
 
@@ -475,8 +479,8 @@ async function showHedgeM2M() {
 
         arrays.push({
             name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
+            amountUSD: fromAsset(item[1].toString()),
+            //amount: fromE18(item[2].toString()),
             borrowed: item[3].toString()
         })
 
