@@ -1,5 +1,5 @@
 const {POLYGON} = require('@overnight-contracts/common/utils/assets');
-const {strategyTest} = require('./strategy-hedge-test');
+const {strategyTest} = require('./strategy-hedge-math');
 let id = process.env.TEST_STRATEGY;
 
 let arrays = [
