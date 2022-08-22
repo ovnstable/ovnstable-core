@@ -59,9 +59,6 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     IUserProxy public penProxy;
     IPenLens public penLens;
 
-    uint256 wmaticUsdcSlippagePersent;
-
-
     // Aave
     IPoolAddressesProvider public aavePoolAddressesProvider;
     IPriceFeed public oracleUsdc;
@@ -74,6 +71,9 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     uint256 public healthFactor;
     uint256 public balancingDelta;
     uint256 public realHealthFactor;
+
+    uint256 wmaticUsdcSlippagePersent;
+
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
