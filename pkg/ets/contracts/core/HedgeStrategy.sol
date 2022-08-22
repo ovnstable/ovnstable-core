@@ -89,7 +89,7 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         return totalUsdc;
     }
 
-    function balance() external override {
+    function balance() external onlyExchanger override {
         _balance();
     }
 

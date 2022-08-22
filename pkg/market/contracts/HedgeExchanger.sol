@@ -6,11 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "./libraries/WadRayMath.sol";
-import "./libraries/OvnMath.sol";
+
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
+
+import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
+import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
+
 import "./interfaces/IRebaseToken.sol";
-import "./interfaces/IUsdPlusToken.sol";
-import "./interfaces/IExchange.sol";
 import "./interfaces/IHedgeStrategy.sol";
 
 import "hardhat/console.sol";
@@ -214,10 +217,6 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
 
-    function balance() public view returns (uint256) {
-        return usdPlus.balanceOf(msg.sender);
-    }
-
 
     function buy(uint256 _amount, string calldata referral) external whenNotPaused oncePerBlock returns (uint256) {
         uint256 currentBalance = usdPlus.balanceOf(msg.sender);
@@ -266,6 +265,13 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         _payout();
     }
 
+    function balance() public {
+
+        uint256 navExpected = OvnMath.subBasisPoints(strategy.netAssetValue(), 15); // 0.15%
+        strategy.balance();
+        require(strategy.netAssetValue() > navExpected, 'nav less than expected');
+    }
+
     function _payout() internal {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
@@ -273,11 +279,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         strategy.claimRewards(address(strategy));
 
-        uint256 navExpected = OvnMath.subBasisPoints(strategy.netAssetValue(), 15); // 0.15%
-
-        strategy.balance();
-
-        require(strategy.netAssetValue() > navExpected, 'nav less than expected');
+        balance();
 
         uint256 totalRebase = rebase.totalSupply();       // Total supply with liq index
         uint256 totalUsdc = strategy.netAssetValue();     // Strategy NAV
