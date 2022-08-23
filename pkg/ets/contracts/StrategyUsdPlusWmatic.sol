@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -15,14 +16,37 @@ import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 
-
-import {UsdPlusWmaticLibrary} from "./libraries/UsdPlusWmaticLibrary.sol";
-import {EtsCalculationLibrary} from "./libraries/EtsCalculationLibrary.sol";
-
+import "./libraries/UsdPlusWmaticLibrary.sol";
+import "./libraries/EtsCalculationLibrary.sol";
 import "./core/HedgeStrategy.sol";
-import "./libraries/EtsStructsAndEnums.sol";
 
 import "hardhat/console.sol";
+
+struct SetupParams {
+    // tokens
+    address usdc;
+    address aUsdc;
+    address wmatic;
+    address usdPlus;
+    address penToken;
+    address dyst;
+    // common
+    address exchanger;
+    address dystRewards;
+    address dystVault;
+    address dystRouter;
+    address penProxy;
+    address penLens;
+    uint256 wmaticUsdcSlippagePersent;
+    // aave
+    address aavePoolAddressesProvider;
+    uint256 liquidationThreshold;
+    uint256 healthFactor;
+    uint256 balancingDelta;
+    // univ3
+    address uniswapV3Router;
+    uint24 poolFeeMaticUsdc;
+}
 
 contract StrategyUsdPlusWmatic is HedgeStrategy {
     using WadRayMath for uint256;
@@ -73,6 +97,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     uint256 public realHealthFactor;
 
     uint256 wmaticUsdcSlippagePersent;
+    uint24 public poolFeeMaticUsdc;
+    ISwapRouter public uniswapV3Router;
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -112,6 +138,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         exchange = IExchange(params.exchanger);
 
         wmaticUsdcSlippagePersent = params.wmaticUsdcSlippagePersent;
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        poolFeeMaticUsdc = params.poolFeeMaticUsdc;
 
         // aave
         aavePoolAddressesProvider = IPoolAddressesProvider(params.aavePoolAddressesProvider);
@@ -140,14 +168,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     function _stake(uint256 _amount) internal override {
         _updateEMode();
-
         calcDeltas(Method.STAKE, _amount);
-
-        //        BalanceContext memory ctx = makeContext(Method.STAKE, _amount);
-        //
-        //        console.log("stake case", ctx.caseNumber);
-        //
-        //        _execBalance(ctx);
     }
 
 
@@ -155,25 +176,8 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         uint256 _amount
     ) internal override returns (uint256) {
         _updateEMode();
-
         calcDeltas(Method.UNSTAKE, _amount);
-
-        //        BalanceContext memory ctx = makeContext(Method.UNSTAKE, _amount);
-        //
-        //        console.log("unstake case", ctx.caseNumber);
-        //
-        //        _execBalance(ctx);
-
         return _amount;
-    }
-
-    function _execBalance(BalanceContext memory ctx) internal {
-        //TODO: call balance code?
-
-        (,,,,, realHealthFactor) = aavePool().getUserAccountData(address(this));
-
-        console.log("realHealthFactor", realHealthFactor);
-
     }
 
     function aavePool() public view returns (IPool){
