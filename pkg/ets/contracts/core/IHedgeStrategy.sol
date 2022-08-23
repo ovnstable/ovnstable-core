@@ -13,7 +13,7 @@ interface IHedgeStrategy {
     event SetHealthFactor(uint256 healthFactor);
 
     struct BalanceItem {
-        string name;
+        address token;
         uint256 amountUSD;
         uint256 amount;
         bool    borrowed;
