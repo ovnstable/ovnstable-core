@@ -13,7 +13,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: ADD_LIQUIDITY_TO_DYSTOPIA
+     * ActionType: ADD_LIQUIDITY
      * Add liquidity to dyst pool:
      * [wmatic, usdPlus] -> dyst lpToken
      * + stake lpToken to Penrose
@@ -39,7 +39,7 @@ library UsdPlusWmaticLibrary {
     }
 
     /**
-     * ActionType: REMOVE_LIQUIDITY_FROM_DYSTOPIA
+     * ActionType: REMOVE_LIQUIDITY
      * Remove liquidity from dyst pool:
      * dyst lpToken -> [wmatic, usdPlus]
      * @param delta - Wmatic amount in USD e6
@@ -47,15 +47,15 @@ library UsdPlusWmaticLibrary {
     function _removeLiquidityFromDystopia(StrategyUsdPlusWmatic self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
         // calc wmatic tokens amount
-        uint256 poolWmaticDelta = self.usdToWmatic(delta);
+        uint256 poolTokenDelta = self.usdToWmatic(delta);
 
         uint256 lpForUnstake;
         {
             address userProxyThis = self.penLens().userProxyByAccount(address(self));
             address stakingAddress = self.penLens().stakingRewardsByDystPool(address(self.dystVault()));
             uint256 balanceLp = IERC20(stakingAddress).balanceOf(userProxyThis);
-            (uint256 poolWmatic,) = _getLiquidityByLp(self, balanceLp);
-            lpForUnstake = poolWmaticDelta * balanceLp / poolWmatic + 1;
+            (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
+            lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
         }
 
         self.penProxy().unstakeLpAndWithdraw(address(self.dystVault()), lpForUnstake);
@@ -75,7 +75,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: SWAP_USDPLUS_TO_USDC
+     * ActionType: SWAP_USDPLUS_TO_ASSET
      * Swap on exchange
      * usdPlus -> usdc
      * @param delta - UsdPlus in USD e6
@@ -88,7 +88,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: SWAP_USDC_TO_USDPLUS
+     * ActionType: SWAP_ASSET_TO_USDPLUS
      * Swap on exchange
      * usdc -> usdPlus
      * @param delta - Usdc in USD e6
@@ -101,7 +101,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: SUPPLY_USDC_TO_AAVE
+     * ActionType: SUPPLY_ASSET_TO_AAVE
      * usdc -> (supply aave)
      * @param delta - Usdc in USD e6
      */
@@ -117,7 +117,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: WITHDRAW_USDC_FROM_AAVE
+     * ActionType: WITHDRAW_ASSET_FROM_AAVE
      * (aave) -> usdc
      * @param delta - Usdc in USD e6
      */
@@ -128,15 +128,15 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: BORROW_WMATIC_FROM_AAVE
+     * ActionType: BORROW_TOKEN_FROM_AAVE
      * (borrow from aave) -> wmatic
      * @param delta - Wmatic in USD e6
      */
-    function _borrowWmaticFromAave(StrategyUsdPlusWmatic self, uint256 delta) public {
-        uint256 borrowWmaticAmount = self.usdToWmatic(delta);
+    function _borrowTokenFromAave(StrategyUsdPlusWmatic self, uint256 delta) public {
+        uint256 borrowTokenAmount = self.usdToWmatic(delta);
         self.aavePool().borrow(
             address(self.wmatic()),
-            borrowWmaticAmount,
+            borrowTokenAmount,
             self.INTEREST_RATE_MODE(),
             self.REFERRAL_CODE(),
             address(self)
@@ -145,7 +145,7 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: REPAY_WMATIC_TO_AAVE
+     * ActionType: REPAY_TOKEN_TO_AAVE
      * wmatic -> (back to aave)
      * @param delta - Wmatic in USD e6
      */
@@ -165,15 +165,15 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: SWAP_WMATIC_TO_USDC
+     * ActionType: SWAP_TOKEN_TO_ASSET
      * Swap on dystopia
      * usdPlus -> wmatic
      * @param delta - Wmatic in USD e6
      */
-    function _swapWmaticToUsdc(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePersent) public {
+    function _swapWmaticToUsdc(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapWmaticAmount = (delta == self.MAX_UINT_VALUE()) ? self.wmatic().balanceOf(address(self)) : self.usdToWmatic(delta);
         if (swapWmaticAmount == 0) return;
-        uint256 amountOutMin = self.usdToUsdc(self.wmaticToUsd(swapWmaticAmount / 10000 * (10000 - slippagePersent)));
+        uint256 amountOutMin = self.usdToUsdc(self.wmaticToUsd(swapWmaticAmount / 10000 * (10000 - slippagePercent)));
 
         uint256 result = UniswapV3Library.singleSwap(
             self.uniswapV3Router(),
@@ -188,16 +188,16 @@ library UsdPlusWmaticLibrary {
 
 
     /**
-     * ActionType: SWAP_USDC_TO_WMATIC
+     * ActionType: SWAP_ASSET_TO_TOKEN
      * Swap on dystopia
      * usdPlus -> wmatic
      * @param delta - Usdc in USD e6
      */
-    function _swapUsdcToWmatic(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePersent) public {
+    function _swapUsdcToWmatic(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdc().balanceOf(address(self)) : self.usdToUsdc(delta);
         if (swapUsdcAmount == 0) return;
-        uint256 amountOutMin = self.usdToWmatic(self.usdcToUsd(swapUsdcAmount / 10000 * (10000 - slippagePersent)));
-                
+        uint256 amountOutMin = self.usdToWmatic(self.usdcToUsd(swapUsdcAmount / 10000 * (10000 - slippagePercent)));
+
         uint256 result = UniswapV3Library.singleSwap(
             self.uniswapV3Router(),
             address(self.usdc()),

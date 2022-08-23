@@ -172,8 +172,8 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         let toAsset = function () {
         };
 
-        let healthFactorDELTA = '10000000000000000';
-        let maticDELTA = '100';
+        let healthFactorDelta = '10000000000000000';
+        let tokenDelta = '100';
 
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
@@ -216,22 +216,15 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             let baseCode = item.code;
             let cmds = item.cmds;
             let liq = item.liq;
-            let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
 
             describe(`Case ${baseCode}`, function () {
 
-                let balanceAsset;
-                let expectedNetAsset;
-
-                let DELTA = 100;
-
-                let netAssetValueCheck;
                 let healthFactor;
                 let expectedHealthFactor;
                 let code;
 
-                let poolMatic;
-                let aaveMatic;
+                let poolToken;
+                let aaveToken;
 
                 sharedBeforeEach(`Stake`, async () => {
 
@@ -240,15 +233,15 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         K2: '1000000000000000000',
                         amount: 0,
                         liq: {
-                            poolWmatic: 0,
+                            poolToken: 0,
                             poolUsdPlus: 0,
-                            collateralUsdc: 0,
-                            borrowWmatic: 0,
-                            freeWmatic: 0,
+                            collateralAsset: 0,
+                            borrowToken: 0,
+                            freeToken: 0,
                             freeUsdPlus: 0,
-                            freeUsdc: 0,
+                            freeAsset: 0,
                         },
-                        wmaticUsdcSlippagePersent: 100
+                        tokenAssetSlippagePercent: 100
                     }
                     let ctx2;
 
@@ -283,10 +276,10 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 
                         expectedHealthFactor = calculateExpectedHealthFactor(ctx);
                         healthFactor = calculateHealthFactor(ctx);
-                        poolMatic = ctx.liq.poolWmatic;
-                        aaveMatic = ctx.liq.borrowWmatic;
+                        poolToken = ctx.liq.poolToken;
+                        aaveToken = ctx.liq.borrowToken;
                     } catch (e) {
-                        console.log(e)
+                        console.log('ERROR: ' + e);
                         throw e;
                     }
 
@@ -297,11 +290,11 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 });
 
                 it(`Health Factor is in range`, async function () {
-                    greatLess(healthFactor, expectedHealthFactor, healthFactorDELTA);
+                    greatLess(healthFactor, expectedHealthFactor, healthFactorDelta);
                 });
 
-                it(`WMatic in pool and in aave equal`, async function () {
-                    greatLess(poolMatic, aaveMatic, maticDELTA);
+                it(`Token in pool and in aave equal`, async function () {
+                    greatLess(poolToken, aaveToken, tokenDelta);
                 });
             });
 
@@ -311,9 +304,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 }
 
 
-function calculateNav(ctx) {
-    return ctx.liq.poolWmatic + ctx.liq.poolUsdPlus + ctx.liq.collateralUsdc - ctx.liq.borrowWmatic + ctx.liq.freeWmatic + ctx.liq.freeUsdPlus + ctx.liq.freeUsdc;
-}
 
 function addStake(ctx, amount) {
     newCtx = ctx;
@@ -367,9 +357,9 @@ function changeHF(ctx, liq, HF) {
 
 function increaseWmatic(ctx, liq, percent) {
     let newCtx = ctx;
-    newCtx.liq.poolWmatic = Math.floor(newCtx.liq.poolWmatic / 100 * (100 + percent));
-    newCtx.liq.borrowWmatic = Math.floor(newCtx.liq.borrowWmatic / 100 * (100 + percent));
-    newCtx.liq.freeWmatic = Math.floor(newCtx.liq.freeWmatic / 100 * (100 + percent));
+    newCtx.liq.poolToken = Math.floor(newCtx.liq.poolToken / 100 * (100 + percent));
+    newCtx.liq.borrowToken = Math.floor(newCtx.liq.borrowToken / 100 * (100 + percent));
+    newCtx.liq.freeToken = Math.floor(newCtx.liq.freeToken / 100 * (100 + percent));
     liq.value = Math.floor(liq.value / 100 * (100 + percent));
     let K2 = new BigNumber(newCtx.K2.toString());
     newCtx.K2 = K2.div(100 + percent).multipliedBy(new BigNumber((100).toString())).toFixed(0).toString();
@@ -378,9 +368,9 @@ function increaseWmatic(ctx, liq, percent) {
 
 function decreaseWmatic(ctx, liq, percent) {
     let newCtx = ctx;
-    newCtx.liq.poolWmatic = Math.floor(newCtx.liq.poolWmatic / 100 * (100 - percent));
-    newCtx.liq.borrowWmatic = Math.floor(newCtx.liq.borrowWmatic / 100 * (100 - percent));
-    newCtx.liq.freeWmatic = Math.floor(newCtx.liq.freeWmatic / 100 * (100 - percent));
+    newCtx.liq.poolToken = Math.floor(newCtx.liq.poolToken / 100 * (100 - percent));
+    newCtx.liq.borrowToken = Math.floor(newCtx.liq.borrowToken / 100 * (100 - percent));
+    newCtx.liq.freeToken = Math.floor(newCtx.liq.freeToken / 100 * (100 - percent));
     liq.value = Math.floor(liq.value / 100 * (100 - percent));
     let K2 = new BigNumber(newCtx.K2.toString());
     newCtx.K2 = K2.div(100 - percent).multipliedBy(new BigNumber((100).toString())).toFixed(0).toString();
@@ -390,9 +380,9 @@ function decreaseWmatic(ctx, liq, percent) {
 function increaseUsdc(ctx, liq, percent) {
     let newCtx = ctx;
     newCtx.liq.poolUsdPlus = Math.floor(newCtx.liq.poolUsdPlus / 100 * (100 + percent));
-    newCtx.liq.collateralUsdc = Math.floor(newCtx.liq.collateralUsdc / 100 * (100 + percent));
+    newCtx.liq.collateralAsset = Math.floor(newCtx.liq.collateralAsset / 100 * (100 + percent));
     newCtx.liq.freeUsdPlus = Math.floor(newCtx.liq.freeUsdPlus / 100 * (100 + percent));
-    newCtx.liq.freeUsdc = Math.floor(newCtx.liq.freeUsdc / 100 * (100 + percent));
+    newCtx.liq.freeAsset = Math.floor(newCtx.liq.freeAsset / 100 * (100 + percent));
     liq.value = Math.floor(liq.value / 100 * (100 + percent));
     let K2 = new BigNumber(newCtx.K2.toString());
     newCtx.K2 = K2.multipliedBy(100 + percent).div(new BigNumber((100).toString())).toFixed(0).toString();
@@ -402,9 +392,9 @@ function increaseUsdc(ctx, liq, percent) {
 function decreaseUsdc(ctx, liq, percent) {
     let newCtx = ctx;
     newCtx.liq.poolUsdPlus = Math.floor(newCtx.liq.poolUsdPlus / 100 * (100 - percent));
-    newCtx.liq.collateralUsdc = Math.floor(newCtx.liq.collateralUsdc / 100 * (100 - percent));
+    newCtx.liq.collateralAsset = Math.floor(newCtx.liq.collateralAsset / 100 * (100 - percent));
     newCtx.liq.freeUsdPlus = Math.floor(newCtx.liq.freeUsdPlus / 100 * (100 - percent));
-    newCtx.liq.freeUsdc = Math.floor(newCtx.liq.freeUsdc / 100 * (100 - percent));
+    newCtx.liq.freeAsset = Math.floor(newCtx.liq.freeAsset / 100 * (100 - percent));
     liq.value = Math.floor(liq.value / 100 * (100 - percent));
     let K2 = new BigNumber(newCtx.K2.toString());
     newCtx.K2 = K2.multipliedBy(100 - percent).div(new BigNumber((100).toString())).toFixed(0).toString();
@@ -432,7 +422,7 @@ function transformActions(items) {
 function calculateHealthFactor(ctx) {
     let liquidationFactor = '850000000000000000';
     LF = new BigNumber(liquidationFactor.toString());
-    let res = LF.multipliedBy(ctx.liq.collateralUsdc).div(new BigNumber((ctx.liq.borrowWmatic).toString()));
+    let res = LF.multipliedBy(ctx.liq.collateralAsset).div(new BigNumber((ctx.liq.borrowToken).toString()));
     return res.toFixed(0).toString();
 }
 
@@ -455,14 +445,14 @@ function ftos(numb) {
 
 function immitateActions(ctx, actions, liq) {
     let new_ctx = ctx;
-    new_ctx.liq.poolWmatic = parseInt(ctx.liq.poolWmatic);
+    new_ctx.liq.poolToken = parseInt(ctx.liq.poolToken);
     new_ctx.liq.poolUsdPlus = parseInt(ctx.liq.poolUsdPlus);
-    new_ctx.liq.collateralUsdc = parseInt(ctx.liq.collateralUsdc);
-    new_ctx.liq.borrowWmatic = parseInt(ctx.liq.borrowWmatic);
-    new_ctx.liq.freeWmatic = parseInt(ctx.liq.freeWmatic);
+    new_ctx.liq.collateralAsset = parseInt(ctx.liq.collateralAsset);
+    new_ctx.liq.borrowToken = parseInt(ctx.liq.borrowToken);
+    new_ctx.liq.freeToken = parseInt(ctx.liq.freeToken);
     new_ctx.liq.freeUsdPlus = parseInt(ctx.liq.freeUsdPlus);
-    new_ctx.liq.freeUsdc = parseInt(ctx.liq.freeUsdc);
-    new_ctx.wmaticUsdcSlippagePersent = parseInt(ctx.wmaticUsdcSlippagePersent);
+    new_ctx.liq.freeAsset = parseInt(ctx.liq.freeAsset);
+    new_ctx.tokenAssetSlippagePercent = parseInt(ctx.tokenAssetSlippagePercent);
     let MAX_UINT_VALUE = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
     for (let i = 0; i < actions.length; i++) {
         let amount = actions[i].amount;
@@ -475,16 +465,16 @@ function immitateActions(ctx, actions, liq) {
                     amount = 0;
                 }
 
-                addWMatic = new_ctx.liq.freeWmatic;
+                addWMatic = new_ctx.liq.freeToken;
                 addUsdp = Math.floor(new BigNumber(addWMatic.toString()).multipliedBy(new_ctx.K2).div(new BigNumber(10).pow(18)).toFixed(0).toString());
                 if (new_ctx.liq.freeUsdPlus - parseInt(amount) < addUsdp) {
                     addUsdp = new_ctx.liq.freeUsdPlus - parseInt(amount);
                     addWMatic = Math.floor(new BigNumber(addUsdp.toString()).div(new_ctx.K2).multipliedBy(new BigNumber(10).pow(18)).toFixed(0).toString());
                 }
 
-                new_ctx.liq.freeWmatic -= addWMatic;
+                new_ctx.liq.freeToken -= addWMatic;
                 new_ctx.liq.freeUsdPlus -= addUsdp;
-                new_ctx.liq.poolWmatic += addWMatic;
+                new_ctx.liq.poolToken += addWMatic;
                 new_ctx.liq.poolUsdPlus += addUsdp;
                 new_ctx.K2 = ftos((liq.value * stof(new_ctx.K2) + addWMatic) / (liq.value + addUsdp));
                 liq.value = liq.value + addWMatic;
@@ -493,9 +483,9 @@ function immitateActions(ctx, actions, liq) {
             case 1:
                 //REMOVE_LIQUIDITY_FROM_DYSTOPIA
                 let amount2 = Math.floor(new BigNumber(amount.toString()).multipliedBy(new_ctx.K2).div(new BigNumber(10).pow(18)).toFixed(0).toString());
-                new_ctx.liq.freeWmatic += parseInt(amount);
+                new_ctx.liq.freeToken += parseInt(amount);
                 new_ctx.liq.freeUsdPlus += parseInt(amount2);
-                new_ctx.liq.poolWmatic -= parseInt(amount);
+                new_ctx.liq.poolToken -= parseInt(amount);
                 new_ctx.liq.poolUsdPlus -= parseInt(amount2);
                 new_ctx.K2 = ftos((liq.value * stof(new_ctx.K2) - amount2) / (liq.value - amount));
                 liq.value = liq.value - amount;
@@ -503,81 +493,81 @@ function immitateActions(ctx, actions, liq) {
             case 2:
                 //SWAP_USDPLUS_TO_USDC
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeUsdc += new_ctx.liq.freeUsdPlus;
+                    new_ctx.liq.freeAsset += new_ctx.liq.freeUsdPlus;
                     new_ctx.liq.freeUsdPlus = 0;
                 } else {
-                    new_ctx.liq.freeUsdc += parseInt(amount);
+                    new_ctx.liq.freeAsset += parseInt(amount);
                     new_ctx.liq.freeUsdPlus -= parseInt(amount);
                 }
                 break;
             case 3:
                 //SWAP_USDC_TO_USDPLUS
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeUsdPlus += new_ctx.liq.freeUsdc;
-                    new_ctx.liq.freeUsdc = 0;
+                    new_ctx.liq.freeUsdPlus += new_ctx.liq.freeAsset;
+                    new_ctx.liq.freeAsset = 0;
                 } else {
                     new_ctx.liq.freeUsdPlus += parseInt(amount);
-                    new_ctx.liq.freeUsdc -= parseInt(amount);
+                    new_ctx.liq.freeAsset -= parseInt(amount);
                 }
                 break;
             case 4:
                 //SUPPLY_USDC_TO_AAVE
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.collateralUsdc += new_ctx.liq.freeUsdc;
-                    new_ctx.liq.freeUsdc = 0;
+                    new_ctx.liq.collateralAsset += new_ctx.liq.freeAsset;
+                    new_ctx.liq.freeAsset = 0;
                 } else {
-                    new_ctx.liq.collateralUsdc += parseInt(amount);
-                    new_ctx.liq.freeUsdc -= parseInt(amount);
+                    new_ctx.liq.collateralAsset += parseInt(amount);
+                    new_ctx.liq.freeAsset -= parseInt(amount);
                 }
                 break;
             case 5:
                 //WITHDRAW_USDC_FROM_AAVE
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeUsdc += new_ctx.liq.collateralUsdc;
-                    new_ctx.liq.collateralUsdc = 0;
+                    new_ctx.liq.freeAsset += new_ctx.liq.collateralAsset;
+                    new_ctx.liq.collateralAsset = 0;
                 } else {
-                    new_ctx.liq.freeUsdc += parseInt(amount);
-                    new_ctx.liq.collateralUsdc -= parseInt(amount);
+                    new_ctx.liq.freeAsset += parseInt(amount);
+                    new_ctx.liq.collateralAsset -= parseInt(amount);
                 }
                 break;
             case 6:
                 //BORROW_WMATIC_FROM_AAVE
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeWmatic += new_ctx.liq.borrowWmatic;
-                    new_ctx.liq.borrowWmatic = 0;
+                    new_ctx.liq.freeToken += new_ctx.liq.borrowToken;
+                    new_ctx.liq.borrowToken = 0;
                 } else {
-                    new_ctx.liq.freeWmatic += parseInt(amount);
-                    new_ctx.liq.borrowWmatic += parseInt(amount);
+                    new_ctx.liq.freeToken += parseInt(amount);
+                    new_ctx.liq.borrowToken += parseInt(amount);
                 }
                 break;
             case 7:
                 //REPAY_WMATIC_TO_AAVE
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.borrowWmatic -= new_ctx.liq.freeWmatic;
-                    new_ctx.liq.freeWmatic = 0;
+                    new_ctx.liq.borrowToken -= new_ctx.liq.freeToken;
+                    new_ctx.liq.freeToken = 0;
                 } else {
-                    new_ctx.liq.borrowWmatic -= parseInt(amount);
-                    new_ctx.liq.freeWmatic -= parseInt(amount);
+                    new_ctx.liq.borrowToken -= parseInt(amount);
+                    new_ctx.liq.freeToken -= parseInt(amount);
                 }
                 break;
             case 8:
                 //SWAP_WMATIC_TO_USDC
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeUsdc += Math.floor(new_ctx.liq.freeWmatic / 10000 * (10000 - new_ctx.wmaticUsdcSlippagePersent));
-                    new_ctx.liq.freeWmatic = 0;
+                    new_ctx.liq.freeAsset += Math.floor(new_ctx.liq.freeToken / 10000 * (10000 - new_ctx.tokenAssetSlippagePercent));
+                    new_ctx.liq.freeToken = 0;
                 } else {
-                    new_ctx.liq.freeUsdc += Math.floor(parseInt(amount) / 10000 * (10000 - new_ctx.wmaticUsdcSlippagePersent));
-                    new_ctx.liq.freeWmatic -= parseInt(amount);
+                    new_ctx.liq.freeAsset += Math.floor(parseInt(amount) / 10000 * (10000 - new_ctx.tokenAssetSlippagePercent));
+                    new_ctx.liq.freeToken -= parseInt(amount);
                 }
                 break;
             case 9:
                 //SWAP_USDC_TO_WMATIC
                 if (amount === MAX_UINT_VALUE) {
-                    new_ctx.liq.freeWmatic += Math.floor(new_ctx.liq.freeUsdc / 10000 * (10000 - new_ctx.wmaticUsdcSlippagePersent));
-                    new_ctx.liq.freeUsdc = 0;
+                    new_ctx.liq.freeToken += Math.floor(new_ctx.liq.freeAsset / 10000 * (10000 - new_ctx.tokenAssetSlippagePercent));
+                    new_ctx.liq.freeAsset = 0;
                 } else {
-                    new_ctx.liq.freeWmatic += Math.floor(parseInt(amount) / 10000 * (10000 - new_ctx.wmaticUsdcSlippagePersent));
-                    new_ctx.liq.freeUsdc -= parseInt(amount);
+                    new_ctx.liq.freeToken += Math.floor(parseInt(amount) / 10000 * (10000 - new_ctx.tokenAssetSlippagePercent));
+                    new_ctx.liq.freeAsset -= parseInt(amount);
                 }
                 break;
             default:
@@ -589,34 +579,6 @@ function immitateActions(ctx, actions, liq) {
     return new_ctx;
 }
 
-async function m2m(strategy) {
-    console.log('ETS:')
-
-    let values = [];
-    values.push({name: 'Total NAV', value: fromUSDC(await strategy.netAssetValue())});
-    values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
-
-    console.table(values);
-
-
-    let items = await strategy.balances();
-
-    let arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            name: item[0],
-            amountUSD: fromUSDC(item[1].toString()),
-            //amount: fromE18(item[2].toString()),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-}
 
 function greatLess(value, expected, delta) {
 

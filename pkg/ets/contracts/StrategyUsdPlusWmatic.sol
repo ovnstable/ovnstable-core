@@ -22,32 +22,6 @@ import "./core/HedgeStrategy.sol";
 
 import "hardhat/console.sol";
 
-struct SetupParams {
-    // tokens
-    address usdc;
-    address aUsdc;
-    address wmatic;
-    address usdPlus;
-    address penToken;
-    address dyst;
-    // common
-    address exchanger;
-    address dystRewards;
-    address dystVault;
-    address dystRouter;
-    address penProxy;
-    address penLens;
-    uint256 wmaticUsdcSlippagePersent;
-    // aave
-    address aavePoolAddressesProvider;
-    uint256 liquidationThreshold;
-    uint256 healthFactor;
-    uint256 balancingDelta;
-    // univ3
-    address uniswapV3Router;
-    uint24 poolFeeMaticUsdc;
-}
-
 contract StrategyUsdPlusWmatic is HedgeStrategy {
     using WadRayMath for uint256;
     using UsdPlusWmaticLibrary for StrategyUsdPlusWmatic;
@@ -100,6 +74,33 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     uint24 public poolFeeMaticUsdc;
     ISwapRouter public uniswapV3Router;
 
+    struct SetupParams {
+        // tokens
+        address usdc;
+        address aUsdc;
+        address wmatic;
+        address usdPlus;
+        address penToken;
+        address dyst;
+        // common
+        address exchanger;
+        address dystRewards;
+        address dystVault;
+        address dystRouter;
+        address penProxy;
+        address penLens;
+        uint256 tokenAssetSlippagePercent;
+        // aave
+        address aavePoolAddressesProvider;
+        uint256 liquidationThreshold;
+        uint256 healthFactor;
+        uint256 balancingDelta;
+        // univ3
+        address uniswapV3Router;
+        uint24 poolFeeMaticUsdc;
+    }
+
+
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -137,7 +138,7 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         exchange = IExchange(params.exchanger);
 
-        wmaticUsdcSlippagePersent = params.wmaticUsdcSlippagePersent;
+        wmaticUsdcSlippagePersent = params.tokenAssetSlippagePercent;
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeMaticUsdc = params.poolFeeMaticUsdc;
 
@@ -192,15 +193,16 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
     function balances() external view override returns (BalanceItem[] memory){
 
         Liquidity memory liq = currentLiquidity();
+        Amounts memory amounts = currentAmounts();
 
         BalanceItem[] memory items = new BalanceItem[](7);
-        items[0] = BalanceItem("borrowWmatic", toUint256(liq.borrowWmatic), 0, true);
-        items[1] = BalanceItem("collateralUsdc", toUint256(liq.collateralUsdc), 0, false);
-        items[2] = BalanceItem("poolWmatic", toUint256(liq.poolWmatic), 0, false);
-        items[3] = BalanceItem("poolUsdPlus", toUint256(liq.poolUsdPlus), 0, false);
-        items[4] = BalanceItem("freeUsdPlus", toUint256(liq.freeUsdPlus), 0, false);
-        items[5] = BalanceItem("freeUsdc", toUint256(liq.freeUsdc), 0, false);
-        items[6] = BalanceItem("freeWmatic", toUint256(liq.freeWmatic), 0, false);
+        items[0] = BalanceItem("borrowToken", toUint256(liq.borrowToken), amounts.borrowToken, true);
+        items[1] = BalanceItem("collateralAsset", toUint256(liq.collateralAsset), amounts.collateralAsset, false);
+        items[2] = BalanceItem("poolToken", toUint256(liq.poolToken), amounts.poolToken, false);
+        items[3] = BalanceItem("poolUsdPlus", toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
+        items[4] = BalanceItem("freeUsdPlus", toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
+        items[5] = BalanceItem("freeAsset", toUint256(liq.freeAsset), amounts.freeAsset, false);
+        items[6] = BalanceItem("freeToken", toUint256(liq.freeToken), amounts.freeToken, false);
         return items;
     }
 
@@ -211,25 +213,10 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
      */
     function netAssetValue() external view override returns (uint256){
         Liquidity memory liq = currentLiquidity();
-        int256 navUsd = _netAssetValue(liq);
+        int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
         return usdToUsdc(toUint256(navUsd));
     }
 
-    /**
-     * NAV = sum of all tokens liquidity minus borrows.
-     * @return NAV in USD
-     */
-    function _netAssetValue(Liquidity memory liq) internal pure returns (int256){
-
-        // add liquidity in free tokens
-        int256 navUsd = liq.freeUsdPlus + liq.freeUsdc + liq.freeWmatic;
-        // add liquidity in pool
-        navUsd = navUsd + liq.poolWmatic + liq.poolUsdPlus;
-        // add liquidity in aave collateral minus borrow
-        navUsd = navUsd + liq.collateralUsdc - liq.borrowWmatic;
-
-        return navUsd;
-    }
 
     function _claimRewards(address _to) internal override returns (uint256){
 
@@ -306,9 +293,165 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
     }
 
+
+    function currentAmounts() public view returns (Amounts memory){
+
+        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
+
+        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
+
+        return Amounts(
+            usdToUsdc(aaveCollateralUsd),
+            usdToWmatic(aaveBorrowUsd),
+            poolToken,
+            poolUsdPlus,
+            usdPlus.balanceOf(address(this)),
+            usdc.balanceOf(address(this)),
+            wmatic.balanceOf(address(this))
+        );
+    }
+
     /**
-     * Get USD equivalent in e6
-     * @param amount WMATIC tokens amount
+     * Get current liquidity in USD e6
+     */
+    function currentLiquidity() public view returns (Liquidity memory){
+
+        // in pool liquidity
+        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
+        uint256 poolTokenUsd = wmaticToUsd(poolToken);
+        uint256 poolUsdPlusUsd = usdcToUsd(poolUsdPlus);
+
+        // liquidity from AAVE E6+2
+        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
+        // convert to e6
+        aaveCollateralUsd = aaveCollateralUsd / 100;
+        aaveBorrowUsd = aaveBorrowUsd / 100;
+
+        // free tokens on contract
+        uint256 usdPlusBalanceUsd = usdcToUsd(usdPlus.balanceOf(address(this)));
+        uint256 usdcBalanceUsd = usdcToUsd(usdc.balanceOf(address(this)));
+        uint256 wmaticBalanceUsd = wmaticToUsd(wmatic.balanceOf(address(this)));
+
+
+        console.log("----------------- currentLiquidity()");
+        console.log("poolToken        ", poolToken);
+        console.log("poolTokenUsd     ", poolTokenUsd);
+        console.log("poolUsdPlus       ", poolUsdPlus);
+        console.log("poolUsdPlusUsd    ", poolUsdPlusUsd);
+        console.log("aaveCollateralUsd ", aaveCollateralUsd);
+        console.log("aaveBorrowUsd     ", aaveBorrowUsd);
+        console.log("wmaticBalanceUsd  ", wmaticBalanceUsd);
+        console.log("usdPlusBalanceUsd ", usdPlusBalanceUsd);
+        console.log("usdcBalanceUsd    ", usdcBalanceUsd);
+        console.log("-----------------");
+
+        //TODO: rename vars
+        return Liquidity(
+            toInt256(aaveCollateralUsd),
+            toInt256(aaveBorrowUsd),
+            toInt256(poolTokenUsd),
+            toInt256(poolUsdPlusUsd),
+            toInt256(usdPlusBalanceUsd),
+            toInt256(usdcBalanceUsd),
+            toInt256(wmaticBalanceUsd)
+        );
+    }
+
+    function liquidityToActions(CalcContext2 memory calcContext2) view public returns (Action2[] memory, uint256){
+        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(calcContext2);
+        Action2[] memory actions2 = new Action2[](actions.length);
+        for(uint256 i=0; i < actions.length; i++) {
+            actions2[i].amount = actions[i].amount;
+            actions2[i].actionType = uint(actions[i].actionType);
+        }
+        return (actions2, code);
+    }
+
+    /**
+     * @param amount  - USDC amount in e6
+     */
+    function calcDeltas(Method method, uint256 amount) internal {
+
+        Liquidity memory liq = currentLiquidity();
+        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
+        // price in e8 K2 should be in e18 so up by 1e10
+        int256 K2 = toInt256(1e10 * priceInDystUsdpMaticPool());
+        int256 retAmount;
+        if (method == Method.UNSTAKE) {
+            int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
+            int256 amountUsd = toInt256(usdcToUsd(amount));
+            require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
+            // for unstake make deficit as amount
+            retAmount = - amountUsd;
+        }
+
+        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, wmaticUsdcSlippagePersent));
+
+        runActions(actions);
+
+        (,,,,, realHealthFactor) = aavePool().getUserAccountData(address(this));
+
+    }
+
+    function runActions(Action[] memory actions) internal  {
+
+        console.log("--------- execute actions");
+        for (uint j; j < actions.length; j++) {
+            console.log(j, uint(actions[j].actionType), actions[j].amount);
+            executeAction(actions[j]);
+        }
+        console.log("---------");
+
+    }
+
+    function executeAction(Action memory action) internal {
+        if (action.actionType == ActionType.ADD_LIQUIDITY) {
+            console.log("execute action ADD_LIQUIDITY");
+            UsdPlusWmaticLibrary._addLiquidityToDystopia(this, action.amount);
+        } else if (action.actionType == ActionType.REMOVE_LIQUIDITY) {
+            console.log("execute action REMOVE_LIQUIDITY");
+            UsdPlusWmaticLibrary._removeLiquidityFromDystopia(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_USDPLUS_TO_ASSET) {
+            console.log("execute action SWAP_USDPLUS_TO_ASSET");
+            UsdPlusWmaticLibrary._swapUspPlusToUsdc(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_ASSET_TO_USDPLUS) {
+            console.log("execute action SWAP_ASSET_TO_USDPLUS");
+            UsdPlusWmaticLibrary._swapUsdcToUsdPlus(this, action.amount);
+        } else if (action.actionType == ActionType.SUPPLY_ASSET_TO_AAVE) {
+            console.log("execute action SUPPLY_ASSET_TO_AAVE");
+            UsdPlusWmaticLibrary._supplyUsdcToAave(this, action.amount);
+        } else if (action.actionType == ActionType.WITHDRAW_ASSET_FROM_AAVE) {
+            console.log("execute action WITHDRAW_ASSET_FROM_AAVE");
+            UsdPlusWmaticLibrary._withdrawUsdcFromAave(this, action.amount);
+        } else if (action.actionType == ActionType.BORROW_TOKEN_FROM_AAVE) {
+            console.log("execute action BORROW_TOKEN_FROM_AAVE");
+            UsdPlusWmaticLibrary._borrowTokenFromAave(this, action.amount);
+        } else if (action.actionType == ActionType.REPAY_TOKEN_TO_AAVE) {
+            console.log("execute action REPAY_TOKEN_TO_AAVE");
+            UsdPlusWmaticLibrary._repayWmaticToAave(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_TOKEN_TO_ASSET) {
+            console.log("execute action SWAP_TOKEN_TO_ASSET");
+            UsdPlusWmaticLibrary._swapWmaticToUsdc(this, action.amount, action.slippagePercent);
+        } else if (action.actionType == ActionType.SWAP_ASSET_TO_TOKEN) {
+            console.log("execute action SWAP_ASSET_TO_TOKEN");
+            UsdPlusWmaticLibrary._swapUsdcToWmatic(this, action.amount, action.slippagePercent);
+        }
+    }
+
+    function toInt256(uint256 value) internal pure returns (int256) {
+        // Note: Unsafe cast below is okay because `type(int256).max` is guaranteed to be positive
+        require(value <= uint256(type(int256).max), "SafeCast: value doesn't fit in an int256");
+        return int256(value);
+    }
+
+    function toUint256(int256 value) internal pure returns (uint256) {
+        require(value >= 0, "SafeCast: value must be positive");
+        return uint256(value);
+    }
+
+    /**
+ * Get USD equivalent in e6
+ * @param amount WMATIC tokens amount
      */
     function wmaticToUsd(uint256 amount) public view returns (uint256){
         // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
@@ -358,143 +501,4 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         );
     }
 
-    /**
-     * Get current liquidity in USD e6
-     */
-    function currentLiquidity() public view returns (Liquidity memory){
-
-        // in pool liquidity
-        (uint256 poolWmatic,  uint256 poolUsdPlus) = this._getLiquidity();
-        uint256 poolWmaticUsd = wmaticToUsd(poolWmatic);
-        uint256 poolUsdPlusUsd = usdcToUsd(poolUsdPlus);
-
-        // liquidity from AAVE E6+2
-        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
-        // convert to e6
-        aaveCollateralUsd = aaveCollateralUsd / 100;
-        aaveBorrowUsd = aaveBorrowUsd / 100;
-
-        // free tokens on contract
-        uint256 usdPlusBalanceUsd = usdcToUsd(usdPlus.balanceOf(address(this)));
-        uint256 usdcBalanceUsd = usdcToUsd(usdc.balanceOf(address(this)));
-        uint256 wmaticBalanceUsd = wmaticToUsd(wmatic.balanceOf(address(this)));
-
-
-        console.log("----------------- currentLiquidity()");
-        console.log("poolWmatic        ", poolWmatic);
-        console.log("poolWmaticUsd     ", poolWmaticUsd);
-        console.log("poolUsdPlus       ", poolUsdPlus);
-        console.log("poolUsdPlusUsd    ", poolUsdPlusUsd);
-        console.log("aaveCollateralUsd ", aaveCollateralUsd);
-        console.log("aaveBorrowUsd     ", aaveBorrowUsd);
-        console.log("wmaticBalanceUsd  ", wmaticBalanceUsd);
-        console.log("usdPlusBalanceUsd ", usdPlusBalanceUsd);
-        console.log("usdcBalanceUsd    ", usdcBalanceUsd);
-        console.log("-----------------");
-
-        //TODO: rename vars
-        return Liquidity(
-            toInt256(aaveCollateralUsd),
-            toInt256(aaveBorrowUsd),
-            toInt256(poolWmaticUsd),
-            toInt256(poolUsdPlusUsd),
-            toInt256(usdPlusBalanceUsd),
-            toInt256(usdcBalanceUsd),
-            toInt256(wmaticBalanceUsd)
-        );
-    }
-
-    function liquidityToActions(CalcContext2 memory calcContext2) view public returns (Action2[] memory, uint256){
-        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(calcContext2);
-        Action2[] memory actions2 = new Action2[](actions.length);
-        for(uint256 i=0; i < actions.length; i++) {
-            actions2[i].amount = actions[i].amount;
-            actions2[i].actionType = uint(actions[i].actionType);
-        }
-        return (actions2, code);
-    }
-
-    /**
-     * @param amount  - USDC amount in e6
-     */
-    function calcDeltas(Method method, uint256 amount) internal returns (uint256){
-
-        Liquidity memory liq = currentLiquidity();
-        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
-        // price in e8 K2 should be in e18 so up by 1e10
-        int256 K2 = toInt256(1e10 * priceInDystUsdpMaticPool());
-        int256 retAmount;
-        if (method == Method.UNSTAKE) {
-            int256 navUsd = _netAssetValue(liq);
-            int256 amountUsd = toInt256(usdcToUsd(amount));
-            require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
-            // for unstake make deficit as amount
-            retAmount = - amountUsd;
-        }
-
-        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, wmaticUsdcSlippagePersent));
-
-        runActions(actions);
-
-        (,,,,, realHealthFactor) = aavePool().getUserAccountData(address(this));
-
-        return 0;
-    }
-
-    function runActions(Action[] memory actions) internal returns (uint256) {
-
-        console.log("--------- execute actions");
-        for (uint j; j < actions.length; j++) {
-            console.log(j, uint(actions[j].actionType), actions[j].amount);
-            executeAction(actions[j]);
-        }
-        console.log("---------");
-
-        return 0;
-    }
-
-    function executeAction(Action memory action) internal {
-        if (action.actionType == ActionType.ADD_LIQUIDITY_TO_DYSTOPIA) {
-            console.log("execute action ADD_LIQUIDITY_TO_DYSTOPIA");
-            UsdPlusWmaticLibrary._addLiquidityToDystopia(this, action.amount);
-        } else if (action.actionType == ActionType.REMOVE_LIQUIDITY_FROM_DYSTOPIA) {
-            console.log("execute action REMOVE_LIQUIDITY_FROM_DYSTOPIA");
-            UsdPlusWmaticLibrary._removeLiquidityFromDystopia(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_USDPLUS_TO_USDC) {
-            console.log("execute action SWAP_USDPLUS_TO_USDC");
-            UsdPlusWmaticLibrary._swapUspPlusToUsdc(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_USDC_TO_USDPLUS) {
-            console.log("execute action SWAP_USDC_TO_USDPLUS");
-            UsdPlusWmaticLibrary._swapUsdcToUsdPlus(this, action.amount);
-        } else if (action.actionType == ActionType.SUPPLY_USDC_TO_AAVE) {
-            console.log("execute action SUPPLY_USDC_TO_AAVE");
-            UsdPlusWmaticLibrary._supplyUsdcToAave(this, action.amount);
-        } else if (action.actionType == ActionType.WITHDRAW_USDC_FROM_AAVE) {
-            console.log("execute action WITHDRAW_USDC_FROM_AAVE");
-            UsdPlusWmaticLibrary._withdrawUsdcFromAave(this, action.amount);
-        } else if (action.actionType == ActionType.BORROW_WMATIC_FROM_AAVE) {
-            console.log("execute action BORROW_WMATIC_FROM_AAVE");
-            UsdPlusWmaticLibrary._borrowWmaticFromAave(this, action.amount);
-        } else if (action.actionType == ActionType.REPAY_WMATIC_TO_AAVE) {
-            console.log("execute action REPAY_WMATIC_TO_AAVE");
-            UsdPlusWmaticLibrary._repayWmaticToAave(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_WMATIC_TO_USDC) {
-            console.log("execute action SWAP_WMATIC_TO_USDC");
-            UsdPlusWmaticLibrary._swapWmaticToUsdc(this, action.amount, action.slippagePersent);
-        } else if (action.actionType == ActionType.SWAP_USDC_TO_WMATIC) {
-            console.log("execute action SWAP_USDC_TO_WMATIC");
-            UsdPlusWmaticLibrary._swapUsdcToWmatic(this, action.amount, action.slippagePersent);
-        }
-    }
-
-    function toInt256(uint256 value) internal pure returns (int256) {
-        // Note: Unsafe cast below is okay because `type(int256).max` is guaranteed to be positive
-        require(value <= uint256(type(int256).max), "SafeCast: value doesn't fit in an int256");
-        return int256(value);
-    }
-
-    function toUint256(int256 value) internal pure returns (uint256) {
-        require(value >= 0, "SafeCast: value must be positive");
-        return uint256(value);
-    }
 }

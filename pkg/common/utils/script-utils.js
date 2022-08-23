@@ -480,7 +480,7 @@ async function showHedgeM2M() {
         arrays.push({
             name: item[0],
             amountUSD: fromAsset(item[1].toString()),
-            //amount: fromE18(item[2].toString()),
+            amount: item[2].toString(),
             borrowed: item[3].toString()
         })
 

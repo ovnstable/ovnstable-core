@@ -159,14 +159,14 @@ library DystopiaLibrary {
         address outputToken,
         bool isStablePair,
         uint256 amountInput,
-        uint256 slippagePersent,
+        uint256 slippagePercent,
         address recipient
     ) internal returns (uint256) {
 
         IERC20(inputToken).approve(address(dystRouter), type(uint256).max);
 
         uint256 amountOutMin = _getAmountOut(dystRouter, address(inputToken), address(outputToken), isStablePair,  amountInput);
-        amountOutMin = amountOutMin / 10000 * (10000 - slippagePersent);
+        amountOutMin = amountOutMin / 10000 * (10000 - slippagePercent);
 
         IDystopiaRouter.Route[] memory route = new IDystopiaRouter.Route[](1);
         route[0].from = inputToken;

@@ -26,11 +26,11 @@ module.exports = async () => {
 
     const exchange = await getContract('Exchange', 'polygon');
     const usdPlus = await getContract('UsdPlusToken', 'polygon');
+    const hedgeExchanger = await getContract('HedgeExchangerUsdPlusWmatic', );
 
     if (strategy) {
 
-        await (await strategy.setExchanger('0x4b5e0af6AE8Ef52c304CD55f546342ca0d3050bf'));
-
+        await (await strategy.setExchanger(hedgeExchanger.address));
 
         let setupParams = {
             // tokens
@@ -47,7 +47,7 @@ module.exports = async () => {
             dystRouter: dystRouter,
             penProxy: penProxy,
             penLens: penLens,
-            wmaticUsdcSlippagePersent: wmaticUsdcSlippagePersent,
+            tokenAssetSlippagePercent: wmaticUsdcSlippagePersent,
             // aave
             aavePoolAddressesProvider: POLYGON.aaveProvider,
             liquidationThreshold: liquidationThreshold,
