@@ -14,7 +14,7 @@ let penToken = '0x9008D70A5282a936552593f410AbcBcE2F891A97';
 let penProxy = '0xc9Ae7Dac956f82074437C6D40f67D6a5ABf3E34b';
 let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
 
-let wmaticUsdcSlippagePersent = 10; //0.1%
+let wmaticUsdcSlippagePersent = 50; //0.5%
 
 let liquidationThreshold = 850;
 let healthFactor = 1350
