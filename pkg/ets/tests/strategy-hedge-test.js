@@ -80,7 +80,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         let toAsset = function () {
         };
 
-        let expectedHealthFactor = '1500000000000000000';
+        let expectedHealthFactor = '1350000000000000000';
         let healthFactorDELTA = '10000000000000000';
 
         sharedBeforeEach("deploy", async () => {

@@ -20,9 +20,6 @@ library UsdPlusWmaticLibrary {
      */
     function _addLiquidityToDystopia(StrategyUsdPlusWmatic self, uint256 delta) public {
 
-        console.log("lol", (delta == self.MAX_UINT_VALUE() ? 0 : delta));
-        console.log("kek", self.usdPlus().balanceOf(address(self)));
-
         self.dystRouter().addLiquidity(
             address(self.wmatic()),
             address(self.usdPlus()),
@@ -176,15 +173,16 @@ library UsdPlusWmaticLibrary {
     function _swapWmaticToUsdc(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePersent) public {
         uint256 swapWmaticAmount = (delta == self.MAX_UINT_VALUE()) ? self.wmatic().balanceOf(address(self)) : self.usdToWmatic(delta);
         if (swapWmaticAmount == 0) return;
-        //TODO: replace by UniV3
-        uint256 result = DystopiaLibrary._swap(
-            self.dystRouter(),
+        uint256 amountOutMin = self.usdToUsdc(self.wmaticToUsd(swapWmaticAmount / 10000 * (10000 - slippagePersent)));
+
+        uint256 result = UniswapV3Library.singleSwap(
+            self.uniswapV3Router(),
             address(self.wmatic()),
             address(self.usdc()),
-            false,
+            self.poolFeeMaticUsdc(),
+            address(this),
             swapWmaticAmount,
-            slippagePersent,
-            address(self)
+            amountOutMin
         );
     }
 
@@ -198,18 +196,17 @@ library UsdPlusWmaticLibrary {
     function _swapUsdcToWmatic(StrategyUsdPlusWmatic self, uint256 delta, uint256 slippagePersent) public {
         uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdc().balanceOf(address(self)) : self.usdToUsdc(delta);
         if (swapUsdcAmount == 0) return;
-        //TODO: replace by UniV3
-        uint256 result = DystopiaLibrary._swap(
-            self.dystRouter(),
+        uint256 amountOutMin = self.usdToWmatic(self.usdcToUsd(swapUsdcAmount / 10000 * (10000 - slippagePersent)));
+                
+        uint256 result = UniswapV3Library.singleSwap(
+            self.uniswapV3Router(),
             address(self.usdc()),
             address(self.wmatic()),
-            false,
+            self.poolFeeMaticUsdc(),
+            address(this),
             swapUsdcAmount,
-            slippagePersent,
-            address(self)
+            amountOutMin
         );
-        console.log("swapUsdcAmount", swapUsdcAmount);
-        console.log("result", result);
     }
 
 
