@@ -4,12 +4,10 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-
-import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
-import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Dodo.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -27,6 +25,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     using WadRayMath for uint256;
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
 
+    uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+
     IERC20 public usdPlus;
     IERC20 public busd; //0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56
     IERC20 public wbnb; //0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
@@ -38,6 +38,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     IPriceFeed public oracleBusd;
     IPriceFeed public oracleBnb;
 
+    IConeRouter01 public coneRouter;
+    IConePair public conePair;
+
+    IExchange public exchange;
+
+    IDODOProxy public dodoProxy;
+
     struct SetupParams {
         address usdPlus;
         address busd;
@@ -46,6 +53,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         address vBnbToken;
         address oracleBusd;
         address oracleBnb;
+        address coneRouter;
+        address conePair;
+        address exchange;
+        address dodoProxy;
     }
 
 
@@ -70,15 +81,52 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         bnbDm = 10 ** 8;
         oracleBusd = IPriceFeed(params.oracleBusd);
         oracleBnb = IPriceFeed(params.oracleBnb);
+
+        setAsset(params.usdPlus);
+
+        coneRouter = IConeRouter01(params.coneRouter);
+        conePair = IConePair(params.conePair);
+
+        exchange = IExchange(params.exchange);
+
+        dodoProxy = IDODOProxy(params.dodoProxy);
+
+        usdPlus.approve(address(coneRouter), type(uint256).max);
+        wbnb.approve(address(coneRouter), type(uint256).max);
+        conePair.approve(address(coneRouter), type(uint256).max);
+
+        usdPlus.approve(address(exchange), type(uint256).max);
+        busd.approve(address(exchange), type(uint256).max);
     }
 
     // --- logic
 
     function _stake(uint256 _amount) internal override {
-        UsdPlusWbnbLibrary._addLiquidityToDystopia(this, 0);
         EtsCalculationLibrary.test();
+
+        console.log('Swap');
+        showBalance();
+        UsdPlusWbnbLibrary._swapUspPlusToBusd(this, _amount / 2);
+
+        console.log('Stake');
+        showBalance();
+
+        UsdPlusWbnbLibrary._addLiquidity(this, 1);
+
+        console.log('Unstake');
+        showBalance();
+
+        UsdPlusWbnbLibrary._removeLiquidity(this, 1);
+
         // _updateEMode();
         // calcDeltas(Method.STAKE, _amount);
+    }
+
+    function showBalance()internal {
+        console.log('WBNBN %s', wbnb.balanceOf(address(this)));
+        console.log('USD+  %s', usdPlus.balanceOf(address(this)));
+        console.log('BUSD  %s', busd.balanceOf(address(this)));
+        console.log('LP    %s', conePair.balanceOf(address(this)));
     }
 
 
@@ -224,7 +272,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     function currentLiquidity() public view returns (Liquidity memory){
 
         // in pool liquidity
-        (uint256 poolToken,  uint256 poolUsdPlus) = (0,0);//this._getLiquidity();
+        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
         uint256 poolTokenUsd = 0;//wmaticToUsd(poolToken);
         uint256 poolUsdPlusUsd = 0;//usdcToUsd(poolUsdPlus);
 
