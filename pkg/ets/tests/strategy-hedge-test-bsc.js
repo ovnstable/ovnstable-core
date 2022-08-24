@@ -117,6 +117,9 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).plus(VALUE);
 
                         await asset.connect(recipient).transfer(strategy.address, assetValue);
+                        await strategy.connect(recipient).currentLiquidity();
+                        return;
+
                         await strategy.connect(recipient).stake(assetValue);
 
                         let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
@@ -144,64 +147,64 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                     greatLess(balanceAsset, VALUE, DELTA);
                 });
 
-                it(`NetAssetValue asset is in range`, async function () {
-                    greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
-                });
+                // it(`NetAssetValue asset is in range`, async function () {
+                //     greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
+                // });
 
-                it(`Health Factor is in range`, async function () {
-                    greatLess(healthFactor, expectedHealthFactor, healthFactorDELTA);
-                });
+                // it(`Health Factor is in range`, async function () {
+                //     greatLess(healthFactor, expectedHealthFactor, healthFactorDELTA);
+                // });
 
-                describe(`UnStake ${unstakeValue}`, function () {
+                // describe(`UnStake ${unstakeValue}`, function () {
 
-                    let balanceAsset;
-                    let expectedNetAsset;
-                    let expectedLiquidation;
+                //     let balanceAsset;
+                //     let expectedNetAsset;
+                //     let expectedLiquidation;
 
-                    let VALUE;
-                    let DELTA;
+                //     let VALUE;
+                //     let DELTA;
 
-                    let netAssetValueCheck;
-                    let healthFactor;
+                //     let netAssetValueCheck;
+                //     let healthFactor;
 
-                    sharedBeforeEach(`Unstake ${unstakeValue}`, async () => {
+                //     sharedBeforeEach(`Unstake ${unstakeValue}`, async () => {
 
-                        await m2m(strategy);
-                        let assetValue = toAsset(unstakeValue);
-                        VALUE = new BigNumber(assetValue);
-                        DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
+                //         await m2m(strategy);
+                //         let assetValue = toAsset(unstakeValue);
+                //         VALUE = new BigNumber(assetValue);
+                //         DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
-                        let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                //         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                        expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
-                        // expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
+                //         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
+                //         // expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
 
-                        await strategy.connect(recipient).unstake(assetValue, recipient.address);
+                //         await strategy.connect(recipient).unstake(assetValue, recipient.address);
 
-                        let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                //         let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                        balanceAsset = balanceAssetAfter.minus(balanceAssetBefore);
+                //         balanceAsset = balanceAssetAfter.minus(balanceAssetBefore);
 
-                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
-                        healthFactor = await strategy.currentHealthFactor();
+                //         netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
+                //         healthFactor = await strategy.currentHealthFactor();
 
-                        await m2m(strategy);
+                //         await m2m(strategy);
 
-                    });
+                //     });
 
-                    it(`Balance asset is in range`, async function () {
-                        greatLess(balanceAsset, VALUE, DELTA);
-                    });
+                //     it(`Balance asset is in range`, async function () {
+                //         greatLess(balanceAsset, VALUE, DELTA);
+                //     });
 
-                    it(`NetAssetValue asset is in range`, async function () {
-                        greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
-                    });
+                //     it(`NetAssetValue asset is in range`, async function () {
+                //         greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
+                //     });
 
-                    it(`Health Factor is in range`, async function () {
-                        greatLess(healthFactor, expectedHealthFactor, healthFactorDELTA);
-                    });
+                //     it(`Health Factor is in range`, async function () {
+                //         greatLess(healthFactor, expectedHealthFactor, healthFactorDELTA);
+                //     });
 
-                });
+                // });
 
             });
 

@@ -19,6 +19,9 @@ import "./libraries/UsdPlusWbnbLibrary.sol";
 import "./libraries/EtsCalculationLibrary.sol";
 import "./core/HedgeStrategy.sol";
 
+import "./Unitroller.sol";
+import "./Borrow.sol";
+
 import "hardhat/console.sol";
 
 contract StrategyUsdPlusWbnb is HedgeStrategy {
@@ -84,7 +87,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         vBnbToken = VenusInterface(params.vBnbToken);
         busdDm = 10 ** IERC20Metadata(params.busd).decimals();
         wbnbDm = 10 ** IERC20Metadata(params.wbnb).decimals();
-        bnbDm = 10 ** 8;
+        bnbDm = 10 ** 18;
         oracleBusd = IPriceFeed(params.oracleBusd);
         oracleBnb = IPriceFeed(params.oracleBnb);
 
@@ -109,6 +112,12 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
 
         usdPlus.approve(address(exchange), type(uint256).max);
         busd.approve(address(exchange), type(uint256).max);
+
+        Unitroller troll = Unitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
+        address[] memory vTokens = new address[](2);
+        vTokens[0] = address(vBusdToken);
+        vTokens[1] = address(vBnbToken);
+        uint[] memory errors = troll.enterMarkets(vTokens);
     }
 
     // --- logic
@@ -289,28 +298,36 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     //     );
     // }
 
+    receive() external payable {
+        console.log('receive bnb: %s', address(this).balance);
+    }
+
     /**
      * Get current liquidity in USD e6
      */
-    function currentLiquidity() public view returns (Liquidity memory){
+    function currentLiquidity() public returns (Liquidity memory){
 
         // in pool liquidity
-        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
+        (uint256 poolToken,  uint256 poolUsdPlus) = (0,0);//this._getLiquidity();
         uint256 poolTokenUsd = 0;//wmaticToUsd(poolToken);
         uint256 poolUsdPlusUsd = 0;//usdcToUsd(poolUsdPlus);
 
+        //exchange.buy(address(busd), 500000000);
+        exchange.redeem(address(busd), 500000000);
+
+        busd.approve(address(vBusdToken), 1 * 10 ** 18);
+        vBusdToken.mint(1 * 10 ** 18);
+        vBnbToken.borrow(1000000000000000);
+
         // liquidity from AAVE E6+2
-        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e30);
-        uint256 aaveBorrowUsd = bnbToUsd(vBnbToken.borrowBalanceStored(address(this)));
-        //(uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
-        // convert to e6
-        aaveCollateralUsd = aaveCollateralUsd / 100;
-        aaveBorrowUsd = aaveBorrowUsd / 100;
+        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18);
+        uint256 aaveBorrowUsd = bnbToUsd(vBnbToken.borrowBalanceCurrent(address(this)));
 
         // free tokens on contract
-        uint256 usdPlusBalanceUsd = busdToUsd(usdPlus.balanceOf(address(this)));
+        uint256 usdPlusBalanceUsd = busdToUsd(usdPlus.balanceOf(address(this)) * 10 ** 12);
         uint256 busdBalanceUsd = busdToUsd(busd.balanceOf(address(this)));
-        uint256 bnbBalanceUsd = bnbToUsd(wbnb.balanceOf(address(this)));
+        uint256 wbnbBalanceUsd = bnbToUsd(wbnb.balanceOf(address(this)));
+        uint256 bnbBalanceUsd = bnbToUsd(address(this).balance);
 
 
         console.log("----------------- currentLiquidity()");
@@ -321,6 +338,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         console.log("aaveCollateralUsd ", aaveCollateralUsd);
         console.log("aaveBorrowUsd     ", aaveBorrowUsd);
         console.log("bnbBalanceUsd     ", bnbBalanceUsd);
+        console.log("wbnbBalanceUsd     ", wbnbBalanceUsd);
         console.log("usdPlusBalanceUsd ", usdPlusBalanceUsd);
         console.log("busdBalanceUsd    ", busdBalanceUsd);
         console.log("-----------------");
