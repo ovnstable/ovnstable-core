@@ -275,11 +275,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
         (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
 
-        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18);
-        uint256 aaveBorrowUsd = wbnbToUsd(vBnbToken.borrowBalanceStored(address(this)));
-
-        uint256 aaveBorrowAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsd, wbnbDm, uint256(oracleWbnb.latestAnswer()));
-        uint256 aaveCollateralAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsd, busdDm, uint256(oracleBusd.latestAnswer()));
+        uint256 aaveBorrowAmount = vBnbToken.borrowBalanceStored(address(this));
+        uint256 aaveCollateralAmount = vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18;
 
         return Amounts(
             aaveCollateralAmount,
