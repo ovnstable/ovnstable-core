@@ -5,6 +5,14 @@ interface Unitroller {
     function enterMarkets(address[] calldata vTokens) external returns (uint[] memory);
 }
 
+interface Maximillion {
+    function repayBehalfExplicit(address borrower, address vBnb_) external payable;
+}
+
+interface IWbnb {
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
 
 /**
   * @title Venus's InterestRateModel Interface
