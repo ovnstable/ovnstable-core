@@ -106,11 +106,11 @@ library UsdPlusWbnbLibrary {
      * @param delta - Usdc in USD e6
      */
     function _supplyUsdcToAave(StrategyUsdPlusWbnb self, uint256 delta) public {
-        // uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdc().balanceOf(address(self)) : self.usdToBusd(delta);
-        // if (supplyUsdcAmount == 0) return;
+        uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
+        if (supplyUsdcAmount == 0) return;
 
-        // self.busd().approve(address(self.vBusdToken()), supplyUsdcAmount);
-        // self.vBusdToken().mint(supplyUsdcAmount);
+        self.busd().approve(address(self.vBusdToken()), supplyUsdcAmount);
+        self.vBusdToken().mint(supplyUsdcAmount);
     }
 
 
@@ -120,8 +120,8 @@ library UsdPlusWbnbLibrary {
      * @param delta - Usdc in USD e6
      */
     function _withdrawUsdcFromAave(StrategyUsdPlusWbnb self, uint256 delta) public {
-        // uint256 withdrawUsdcAmount = self.usdToBusd(delta);
-        // self.vBusdToken().redeemUnderlying(withdrawUsdcAmount);
+        uint256 withdrawUsdcAmount = self.usdToBusd(delta);
+        self.vBusdToken().redeemUnderlying(withdrawUsdcAmount);
     }
 
 
@@ -131,9 +131,9 @@ library UsdPlusWbnbLibrary {
      * @param delta - Wmatic in USD e6
      */
     function _borrowTokenFromAave(StrategyUsdPlusWbnb self, uint256 delta) public {
-        // uint256 borrowTokenAmount = self.usdToBnb(delta);
+        uint256 borrowTokenAmount = self.usdToBnb(delta);
 
-        // self.vBnbToken().borrow(borrowTokenAmount);
+        self.vBnbToken().borrow(borrowTokenAmount);
     }
 
 
@@ -143,10 +143,10 @@ library UsdPlusWbnbLibrary {
      * @param delta - Wmatic in USD e6
      */
     function _repayWmaticToAave(StrategyUsdPlusWbnb self, uint256 delta) public {
-        // uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE()) ? self.wmatic().balanceOf(address(self)) : self.usdToBnb(delta);
-        // if (repayWmaticAmount == 0) return;
+        uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToBnb(delta);
+        if (repayWmaticAmount == 0) return;
 
-        // self.vBnbToken().repayBorrow(repayWmaticAmount);
+        self.vBnbToken().repayBorrow(repayWmaticAmount);
     }
 
 

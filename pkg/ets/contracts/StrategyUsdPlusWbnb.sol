@@ -21,11 +21,16 @@ import "./libraries/UsdPlusWbnbLibrary.sol";
 import "./libraries/EtsCalculationLibrary.sol";
 import "./core/HedgeStrategy.sol";
 
+import "./Unitroller.sol";
+import "./Borrow.sol";
+
 import "hardhat/console.sol";
 
 contract StrategyUsdPlusWbnb is HedgeStrategy {
     using WadRayMath for uint256;
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
+
+    uint256 public constant MAX_UINT_VALUE = type(uint256).max;
 
     IERC20 public usdPlus;
     IERC20 public busd; //0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56
@@ -38,6 +43,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     IPriceFeed public oracleBusd;
     IPriceFeed public oracleBnb;
 
+    IExchange public exchange;
+
     struct SetupParams {
         address usdPlus;
         address busd;
@@ -46,6 +53,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         address vBnbToken;
         address oracleBusd;
         address oracleBnb;
+        address exchanger;
     }
 
 
@@ -70,12 +78,14 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         bnbDm = 10 ** 8;
         oracleBusd = IPriceFeed(params.oracleBusd);
         oracleBnb = IPriceFeed(params.oracleBnb);
+
+        exchange = IExchange(params.exchanger);
     }
 
     // --- logic
 
     function _stake(uint256 _amount) internal override {
-        UsdPlusWbnbLibrary._addLiquidityToDystopia(this, 0);
+        UsdPlusWbnbLibrary._addLiquidity(this, 0);
         EtsCalculationLibrary.test();
         // _updateEMode();
         // calcDeltas(Method.STAKE, _amount);
@@ -221,15 +231,45 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     /**
      * Get current liquidity in USD e6
      */
-    function currentLiquidity() public view returns (Liquidity memory){
+    function currentLiquidity() public returns (Liquidity memory){
 
         // in pool liquidity
         (uint256 poolToken,  uint256 poolUsdPlus) = (0,0);//this._getLiquidity();
         uint256 poolTokenUsd = 0;//wmaticToUsd(poolToken);
         uint256 poolUsdPlusUsd = 0;//usdcToUsd(poolUsdPlus);
 
+        //busd.approve(address(vBusdToken), 1000000);
+        //vBusdToken.mint(1000000);
+
+        //console.log(vBusdToken.balanceOf(address(this)));
+        console.log(usdPlus.balanceOf(address(this)));
+        console.log(busd.balanceOf(address(this)));
+        //exchange.buy(address(busd), 500000000);
+        exchange.redeem(address(busd), 500000000);
+        console.log(usdPlus.balanceOf(address(this)));
+        console.log(busd.balanceOf(address(this)));
+
+        Unitroller troll = Unitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
+        address[] memory vTokens = new address[](2);
+        vTokens[0] = address(vBusdToken);
+        vTokens[1] = address(vBnbToken);
+        uint[] memory errors = troll.enterMarkets(vTokens);
+
+
+        busd.approve(address(vBusdToken), 1 * 10 ** 18);
+        vBusdToken.mint(1 * 10 ** 18);
+        console.log(busd.balanceOf(address(this)));
+        console.log(vBusdToken.balanceOf(address(this)));
+        console.log(vBusdToken.exchangeRateStored());
+
+        //vBnbToken.borrow(1000000000000000);
+        uint lol = Borrow(address(vBnbToken)).borrow(100000000);
+        //require(vBnbToken.borrow(100), "got collateral?");
+        console.log(vBnbToken.borrowBalanceStored(address(this)));
+        console.log(address(this).balance);
+
         // liquidity from AAVE E6+2
-        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e30);
+        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e16);
         uint256 aaveBorrowUsd = bnbToUsd(vBnbToken.borrowBalanceStored(address(this)));
         //(uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
         // convert to e6
