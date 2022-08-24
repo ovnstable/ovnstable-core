@@ -4,11 +4,12 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Unknown.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 
-contract StrategyConeBusdUsdc is Strategy {
+contract StrategyUnknownBusdUsdc is Strategy {
 
     // --- structs
 
@@ -17,9 +18,11 @@ contract StrategyConeBusdUsdc is Strategy {
         address usdcToken;
         address wBnbToken;
         address coneToken;
+        address unkwnToken;
         address coneRouter;
         address conePair;
-        address coneGauge;
+        address unkwnUserProxy;
+        address unkwnLens;
         address synapseStableSwapPool;
         address chainlinkBusd;
         address chainlinkUsdc;
@@ -33,10 +36,14 @@ contract StrategyConeBusdUsdc is Strategy {
     IERC20 public usdcToken;
     IERC20 public wBnbToken;
     IERC20 public coneToken;
+    IERC20 public unkwnToken;
 
     IConeRouter01 public coneRouter;
     IConePair public conePair;
-    IGauge public coneGauge;
+
+    IUserProxy public unkwnUserProxy;
+    IUnkwnLens public unkwnLens;
+
     ISwap public synapseStableSwapPool;
 
     IPriceFeed public chainlinkBusd;
@@ -69,10 +76,14 @@ contract StrategyConeBusdUsdc is Strategy {
         usdcToken = IERC20(params.usdcToken);
         wBnbToken = IERC20(params.wBnbToken);
         coneToken = IERC20(params.coneToken);
+        unkwnToken = IERC20(params.unkwnToken);
 
         coneRouter = IConeRouter01(params.coneRouter);
         conePair = IConePair(params.conePair);
-        coneGauge = IGauge(params.coneGauge);
+
+        unkwnUserProxy = IUserProxy(params.unkwnUserProxy);
+        unkwnLens = IUnkwnLens(params.unkwnLens);
+
         synapseStableSwapPool = ISwap(params.synapseStableSwapPool);
 
         chainlinkBusd = IPriceFeed(params.chainlinkBusd);
@@ -137,11 +148,10 @@ contract StrategyConeBusdUsdc is Strategy {
             block.timestamp
         );
 
-        // stake to gauge
+        // stake lp
         uint256 lpTokenBalance = conePair.balanceOf(address(this));
-        conePair.approve(address(coneGauge), lpTokenBalance);
-        // don't lock cone -> tokenId = 0
-        coneGauge.depositAll(0);
+        conePair.approve(address(unkwnUserProxy), lpTokenBalance);
+        unkwnUserProxy.depositLpAndStake(address(conePair), lpTokenBalance);
     }
 
     function _unstake(
@@ -156,7 +166,9 @@ contract StrategyConeBusdUsdc is Strategy {
         require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         // Fetch amount of LP currently staked
-        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = conePair.totalSupply();
@@ -178,8 +190,8 @@ contract StrategyConeBusdUsdc is Strategy {
                 lpTokensToWithdraw = lpTokenBalance;
             }
 
-            // unstake from gauge
-            coneGauge.withdraw(lpTokensToWithdraw);
+            // unstake lp
+            unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokensToWithdraw);
 
             uint256 unstakedLPTokenBalance = conePair.balanceOf(address(this));
             uint256 amountOutBusdMin = reserveBusd * unstakedLPTokenBalance / totalLpBalance;
@@ -222,13 +234,15 @@ contract StrategyConeBusdUsdc is Strategy {
         require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         // Fetch amount of LP currently staked
-        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance == 0) {
             return 0;
         }
 
-        // unstake from gauge
-        coneGauge.withdrawAll();
+        // unstake lp
+        unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokenBalance);
 
         uint256 unstakedLPTokenBalance = conePair.balanceOf(address(this));
         if (unstakedLPTokenBalance > 0) {
@@ -275,7 +289,9 @@ contract StrategyConeBusdUsdc is Strategy {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         // Fetch amount of LP currently staked
-        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = conePair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
@@ -305,13 +321,13 @@ contract StrategyConeBusdUsdc is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance == 0) {
             return 0;
         }
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(coneToken);
-        coneGauge.getReward(address(this), tokens);
+        unkwnUserProxy.claimStakingRewards();
 
         // sell rewards
         uint256 totalBusd;
@@ -342,6 +358,35 @@ contract StrategyConeBusdUsdc is Strategy {
                 );
 
                 totalBusd += coneBusd;
+            }
+        }
+
+        uint256 unkwnBalance = unkwnToken.balanceOf(address(this));
+        if (unkwnBalance > 0) {
+            uint256 amountOutMin = ConeLibrary.getAmountsOut(
+                coneRouter,
+                address(unkwnToken),
+                address(wBnbToken),
+                address(busdToken),
+                false,
+                false,
+                unkwnBalance
+            );
+
+            if (amountOutMin > 0) {
+                uint256 unkwnBusd = ConeLibrary.swap(
+                    coneRouter,
+                    address(unkwnToken),
+                    address(wBnbToken),
+                    address(busdToken),
+                    false,
+                    false,
+                    unkwnBalance,
+                    amountOutMin * 99 / 100,
+                    address(this)
+                );
+
+                totalBusd += unkwnBusd;
             }
         }
 

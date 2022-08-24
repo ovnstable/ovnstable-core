@@ -24,6 +24,7 @@ contract StrategyConeBusdUsdt is Strategy {
         address chainlinkBusd;
         address chainlinkUsdt;
         address rewardWallet;
+        uint256 rewardWalletPercent;
     }
 
     // --- params
@@ -42,6 +43,7 @@ contract StrategyConeBusdUsdt is Strategy {
     IPriceFeed public chainlinkUsdt;
 
     address public rewardWallet;
+    uint256 public rewardWalletPercent;
 
     uint256 public busdTokenDenominator;
     uint256 public usdtTokenDenominator;
@@ -77,6 +79,7 @@ contract StrategyConeBusdUsdt is Strategy {
         chainlinkUsdt = IPriceFeed(params.chainlinkUsdt);
 
         rewardWallet = params.rewardWallet;
+        rewardWalletPercent = params.rewardWalletPercent;
 
         busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
         usdtTokenDenominator = 10 ** IERC20Metadata(params.usdtToken).decimals();
@@ -218,10 +221,15 @@ contract StrategyConeBusdUsdt is Strategy {
         (uint256 reserveUsdt, uint256 reserveBusd,) = conePair.getReserves();
         require(reserveUsdt > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
+        // Fetch amount of LP currently staked
+        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        if (lpTokenBalance == 0) {
+            return 0;
+        }
+
         // unstake from gauge
         coneGauge.withdrawAll();
 
-        // Fetch amount of LP currently staked
         uint256 unstakedLPTokenBalance = conePair.balanceOf(address(this));
         if (unstakedLPTokenBalance > 0) {
             uint256 totalLpBalance = conePair.totalSupply();
@@ -297,6 +305,10 @@ contract StrategyConeBusdUsdt is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
+        uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
+        if (lpTokenBalance == 0) {
+            return 0;
+        }
         address[] memory tokens = new address[](1);
         tokens[0] = address(coneToken);
         coneGauge.getReward(address(this), tokens);
@@ -334,8 +346,8 @@ contract StrategyConeBusdUsdt is Strategy {
         }
 
         if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd * 80 / 100);
-            busdToken.transfer(rewardWallet, totalBusd * 20 / 100);
+            busdToken.transfer(_to, totalBusd * (100 - rewardWalletPercent) / 100);
+            busdToken.transfer(rewardWallet, totalBusd * rewardWalletPercent / 100);
         }
 
         return totalBusd;
