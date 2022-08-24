@@ -2,7 +2,7 @@ const {getContract, getPrice, showHedgeM2M} = require("@overnight-contracts/comm
 
 async function main() {
 
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic');
+    let exchanger = await getContract('HedgeExchangerUsdPlusWbnb');
 
     while (true) {
 
