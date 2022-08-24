@@ -28,7 +28,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     IExchange public exchange;
     IHedgeStrategy public strategy;
     IUsdPlusToken public usdPlus;
-    IERC20 public usdc;
+    IERC20 public usdc; // unused field
     IRebaseToken public rebase;
 
     address collector;
@@ -55,7 +55,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address rebase, address usdc);
+    event TokensUpdated(address usdPlus, address rebase);
 
     event CollectorUpdated(address collector);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -137,14 +137,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     }
 
-    function setTokens(address _usdPlus, address _rebase, address _usdc) external onlyAdmin {
+    function setTokens(address _usdPlus, address _rebase) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_rebase != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
         usdPlus = IUsdPlusToken(_usdPlus);
         rebase = IRebaseToken(_rebase);
-        usdc = IERC20(_usdc);
-        emit TokensUpdated(_usdPlus, _rebase, _usdc);
+        emit TokensUpdated(_usdPlus, _rebase );
     }
 
     function setStrategy(address _strategy) external onlyAdmin {

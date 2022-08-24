@@ -33,12 +33,11 @@ module.exports = async () => {
 
     const exchange = await getContract('Exchange', 'bsc');
     const usdPlus = await getContract('UsdPlusToken', 'bsc');
-
-    // const hedgeExchanger = await getContract('HedgeExchangerUsdPlusWmatic', );
+    const hedgeExchanger = await getContract('HedgeExchangerUsdPlusWbnb', 'bsc');
 
     if (strategy) {
 
-        // await (await strategy.setExchanger(hedgeExchanger.address));
+        await (await strategy.setExchanger(hedgeExchanger.address)).wait();
 
         let setupParams = {
             usdPlus: usdPlus.address,
