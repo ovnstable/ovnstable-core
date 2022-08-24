@@ -36,7 +36,7 @@ library UsdPlusWbnbLibrary {
             block.timestamp
         );
 
-        self.coneGauge().depositAll(0);
+        self.coneGauge().depositAll(self.veConeId());
 
     }
 

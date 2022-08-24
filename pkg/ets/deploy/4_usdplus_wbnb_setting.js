@@ -16,7 +16,7 @@ let coneVoter = "0xC3B5d80E4c094B17603Ea8Bb15d2D31ff5954aAE";
 let coneToken = "0xa60205802e1b5c6ec1cafa3cacd49dfeece05ac9";
 let coneGauge = "0xA766094e9bf0AFc1BB5208EC9a81a782663d797a";
 let veCone = '0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef';
-let veConeId = 2;
+let veConeId = 0;
 
 let dodoProxy = "0x8f8dd7db1bda5ed3da8c9daf3bfa471c12d58486";
 let dodoBusdWbnb = "0x0fe261aeE0d1C4DFdDee4102E82Dd425999065F4";
