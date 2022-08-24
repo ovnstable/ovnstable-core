@@ -32,6 +32,9 @@ library UsdPlusWbnbLibrary {
             block.timestamp
         );
 
+//      self.coneGauge().depositAll(self.veConeId());
+        self.coneGauge().depositAll(0);
+
     }
 
     /**
@@ -43,12 +46,14 @@ library UsdPlusWbnbLibrary {
     function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
         // calc wmatic tokens amount
-//         uint256 poolTokenDelta = self.usdToBnb(delta);
+        //         uint256 poolTokenDelta = self.usdToBnb(delta);
+
+        self.coneGauge().withdraw(self.coneGauge().balanceOf(address(self)));
 
         uint256 balanceLp = self.conePair().balanceOf(address(self));
         // TODO Need calc from delta
-//        (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
-//        uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
+        //        (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
+        //        uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
 
         self.coneRouter().removeLiquidity(
             address(self.wbnb()),

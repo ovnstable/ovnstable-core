@@ -12,6 +12,8 @@ let oracleBnb = '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE';
 let coneRouter = "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F";
 let conePair = "0xeC30Da6361905B8f3e4a93513D937dB992301276";
 let coneVoter = "0xC3B5d80E4c094B17603Ea8Bb15d2D31ff5954aAE";
+let coneToken = "0xa60205802e1b5c6ec1cafa3cacd49dfeece05ac9";
+let coneGauge = "0xA766094e9bf0AFc1BB5208EC9a81a782663d797a";
 let veCone = '0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef';
 let veConeId = 2;
 
@@ -47,6 +49,8 @@ module.exports = async () => {
             coneRouter: coneRouter,
             conePair: conePair,
             coneVoter: coneVoter,
+            coneGauge: coneGauge,
+            coneToken: coneToken,
             veCone: veCone,
             veConeId: veConeId,
             exchange: exchange.address,

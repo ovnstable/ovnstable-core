@@ -43,6 +43,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     IConeRouter01 public coneRouter;
     IConePair public conePair;
     IConeVoter public coneVoter;
+    IGauge public coneGauge;
+    IERC20 public coneToken;
     IERC721 public veCone;
     uint public veConeId;
 
@@ -65,6 +67,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         address coneRouter;
         address conePair;
         address coneVoter;
+        address coneGauge;
+        address coneToken;
         address veCone;
         uint veConeId;
         address exchange;
@@ -102,6 +106,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         coneRouter = IConeRouter01(params.coneRouter);
         conePair = IConePair(params.conePair);
         coneVoter = IConeVoter(params.coneVoter);
+        coneGauge = IGauge(params.coneGauge);
+        coneToken = IERC20(params.coneToken);
         veCone = IERC721(params.veCone);
         veConeId = params.veConeId;
 
@@ -118,6 +124,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         usdPlus.approve(address(coneRouter), type(uint256).max);
         wbnb.approve(address(coneRouter), type(uint256).max);
         conePair.approve(address(coneRouter), type(uint256).max);
+        conePair.approve(address(coneGauge), type(uint256).max);
 
         usdPlus.approve(address(exchange), type(uint256).max);
         busd.approve(address(exchange), type(uint256).max);
@@ -210,44 +217,47 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     function _claimRewards(address _to) internal override returns (uint256){
 
-        // // claim rewards
-        // penProxy.claimStakingRewards();
+        // claim rewards
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(coneToken);
+        coneGauge.getReward(address(this), tokens);
 
-        // // sell rewards
-        // uint256 totalUsdc = 0;
+        // sell rewards
+        uint256 totalUsdPlus;
 
-        // uint256 dystBalance = dyst.balanceOf(address(this));
-        // if (dystBalance > 0) {
-        //     uint256 dystUsdc = DystopiaLibrary._swapExactTokensForTokens(
-        //         dystRouter,
-        //         address(dyst),
-        //         address(wmatic),
-        //         address(usdPlus),
-        //         false,
-        //         false,
-        //         dystBalance,
-        //         address(this)
-        //     );
-        //     totalUsdc += dystUsdc;
-        // }
+        uint256 coneBalance = coneToken.balanceOf(address(this));
+        coneBalance = coneBalance * 80 / 100; // -20% to save on Strategy
 
-        // uint256 penBalance = penToken.balanceOf(address(this));
-        // if (penBalance > 0) {
-        //     uint256 penUsdc = DystopiaLibrary._swapExactTokensForTokens(
-        //         dystRouter,
-        //         address(penToken),
-        //         address(wmatic),
-        //         address(usdPlus),
-        //         false,
-        //         false,
-        //         penBalance,
-        //         address(this)
-        //     );
-        //     totalUsdc += penUsdc;
-        // }
+        if (coneBalance > 0) {
+            uint256 amountOutMin = ConeLibrary.getAmountsOut(
+                coneRouter,
+                address(coneToken),
+                address(wbnb),
+                address(usdPlus),
+                false,
+                false,
+                coneBalance
+            );
 
-        // return totalUsdc;
-        return 0;
+            if (amountOutMin > 0) {
+                uint256 coneBusd = ConeLibrary.swap(
+                    coneRouter,
+                    address(coneToken),
+                    address(wbnb),
+                    address(usdPlus),
+                    false,
+                    false,
+                    coneBalance,
+                    amountOutMin * 99 / 100,
+                    address(this)
+                );
+
+                totalUsdPlus += coneBusd;
+            }
+        }
+
+
+        return totalUsdPlus;
     }
 
 
