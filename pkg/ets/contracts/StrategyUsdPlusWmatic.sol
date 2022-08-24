@@ -196,13 +196,13 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         Amounts memory amounts = currentAmounts();
 
         BalanceItem[] memory items = new BalanceItem[](7);
-        items[0] = BalanceItem("borrowToken", toUint256(liq.borrowToken), amounts.borrowToken, true);
-        items[1] = BalanceItem("collateralAsset", toUint256(liq.collateralAsset), amounts.collateralAsset, false);
-        items[2] = BalanceItem("poolToken", toUint256(liq.poolToken), amounts.poolToken, false);
-        items[3] = BalanceItem("poolUsdPlus", toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
-        items[4] = BalanceItem("freeUsdPlus", toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
-        items[5] = BalanceItem("freeAsset", toUint256(liq.freeAsset), amounts.freeAsset, false);
-        items[6] = BalanceItem("freeToken", toUint256(liq.freeToken), amounts.freeToken, false);
+        items[0] = BalanceItem(address(wmatic), toUint256(liq.borrowToken), amounts.borrowToken, true);
+        items[1] = BalanceItem(address(usdc), toUint256(liq.collateralAsset), amounts.collateralAsset, false);
+        items[2] = BalanceItem(address(wmatic), toUint256(liq.poolToken), amounts.poolToken, false);
+        items[3] = BalanceItem(address(usdPlus), toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
+        items[4] = BalanceItem(address(usdPlus), toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
+        items[5] = BalanceItem(address(usdc), toUint256(liq.freeAsset), amounts.freeAsset, false);
+        items[6] = BalanceItem(address(wmatic), toUint256(liq.freeToken), amounts.freeToken, false);
         return items;
     }
 
@@ -300,9 +300,12 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
 
         (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(this));
 
+        uint256 aaveBorrowAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsd, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        uint256 aaveCollateralAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsd, usdcDm, uint256(oracleUsdc.latestAnswer()));
+
         return Amounts(
-            usdToUsdc(aaveCollateralUsd),
-            usdToWmatic(aaveBorrowUsd),
+            aaveCollateralAmount,
+            aaveBorrowAmount,
             poolToken,
             poolUsdPlus,
             usdPlus.balanceOf(address(this)),
