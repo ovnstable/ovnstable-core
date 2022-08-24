@@ -5,6 +5,7 @@ let busd = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
 let wbnb = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 let vBusdToken = '0x95c78222B3D6e262426483D42CfA53685A67Ab9D';
 let vBnbToken = '0xA07c5b74C9B40447a954e1466938b865b6BBea36';
+let unitroller = "0xfD36E2c2a6789Db23113685031d7F16329158384";
 let oracleBusd = '0xcBb98864Ef56E9042e7d2efef76141f15731B82f';
 let oracleBnb = '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE';
 
@@ -36,6 +37,7 @@ module.exports = async () => {
             wbnb: wbnb,
             vBusdToken: vBusdToken,
             vBnbToken: vBnbToken,
+            unitroller: unitroller,
             oracleBusd: oracleBusd,
             oracleBnb: oracleBnb,
             coneRouter: coneRouter,

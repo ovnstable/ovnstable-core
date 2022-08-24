@@ -19,9 +19,6 @@ import "./libraries/UsdPlusWbnbLibrary.sol";
 import "./libraries/EtsCalculationLibrary.sol";
 import "./core/HedgeStrategy.sol";
 
-import "./Unitroller.sol";
-import "./Borrow.sol";
-
 import "hardhat/console.sol";
 
 contract StrategyUsdPlusWbnb is HedgeStrategy {
@@ -31,10 +28,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     uint256 public constant MAX_UINT_VALUE = type(uint256).max;
 
     IERC20 public usdPlus;
-    IERC20 public busd; //0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56
-    IERC20 public wbnb; //0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
-    VenusInterface public vBusdToken; //0x95c78222B3D6e262426483D42CfA53685A67Ab9D
-    VenusInterface public vBnbToken; //0xA07c5b74C9B40447a954e1466938b865b6BBea36
+    IERC20 public busd;
+    IERC20 public wbnb;
+    VenusInterface public vBusdToken;
+    VenusInterface public vBnbToken;
     uint256 public busdDm;
     uint256 public wbnbDm;
     uint256 public bnbDm;
@@ -57,6 +54,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         address wbnb;
         address vBusdToken;
         address vBnbToken;
+        address unitroller;
         address oracleBusd;
         address oracleBnb;
         address coneRouter;
@@ -113,7 +111,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         usdPlus.approve(address(exchange), type(uint256).max);
         busd.approve(address(exchange), type(uint256).max);
 
-        Unitroller troll = Unitroller(0xfD36E2c2a6789Db23113685031d7F16329158384);
+        Unitroller troll = Unitroller(params.unitroller);
         address[] memory vTokens = new address[](2);
         vTokens[0] = address(vBusdToken);
         vTokens[1] = address(vBnbToken);
@@ -299,7 +297,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     // }
 
     receive() external payable {
-        console.log('receive bnb: %s', address(this).balance);
+//        console.log('receive bnb: %s', address(this).balance);
     }
 
     /**
