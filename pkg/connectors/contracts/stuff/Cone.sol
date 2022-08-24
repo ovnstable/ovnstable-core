@@ -195,7 +195,7 @@ interface IGauge {
 
     function tokenIds(address account) external view returns (uint);
 
-    function claimFees() external lock returns (uint claimed0, uint claimed1);
+    function claimFees() external returns (uint claimed0, uint claimed1);
 
     function getReward(address account, address[] memory tokens) external;
 

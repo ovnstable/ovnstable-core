@@ -23,11 +23,11 @@ let BSC = {
     // swaps
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
     // oracles
-    chainlinkBusd: "",
-    chainlinkUsdc: "",
-    chainlinkUsdt: "",
-    // wallets
-    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
+    chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
+    chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",
+    chainlinkUsdt: "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+    // corporative wallet
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
 let OPTIMISM = {

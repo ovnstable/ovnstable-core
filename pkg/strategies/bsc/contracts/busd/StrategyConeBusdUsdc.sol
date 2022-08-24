@@ -63,10 +63,10 @@ contract StrategyConeBusdUsdc is Strategy {
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
 
-        busdToken = IERC20(params.busd);
-        usdcToken = IERC20(params.usdc);
-        wBnbToken = IERC20(params.wBnb);
-        coneToken = IERC20(params.cone);
+        busdToken = IERC20(params.busdToken);
+        usdcToken = IERC20(params.usdcToken);
+        wBnbToken = IERC20(params.wBnbToken);
+        coneToken = IERC20(params.coneToken);
 
         coneRouter = IConeRouter01(params.coneRouter);
         conePair = IConePair(params.conePair);
@@ -78,8 +78,8 @@ contract StrategyConeBusdUsdc is Strategy {
 
         rewardWallet = params.rewardWallet;
 
-        busdTokenDenominator = 10 ** IERC20Metadata(params.busd).decimals();
-        usdcTokenDenominator = 10 ** IERC20Metadata(params.usdc).decimals();
+        busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
+        usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
 
         emit StrategyUpdatedParams();
     }
@@ -93,8 +93,8 @@ contract StrategyConeBusdUsdc is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        (uint256 reserveBusd, uint256 reserveUsdc,) = conePair.getReserves();
-        require(reserveBusd > 10 ** 15 && reserveUsdc > 10 ** 15, 'Liquidity lpToken reserves too low');
+        (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
+        require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         uint256 busdBalance = busdToken.balanceOf(address(this));
         uint256 amountBusdToSwap = SynapseLibrary.getAmount0(
@@ -120,6 +120,8 @@ contract StrategyConeBusdUsdc is Strategy {
         // add liquidity
         busdBalance = busdToken.balanceOf(address(this));
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        busdToken.approve(address(coneRouter), busdBalance);
+        usdcToken.approve(address(coneRouter), usdcBalance);
         coneRouter.addLiquidity(
             address(busdToken),
             address(usdcToken),
@@ -136,7 +138,7 @@ contract StrategyConeBusdUsdc is Strategy {
         uint256 lpTokenBalance = conePair.balanceOf(address(this));
         conePair.approve(address(coneGauge), lpTokenBalance);
         // TODO get tokenId
-        coneGauge.depositAll(tokenId);
+        coneGauge.depositAll(0);
     }
 
     function _unstake(
@@ -147,8 +149,8 @@ contract StrategyConeBusdUsdc is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        (uint256 reserveBusd, uint256 reserveUsdc,) = conePair.getReserves();
-        require(reserveBusd > 10 ** 15 && reserveUsdc > 10 ** 15, 'Liquidity lpToken reserves too low');
+        (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
+        require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         // Fetch amount of LP currently staked
         uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
@@ -180,6 +182,7 @@ contract StrategyConeBusdUsdc is Strategy {
             uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
 
             // remove liquidity
+            conePair.approve(address(coneRouter), unstakedLPTokenBalance);
             coneRouter.removeLiquidity(
                 address(busdToken),
                 address(usdcToken),
@@ -211,8 +214,8 @@ contract StrategyConeBusdUsdc is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        (uint256 reserveBusd, uint256 reserveUsdc,) = conePair.getReserves();
-        require(reserveBusd > 10 ** 15 && reserveUsdc > 10 ** 15, 'Liquidity lpToken reserves too low');
+        (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
+        require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         // unstake from gauge
         coneGauge.withdrawAll();
@@ -225,6 +228,7 @@ contract StrategyConeBusdUsdc is Strategy {
             uint256 amountOutUsdcMin = reserveUsdc * unstakedLPTokenBalance / totalLpBalance;
 
             // remove liquidity
+            conePair.approve(address(coneRouter), unstakedLPTokenBalance);
             coneRouter.removeLiquidity(
                 address(busdToken),
                 address(usdcToken),
@@ -265,7 +269,7 @@ contract StrategyConeBusdUsdc is Strategy {
         uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = conePair.totalSupply();
-            (uint256 reserveBusd, uint256 reserveUsdc,) = conePair.getReserves();
+            (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
             busdBalance += reserveBusd * lpTokenBalance / totalLpBalance;
             usdcBalance += reserveUsdc * lpTokenBalance / totalLpBalance;
         }
@@ -329,7 +333,8 @@ contract StrategyConeBusdUsdc is Strategy {
         }
 
         if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd);
+            busdToken.transfer(_to, totalBusd * 80 / 100);
+            busdToken.transfer(rewardWallet, totalBusd * 20 / 100);
         }
 
         return totalBusd;
