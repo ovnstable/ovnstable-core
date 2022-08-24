@@ -3,6 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
@@ -21,7 +23,7 @@ import "./core/HedgeStrategy.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyUsdPlusWbnb is HedgeStrategy {
+contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     using WadRayMath for uint256;
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
 
@@ -40,6 +42,9 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
 
     IConeRouter01 public coneRouter;
     IConePair public conePair;
+    IConeVoter public coneVoter;
+    IERC721 public veCone;
+    uint public veConeId;
 
     IExchange public exchange;
 
@@ -59,6 +64,9 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         address oracleBnb;
         address coneRouter;
         address conePair;
+        address coneVoter;
+        address veCone;
+        uint veConeId;
         address exchange;
         address dodoProxy;
         address dodoBusdWbnb;
@@ -93,6 +101,9 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
 
         coneRouter = IConeRouter01(params.coneRouter);
         conePair = IConePair(params.conePair);
+        coneVoter = IConeVoter(params.coneVoter);
+        veCone = IERC721(params.veCone);
+        veConeId = params.veConeId;
 
         exchange = IExchange(params.exchange);
 
@@ -296,9 +307,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     //     );
     // }
 
-    receive() external payable {
-//        console.log('receive bnb: %s', address(this).balance);
-    }
+
 
     /**
      * Get current liquidity in USD e6
@@ -497,4 +506,21 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         );
     }
 
+
+    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyAdmin {
+        coneVoter.vote(veConeId, _poolVote, _weights);
+    }
+
+    /// @notice Used for ERC721 safeTransferFrom
+    function onERC721Received(address, address, uint256, bytes memory)
+    public
+    virtual
+    override
+    returns (bytes4)
+    {
+        return this.onERC721Received.selector;
+    }
+
+    receive() external payable {
+    }
 }

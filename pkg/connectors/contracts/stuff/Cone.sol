@@ -378,3 +378,10 @@ library ConeLibrary {
     }
 
 }
+
+interface IConeVoter {
+
+    function lastVote(uint tokenId) external returns (uint256 lastTime);
+
+    function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external ;
+}
