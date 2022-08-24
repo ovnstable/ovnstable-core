@@ -6,8 +6,9 @@ let wbnb = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 let vBusdToken = '0x95c78222B3D6e262426483D42CfA53685A67Ab9D';
 let vBnbToken = '0xA07c5b74C9B40447a954e1466938b865b6BBea36';
 let unitroller = "0xfD36E2c2a6789Db23113685031d7F16329158384";
+let maximillion = '0x5efA1e46F4Fd738FF721F5AebC895b970F13E8A1';
 let oracleBusd = '0xcBb98864Ef56E9042e7d2efef76141f15731B82f';
-let oracleBnb = '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE';
+let oracleWbnb = '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE';
 
 let coneRouter = "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F";
 let conePair = "0xeC30Da6361905B8f3e4a93513D937dB992301276";
@@ -17,6 +18,8 @@ let dodoBusdWbnb = "0x0fe261aeE0d1C4DFdDee4102E82Dd425999065F4";
 let dodoApprove = "0xa128Ba44B2738A558A1fdC06d6303d52D3Cef8c1";
 
 let wbnbBusdSlippagePercent = 50; //0.5%
+let liquidationThreshold = 800;
+let healthFactor = 1350
 
 
 module.exports = async () => {
@@ -38,8 +41,9 @@ module.exports = async () => {
             vBusdToken: vBusdToken,
             vBnbToken: vBnbToken,
             unitroller: unitroller,
+            maximillion: maximillion,
             oracleBusd: oracleBusd,
-            oracleBnb: oracleBnb,
+            oracleWbnb: oracleWbnb,
             coneRouter: coneRouter,
             conePair: conePair,
             exchange: exchange.address,
@@ -47,6 +51,8 @@ module.exports = async () => {
             dodoBusdWbnb: dodoBusdWbnb,
             dodoApprove: dodoApprove,
             tokenAssetSlippagePercent: wbnbBusdSlippagePercent,
+            liquidationThreshold: liquidationThreshold,
+            healthFactor: healthFactor,
         }
 
         await (await strategy.setParams(setupParams)).wait();
