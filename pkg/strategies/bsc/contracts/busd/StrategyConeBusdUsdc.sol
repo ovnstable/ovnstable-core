@@ -137,7 +137,7 @@ contract StrategyConeBusdUsdc is Strategy {
         // stake to gauge
         uint256 lpTokenBalance = conePair.balanceOf(address(this));
         conePair.approve(address(coneGauge), lpTokenBalance);
-        // TODO get tokenId
+        // don't lock cone -> tokenId = 0
         coneGauge.depositAll(0);
     }
 
@@ -161,7 +161,8 @@ contract StrategyConeBusdUsdc is Strategy {
                 synapseStableSwapPool,
                 address(busdToken),
                 address(usdcToken),
-                _amount,
+                // add 10 to _amount for smooth withdraw
+                _amount + 10,
                 totalLpBalance,
                 reserveBusd,
                 reserveUsdc,

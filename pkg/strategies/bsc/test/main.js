@@ -38,7 +38,7 @@ let arrays = [
     },
     {
         name: 'StrategyConeBusdUsdc',
-        enabledReward: true,
+        enabledReward: false,
     },
 ];
 
