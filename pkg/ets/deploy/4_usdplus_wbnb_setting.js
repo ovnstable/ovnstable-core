@@ -22,7 +22,7 @@ let dodoProxy = "0x8f8dd7db1bda5ed3da8c9daf3bfa471c12d58486";
 let dodoBusdWbnb = "0x0fe261aeE0d1C4DFdDee4102E82Dd425999065F4";
 let dodoApprove = "0xa128Ba44B2738A558A1fdC06d6303d52D3Cef8c1";
 
-let wbnbBusdSlippagePercent = 50; //0.5%
+let wbnbBusdSlippagePercent = 100; //1%
 let liquidationThreshold = 800;
 let healthFactor = 1350
 

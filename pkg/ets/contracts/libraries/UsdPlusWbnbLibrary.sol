@@ -7,6 +7,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Dodo.sol";
 
 import "hardhat/console.sol";
 
@@ -154,7 +155,8 @@ library UsdPlusWbnbLibrary {
         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
         if (swapWbnbAmount == 0) return;
 
-        uint256 amountOutMin = self.usdToBusd(self.wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
+        (uint256 receiveQuoteAmount,) = IDODOV2(self.dodoBusdWbnb()).querySellBase(address(self), swapWbnbAmount);
+        uint256 amountOutMin = receiveQuoteAmount * (10000 - slippagePercent) / 10000;
 
         address[] memory dodoPairs = new address[](1);
         dodoPairs[0] = self.dodoBusdWbnb();
@@ -183,7 +185,9 @@ library UsdPlusWbnbLibrary {
     function _swapAssetToToken(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
         if (swapAssetAmount == 0) return;
-        uint256 amountOutMin = self.usdToWbnb(self.busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
+
+        (uint256 receiveBaseAmount,) = IDODOV2(self.dodoBusdWbnb()).querySellQuote(address(self), swapAssetAmount);
+        uint256 amountOutMin = receiveBaseAmount * (10000 - slippagePercent) / 10000;
 
         address[] memory dodoPairs = new address[](1);
         dodoPairs[0] = self.dodoBusdWbnb();

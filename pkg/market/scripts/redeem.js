@@ -9,8 +9,8 @@ async function main() {
     await showHedgeM2M();
 
     let params = await getPrice();
-    await (await rebase.approve(exchanger.address, toE6(2), params)).wait();
-    await (await exchanger.redeem(toE6(2), params)).wait();
+    await (await rebase.approve(exchanger.address, toE6(1), params)).wait();
+    await (await exchanger.redeem(toE6(1), params)).wait();
 
     await showHedgeM2M();
 
