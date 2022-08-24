@@ -239,7 +239,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
 
     function _balance() internal override returns (uint256) {
-        calcDeltas(Method.NOTHING, 0);
+//        calcDeltas(Method.NOTHING, 0);
         return realHealthFactor;
     }
 

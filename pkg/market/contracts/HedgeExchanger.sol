@@ -52,6 +52,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     uint256 public lastBlockNumber;
 
     uint256 public abroadMin;
+    uint256 public abroadMax;
 
     // ---  events
 
@@ -68,7 +69,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     event EventExchange(string label, uint256 amount, uint256 fee, address sender, string refferal);
     event PayoutEvent(uint256 tvlFee, uint256 profitFee, uint256 profit, uint256 loss);
     event NextPayoutTime(uint256 nextPayoutTime);
-    event Abroad(uint256 min);
+    event Abroad(uint256 min, uint256 max);
 
     // ---  modifiers
 
@@ -119,6 +120,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         payoutTimeRange = 15 * 60;
 
         abroadMin = 1000400;
+        abroadMax = 1000950;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -183,9 +185,10 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         emit ProfitFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-    function setAbroad(uint256 _min) external onlyAdmin {
+    function setAbroad(uint256 _min , uint256 _max) external onlyAdmin {
         abroadMin = _min;
-        emit Abroad(abroadMin);
+        abroadMax = _max;
+        emit Abroad(abroadMin, abroadMax);
     }
 
 
@@ -280,7 +283,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         balance();
 
         uint256 totalRebase = rebase.totalSupply();       // Total supply with liq index
-        uint256 totalUsdc = strategy.netAssetValue();     // Strategy NAV
+        uint256 totalUsdc = strategy.netAssetValue() / 1e12;     // Strategy NAV
 
         uint256 fee;
         uint256 tvlFeeAmount;
@@ -314,6 +317,10 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         if (delta <= abroadMin) {
             revert('Delta abroad:min');
+        }
+
+        if (abroadMax <= delta) {
+            revert('Delta abroad:max');
         }
 
         rebase.setLiquidityIndex(newLiquidityIndex);
