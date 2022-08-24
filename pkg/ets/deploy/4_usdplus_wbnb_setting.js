@@ -12,6 +12,11 @@ let coneRouter = "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F";
 let conePair = "0xeC30Da6361905B8f3e4a93513D937dB992301276";
 
 let dodoProxy = "0x8f8dd7db1bda5ed3da8c9daf3bfa471c12d58486";
+let dodoBusdWbnb = "0x0fe261aeE0d1C4DFdDee4102E82Dd425999065F4";
+let dodoApprove = "0xa128Ba44B2738A558A1fdC06d6303d52D3Cef8c1";
+
+let wbnbBusdSlippagePercent = 50; //0.5%
+
 
 module.exports = async () => {
 
@@ -36,7 +41,10 @@ module.exports = async () => {
             coneRouter: coneRouter,
             conePair: conePair,
             exchange: exchange.address,
-            dodoProxy: dodoProxy
+            dodoProxy: dodoProxy,
+            dodoBusdWbnb: dodoBusdWbnb,
+            dodoApprove: dodoApprove,
+            tokenAssetSlippagePercent: wbnbBusdSlippagePercent,
         }
 
         await (await strategy.setParams(setupParams)).wait();

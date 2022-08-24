@@ -43,17 +43,18 @@ library UsdPlusWbnbLibrary {
     function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
         // calc wmatic tokens amount
-         uint256 poolTokenDelta = self.usdToBnb(delta);
+//         uint256 poolTokenDelta = self.usdToBnb(delta);
 
         uint256 balanceLp = self.conePair().balanceOf(address(self));
-        (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
-        uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
+        // TODO Need calc from delta
+//        (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
+//        uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
 
         self.coneRouter().removeLiquidity(
             address(self.wbnb()),
             address(self.usdPlus()),
             false,
-            lpForUnstake,
+            balanceLp,
             0,
             0,
             address(self),
@@ -148,17 +149,20 @@ library UsdPlusWbnbLibrary {
      * wbnb -> busd
      * @param delta - Wmatic in USD e6
      */
-    function _swapWbnbToBusd(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
-         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToBnb(delta);
+    function _swapTokenToAsset(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
+//         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToBnb(delta);
+         uint256 swapWbnbAmount = delta; // TODO Need to calc
          if (swapWbnbAmount == 0) return;
 
-         uint256 amountOutMin = self.usdToBusd(self.bnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
+//         uint256 amountOutMin = self.usdToBusd(self.bnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
+         uint256 amountOutMin = 10; // TODO Need to calc
 
-        address[] memory dodoPairs = new address[](2);
+        address[] memory dodoPairs = new address[](1);
+        dodoPairs[0] = self.dodoBusdWbnb();
 
         self.dodoProxy().dodoSwapV2TokenToToken(
-            address(self.busd()),
             address(self.wbnb()),
+            address(self.busd()),
             swapWbnbAmount,
             amountOutMin,
             dodoPairs,
@@ -172,24 +176,31 @@ library UsdPlusWbnbLibrary {
 
     /**
      * ActionType: SWAP_ASSET_TO_TOKEN
-     * Swap on dystopia
-     * usdPlus -> wmatic
-     * @param delta - Usdc in USD e6
+     * Swap on dodo
+     * busd -> wbnb
+     * @param delta - BUSD in USD e6
+     * example tx: https://bscscan.com/tx/0xd029b94ab61421a1126d29236632c6ce6869d3e753ad857d6b9f55576752ca6a
      */
-    function _swapUsdcToWmatic(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
-        // uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdc().balanceOf(address(self)) : self.usdToUsdc(delta);
-        // if (swapUsdcAmount == 0) return;
-        // uint256 amountOutMin = self.usdToWmatic(self.usdcToUsd(swapUsdcAmount / 10000 * (10000 - slippagePercent)));
+    function _swapAssetToToken(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
+//         uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
+         uint256 swapAssetAmount = delta; // TODO Need to calc
+         if (swapAssetAmount == 0) return;
+//         uint256 amountOutMin = self.bnbToUsd(self.bnbToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
+         uint256 amountOutMin = 10; // TODO Need to calc
 
-        // uint256 result = UniswapV3Library.singleSwap(
-        //     self.uniswapV3Router(),
-        //     address(self.usdc()),
-        //     address(self.wmatic()),
-        //     self.poolFeeMaticUsdc(),
-        //     address(this),
-        //     swapUsdcAmount,
-        //     amountOutMin
-        // );
+        address[] memory dodoPairs = new address[](1);
+        dodoPairs[0] = self.dodoBusdWbnb();
+
+        self.dodoProxy().dodoSwapV2TokenToToken(
+            address(self.busd()),
+            address(self.wbnb()),
+            swapAssetAmount,
+            amountOutMin,
+            dodoPairs,
+            1, // directions
+            false,
+            block.timestamp + 600
+        );
     }
 
 

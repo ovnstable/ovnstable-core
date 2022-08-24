@@ -44,6 +44,9 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     IExchange public exchange;
 
     IDODOProxy public dodoProxy;
+    address public dodoBusdWbnb;
+
+    uint256 tokenAssetSlippagePercent;
 
     struct SetupParams {
         address usdPlus;
@@ -57,6 +60,9 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         address conePair;
         address exchange;
         address dodoProxy;
+        address dodoBusdWbnb;
+        address dodoApprove;
+        uint256 tokenAssetSlippagePercent;
     }
 
 
@@ -90,6 +96,12 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         exchange = IExchange(params.exchange);
 
         dodoProxy = IDODOProxy(params.dodoProxy);
+        dodoBusdWbnb = params.dodoBusdWbnb;
+
+        tokenAssetSlippagePercent = params.tokenAssetSlippagePercent;
+
+        busd.approve(address(params.dodoApprove), type(uint256).max);
+        wbnb.approve(address(params.dodoApprove), type(uint256).max);
 
         usdPlus.approve(address(coneRouter), type(uint256).max);
         wbnb.approve(address(coneRouter), type(uint256).max);
@@ -108,6 +120,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         showBalance();
         UsdPlusWbnbLibrary._swapUspPlusToBusd(this, _amount / 2);
 
+        console.log('Swap Dodo');
+        showBalance();
+        UsdPlusWbnbLibrary._swapAssetToToken(this, busd.balanceOf(address(this)), 10);
+
         console.log('Stake');
         showBalance();
 
@@ -117,6 +133,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
         showBalance();
 
         UsdPlusWbnbLibrary._removeLiquidity(this, 1);
+
+        console.log('Swap Dodo');
+        showBalance();
+
+        UsdPlusWbnbLibrary._swapTokenToAsset(this, wbnb.balanceOf(address(this)), 10);
+
+        showBalance();
 
         // _updateEMode();
         // calcDeltas(Method.STAKE, _amount);
