@@ -36,7 +36,6 @@ library UsdPlusWbnbLibrary {
             block.timestamp
         );
 
-//      self.coneGauge().depositAll(self.veConeId());
         self.coneGauge().depositAll(0);
 
     }
@@ -49,15 +48,18 @@ library UsdPlusWbnbLibrary {
      */
     function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
-        self.coneGauge().withdraw(self.coneGauge().balanceOf(address(self)));
-        //TODO fix with gauge
-        uint256 balanceLp = self.conePair().balanceOf(address(self));
+        uint256 poolTokenDelta = self.usdToWbnb(delta);
 
-        self.coneRouter().removeLiquidity(
+        uint256 balanceLp = self.coneGauge().balanceOf(address(self));
+        (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
+        uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
+        self.coneGauge().withdraw(lpForUnstake);
+
+        (amountWmatic, amountUsdPlus) = self.coneRouter().removeLiquidity(
             address(self.wbnb()),
             address(self.usdPlus()),
             false,
-            balanceLp,
+            lpForUnstake,
             0,
             0,
             address(self),
@@ -202,12 +204,12 @@ library UsdPlusWbnbLibrary {
     /**
      * Own liquidity in pool in their native digits. Used in strategy.
      */
-    function _getLiquidity(StrategyUsdPlusWbnb self) public view returns (uint256, uint256){
-       uint256 balanceLp = self.conePair().balanceOf(address(self));
-       return _getLiquidityByLp(self, balanceLp);
+    function _getLiquidity(StrategyUsdPlusWbnb self) public view returns (uint256, uint256) {
+        uint256 balanceLp = self.coneGauge().balanceOf(address(self));
+        return _getLiquidityByLp(self, balanceLp);
     }
 
-    function _getLiquidityByLp(StrategyUsdPlusWbnb self, uint256 balanceLp) internal view returns (uint256, uint256){
+    function _getLiquidityByLp(StrategyUsdPlusWbnb self, uint256 balanceLp) internal view returns (uint256, uint256) {
 
          (uint256 reserve0Current, uint256 reserve1Current,) = self.conePair().getReserves();
 
