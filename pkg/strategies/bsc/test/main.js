@@ -40,6 +40,10 @@ let arrays = [
         name: 'StrategyConeBusdUsdc',
         enabledReward: false,
     },
+    {
+        name: 'StrategyConeBusdUsdt',
+        enabledReward: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
