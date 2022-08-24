@@ -12,14 +12,22 @@ let AVALANCHE = {
 }
 
 let BSC = {
+    // coins
     wBnb: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
     busd: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
     vBusd: "0x95c78222B3D6e262426483D42CfA53685A67Ab9D",
-    pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
     usdc: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
     vUsdc: "0xecA88125a5ADbe82614ffC12D0DB554E2e2867C8",
     usdt: "0x55d398326f99059fF775485246999027B3197955",
     vUsdt: "0xfD5840Cd36d94D7229439859C0112a4185BC0255",
+    // swaps
+    pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    // oracles
+    chainlinkBusd: "",
+    chainlinkUsdc: "",
+    chainlinkUsdt: "",
+    // wallets
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
 }
 
 let OPTIMISM = {
