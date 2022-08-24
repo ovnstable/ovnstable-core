@@ -205,6 +205,10 @@ library EtsCalculationLibrary{
         return navUsd;
     }
 
+    function test() public view returns (uint256) {
+        return 0;
+    }
+
 
     function liquidityToActions(CalcContext2 memory ctx2) public view returns (Action[] memory, uint256) {
 

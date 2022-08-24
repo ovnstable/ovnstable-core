@@ -18,7 +18,7 @@ library UsdPlusWbnbLibrary {
      * [wmatic, usdPlus] -> dyst lpToken
      * + stake lpToken to Penrose
      */
-    function _addLiquidityToDystopia(StrategyUsdPlusWbnb self, uint256 delta) public {
+    function _addLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public {
 
         // self.dystRouter().addLiquidity(
         //     address(self.wmatic()),
@@ -44,7 +44,7 @@ library UsdPlusWbnbLibrary {
      * dyst lpToken -> [wmatic, usdPlus]
      * @param delta - Wmatic amount in USD e6
      */
-    function _removeLiquidityFromDystopia(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
+    function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
 
         // calc wmatic tokens amount
         // uint256 poolTokenDelta = 0;//self.usdToWmatic(delta);
@@ -132,7 +132,7 @@ library UsdPlusWbnbLibrary {
      */
     function _borrowTokenFromAave(StrategyUsdPlusWbnb self, uint256 delta) public {
         // uint256 borrowTokenAmount = self.usdToBnb(delta);
-        
+
         // self.vBnbToken().borrow(borrowTokenAmount);
     }
 

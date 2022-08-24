@@ -27,54 +27,6 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     using WadRayMath for uint256;
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
 
-    // --- constants
-
-    // uint8 public constant E_MODE_CATEGORY_ID = 0;
-    // uint256 public constant INTEREST_RATE_MODE = 2; // InterestRateMode.VARIABLE
-    // uint16 public constant REFERRAL_CODE = 0;
-    // uint256 public constant BASIS_POINTS_FOR_STORAGE = 100; // 1%
-    // uint256 public constant BASIS_POINTS_FOR_SLIPPAGE = 400; // 4%
-    // uint256 public constant MAX_UINT_VALUE = type(uint256).max;
-
-    // // --- fields
-
-    // IExchange public exchange;
-
-    // IERC20 public usdPlus;
-    // IERC20 public usdc;
-    // IERC20 public aUsdc;
-    // IERC20 public wmatic;
-    // IERC20 public dyst;
-
-    // uint256 public usdcDm;
-    // uint256 public wmaticDm;
-
-    // IDystopiaRouter public dystRouter;
-    // IDystopiaLP public dystRewards;
-    // IDystopiaLP public dystVault;
-
-
-    // IERC20 public penToken;
-    // IUserProxy public penProxy;
-    // IPenLens public penLens;
-
-    // // Aave
-    // IPoolAddressesProvider public aavePoolAddressesProvider;
-    // IPriceFeed public oracleUsdc;
-    // IPriceFeed public oracleWmatic;
-
-    // uint256 public usdcStorage;
-
-    // // in e18
-    // uint256 public liquidationThreshold;
-    // uint256 public healthFactor;
-    // uint256 public balancingDelta;
-    // uint256 public realHealthFactor;
-
-    // uint256 wmaticUsdcSlippagePersent;
-    // uint24 public poolFeeMaticUsdc;
-    // ISwapRouter public uniswapV3Router;
-
     IERC20 public usdPlus;
     IERC20 public busd; //0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56
     IERC20 public wbnb; //0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
@@ -87,30 +39,6 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     IPriceFeed public oracleBnb;
 
     struct SetupParams {
-        // tokens
-        // address usdc;
-        // address aUsdc;
-        // address wmatic;
-        // address usdPlus;
-        // address penToken;
-        // address dyst;
-        // // common
-        // address exchanger;
-        // address dystRewards;
-        // address dystVault;
-        // address dystRouter;
-        // address penProxy;
-        // address penLens;
-        // uint256 tokenAssetSlippagePercent;
-        // // aave
-        // address aavePoolAddressesProvider;
-        // uint256 liquidationThreshold;
-        // uint256 healthFactor;
-        // uint256 balancingDelta;
-        // // univ3
-        // address uniswapV3Router;
-        // uint24 poolFeeMaticUsdc;
-
         address usdPlus;
         address busd;
         address wbnb;
@@ -132,58 +60,6 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     // --- setters
 
     function setParams(SetupParams calldata params) external onlyAdmin {
-        // require(params.usdc != address(0), "ZERO_ADDRESS not allowed");
-        // require(params.wmatic != address(0), "ZERO_ADDRESS not allowed");
-
-        // // tokens
-        // usdc = IERC20(params.usdc);
-        // aUsdc = IERC20(params.aUsdc);
-        // wmatic = IERC20(params.wmatic);
-        // usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
-        // wmaticDm = 10 ** IERC20Metadata(params.wmatic).decimals();
-
-        // usdPlus = IERC20(params.usdPlus);
-        // setAsset(params.usdPlus);
-
-        // penToken = IERC20(params.penToken);
-        // dyst = IERC20(params.dyst);
-
-        // // common
-        // dystRewards = IDystopiaLP(params.dystRewards);
-        // dystVault = IDystopiaLP(params.dystVault);
-        // dystRouter = IDystopiaRouter(params.dystRouter);
-
-        // penProxy = IUserProxy(params.penProxy);
-        // penLens = IPenLens(params.penLens);
-
-        // exchange = IExchange(params.exchanger);
-
-        // wmaticUsdcSlippagePersent = params.tokenAssetSlippagePercent;
-        // uniswapV3Router = ISwapRouter(params.uniswapV3Router);
-        // poolFeeMaticUsdc = params.poolFeeMaticUsdc;
-
-        // // aave
-        // aavePoolAddressesProvider = IPoolAddressesProvider(params.aavePoolAddressesProvider);
-
-        // IAaveOracle priceOracleGetter = IAaveOracle(aavePoolAddressesProvider.getPriceOracle());
-        // oracleUsdc = IPriceFeed(priceOracleGetter.getSourceOfAsset(params.usdc));
-        // oracleWmatic = IPriceFeed(priceOracleGetter.getSourceOfAsset(params.wmatic));
-
-        // liquidationThreshold = params.liquidationThreshold * 10 ** 15;
-        // healthFactor = params.healthFactor * 10 ** 15;
-        // realHealthFactor = 0;
-        // balancingDelta = params.balancingDelta * 10 ** 15;
-
-        // // approve max
-        // //TODO: убрать аппрув у предыдущего значения если меняется
-
-        // usdPlus.approve(address(dystRouter), type(uint256).max);
-        // wmatic.approve(address(dystRouter), type(uint256).max);
-        // dystVault.approve(address(dystRouter), type(uint256).max);
-
-        // usdPlus.approve(address(exchange), type(uint256).max);
-        // usdc.approve(address(exchange), type(uint256).max);
-
         usdPlus = IERC20(params.usdPlus);
         busd = IERC20(params.busd);
         wbnb = IERC20(params.wbnb);
@@ -199,6 +75,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy {
     // --- logic
 
     function _stake(uint256 _amount) internal override {
+        UsdPlusWbnbLibrary._addLiquidityToDystopia(this, 0);
+        EtsCalculationLibrary.test();
         // _updateEMode();
         // calcDeltas(Method.STAKE, _amount);
     }

@@ -11,7 +11,7 @@ const chai = require("chai");
 chai.use(require('chai-bignumber')());
 
 const {waffle} = require("hardhat");
-const {getContract, execTimelock, getERC20} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, execTimelock, getERC20, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {transferETH, transferUSDPlus} = require("@overnight-contracts/common/utils/script-utils");
 const {provider} = waffle;
 
@@ -19,46 +19,10 @@ const {provider} = waffle;
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.002,
-        //     deltaPercent: 50,
-        // },
-        // {
-        //     value: 0.02,
-        //     deltaPercent: 10,
-        // },
-        // {
-        //     value: 0.2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 20,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200,
-        //     deltaPercent: 1,
-        // },
         {
             value: 2000,
             deltaPercent: 1,
         },
-        // {
-        //     value: 20000,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200000,
-        //     deltaPercent: 0.1,
-        // },
-        // {
-        //     value: 2000000,
-        //     deltaPercent: 0.1,
-        // },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -89,12 +53,14 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             const signers = await ethers.getSigners();
             account = signers[0];
             recipient = provider.createEmptyWallet();
-            await transferETH(1, recipient.address);
+
+            await transferETH(10, recipient.address);
+            await transferETH(10, account.address);
+            await transferETH(10, (await initWallet()).address);
             await transferUSDPlus(1000, account.address);
 
             strategyName = strategyParams.name;
             await deployments.fixture([strategyName, `${strategyName}Setting`]);
-            console.log("lol5");
 
             strategy = await ethers.getContract(strategyName);
             await strategy.setExchanger(recipient.address);
@@ -244,88 +210,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
     });
 }
 
-
-function claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic) {
-
-    describe(`Stake/ClaimRewards`, function () {
-
-        let account;
-        let recipient;
-
-        let strategy;
-        let strategyName;
-
-        let asset;
-        let toAsset = function () {
-        };
-
-        sharedBeforeEach(`deploy`, async () => {
-            await hre.run("compile");
-            await resetHardhat(network);
-
-            strategyName = strategyParams.name;
-            await deployments.fixture([strategyName, `${strategyName}Setting`, 'BuyUsdPlus']);
-
-            const signers = await ethers.getSigners();
-            account = signers[0];
-            recipient = signers[1];
-
-            strategy = await ethers.getContract(strategyName);
-            await strategy.setPortfolioManager(recipient.address);
-            if (strategyParams.isRunStrategyLogic) {
-                await runStrategyLogic(strategyName, strategy.address);
-            }
-
-            asset = await getERC20("usdPlus");
-            let decimals = await asset.decimals();
-            if (decimals === 18) {
-                toAsset = toE18;
-            } else {
-                toAsset = toE6;
-            }
-        });
-
-        values.forEach(item => {
-
-            let stakeValue = item.value;
-
-            describe(`Stake ${stakeValue} => ClaimRewards`, function () {
-
-                let balanceAsset;
-
-                sharedBeforeEach(`Rewards ${stakeValue}`, async () => {
-
-                    let assetValue = toAsset(stakeValue);
-
-                    await asset.transfer(recipient.address, assetValue);
-                    await asset.connect(recipient).transfer(strategy.address, assetValue);
-                    await strategy.connect(recipient).stake(asset.address, assetValue);
-
-                    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-                    await ethers.provider.send("evm_increaseTime", [sevenDays])
-                    await ethers.provider.send('evm_mine');
-
-                    if (strategyParams.doubleStakeReward) {
-                        await asset.transfer(recipient.address, assetValue);
-                        await asset.connect(recipient).transfer(strategy.address, assetValue);
-                        await strategy.connect(recipient).stake(asset.address, assetValue);
-                    }
-
-                    await strategy.connect(recipient).claimRewards(recipient.address);
-
-                    balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
-
-                });
-
-                it(`Balance asset is not 0`, async function () {
-                    expect(balanceAsset.toNumber()).to.greaterThan(0);
-                });
-
-            });
-
-        });
-    });
-}
 
 
 async function m2m(strategy) {
