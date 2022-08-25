@@ -164,8 +164,8 @@ contract StrategyConeBusdUsdc is Strategy {
                 synapseStableSwapPool,
                 address(busdToken),
                 address(usdcToken),
-                // add 10 to _amount for smooth withdraw
-                _amount + 10,
+                // add 1e13 to _amount for smooth withdraw
+                _amount + 1e13,
                 totalLpBalance,
                 reserveBusd,
                 reserveUsdc,
