@@ -108,6 +108,10 @@ let arrays = [
         name: 'StrategyClearpoolUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyKyberSwapUsdcUsdt',
+        enabledReward: false,
+    },
 
 ];
 

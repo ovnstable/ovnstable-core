@@ -863,13 +863,13 @@ library UniswapV3Library {
         IERC20(tokenIn).approve(address(swapRouter), amountIn);
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
-        tokenIn: tokenIn,
-        tokenOut: tokenOut,
-        fee: fee,
-        recipient: recipient,
-        amountIn: amountIn,
-        amountOutMinimum: amountOutMinimum,
-        sqrtPriceLimitX96: 0
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            fee: fee,
+            recipient: recipient,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum,
+            sqrtPriceLimitX96: 0
         });
 
         amountOut = swapRouter.exactInputSingle(params);
@@ -890,10 +890,10 @@ library UniswapV3Library {
         IERC20(tokenIn).approve(address(swapRouter), amountIn);
 
         ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
-        path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
-        recipient: recipient,
-        amountIn: amountIn,
-        amountOutMinimum: amountOutMinimum
+            path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
+            recipient: recipient,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum
         });
 
         amountOut = swapRouter.exactInput(params);
