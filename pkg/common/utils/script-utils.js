@@ -55,7 +55,7 @@ async function settingSection(exec){
         try {
             let strategy = await ethers.getContract(strategyName);
 
-            let pm = await getContract('PortfolioManager');
+            let pm = await getContract('PortfolioManager', process.env.STAND);
             await (await strategy.setPortfolioManager(pm.address)).wait();
 
             await exec(strategy);
@@ -204,6 +204,9 @@ async function getStrategyMapping(){
         case "polygon_dev":
             url = "https://dev.overnight.fi/api/dict/strategies";
             break;
+        case "optimism":
+            url = "https://op.overnight.fi/api/dict/strategies";
+            break;
         case "bsc_usdc":
             url = "https://api.overnight.fi/bsc_usdc/dict/strategies";
             break;
@@ -301,6 +304,8 @@ async function getPrice(){
         params.gasLimit = 8000000;
     else if (process.env.ETH_NETWORK === 'BSC'){
         params = {gasPrice: "5000000000", gasLimit:  8000000}; // BSC gasPrice always 5 GWEI
+    }else if (process.env.ETH_NETWORK === "OPTIMISM"){
+        params = {gasPrice: "1000000", gasLimit: 8000000}; // gasPrice 0.001
     }
 
     return params;
@@ -440,6 +445,8 @@ async function getChainId(){
             return 43114;
         case "FANTOM":
             return 250;
+        case "OPTIMISM":
+            return 10;
         default:
             throw new Error("Unknown chain");
     }
@@ -489,6 +496,14 @@ async function showHedgeM2M() {
     console.table(arrays);
 }
 
+
+async function getDevWallet(){
+
+    let provider = ethers.provider;
+    return await new ethers.Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
+}
+
+
 async function transferETH(amount, to) {
 
     let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
@@ -522,6 +537,7 @@ module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     initWallet: initWallet,
+    getDevWallet: getDevWallet,
     transferETH: transferETH,
     transferUSDPlus: transferUSDPlus,
     showM2M: showM2M,

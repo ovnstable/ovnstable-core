@@ -28,8 +28,8 @@ const {initWallet, getContract, getPrice} = require("@overnight-contracts/common
 async function main() {
 
     let names = [
-        'HedgeExchangerUsdPlusWmatic',
-        'RebaseTokenUsdPlusWmatic',
+        'Market',
+        'WrappedUsdPlusToken',
     ];
 
 
