@@ -254,7 +254,9 @@ contract StrategyConeBusdUsdc is Strategy {
         }
 
         // unstake from unknown
-        uint256 lpTokenBalanceUnkwn = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalanceUnkwn = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalanceUnkwn > 0) {
             unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokenBalanceUnkwn);
         }
@@ -307,7 +309,9 @@ contract StrategyConeBusdUsdc is Strategy {
 
         // Fetch amount of LP currently staked
         uint256 lpTokenBalance = coneGauge.balanceOf(address(this));
-        lpTokenBalance += UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        lpTokenBalance += IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = conePair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
@@ -345,7 +349,9 @@ contract StrategyConeBusdUsdc is Strategy {
         }
 
         // claim rewards unknown
-        uint256 lpTokenBalanceUnkwn = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
+        uint256 lpTokenBalanceUnkwn = IERC20(stakingAddress).balanceOf(userProxyThis);
         if (lpTokenBalanceUnkwn > 0) {
             unkwnUserProxy.claimStakingRewards();
         }
