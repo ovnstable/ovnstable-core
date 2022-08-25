@@ -44,30 +44,30 @@ let healthFactor = 1350
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
-        {
-            value: 2,
-            deltaPercent: 5,
-        },
-        {
-            value: 20,
-            deltaPercent: 1,
-        },
-        {
-            value: 200,
-            deltaPercent: 1,
-        },
+        // {
+        //     value: 2,
+        //     deltaPercent: 5,
+        // },
+        // {
+        //     value: 20,
+        //     deltaPercent: 1,
+        // },
+        // {
+        //     value: 200,
+        //     deltaPercent: 1,
+        // },
         {
             value: 2000,
             deltaPercent: 1,
         },
-        {
-            value: 20000,
-            deltaPercent: 1,
-        },
-        {
-            value: 200000,
-            deltaPercent: 0.1,
-        },
+        // {
+        //     value: 20000,
+        //     deltaPercent: 1,
+        // },
+        // {
+        //     value: 200000,
+        //     deltaPercent: 0.1,
+        // },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -190,7 +190,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         await asset.connect(account).transfer(recipient.address, assetValue);
 
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
-                        expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).div(new BigNumber(10).pow(12)).plus(VALUE).toFixed(0);
+                        expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
                         console.log(`expectedNetAsset: ${expectedNetAsset}`)
 
                         await asset.connect(recipient).transfer(strategy.address, assetValue);
@@ -200,7 +200,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
-                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString()).div(new BigNumber(10).pow(12)).toFixed(0)
+                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                         console.log(`----------------------`)
                         console.log(`balanceAssetAfter: ${balanceAssetAfter}`)
                         console.log(`balanceAsset: ${balanceAsset}`)
@@ -251,7 +251,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                        expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).div(new BigNumber(10).pow(12)).minus(VALUE).toFixed(0);
+                        expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
                         // expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
 
                         await strategy.connect(recipient).unstake(assetValue, recipient.address);
@@ -260,7 +260,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 
                         balanceAsset = balanceAssetAfter.minus(balanceAssetBefore);
 
-                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString()).div(new BigNumber(10).pow(12)).toFixed(0);
+                        netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                         healthFactor = await strategy.currentHealthFactor();
 
                         await m2m(strategy);
@@ -296,7 +296,7 @@ async function m2m(strategy) {
     console.log('ETS:')
 
     let values = [];
-    values.push({name: 'Total NAV', value: fromAsset((await strategy.netAssetValue()).toString())});
+    values.push({name: 'Total NAV', value: fromE6((await strategy.netAssetValue()).toString())});
     values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
 
     console.table(values);

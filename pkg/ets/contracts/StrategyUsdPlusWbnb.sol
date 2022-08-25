@@ -188,7 +188,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     function netAssetValue() external view override returns (uint256){
         Liquidity memory liq = currentLiquidity();
         int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-        return usdToBusd(toUint256(navUsd));
+        return usdToBusd(toUint256(navUsd))/ (10 ** 12);
     }
 
 

@@ -47,7 +47,7 @@ library UsdPlusWbnbLibrary {
      * cone lpToken -> [Wbnb, usdPlus]
      * @param delta - Wbnb amount in USD e6
      */
-    function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWmatic, uint256 amountUsdPlus) {
+    function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWbnb, uint256 amountUsdPlus) {
 
         uint256 poolTokenDelta = self.usdToWbnb(delta);
 
@@ -56,7 +56,7 @@ library UsdPlusWbnbLibrary {
         uint256 lpForUnstake = poolTokenDelta * balanceLp / poolToken + 1;
         self.coneGauge().withdraw(lpForUnstake);
 
-        (amountWmatic, amountUsdPlus) = self.coneRouter().removeLiquidity(
+        (amountWbnb, amountUsdPlus) = self.coneRouter().removeLiquidity(
             address(self.wbnb()),
             address(self.usdPlus()),
             false,
@@ -86,44 +86,44 @@ library UsdPlusWbnbLibrary {
     /**
      * ActionType: SWAP_ASSET_TO_USDPLUS
      * Swap on exchange
-     * usdc -> usdPlus
-     * @param delta - Usdc in USD e6
+     * busd -> usdPlus
+     * @param delta - Busd in USD e6
      */
     function _swapBusdToUsdPlus(StrategyUsdPlusWbnb self, uint256 delta) public {
-         uint256 buyUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : (self.usdToBusd(delta) / 10 ** 12);
-         if (buyUsdcAmount == 0) return;
-         self.exchange().buy(address(self.busd()), buyUsdcAmount);
+        uint256 buyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : (self.usdToBusd(delta));
+        if (buyBusdAmount == 0) return;
+        self.exchange().buy(address(self.busd()), buyBusdAmount);
     }
 
 
     /**
      * ActionType: SUPPLY_ASSET_TO_AAVE
-     * usdc -> (supply aave)
-     * @param delta - Usdc in USD e6
+     * busd -> (supply aave)
+     * @param delta - Busd in USD e6
      */
     function _supplyBusdToVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
-        if (supplyUsdcAmount == 0) return;
-        self.busd().approve(address(self.vBusdToken()), supplyUsdcAmount);
-        self.vBusdToken().mint(supplyUsdcAmount);
+        uint256 supplyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
+        if (supplyBusdAmount == 0) return;
+        self.busd().approve(address(self.vBusdToken()), supplyBusdAmount);
+        self.vBusdToken().mint(supplyBusdAmount);
     }
 
 
     /**
      * ActionType: WITHDRAW_ASSET_FROM_AAVE
-     * (aave) -> usdc
-     * @param delta - Usdc in USD e6
+     * (aave) -> busd
+     * @param delta - Busd in USD e6
      */
     function _withdrawBusdFromVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 withdrawUsdcAmount = self.usdToBusd(delta);
-        self.vBusdToken().redeemUnderlying(withdrawUsdcAmount);
+        uint256 withdrawBusdAmount = self.usdToBusd(delta);
+        self.vBusdToken().redeemUnderlying(withdrawBusdAmount);
     }
 
 
     /**
      * ActionType: BORROW_TOKEN_FROM_AAVE
-     * (borrow from aave) -> wmatic
-     * @param delta - Wmatic in USD e6
+     * (borrow from aave) -> wbnb
+     * @param delta - Wbnb in USD e6
      */
     function _borrowWbnbFromVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
         uint256 borrowTokenAmount = self.usdToWbnb(delta);
@@ -134,13 +134,13 @@ library UsdPlusWbnbLibrary {
 
     /**
      * ActionType: REPAY_TOKEN_TO_AAVE
-     * wmatic -> (back to aave)
-     * @param delta - Wmatic in USD e6
+     * wbnb -> (back to aave)
+     * @param delta - Wbnb in USD e6
      */
     function _repayWbnbToVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
-        if (repayWmaticAmount == 0) return;
-        IWbnb(address(self.wbnb())).withdraw(repayWmaticAmount);
+        uint256 repayWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
+        if (repayWbnbAmount == 0) return;
+        IWbnb(address(self.wbnb())).withdraw(repayWbnbAmount);
         self.maximillion().repayBehalfExplicit{ value: address(this).balance }(address(this), address(self.vBnbToken()));
     }
 
@@ -149,7 +149,7 @@ library UsdPlusWbnbLibrary {
      * ActionType: SWAP_TOKEN_TO_ASSET
      * Swap on dodo
      * wbnb -> busd
-     * @param delta - Wmatic in USD e6
+     * @param delta - Wbnb in USD e6
      */
     function _swapTokenToAsset(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
