@@ -31,7 +31,7 @@ describe("HedgeExchanger", function () {
 
         const [mockDeployer] = provider.getWallets();
 
-        collector = provider.createEmptyWallet();
+        collector = provider.createEmptyWallet().address;
 
         await deployments.fixture(['HedgeExchanger', 'MockUsdPlusToken', 'MockHedgeStrategy', 'RebaseToken']);
 
@@ -45,14 +45,14 @@ describe("HedgeExchanger", function () {
         exchange = await ethers.getContract("HedgeExchanger");
 
         await strategy.setAsset(usdPlus.address);
-        await exchange.setTokens(usdPlus.address, rebase.address, POLYGON.usdc);
+        await exchange.setTokens(usdPlus.address, rebase.address);
         await exchange.setStrategy(strategy.address);
-        await exchange.setCollector(collector.address);
+        await exchange.setCollector(collector);
         await rebase.setExchanger(exchange.address);
 
         await usdPlus.setExchanger(account);
 
-        await exchange.setAbroad(0);
+        await exchange.setAbroad(0, 100000000);
 
     });
 
@@ -99,6 +99,10 @@ describe("HedgeExchanger", function () {
             expect(fromE6(await usdPlus.balanceOf(account))).to.eq(0)
         });
 
+        it("Balance: collector", async function () {
+            expect(fromE6(await rebase.balanceOf(collector))).to.eq(0.04)
+        });
+
         it("Event: EventExchange correct", async function () {
             await expect(buyTx)
                 .to.emit(exchange, 'EventExchange')
@@ -129,6 +133,10 @@ describe("HedgeExchanger", function () {
 
         it("Balance: usd+", async function () {
             expect(fromE6(await usdPlus.balanceOf(account))).to.eq(49.98)
+        });
+
+        it("Balance: collector", async function () {
+            expect(fromE6(await rebase.balanceOf(collector))).to.eq(0.06)
         });
 
     });
@@ -178,15 +186,15 @@ describe("HedgeExchanger", function () {
         it("PayoutEvent", async function () {
             await expect(payoutTx)
                 .to.emit(exchange, 'PayoutEvent')
-                .withArgs(275068, 976493, 8788439, 0);
+                .withArgs(273972, 972602, 8753426, 0);
         });
 
         it("Balance: rebase", async function () {
-            expect(fromE6(await rebase.balanceOf(account))).to.eq(108.748439)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(108.709925)
         });
 
         it("Balance collector: rebase", async function () {
-            expect(fromE6(await rebase.balanceOf(collector.address))).to.eq(1.251561)
+            expect(fromE6(await rebase.balanceOf(collector))).to.eq(1.290075)
         });
 
 
@@ -213,15 +221,15 @@ describe("HedgeExchanger", function () {
         it("PayoutEvent", async function () {
             await expect(payoutTx)
                 .to.emit(exchange, 'PayoutEvent')
-                .withArgs(0, 0, 0, 9960000);
+                .withArgs(0, 0, 0, 10000000);
         });
 
         it("Balance: rebase", async function () {
-            expect(fromE6(await rebase.balanceOf(account))).to.eq(90)
+            expect(fromE6(await rebase.balanceOf(account))).to.eq(89.964)
         });
 
         it("Balance collector: rebase", async function () {
-            expect(fromE6(await rebase.balanceOf(collector.address))).to.eq(0)
+            expect(fromE6(await rebase.balanceOf(collector))).to.eq(0.036)
         });
 
 

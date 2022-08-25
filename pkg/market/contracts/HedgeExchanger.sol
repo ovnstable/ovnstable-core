@@ -235,6 +235,11 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         rebase.mint(msg.sender, buyAmount);
 
+        // Add fees to collector
+        if (buyFeeAmount > 0) {
+            rebase.mint(collector, buyFeeAmount);
+        }
+
         emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender, referral);
 
         return buyAmount;
@@ -253,6 +258,11 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         // Or just burn from sender
         rebase.burn(msg.sender, _amount);
+
+        // Add fees to collector
+        if (redeemFeeAmount > 0) {
+            rebase.mint(collector, redeemFeeAmount);
+        }
 
         require(usdPlus.balanceOf(address(this)) >= unstakedAmount, "Not enough for transfer unstakedAmount");
         usdPlus.transfer(msg.sender, redeemAmount);
@@ -283,7 +293,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         balance();
 
         uint256 totalRebase = rebase.totalSupply();       // Total supply with liq index
-        uint256 totalUsdc = strategy.netAssetValue() / 1e12;     // Strategy NAV
+        uint256 totalUsdc = strategy.netAssetValue();     // Strategy NAV
 
         uint256 fee;
         uint256 tvlFeeAmount;
