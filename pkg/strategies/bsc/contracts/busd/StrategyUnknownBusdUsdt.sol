@@ -176,8 +176,8 @@ contract StrategyUnknownBusdUsdt is Strategy {
                 synapseStableSwapPool,
                 address(busdToken),
                 address(usdtToken),
-                // add 10 to _amount for smooth withdraw
-                _amount + 10,
+                // add 1e13 to _amount for smooth withdraw
+                _amount + 1e13,
                 totalLpBalance,
                 reserveBusd,
                 reserveUsdt,
@@ -213,12 +213,14 @@ contract StrategyUnknownBusdUsdt is Strategy {
 
         // swap usdt to busd
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        SynapseLibrary.swap(
-            synapseStableSwapPool,
-            address(usdtToken),
-            address(busdToken),
-            usdtBalance
-        );
+        if (usdtBalance > 0) {
+            SynapseLibrary.swap(
+                synapseStableSwapPool,
+                address(usdtToken),
+                address(busdToken),
+                usdtBalance
+            );
+        }
 
         return busdToken.balanceOf(address(this));
     }
@@ -266,12 +268,14 @@ contract StrategyUnknownBusdUsdt is Strategy {
 
         // swap usdt to busd
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        SynapseLibrary.swap(
-            synapseStableSwapPool,
-            address(usdtToken),
-            address(busdToken),
-            usdtBalance
-        );
+        if (usdtBalance > 0) {
+            SynapseLibrary.swap(
+                synapseStableSwapPool,
+                address(usdtToken),
+                address(busdToken),
+                usdtBalance
+            );
+        }
 
         return busdToken.balanceOf(address(this));
     }
@@ -334,7 +338,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
 
         uint256 coneBalance = coneToken.balanceOf(address(this));
         if (coneBalance > 0) {
-            uint256 amountOutMin = ConeLibrary.getAmountsOut(
+            uint256 amountOutCone = ConeLibrary.getAmountsOut(
                 coneRouter,
                 address(coneToken),
                 address(wBnbToken),
@@ -344,7 +348,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
                 coneBalance
             );
 
-            if (amountOutMin > 0) {
+            if (amountOutCone > 0) {
                 uint256 coneBusd = ConeLibrary.swap(
                     coneRouter,
                     address(coneToken),
@@ -353,7 +357,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
                     false,
                     false,
                     coneBalance,
-                    amountOutMin * 99 / 100,
+                    amountOutCone * 99 / 100,
                     address(this)
                 );
 
@@ -363,7 +367,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
 
         uint256 unkwnBalance = unkwnToken.balanceOf(address(this));
         if (unkwnBalance > 0) {
-            uint256 amountOutMin = ConeLibrary.getAmountsOut(
+            uint256 amountOutUnkwn = ConeLibrary.getAmountsOut(
                 coneRouter,
                 address(unkwnToken),
                 address(wBnbToken),
@@ -373,7 +377,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
                 unkwnBalance
             );
 
-            if (amountOutMin > 0) {
+            if (amountOutUnkwn > 0) {
                 uint256 unkwnBusd = ConeLibrary.swap(
                     coneRouter,
                     address(unkwnToken),
@@ -382,7 +386,7 @@ contract StrategyUnknownBusdUsdt is Strategy {
                     false,
                     false,
                     unkwnBalance,
-                    amountOutMin * 99 / 100,
+                    amountOutUnkwn * 99 / 100,
                     address(this)
                 );
 
@@ -391,8 +395,10 @@ contract StrategyUnknownBusdUsdt is Strategy {
         }
 
         if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd * (100 - rewardWalletPercent) / 100);
-            busdToken.transfer(rewardWallet, totalBusd * rewardWalletPercent / 100);
+            uint256 rewardBalance = totalBusd * rewardWalletPercent / 1e4;
+            uint256 toBalance = totalBusd - rewardBalance;
+            busdToken.transfer(rewardWallet, rewardBalance);
+            busdToken.transfer(_to, toBalance);
         }
 
         return totalBusd;
