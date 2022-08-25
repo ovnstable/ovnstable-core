@@ -36,6 +36,22 @@ let arrays = [
         name: 'StrategySynapseUsdt',
         enabledReward: true,
     },
+    {
+        name: 'StrategyConeBusdUsdc',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategyConeBusdUsdt',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategyUnknownBusdUsdc',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategyUnknownBusdUsdt',
+        enabledReward: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
