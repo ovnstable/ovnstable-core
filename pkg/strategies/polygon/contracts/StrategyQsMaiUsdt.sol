@@ -2,10 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
-import "./libraries/LowGasSafeMath.sol";
-import "./connectors/uniswap/v2/interfaces/IUniswapV2Router01.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/common/contracts/libraries/LowGasSafeMath.sol";
 
 contract StrategyQsMaiUsdt is Strategy, UniswapV2Exchange {
     using LowGasSafeMath for uint256;

@@ -2,12 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/DodoExchange.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./libraries/OvnMath.sol";
-import "./connectors/dodo/interfaces/IDODOV1.sol";
-import "./connectors/dodo/interfaces/IDODOV2.sol";
-import "./connectors/dodo/interfaces/IDODOMine.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Dodo.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyDodoUsdt is Strategy, DodoExchange, BalancerExchange {

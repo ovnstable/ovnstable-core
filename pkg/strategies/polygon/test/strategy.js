@@ -2,6 +2,10 @@ const {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 
 const IController = require("./abi/tetu/IController.json");
+const MasterMerkat = require("./abi/mmf/MasterMerkat.json");
+
+const hre = require("hardhat");
+let ethers = hre.ethers;
 
 let id = process.env.TEST_STRATEGY;
 
@@ -95,6 +99,19 @@ let arrays = [
         name: 'StrategyDystopiaUsdcTusd',
         enabledReward: true,
     },
+    {
+        name: 'StrategyMMFUsdcUsdt',
+        enabledReward: true,
+        isRunStrategyLogic: true
+    },
+    {
+        name: 'StrategyClearpoolUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyKyberSwapUsdcUsdt',
+        enabledReward: false,
+    },
 
 ];
 
@@ -120,6 +137,19 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",
             params: [governanceAddress],
+        });
+    } else if (strategyName == 'StrategyMMFUsdcUsdt') {
+        let ownerAddress = "0x61c20e2E1ded20856754321d585f7Ad28e4D6b27";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let masterMerkat = await ethers.getContractAt(MasterMerkat, "0xa2B417088D63400d211A4D5EB3C4C5363f834764");
+        await masterMerkat.connect(owner).setWhitelist(strategyAddress, true);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
         });
     }
 }

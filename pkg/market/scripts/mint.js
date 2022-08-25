@@ -5,15 +5,17 @@ async function main() {
 
 
     let usdPlus = await getContract('UsdPlusToken');
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic');
-
+    let exchanger = await getContract('HedgeExchangerUsdPlusWbnb');
 
     await showHedgeM2M();
 
-    await (await usdPlus.approve(exchanger.address, toE6(5), await getPrice())).wait();
-    let params = await getPrice();
-    params.gasLimit = 15000000;
-    await (await exchanger.buy(toE6(5), params)).wait();
+    let price = await getPrice();
+
+    await (await usdPlus.approve(exchanger.address, toE6(4), price)).wait();
+
+    console.log('Approve done');
+    await (await exchanger.buy(toE6(4), price)).wait();
+    console.log('Exchanger.buy done')
 
     await showHedgeM2M();
 }

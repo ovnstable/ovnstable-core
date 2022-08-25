@@ -21,8 +21,8 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address usdPlusTokenAddress) initializer public {
-        __ERC20_init("Wrapped USD+", "wUSD+");
+    function initialize(address usdPlusTokenAddress, string calldata name, string calldata symbol) initializer public {
+        __ERC20_init(name, symbol);
         __AccessControl_init();
         __UUPSUpgradeable_init();
 

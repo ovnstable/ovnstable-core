@@ -37,6 +37,19 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        bsc_usdc: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+        bsc_usdt: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
 
         bsc: {
             url: forkingUrl,

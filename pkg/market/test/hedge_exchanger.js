@@ -24,6 +24,7 @@ describe("HedgeExchanger", function () {
     let usdPlus;
     let rebase;
     let collector;
+    let referral = "CODE";
 
     sharedBeforeEach("deploy contracts", async () => {
         await hre.run("compile");
@@ -51,6 +52,8 @@ describe("HedgeExchanger", function () {
 
         await usdPlus.setExchanger(account);
 
+        await exchange.setAbroad(0);
+
     });
 
 
@@ -69,13 +72,14 @@ describe("HedgeExchanger", function () {
         });
 
         it("Revert", async function () {
-            await expectRevert(exchange.buy(sum), 'nav less than expected');
+            await expectRevert(exchange.buy(sum, referral), 'nav less than expected');
         });
 
     })
 
     describe("Buy 100 USD+", function () {
 
+        let buyTx;
 
         sharedBeforeEach("buy", async () => {
             const sum = toE6(100);
@@ -83,7 +87,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            buyTx = await exchange.buy(sum, referral);
 
         });
 
@@ -93,6 +97,12 @@ describe("HedgeExchanger", function () {
 
         it("Balance: usd+", async function () {
             expect(fromE6(await usdPlus.balanceOf(account))).to.eq(0)
+        });
+
+        it("Event: EventExchange correct", async function () {
+            await expect(buyTx)
+                .to.emit(exchange, 'EventExchange')
+                .withArgs("buy", 99960000, 40000, account, referral);
         });
 
     });
@@ -108,7 +118,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            await exchange.buy(sum, referral);
             await exchange.redeem(sumRedeem);
 
         });
@@ -135,7 +145,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            await exchange.buy(sum, referral);
 
         });
 
@@ -157,7 +167,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            await exchange.buy(sum, referral);
 
             await usdPlus.mint(strategy.address, toE6(10));
 
@@ -192,7 +202,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            await exchange.buy(sum, referral);
 
             await usdPlus.burn(strategy.address, toE6(10));
 
@@ -227,7 +237,7 @@ describe("HedgeExchanger", function () {
             await usdPlus.mint(account, sum);
             await usdPlus.approve(exchange.address, sum);
 
-            await exchange.buy(sum);
+            await exchange.buy(sum, referral);
         });
 
 

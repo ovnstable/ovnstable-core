@@ -13,6 +13,18 @@ function bsc(){
     }
 }
 
+function bsc_usdc(){
+    return {
+        pm: "0x9E55aA8c57f51655d634C7182a5a44b61Db0eD94"
+    }
+}
+
+function bsc_usdt(){
+    return {
+        pm: "0x11732E21D9DaB3B6fF6e7DD9EdcB24770260c7B4"
+    }
+}
+
 function fantomDev(){
     return {
         pm: "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9"
@@ -52,6 +64,10 @@ function getCoreAddresses(){
             return avalanche();
         case "bsc":
             return bsc();
+        case "bsc_usdc":
+            return bsc_usdc();
+        case "bsc_usdt":
+            return bsc_usdt();
         case "fantom_dev":
             return fantomDev();
         case "fantom":

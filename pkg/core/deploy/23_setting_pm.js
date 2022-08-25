@@ -1,17 +1,20 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+let {DEFAULT, BSC} = require('@overnight-contracts/common/utils/assets');
+const hre = require("hardhat");
 
-module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
-    const {deployer} = await getNamedAccounts();
+module.exports = async () => {
 
     const pm = await ethers.getContract("PortfolioManager");
     const exchange = await ethers.getContract("Exchange");
 
     let asset;
-    if (process.env.STAND === 'bsc') {
-        asset = DEFAULT.busd;
+    if (hre.network.name === 'bsc') {
+        asset = BSC.busd;
+    } else if (hre.network.name === "bsc_usdc") {
+        asset = BSC.usdc;
+    } else if (hre.network.name === "bsc_usdt") {
+        asset = BSC.usdt;
     } else {
         asset = DEFAULT.usdc;
     }

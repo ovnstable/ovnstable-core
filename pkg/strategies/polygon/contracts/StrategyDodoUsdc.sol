@@ -2,15 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/DodoExchange.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/StrategyDodoLibrary.sol";
-import "./connectors/dodo/interfaces/IDODOV1.sol";
-import "./connectors/dodo/interfaces/IDODOV2.sol";
-import "./connectors/dodo/interfaces/IDODOMine.sol";
 
-import "hardhat/console.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Dodo.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
     using OvnMath for uint256;
@@ -131,12 +126,15 @@ contract StrategyDodoUsdc is Strategy, DodoExchange, BalancerExchange {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 amountToUnstake = StrategyDodoLibrary._getAmountIn(_amount, dodoV1UsdcUsdtPool);
-
         // get lp tokens
         uint256 usdcLPTokenTotalSupply = usdcLPToken.totalSupply();
         (uint256 baseTarget,) = dodoV1UsdcUsdtPool.getExpectedTarget();
-        uint256 unstakeLpBalance = (amountToUnstake * usdcLPTokenTotalSupply / baseTarget) + 1 ;
+
+        // Calculate:
+        // 1) need amount by total supply and base target
+        // 2) penalty value
+        // 3) +1 for fix routing
+        uint256 unstakeLpBalance = (_amount * usdcLPTokenTotalSupply / baseTarget) + dodoV1UsdcUsdtPool.getWithdrawBasePenalty(_amount) + 1 ;
         uint256 userLPBalance = dodoMine.balanceOf(address(this));
         if (unstakeLpBalance > userLPBalance) {
             unstakeLpBalance = userLPBalance;

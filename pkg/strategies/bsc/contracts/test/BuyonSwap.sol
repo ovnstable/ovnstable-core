@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "../connectors/pancakeSwap/v2/interfaces/IPancakeRouter02.sol";
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
+
 
 /**
  * @dev Contract for swap WBNB on PancakeSwap
