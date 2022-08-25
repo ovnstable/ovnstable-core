@@ -420,15 +420,7 @@ async function checkTimeLockBalance(){
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
     if (new BN(balance.toString()).lt(new BN("10000000000000000000"))){
-        const tx = {
-            from: wallet.address,
-            to: timelock.address,
-            value: toE18(1),
-            nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
-            gasLimit: 229059,
-            gasPrice: await hre.ethers.provider.getGasPrice(),
-        }
-        await wallet.sendTransaction(tx);
+        await transferETH(1, timelock.address);
     }
 
 }
