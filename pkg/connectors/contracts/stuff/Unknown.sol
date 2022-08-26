@@ -409,3 +409,17 @@ interface IUserProxy {
     view
     returns (address[] memory);
 }
+
+
+library UnknownLibrary {
+
+    function getUserLpBalance(
+        IUnkwnLens unkwnLens,
+        address conePair,
+        address userAddress
+    ) internal returns (uint256 lpBalance) {
+        address userProxyThis = unkwnLens.userProxyByAccount(userAddress);
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(conePair);
+        lpBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+    }
+}

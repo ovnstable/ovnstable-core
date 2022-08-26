@@ -64,13 +64,13 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
     describe(`${strategyParams.name}`, function () {
 
         stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
-
+/*
         unstakeFull(strategyParams, network, assetAddress, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
             claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
         }
-
+*/
         if (strategyParams.neutralStrategy) {
             healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic);
         }
