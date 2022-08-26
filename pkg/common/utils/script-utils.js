@@ -463,7 +463,7 @@ async function showHedgeM2M() {
     console.log('ETS balances:')
     let values = [];
     values.push({name: 'Total Rebase', value: fromE6(await rebase.totalSupply())});
-    values.push({name: 'Total NAV', value: fromAsset((await strategy.netAssetValue()).toString())});
+    values.push({name: 'Total NAV', value: fromE6((await strategy.netAssetValue()).toString())});
     values.push({name: 'Liq index', value: (await rebase.liquidityIndex()).toString()});
     values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
 
