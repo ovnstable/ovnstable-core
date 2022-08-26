@@ -27,6 +27,7 @@ let BSC = {
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
     chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",
     chainlinkUsdt: "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+    chainlinkTusd: "0xa3334A9762090E827413A7495AfeCE76F41dFc06",
     // corporative wallet
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }

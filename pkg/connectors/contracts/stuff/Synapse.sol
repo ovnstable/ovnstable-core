@@ -3,6 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "hardhat/console.sol";
+
 interface ISwap {
     // pool data view functions
     function getA() external view returns (uint256);
@@ -237,6 +239,70 @@ library SynapseLibrary {
             uint256 amount1 = reserve1 * amountLpTokens / totalAmountLpTokens;
             uint256 amount0 = calculateSwap(synapseSwap, token1, token0, amount1);
             amountLpTokens = (totalAmountLpTokens * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+        }
+    }
+
+    /**
+     * Get amounts of token0 and token1 nominated in token2 where amount2Total is total getting amount nominated in token2
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmounts(
+        ISwap synapseSwap,
+        address token0,
+        address token1,
+        address token2,
+        uint256 amount2Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 precision
+    ) internal view returns (uint256 amount0InToken2, uint256 amount1InToken2) {
+        amount0InToken2 = (amount2Total * reserve0) / (reserve0 + reserve1 * amount0 / amount1);
+        console.log("amount0InToken2: %s", amount0InToken2);
+        amount1InToken2 = amount2Total - amount0InToken2;
+        console.log("amount1InToken2: %s", amount1InToken2);
+        for (uint i = 0; i < precision; i++) {
+            amount0 = calculateSwap(synapseSwap, token2, token0, amount0InToken2);
+            console.log("amount0: %s", amount0);
+            amount1 = calculateSwap(synapseSwap, token2, token1, amount1InToken2);
+            console.log("amount1: %s", amount1);
+            amount0InToken2 = (amount2Total * reserve0) / (reserve0 + reserve1 * amount0 / amount1);
+            console.log("amount0InToken2 %s: %s", i, amount0InToken2);
+            amount1InToken2 = amount2Total - amount0InToken2;
+            console.log("amount1InToken2 %s: %s", i, amount1InToken2);
+        }
+    }
+
+    /**
+     * Get amount of lp tokens where amount2Total is total getting amount nominated in token2
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountLpTokens(
+        ISwap synapseSwap,
+        address token0,
+        address token1,
+        address token2,
+        uint256 amount2Total,
+        uint256 totalAmountLpTokens,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 precision
+    ) internal view returns (uint256 amountLpTokens) {
+        amountLpTokens = 0;
+        for (uint i = 0; i < precision + 1; i++) {
+            uint256 amount0InToken2 = reserve0 * amount2Total / (reserve0 + reserve1 * amount0 / amount1);
+            console.log("amount0InToken2: %s", amount0InToken2);
+            amount0 = calculateSwap(synapseSwap, token2, token0, amount0InToken2);
+            console.log("amount0: %s", amount0);
+            amount1 = calculateSwap(synapseSwap, token2, token1, amount2Total - amount0InToken2);
+            console.log("amount1: %s", amount1);
+            amountLpTokens = (totalAmountLpTokens * (amount0 + amount1 * reserve0 / reserve1)) / (reserve0 + reserve1 * amount0 / amount1);
+            console.log("amountLpTokens %s: %s", i, amountLpTokens);
         }
     }
 }
