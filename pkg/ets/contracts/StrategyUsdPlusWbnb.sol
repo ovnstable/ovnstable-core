@@ -203,7 +203,6 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         uint256 totalUsdPlus;
 
         uint256 coneBalance = coneToken.balanceOf(address(this));
-        coneBalance = coneBalance * 80 / 100; // -20% to save on Strategy
 
         if (coneBalance > 0) {
             uint256 amountOutMin = ConeLibrary.getAmountsOut(
