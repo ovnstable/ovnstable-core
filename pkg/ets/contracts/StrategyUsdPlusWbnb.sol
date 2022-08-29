@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
@@ -28,6 +27,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
 
     uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+    uint256 public constant MAX_TIME_LOCK = 126268429; // value in seconds = 4 years
 
     IERC20 public usdPlus;
     IERC20 public busd;
@@ -45,7 +45,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     IConeVoter public coneVoter;
     IGauge public coneGauge;
     IERC20 public coneToken;
-    IERC721 public veCone;
+    VeCone public veCone;
     uint public veConeId;
 
     IExchange public exchange;
@@ -117,7 +117,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         coneVoter = IConeVoter(params.coneVoter);
         coneGauge = IGauge(params.coneGauge);
         coneToken = IERC20(params.coneToken);
-        veCone = IERC721(params.veCone);
+        veCone = VeCone(params.veCone);
         veConeId = params.veConeId;
 
         exchange = IExchange(params.exchange);
@@ -170,13 +170,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         Amounts memory amounts = currentAmounts();
 
         BalanceItem[] memory items = new BalanceItem[](7);
-        items[0] = BalanceItem(address(wbnb), toUint256(liq.borrowToken), amounts.borrowToken, true);
-        items[1] = BalanceItem(address(busd), toUint256(liq.collateralAsset), amounts.collateralAsset, false);
-        items[2] = BalanceItem(address(wbnb), toUint256(liq.poolToken), amounts.poolToken, false);
-        items[3] = BalanceItem(address(usdPlus), toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
-        items[4] = BalanceItem(address(usdPlus), toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
-        items[5] = BalanceItem(address(busd), toUint256(liq.freeAsset), amounts.freeAsset, false);
-        items[6] = BalanceItem(address(wbnb), toUint256(liq.freeToken), amounts.freeToken, false);
+        items[0] = BalanceItem(address(wbnb), EtsCalculationLibrary.toUint256(liq.borrowToken), amounts.borrowToken, true);
+        items[1] = BalanceItem(address(busd), EtsCalculationLibrary.toUint256(liq.collateralAsset), amounts.collateralAsset, false);
+        items[2] = BalanceItem(address(wbnb), EtsCalculationLibrary.toUint256(liq.poolToken), amounts.poolToken, false);
+        items[3] = BalanceItem(address(usdPlus), EtsCalculationLibrary.toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
+        items[4] = BalanceItem(address(usdPlus), EtsCalculationLibrary.toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
+        items[5] = BalanceItem(address(busd), EtsCalculationLibrary.toUint256(liq.freeAsset), amounts.freeAsset, false);
+        items[6] = BalanceItem(address(wbnb), EtsCalculationLibrary.toUint256(liq.freeToken), amounts.freeToken, false);
         return items;
     }
 
@@ -188,11 +188,43 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     function netAssetValue() external view override returns (uint256){
         Liquidity memory liq = currentLiquidity();
         int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-        return usdToBusd(toUint256(navUsd))/ (10 ** 12);
+        return usdToBusd(EtsCalculationLibrary.toUint256(navUsd))/ (10 ** 12);
+    }
+
+    function _claimFeesBribes() internal {
+
+        coneGauge.claimFees();
+        IBribe bribe = IBribe(coneGauge.bribe());
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(coneToken);
+        tokens[1] = address(wbnb);
+        tokens[2] = address(usdPlus);
+        bribe.getRewardForOwner(veConeId, tokens);
+
+        uint256 wbnbAmount = wbnb.balanceOf(address(this));
+        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        uint256 coneAmount = coneToken.balanceOf(address(this));
+
+        if (wbnbAmount > 0) {
+            coneGauge.notifyRewardAmount(address(wbnb), wbnbAmount);
+        }
+
+        if (usdPlusAmount > 0) {
+            coneGauge.notifyRewardAmount(address(usdPlus), usdPlusAmount);
+        }
+
+        if(coneAmount > 0){
+            coneGauge.notifyRewardAmount(address(coneToken), coneAmount);
+        }
+
     }
 
 
     function _claimRewards(address _to) internal override returns (uint256){
+
+        _claimFeesBribes();
+        _increaseVeConeUnlockTime();
 
         // claim rewards
         address[] memory tokens = new address[](1);
@@ -255,7 +287,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         // token 0 - wmatic
         // token 1 - usdPlus
         (uint256 reserveWmatic, uint256 reserveUsdPlus,) = conePair.getReserves();
-        uint256 reserveWmaticUsd = wbnbToUsd(reserveWmatic);
+        uint256 reserveWmaticUsd = UsdPlusWbnbLibrary.wbnbToUsd(this, reserveWmatic);
         uint256 reserveUsdPlusUsd = busdToUsd(reserveUsdPlus * 10 ** 12);
 
         // console.log("----------------- priceInDystUsdpMaticPool()");
@@ -296,17 +328,17 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
         // in pool liquidity
         (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
-        uint256 poolTokenUsd = wbnbToUsd(poolToken);
+        uint256 poolTokenUsd = StrategyUsdPlusWbnb.wbnbToUsd(this, poolToken);
         uint256 poolUsdPlusUsd = busdToUsd(poolUsdPlus * 10 ** 12);
 
         // liquidity from AAVE E6+2
         uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18);
-        uint256 aaveBorrowUsd = wbnbToUsd(vBnbToken.borrowBalanceStored(address(this)));
+        uint256 aaveBorrowUsd = StrategyUsdPlusWbnb.wbnbToUsd(this, vBnbToken.borrowBalanceStored(address(this)));
 
         // free tokens on contract
         uint256 usdPlusBalanceUsd = busdToUsd(usdPlus.balanceOf(address(this)) * 10 ** 12);
         uint256 busdBalanceUsd = busdToUsd(busd.balanceOf(address(this)));
-        uint256 wbnbBalanceUsd = wbnbToUsd(wbnb.balanceOf(address(this)));
+        uint256 wbnbBalanceUsd = StrategyUsdPlusWbnb.wbnbToUsd(this, wbnb.balanceOf(address(this)));
 
 
         console.log("----------------- currentLiquidity()");
@@ -323,13 +355,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
         //TODO: rename vars
         return Liquidity(
-            toInt256(aaveCollateralUsd),
-            toInt256(aaveBorrowUsd),
-            toInt256(poolTokenUsd),
-            toInt256(poolUsdPlusUsd),
-            toInt256(usdPlusBalanceUsd),
-            toInt256(busdBalanceUsd),
-            toInt256(wbnbBalanceUsd)
+            EtsCalculationLibrary.toInt256(aaveCollateralUsd),
+            EtsCalculationLibrary.toInt256(aaveBorrowUsd),
+            EtsCalculationLibrary.toInt256(poolTokenUsd),
+            EtsCalculationLibrary.toInt256(poolUsdPlusUsd),
+            EtsCalculationLibrary.toInt256(usdPlusBalanceUsd),
+            EtsCalculationLibrary.toInt256(busdBalanceUsd),
+            EtsCalculationLibrary.toInt256(wbnbBalanceUsd)
         );
     }
 
@@ -349,13 +381,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     function calcDeltas(Method method, uint256 amount) internal {
 
         Liquidity memory liq = currentLiquidity();
-        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
+        int256 K1 = EtsCalculationLibrary.toInt256(1e18 * healthFactor / liquidationThreshold);
         // price in e8 K2 should be in e18 so up by 1e10
-        int256 K2 = toInt256(1e10 * priceInDystUsdpMaticPool());
+        int256 K2 = EtsCalculationLibrary.toInt256(1e10 * priceInDystUsdpMaticPool());
         int256 retAmount;
         if (method == Method.UNSTAKE) {
             int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-            int256 amountUsd = toInt256(busdToUsd(amount * 10 ** 12));
+            int256 amountUsd = EtsCalculationLibrary.toInt256(busdToUsd(amount * 10 ** 12));
             require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
             // for unstake make deficit as amount
             retAmount = - amountUsd;
@@ -366,7 +398,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         runActions(actions);
 
         liq = currentLiquidity();
-        realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
+        realHealthFactor = EtsCalculationLibrary.toUint256(liq.collateralAsset) * liquidationThreshold / EtsCalculationLibrary.toUint256(liq.borrowToken);
 
     }
 
@@ -415,69 +447,20 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         }
     }
 
-    function toInt256(uint256 value) internal pure returns (int256) {
-        // Note: Unsafe cast below is okay because `type(int256).max` is guaranteed to be positive
-        require(value <= uint256(type(int256).max), "SafeCast: value doesn't fit in an int256");
-        return int256(value);
+
+    function lockAvailableCone() external onlyPortfolioAgent {
+
+        if(veConeId > 0){
+            veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
+        }
     }
 
-    function toUint256(int256 value) internal pure returns (uint256) {
-        require(value >= 0, "SafeCast: value must be positive");
-        return uint256(value);
-    }
+    function _increaseVeConeUnlockTime() internal {
 
-    /**
- * Get USD equivalent in e6
- * @param amount WMATIC tokens amount
-     */
-    function wbnbToUsd(uint256 amount) public view returns (uint256){
-        // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
-        return AaveBorrowLibrary.convertTokenAmountToUsd(
-            amount,
-            bnbDm,
-            uint256(oracleWbnb.latestAnswer())
-        ) / 100;
+        if (veConeId > 0) {
+            veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
+        }
     }
-
-    /**
-     * Get WMATIC equivalent from USD liquidity
-     * @param liquidity USD liquidity in e6
-     */
-    function usdToWbnb(uint256 liquidity) public view returns (uint256){
-        // liquidity * 100 => because need e6+2 for converting but liq in e6
-        return AaveBorrowLibrary.convertUsdToTokenAmount(
-            liquidity * 100,
-            bnbDm,
-            uint256(oracleWbnb.latestAnswer())
-        );
-    }
-
-    /**
-     * Get USD equivalent in e6
-     * @param amount USDC tokens amount
-     */
-    function busdToUsd(uint256 amount) public view returns (uint256){
-        // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
-        return AaveBorrowLibrary.convertTokenAmountToUsd(
-            amount,
-            busdDm,
-            uint256(oracleBusd.latestAnswer())
-        ) / 100;
-    }
-
-    /**
-     * Get USDC equivalent from USD liquidity
-     * @param liquidity USD liquidity in e6
-     */
-    function usdToBusd(uint256 liquidity) public view returns (uint256){
-        // liquidity * 100 => because need e6+2 for converting but liq in e6
-        return AaveBorrowLibrary.convertUsdToTokenAmount(
-            liquidity * 100,
-            busdDm,
-            uint256(oracleBusd.latestAnswer())
-        );
-    }
-
 
     function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyAdmin {
         coneVoter.vote(veConeId, _poolVote, _weights);

@@ -42,6 +42,19 @@ library UsdPlusWbnbLibrary {
     }
 
     /**
+      * Get USD equivalent in e6
+      * @param amount WMATIC tokens amount
+      */
+    function wbnbToUsd(StrategyUsdPlusWbnb self, uint256 amount) public view returns (uint256){
+        // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
+        return AaveBorrowLibrary.convertTokenAmountToUsd(
+            amount,
+            self.bnbDm(),
+            uint256(self.oracleWbnb().latestAnswer())
+        ) / 100;
+    }
+
+    /**
      * ActionType: REMOVE_LIQUIDITY
      * Remove liquidity from cone pool:
      * cone lpToken -> [Wbnb, usdPlus]
