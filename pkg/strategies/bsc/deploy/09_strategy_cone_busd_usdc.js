@@ -11,7 +11,7 @@ let rewardWalletPercent = 5000; // 50%
 let unkwnToken = '0xD7FbBf5CB43b4A902A8c994D94e821f3149441c7';
 let unkwnUserProxy = '0xAED5a268dEE37677584af58CCC2b9e3c83Ab7dd8';
 let unkwnLens = '0x5b1cEB9adcec674552CB26dD55a5E5846712394C';
-let unkwnPercent = 10; // 0.1%
+let unkwnPercent = 2860; // 28.6%
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
