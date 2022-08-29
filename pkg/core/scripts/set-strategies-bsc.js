@@ -28,7 +28,16 @@ async function main() {
             "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 80,
+            "targetWeight": 70,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
+            "name": "Cone BUSD/TUSD",
+            "minWeight": 0,
+            "targetWeight": 10,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -54,9 +63,10 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
-    await proposal(weights);
-    // await setWeights(weights);
+    await balanceLpTokens();
+    await changeWeightsAndBalance(weights);
+    //await proposal(weights);
+    //await setWeights(weights);
 }
 
 async function proposal(weights) {
@@ -85,6 +95,27 @@ async function setWeights(weights) {
     await (await pm.balance()).wait();
 }
 
+async function balanceLpTokens() {
+
+    let timelock = await getContract('OvnTimelockController');
+    let strategyConeBusdUsdc = await getContract('StrategyConeBusdUsdc');
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [timelock.address],
+    });
+
+    const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
+    await (await strategyConeBusdUsdc.connect(timelockAccount).balanceLpTokens()).wait();
+    console.log('balanceLpTokens done()');
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [timelock.address],
+    });
+}
 
 main()
     .then(() => process.exit(0))
