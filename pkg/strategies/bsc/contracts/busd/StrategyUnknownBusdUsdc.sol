@@ -18,16 +18,18 @@ contract StrategyUnknownBusdUsdc is Strategy {
         address usdcToken;
         address wBnbToken;
         address coneToken;
-        address unkwnToken;
         address coneRouter;
         address conePair;
-        address unkwnUserProxy;
-        address unkwnLens;
+        address coneGauge;
         address synapseStableSwapPool;
         address chainlinkBusd;
         address chainlinkUsdc;
         address rewardWallet;
         uint256 rewardWalletPercent;
+        address unkwnToken;
+        address unkwnUserProxy;
+        address unkwnLens;
+        uint256 unkwnPercent;
     }
 
     // --- params
@@ -36,13 +38,10 @@ contract StrategyUnknownBusdUsdc is Strategy {
     IERC20 public usdcToken;
     IERC20 public wBnbToken;
     IERC20 public coneToken;
-    IERC20 public unkwnToken;
 
     IConeRouter01 public coneRouter;
     IConePair public conePair;
-
-    IUserProxy public unkwnUserProxy;
-    IUnkwnLens public unkwnLens;
+    IGauge public coneGauge;
 
     ISwap public synapseStableSwapPool;
 
@@ -54,6 +53,11 @@ contract StrategyUnknownBusdUsdc is Strategy {
 
     uint256 public busdTokenDenominator;
     uint256 public usdcTokenDenominator;
+
+    IERC20 public unkwnToken;
+    IUserProxy public unkwnUserProxy;
+    IUnkwnLens public unkwnLens;
+    uint256 public unkwnPercent;
 
     // --- events
 
@@ -76,13 +80,10 @@ contract StrategyUnknownBusdUsdc is Strategy {
         usdcToken = IERC20(params.usdcToken);
         wBnbToken = IERC20(params.wBnbToken);
         coneToken = IERC20(params.coneToken);
-        unkwnToken = IERC20(params.unkwnToken);
 
         coneRouter = IConeRouter01(params.coneRouter);
         conePair = IConePair(params.conePair);
-
-        unkwnUserProxy = IUserProxy(params.unkwnUserProxy);
-        unkwnLens = IUnkwnLens(params.unkwnLens);
+        coneGauge = IGauge(params.coneGauge);
 
         synapseStableSwapPool = ISwap(params.synapseStableSwapPool);
 
@@ -94,6 +95,11 @@ contract StrategyUnknownBusdUsdc is Strategy {
 
         busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
         usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
+
+        unkwnToken = IERC20(params.unkwnToken);
+        unkwnUserProxy = IUserProxy(params.unkwnUserProxy);
+        unkwnLens = IUnkwnLens(params.unkwnLens);
+        unkwnPercent = params.unkwnPercent;
 
         emit StrategyUpdatedParams();
     }
@@ -148,8 +154,9 @@ contract StrategyUnknownBusdUsdc is Strategy {
             block.timestamp
         );
 
-        // stake lp
         uint256 lpTokenBalance = conePair.balanceOf(address(this));
+
+        // stake to unknown
         conePair.approve(address(unkwnUserProxy), lpTokenBalance);
         unkwnUserProxy.depositLpAndStake(address(conePair), lpTokenBalance);
     }
@@ -166,9 +173,7 @@ contract StrategyUnknownBusdUsdc is Strategy {
         require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
         // Fetch amount of LP currently staked
-        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
-        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        uint256 lpTokenBalance = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
         if (lpTokenBalance > 0) {
             // count amount to unstake
             uint256 totalLpBalance = conePair.totalSupply();
@@ -190,7 +195,7 @@ contract StrategyUnknownBusdUsdc is Strategy {
                 lpTokensToWithdraw = lpTokenBalance;
             }
 
-            // unstake lp
+            // unstake from unknown
             unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokensToWithdraw);
 
             uint256 unstakedLPTokenBalance = conePair.balanceOf(address(this));
@@ -235,16 +240,11 @@ contract StrategyUnknownBusdUsdc is Strategy {
         (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
         require(reserveUsdc > 10 ** 15 && reserveBusd > 10 ** 15, 'Liquidity lpToken reserves too low');
 
-        // Fetch amount of LP currently staked
-        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
-        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        if (lpTokenBalance == 0) {
-            return 0;
+        // unstake from unknown
+        uint256 lpTokenBalance = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        if (lpTokenBalance > 0) {
+            unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokenBalance);
         }
-
-        // unstake lp
-        unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokenBalance);
 
         uint256 unstakedLPTokenBalance = conePair.balanceOf(address(this));
         if (unstakedLPTokenBalance > 0) {
@@ -293,9 +293,7 @@ contract StrategyUnknownBusdUsdc is Strategy {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         // Fetch amount of LP currently staked
-        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
-        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+        uint256 lpTokenBalance = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = conePair.totalSupply();
             (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
@@ -324,46 +322,14 @@ contract StrategyUnknownBusdUsdc is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        // claim rewards
-        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
-        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
-        uint256 lpTokenBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
-        if (lpTokenBalance == 0) {
-            return 0;
+        // claim rewards unknown
+        uint256 lpTokenBalance = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        if (lpTokenBalance > 0) {
+            unkwnUserProxy.claimStakingRewards();
         }
-        unkwnUserProxy.claimStakingRewards();
 
         // sell rewards
         uint256 totalBusd;
-
-        uint256 coneBalance = coneToken.balanceOf(address(this));
-        if (coneBalance > 0) {
-            uint256 amountOutCone = ConeLibrary.getAmountsOut(
-                coneRouter,
-                address(coneToken),
-                address(wBnbToken),
-                address(busdToken),
-                false,
-                false,
-                coneBalance
-            );
-
-            if (amountOutCone > 0) {
-                uint256 coneBusd = ConeLibrary.swap(
-                    coneRouter,
-                    address(coneToken),
-                    address(wBnbToken),
-                    address(busdToken),
-                    false,
-                    false,
-                    coneBalance,
-                    amountOutCone * 99 / 100,
-                    address(this)
-                );
-
-                totalBusd += coneBusd;
-            }
-        }
 
         uint256 unkwnBalance = unkwnToken.balanceOf(address(this));
         if (unkwnBalance > 0) {
@@ -402,6 +368,81 @@ contract StrategyUnknownBusdUsdc is Strategy {
         }
 
         return totalBusd;
+    }
+
+    function moveFromConeToUnkown() external onlyAdmin {
+
+        uint256 lpTokenBalanceGauge = coneGauge.balanceOf(address(this));
+        if (lpTokenBalanceGauge > 0) {
+            address[] memory tokens = new address[](1);
+            tokens[0] = address(coneToken);
+            coneGauge.getReward(address(this), tokens);
+        }
+
+        uint256 coneBalance = coneToken.balanceOf(address(this));
+        uint256 totalBusd;
+        if (coneBalance > 0) {
+            uint256 amountOutCone = ConeLibrary.getAmountsOut(
+                coneRouter,
+                address(coneToken),
+                address(wBnbToken),
+                address(busdToken),
+                false,
+                false,
+                coneBalance
+            );
+
+            if (amountOutCone > 0) {
+                uint256 coneBusd = ConeLibrary.swap(
+                    coneRouter,
+                    address(coneToken),
+                    address(wBnbToken),
+                    address(busdToken),
+                    false,
+                    false,
+                    coneBalance,
+                    amountOutCone * 99 / 100,
+                    address(this)
+                );
+
+                totalBusd += coneBusd;
+            }
+        }
+
+        if (totalBusd > 0) {
+            uint256 rewardBalance = totalBusd * rewardWalletPercent / 1e4;
+            uint256 toBalance = totalBusd - rewardBalance;
+            busdToken.transfer(rewardWallet, rewardBalance);
+        }
+
+        coneGauge.withdrawAll();
+        uint256 lpTokenBalance = conePair.balanceOf(address(this));
+        conePair.approve(address(unkwnUserProxy), lpTokenBalance);
+        unkwnUserProxy.depositLpAndStake(address(conePair), lpTokenBalance);
+    }
+
+    function transferLP(uint256 _amount, address _to) external onlyAdmin {
+
+        (uint256 reserveUsdc, uint256 reserveBusd,) = conePair.getReserves();
+        uint256 lpTokenBalance = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+
+        uint256 totalLpBalance = conePair.totalSupply();
+        uint256 lpTokensToWithdraw = SynapseLibrary.getAmountLpTokens(
+            synapseStableSwapPool,
+            address(busdToken),
+            address(usdcToken),
+            _amount + 1e13,
+            totalLpBalance,
+            reserveBusd,
+            reserveUsdc,
+            busdTokenDenominator,
+            usdcTokenDenominator,
+            1
+        );
+
+        unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokensToWithdraw);
+
+        conePair.transfer(_to, conePair.balanceOf(address(this)));
     }
 
 }
