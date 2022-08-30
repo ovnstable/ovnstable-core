@@ -348,7 +348,7 @@ describe("Exchange", function () {
             );
         });
 
-        it("buy into redeem fail", async function () {
+        it("buy into redeem should fail", async function () {
             await expectRevert(
                 multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toE6(1)),
                 "Only once in block"
@@ -369,6 +369,25 @@ describe("Exchange", function () {
             );
         });
 
+        it("two buys should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("buy into redeem should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("two redeems should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.redeem2(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("redeem into buy should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
     });
 
     describe("Payout", function () {

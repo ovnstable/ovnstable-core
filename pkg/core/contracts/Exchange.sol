@@ -97,7 +97,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     modifier oncePerBlock() {
-        require(lastBlockNumber < block.number, "Only once in block");
+        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+            require(lastBlockNumber < block.number, "Only once in block");
+        }
         lastBlockNumber = block.number;
         _;
     }
