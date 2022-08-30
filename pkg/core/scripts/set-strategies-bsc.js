@@ -2,6 +2,7 @@ const {getContract, getPrice, changeWeightsAndBalance} = require("@overnight-con
 const hre = require("hardhat");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const {toE18} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
@@ -26,9 +27,29 @@ async function main() {
         },
         {
             "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
+            "name": "Unknown BUSD/USDC",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 80,
+            "targetWeight": 78,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8",
+            "name": "Unknown BUSD/TUSD",
+            "minWeight": 0,
+            "targetWeight": 1,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -54,8 +75,8 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
-    await proposal(weights);
+    await changeWeightsAndBalance(weights);
+    // await proposal(weights);
     // await setWeights(weights);
 }
 

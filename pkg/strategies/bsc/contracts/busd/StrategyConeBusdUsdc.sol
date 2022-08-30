@@ -164,7 +164,7 @@ contract StrategyConeBusdUsdc is Strategy {
                 synapseStableSwapPool,
                 address(busdToken),
                 address(usdcToken),
-                // add 1e13 to _amount for smooth withdraw
+                // add 10 to _amount for smooth withdraw
                 _amount + 1e13,
                 totalLpBalance,
                 reserveBusd,
@@ -346,11 +346,14 @@ contract StrategyConeBusdUsdc is Strategy {
         }
 
         if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd * (100 - rewardWalletPercent) / 100);
-            busdToken.transfer(rewardWallet, totalBusd * rewardWalletPercent / 100);
+            uint256 rewardBalance = totalBusd * rewardWalletPercent / 1e4;
+            uint256 toBalance = totalBusd - rewardBalance;
+            busdToken.transfer(rewardWallet, rewardBalance);
+            busdToken.transfer(_to, toBalance);
         }
 
         return totalBusd;
     }
+
 
 }

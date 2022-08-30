@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.0 <0.9.0;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IConeLens {
     struct Pool {
@@ -408,4 +409,18 @@ interface IUserProxy {
     external
     view
     returns (address[] memory);
+}
+
+
+library UnknownLibrary {
+
+    function getUserLpBalance(
+        IUnkwnLens unkwnLens,
+        address conePair,
+        address userAddress
+    ) internal view returns (uint256 lpBalance) {
+        address userProxyThis = unkwnLens.userProxyByAccount(userAddress);
+        address stakingAddress = unkwnLens.stakingRewardsByConePool(conePair);
+        lpBalance = IERC20(stakingAddress).balanceOf(userProxyThis);
+    }
 }

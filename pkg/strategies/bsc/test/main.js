@@ -38,7 +38,7 @@ let arrays = [
     },
     {
         name: 'StrategyConeBusdUsdc',
-        enabledReward: false,
+        enabledReward: true,
     },
     {
         name: 'StrategyConeBusdUsdt',
@@ -46,11 +46,23 @@ let arrays = [
     },
     {
         name: 'StrategyUnknownBusdUsdc',
-        enabledReward: false,
+        enabledReward: true,
     },
     {
         name: 'StrategyUnknownBusdUsdt',
         enabledReward: false,
+    },
+    {
+        name: 'StrategyConeBusdUsdtUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyConeBusdTusd',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyUnknownBusdTusd',
+        enabledReward: true,
     },
 ];
 

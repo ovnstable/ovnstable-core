@@ -52,7 +52,15 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
             deltaPercent: 1,
         },
         {
+            value: 100000,
+            deltaPercent: 0.1,
+        },
+        {
             value: 200000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 1000000,
             deltaPercent: 0.1,
         },
         {
