@@ -8,6 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Unknown.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyConeBusdUsdc is Strategy {
 
@@ -441,27 +442,35 @@ contract StrategyConeBusdUsdc is Strategy {
         return totalBusd;
     }
 
-    function balanceLpTokens() external {
+    function balanceLpTokens() public {
+
+        uint256 lpTokenBalanceUnkwn = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        uint256 lpTokenBalanceGauge = coneGauge.balanceOf(address(this));
+        console.log("unkwnPercent: %s", unkwnPercent);
+        console.log("lpTokenBalanceUnkwn: %s", lpTokenBalanceUnkwn);
+        console.log("lpTokenBalanceGauge: %s", lpTokenBalanceGauge);
+
         // claim rewards first
-        if (unkwnPercent == 0) {
+        if (lpTokenBalanceUnkwn > 0 && unkwnPercent == 0) {
             unkwnUserProxy.claimStakingRewards();
-        } else if (unkwnPercent == 100) {
+        } else if (lpTokenBalanceGauge > 0 && unkwnPercent == 100) {
             address[] memory tokens = new address[](1);
             tokens[0] = address(coneToken);
             coneGauge.getReward(address(this), tokens);
         }
 
-        uint256 lpTokenBalanceUnkwn = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
-        uint256 lpTokenBalanceGauge = coneGauge.balanceOf(address(this));
         uint256 totalLpBalance = lpTokenBalanceUnkwn + lpTokenBalanceGauge;
         uint256 lpTokenBalanceUnkwnNew = totalLpBalance * unkwnPercent / 1e4;
         uint256 lpTokenBalanceGaugeNew = totalLpBalance - lpTokenBalanceUnkwnNew;
+        console.log("totalLpBalance: %s", totalLpBalance);
+        console.log("lpTokenBalanceUnkwnNew: %s", lpTokenBalanceUnkwnNew);
+        console.log("lpTokenBalanceGaugeNew: %s", lpTokenBalanceGaugeNew);
 
         // unstake unkwn
-        if (lpTokenBalanceUnkwnNew < lpTokenBalanceUnkwn) {
+        if (lpTokenBalanceUnkwn > 0 && lpTokenBalanceUnkwnNew < lpTokenBalanceUnkwn) {
             unkwnUserProxy.unstakeLpAndWithdraw(address(conePair), lpTokenBalanceUnkwn - lpTokenBalanceUnkwnNew);
         // unstake gauge
-        } else if (lpTokenBalanceGaugeNew < lpTokenBalanceGauge) {
+        } else if (lpTokenBalanceGauge > 0 && lpTokenBalanceGaugeNew < lpTokenBalanceGauge) {
             coneGauge.withdraw(lpTokenBalanceGauge - lpTokenBalanceGaugeNew);
         // stake unkwn
         } else if (lpTokenBalanceUnkwnNew > lpTokenBalanceUnkwn) {
