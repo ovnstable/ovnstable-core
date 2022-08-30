@@ -154,24 +154,21 @@ library UsdPlusWbnbLibrary {
     function _swapTokenToAsset(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
         if (swapWbnbAmount == 0) return;
+    
+        uint256 amountOutMin = self.usdToBusd(self.wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
 
-        (uint256 receiveQuoteAmount,) = IDODOV2(self.dodoBusdWbnb()).querySellBase(address(self), swapWbnbAmount);
-        uint256 amountOutMin = receiveQuoteAmount * (10000 - slippagePercent) / 10000;
-
-        address[] memory dodoPairs = new address[](1);
-        dodoPairs[0] = self.dodoBusdWbnb();
-
-        self.dodoProxy().dodoSwapV2TokenToToken(
+        ConeLibrary.swap(
+            self.coneRouter(),
             address(self.wbnb()),
             address(self.busd()),
+            false,
             swapWbnbAmount,
             amountOutMin,
-            dodoPairs,
-            0,
-            false,
-            block.timestamp + 600
+            address(this)
         );
 
+        self.usdPlus().approve(address(self.coneRouter()), type(uint256).max);
+        self.wbnb().approve(address(self.coneRouter()), type(uint256).max);
     }
 
 
@@ -186,22 +183,20 @@ library UsdPlusWbnbLibrary {
         uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
         if (swapAssetAmount == 0) return;
 
-        (uint256 receiveBaseAmount,) = IDODOV2(self.dodoBusdWbnb()).querySellQuote(address(self), swapAssetAmount);
-        uint256 amountOutMin = receiveBaseAmount * (10000 - slippagePercent) / 10000;
+        uint256 amountOutMin = self.usdToWbnb(self.busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
 
-        address[] memory dodoPairs = new address[](1);
-        dodoPairs[0] = self.dodoBusdWbnb();
-
-        self.dodoProxy().dodoSwapV2TokenToToken(
+        ConeLibrary.swap(
+            self.coneRouter(),
             address(self.busd()),
             address(self.wbnb()),
+            false,
             swapAssetAmount,
             amountOutMin,
-            dodoPairs,
-            1, // directions
-            false,
-            block.timestamp + 600
+            address(this)
         );
+
+        self.usdPlus().approve(address(self.coneRouter()), type(uint256).max);
+        self.wbnb().approve(address(self.coneRouter()), type(uint256).max);
     }
 
 
