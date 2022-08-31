@@ -318,7 +318,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _transfer(sender, recipient, transferAmount);
 
-        uint256 currentAllowance = _allowance(sender, _msgSender());
+        uint256 currentAllowance;
+
+        if(amount == allowance(sender, _msgSender())){
+            currentAllowance = transferAmount;
+        }else{
+            currentAllowance = _allowance(sender, _msgSender());
+        }
+
         require(currentAllowance >= transferAmount, "UsdPlusToken: transfer amount exceeds allowance");
         unchecked {
             _approve(sender, _msgSender(), currentAllowance - transferAmount);

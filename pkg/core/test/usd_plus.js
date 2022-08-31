@@ -313,6 +313,40 @@ describe("Liquidity Index", function () {
 
     });
 
+    it("Token transferFrom Full amount", async function () {
+        const [owner, tmpUser] = await ethers.getSigners();
+
+        await usdPlus.mint(account, 93143413);
+
+        let newLiquidityIndex = new BN("1022809482605723771055655202");
+        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
+
+        let balance = await usdPlus.balanceOf(account);
+        console.log("Balance usdPlus: " + balance);
+        expect(balance).to.equals(95267966)
+
+        await usdPlus.approve(tmpUser.address, balance);
+
+        let allowance = await usdPlus.allowance(account, tmpUser.address);
+        console.log("allowance usdPlus: " + allowance);
+        expect(allowance).to.equals(balance)
+
+        await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, balance);
+
+        balance = await usdPlus.balanceOf(tmpUser.address);
+        console.log("tmpUser Balance usdPlus: " + balance);
+        expect(balance).to.equals(balance);
+
+        balance = await usdPlus.balanceOf(account);
+        console.log("account Balance usdPlus: " + balance);
+        expect(balance).to.equals(0);
+
+        allowance = await usdPlus.allowance(account, tmpUser.address);
+        console.log("allowance usdPlus: " + allowance);
+        expect(allowance).to.equals(0)
+
+    });
+
     it("Token transferFrom", async function () {
         const [owner, tmpUser] = await ethers.getSigners();
 
