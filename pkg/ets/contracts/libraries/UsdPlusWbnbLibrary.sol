@@ -41,6 +41,7 @@ library UsdPlusWbnbLibrary {
 
     }
 
+
     /**
      * ActionType: REMOVE_LIQUIDITY
      * Remove liquidity from cone pool:
@@ -49,7 +50,7 @@ library UsdPlusWbnbLibrary {
      */
     function _removeLiquidity(StrategyUsdPlusWbnb self, uint256 delta) public returns (uint256 amountWbnb, uint256 amountUsdPlus) {
 
-        uint256 poolTokenDelta = self.usdToWbnb(delta);
+        uint256 poolTokenDelta = self.control().usdToWbnb(delta);
 
         uint256 balanceLp = self.coneGauge().balanceOf(address(self));
         (uint256 poolToken,) = _getLiquidityByLp(self, balanceLp);
@@ -77,7 +78,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - UsdPlus in USD e6
      */
     function _swapUspPlusToBusd(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 redeemUsdPlusAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdPlus().balanceOf(address(self)) : (self.usdToBusd(delta) / 10 ** 12);
+        uint256 redeemUsdPlusAmount = (delta == self.MAX_UINT_VALUE()) ? self.usdPlus().balanceOf(address(self)) : (self.control().usdToBusd(delta) / 10 ** 12);
         if (redeemUsdPlusAmount == 0) return;
         self.exchange().redeem(address(self.busd()), redeemUsdPlusAmount);
     }
@@ -90,7 +91,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - Busd in USD e6
      */
     function _swapBusdToUsdPlus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 buyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : (self.usdToBusd(delta));
+        uint256 buyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : (self.control().usdToBusd(delta));
         if (buyBusdAmount == 0) return;
         self.exchange().buy(address(self.busd()), buyBusdAmount);
     }
@@ -102,7 +103,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - Busd in USD e6
      */
     function _supplyBusdToVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 supplyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
+        uint256 supplyBusdAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.control().usdToBusd(delta);
         if (supplyBusdAmount == 0) return;
         self.busd().approve(address(self.vBusdToken()), supplyBusdAmount);
         self.vBusdToken().mint(supplyBusdAmount);
@@ -115,7 +116,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - Busd in USD e6
      */
     function _withdrawBusdFromVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 withdrawBusdAmount = self.usdToBusd(delta);
+        uint256 withdrawBusdAmount = self.control().usdToBusd(delta);
         self.vBusdToken().redeemUnderlying(withdrawBusdAmount);
     }
 
@@ -126,7 +127,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - Wbnb in USD e6
      */
     function _borrowWbnbFromVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 borrowTokenAmount = self.usdToWbnb(delta);
+        uint256 borrowTokenAmount = self.control().usdToWbnb(delta);
         self.vBnbToken().borrow(borrowTokenAmount);
         IWbnb(address(self.wbnb())).deposit{ value: address(this).balance }();
     }
@@ -138,7 +139,7 @@ library UsdPlusWbnbLibrary {
      * @param delta - Wbnb in USD e6
      */
     function _repayWbnbToVenus(StrategyUsdPlusWbnb self, uint256 delta) public {
-        uint256 repayWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
+        uint256 repayWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.control().usdToWbnb(delta);
         if (repayWbnbAmount == 0) return;
         IWbnb(address(self.wbnb())).withdraw(repayWbnbAmount);
         self.maximillion().repayBehalfExplicit{ value: address(this).balance }(address(this), address(self.vBnbToken()));
@@ -152,10 +153,10 @@ library UsdPlusWbnbLibrary {
      * @param delta - Wbnb in USD e6
      */
     function _swapTokenToAsset(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
-        uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.usdToWbnb(delta);
+        uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.control().usdToWbnb(delta);
         if (swapWbnbAmount == 0) return;
-    
-        uint256 amountOutMin = self.usdToBusd(self.wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
+
+        uint256 amountOutMin = self.control().usdToBusd(self.control().wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
 
         ConeLibrary.swap(
             self.coneRouter(),
@@ -180,10 +181,10 @@ library UsdPlusWbnbLibrary {
      * example tx: https://bscscan.com/tx/0xd029b94ab61421a1126d29236632c6ce6869d3e753ad857d6b9f55576752ca6a
      */
     function _swapAssetToToken(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
-        uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.usdToBusd(delta);
+        uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.control().usdToBusd(delta);
         if (swapAssetAmount == 0) return;
 
-        uint256 amountOutMin = self.usdToWbnb(self.busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
+        uint256 amountOutMin = self.control().usdToWbnb(self.control().busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
 
         ConeLibrary.swap(
             self.coneRouter(),

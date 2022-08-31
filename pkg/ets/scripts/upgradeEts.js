@@ -13,7 +13,7 @@ async function main() {
 
     addresses.push(strategy.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x3a010fF03ceB58e5526B557cFD185593577B437b']));
+    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0xf804CC6A505A32C85d08b58945Dfb9Bb8D2f5257']));
 
 
     await createProposal(addresses, values, abis);

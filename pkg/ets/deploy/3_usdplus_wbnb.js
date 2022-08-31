@@ -11,15 +11,11 @@ module.exports = async (plugin) => {
         from: deployer
     });
 
-    const etsCalculationLibrary = await deploy("EtsCalculationLibrary", {
-        from: deployer
-    });
 
     let params = {
         factoryOptions: {
             libraries: {
                 "UsdPlusWbnbLibrary": usdPlusWbnbLibrary.address,
-                "EtsCalculationLibrary": etsCalculationLibrary.address
             }
         },
         unsafeAllow: ["external-library-linking"]

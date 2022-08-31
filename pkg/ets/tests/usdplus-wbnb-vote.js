@@ -12,9 +12,10 @@ const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const ERC20 = require("@overnight-contracts/common/utils/abi/IERC20.json");
 const {DEFAULT} = require("@overnight-contracts/common/utils/assets");
 const {expect} = require("chai");
+const {abi: veConeAbi} = require("../artifacts/@openzeppelin/contracts/token/ERC721/IERC721.sol/IERC721.json");
 
 
-describe("StrategyUsdPlusWbnb", function () {
+describe("Transfer veCone", function () {
 
 
     let strategy;
@@ -24,7 +25,7 @@ describe("StrategyUsdPlusWbnb", function () {
     sharedBeforeEach("deploy", async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyUsdPlusWbnb', 'StrategyUsdPlusWbnbSetting']);
+        await deployments.fixture(['StrategyUsdPlusWbnb', 'ControlUsdPlusWbnb', 'StrategyUsdPlusWbnbSetting']);
 
         strategy = await ethers.getContract('StrategyUsdPlusWbnb');
 
@@ -63,6 +64,34 @@ describe("StrategyUsdPlusWbnb", function () {
         ]
 
         await strategy.vote(pools, weights);
+
+    });
+});
+
+
+describe("veCone increase Duration | Amounts", function () {
+
+
+    let strategy;
+    let veCone;
+    let account;
+
+    sharedBeforeEach("deploy", async () => {
+        await hre.run("compile");
+
+        await deployments.fixture(['StrategyUsdPlusWbnb', 'StrategyUsdPlusWbnbSetting']);
+
+        const signers = await ethers.getSigners();
+        account = signers[0];
+
+        strategy = await ethers.getContract('StrategyUsdPlusWbnb');
+
+
+    });
+
+    it('increaseLockDuration', async function () {
+
+        await strategy.increaseLockDuration();
 
     });
 });

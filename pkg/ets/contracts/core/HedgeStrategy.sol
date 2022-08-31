@@ -12,6 +12,8 @@ import "./IHedgeStrategy.sol";
 abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+    bytes32 public constant CONTROL_ROLE = keccak256("CONTROL_ROLE");
 
     IERC20 public asset;
     address public exchanger;
@@ -38,8 +40,18 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         _;
     }
 
+    modifier onlyControl() {
+        require(hasRole(CONTROL_ROLE, msg.sender), "Restricted to CONTROL");
+        _;
+    }
+
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyPortfolioAgent() {
+        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 

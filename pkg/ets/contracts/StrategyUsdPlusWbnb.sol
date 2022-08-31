@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
@@ -18,8 +17,8 @@ import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 
 import "./libraries/UsdPlusWbnbLibrary.sol";
-import "./libraries/EtsCalculationLibrary.sol";
 import "./core/HedgeStrategy.sol";
+import "./control/ControlUsdPlusWbnb.sol";
 
 import "hardhat/console.sol";
 
@@ -28,6 +27,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     using UsdPlusWbnbLibrary for StrategyUsdPlusWbnb;
 
     uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+    uint256 public constant MAX_TIME_LOCK = 126268429; // value in seconds = 4 years
 
     IERC20 public usdPlus;
     IERC20 public busd;
@@ -45,7 +45,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     IConeVoter public coneVoter;
     IGauge public coneGauge;
     IERC20 public coneToken;
-    IERC721 public veCone;
+    VeCone public veCone;
     uint public veConeId;
 
     IExchange public exchange;
@@ -53,13 +53,15 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     IDODOProxy public dodoProxy;
     address public dodoBusdWbnb;
 
-    uint256 tokenAssetSlippagePercent;
+    uint256 public tokenAssetSlippagePercent;
 
     uint256 public liquidationThreshold;
     uint256 public healthFactor;
     uint256 public realHealthFactor;
 
     Maximillion public maximillion;
+
+    ControlUsdPlusWbnb public control;
 
     struct SetupParams {
         address usdPlus;
@@ -85,6 +87,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         uint256 tokenAssetSlippagePercent;
         uint256 liquidationThreshold;
         uint256 healthFactor;
+        address control;
     }
 
 
@@ -117,7 +120,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         coneVoter = IConeVoter(params.coneVoter);
         coneGauge = IGauge(params.coneGauge);
         coneToken = IERC20(params.coneToken);
-        veCone = IERC721(params.veCone);
+        veCone = VeCone(params.veCone);
         veConeId = params.veConeId;
 
         exchange = IExchange(params.exchange);
@@ -149,50 +152,123 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         liquidationThreshold = params.liquidationThreshold * 10 ** 15;
         healthFactor = params.healthFactor * 10 ** 15;
         realHealthFactor = 0;
+
+
+        if(address(control) != address(0)){
+            revokeRole(CONTROL_ROLE, address(control));
+        }
+
+        control = ControlUsdPlusWbnb(params.control);
+        grantRole(CONTROL_ROLE, address(control));
+        control.setStrategy(payable(this));
     }
 
     // --- logic
 
     function _stake(uint256 _amount) internal override {
-        calcDeltas(Method.STAKE, _amount);
+        control.calcDeltas(Method.STAKE, _amount);
     }
 
     function _unstake(
         uint256 _amount
     ) internal override returns (uint256) {
-        calcDeltas(Method.UNSTAKE, _amount);
+        control.calcDeltas(Method.UNSTAKE, _amount);
         return _amount;
     }
 
-    function balances() external view override returns (BalanceItem[] memory){
 
-        Liquidity memory liq = currentLiquidity();
-        Amounts memory amounts = currentAmounts();
+    function netAssetValue() external view override returns (uint256){
+        return control.netAssetValue();
+    }
 
-        BalanceItem[] memory items = new BalanceItem[](7);
-        items[0] = BalanceItem(address(wbnb), toUint256(liq.borrowToken), amounts.borrowToken, true);
-        items[1] = BalanceItem(address(busd), toUint256(liq.collateralAsset), amounts.collateralAsset, false);
-        items[2] = BalanceItem(address(wbnb), toUint256(liq.poolToken), amounts.poolToken, false);
-        items[3] = BalanceItem(address(usdPlus), toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
-        items[4] = BalanceItem(address(usdPlus), toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
-        items[5] = BalanceItem(address(busd), toUint256(liq.freeAsset), amounts.freeAsset, false);
-        items[6] = BalanceItem(address(wbnb), toUint256(liq.freeToken), amounts.freeToken, false);
-        return items;
+    function balances() external view override returns(BalanceItem[] memory ){
+        return control.balances();
     }
 
 
-    /**
-     * NAV = sum of all tokens liquidity minus borrows.
-     * @return NAV in USDC
-     */
-    function netAssetValue() external view override returns (uint256){
-        Liquidity memory liq = currentLiquidity();
-        int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-        return usdToBusd(toUint256(navUsd))/ (10 ** 12);
+    function _balance() internal override returns (uint256) {
+        control.calcDeltas(Method.NOTHING, 0);
+        return realHealthFactor;
+    }
+
+    function setRealHealthFactor(uint256 _realHealthFactor) external onlyControl {
+        realHealthFactor = _realHealthFactor;
+    }
+
+    function currentHealthFactor() external view override returns (uint256){
+        return realHealthFactor;
+    }
+
+    function executeAction(Action memory action) external onlyControl {
+        if (action.actionType == ActionType.ADD_LIQUIDITY) {
+            console.log("execute action ADD_LIQUIDITY");
+            UsdPlusWbnbLibrary._addLiquidity(this, action.amount);
+        } else if (action.actionType == ActionType.REMOVE_LIQUIDITY) {
+            console.log("execute action REMOVE_LIQUIDITY");
+            UsdPlusWbnbLibrary._removeLiquidity(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_USDPLUS_TO_ASSET) {
+            console.log("execute action SWAP_USDPLUS_TO_ASSET");
+            UsdPlusWbnbLibrary._swapUspPlusToBusd(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_ASSET_TO_USDPLUS) {
+            console.log("execute action SWAP_ASSET_TO_USDPLUS");
+            UsdPlusWbnbLibrary._swapBusdToUsdPlus(this, action.amount);
+        } else if (action.actionType == ActionType.SUPPLY_ASSET_TO_AAVE) {
+            console.log("execute action SUPPLY_ASSET_TO_AAVE");
+            UsdPlusWbnbLibrary._supplyBusdToVenus(this, action.amount);
+        } else if (action.actionType == ActionType.WITHDRAW_ASSET_FROM_AAVE) {
+            console.log("execute action WITHDRAW_ASSET_FROM_AAVE");
+            UsdPlusWbnbLibrary._withdrawBusdFromVenus(this, action.amount);
+        } else if (action.actionType == ActionType.BORROW_TOKEN_FROM_AAVE) {
+            console.log("execute action BORROW_TOKEN_FROM_AAVE");
+            UsdPlusWbnbLibrary._borrowWbnbFromVenus(this, action.amount);
+        } else if (action.actionType == ActionType.REPAY_TOKEN_TO_AAVE) {
+            console.log("execute action REPAY_TOKEN_TO_AAVE");
+            UsdPlusWbnbLibrary._repayWbnbToVenus(this, action.amount);
+        } else if (action.actionType == ActionType.SWAP_TOKEN_TO_ASSET) {
+            console.log("execute action SWAP_TOKEN_TO_ASSET");
+            UsdPlusWbnbLibrary._swapTokenToAsset(this, action.amount, action.slippagePercent);
+        } else if (action.actionType == ActionType.SWAP_ASSET_TO_TOKEN) {
+            console.log("execute action SWAP_ASSET_TO_TOKEN");
+            UsdPlusWbnbLibrary._swapAssetToToken(this, action.amount, action.slippagePercent);
+        }
+    }
+
+
+
+    function _claimFeesBribes() internal {
+
+        coneGauge.claimFees();
+        IBribe bribe = IBribe(coneGauge.bribe());
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(coneToken);
+        tokens[1] = address(wbnb);
+        tokens[2] = address(usdPlus);
+        bribe.getRewardForOwner(veConeId, tokens);
+
+        uint256 wbnbAmount = wbnb.balanceOf(address(this));
+        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        uint256 coneAmount = coneToken.balanceOf(address(this));
+
+        if (wbnbAmount > 0) {
+            coneGauge.notifyRewardAmount(address(wbnb), wbnbAmount);
+        }
+
+        if (usdPlusAmount > 0) {
+            coneGauge.notifyRewardAmount(address(usdPlus), usdPlusAmount);
+        }
+
+        if (coneAmount > 0) {
+            coneGauge.notifyRewardAmount(address(coneToken), coneAmount);
+        }
+
     }
 
 
     function _claimRewards(address _to) internal override returns (uint256){
+
+//        _claimFeesBribes();
+//        _increaseVeConeUnlockTime();
 
         // claim rewards
         address[] memory tokens = new address[](1);
@@ -237,249 +313,24 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     }
 
 
-    function _balance() internal override returns (uint256) {
-        calcDeltas(Method.NOTHING, 0);
-        return realHealthFactor;
-    }
+    function lockAvailableCone() external onlyPortfolioAgent {
 
-
-    function currentHealthFactor() external view override returns (uint256){
-        return realHealthFactor;
-    }
-
-    /**
-     * Current price Usd+/Wmatic in dyst pool in USD/USD in e+2
-     */
-    function priceInDystUsdpMaticPool() internal view returns (uint256){
-        // on another pools tokens order may be another and calc price in pool should changed
-        // token 0 - wmatic
-        // token 1 - usdPlus
-        (uint256 reserveWmatic, uint256 reserveUsdPlus,) = conePair.getReserves();
-        uint256 reserveWmaticUsd = wbnbToUsd(reserveWmatic);
-        uint256 reserveUsdPlusUsd = busdToUsd(reserveUsdPlus * 10 ** 12);
-
-        // console.log("----------------- priceInDystUsdpMaticPool()");
-        // console.log("reserveWmatic       ", reserveWmatic);
-        // console.log("reserveWmaticUsd    ", reserveWmaticUsd);
-        // console.log("reserveUsdPlus      ", reserveUsdPlus);
-        // console.log("reserveUsdPlusUsd   ", reserveUsdPlusUsd);
-        // console.log("-----------------");
-        // 10^8 because of 10^6 plus additional 2 digits to be comparable to USD price from oracles
-        return reserveUsdPlusUsd * 10 ** 8 / reserveWmaticUsd;
-
-    }
-
-
-    function currentAmounts() public view returns (Amounts memory){
-
-        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
-
-        uint256 aaveBorrowAmount = vBnbToken.borrowBalanceStored(address(this));
-        uint256 aaveCollateralAmount = vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18;
-
-        return Amounts(
-            aaveCollateralAmount,
-            aaveBorrowAmount,
-            poolToken,
-            poolUsdPlus,
-            usdPlus.balanceOf(address(this)),
-            busd.balanceOf(address(this)),
-            wbnb.balanceOf(address(this))
-        );
-    }
-
-
-    /**
-     * Get current liquidity in USD e6
-     */
-    function currentLiquidity() public view returns (Liquidity memory){
-
-        // in pool liquidity
-        (uint256 poolToken,  uint256 poolUsdPlus) = this._getLiquidity();
-        uint256 poolTokenUsd = wbnbToUsd(poolToken);
-        uint256 poolUsdPlusUsd = busdToUsd(poolUsdPlus * 10 ** 12);
-
-        // liquidity from AAVE E6+2
-        uint256 aaveCollateralUsd = busdToUsd(vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18);
-        uint256 aaveBorrowUsd = wbnbToUsd(vBnbToken.borrowBalanceStored(address(this)));
-
-        // free tokens on contract
-        uint256 usdPlusBalanceUsd = busdToUsd(usdPlus.balanceOf(address(this)) * 10 ** 12);
-        uint256 busdBalanceUsd = busdToUsd(busd.balanceOf(address(this)));
-        uint256 wbnbBalanceUsd = wbnbToUsd(wbnb.balanceOf(address(this)));
-
-
-        console.log("----------------- currentLiquidity()");
-        console.log("poolToken        ", poolToken);
-        console.log("poolTokenUsd     ", poolTokenUsd);
-        console.log("poolUsdPlus       ", poolUsdPlus);
-        console.log("poolUsdPlusUsd    ", poolUsdPlusUsd);
-        console.log("aaveCollateralUsd ", aaveCollateralUsd);
-        console.log("aaveBorrowUsd     ", aaveBorrowUsd);
-        console.log("wbnbBalanceUsd     ", wbnbBalanceUsd);
-        console.log("usdPlusBalanceUsd ", usdPlusBalanceUsd);
-        console.log("busdBalanceUsd    ", busdBalanceUsd);
-        console.log("-----------------");
-
-        //TODO: rename vars
-        return Liquidity(
-            toInt256(aaveCollateralUsd),
-            toInt256(aaveBorrowUsd),
-            toInt256(poolTokenUsd),
-            toInt256(poolUsdPlusUsd),
-            toInt256(usdPlusBalanceUsd),
-            toInt256(busdBalanceUsd),
-            toInt256(wbnbBalanceUsd)
-        );
-    }
-
-    function liquidityToActions(CalcContext2 memory calcContext2) view public returns (Action2[] memory, uint256){
-        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(calcContext2);
-        Action2[] memory actions2 = new Action2[](actions.length);
-        for(uint256 i=0; i < actions.length; i++) {
-            actions2[i].amount = actions[i].amount;
-            actions2[i].actionType = uint(actions[i].actionType);
-        }
-        return (actions2, code);
-    }
-
-    // /**
-    //  * @param amount  - USDC amount in e6
-    //  */
-    function calcDeltas(Method method, uint256 amount) internal {
-
-        Liquidity memory liq = currentLiquidity();
-        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
-        // price in e8 K2 should be in e18 so up by 1e10
-        int256 K2 = toInt256(1e10 * priceInDystUsdpMaticPool());
-        int256 retAmount;
-        if (method == Method.UNSTAKE) {
-            int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-            int256 amountUsd = toInt256(busdToUsd(amount * 10 ** 12));
-            require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
-            // for unstake make deficit as amount
-            retAmount = - amountUsd;
-        }
-
-        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, tokenAssetSlippagePercent));
-
-        runActions(actions);
-
-        liq = currentLiquidity();
-        realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
-
-    }
-
-    function runActions(Action[] memory actions) internal  {
-
-        console.log("--------- execute actions");
-        for (uint j; j < actions.length; j++) {
-            console.log(j, uint(actions[j].actionType), actions[j].amount);
-            executeAction(actions[j]);
-        }
-        console.log("---------");
-
-    }
-
-    function executeAction(Action memory action) internal {
-        if (action.actionType == ActionType.ADD_LIQUIDITY) {
-            console.log("execute action ADD_LIQUIDITY");
-            UsdPlusWbnbLibrary._addLiquidity(this, action.amount);
-        } else if (action.actionType == ActionType.REMOVE_LIQUIDITY) {
-            console.log("execute action REMOVE_LIQUIDITY");
-            UsdPlusWbnbLibrary._removeLiquidity(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_USDPLUS_TO_ASSET) {
-            console.log("execute action SWAP_USDPLUS_TO_ASSET");
-            UsdPlusWbnbLibrary._swapUspPlusToBusd(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_ASSET_TO_USDPLUS) {
-            console.log("execute action SWAP_ASSET_TO_USDPLUS");
-            UsdPlusWbnbLibrary._swapBusdToUsdPlus(this, action.amount);
-        } else if (action.actionType == ActionType.SUPPLY_ASSET_TO_AAVE) {
-            console.log("execute action SUPPLY_ASSET_TO_AAVE");
-            UsdPlusWbnbLibrary._supplyBusdToVenus(this, action.amount);
-        } else if (action.actionType == ActionType.WITHDRAW_ASSET_FROM_AAVE) {
-            console.log("execute action WITHDRAW_ASSET_FROM_AAVE");
-            UsdPlusWbnbLibrary._withdrawBusdFromVenus(this, action.amount);
-        } else if (action.actionType == ActionType.BORROW_TOKEN_FROM_AAVE) {
-            console.log("execute action BORROW_TOKEN_FROM_AAVE");
-            UsdPlusWbnbLibrary._borrowWbnbFromVenus(this, action.amount);
-        } else if (action.actionType == ActionType.REPAY_TOKEN_TO_AAVE) {
-            console.log("execute action REPAY_TOKEN_TO_AAVE");
-            UsdPlusWbnbLibrary._repayWbnbToVenus(this, action.amount);
-        } else if (action.actionType == ActionType.SWAP_TOKEN_TO_ASSET) {
-            console.log("execute action SWAP_TOKEN_TO_ASSET");
-            UsdPlusWbnbLibrary._swapTokenToAsset(this, action.amount, action.slippagePercent);
-        } else if (action.actionType == ActionType.SWAP_ASSET_TO_TOKEN) {
-            console.log("execute action SWAP_ASSET_TO_TOKEN");
-            UsdPlusWbnbLibrary._swapAssetToToken(this, action.amount, action.slippagePercent);
+        if (veConeId > 0) {
+            veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
         }
     }
 
-    function toInt256(uint256 value) internal pure returns (int256) {
-        // Note: Unsafe cast below is okay because `type(int256).max` is guaranteed to be positive
-        require(value <= uint256(type(int256).max), "SafeCast: value doesn't fit in an int256");
-        return int256(value);
+    function _increaseVeConeUnlockTime() internal {
+
+        if (veConeId > 0) {
+            veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
+        }
     }
 
-    function toUint256(int256 value) internal pure returns (uint256) {
-        require(value >= 0, "SafeCast: value must be positive");
-        return uint256(value);
-    }
-
-    /**
- * Get USD equivalent in e6
- * @param amount WMATIC tokens amount
-     */
-    function wbnbToUsd(uint256 amount) public view returns (uint256){
-        // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
-        return AaveBorrowLibrary.convertTokenAmountToUsd(
-            amount,
-            bnbDm,
-            uint256(oracleWbnb.latestAnswer())
-        ) / 100;
-    }
-
-    /**
-     * Get WMATIC equivalent from USD liquidity
-     * @param liquidity USD liquidity in e6
-     */
-    function usdToWbnb(uint256 liquidity) public view returns (uint256){
-        // liquidity * 100 => because need e6+2 for converting but liq in e6
-        return AaveBorrowLibrary.convertUsdToTokenAmount(
-            liquidity * 100,
-            bnbDm,
-            uint256(oracleWbnb.latestAnswer())
-        );
-    }
-
-    /**
-     * Get USD equivalent in e6
-     * @param amount USDC tokens amount
-     */
-    function busdToUsd(uint256 amount) public view returns (uint256){
-        // X / 100 because converting return e6+2 as oracle price but need to remove additional +2
-        return AaveBorrowLibrary.convertTokenAmountToUsd(
-            amount,
-            busdDm,
-            uint256(oracleBusd.latestAnswer())
-        ) / 100;
-    }
-
-    /**
-     * Get USDC equivalent from USD liquidity
-     * @param liquidity USD liquidity in e6
-     */
-    function usdToBusd(uint256 liquidity) public view returns (uint256){
-        // liquidity * 100 => because need e6+2 for converting but liq in e6
-        return AaveBorrowLibrary.convertUsdToTokenAmount(
-            liquidity * 100,
-            busdDm,
-            uint256(oracleBusd.latestAnswer())
-        );
-    }
-
-
-    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyAdmin {
+    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
+        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
+        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
+        veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
         coneVoter.vote(veConeId, _poolVote, _weights);
     }
 

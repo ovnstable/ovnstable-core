@@ -10,7 +10,21 @@ chai.use(require('chai-bignumber')());
 const {waffle} = require("hardhat");
 const {getContract, execTimelock, getERC20} = require("@overnight-contracts/common/utils/script-utils");
 const {transferETH, transferUSDPlus} = require("@overnight-contracts/common/utils/script-utils");
+const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 const {provider} = waffle;
+
+
+describe("Polygon", function () {
+
+    let value = {
+        name: 'StrategyUsdPlusWmatic',
+        enabledReward: false,
+        isRunStrategyLogic: false,
+    }
+
+    strategyTest(value, 'POLYGON', POLYGON.usdPlus, () => {
+    });
+});
 
 
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
