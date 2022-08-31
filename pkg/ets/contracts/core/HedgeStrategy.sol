@@ -41,7 +41,7 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
     }
 
     modifier onlyControl() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to CONTROL");
+        require(hasRole(CONTROL_ROLE, msg.sender), "Restricted to CONTROL");
         _;
     }
 

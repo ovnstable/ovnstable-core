@@ -155,8 +155,8 @@ library UsdPlusWbnbLibrary {
     function _swapTokenToAsset(StrategyUsdPlusWbnb self, uint256 delta, uint256 slippagePercent) public {
         uint256 swapWbnbAmount = (delta == self.MAX_UINT_VALUE()) ? self.wbnb().balanceOf(address(self)) : self.control().usdToWbnb(delta);
         if (swapWbnbAmount == 0) return;
-    
-        uint256 amountOutMin = self.usdToBusd(self.wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
+
+        uint256 amountOutMin = self.control().usdToBusd(self.control().wbnbToUsd(swapWbnbAmount / 10000 * (10000 - slippagePercent)));
 
         ConeLibrary.swap(
             self.coneRouter(),
@@ -184,7 +184,7 @@ library UsdPlusWbnbLibrary {
         uint256 swapAssetAmount = (delta == self.MAX_UINT_VALUE()) ? self.busd().balanceOf(address(self)) : self.control().usdToBusd(delta);
         if (swapAssetAmount == 0) return;
 
-        uint256 amountOutMin = self.usdToWbnb(self.busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
+        uint256 amountOutMin = self.control().usdToWbnb(self.control().busdToUsd(swapAssetAmount / 10000 * (10000 - slippagePercent)));
 
         ConeLibrary.swap(
             self.coneRouter(),

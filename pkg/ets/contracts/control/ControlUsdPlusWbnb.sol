@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
@@ -11,7 +14,10 @@ import "../StrategyUsdPlusWbnb.sol";
 import "../libraries/EtsCalculationLibrary.sol";
 import "../core/IHedgeStrategy.sol";
 
-contract ControlUsdPlusWbnb {
+contract ControlUsdPlusWbnb is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant STRATEGY_ROLE = keccak256("STRATEGY_ROLE");
 
     StrategyUsdPlusWbnb public strategy;
 
@@ -37,7 +43,37 @@ contract ControlUsdPlusWbnb {
     uint256 public liquidationThreshold;
     uint256 public healthFactor;
 
-    function setStrategy(address payable _strategy ) external {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize() initializer public {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(UPGRADER_ROLE, msg.sender);
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(UPGRADER_ROLE)
+    override
+    {}
+
+    // ---  modifiers
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyStrategy() {
+        require(hasRole(STRATEGY_ROLE, msg.sender), "Restricted to STRATEGY_ROLE");
+        _;
+    }
+
+
+    function setStrategy(address payable _strategy) external onlyStrategy {
         strategy = StrategyUsdPlusWbnb(_strategy);
 
         usdPlus = strategy.usdPlus();
@@ -62,43 +98,34 @@ contract ControlUsdPlusWbnb {
         healthFactor = strategy.healthFactor();
     }
 
-    // Current price Usd+/wbnb in cone pool in USD/USD in e+2
-
-    function _pricePool() internal view returns (uint256){
-        // on another pools tokens order may be another and calc price in pool should changed
-        // token 0 - wbnb
-        // token 1 - usdPlus
-        (uint256 reserveWbnb, uint256 reserveUsdPlus,) = conePair.getReserves();
-        uint256 reserveWbnbUsd = wbnbToUsd(reserveWbnb);
-        uint256 reserveUsdPlusUsd = busdToUsd(reserveUsdPlus * 10 ** 12);
-
-        // console.log("----------------- priceInDystUsdpMaticPool()");
-        // console.log("reserveWbnb       ", reserveWbnb);
-        // console.log("reserveWbnbUsd    ", reserveWbnbUsd);
-        // console.log("reserveUsdPlus      ", reserveUsdPlus);
-        // console.log("reserveUsdPlusUsd   ", reserveUsdPlusUsd);
-        // console.log("-----------------");
-        // 10^8 because of 10^6 plus additional 2 digits to be comparable to USD price from oracles
-        return reserveUsdPlusUsd * 10 ** 8 / reserveWbnbUsd;
-
-    }
     /**
-     * Own liquidity in pool in their native digits. Used in strategy.
-     */
-    function _getLiquidity() internal view returns (uint256, uint256) {
-        uint256 balanceLp = coneGauge.balanceOf(address(strategy));
-        return _getLiquidityByLp(balanceLp);
+      * @param amount  - USDC amount in e6
+      */
+
+    function calcDeltas(Method method, uint256 amount) external onlyStrategy {
+
+        Liquidity memory liq = currentLiquidity();
+        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
+        // price in e8 K2 should be in e18 so up by 1e10
+        int256 K2 = toInt256(1e10 * _pricePool());
+        int256 retAmount;
+        if (method == Method.UNSTAKE) {
+            int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
+            int256 amountUsd = toInt256(busdToUsd(amount * 10 ** 12));
+            require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
+            // for unstake make deficit as amount
+            retAmount = - amountUsd;
+        }
+
+        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, tokenAssetSlippagePercent));
+
+        runActions(actions);
+
+        liq = currentLiquidity();
+        uint256 realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
+
+        strategy.setRealHealthFactor(realHealthFactor);
     }
-
-    function _getLiquidityByLp(uint256 balanceLp) internal view returns (uint256, uint256) {
-
-        (uint256 reserve0Current, uint256 reserve1Current,) = conePair.getReserves();
-
-        uint256 amountLiq0 = reserve0Current * balanceLp / conePair.totalSupply();
-        uint256 amountLiq1 = reserve1Current * balanceLp / conePair.totalSupply();
-        return (amountLiq0, amountLiq1);
-    }
-
 
     function currentAmounts() public view returns (Amounts memory){
 
@@ -190,7 +217,48 @@ contract ControlUsdPlusWbnb {
         return usdToBusd(toUint256(navUsd)) / (10 ** 12);
     }
 
-    function liquidityToActions(CalcContext2 memory calcContext2) view public returns (Action2[] memory, uint256){
+
+
+
+    // Current price Usd+/wbnb in cone pool in USD/USD in e+2
+
+    function _pricePool() internal view returns (uint256){
+        // on another pools tokens order may be another and calc price in pool should changed
+        // token 0 - wbnb
+        // token 1 - usdPlus
+        (uint256 reserveWbnb, uint256 reserveUsdPlus,) = conePair.getReserves();
+        uint256 reserveWbnbUsd = wbnbToUsd(reserveWbnb);
+        uint256 reserveUsdPlusUsd = busdToUsd(reserveUsdPlus * 10 ** 12);
+
+        // console.log("----------------- priceInDystUsdpMaticPool()");
+        // console.log("reserveWbnb       ", reserveWbnb);
+        // console.log("reserveWbnbUsd    ", reserveWbnbUsd);
+        // console.log("reserveUsdPlus      ", reserveUsdPlus);
+        // console.log("reserveUsdPlusUsd   ", reserveUsdPlusUsd);
+        // console.log("-----------------");
+        // 10^8 because of 10^6 plus additional 2 digits to be comparable to USD price from oracles
+        return reserveUsdPlusUsd * 10 ** 8 / reserveWbnbUsd;
+
+    }
+    /**
+     * Own liquidity in pool in their native digits. Used in strategy.
+     */
+    function _getLiquidity() internal view returns (uint256, uint256) {
+        uint256 balanceLp = coneGauge.balanceOf(address(strategy));
+        return _getLiquidityByLp(balanceLp);
+    }
+
+    function _getLiquidityByLp(uint256 balanceLp) internal view returns (uint256, uint256) {
+
+        (uint256 reserve0Current, uint256 reserve1Current,) = conePair.getReserves();
+
+        uint256 amountLiq0 = reserve0Current * balanceLp / conePair.totalSupply();
+        uint256 amountLiq1 = reserve1Current * balanceLp / conePair.totalSupply();
+        return (amountLiq0, amountLiq1);
+    }
+
+
+    function liquidityToActions(CalcContext2 memory calcContext2) view internal returns (Action2[] memory, uint256){
         (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(calcContext2);
         Action2[] memory actions2 = new Action2[](actions.length);
         for (uint256 i = 0; i < actions.length; i++) {
@@ -200,34 +268,6 @@ contract ControlUsdPlusWbnb {
         return (actions2, code);
     }
 
-     /**
-      * @param amount  - USDC amount in e6
-      */
-
-    function calcDeltas(Method method, uint256 amount) external {
-
-        Liquidity memory liq = currentLiquidity();
-        int256 K1 = toInt256(1e18 * healthFactor / liquidationThreshold);
-        // price in e8 K2 should be in e18 so up by 1e10
-        int256 K2 = toInt256(1e10 * _pricePool());
-        int256 retAmount;
-        if (method == Method.UNSTAKE) {
-            int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-            int256 amountUsd = toInt256(busdToUsd(amount * 10 ** 12));
-            require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
-            // for unstake make deficit as amount
-            retAmount = - amountUsd;
-        }
-
-        (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, tokenAssetSlippagePercent));
-
-        runActions(actions);
-
-        liq = currentLiquidity();
-        uint256 realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
-
-        strategy.setRealHealthFactor(realHealthFactor);
-    }
 
     function runActions(Action[] memory actions) internal {
 

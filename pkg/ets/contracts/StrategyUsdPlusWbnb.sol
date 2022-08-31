@@ -153,7 +153,13 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         healthFactor = params.healthFactor * 10 ** 15;
         realHealthFactor = 0;
 
+
+        if(address(control) != address(0)){
+            revokeRole(CONTROL_ROLE, address(control));
+        }
+
         control = ControlUsdPlusWbnb(params.control);
+        grantRole(CONTROL_ROLE, address(control));
         control.setStrategy(payable(this));
     }
 
@@ -193,7 +199,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         return realHealthFactor;
     }
 
-    function executeAction(Action memory action) external {
+    function executeAction(Action memory action) external onlyControl {
         if (action.actionType == ActionType.ADD_LIQUIDITY) {
             console.log("execute action ADD_LIQUIDITY");
             UsdPlusWbnbLibrary._addLiquidity(this, action.amount);
@@ -261,8 +267,8 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     function _claimRewards(address _to) internal override returns (uint256){
 
-        _claimFeesBribes();
-        _increaseVeConeUnlockTime();
+//        _claimFeesBribes();
+//        _increaseVeConeUnlockTime();
 
         // claim rewards
         address[] memory tokens = new address[](1);
@@ -321,7 +327,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         }
     }
 
-    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyAdmin {
+    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
+        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
+        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
+        veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
         coneVoter.vote(veConeId, _poolVote, _weights);
     }
 

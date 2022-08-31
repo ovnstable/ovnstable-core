@@ -30,6 +30,7 @@ let healthFactor = 1350
 module.exports = async () => {
 
     const strategy = await ethers.getContract("StrategyUsdPlusWbnb");
+    const control = await ethers.getContract('ControlUsdPlusWbnb');
 
     const exchange = await getContract('Exchange', 'bsc');
     const usdPlus = await getContract('UsdPlusToken', 'bsc');
@@ -63,6 +64,7 @@ module.exports = async () => {
             tokenAssetSlippagePercent: wbnbBusdSlippagePercent,
             liquidationThreshold: liquidationThreshold,
             healthFactor: healthFactor,
+            control: control.address
         }
 
         await (await strategy.setParams(setupParams)).wait();

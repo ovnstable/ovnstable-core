@@ -25,7 +25,7 @@ describe("Transfer veCone", function () {
     sharedBeforeEach("deploy", async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['StrategyUsdPlusWbnb', 'StrategyUsdPlusWbnbSetting']);
+        await deployments.fixture(['StrategyUsdPlusWbnb', 'ControlUsdPlusWbnb', 'StrategyUsdPlusWbnbSetting']);
 
         strategy = await ethers.getContract('StrategyUsdPlusWbnb');
 
