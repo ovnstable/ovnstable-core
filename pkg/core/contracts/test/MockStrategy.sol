@@ -7,6 +7,7 @@ import "../interfaces/IStrategy.sol";
 contract MockStrategy is IStrategy {
 
     IERC20 public asset;
+    bool public navLess;
 
     // --- Setters
 
@@ -15,6 +16,9 @@ contract MockStrategy is IStrategy {
         asset = IERC20(_asset);
     }
 
+    function setNavLess(bool value) external {
+        navLess = value;
+    }
 
     // --- logic
 
@@ -38,6 +42,11 @@ contract MockStrategy is IStrategy {
         } else {
             require(balance >= _amount, "MockStrategy: unstake more than balance");
             asset.transfer(_beneficiary, _amount);
+
+            if(navLess){
+                asset.transfer(_beneficiary, asset.balanceOf(address(this)));
+            }
+
             return _amount;
         }
     }

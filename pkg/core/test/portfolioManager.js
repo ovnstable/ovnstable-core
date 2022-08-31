@@ -52,11 +52,8 @@ describe("PortfolioManager set new cash strategy", function () {
         });
 
 
-        const contractFactory = await ethers.getContractFactory("PortfolioManager");
-        pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
-        await pm.deployTransaction.wait();
-        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
 
+        pm = await deployContract("PortfolioManager")
         await pm.setAsset(asset.address);
     });
 
@@ -120,11 +117,7 @@ describe("PortfolioManager not set cash strategy", function () {
 
         const {deployer} = await getNamedAccounts();
 
-        const contractFactory = await ethers.getContractFactory("PortfolioManager");
-        pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
-        await pm.deployTransaction.wait();
-        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
-
+        pm = await deployContract("PortfolioManager")
         await pm.setExchanger(deployer);
     });
 
@@ -181,14 +174,17 @@ describe("PortfolioManager", function () {
             skipIfAlreadyDeployed: false
         });
 
+        const signers = await ethers.getSigners();
+        nonCashStrategy = await ethers.getContractAt('MockStrategy', nonCashStrategy.address, signers[0]);
 
-        const contractFactory = await ethers.getContractFactory("PortfolioManager");
-        pm = await upgrades.deployProxy(contractFactory, {kind: 'uups'});
-        await pm.deployTransaction.wait();
-        await sampleModule.deployProxyImpl(hre, contractFactory, {kind: 'uups'}, pm.address);
+        pm = await deployContract("PortfolioManager");
+        let m2m = await deployContract('Mark2Market');
+
+        await m2m.setPortfolioManager(pm.address);
 
         await pm.setAsset(asset.address);
         await pm.setExchanger(deployer);
+        await pm.setMark2Market(m2m.address);
 
 
         let weights = [{
@@ -274,5 +270,28 @@ describe("PortfolioManager", function () {
 
     });
 
+    it("Withdraw more then cash amount = revert: PM: NAV less than expected", async function () {
+
+        await asset.transfer(pm.address, 200);
+        await pm.deposit(asset.address, 200);
+
+        expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
+        expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
+
+        await nonCashStrategy.setNavLess(true);
+        await expectRevert(pm.withdraw(asset.address, 100), "PM: NAV less than expected");
+
+
+    });
+
+
 });
 
+async function deployContract(name){
+    const factory = await ethers.getContractFactory(name);
+    let contract = await upgrades.deployProxy(factory, {kind: 'uups'});
+    await contract.deployTransaction.wait();
+    await sampleModule.deployProxyImpl(hre, factory, {kind: 'uups'}, contract.address);
+
+    return contract;
+}

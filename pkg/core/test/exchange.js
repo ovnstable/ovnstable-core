@@ -155,12 +155,12 @@ describe("Exchange", function () {
 
 
             let balanceBefore = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
-            let sumUsdPlus = toE6(10);
+            let sumUsdPlus = toE6(5);
             await usdPlus.approve(exchange.address, sumUsdPlus);
             await exchange.redeem(asset.address, sumUsdPlus);
             let balanceAfter = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
 
-            expect(10).to.equal(balanceAfter.minus(balanceBefore).toNumber());
+            expect(5).to.equal(balanceAfter.minus(balanceBefore).toNumber());
 
         });
 

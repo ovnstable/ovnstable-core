@@ -7,6 +7,7 @@ module.exports = async () => {
 
     const pm = await ethers.getContract("PortfolioManager");
     const exchange = await ethers.getContract("Exchange");
+    const m2m = await ethers.getContract("Mark2Market");
 
     let asset;
     if (hre.network.name === 'bsc') {
@@ -18,6 +19,9 @@ module.exports = async () => {
     } else {
         asset = DEFAULT.usdc;
     }
+
+    await (await pm.setMark2Market(m2m.address)).wait();
+    console.log("pm.setMark2Market done");
 
     await (await pm.setExchanger(exchange.address)).wait();
     console.log("pm.setExchanger done");
