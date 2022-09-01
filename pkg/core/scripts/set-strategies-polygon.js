@@ -28,15 +28,6 @@ async function main() {
         },
 
         {
-            "strategy": "0x69554b32c001Fd161aa48Bae6fD8785767087672",
-            "name": "Dodo USDC",
-            "minWeight": 0,
-            "targetWeight": 8.5,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-        {
             "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
             "name": "Dystopia USDC/DAI",
             "minWeight": 0,
@@ -49,7 +40,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 54.7,
+            "targetWeight": 63.2,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -58,7 +49,7 @@ async function main() {
             "strategy": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
             "name": "Penrose USDC/TUSD",
             "minWeight": 0,
-            "targetWeight": 12,
+            "targetWeight": 11,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -78,7 +69,7 @@ async function main() {
             "strategy": "0xa7625F964C93f8A62DBed06BaFFDAF8C20025d77",
             "name": "ClearPool USDC",
             "minWeight": 0,
-            "targetWeight": 21.5,
+            "targetWeight": 22.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -144,7 +135,7 @@ async function setWeights(weights) {
     let opts = await getPrice();
 
     await (await pm.setStrategyWeights(weights, await getPrice())).wait();
-    await (await pm.balance(opts)).wait();
+    // await (await pm.balance(opts)).wait();
 
     console.log('Show m2m after')
     await showM2M()
