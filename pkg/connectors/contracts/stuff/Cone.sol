@@ -3,6 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 
 interface IConeRouter01 {
@@ -193,6 +194,8 @@ interface IConeRouter01 {
 
 interface IGauge {
 
+    function bribe() external view returns (address);
+
     function tokenIds(address account) external view returns (uint);
 
     function claimFees() external returns (uint claimed0, uint claimed1);
@@ -376,6 +379,18 @@ library ConeLibrary {
 
         return amounts[2];
     }
+
+}
+
+interface VeCone is IERC721{
+
+    function increaseAmount(uint _tokenId, uint _value) external;
+    function increaseUnlockTime(uint _tokenId, uint _lockDuration) external;
+}
+
+interface IBribe {
+
+    function getRewardForOwner(uint tokenId, address[] memory tokens) external;
 
 }
 
