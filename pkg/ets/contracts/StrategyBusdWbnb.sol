@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
@@ -21,7 +20,7 @@ import "./control/ControlBusdWbnb.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
+contract StrategyBusdWbnb is HedgeStrategy {
     using WadRayMath for uint256;
     using BusdWbnbLibrary for StrategyBusdWbnb;
 
@@ -50,7 +49,7 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
     IERC20 public coneToken;
     VeCone public veCone;
     uint public veConeId;
-    
+
     IERC20 public unkwnToken;
     IUserProxy public unkwnUserProxy;
     IUnkwnLens public unkwnLens;
@@ -385,36 +384,6 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
         return totalUsdPlus;
     }
 
-    function lockAvailableCone() external onlyPortfolioAgent {
-
-        if (veConeId > 0) {
-            veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
-        }
-    }
-
-    function _increaseVeConeUnlockTime() internal {
-
-        if (veConeId > 0) {
-            veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
-        }
-    }
-
-    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
-        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
-        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
-        veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
-        coneVoter.vote(veConeId, _poolVote, _weights);
-    }
-
-    /// @notice Used for ERC721 safeTransferFrom
-    function onERC721Received(address, address, uint256, bytes memory)
-    public
-    virtual
-    override
-    returns (bytes4)
-    {
-        return this.onERC721Received.selector;
-    }
 
     receive() external payable {
     }

@@ -381,10 +381,11 @@ library ConeLibrary {
 
 }
 
-interface VeCone is IERC721{
+interface VeCone is IERC721 {
 
     function increaseAmount(uint _tokenId, uint _value) external;
     function increaseUnlockTime(uint _tokenId, uint _lockDuration) external;
+    function balanceOfNFT(uint256 _tokenId) external returns (uint256);
 }
 
 interface IBribe {
@@ -392,9 +393,22 @@ interface IBribe {
     function getRewardForOwner(uint tokenId, address[] memory tokens) external;
 
 }
+
+interface VeDist {
+
+    function claimable(uint _tokenId) external view returns (uint);
+    function claim(uint _tokenId) external returns (uint);
+}
+
 interface IConeVoter {
 
     function lastVote(uint tokenId) external returns (uint256 lastTime);
 
     function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external ;
+
+    function claimRewards(address[] memory _gauges, address[][] memory _tokens) external;
+
+    function claimBribes(address[] memory _bribes, address[][] memory _tokens, uint _tokenId) external;
+
+    function claimFees(address[] memory _bribes, address[][] memory _tokens, uint _tokenId) external;
 }

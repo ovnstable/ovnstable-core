@@ -26,15 +26,10 @@ library BusdWbnbLibrary {
         if (self.wbnb().balanceOf(address(self)) == 0 || self.usdPlus().balanceOf(address(self)) == 0) {
             return;
         }
-        console.log("1");
         uint256 busdBalanceBefore = self.busd().balanceOf(address(self));
-        console.log("2");
         self.exchange().redeem(address(self.busd()), self.usdPlus().balanceOf(address(self)) - (delta == self.MAX_UINT_VALUE() ? 0 : delta));
-        console.log("3");
         uint256 busdBalanceAfter = self.busd().balanceOf(address(self));
 
-        console.log("self.wbnb().balanceOf(address(self))", self.wbnb().balanceOf(address(self)));
-        console.log("busdBalanceAfter - busdBalanceBefore", busdBalanceAfter - busdBalanceBefore);
 
         self.coneRouter().addLiquidity(
             address(self.wbnb()),
@@ -48,7 +43,6 @@ library BusdWbnbLibrary {
             block.timestamp
         );
 
-        console.log("lol");
 
         uint256 lpTokenBalance = self.conePair().balanceOf(address(this));
         self.conePair().approve(address(self.unkwnUserProxy()), lpTokenBalance);
