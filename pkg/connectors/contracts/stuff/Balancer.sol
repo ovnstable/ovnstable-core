@@ -1232,60 +1232,16 @@ contract MerkleOrchard {
 
 library BalancerLibrary {
 
-    function onSwap(
-        IVault vault,
-        IVault.SwapKind kind,
-        IERC20 token0,
-        IERC20 token1,
-        bytes32 poolId0,
-        uint256 amount0
-    ) internal view returns (uint256) {
-
-        IPoolSwapStructs.SwapRequest memory swapRequest;
-        swapRequest.kind = kind;
-        swapRequest.tokenIn = token0;
-        swapRequest.tokenOut = token1;
-        swapRequest.amount = amount0;
-
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolId0);
-        (address pool, IVault.PoolSpecialization poolSpecialization) = vault.getPool(poolId0);
-
-        if (poolSpecialization == IVault.PoolSpecialization.GENERAL) {
-            uint256 indexIn;
-            uint256 indexOut;
-            for (uint8 i = 0; i < tokens.length; i++) {
-                if (tokens[i] == token0) {
-                    indexIn = i;
-                } else if (tokens[i] == token1) {
-                    indexOut = i;
-                }
-            }
-
-            return IGeneralPool(pool).onSwap(swapRequest, balances, indexIn, indexOut);
-
-        } else {
-            uint256 balanceIn;
-            uint256 balanceOut;
-            for (uint8 i = 0; i < tokens.length; i++) {
-                if (tokens[i] == token0) {
-                    balanceIn = balances[i];
-                } else if (tokens[i] == token1) {
-                    balanceOut = balances[i];
-                }
-            }
-
-            return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
-        }
-    }
-
     function queryBatchSwap(
         IVault vault,
         IVault.SwapKind kind,
         IERC20 token0,
         IERC20 token1,
         bytes32 poolId0,
-        uint256 amount0
-    ) internal returns (int256[] memory assetDeltas) {
+        uint256 amount0,
+        address sender,
+        address recipient
+    ) internal returns (uint256) {
 
         IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](1);
         swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount0, new bytes(0));
@@ -1294,9 +1250,9 @@ library BalancerLibrary {
         assets[0] = IAsset(address(token0));
         assets[1] = IAsset(address(token1));
 
-        IVault.FundManagement memory fundManagement = IVault.FundManagement(address(vault), false, payable(address(vault)), false);
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
-        return vault.queryBatchSwap(kind, swaps, assets, fundManagement);
+        return uint256(- vault.queryBatchSwap(kind, swaps, assets, fundManagement)[1]);
     }
 
     function swap(
@@ -1376,16 +1332,18 @@ library BalancerLibrary {
         uint256 denominator0,
         uint256 denominator1,
         uint256 precision
-    ) internal view returns (uint256 amount1InToken0) {
+    ) internal returns (uint256 amount1InToken0) {
         amount1InToken0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
         for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = onSwap(
+            uint256 amount1 = queryBatchSwap(
                 vault,
                 IVault.SwapKind.GIVEN_IN,
                 token0,
                 token1,
                 poolId0,
-                amount1InToken0
+                amount1InToken0,
+                address(this),
+                address(this)
             );
             amount1InToken0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount1InToken0 + reserve1);
         }
@@ -1408,17 +1366,19 @@ library BalancerLibrary {
         uint256 denominator0,
         uint256 denominator1,
         uint256 precision
-    ) internal view returns (uint256 lpBalance) {
+    ) internal returns (uint256 lpBalance) {
         lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * denominator0 / denominator1);
         for (uint i = 0; i < precision; i++) {
             uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            uint256 amount0 = onSwap(
+            uint256 amount0 = queryBatchSwap(
                 vault,
                 IVault.SwapKind.GIVEN_IN,
                 token1,
                 token0,
                 poolId0,
-                amount1
+                amount1,
+                address(this),
+                address(this)
             );
             lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
         }

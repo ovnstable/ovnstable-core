@@ -30,10 +30,7 @@ module.exports = async ({deployments}) => {
                 gauge: gauge,
                 poolIdBusdUsdcUsdt: poolIdBusdUsdcUsdt,
                 poolIdAeqWBnb: poolIdAeqWBnb,
-                poolIdWBnbBusd: poolIdWBnbBusd,
-                chainlinkBusd: BSC.chainlinkBusd,
-                chainlinkUsdc: BSC.chainlinkUsdc,
-                chainlinkUsdt: BSC.chainlinkUsdt,
+                poolIdWBnbBusd: poolIdWBnbBusd
             }
         )).wait();
     });

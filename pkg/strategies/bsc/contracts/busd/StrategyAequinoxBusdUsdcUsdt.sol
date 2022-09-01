@@ -3,9 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
@@ -23,9 +22,6 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         bytes32 poolIdBusdUsdcUsdt;
         bytes32 poolIdAeqWBnb;
         bytes32 poolIdWBnbBusd;
-        address chainlinkBusd;
-        address chainlinkUsdc;
-        address chainlinkUsdt;
     }
 
     // --- params
@@ -43,10 +39,6 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     bytes32 public poolIdBusdUsdcUsdt;
     bytes32 public poolIdAeqWBnb;
     bytes32 public poolIdWBnbBusd;
-
-    IPriceFeed public chainlinkBusd;
-    IPriceFeed public chainlinkUsdc;
-    IPriceFeed public chainlinkUsdt;
 
     uint256 public busdTokenDenominator;
     uint256 public usdcTokenDenominator;
@@ -83,10 +75,6 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         poolIdBusdUsdcUsdt = params.poolIdBusdUsdcUsdt;
         poolIdAeqWBnb = params.poolIdAeqWBnb;
         poolIdWBnbBusd = params.poolIdWBnbBusd;
-
-        chainlinkBusd = IPriceFeed(params.chainlinkBusd);
-        chainlinkUsdc = IPriceFeed(params.chainlinkUsdc);
-        chainlinkUsdt = IPriceFeed(params.chainlinkUsdt);
 
         busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
         usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
@@ -145,7 +133,8 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        uint256 amountLp = (lpTokenDenominator * _amount * 10004) / (_getBusdByLp(lpTokenDenominator, false) * 10000);
+        // get amount lp to unstake
+        uint256 amountLp = OvnMath.addBasisPoints(_amount, 4) * lpTokenDenominator / _getBusdByLp(lpTokenDenominator);
 
         // unstake lp
         gauge.withdraw(amountLp);
@@ -172,7 +161,6 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         // exit pool
         vault.exitPool(poolIdBusdUsdcUsdt, address(this), payable(address(this)), request);
 
-        console.log("busdToken balance after unstake: %s", busdToken.balanceOf(address(this)));
         return busdToken.balanceOf(address(this));
     }
 
@@ -183,8 +171,8 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
+        // get amount lp to unstake
         uint256 amountLp = gauge.balanceOf(address(this));
-        uint256 amountBusd = _getBusdByLp(amountLp, false);
 
         // unstake lp
         gauge.withdraw(amountLp);
@@ -196,7 +184,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         for (uint256 i; i < 3; i++) {
             assets[i] = IAsset(address(tokens[i]));
             if (tokens[i] == busdToken) {
-                minAmountsOut[i] = amountBusd * 9996 / 10000;
+                minAmountsOut[i] = OvnMath.subBasisPoints(_getBusdByLp(amountLp), 4);
             } else {
                 minAmountsOut[i] = 0;
             }
@@ -211,29 +199,25 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         // exit pool
         vault.exitPool(poolIdBusdUsdcUsdt, address(this), payable(address(this)), request);
 
-        console.log("busdToken balance after unstakeFull: %s", busdToken.balanceOf(address(this)));
         return busdToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue(true);
+        return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue(true);
+        return _totalValue();
     }
 
-    function _totalValue(bool nav) internal view returns (uint256) {
+    function _totalValue() internal view returns (uint256) {
         uint256 busdBalance = busdToken.balanceOf(address(this));
 
-        uint256 lpBalance = IERC20(address(gauge)).balanceOf(address(this));
-        console.log("lpBalance: %s", lpBalance);
+        uint256 lpBalance = gauge.balanceOf(address(this));
         if (lpBalance > 0) {
             (address pool,) = vault.getPool(poolIdBusdUsdcUsdt);
             busdBalance += lpBalance * IBasePool(pool).getRate() / lpTokenDenominator;
-//            busdBalance += _getBusdByLp(lpBalance, nav);
         }
-        console.log("busdBalance: %s", busdBalance);
 
         return busdBalance;
     }
@@ -274,72 +258,37 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         return totalBusd;
     }
 
-    function _getBusdByLp(uint256 lpBalance, bool nav) internal returns (uint256) {
-        uint256 priceBusd = uint256(chainlinkBusd.latestAnswer());
-        uint256 priceUsdc = uint256(chainlinkUsdc.latestAnswer());
-        uint256 priceUsdt = uint256(chainlinkUsdt.latestAnswer());
+    function _getBusdByLp(uint256 lpBalance) internal returns (uint256) {
         uint256 lpTotalSupply = lpToken.totalSupply();
+        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
 
         uint256 totalBalanceBusd;
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
         for (uint256 i; i < 3; i++) {
             uint256 tokenBalance = balances[i] * lpBalance / lpTotalSupply;
             if (tokens[i] == usdtToken) {
-                if (nav) {
-                    totalBalanceBusd += (tokenBalance * busdTokenDenominator * priceUsdt) / (usdtTokenDenominator * priceBusd);
-                } else {
-//                    totalBalanceBusd += BalancerLibrary.onSwap(
-//                        vault,
-//                        IVault.SwapKind.GIVEN_IN,
-//                        tokens[i],
-//                        busdToken,
-//                        poolIdBusdUsdcUsdt,
-//                        tokenBalance
-//                    );
-                    console.log("usdtToken tokenBalance: %s", tokenBalance);
-                    int256[] memory assetDeltas = BalancerLibrary.queryBatchSwap(
-                        vault,
-                        IVault.SwapKind.GIVEN_IN,
-                        tokens[i],
-                        busdToken,
-                        poolIdBusdUsdcUsdt,
-                        tokenBalance
-                    );
-                    console.log("assetDeltas[0]: %s", uint256(assetDeltas[0]));
-                    console.log("assetDeltas[1]: %s", uint256(-assetDeltas[1]));
-                    totalBalanceBusd += uint256(-assetDeltas[1]);
-                }
-                console.log("usdtToken totalBalanceBusd: %s", totalBalanceBusd);
+                totalBalanceBusd += BalancerLibrary.queryBatchSwap(
+                    vault,
+                    IVault.SwapKind.GIVEN_IN,
+                    tokens[i],
+                    busdToken,
+                    poolIdBusdUsdcUsdt,
+                    tokenBalance,
+                    address(this),
+                    address(this)
+                );
             } else if (tokens[i] == usdcToken) {
-                if (nav) {
-                    totalBalanceBusd += (tokenBalance * busdTokenDenominator * priceUsdc) / (usdcTokenDenominator * priceBusd);
-                } else {
-//                    totalBalanceBusd += BalancerLibrary.onSwap(
-//                        vault,
-//                        IVault.SwapKind.GIVEN_IN,
-//                        tokens[i],
-//                        busdToken,
-//                        poolIdBusdUsdcUsdt,
-//                        tokenBalance
-//                    );
-                    console.log("usdcToken tokenBalance: %s", tokenBalance);
-                    int256[] memory assetDeltas = BalancerLibrary.queryBatchSwap(
-                        vault,
-                        IVault.SwapKind.GIVEN_IN,
-                        tokens[i],
-                        busdToken,
-                        poolIdBusdUsdcUsdt,
-                        tokenBalance
-                    );
-                    console.log("assetDeltas[0]: %s", uint256(assetDeltas[0]));
-                    console.log("assetDeltas[1]: %s", uint256(-assetDeltas[1]));
-                    totalBalanceBusd += uint256(-assetDeltas[1]);
-                }
-                console.log("usdcToken totalBalanceBusd: %s", totalBalanceBusd);
+                totalBalanceBusd += BalancerLibrary.queryBatchSwap(
+                    vault,
+                    IVault.SwapKind.GIVEN_IN,
+                    tokens[i],
+                    busdToken,
+                    poolIdBusdUsdcUsdt,
+                    tokenBalance,
+                    address(this),
+                    address(this)
+                );
             } else if (tokens[i] == busdToken) {
-                console.log("busdToken tokenBalance: %s", tokenBalance);
                 totalBalanceBusd += tokenBalance;
-                console.log("busdToken totalBalanceBusd: %s", totalBalanceBusd);
             }
         }
 
