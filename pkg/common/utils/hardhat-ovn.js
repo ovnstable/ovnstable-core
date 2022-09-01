@@ -215,6 +215,43 @@ task('simulate', 'Simulate transaction on local node')
 
     });
 
+task('simulateByData', 'Simulate transaction on local node')
+    .addParam('from', 'from')
+    .addParam('to', 'to')
+    .addParam('data', 'data')
+    .setAction(async (args, hre, runSuper) => {
+
+        let from = args.from;
+        let to = args.to;
+        let data = args.data;
+
+        console.log(`Simulate transaction from ${from} to ${to} by data: [${data}]`);
+
+        await evmCheckpoint('simulate', hre.network.provider);
+
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [from],
+        });
+
+        const fromSigner = await hre.ethers.getSigner(from);
+        await transferETH(100, from, hre);
+
+        const tx = {
+            from: from,
+            to: to,
+            value: 0,
+            nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
+            gasLimit: 15000000,
+            gasPrice: 150000000000, // 150 GWEI
+            data: data
+        }
+        await fromSigner.sendTransaction(tx);
+
+        await evmRestore('simulate', hre.network.provider);
+
+    });
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
