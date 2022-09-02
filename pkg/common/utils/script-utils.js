@@ -450,8 +450,8 @@ async function showHedgeM2M() {
     let wallet = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken');
-    let rebase = await getContract('RebaseTokenUsdPlusWbnb');
-    let strategy = await getContract('StrategyUsdPlusWbnb');
+    let rebase = await getContract('RebaseToken' + process.env.ETS);
+    let strategy = await getContract('Strategy' + process.env.ETS);
 
     console.log('User balances:')
     let user = [];
