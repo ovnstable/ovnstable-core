@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
@@ -21,7 +20,7 @@ import "./control/ControlBusdWbnb.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
+contract StrategyBusdWbnb is HedgeStrategy {
     using WadRayMath for uint256;
     using BusdWbnbLibrary for StrategyBusdWbnb;
 
@@ -50,7 +49,7 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
     IERC20 public coneToken;
     VeCone public veCone;
     uint public veConeId;
-    
+
     IERC20 public unkwnToken;
     IUserProxy public unkwnUserProxy;
     IUnkwnLens public unkwnLens;
@@ -64,6 +63,7 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
     uint256 public realHealthFactor;
 
     Maximillion public maximillion;
+    Unitroller public unitroller;
 
     ControlBusdWbnb public control;
 
@@ -143,11 +143,11 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
         usdPlus.approve(address(exchange), type(uint256).max);
         busd.approve(address(exchange), type(uint256).max);
 
-        Unitroller troll = Unitroller(params.unitroller);
+        unitroller = Unitroller(params.unitroller);
         address[] memory vTokens = new address[](2);
         vTokens[0] = address(vBusdToken);
         vTokens[1] = address(vBnbToken);
-        uint[] memory errors = troll.enterMarkets(vTokens);
+        uint[] memory errors = unitroller.enterMarkets(vTokens);
 
         maximillion = Maximillion(params.maximillion);
 
@@ -238,97 +238,52 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
         }
     }
 
-    function _claimFeesBribes() internal {
+    function _claimVenus() internal returns (uint256) {
 
-        coneGauge.claimFees();
-        IBribe bribe = IBribe(coneGauge.bribe());
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(vBusdToken);
+        tokens[1] = address(vBnbToken);
+        unitroller.claimVenus(address(this), tokens);
 
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(coneToken);
-        tokens[1] = address(wbnb);
-        tokens[2] = address(busd);
-        bribe.getRewardForOwner(veConeId, tokens);
-
-        uint256 wbnbAmount = wbnb.balanceOf(address(this));
-        uint256 busdAmount = busd.balanceOf(address(this));
-        uint256 coneAmount = coneToken.balanceOf(address(this));
-
-        if (wbnbAmount > 0) {
-            coneGauge.notifyRewardAmount(address(wbnb), wbnbAmount);
-        }
-
-        if (busdAmount > 0) {
-            coneGauge.notifyRewardAmount(address(busd), busdAmount);
-        }
-
-        if (coneAmount > 0) {
-            coneGauge.notifyRewardAmount(address(coneToken), coneAmount);
-        }
-
-    }
-
-    function _claimRewards(address _to) internal override returns (uint256){
-
-        // _claimFeesBribes();
-        // _increaseVeConeUnlockTime();
-
-        // claim rewards gauge
-        uint256 lpTokenBalanceGauge = coneGauge.balanceOf(address(this));
-        if (lpTokenBalanceGauge > 0) {
-            address[] memory tokens = new address[](1);
-            tokens[0] = address(coneToken);
-            coneGauge.getReward(address(this), tokens);
-        }
-        uint256 coneBalance = coneToken.balanceOf(address(this));
-
-        // claim rewards unknown
-        address userProxyThis = unkwnLens.userProxyByAccount(address(this));
-        address stakingAddress = unkwnLens.stakingRewardsByConePool(address(conePair));
-        uint256 lpTokenBalanceUnkwn = IERC20(stakingAddress).balanceOf(userProxyThis);
-        if (lpTokenBalanceUnkwn > 0) {
-            unkwnUserProxy.claimStakingRewards();
-        }
-        uint256 unkwnBalance = unkwnToken.balanceOf(address(this));
-
-        //claim rewards venus
         uint256 xvsBalance = xvsToken.balanceOf(address(this));
 
-        // console.log("coneBalance", coneBalance);
-        // console.log("unkwnBalance", unkwnBalance);
-        // console.log("xvsBalance", xvsBalance);
+        uint256 totalBusd;
 
-
-        // sell rewards
-        uint256 totalUsdPlus;
-
-        if (coneBalance > 0) {
-            uint256 amountOutMin = ConeLibrary.getAmountsOut(
-                coneRouter,
-                address(coneToken),
-                address(wbnb),
-                address(usdPlus),
-                false,
-                false,
-                coneBalance
+        if (xvsBalance > 0) {
+            uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
+                pancakeRouter,
+                address(xvsToken),
+                address(busd),
+                xvsBalance
             );
 
             if (amountOutMin > 0) {
-                uint256 coneUsdPlus = ConeLibrary.swap(
-                    coneRouter,
-                    address(coneToken),
-                    address(wbnb),
-                    address(usdPlus),
-                    false,
-                    false,
-                    coneBalance,
-                    amountOutMin * 99 / 100,
+                uint256 stgBusd = PancakeSwapLibrary.swapExactTokensForTokens(
+                    pancakeRouter,
+                    address(xvsToken),
+                    address(busd),
+                    xvsBalance,
+                    amountOutMin,
                     address(this)
                 );
-
-                totalUsdPlus += coneUsdPlus;
+                totalBusd += stgBusd;
             }
         }
 
+        return totalBusd / 1e12 ; // convert from 1e18 to 1e6 (USD+)
+    }
+
+
+    function _claimUnknown() internal returns (uint256){
+
+        uint256 balanceLp = UnknownLibrary.getUserLpBalance(unkwnLens, address(conePair), address(this));
+        if (balanceLp > 0) {
+            unkwnUserProxy.claimStakingRewards();
+        }
+
+        uint256 unkwnBalance = unkwnToken.balanceOf(address(this));
+
+        uint256 totalUsdPlus;
         if (unkwnBalance > 0) {
             uint256 amountOutUnkwn = ConeLibrary.getAmountsOut(
                 coneRouter,
@@ -357,64 +312,20 @@ contract StrategyBusdWbnb is HedgeStrategy, IERC721Receiver {
             }
         }
 
-        if (xvsBalance > 0) {
-            uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
-                pancakeRouter,
-                address(xvsToken),
-                address(usdPlus),
-                xvsBalance
-            );
-
-            if (amountOutMin > 0) {
-                uint256 stgBusd = PancakeSwapLibrary.swapExactTokensForTokens(
-                    pancakeRouter,
-                    address(xvsToken),
-                    address(usdPlus),
-                    xvsBalance,
-                    amountOutMin,
-                    address(this)
-                );
-                totalUsdPlus += stgBusd;
-            }
-        }
-
-        if (totalUsdPlus > 0) {
-            usdPlus.transfer(_to, totalUsdPlus);
-        }
 
         return totalUsdPlus;
     }
 
-    function lockAvailableCone() external onlyPortfolioAgent {
+    function _claimRewards(address _to) internal override returns (uint256){
 
-        if (veConeId > 0) {
-            veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
-        }
+        uint256 totalUsdPlus;
+
+        totalUsdPlus += _claimUnknown();
+        totalUsdPlus += _claimVenus();
+
+        return totalUsdPlus;
     }
 
-    function _increaseVeConeUnlockTime() internal {
-
-        if (veConeId > 0) {
-            veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
-        }
-    }
-
-    function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
-        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
-        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
-        veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
-        coneVoter.vote(veConeId, _poolVote, _weights);
-    }
-
-    /// @notice Used for ERC721 safeTransferFrom
-    function onERC721Received(address, address, uint256, bytes memory)
-    public
-    virtual
-    override
-    returns (bytes4)
-    {
-        return this.onERC721Received.selector;
-    }
 
     receive() external payable {
     }

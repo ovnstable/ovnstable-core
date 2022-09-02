@@ -3,6 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 interface Unitroller {
     function enterMarkets(address[] calldata vTokens) external returns (uint[] memory);
+
+    function claimVenus(address holder, address[] memory vTokens) external ;
 }
 
 interface Maximillion {
