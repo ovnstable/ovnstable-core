@@ -223,6 +223,10 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 
                     });
 
+                    it(`Balance asset after unstake >= unstakeValue`, async function () {
+                        expect(balanceAsset.gte(VALUE)).to.equal(true);
+                    });
+
                     it(`Balance asset is in range`, async function () {
                         greatLess(balanceAsset, VALUE, DELTA);
                     });
@@ -324,6 +328,10 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
                     netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
+                });
+
+                it(`Balance asset after unstakeFull >= stake value minus 4 bp`, async function () {
+                    expect(balanceAssetAfter.gte(VALUE.times(9996).div(10000))).to.equal(true);
                 });
 
                 it(`Balance asset = liquidation value`, async function () {

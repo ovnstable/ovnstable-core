@@ -18,279 +18,10 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 
-abstract contract BalancerExchange {
-
-    int256 public constant MAX_VALUE = 10 ** 27;
-
-    IVault private balancerVault;
-
-    function setBalancerVault(address _balancerVault) internal {
-        balancerVault = IVault(_balancerVault);
-    }
-
-    function swap(
-        bytes32 poolId,
-        IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenOut,
-        address sender,
-        address recipient,
-        uint256 amount,
-        uint256 limit
-    ) internal returns (uint256) {
-
-        IERC20(address(tokenIn)).approve(address(balancerVault), IERC20(address(tokenIn)).balanceOf(address(this)));
-
-        IVault.SingleSwap memory singleSwap;
-        singleSwap.poolId = poolId;
-        singleSwap.kind = kind;
-        singleSwap.assetIn = tokenIn;
-        singleSwap.assetOut = tokenOut;
-        singleSwap.amount = amount;
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = sender;
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(recipient);
-        fundManagement.toInternalBalance = false;
-
-        return balancerVault.swap(singleSwap, fundManagement, limit, block.timestamp + 600);
-    }
-
-    function swap(
-        bytes32 poolId,
-        IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenOut,
-        address sender,
-        address recipient,
-        uint256 amount
-    ) internal returns (uint256) {
-
-        IERC20(address(tokenIn)).approve(address(balancerVault), IERC20(address(tokenIn)).balanceOf(address(this)));
-
-        IVault.SingleSwap memory singleSwap;
-        singleSwap.poolId = poolId;
-        singleSwap.kind = kind;
-        singleSwap.assetIn = tokenIn;
-        singleSwap.assetOut = tokenOut;
-        singleSwap.amount = amount;
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = sender;
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(recipient);
-        fundManagement.toInternalBalance = false;
-
-        return balancerVault.swap(singleSwap, fundManagement, uint256(MAX_VALUE), block.timestamp + 600);
-    }
-
-    function batchSwap(
-        bytes32 poolId1,
-        bytes32 poolId2,
-        IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenMid,
-        IAsset tokenOut,
-        address sender,
-        address payable recipient,
-        uint256 amount
-    ) internal returns (uint256) {
-
-        IERC20(address(tokenIn)).approve(address(balancerVault), amount);
-
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
-
-        IVault.BatchSwapStep memory batchSwap1;
-        batchSwap1.poolId = poolId1;
-        batchSwap1.assetInIndex = 0;
-        batchSwap1.assetOutIndex = 1;
-        batchSwap1.amount = amount;
-        swaps[0] = batchSwap1;
-
-        IVault.BatchSwapStep memory batchSwap2;
-        batchSwap2.poolId = poolId2;
-        batchSwap2.assetInIndex = 1;
-        batchSwap2.assetOutIndex = 2;
-        batchSwap2.amount = 0;
-        swaps[1] = batchSwap2;
-
-        IAsset[] memory assets = new IAsset[](3);
-        assets[0] = tokenIn;
-        assets[1] = tokenMid;
-        assets[2] = tokenOut;
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = sender;
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = recipient;
-        fundManagement.toInternalBalance = false;
-
-        int256[] memory limits = new int256[](3);
-        if (kind == IVault.SwapKind.GIVEN_IN) {
-            limits[0] = MAX_VALUE;
-            limits[1] = MAX_VALUE;
-            limits[2] = MAX_VALUE;
-        } else {
-            limits[0] = 0;
-            limits[1] = 0;
-            limits[2] = 0;
-        }
-
-        return uint256(- balancerVault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp + 600)[2]);
-    }
-
-    function onSwap(
-        bytes32 poolId,
-        IVault.SwapKind kind,
-        IERC20 tokenIn,
-        IERC20 tokenOut,
-        uint256 balance
-    ) internal view returns (uint256) {
-
-        IPoolSwapStructs.SwapRequest memory swapRequest;
-        swapRequest.kind = kind;
-        swapRequest.tokenIn = tokenIn;
-        swapRequest.tokenOut = tokenOut;
-        swapRequest.amount = balance;
-
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = balancerVault.getPoolTokens(poolId);
-
-        (address pool, IVault.PoolSpecialization poolSpecialization) = balancerVault.getPool(poolId);
-
-        if (poolSpecialization == IVault.PoolSpecialization.GENERAL) {
-
-            uint256 indexIn;
-            uint256 indexOut;
-            for (uint8 i = 0; i < tokens.length; i++) {
-                if (tokens[i] == tokenIn) {
-                    indexIn = i;
-                } else if (tokens[i] == tokenOut) {
-                    indexOut = i;
-                }
-            }
-
-            return IGeneralPool(pool).onSwap(swapRequest, balances, indexIn, indexOut);
-
-        } else if (poolSpecialization == IVault.PoolSpecialization.MINIMAL_SWAP_INFO) {
-
-            uint256 balanceIn;
-            uint256 balanceOut;
-            for (uint8 i = 0; i < tokens.length; i++) {
-                if (tokens[i] == tokenIn) {
-                    balanceIn = balances[i];
-                } else if (tokens[i] == tokenOut) {
-                    balanceOut = balances[i];
-                }
-            }
-
-            return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
-
-        } else {
-
-            uint256 balanceIn;
-            uint256 balanceOut;
-            for (uint8 i = 0; i < tokens.length; i++) {
-                if (tokens[i] == tokenIn) {
-                    balanceIn = balances[i];
-                } else if (tokens[i] == tokenOut) {
-                    balanceOut = balances[i];
-                }
-            }
-
-            return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
-        }
-    }
-
-    /**
-     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountToSwap(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1,
-        uint256 precision,
-        bytes32 poolId,
-        IERC20 token0,
-        IERC20 token1
-    ) internal view returns (uint256) {
-        uint256 amount0ToSwap = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
-        for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token0, token1, amount0ToSwap);
-            amount0ToSwap = (amount0Total * reserve1) / (reserve0 * amount1 / amount0ToSwap + reserve1);
-        }
-
-        return amount0ToSwap;
-    }
-
-    /**
-     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
-     *
-     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
-     */
-    function _getAmountLpTokensToWithdraw(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 totalLpBalance,
-        uint256 denominator0,
-        uint256 denominator1,
-        bytes32 poolId,
-        IERC20 token0,
-        IERC20 token1
-    ) internal view returns (uint256) {
-        uint256 lpBalance = (totalLpBalance * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
-        for (uint i = 0; i < 1; i++) {
-            uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-            uint256 amount0 = onSwap(poolId, IVault.SwapKind.GIVEN_IN, token1, token0, amount1);
-            lpBalance = (totalLpBalance * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
-        }
-        return lpBalance;
-    }
-
-    uint256[49] private __gap;
-}
-
-
-interface IBalancerPool {
-
-    struct SwapRequest {
-        IVault.SwapKind kind;
-        address tokenIn;
-        address tokenOut;
-        uint256 amount;
-        // Misc data
-        bytes32 poolId;
-        uint256 lastChangeBlock;
-        address from;
-        address to;
-        bytes userData;
-    }
-
-    function getPoolId() external view returns (bytes32);
-
-    function onSwap(
-        SwapRequest memory swapRequest,
-        uint256[] memory balances,
-        uint256 indexIn,
-        uint256 indexOut
-    ) external view returns (uint256 amount);
-
-    function onSwap(
-        SwapRequest memory swapRequest,
-        uint256 currentBalanceTokenIn,
-        uint256 currentBalanceTokenOut
-    ) external view returns (uint256 amount);
-}
-
-
 interface IAsset {
     // solhint-disable-previous-line no-empty-blocks
 }
+
 
 interface IPoolSwapStructs {
     // This is not really an interface - it just defines common structs used by other interfaces: IGeneralPool and
@@ -330,6 +61,7 @@ interface IPoolSwapStructs {
         bytes userData;
     }
 }
+
 
 interface IBasePool is IPoolSwapStructs {
     /**
@@ -400,9 +132,11 @@ interface IBasePool is IPoolSwapStructs {
     function getRate() external view returns (uint256);
 }
 
+
 interface IDistributorCallback {
     function distributorCallback(bytes calldata callbackData) external;
 }
+
 
 interface IGeneralPool is IBasePool {
     function onSwap(
@@ -413,6 +147,7 @@ interface IGeneralPool is IBasePool {
     ) external view returns (uint256 amount);
 }
 
+
 interface IMinimalSwapInfoPool is IBasePool {
     function onSwap(
         SwapRequest memory swapRequest,
@@ -420,7 +155,6 @@ interface IMinimalSwapInfoPool is IBasePool {
         uint256 currentBalanceTokenOut
     ) external view returns (uint256 amount);
 }
-
 
 
 interface IVault {
@@ -861,376 +595,44 @@ interface IVault {
     ) external returns (int256[] memory assetDeltas);
 }
 
+
+interface IGauge {
+
+    function balanceOf(address account) view external returns (uint256);
+
+    function deposit(uint256 _amount) external;
+
+    function withdraw(uint256 wad) external;
+
+    function claim_rewards() external;
+}
+
+
 /**
- * @dev These functions deal with verification of Merkle trees (hash trees),
+ * @dev This contract simply builds on top of the Balancer V2 architecture to provide useful helpers to users.
+ * It connects different functionalities of the protocol components to allow accessing information that would
+ * have required a more cumbersome setup if we wanted to provide these already built-in.
  */
-library MerkleProof {
-    /**
-     * @dev Returns true if a `leaf` can be proved to be a part of a Merkle tree
-     * defined by `root`. For this, a `proof` must be provided, containing
-     * sibling hashes on the branch from the leaf to the root of the tree. Each
-     * pair of leaves and each pair of pre-images are assumed to be sorted.
-     */
-    function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf) internal pure returns (bool) {
-        bytes32 computedHash = leaf;
+interface IBalancerHelpers {
 
-        for (uint256 i = 0; i < proof.length; i++) {
-            bytes32 proofElement = proof[i];
+    function queryJoin(
+        bytes32 poolId,
+        address sender,
+        address recipient,
+        IVault.JoinPoolRequest memory request
+    ) external returns (uint256 bptOut, uint256[] memory amountsIn);
 
-            if (computedHash <= proofElement) {
-                // Hash(current computed hash + current element of the proof)
-                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
-            } else {
-                // Hash(current element of the proof + current computed hash)
-                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
-            }
-        }
+    function queryExit(
+        bytes32 poolId,
+        address sender,
+        address recipient,
+        IVault.ExitPoolRequest memory request
+    ) external returns (uint256 bptIn, uint256[] memory amountsOut);
 
-        // Check if the computed hash (root) is equal to the provided root
-        return computedHash == root;
-    }
 }
 
 
-
-contract MerkleOrchard {
-    using SafeERC20 for IERC20;
-
-    // Recorded distributions
-    // channelId > distributionId
-    mapping(bytes32 => uint256) private _nextDistributionId;
-    // channelId > distributionId > root
-    mapping(bytes32 => mapping(uint256 => bytes32)) private _distributionRoot;
-    // channelId > claimer > distributionId / 256 (word index) -> bitmap
-    mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) private _claimedBitmap;
-    // channelId > balance
-    mapping(bytes32 => uint256) private _remainingBalance;
-
-    event DistributionAdded(
-        address indexed distributor,
-        IERC20 indexed token,
-        uint256 distributionId,
-        bytes32 merkleRoot,
-        uint256 amount
-    );
-    event DistributionClaimed(
-        address indexed distributor,
-        IERC20 indexed token,
-        uint256 distributionId,
-        address indexed claimer,
-        address recipient,
-        uint256 amount
-    );
-
-    IVault private immutable _vault;
-
-    constructor(IVault vault) {
-        _vault = vault;
-    }
-
-    struct Claim {
-        uint256 distributionId;
-        uint256 balance;
-        address distributor;
-        uint256 tokenIndex;
-        bytes32[] merkleProof;
-    }
-
-    // Getters
-    function getVault() public view returns (IVault) {
-        return _vault;
-    }
-
-    function getDistributionRoot(
-        IERC20 token,
-        address distributor,
-        uint256 distributionId
-    ) external view returns (bytes32) {
-        bytes32 channelId = _getChannelId(token, distributor);
-        return _distributionRoot[channelId][distributionId];
-    }
-
-    function getRemainingBalance(IERC20 token, address distributor) external view returns (uint256) {
-        bytes32 channelId = _getChannelId(token, distributor);
-        return _remainingBalance[channelId];
-    }
-
-    /**
-     * @notice distribution ids must be sequential and can have an optional offset
-     */
-    function getNextDistributionId(IERC20 token, address distributor) external view returns (uint256) {
-        bytes32 channelId = _getChannelId(token, distributor);
-        return _nextDistributionId[channelId];
-    }
-
-    function isClaimed(
-        IERC20 token,
-        address distributor,
-        uint256 distributionId,
-        address claimer
-    ) public view returns (bool) {
-        (uint256 distributionWordIndex, uint256 distributionBitIndex) = _getIndices(distributionId);
-
-        bytes32 channelId = _getChannelId(token, distributor);
-        return (_claimedBitmap[channelId][claimer][distributionWordIndex] & (1 << distributionBitIndex)) != 0;
-    }
-
-    function verifyClaim(
-        IERC20 token,
-        address distributor,
-        uint256 distributionId,
-        address claimer,
-        uint256 claimedBalance,
-        bytes32[] memory merkleProof
-    ) external view returns (bool) {
-        bytes32 channelId = _getChannelId(token, distributor);
-        return _verifyClaim(channelId, distributionId, claimer, claimedBalance, merkleProof);
-    }
-
-    // Claim functions
-
-    /**
-     * @notice Allows anyone to claim multiple distributions for a claimer.
-     */
-    function claimDistributions(
-        address claimer,
-        Claim[] memory claims,
-        IERC20[] memory tokens
-    ) external {
-        _processClaims(claimer, claimer, claims, tokens, false);
-    }
-
-    /**
-     * @notice Allows a user to claim their own multiple distributions to internal balance.
-     */
-    function claimDistributionsToInternalBalance(
-        address claimer,
-        Claim[] memory claims,
-        IERC20[] memory tokens
-    ) external {
-        require(msg.sender == claimer, "user must claim own balance");
-        _processClaims(claimer, claimer, claims, tokens, true);
-    }
-
-    /**
-     * @notice Allows a user to claim their own several distributions to a callback.
-     */
-    function claimDistributionsWithCallback(
-        address claimer,
-        Claim[] memory claims,
-        IERC20[] memory tokens,
-        IDistributorCallback callbackContract,
-        bytes calldata callbackData
-    ) external {
-        require(msg.sender == claimer, "user must claim own balance");
-        _processClaims(claimer, address(callbackContract), claims, tokens, true);
-        callbackContract.distributorCallback(callbackData);
-    }
-
-    /**
-     * @notice Allows a distributor to add funds to the contract as a merkle tree.
-     */
-    function createDistribution(
-        IERC20 token,
-        bytes32 merkleRoot,
-        uint256 amount,
-        uint256 distributionId
-    ) external {
-        address distributor = msg.sender;
-
-        bytes32 channelId = _getChannelId(token, distributor);
-        require(
-            _nextDistributionId[channelId] == distributionId || _nextDistributionId[channelId] == 0,
-            "invalid distribution ID"
-        );
-        token.safeTransferFrom(distributor, address(this), amount);
-
-        token.approve(address(getVault()), amount);
-        IVault.UserBalanceOp[] memory ops = new IVault.UserBalanceOp[](1);
-
-        ops[0] = IVault.UserBalanceOp({
-        asset: IAsset(address(token)),
-        amount: amount,
-        sender: address(this),
-        recipient: payable(address(this)),
-        kind: IVault.UserBalanceOpKind.DEPOSIT_INTERNAL
-        });
-
-        getVault().manageUserBalance(ops);
-
-        _remainingBalance[channelId] += amount;
-        _distributionRoot[channelId][distributionId] = merkleRoot;
-        _nextDistributionId[channelId] = distributionId + 1;
-        emit DistributionAdded(distributor, token, distributionId, merkleRoot, amount);
-    }
-
-    // Helper functions
-
-    function _getChannelId(IERC20 token, address distributor) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(token, distributor));
-    }
-
-    function _processClaims(
-        address claimer,
-        address recipient,
-        Claim[] memory claims,
-        IERC20[] memory tokens,
-        bool asInternalBalance
-    ) internal {
-        uint256[] memory amounts = new uint256[](tokens.length);
-
-        // To save gas when setting claimed statuses in storage, we group claims for each channel and word index
-        // (referred to as a 'claims set'), aggregating the claim bits to set and total claimed amount, only committing
-        // to storage when changing claims sets (or when processing the last claim).
-        // This means that callers should sort claims by grouping distribution channels and distributions with the same
-        // word index in order to achieve reduced gas costs.
-
-        // Variables to support claims set aggregation
-        bytes32 currentChannelId; // Since channel ids are a hash, the initial zero id can be safely considered invalid
-        uint256 currentWordIndex;
-
-        uint256 currentBits; // The accumulated claimed bits to set in storage
-        uint256 currentClaimAmount; // The accumulated tokens to be claimed from the current channel (not claims set!)
-
-        Claim memory claim;
-        for (uint256 i = 0; i < claims.length; i++) {
-            claim = claims[i];
-
-            // New scope to avoid stack-too-deep issues
-            {
-                (uint256 distributionWordIndex, uint256 distributionBitIndex) = _getIndices(claim.distributionId);
-
-                if (currentChannelId == _getChannelId(tokens[claim.tokenIndex], claim.distributor)) {
-                    if (currentWordIndex == distributionWordIndex) {
-                        // Same claims set as the previous one: simply track the new bit to set.
-                        currentBits |= 1 << distributionBitIndex;
-                    } else {
-                        // This case is an odd exception: the claims set is not the same, but the channel id is. This
-                        // happens for example when there are so many distributions that they don't fit in a single 32
-                        // byte bitmap.
-                        // Since the channel is the same, we can continue accumulating the claim amount, but must commit
-                        // the previous claim bits as they correspond to a different word index.
-                        _setClaimedBits(currentChannelId, claimer, currentWordIndex, currentBits);
-
-                        // Start a new claims set, except channel id is the same as the previous one, and amount is not
-                        // reset.
-                        currentWordIndex = distributionWordIndex;
-                        currentBits = 1 << distributionBitIndex;
-                    }
-
-                    // Amounts are always accumulated for the same channel id
-                    currentClaimAmount += claim.balance;
-                } else {
-                    // Skip initial invalid claims set
-                    if (currentChannelId != bytes32(0)) {
-                        // Commit previous claims set
-                        _setClaimedBits(currentChannelId, claimer, currentWordIndex, currentBits);
-                        _deductClaimedBalance(currentChannelId, currentClaimAmount);
-                    }
-
-                    // Start a new claims set
-                    currentChannelId = _getChannelId(tokens[claim.tokenIndex], claim.distributor);
-                    currentWordIndex = distributionWordIndex;
-                    currentBits = 1 << distributionBitIndex;
-                    currentClaimAmount = claim.balance;
-                }
-            }
-
-            // Since a claims set is only committed if the next one is not part of the same set, the last claims set
-            // must be manually committed always.
-            if (i == claims.length - 1) {
-                _setClaimedBits(currentChannelId, claimer, currentWordIndex, currentBits);
-                _deductClaimedBalance(currentChannelId, currentClaimAmount);
-            }
-
-            require(
-                _verifyClaim(currentChannelId, claim.distributionId, claimer, claim.balance, claim.merkleProof),
-                "incorrect merkle proof"
-            );
-
-            // Note that balances to claim are here accumulated *per token*, independent of the distribution channel and
-            // claims set accounting.
-            amounts[claim.tokenIndex] += claim.balance;
-
-            emit DistributionClaimed(
-                claim.distributor,
-                tokens[claim.tokenIndex],
-                claim.distributionId,
-                claimer,
-                recipient,
-                claim.balance
-            );
-        }
-
-        IVault.UserBalanceOpKind kind = asInternalBalance
-        ? IVault.UserBalanceOpKind.TRANSFER_INTERNAL
-        : IVault.UserBalanceOpKind.WITHDRAW_INTERNAL;
-        IVault.UserBalanceOp[] memory ops = new IVault.UserBalanceOp[](tokens.length);
-
-        for (uint256 i = 0; i < tokens.length; i++) {
-            ops[i] = IVault.UserBalanceOp({
-            asset: IAsset(address(tokens[i])),
-            amount: amounts[i],
-            sender: address(this),
-            recipient: payable(recipient),
-            kind: kind
-            });
-        }
-        getVault().manageUserBalance(ops);
-    }
-
-    /**
-     * @dev Sets the bits set in `newClaimsBitmap` for the corresponding distribution.
-     */
-    function _setClaimedBits(
-        bytes32 channelId,
-        address claimer,
-        uint256 wordIndex,
-        uint256 newClaimsBitmap
-    ) private {
-        uint256 currentBitmap = _claimedBitmap[channelId][claimer][wordIndex];
-
-        // All newly set bits must not have been previously set
-        require((newClaimsBitmap & currentBitmap) == 0, "cannot claim twice");
-
-        _claimedBitmap[channelId][claimer][wordIndex] = currentBitmap | newClaimsBitmap;
-    }
-
-    /**
-     * @dev Deducts `balanceBeingClaimed` from a distribution channel's allocation. This isolates tokens accross
-     * distribution channels, and prevents claims for one channel from using the tokens of another one.
-     */
-    function _deductClaimedBalance(bytes32 channelId, uint256 balanceBeingClaimed) private {
-        require(
-            _remainingBalance[channelId] >= balanceBeingClaimed,
-            "distributor hasn't provided sufficient tokens for claim"
-        );
-        _remainingBalance[channelId] -= balanceBeingClaimed;
-    }
-
-    function _verifyClaim(
-        bytes32 channelId,
-        uint256 distributionId,
-        address claimer,
-        uint256 claimedBalance,
-        bytes32[] memory merkleProof
-    ) internal view returns (bool) {
-        bytes32 leaf = keccak256(abi.encodePacked(claimer, claimedBalance));
-        return MerkleProof.verify(merkleProof, _distributionRoot[channelId][distributionId], leaf);
-    }
-
-    function _getIndices(uint256 distributionId)
-    private
-    pure
-    returns (uint256 distributionWordIndex, uint256 distributionBitIndex)
-    {
-        distributionWordIndex = distributionId / 256;
-        distributionBitIndex = distributionId % 256;
-    }
-}
-
-
-library BalancerLibrary {
+library AequinoxLibrary {
 
     function queryBatchSwap(
         IVault vault,
@@ -1383,16 +785,4 @@ library BalancerLibrary {
             lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
         }
     }
-}
-
-
-interface IGauge {
-
-    function balanceOf(address account) view external returns (uint256);
-
-    function deposit(uint256 _amount) external;
-
-    function withdraw(uint256 wad) external;
-
-    function claim_rewards() external;
 }
