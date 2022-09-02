@@ -1,4 +1,4 @@
-const {getContract, getPrice, changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice, changeWeightsAndBalance, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
@@ -20,7 +20,7 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse BUSD",
             "minWeight": 0,
-            "targetWeight": 17.5,
+            "targetWeight": 10,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -31,7 +31,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 1,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
 
@@ -39,7 +39,7 @@ async function main() {
             "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 78,
+            "targetWeight": 71.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -49,9 +49,9 @@ async function main() {
             "strategy": "0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8",
             "name": "Unknown BUSD/TUSD",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 15,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
     ]
@@ -82,7 +82,6 @@ async function main() {
 
 async function proposal(weights) {
     let pm = await getContract('PortfolioManager');
-    let exchange = await getContract('Exchange');
 
     let addresses = [];
     let values = [];
