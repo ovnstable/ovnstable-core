@@ -22,6 +22,8 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         bytes32 poolIdBusdUsdcUsdt;
         bytes32 poolIdAeqWBnb;
         bytes32 poolIdWBnbBusd;
+        address rewardWallet;
+        uint256 rewardWalletPercent;
     }
 
     // --- params
@@ -39,6 +41,9 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     bytes32 public poolIdBusdUsdcUsdt;
     bytes32 public poolIdAeqWBnb;
     bytes32 public poolIdWBnbBusd;
+
+    address public rewardWallet;
+    uint256 public rewardWalletPercent;
 
     uint256 public busdTokenDenominator;
     uint256 public usdcTokenDenominator;
@@ -75,6 +80,9 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         poolIdBusdUsdcUsdt = params.poolIdBusdUsdcUsdt;
         poolIdAeqWBnb = params.poolIdAeqWBnb;
         poolIdWBnbBusd = params.poolIdWBnbBusd;
+
+        rewardWallet = params.rewardWallet;
+        rewardWalletPercent = params.rewardWalletPercent;
 
         busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
         usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
@@ -246,6 +254,12 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
         uint256 aeqBalance = aeqToken.balanceOf(address(this));
         if (aeqBalance > 0) {
+            // transfer to rewardWallet
+            uint256 rewardBalance = aeqBalance * rewardWalletPercent / 1e4;
+            aeqToken.transfer(rewardWallet, rewardBalance);
+
+            // sell rest tokens
+            uint256 toBalance = aeqBalance - rewardBalance;
             uint256 aeqBusd = AequinoxLibrary.batchSwap(
                 vault,
                 IVault.SwapKind.GIVEN_IN,
@@ -254,7 +268,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
                 busdToken,
                 poolIdAeqWBnb,
                 poolIdWBnbBusd,
-                aeqBalance,
+                toBalance,
                 address(this),
                 address(this)
             );
