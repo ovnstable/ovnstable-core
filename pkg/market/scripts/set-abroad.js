@@ -2,8 +2,8 @@ const {getContract, getPrice} = require("@overnight-contracts/common/utils/scrip
 
 async function main() {
 
-    let contract = await getContract('HedgeExchangerUsdPlusWbnb');
-    await (await contract.setAbroad(1000400, 1001950 )).wait();
+    let contract = await getContract('HedgeExchangerBusdWbnb');
+    await (await contract.setAbroad(1000400, 1001950)).wait();
 
 }
 

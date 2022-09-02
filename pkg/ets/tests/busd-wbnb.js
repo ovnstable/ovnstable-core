@@ -13,6 +13,7 @@ chai.use(require('chai-bignumber')());
 const {waffle} = require("hardhat");
 const {getContract, execTimelock, getERC20, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {transferETH, transferUSDPlus} = require("@overnight-contracts/common/utils/script-utils");
+const {BSC} = require("@overnight-contracts/common/utils/assets");
 const {provider} = waffle;
 
 
@@ -42,6 +43,20 @@ let pancakeRouter = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 let wbnbBusdSlippagePercent = 100; //1%
 let liquidationThreshold = 800;
 let healthFactor = 1350
+
+
+describe("BSC", function () {
+
+    let value =
+        {
+            name: 'StrategyBusdWbnb',
+            enabledReward: false,
+            isRunStrategyLogic: false,
+        };
+
+    strategyTest(value, 'BSC', BSC.usdPlus, () => {
+    });
+});
 
 
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
@@ -110,7 +125,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             strategyName = strategyParams.name;
 
             await deployments.fixture([strategyName, 'ControlBusdWbnb', `${strategyName}Setting`]);
-            
+
             strategy = await ethers.getContract(strategyName);
             let control = await ethers.getContract('ControlBusdWbnb');
             await strategy.setExchanger(recipient.address);
@@ -200,8 +215,8 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                         expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
                         console.log(`expectedNetAsset: ${expectedNetAsset}`)
-                        
-                        await asset.connect(recipient).transfer(strategy.address, assetValue); 
+
+                        await asset.connect(recipient).transfer(strategy.address, assetValue);
                         await strategy.connect(recipient).stake(assetValue);
                         let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                         balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
@@ -325,7 +340,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             strategyName = strategyParams.name;
 
             await deployments.fixture([strategyName, 'ControlBusdWbnb', `${strategyName}Setting`]);
-            
+
             strategy = await ethers.getContract(strategyName);
             let control = await ethers.getContract('ControlBusdWbnb');
             await strategy.setExchanger(recipient.address);
@@ -415,7 +430,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                         expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
                         console.log(`expectedNetAsset: ${expectedNetAsset}`)
-                        
+
                         await asset.connect(recipient).transfer(strategy.address, assetValue);
                         await strategy.connect(recipient).stake(assetValue);
                         let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
@@ -435,7 +450,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                         await ethers.provider.send('evm_mine');
 
                         await strategy.connect(recipient).claimRewards(recipient.address);
-    
+
                         balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         await m2m(strategy);
@@ -458,9 +473,8 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 }
 
 
-
-function fromE6(value){
-    return  value / 10 ** 6;
+function fromE6(value) {
+    return value / 10 ** 6;
 }
 
 async function m2m(strategy) {
