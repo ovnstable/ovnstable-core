@@ -256,12 +256,12 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     function _claimRewards(address _to) internal override returns (uint256){
 
-        uint256 totalBusd;
+        uint256 totalUsdPlus;
 
-        totalBusd += _claimCone();
-        totalBusd += _claimVenus();
+        totalUsdPlus += _claimCone();
+        totalUsdPlus += _claimVenus();
 
-        return totalBusd;
+        return totalUsdPlus;
     }
 
     function _claimVenus() internal returns (uint256) {
