@@ -81,11 +81,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize() initializer public {
+    function initialize(string calldata name, string calldata symbol) initializer public {
         __Context_init_unchained();
 
-        _name = "USD+";
-        _symbol = "USD+";
+        _name = name;
+        _symbol = symbol;
 
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -318,7 +318,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _transfer(sender, recipient, transferAmount);
 
-        uint256 currentAllowance = _allowance(sender, _msgSender());
+        uint256 currentAllowance;
+
+        if(amount == allowance(sender, _msgSender())){
+            currentAllowance = transferAmount;
+        }else{
+            currentAllowance = _allowance(sender, _msgSender());
+        }
+
         require(currentAllowance >= transferAmount, "UsdPlusToken: transfer amount exceeds allowance");
         unchecked {
             _approve(sender, _msgSender(), currentAllowance - transferAmount);

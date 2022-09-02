@@ -2,13 +2,12 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/DystopiaExchange.sol";
-import "./connectors/dystopia/interfaces/IDystopiaLP.sol";
-import "./connectors/aave/interfaces/IPriceFeed.sol";
-import "./connectors/penrose/interface/IUserProxy.sol";
-import "./connectors/penrose/interface/IPenLens.sol";
-import "./libraries/AaveBorrowLibrary.sol";
 import "./interfaces/ISwapper.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
 contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
@@ -222,23 +221,19 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             );
         }
 
-        if (tusdToken.balanceOf(address(this)) > 0) {
-            _swapExactTokensForTokens(
-                address(tusdToken),
-                address(usdcToken),
-                true,
-                tusdToken.balanceOf(address(this)),
-                address(this),
-                0
-            );
-        }
+        // swap tusd to usdc
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
+            address(tusdToken),
+            address(usdcToken),
+            tusdBalance,
+            0,
+            1
+        );
 
-        uint256 returnValue = usdcToken.balanceOf(address(this));
-
-        if (returnValue > _amount) {
-            returnValue = _amount;
-        }
-        return returnValue;
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -277,15 +272,17 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
             );
         }
 
-        if (tusdToken.balanceOf(address(this)) > 0) {
-            _swapExactTokensForTokens(
+        // swap tusd to usdc
+        uint256 tusdBalance = tusdToken.balanceOf(address(this));
+        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
             address(tusdToken),
             address(usdcToken),
-            true,
-            tusdToken.balanceOf(address(this)),
-            address(this),
-            0);
-        }
+            tusdBalance,
+            0,
+            1
+        );
+        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
+        swapper.swap(swapParams);
 
         return usdcToken.balanceOf(address(this));
     }

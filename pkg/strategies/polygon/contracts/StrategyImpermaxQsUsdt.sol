@@ -2,10 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./connectors/impermax/interfaces/IPoolToken.sol";
-import "./connectors/impermax/interfaces/IImpermaxRouter.sol";
-import "./connectors/uniswap/v2/interfaces/IUniswapV2Pair.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Impermax.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 
 contract StrategyImpermaxQsUsdt is Strategy, BalancerExchange {
 

@@ -1,19 +1,16 @@
 const {getContract, initWallet, getPrice, showHedgeM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {toE6} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
-    let wallet = await initWallet();
-
-    let exchanger = await getContract('HedgeExchangerUsdPlusWmatic');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
+    let exchanger = await getContract('HedgeExchangerUsdPlusWbnb');
+    let rebase = await getContract('RebaseTokenUsdPlusWbnb');
 
     await showHedgeM2M();
 
-    let balance = await rebase.balanceOf(wallet.address);
     let params = await getPrice();
-    params.gasLimit = 15000000;
-    await (await rebase.approve(exchanger.address, balance, params)).wait();
-    await (await exchanger.redeem(balance, params)).wait();
+    await (await rebase.approve(exchanger.address, toE6(1), params)).wait();
+    await (await exchanger.redeem(toE6(1), params)).wait();
 
     await showHedgeM2M();
 

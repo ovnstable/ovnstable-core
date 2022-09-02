@@ -198,6 +198,7 @@ task('simulate', 'Simulate transaction on local node')
         });
 
         const fromSigner = await hre.ethers.getSigner(receipt.from);
+        await transferETH(100, receipt.from, hre);
 
         const tx = {
             from: receipt.from,
@@ -217,4 +218,18 @@ task('simulate', 'Simulate transaction on local node')
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+
+async function transferETH(amount, to, hre) {
+
+    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+    let walletWithProvider = new hre.ethers.Wallet(privateKey, hre.ethers.provider);
+
+    await walletWithProvider.sendTransaction({
+        to: to,
+        value: hre.ethers.utils.parseEther(amount+"")
+    });
+
+    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 }

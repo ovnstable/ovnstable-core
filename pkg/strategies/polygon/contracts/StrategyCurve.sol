@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "./exchanges/UniswapV2Exchange.sol";
 import "./core/Strategy.sol";
-import "./connectors/curve/interfaces/IStableSwapPool.sol";
-import "./connectors/curve/interfaces/IRewardsOnlyGauge.sol";
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyCurve is Strategy, UniswapV2Exchange {
 

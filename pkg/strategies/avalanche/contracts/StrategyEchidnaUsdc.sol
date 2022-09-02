@@ -2,12 +2,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./connectors/traderjoe/interfaces/IJoeRouter02.sol";
-import "./connectors/echidna/interfaces/IBooster.sol";
-import "./connectors/echidna/interfaces/IRewardPool.sol";
-import "./connectors/platypus/interfaces/IAsset.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/TraderJoeLibrary.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Echidna.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Platypus.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyEchidnaUsdc is Strategy {

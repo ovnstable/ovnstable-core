@@ -7,7 +7,7 @@ const {DEFAULT} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {core} = require("./core");
-const {fromAsset} = require("./decimals");
+const {fromAsset, toAsset } = require("./decimals");
 
 let ethers = require('hardhat').ethers;
 
@@ -114,12 +114,16 @@ async function getERC20(name){
 
 }
 
-async function getCoreAsset(){
+async function getCoreAsset() {
 
 
-    if (process.env.ETH_NETWORK === 'BSC'){
+    if (process.env.STAND === 'bsc') {
         return await getERC20('busd');
-    }else {
+    } else if (process.env.STAND === 'bsc_usdc') {
+        return await getERC20('usdc');
+    } else if (process.env.STAND === 'bsc_usdt') {
+        return await getERC20('usdt');
+    } else {
         return await getERC20('usdc');
     }
 
@@ -202,6 +206,12 @@ async function getStrategyMapping(){
             break;
         case "optimism":
             url = "https://op.overnight.fi/api/dict/strategies";
+            break;
+        case "bsc_usdc":
+            url = "https://api.overnight.fi/bsc_usdc/dict/strategies";
+            break;
+        case "bsc_usdt":
+            url = "https://api.overnight.fi/bsc_usdt/dict/strategies";
             break;
         default:
             throw Error('Unknown STAND: ' + process.env.STAND);
@@ -293,7 +303,7 @@ async function getPrice(){
     else if(process.env.ETH_NETWORK === 'AVALANCHE')
         params.gasLimit = 8000000;
     else if (process.env.ETH_NETWORK === 'BSC'){
-        params = {gasPrice: "5000000000"}; // BSC gasPrice always 5 GWEI
+        params = {gasPrice: "5000000000", gasLimit:  15000000}; // BSC gasPrice always 5 GWEI
     }else if (process.env.ETH_NETWORK === "OPTIMISM"){
         params = {gasPrice: "1000000", gasLimit: 8000000}; // gasPrice 0.001
     }
@@ -410,15 +420,7 @@ async function checkTimeLockBalance(){
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
     if (new BN(balance.toString()).lt(new BN("10000000000000000000"))){
-        const tx = {
-            from: wallet.address,
-            to: timelock.address,
-            value: toE18(1),
-            nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
-            gasLimit: 229059,
-            gasPrice: await hre.ethers.provider.getGasPrice(),
-        }
-        await wallet.sendTransaction(tx);
+        await transferETH(1, timelock.address);
     }
 
 }
@@ -448,20 +450,24 @@ async function showHedgeM2M() {
     let wallet = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken');
-    let rebase = await getContract('RebaseTokenUsdPlusWmatic');
-    let strategy = await getContract('StrategyUsdPlusWmatic');
+    let rebase = await getContract('RebaseTokenUsdPlusWbnb');
+    let strategy = await getContract('StrategyUsdPlusWbnb');
 
     console.log('User balances:')
-    console.log("Rebase:       " + fromE6(await rebase.balanceOf(wallet.address)))
-    console.log("usdPlus:      " + fromE6(await usdPlus.balanceOf(wallet.address)))
-    console.log('')
+    let user = [];
+    user.push({name: 'Rebase', value: fromE6(await rebase.balanceOf(wallet.address))});
+    user.push({name: 'usdPlus', value: fromE6(await usdPlus.balanceOf(wallet.address))});
+
+    console.table(user);
 
     console.log('ETS balances:')
-    console.log('Total Rebase: ' + fromE6(await rebase.totalSupply()));
-    console.log('Total NAV:    ' + fromE6(await strategy.netAssetValue()));
-    console.log('HF:           ' + fromE6(await strategy.currentHealthFactor()));
-    console.log('Liq index:    ' + await rebase.liquidityIndex());
+    let values = [];
+    values.push({name: 'Total Rebase', value: fromE6(await rebase.totalSupply())});
+    values.push({name: 'Total NAV', value: fromE6((await strategy.netAssetValue()).toString())});
+    values.push({name: 'Liq index', value: (await rebase.liquidityIndex()).toString()});
+    values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
 
+    console.table(values)
 
     let items = await strategy.balances();
 
@@ -472,8 +478,8 @@ async function showHedgeM2M() {
 
         arrays.push({
             name: item[0],
-            amountUSDC: fromE6(item[1].toString()),
-            amount: fromE18(item[2].toString()),
+            amountUSD: fromE6(item[1].toString()),
+            amount: item[2].toString(),
             borrowed: item[3].toString()
         })
 
@@ -482,17 +488,50 @@ async function showHedgeM2M() {
     console.table(arrays);
 }
 
+
 async function getDevWallet(){
 
     let provider = ethers.provider;
     return await new ethers.Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 }
 
+
+async function transferETH(amount, to) {
+
+    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+    let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+
+    await walletWithProvider.sendTransaction({
+        to: to,
+        value: ethers.utils.parseEther(amount+"")
+    });
+
+    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
+}
+
+async function transferUSDPlus(amount, to){
+
+    let usdPlus = await getContract('UsdPlusToken');
+
+    await execTimelock(async (timelock)=>{
+        let exchange = await usdPlus.exchange();
+
+        await usdPlus.connect(timelock).setExchanger(timelock.address);
+        await usdPlus.connect(timelock).mint(to, toAsset(amount));
+        await usdPlus.connect(timelock).setExchanger(exchange);
+    });
+
+    console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
+}
+
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     initWallet: initWallet,
     getDevWallet: getDevWallet,
+    transferETH: transferETH,
+    transferUSDPlus: transferUSDPlus,
     showM2M: showM2M,
     showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,

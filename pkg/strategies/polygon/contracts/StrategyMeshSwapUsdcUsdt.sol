@@ -2,10 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./exchanges/BalancerExchange.sol";
-import "./connectors/meshswap/interfaces/IMeshSwapLP.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/MeshSwap.sol";
 
 contract StrategyMeshSwapUsdcUsdt is Strategy, UniswapV2Exchange, BalancerExchange {
 

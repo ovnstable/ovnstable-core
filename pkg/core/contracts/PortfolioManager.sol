@@ -8,7 +8,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+
 import "./interfaces/IPortfolioManager.sol";
+import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 
 
@@ -24,12 +27,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     mapping(address => uint256) public strategyWeightPositions;
     StrategyWeight[] public strategyWeights;
     IStrategy public cashStrategy;
-
+    IMark2Market public m2m;
 
 
     // ---  events
 
     event ExchangerUpdated(address value);
+    event Mark2MarketUpdated(address value);
     event AssetUpdated(address value);
     event CashStrategyAlreadySet(address value);
     event CashStrategyUpdated(address value);
@@ -95,6 +99,14 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         exchanger = _exchanger;
         emit ExchangerUpdated(_exchanger);
     }
+
+    function setMark2Market(address _m2m) public onlyAdmin {
+        require(_m2m != address(0), "Zero address not allowed");
+
+        m2m = IMark2Market(_m2m);
+        emit Mark2MarketUpdated(_m2m);
+    }
+
 
     function setAsset(address _asset) public onlyAdmin {
         require(_asset != address(0), "Zero address not allowed");
@@ -259,6 +271,14 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function _balance(IERC20 withdrawToken, uint256 withdrawAmount) internal {
 
+        // after balancing, we need to make sure that we did not lose money when:
+        // 1) transferring from one strategy to another
+        // 2) when execute stake/unstake
+
+        // allowable losses 0.04% = USD+ mint/redeem fee
+        uint256 minNavExpected = OvnMath.subBasisPoints(m2m.totalNetAssets(), 4); //0.04%
+        minNavExpected = minNavExpected - withdrawAmount; // subscribe withdraw amount
+
         StrategyWeight[] memory strategies = getAllStrategyWeights();
 
         // 1. calc total asset equivalent
@@ -348,6 +368,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
                 amount
             );
         }
+
+        require(m2m.totalNetAssets() >= minNavExpected, "PM: NAV less than expected");
 
     }
 

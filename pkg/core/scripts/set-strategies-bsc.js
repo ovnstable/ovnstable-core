@@ -2,6 +2,7 @@ const {getContract, getPrice, changeWeightsAndBalance} = require("@overnight-con
 const hre = require("hardhat");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const {toE18} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
@@ -16,8 +17,8 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0xe4Be0f206828Be0B5D48142F465aBD4e57dB58D4",
-            "name": "Stargate Busd",
+            "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
+            "name": "Synapse BUSD",
             "minWeight": 0,
             "targetWeight": 17.5,
             "maxWeight": 100,
@@ -25,12 +26,32 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
-            "name": "Synapse Busd",
+            "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
+            "name": "Unknown BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 80,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": false,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
+            "name": "Cone BUSD/USDC",
+            "minWeight": 0,
+            "targetWeight": 78,
             "maxWeight": 100,
             "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8",
+            "name": "Unknown BUSD/TUSD",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": false,
             "enabledReward": true
         },
     ]
@@ -54,13 +75,14 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
+    await changeWeightsAndBalance(weights);
     // await proposal(weights);
-    await setWeights(weights);
+    // await setWeights(weights);
 }
 
 async function proposal(weights) {
     let pm = await getContract('PortfolioManager');
+    let exchange = await getContract('Exchange');
 
     let addresses = [];
     let values = [];

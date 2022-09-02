@@ -1,0 +1,2923 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x800637a2704FE0104a3a41AdaF54f54aaF37d628",
+      "txHash": "0x6dd3db78155addb21dd937823ec135a83583d6e6a5882019f62e0f7a2be6a181",
+      "kind": "uups"
+    },
+    {
+      "address": "0xEA39C4961Db40f2272Bd2f3a2f9898AADb419d11",
+      "txHash": "0x5325a54cd3a2bddb6928f91bff5b06da3ea735159a0f4f690bed9b18fd400430",
+      "kind": "uups"
+    },
+    {
+      "address": "0x1b224a294920C8c7C534115D3Dcb02dc9fB7C0A6",
+      "txHash": "0x6baf0d8ad90646d6757875670cab6e4b13ca66ef4ef67d731345e95fc82bb706",
+      "kind": "uups"
+    },
+    {
+      "address": "0x579f00bFAf89a3dF06334B97C5f0d2b90AB667EA",
+      "txHash": "0xbae0e7c48d4cf5870a5032f94aab2235bb97964168db687e82376df14c5f0b97",
+      "kind": "uups"
+    },
+    {
+      "address": "0x12137868aA17d31586F2444e3Cd602279FabE6E8",
+      "txHash": "0xc0e183a3f165385aa42baaf48dcf04a458db9011c6768bd869495eca6ce63064",
+      "kind": "uups"
+    },
+    {
+      "address": "0x22dB8575069A52A03262b8fcA85E134da4Be1468",
+      "txHash": "0xedda345cb40f05f04f3bdfd4682e094287c0406cbd13032d9eaca0e85184501e",
+      "kind": "uups"
+    },
+    {
+      "address": "0xbAAc6ED05b2fEb47ef04b63018A27d80cbeA10d1",
+      "txHash": "0x020dcd2dfb274698353c6bf1cdf3c31794991e18b6725b2c8823327bab91d6dc",
+      "kind": "uups"
+    },
+    {
+      "address": "0x0cc9cc5eBFb92bC02F4262d3a8A2286b5e34d90e",
+      "txHash": "0x81384de6bd4ddf75a9709077f0485055e81ffd09624d04179ccb3cc5e47afc1d",
+      "kind": "uups"
+    },
+    {
+      "address": "0xa9F3A8B608922545e8E5f5f8E61161263D70C64e",
+      "txHash": "0xfc2fc992abaed4e23a248493843c269939871aeaf5bc3cf7121bcacf1837eb25",
+      "kind": "uups"
+    },
+    {
+      "address": "0xc6eca7a3b863d720393DFc62494B6eaB22567D37",
+      "txHash": "0xaf88c6c9d6a0bb264997e0644d95c304fd1c99c7acb72318e94295f0ae2b4397",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "22b9c59c9abd136b87cd3b4029a5f974c73e63d417989a2d10501a4a9a9884f2": {
+      "address": "0xcbd9D499A841D26058B7356deE0Df4F43258d971",
+      "txHash": "0xf8b44b80ab9d5442224485d2ccf49d935e0a48b63b4e92c81a137d9252d515bf",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:37"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:39"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:41"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:43"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:44"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol:394"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "asset",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IUsdPlusToken)9148",
+            "contract": "WrappedUsdPlusToken",
+            "src": "contracts/WrappedUsdPlusToken.sol:18"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IUsdPlusToken)9148": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "9ee8a45c9b2ff8f02ae56f3c48ebac1edff7ff8c3200380cf48601c1525ab362": {
+      "address": "0x8130B934c78F1b0E7AEA077F9966E5Df62ADf4Fd",
+      "txHash": "0x30fc4118228d60f0cfda91857115c8f711a176375e2a6078b41c9f070005eb77",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "usdcToken",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(IERC20)2634",
+            "contract": "Market",
+            "src": "contracts/Market.sol:17"
+          },
+          {
+            "label": "usdPlusToken",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_contract(IUsdPlusToken)9148",
+            "contract": "Market",
+            "src": "contracts/Market.sol:18"
+          },
+          {
+            "label": "wrappedUsdPlusToken",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_contract(IWrappedUsdPlusToken)9163",
+            "contract": "Market",
+            "src": "contracts/Market.sol:19"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_contract(IExchange)8848",
+            "contract": "Market",
+            "src": "contracts/Market.sol:21"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)8848": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)9148": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWrappedUsdPlusToken)9163": {
+            "label": "contract IWrappedUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "14a2c536acc434529a6837760bdf6a77490a60fe6c44bc642a1b8f3087ac5c2c": {
+      "address": "0xBf409666D08Cf66deF64908b557EFaC58a57Ef0E",
+      "txHash": "0xe43ab41fc143d24c67564d0ff955de2a861d1acc812e33df56c547469ad981f1",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4938",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9539",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5096",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2634",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9745",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4938": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9539": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9745": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5096": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "2f11783d8bd5fcf2cf834e787744d32ff7567d89a2298e5e4022f1520cd5e1ac": {
+      "address": "0xa9f907595F902abeDbFe46296Acd1F286c61Ca66",
+      "txHash": "0x3fc3eb7a0dfca7ed2867703d20adde9a818b8c41f64f8515e68a34bbed835dfc",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:21"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:22"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:24"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_string_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:26"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_string_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:27"
+          },
+          {
+            "label": "_totalMint",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:31"
+          },
+          {
+            "label": "_totalBurn",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:32"
+          },
+          {
+            "label": "liquidityIndexChangeTime",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:34"
+          },
+          {
+            "label": "liquidityIndex",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:35"
+          },
+          {
+            "label": "liquidityIndexDenominator",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:36"
+          },
+          {
+            "label": "_owners",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_struct(AddressSet)2971_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:38"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_address",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:40"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AddressSet)2971_storage": {
+            "label": "struct EnumerableSet.AddressSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)2670_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Set)2670_storage": {
+            "label": "struct EnumerableSet.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "002d9f31f4f4dd1fa98e40c7b7f1072fd00dc843ed35c094612030c3236459c4": {
+      "address": "0xd74B5a7310Da879C50f5e3c73610c5574E203faC",
+      "txHash": "0x674cfcc40d544dc3109c0c2f714b0c8e584970d27d8b9663989c75e8914d6d69",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4938",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9518",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5096",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2634",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9724",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4938": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9518": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9724": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5096": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "0eca60a85de8f4df060aee90dc743052ad64bb74be58d46355f4c19dd788420d": {
+      "address": "0x8e39bd1Ef3573CA811cfbE7b31f3C3585C8680d9",
+      "txHash": "0xaf86709a31039432493fcbf48052646d826c1e81a10f274af8f53b40bfc354a1",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4938",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9542",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5096",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2634",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9748",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          },
+          {
+            "label": "abroadMax",
+            "offset": 0,
+            "slot": "320",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:55"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4938": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9542": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9748": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5096": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "bc5893d70415ef14310935867efaa13e5c2e93f580973c3d959c82a6c5ff472f": {
+      "address": "0x270dF474f4bd2B92A45A46228683c971765E81A7",
+      "txHash": "0x185c1573a849556007f69f8189909c5face9fed8ffb1d5197ba2375d59ebee0a",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4938",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9544",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5096",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2634",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9750",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          },
+          {
+            "label": "abroadMax",
+            "offset": 0,
+            "slot": "320",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:55"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4938": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9544": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9750": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5096": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "1ea150f422dbcd7e796e98fcd1c026032350ee5f422cabb9dc750cf21a82772d": {
+      "address": "0xA00814B3AD626eBA2Ea2bC73B7341fF116781134",
+      "txHash": "0x944d45a388ac888cf1778a5b470b912b0b3dda6e932e1fecf61244bce6520dae",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4938",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9566",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5096",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2634",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9772",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          },
+          {
+            "label": "abroadMax",
+            "offset": 0,
+            "slot": "320",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:55"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2634": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4938": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9566": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9772": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5096": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "37002be01c5b26241d95dfa50fd30b4ad2256dcec02e48393d4699beae769b61": {
+      "address": "0x9134a1605230E48e24b94829bD816309ebb95AC8",
+      "txHash": "0x3dbf5f2a46b2ff1477fffcc9a011a046f970ff3396270e54585cb3d5b6e5fbae",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:21"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:22"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:24"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_string_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:26"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_string_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:27"
+          },
+          {
+            "label": "_totalMint",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:31"
+          },
+          {
+            "label": "_totalBurn",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:32"
+          },
+          {
+            "label": "liquidityIndexChangeTime",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:34"
+          },
+          {
+            "label": "liquidityIndex",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:35"
+          },
+          {
+            "label": "liquidityIndexDenominator",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_uint256",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:36"
+          },
+          {
+            "label": "_owners",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_struct(AddressSet)2923_storage",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:38"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_address",
+            "contract": "RebaseToken",
+            "src": "contracts/RebaseToken.sol:40"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AddressSet)2923_storage": {
+            "label": "struct EnumerableSet.AddressSet",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)2622_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Set)2622_storage": {
+            "label": "struct EnumerableSet.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "0c6820f3afbc512fc53866b61fe71f987a85c1fd88fc05fcb095f2386240f3d9": {
+      "address": "0x672E22C28E3DeF2423C3358C3CE4A00ee43b533E",
+      "txHash": "0x4e8ca96d72eb729d5e08d47f7ee786fe7598a41c18f0e724288403df4a6273d3",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:102"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IExchange)4890",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:28"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IHedgeStrategy)9518",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IUsdPlusToken)5048",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:30"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2586",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:31"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IRebaseToken)9724",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:32"
+          },
+          {
+            "label": "collector",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:34"
+          },
+          {
+            "label": "buyFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:36"
+          },
+          {
+            "label": "buyFeeDenominator",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:37"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:39"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:40"
+          },
+          {
+            "label": "tvlFee",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:42"
+          },
+          {
+            "label": "tvlFeeDenominator",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:43"
+          },
+          {
+            "label": "profitFee",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:45"
+          },
+          {
+            "label": "profitFeeDenominator",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:46"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:48"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:49"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:50"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:52"
+          },
+          {
+            "label": "abroadMin",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:54"
+          },
+          {
+            "label": "abroadMax",
+            "offset": 0,
+            "slot": "320",
+            "type": "t_uint256",
+            "contract": "HedgeExchanger",
+            "src": "contracts/HedgeExchanger.sol:55"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2586": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)4890": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHedgeStrategy)9518": {
+            "label": "contract IHedgeStrategy",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)9724": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUsdPlusToken)5048": {
+            "label": "contract IUsdPlusToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}

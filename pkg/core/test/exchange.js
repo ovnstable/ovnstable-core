@@ -155,12 +155,12 @@ describe("Exchange", function () {
 
 
             let balanceBefore = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
-            let sumUsdPlus = toE6(10);
+            let sumUsdPlus = toE6(5);
             await usdPlus.approve(exchange.address, sumUsdPlus);
             await exchange.redeem(asset.address, sumUsdPlus);
             let balanceAfter = new BigNumber(fromAsset((await asset.balanceOf(account)).toString()));
 
-            expect(10).to.equal(balanceAfter.minus(balanceBefore).toNumber());
+            expect(5).to.equal(balanceAfter.minus(balanceBefore).toNumber());
 
         });
 
@@ -348,7 +348,7 @@ describe("Exchange", function () {
             );
         });
 
-        it("buy into redeem fail", async function () {
+        it("buy into redeem should fail", async function () {
             await expectRevert(
                 multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toE6(1)),
                 "Only once in block"
@@ -369,6 +369,25 @@ describe("Exchange", function () {
             );
         });
 
+        it("two buys should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("buy into redeem should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("two redeems should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.redeem2(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
+
+        it("redeem into buy should pass with FREE_RIDER_ROLE", async function () {
+            await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+            await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toAsset(1), toAsset(1));
+        });
     });
 
     describe("Payout", function () {

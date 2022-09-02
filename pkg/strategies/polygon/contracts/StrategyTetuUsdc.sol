@@ -2,9 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./connectors/tetu/interfaces/ISmartVault.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Tetu.sol";
 
 contract StrategyTetuUsdc is Strategy, UniswapV2Exchange {
 

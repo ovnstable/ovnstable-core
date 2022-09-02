@@ -8,8 +8,8 @@ async function main() {
 
 
     // let dai = new BN(3.3);
-    let dodo = new BN(14.7);
-    let tusd = new BN(14.3);
+    let dodo = new BN(17);
+    let tusd = new BN(13);
 
     for (let i = 0; i < 10; i++) {
 
@@ -19,8 +19,8 @@ async function main() {
         console.log('TUSD: ' + tusd.toNumber())
 
         // dai = dai.minus(0.1);
-        // dodo = dodo.minus(0.3);
-        // tusd = tusd.plus(0.3);
+        dodo = dodo.plus(0.5);
+        tusd = tusd.minus(0.5);
 
         if (tusd.toNumber() > 15){
             console.log('Finish balance.')
@@ -65,7 +65,7 @@ async function main() {
                 "strategy": "0xb1c1e7190100272cF6109aF722C3c1cfD9259c7a",
                 "name": "Dystopia USDC/DAI",
                 "minWeight": 0,
-                "targetWeight": 10,
+                "targetWeight": 1,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -74,7 +74,7 @@ async function main() {
                 "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
                 "name": "Synapse USDC",
                 "minWeight": 0,
-                "targetWeight": 48,
+                "targetWeight": 65,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -93,7 +93,7 @@ async function main() {
                 "strategy": "0x6343F143708Cc3d2130f94a4dd90fC4cD9440393",
                 "name": "Penrose USDC/USDT",
                 "minWeight": 0,
-                "targetWeight": 10,
+                "targetWeight": 1,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true

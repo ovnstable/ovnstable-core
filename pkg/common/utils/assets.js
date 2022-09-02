@@ -12,10 +12,25 @@ let AVALANCHE = {
 }
 
 let BSC = {
+    // coins
+    usdPlus: "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",
     wBnb: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
     busd: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
     vBusd: "0x95c78222B3D6e262426483D42CfA53685A67Ab9D",
+    usdc: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    vUsdc: "0xecA88125a5ADbe82614ffC12D0DB554E2e2867C8",
+    usdt: "0x55d398326f99059fF775485246999027B3197955",
+    vUsdt: "0xfD5840Cd36d94D7229439859C0112a4185BC0255",
+    tusd: "0x14016E85a25aeb13065688cAFB43044C2ef86784",
+    // swaps
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    // oracles
+    chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
+    chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",
+    chainlinkUsdt: "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
+    chainlinkTusd: "0xa3334A9762090E827413A7495AfeCE76F41dFc06",
+    // corporative wallet
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
 let OPTIMISM = {
@@ -109,7 +124,7 @@ let POLYGON = {
     balancerPoolIdWmaticMtaWeth: "0x614b5038611729ed49e0ded154d8a5d3af9d1d9e00010000000000000000001d",
     uniswapV3PositionManager: "0xc36442b4a4522e871399cd717abdd847ab11fe88",
     uniswapV3Pool: "0x3F5228d0e7D75467366be7De2c31D0d098bA2C23",
-    uniswapV3Router: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     izumiBoost: "0x01cc44fc1246d17681b325926865cdb6242277a5",
     uniswapNftToken: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
     aaveCurve: "0x445fe580ef8d70ff569ab36e80c647af338db351",
@@ -125,6 +140,7 @@ let POLYGON = {
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
     oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
 }
 
 let DEFAULT = POLYGON;

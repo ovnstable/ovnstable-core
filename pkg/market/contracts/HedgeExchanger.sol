@@ -6,11 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "./libraries/WadRayMath.sol";
-import "./libraries/OvnMath.sol";
+
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
+
+import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
+import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
+
 import "./interfaces/IRebaseToken.sol";
-import "./interfaces/IUsdPlusToken.sol";
-import "./interfaces/IExchange.sol";
 import "./interfaces/IHedgeStrategy.sol";
 
 import "hardhat/console.sol";
@@ -25,7 +28,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     IExchange public exchange;
     IHedgeStrategy public strategy;
     IUsdPlusToken public usdPlus;
-    IERC20 public usdc;
+    IERC20 public usdc; // unused field
     IRebaseToken public rebase;
 
     address collector;
@@ -49,10 +52,11 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     uint256 public lastBlockNumber;
 
     uint256 public abroadMin;
+    uint256 public abroadMax;
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address rebase, address usdc);
+    event TokensUpdated(address usdPlus, address rebase);
 
     event CollectorUpdated(address collector);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -62,10 +66,10 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
 
-    event EventExchange(string label, uint256 amount, uint256 fee, address sender);
+    event EventExchange(string label, uint256 amount, uint256 fee, address sender, string refferal);
     event PayoutEvent(uint256 tvlFee, uint256 profitFee, uint256 profit, uint256 loss);
     event NextPayoutTime(uint256 nextPayoutTime);
-    event Abroad(uint256 min);
+    event Abroad(uint256 min, uint256 max);
 
     // ---  modifiers
 
@@ -116,6 +120,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         payoutTimeRange = 15 * 60;
 
         abroadMin = 1000400;
+        abroadMax = 1000950;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -134,14 +139,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     }
 
-    function setTokens(address _usdPlus, address _rebase, address _usdc) external onlyAdmin {
+    function setTokens(address _usdPlus, address _rebase) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_rebase != address(0), "Zero address not allowed");
-        require(_usdc != address(0), "Zero address not allowed");
         usdPlus = IUsdPlusToken(_usdPlus);
         rebase = IRebaseToken(_rebase);
-        usdc = IERC20(_usdc);
-        emit TokensUpdated(_usdPlus, _rebase, _usdc);
+        emit TokensUpdated(_usdPlus, _rebase );
     }
 
     function setStrategy(address _strategy) external onlyAdmin {
@@ -182,9 +185,10 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         emit ProfitFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-    function setAbroad(uint256 _min) external onlyAdmin {
+    function setAbroad(uint256 _min , uint256 _max) external onlyAdmin {
         abroadMin = _min;
-        emit Abroad(abroadMin);
+        abroadMax = _max;
+        emit Abroad(abroadMin, abroadMax);
     }
 
 
@@ -214,12 +218,8 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
 
-    function balance() public view returns (uint256) {
-        return usdPlus.balanceOf(msg.sender);
-    }
 
-
-    function buy(uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+    function buy(uint256 _amount, string calldata referral) external whenNotPaused oncePerBlock returns (uint256) {
         uint256 currentBalance = usdPlus.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
@@ -235,7 +235,12 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         rebase.mint(msg.sender, buyAmount);
 
-        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
+        // Add fees to collector
+        if (buyFeeAmount > 0) {
+            rebase.mint(collector, buyFeeAmount);
+        }
+
+        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender, referral);
 
         return buyAmount;
     }
@@ -254,16 +259,28 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
         // Or just burn from sender
         rebase.burn(msg.sender, _amount);
 
+        // Add fees to collector
+        if (redeemFeeAmount > 0) {
+            rebase.mint(collector, redeemFeeAmount);
+        }
+
         require(usdPlus.balanceOf(address(this)) >= unstakedAmount, "Not enough for transfer unstakedAmount");
         usdPlus.transfer(msg.sender, redeemAmount);
 
-        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
+        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
         return redeemAmount;
     }
 
     function payout() public whenNotPaused {
         _payout();
+    }
+
+    function balance() public {
+
+        uint256 navExpected = OvnMath.subBasisPoints(strategy.netAssetValue(), 15); // 0.15%
+        strategy.balance();
+        require(strategy.netAssetValue() > navExpected, 'nav less than expected');
     }
 
     function _payout() internal {
@@ -273,11 +290,7 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         strategy.claimRewards(address(strategy));
 
-        uint256 navExpected = OvnMath.subBasisPoints(strategy.netAssetValue(), 15); // 0.15%
-
-        strategy.balance();
-
-        require(strategy.netAssetValue() > navExpected, 'nav less than expected');
+        balance();
 
         uint256 totalRebase = rebase.totalSupply();       // Total supply with liq index
         uint256 totalUsdc = strategy.netAssetValue();     // Strategy NAV
@@ -314,6 +327,10 @@ contract HedgeExchanger is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         if (delta <= abroadMin) {
             revert('Delta abroad:min');
+        }
+
+        if (abroadMax <= delta) {
+            revert('Delta abroad:max');
         }
 
         rebase.setLiquidityIndex(newLiquidityIndex);

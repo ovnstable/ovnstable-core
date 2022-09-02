@@ -2,14 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "./libraries/OvnMath.sol";
-import "./exchanges/UniswapV2Exchange.sol";
-import "./exchanges/SynapseExchange.sol";
-import "./connectors/stargate/interfaces/IStargateRouter.sol";
-import "./connectors/stargate/interfaces/IStargatePool.sol";
-import "./connectors/stargate/interfaces/ILPStaking.sol";
-import "./connectors/aave/interfaces/IPriceFeed.sol";
-import "./libraries/AaveBorrowLibrary.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Stargate.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
 
 contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
