@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Aequinox.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
@@ -109,7 +109,9 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
             }
         }
 
+        // Exact Tokens Join (EXACT_TOKENS_IN_FOR_BPT_OUT) spend all _amount
         uint256 joinKind = 1;
+        // minimum LP tokens to receive
         uint256 minimumBPT = 0;
         bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
 
@@ -152,14 +154,21 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
             }
         }
 
-        uint256 exitKind = 0;
-        uint256 exitTokenIndex = 2;
-        bytes memory userData = abi.encode(exitKind, amountLp, exitTokenIndex);
+        // Custom Exit (BPT_IN_FOR_EXACT_TOKENS_OUT) spend all _amount
+        uint256 exitKind = 2;
+        // maximum LP tokens to spend
+        uint256 maxBPTAmountIn = amountLp;
+        bytes memory userData = abi.encode(exitKind, minAmountsOut, maxBPTAmountIn);
 
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
 
         // exit pool
         vault.exitPool(poolIdBusdUsdcUsdt, address(this), payable(address(this)), request);
+
+        // stake unused lp back
+        uint256 lpBalance = lpToken.balanceOf(address(this));
+        lpToken.approve(address(gauge), lpBalance);
+        gauge.deposit(lpBalance);
 
         return busdToken.balanceOf(address(this));
     }
@@ -190,7 +199,9 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
             }
         }
 
+        // Single Asset Exit (EXACT_BPT_IN_FOR_ONE_TOKEN_OUT) spend all LP tokens
         uint256 exitKind = 0;
+        // BUSD index in pool
         uint256 exitTokenIndex = 2;
         bytes memory userData = abi.encode(exitKind, amountLp, exitTokenIndex);
 
@@ -235,7 +246,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
         uint256 aeqBalance = aeqToken.balanceOf(address(this));
         if (aeqBalance > 0) {
-            uint256 aeqBusd = BalancerLibrary.batchSwap(
+            uint256 aeqBusd = AequinoxLibrary.batchSwap(
                 vault,
                 IVault.SwapKind.GIVEN_IN,
                 aeqToken,
@@ -266,7 +277,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         for (uint256 i; i < 3; i++) {
             uint256 tokenBalance = balances[i] * lpBalance / lpTotalSupply;
             if (tokens[i] == usdtToken) {
-                totalBalanceBusd += BalancerLibrary.queryBatchSwap(
+                totalBalanceBusd += AequinoxLibrary.queryBatchSwap(
                     vault,
                     IVault.SwapKind.GIVEN_IN,
                     tokens[i],
@@ -277,7 +288,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
                     address(this)
                 );
             } else if (tokens[i] == usdcToken) {
-                totalBalanceBusd += BalancerLibrary.queryBatchSwap(
+                totalBalanceBusd += AequinoxLibrary.queryBatchSwap(
                     vault,
                     IVault.SwapKind.GIVEN_IN,
                     tokens[i],
