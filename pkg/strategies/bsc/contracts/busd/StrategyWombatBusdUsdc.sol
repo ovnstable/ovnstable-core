@@ -233,6 +233,9 @@ contract StrategyWombatBusdUsdc is Strategy {
                 (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdcToken), assetBalance);
                 usdcBalance += usdcAmount;
             }
+        }
+
+        if (usdcBalance > 0) {
             busdBalance += SynapseLibrary.calculateSwap(
                 synapseStableSwapPool,
                 address(usdcToken),
