@@ -414,8 +414,13 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
                     await strategy.connect(recipient).stake(asset.address, assetValue);
 
-                    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-                    await ethers.provider.send("evm_increaseTime", [sevenDays])
+                    let delay;
+                    if (strategyParams.delay) {
+                        delay = strategyParams.delay;
+                    } else {
+                        delay = 7 * 24 * 60 * 60 * 1000;
+                    }
+                    await ethers.provider.send("evm_increaseTime", [delay]);
                     await ethers.provider.send('evm_mine');
 
                     if (strategyParams.doubleStakeReward) {

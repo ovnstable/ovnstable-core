@@ -11,6 +11,7 @@ let poolIdBusdUsdcUsdt = '0xb3a07a9cef918b2ccec4bc85c6f2a7975c5e83f9000000000000
 let poolIdAeqWBnb = '0x7a09ddf458fda6e324a97d1a8e4304856fb3e702000200000000000000000000';
 let poolIdWBnbBusd = '0x5ba2bc395b511ecf3f7c7f4f6c5de3c5586239ae000200000000000000000004';
 let rewardWalletPercent = 2000; // 20%
+let balancerMinter = '0x513f235C0bCCdeeecb81e2688453CAfaDf65c5e3';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -35,6 +36,7 @@ module.exports = async ({deployments}) => {
                 poolIdWBnbBusd: poolIdWBnbBusd,
                 rewardWallet: BSC.rewardWallet,
                 rewardWalletPercent: rewardWalletPercent,
+                balancerMinter: balancerMinter,
             }
         )).wait();
     });

@@ -24,6 +24,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         bytes32 poolIdWBnbBusd;
         address rewardWallet;
         uint256 rewardWalletPercent;
+        address balancerMinter;
     }
 
     // --- params
@@ -49,6 +50,8 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     uint256 public usdcTokenDenominator;
     uint256 public usdtTokenDenominator;
     uint256 public lpTokenDenominator;
+
+    IBalancerMinter public balancerMinter;
 
     // --- events
 
@@ -88,6 +91,8 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
         usdtTokenDenominator = 10 ** IERC20Metadata(params.usdtToken).decimals();
         lpTokenDenominator = 10 ** IERC20Metadata(params.lpToken).decimals();
+
+        balancerMinter = IBalancerMinter(params.balancerMinter);
 
         emit StrategyUpdatedParams();
     }
@@ -246,7 +251,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         // claim rewards
         uint256 lpBalance = gauge.balanceOf(address(this));
         if (lpBalance > 0) {
-            gauge.claim_rewards();
+            balancerMinter.mint(address(gauge));
         }
 
         // sell rewards

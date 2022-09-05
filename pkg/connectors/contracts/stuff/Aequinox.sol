@@ -632,6 +632,42 @@ interface IBalancerHelpers {
 }
 
 
+interface IBalancerMinter {
+    /**
+     * @notice Mint everything which belongs to `msg.sender` and send to them
+     * @param gauge `LiquidityGauge` address to get mintable amount from
+     */
+    function mint(address gauge) external returns (uint256);
+
+    /**
+     * @notice Mint everything which belongs to `msg.sender` across multiple gauges
+     * @param gauges List of `LiquidityGauge` addresses
+     */
+    function mintMany(address[] calldata gauges) external returns (uint256);
+
+    /**
+     * @notice Mint tokens for `user`
+     * @dev Only possible when `msg.sender` has been approved by `user` to mint on their behalf
+     * @param gauge `LiquidityGauge` address to get mintable amount from
+     * @param user Address to mint to
+     */
+    function mintFor(address gauge, address user) external returns (uint256);
+
+    /**
+     * @notice Mint tokens for `user` across multiple gauges
+     * @dev Only possible when `msg.sender` has been approved by `user` to mint on their behalf
+     * @param gauges List of `LiquidityGauge` addresses
+     * @param user Address to mint to
+     */
+    function mintManyFor(address[] calldata gauges, address user) external returns (uint256);
+
+    /**
+     * @notice The total number of tokens minted for `user` from `gauge`
+     */
+    function minted(address user, address gauge) external view returns (uint256);
+}
+
+
 library AequinoxLibrary {
 
     function queryBatchSwap(
