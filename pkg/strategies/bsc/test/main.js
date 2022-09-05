@@ -67,6 +67,7 @@ let arrays = [
     {
         name: 'StrategyAequinoxBusdUsdcUsdt',
         enabledReward: true,
+        delay: 60 * 60 * 1000,
     },
 ];
 
