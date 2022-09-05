@@ -3,6 +3,7 @@ const hre = require("hardhat");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 const {toE18} = require("@overnight-contracts/common/utils/decimals");
+const {BSC} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
 
@@ -39,7 +40,7 @@ async function main() {
             "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 70.5,
+            "targetWeight": 68.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -57,6 +58,26 @@ async function main() {
         {
             "strategy": "0x9D430C0A05da519335ee022ECF8f7690F1d402Ba",
             "name": "Aequinox BUSD",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x0A1d6cA79cf1A346C458FD21511d5D5509817401",
+            "name": "Wombat BUSD",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0xd7516e2164BB5dfa47E36A126192Adc660C779c9",
+            "name": "Wombat BUSD/USDC",
             "minWeight": 0,
             "targetWeight": 1,
             "maxWeight": 100,
