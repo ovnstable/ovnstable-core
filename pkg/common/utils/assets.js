@@ -24,6 +24,7 @@ let BSC = {
     tusd: "0x14016E85a25aeb13065688cAFB43044C2ef86784",
     // swaps
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    synapseStableSwapPool: '0x28ec0B36F0819ecB5005cAB836F4ED5a2eCa4D13',
     // oracles
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
     chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",

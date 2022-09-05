@@ -2,11 +2,11 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {BSC} = require("@overnight-contracts/common/utils/assets");
 
-let coneToken = '0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9';
-let coneRouter = '0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F';
-let conePair = '0xF9D8A57c4F0bE3BDc6857Ee568F6B23FF9c4d1c6';
-let coneGauge = '0x44c890Fcfd2D2cdfDa40aCaCa715375C6DA57821';
-let rewardWalletPercent = 2000; // 20%
+let womToken = '0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1';
+let asset = '0xb43Ee2863370a56D3b7743EDCd8407259100b8e2';
+let pool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
+let masterWombat = '0xE2C07d20AF0Fb50CAE6cDD615CA44AbaAA31F9c8';
+let rewardWalletPercent = 5000; // 50%
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -20,14 +20,12 @@ module.exports = async ({deployments}) => {
             {
                 busdToken: BSC.busd,
                 usdcToken: BSC.usdc,
-                wBnbToken: BSC.wBnb,
-                coneToken: coneToken,
-                coneRouter: coneRouter,
-                conePair: conePair,
-                coneGauge: coneGauge,
+                womToken: womToken,
+                asset: asset,
+                pool: pool,
+                masterWombat: masterWombat,
                 synapseStableSwapPool: BSC.synapseStableSwapPool,
-                chainlinkBusd: BSC.chainlinkBusd,
-                chainlinkUsdc: BSC.chainlinkUsdc,
+                pancakeRouter: BSC.pancakeRouter,
                 rewardWallet: BSC.rewardWallet,
                 rewardWalletPercent: rewardWalletPercent,
             }
@@ -35,4 +33,4 @@ module.exports = async ({deployments}) => {
     });
 };
 
-module.exports.tags = ['StrategyConeBusdUsdc'];
+module.exports.tags = ['StrategyWombatBusdUsdc'];

@@ -6,7 +6,6 @@ let coneToken = '0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9';
 let coneRouter = '0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F';
 let conePair = '0xF9D8A57c4F0bE3BDc6857Ee568F6B23FF9c4d1c6';
 let coneGauge = '0x44c890Fcfd2D2cdfDa40aCaCa715375C6DA57821';
-let synapseStableSwapPool = '0x28ec0B36F0819ecB5005cAB836F4ED5a2eCa4D13';
 let rewardWalletPercent = 2000; // 20%
 let unkwnToken = '0xD7FbBf5CB43b4A902A8c994D94e821f3149441c7';
 let unkwnUserProxy = '0xAED5a268dEE37677584af58CCC2b9e3c83Ab7dd8';
@@ -30,7 +29,7 @@ module.exports = async ({deployments}) => {
                 coneRouter: coneRouter,
                 conePair: conePair,
                 coneGauge: coneGauge,
-                synapseStableSwapPool: synapseStableSwapPool,
+                synapseStableSwapPool: BSC.synapseStableSwapPool,
                 chainlinkBusd: BSC.chainlinkBusd,
                 chainlinkUsdc: BSC.chainlinkUsdc,
                 rewardWallet: BSC.rewardWallet,
