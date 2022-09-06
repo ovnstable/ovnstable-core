@@ -30,7 +30,7 @@ async function main() {
             "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
             "name": "Unknown BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -40,7 +40,7 @@ async function main() {
             "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 68.5,
+            "targetWeight": 40,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -59,31 +59,12 @@ async function main() {
             "strategy": "0x9D430C0A05da519335ee022ECF8f7690F1d402Ba",
             "name": "Aequinox BUSD",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 17.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
 
-        {
-            "strategy": "0x0A1d6cA79cf1A346C458FD21511d5D5509817401",
-            "name": "Wombat BUSD",
-            "minWeight": 0,
-            "targetWeight": 1,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-
-        {
-            "strategy": "0xd7516e2164BB5dfa47E36A126192Adc660C779c9",
-            "name": "Wombat BUSD/USDC",
-            "minWeight": 0,
-            "targetWeight": 1,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
     ]
 
     let totalWeight = 0;
@@ -105,8 +86,8 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await proposal(weights);
+    // await changeWeightsAndBalance(weights);
+    await proposal(weights);
     // await setWeights(weights);
 }
 
