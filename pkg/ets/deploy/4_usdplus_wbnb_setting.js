@@ -30,7 +30,7 @@ let pancakeRouter = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
 let wbnbBusdSlippagePercent = 100; //1%
 let liquidationThreshold = 800;
-let healthFactor = 1350
+let healthFactor = 1200
 
 
 module.exports = async () => {

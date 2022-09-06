@@ -17,7 +17,7 @@ let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
 let wmaticUsdcSlippagePersent = 50; //0.5%
 
 let liquidationThreshold = 850;
-let healthFactor = 1350
+let healthFactor = 1200
 let balancingDelta = 1;
 
 module.exports = async () => {
