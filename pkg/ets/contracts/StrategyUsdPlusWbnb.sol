@@ -346,31 +346,35 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
         veDist.claim(veConeId);
-        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
-        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
+
+        uint256 coneAmount = coneToken.balanceOf(address(this));
+        if(coneAmount > 0){
+            coneToken.approve(address(veCone), coneAmount);
+            veCone.increaseAmount(veConeId, coneAmount);
+        }
+
         veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
         coneVoter.vote(veConeId, _poolVote, _weights);
     }
 
-    function claimBribes() external onlyPortfolioAgent {
+    function claimBribes(address[] calldata _bribes , address[][] calldata _tokens) external onlyPortfolioAgent {
 
-        address bribe = coneGauge.bribe();
-
-        address[] memory bribes = new address[](1);
-        bribes[0] = bribe;
-
-        address[][] memory tokens = new address[][](3);
-        tokens[0] = new address[](3);
-        tokens[0][0] = address(coneToken);
-        tokens[0][1] = address(wbnb);
-        tokens[0][2] = address(usdPlus);
-
-        coneVoter.claimBribes(bribes, tokens, veConeId);
+        coneVoter.claimBribes(_bribes, _tokens, veConeId);
 
         uint256 wbnbAmount = wbnb.balanceOf(address(this));
+        uint256 busdAmount = busd.balanceOf(address(this));
         uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
         uint256 coneAmount = coneToken.balanceOf(address(this));
 
+//        console.log('claimBribes');
+//        console.log('WBNB %s', wbnbAmount);
+//        console.log('BUSD %s', busdAmount);
+//        console.log('USD+ %s', usdPlusAmount);
+//        console.log('CONE %s', coneAmount);
+
+        if(busdAmount > 0){
+            busd.transfer(collector, busdAmount);
+        }
 
         if (wbnbAmount > 0) {
             wbnb.transfer(collector, wbnbAmount);
