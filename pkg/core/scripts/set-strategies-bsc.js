@@ -21,7 +21,7 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse BUSD",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 17.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -40,7 +40,7 @@ async function main() {
             "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
             "name": "Cone BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 40,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -59,7 +59,7 @@ async function main() {
             "strategy": "0x9D430C0A05da519335ee022ECF8f7690F1d402Ba",
             "name": "Aequinox BUSD",
             "minWeight": 0,
-            "targetWeight": 17.5,
+            "targetWeight": 35,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
