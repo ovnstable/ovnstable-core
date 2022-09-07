@@ -65,7 +65,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
     event PayoutListenerUpdated(address payoutListener);
 
-    event EventExchange(string label, uint256 amount, uint256 fee, address sender);
+    event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
     event PayoutEvent(
         uint256 totalUsdPlus,
         uint256 totalAsset,
@@ -212,17 +212,31 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _unpause();
     }
 
-
-    function balance() public view returns (uint256) {
-        return usdPlus.balanceOf(msg.sender);
+    struct MintParams{
+        address asset;   // USDC | BUSD depends at chain
+        uint256 amount;  // amount asset
+        string referral; // code from Referral Program -> if not have -> set empty
     }
+
+    // Minting USD+ in exchange for an asset
+
+    function mint(MintParams calldata params) external whenNotPaused oncePerBlock returns (uint256) {
+        return _buy(params.asset, params.amount, params.referral);
+    }
+
+    // Deprecated method - not recommended for use
+    function buy(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+        return _buy(_asset, _amount, "");
+    }
+
 
     /**
      * @param _asset Asset to spend
      * @param _amount Amount of asset to spend
+     * @param _referral Referral code
      * @return Amount of minted USD+ to caller
      */
-    function buy(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+    function _buy(address _asset, uint256 _amount, string memory _referral) internal  returns (uint256) {
         require(_asset == address(usdc), "Only asset available for buy");
 
         uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
@@ -256,7 +270,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         usdPlus.mint(msg.sender, buyAmount);
 
-        emit EventExchange("buy", buyAmount, buyFeeAmount, msg.sender);
+        emit EventExchange("mint", buyAmount, buyFeeAmount, msg.sender, _referral);
 
         return buyAmount;
     }
@@ -305,7 +319,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         );
         IERC20(_asset).transfer(msg.sender, unstakedAmount);
 
-        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender);
+        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
         return unstakedAmount;
     }
