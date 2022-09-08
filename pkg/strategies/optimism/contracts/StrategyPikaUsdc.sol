@@ -136,10 +136,11 @@ contract StrategyPikaUsdc is Strategy {
 
         uint256 balanceUSDC = usdcToken.balanceOf(address(this));
 
-        pikaFeeReward.claimReward();
         // claim OP
-        pikaTokenReward.getReward();
+        pikaFeeReward.claimReward();
+
         // claim USDC
+        pikaTokenReward.getReward();
 
         uint256 totalUsdc = usdcToken.balanceOf(address(this)) - balanceUSDC;
         // calc reward USDC value
