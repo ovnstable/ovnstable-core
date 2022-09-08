@@ -1,4 +1,4 @@
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -18,7 +18,25 @@ async function main() {
             "strategy": "0xF7d693CE960e70721F0353F967360046Ba7d4eFA",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 97.5,
+            "targetWeight": 60,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x9520aEF41161f09Dce78a8e79482b654d4FFe641",
+            "name": "Pika USDC",
+            "minWeight": 0,
+            "targetWeight": 26,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x6C93A2A9eBC61ce664eE3D44531B76365150BFd8",
+            "name": "Rubicon USDC",
+            "minWeight": 0,
+            "targetWeight": 11.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -44,9 +62,9 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
+    await changeWeightsAndBalance(weights);
     // await proposal(weights);
-    await setWeights(weights);
+    // await setWeights(weights);
 }
 
 async function proposal(weights) {
