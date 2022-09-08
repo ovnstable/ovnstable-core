@@ -75,8 +75,8 @@ contract StrategyRubiconUsdc is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        // feeBPS = rubicon withdraw fee - 0.03% in 3 bp
-        uint256 _shares = rubiconUsdc.previewWithdraw(OvnMath.addBasisPoints(_amount, rubiconUsdc.feeBPS()));
+        // rubicon withdraw fee - 0.03% in 3 bp, but we used out default fee = 0.04%
+        uint256 _shares = rubiconUsdc.previewWithdraw(OvnMath.addBasisPoints(_amount, 4));
         rubiconUsdc.withdraw(_shares);
 
         return usdcToken.balanceOf(address(this));
