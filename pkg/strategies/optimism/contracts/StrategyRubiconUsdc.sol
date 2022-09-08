@@ -90,6 +90,10 @@ contract StrategyRubiconUsdc is Strategy {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 shares = rubiconUsdc.balanceOf(address(this));
+        if(shares == 0){
+            return 0;
+        }
+
         return rubiconUsdc.withdraw(shares);
     }
 
@@ -105,6 +109,11 @@ contract StrategyRubiconUsdc is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
+
+        uint256 shares = rubiconUsdc.balanceOf(address(this));
+        if(shares == 0){
+            return 0;
+        }
 
         // claim rewards - rewards get when withdraw
         rubiconUsdc.withdraw(0);
