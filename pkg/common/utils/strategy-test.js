@@ -207,6 +207,12 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         VALUE = new BigNumber(assetValue);
                         DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
+                        if (strategyParams.unstakeDelay) {
+                            let delay = strategyParams.unstakeDelay;
+                            await ethers.provider.send("evm_increaseTime", [delay]);
+                            await ethers.provider.send('evm_mine');
+                        }
+
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
@@ -319,11 +325,24 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
                     await strategy.connect(recipient).stake(asset.address, assetValue);
 
+                    if (strategyParams.unstakeDelay) {
+                        let delay = strategyParams.unstakeDelay;
+                        await ethers.provider.send("evm_increaseTime", [delay]);
+                        await ethers.provider.send('evm_mine');
+                    }
+
+
                     liquidationValueAfterStake = new BigNumber((await strategy.liquidationValue()).toString());
 
-                    await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true);
+                    let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
+                    let rewardEvent = tx.events.find((e)=>e.event === 'Reward');
+                    let rewardAmount = new BigNumber('0');
+                    if (rewardEvent){
+                        rewardAmount = new BigNumber(rewardEvent.args.amount.toString());
+                    }
 
-                    balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                    // UnstakeFull call claimRewards and getting value may distort the result => Remove the sum of the received rewards
+                    balanceAssetAfter = (new BigNumber((await asset.balanceOf(recipient.address)).toString())).minus(rewardAmount);
 
                     netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
