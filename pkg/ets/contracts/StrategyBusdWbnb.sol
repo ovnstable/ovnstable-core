@@ -312,6 +312,36 @@ contract StrategyBusdWbnb is HedgeStrategy {
             }
         }
 
+        uint256 coneBalance = coneToken.balanceOf(address(this));
+
+        if (coneBalance > 0) {
+            uint256 amountOutMin = ConeLibrary.getAmountsOut(
+                coneRouter,
+                address(coneToken),
+                address(wbnb),
+                address(usdPlus),
+                false,
+                false,
+                coneBalance
+            );
+
+            if (amountOutMin > 0) {
+                uint256 coneBusd = ConeLibrary.swap(
+                    coneRouter,
+                    address(coneToken),
+                    address(wbnb),
+                    address(usdPlus),
+                    false,
+                    false,
+                    coneBalance,
+                    amountOutMin * 99 / 100,
+                    address(this)
+                );
+
+                totalUsdPlus += coneBusd;
+            }
+        }
+
 
         return totalUsdPlus;
     }
