@@ -20,7 +20,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 26,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
         {
@@ -53,8 +53,8 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await proposal(weights);
+    // await changeWeightsAndBalance(weights);
+    await proposal(weights);
     // await setWeights(weights);
 }
 
@@ -69,9 +69,9 @@ async function proposal(weights) {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []));
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []));
 
     await createProposal(addresses, values, abis);
 }
