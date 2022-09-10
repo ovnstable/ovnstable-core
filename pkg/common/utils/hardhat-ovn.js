@@ -41,7 +41,8 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
 
         const srcDir = `deployments/` + process.env.STAND;
 
-        const chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
+        let chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
+        chainId = (chainId+"").trim();
         let fileName;
         if (Number.parseInt(chainId) === 137){
             fileName = 'polygon.json'
