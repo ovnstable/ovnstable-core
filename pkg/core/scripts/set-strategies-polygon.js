@@ -30,7 +30,7 @@ async function main() {
             "strategy": "0xde7d6Ee773A8a44C7a6779B40103e50Cd847EFff",
             "name": "Synapse USDC",
             "minWeight": 0,
-            "targetWeight": 60,
+            "targetWeight": 57.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -39,7 +39,7 @@ async function main() {
             "strategy": "0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048",
             "name": "Penrose USDC/TUSD",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 11,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -49,7 +49,7 @@ async function main() {
             "strategy": "0xa7625F964C93f8A62DBed06BaFFDAF8C20025d77",
             "name": "ClearPool USDC",
             "minWeight": 0,
-            "targetWeight": 27,
+            "targetWeight": 28.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
