@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "./IHedgeStrategy.sol";
 
+import "hardhat/console.sol";
 
 abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -87,6 +88,9 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         address _to
     ) external override onlyExchanger returns (uint256) {
         uint256   withdrawAmount = _unstake(_amount );
+        console.log("_amount ", _amount);
+        console.log("withdrawAmount ", withdrawAmount);
+        console.log("asset.balanceOf(address(this)) ", asset.balanceOf(address(this)));
         require(withdrawAmount >= _amount, 'Returned value less than requested amount');
 
         asset.transfer(_to, withdrawAmount);
