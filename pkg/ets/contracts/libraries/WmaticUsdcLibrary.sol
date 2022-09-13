@@ -5,7 +5,6 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 import "../StrategyWmaticUsdc.sol";
 
-import "hardhat/console.sol";
 
 library WmaticUsdcLibrary {
 
@@ -18,15 +17,9 @@ library WmaticUsdcLibrary {
         if (self.wmatic().balanceOf(address(self)) == 0 || self.usdPlus().balanceOf(address(self)) == 0) {
             return;
         }
-        console.log("delta ", delta);
-        console.log("self.usdPlus().balanceOf(address(self)) ", self.usdPlus().balanceOf(address(self)));
         uint256 usdcBalanceBefore = self.usdc().balanceOf(address(self));
-        console.log("usdcBalanceBefore ", usdcBalanceBefore);
         self.exchange().redeem(address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta == self.MAX_UINT_VALUE() ? 0 : delta));
         uint256 usdcBalanceAfter = self.usdc().balanceOf(address(self));
-        console.log("usdcBalanceAfter ", usdcBalanceAfter);
-        console.log("usdcBalanceAfter - usdcBalanceBefore ", usdcBalanceAfter - usdcBalanceBefore);
-        console.log("self.wmatic().balanceOf(address(self)) ", self.wmatic().balanceOf(address(self)));
 
         self.meshSwapRouter().addLiquidity(
             address(self.wmatic()),
@@ -38,8 +31,6 @@ library WmaticUsdcLibrary {
             address(self),
             block.timestamp
         );
-        console.log("self.wmatic().balanceOf(address(self)) after ", self.wmatic().balanceOf(address(self)));
-        console.log("self.usdc().balanceOf(address(self)) after ", self.usdc().balanceOf(address(self)));
     }
 
     /**
@@ -51,10 +42,8 @@ library WmaticUsdcLibrary {
     function _removeLiquidity(StrategyWmaticUsdc self, uint256 delta) public returns (uint256, uint256) {
         // calc wmatic tokens amount
         uint256 lpForUnstake = _getLpForUnstake(self, delta);
-        console.log("lpForUnstake ", lpForUnstake);
 
         uint256 usdcBalanceBefore = self.usdc().balanceOf(address(self));
-        console.log("usdcBalanceBefore ", usdcBalanceBefore);
 
         (uint256 amountWmatic, uint256 amountUsdc) = self.meshSwapRouter().removeLiquidity(
             address(self.wmatic()),
@@ -65,18 +54,11 @@ library WmaticUsdcLibrary {
             address(self),
             block.timestamp
         );
-        console.log("amountUsdc ", amountUsdc);
-        console.log("amountWmatic ", amountWmatic);
-        console.log("amountWmatic in usd ", self.control().wmaticToUsd(amountWmatic));
-        console.log("delta ", delta);
 
         uint256 usdPlusBalanceBefore = self.usdPlus().balanceOf(address(self));
-        console.log("usdPlusBalanceBefore ", usdPlusBalanceBefore);
 
-        console.log("self.usdc().balanceOf(address(self)) - usdcBalanceBefore ", self.usdc().balanceOf(address(self)) - usdcBalanceBefore);
         self.exchange().buy(address(self.usdc()), self.usdc().balanceOf(address(self)) - usdcBalanceBefore);
 
-        console.log("self.usdPlus().balanceOf(address(self)) - usdPlusBalanceBefore ", self.usdPlus().balanceOf(address(self)) - usdPlusBalanceBefore);
         return (amountWmatic, self.usdPlus().balanceOf(address(self)) - usdPlusBalanceBefore);
     }
 
@@ -84,9 +66,10 @@ library WmaticUsdcLibrary {
         uint256 poolTokenDelta = self.control().usdToWmatic(delta);
         uint256 lpTokenBalance = self.meshSwapWmaticUsdc().balanceOf(address(self));
         uint256 totalLpBalance = self.meshSwapWmaticUsdc().totalSupply();
-        uint256 reserveWmatic = uint256(self.meshSwapWmaticUsdc().reserve0());
+        (uint256 reserveWmatic,,) = self.meshSwapWmaticUsdc().getReserves();
         uint256 wmaticBalance = reserveWmatic * lpTokenBalance / totalLpBalance;
 
+        // add 1e12 because wmatic in 1e18 and delta in 1e6
         lpForUnstake = poolTokenDelta * lpTokenBalance / wmaticBalance + 1e12;
     }
 
@@ -100,7 +83,9 @@ library WmaticUsdcLibrary {
         uint256 redeemUsdPlusAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdPlus().balanceOf(address(self)))
                 ? self.usdPlus().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
-        if (redeemUsdPlusAmount == 0) return;
+        if (redeemUsdPlusAmount == 0) {
+            return;
+        }
         self.exchange().redeem(address(self.usdc()), redeemUsdPlusAmount);
     }
 
@@ -114,12 +99,10 @@ library WmaticUsdcLibrary {
         uint256 buyUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
-        console.log("self.usdc().balanceOf(address(self)) ", self.usdc().balanceOf(address(self)));
-//        console.log("self.control().usdToUsdc(delta) ", self.control().usdToUsdc(delta));
-        console.log("buyUsdcAmount ", buyUsdcAmount);
-        if (buyUsdcAmount == 0) return;
-        uint256 buyAmount = self.exchange().buy(address(self.usdc()), buyUsdcAmount);
-        console.log("buyAmount ", buyAmount);
+        if (buyUsdcAmount == 0) {
+            return;
+        }
+        self.exchange().buy(address(self.usdc()), buyUsdcAmount);
     }
 
     /**
@@ -131,7 +114,9 @@ library WmaticUsdcLibrary {
         uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
-        if (supplyUsdcAmount == 0) return;
+        if (supplyUsdcAmount == 0) {
+            return;
+        }
         // aave pool may be changed, so we need always approve
         self.usdc().approve(address(self.control().aavePool()), supplyUsdcAmount);
         self.control().aavePool().supply(
@@ -149,14 +134,11 @@ library WmaticUsdcLibrary {
      */
     function _withdrawUsdcFromAave(StrategyWmaticUsdc self, uint256 delta) public {
         uint256 withdrawUsdcAmount = self.control().usdToUsdc(delta);
-        console.log("delta ", delta);
-        console.log("withdrawUsdcAmount ", withdrawUsdcAmount);
-        uint256 withdrawed = self.control().aavePool().withdraw(
+        self.control().aavePool().withdraw(
             address(self.usdc()),
             withdrawUsdcAmount,
             address(self)
         );
-        console.log("withdrawed ", withdrawed);
     }
 
     /**
@@ -184,19 +166,17 @@ library WmaticUsdcLibrary {
         uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToWmatic(delta) > self.wmatic().balanceOf(address(self)))
                 ? self.wmatic().balanceOf(address(self))
                 : self.control().usdToWmatic(delta);
-        console.log("self.wmatic().balanceOf(address(self)) ", self.wmatic().balanceOf(address(self)));
-//        console.log("self.control().usdToWmatic(delta) ", self.control().usdToWmatic(delta));
-        console.log("repayWmaticAmount ", repayWmaticAmount);
-        if (repayWmaticAmount == 0) return;
+        if (repayWmaticAmount == 0) {
+            return;
+        }
         // aave pool may be changed, so we need always approve
         self.wmatic().approve(address(self.control().aavePool()), repayWmaticAmount);
-        uint256 repayed = self.control().aavePool().repay(
+        self.control().aavePool().repay(
             address(self.wmatic()),
             repayWmaticAmount,
             self.INTEREST_RATE_MODE(),
             address(self)
         );
-        console.log("repayed ", repayed);
     }
 
     /**
@@ -209,7 +189,9 @@ library WmaticUsdcLibrary {
         uint256 swapWmaticAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToWmatic(delta) > self.wmatic().balanceOf(address(self)))
                 ? self.wmatic().balanceOf(address(self))
                 : self.control().usdToWmatic(delta);
-        if (swapWmaticAmount == 0) return;
+        if (swapWmaticAmount == 0) {
+            return;
+        }
         uint256 amountOutMin = self.control().usdToUsdc(self.control().wmaticToUsd(swapWmaticAmount / 10000 * (10000 - slippagePercent)));
         UniswapV3Library.singleSwap(
             self.uniswapV3Router(),
@@ -232,7 +214,9 @@ library WmaticUsdcLibrary {
         uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
-        if (swapUsdcAmount == 0) return;
+        if (swapUsdcAmount == 0) {
+            return;
+        }
         uint256 amountOutMin = self.control().usdToWmatic(self.control().usdcToUsd(swapUsdcAmount / 10000 * (10000 - slippagePercent)));
         UniswapV3Library.singleSwap(
             self.uniswapV3Router(),

@@ -106,12 +106,11 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
         int256 retAmount;
         if (method == Method.UNSTAKE) {
             int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
-            console.log("amount ", amount);
             int256 amountUsd = toInt256(usdcToUsd(amount));
-            console.log("usdcToUsd(amount) ", usdcToUsd(amount));
             require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
             // for unstake make deficit as amount
             retAmount = - amountUsd;
+        //TODO need else if?
 //        } else if (method == Method.STAKE) {
 //            int256 amountUsd = toInt256(usdcToUsd(amount));
 //            retAmount = amountUsd;
@@ -119,48 +118,12 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
 
         (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, tokenAssetSlippagePercent));
 
-        runActions(actions);
+        _runActions(actions);
 
         liq = currentLiquidity();
         uint256 realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
 
         strategy.setRealHealthFactor(realHealthFactor);
-    }
-
-    function currentAmounts() public view returns (Amounts memory) {
-
-        (uint256 poolToken, uint256 poolUsdPlus) = _getLiquidity();
-
-        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(strategy));
-
-        uint256 aaveBorrowAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsd, wmaticDm, uint256(oracleWmatic.latestAnswer()));
-        uint256 aaveCollateralAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsd, usdcDm, uint256(oracleUsdc.latestAnswer()));
-
-        return Amounts(
-            aaveCollateralAmount,
-            aaveBorrowAmount,
-            poolToken,
-            poolUsdPlus,
-            usdPlus.balanceOf(address(strategy)),
-            usdc.balanceOf(address(strategy)),
-            wmatic.balanceOf(address(strategy))
-        );
-    }
-
-    function balances() external view returns (IHedgeStrategy.BalanceItem[] memory) {
-
-        Liquidity memory liq = currentLiquidity();
-        Amounts memory amounts = currentAmounts();
-
-        IHedgeStrategy.BalanceItem[] memory items = new IHedgeStrategy.BalanceItem[](7);
-        items[0] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.borrowToken), amounts.borrowToken, true);
-        items[1] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.collateralAsset), amounts.collateralAsset, false);
-        items[2] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.poolToken), amounts.poolToken, false);
-        items[3] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
-        items[4] = IHedgeStrategy.BalanceItem(address(usdPlus), toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
-        items[5] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.freeAsset), amounts.freeAsset, false);
-        items[6] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.freeToken), amounts.freeToken, false);
-        return items;
     }
 
     /**
@@ -209,6 +172,42 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
         );
     }
 
+    function currentAmounts() public view returns (Amounts memory) {
+
+        (uint256 poolToken, uint256 poolUsdPlus) = _getLiquidity();
+
+        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(strategy));
+
+        uint256 aaveBorrowAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsd, wmaticDm, uint256(oracleWmatic.latestAnswer()));
+        uint256 aaveCollateralAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsd, usdcDm, uint256(oracleUsdc.latestAnswer()));
+
+        return Amounts(
+            aaveCollateralAmount,
+            aaveBorrowAmount,
+            poolToken,
+            poolUsdPlus,
+            usdPlus.balanceOf(address(strategy)),
+            usdc.balanceOf(address(strategy)),
+            wmatic.balanceOf(address(strategy))
+        );
+    }
+
+    function balances() external view returns (IHedgeStrategy.BalanceItem[] memory) {
+
+        Liquidity memory liq = currentLiquidity();
+        Amounts memory amounts = currentAmounts();
+
+        IHedgeStrategy.BalanceItem[] memory items = new IHedgeStrategy.BalanceItem[](7);
+        items[0] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.borrowToken), amounts.borrowToken, true);
+        items[1] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.collateralAsset), amounts.collateralAsset, false);
+        items[2] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.poolToken), amounts.poolToken, false);
+        items[3] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.poolUsdPlus), amounts.poolUsdPlus, false);
+        items[4] = IHedgeStrategy.BalanceItem(address(usdPlus), toUint256(liq.freeUsdPlus), amounts.freeUsdPlus, false);
+        items[5] = IHedgeStrategy.BalanceItem(address(usdc), toUint256(liq.freeAsset), amounts.freeAsset, false);
+        items[6] = IHedgeStrategy.BalanceItem(address(wmatic), toUint256(liq.freeToken), amounts.freeToken, false);
+        return items;
+    }
+
     /**
       * NAV = sum of all tokens liquidity minus borrows.
       * @return NAV in USDC
@@ -217,38 +216,6 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
         Liquidity memory liq = currentLiquidity();
         int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
         return usdToUsdc(toUint256(navUsd));
-    }
-
-    // Current price wmatic/usdc in mesh pool in USD/USD in e+2
-    function _pricePool() internal view returns (uint256){
-        // on another pools tokens order may be another and calc price in pool should changed
-        // token 0 - wmatic
-        // token 1 - usdc
-        uint256 reserveWmatic = uint256(meshSwapWmaticUsdc.reserve0());
-        uint256 reserveUsdc = uint256(meshSwapWmaticUsdc.reserve1());
-        uint256 reserveWmaticUsd = wmaticToUsd(reserveWmatic);
-        uint256 reserveUsdcUsd = usdcToUsd(reserveUsdc);
-
-         console.log("----------------- priceInDystUsdpMaticPool()");
-         console.log("reserveWmatic       ", reserveWmatic);
-         console.log("reserveWmaticUsd    ", reserveWmaticUsd);
-         console.log("reserveUsdc         ", reserveUsdc);
-         console.log("reserveUsdcUsd      ", reserveUsdcUsd);
-         console.log("-----------------");
-        // 10^8 because of 10^6 plus additional 2 digits to be comparable to USD price from oracles
-        return reserveUsdcUsd * 10 ** 8 / reserveWmaticUsd;
-    }
-
-    /**
-     * Own liquidity in pool in their native digits. Used in strategy.
-     */
-    function _getLiquidity() internal view returns (uint256 wmaticBalance, uint256 usdcBalance) {
-        uint256 lpTokenBalance = meshSwapWmaticUsdc.balanceOf(address(strategy));
-        uint256 totalLpBalance = meshSwapWmaticUsdc.totalSupply();
-        uint256 reserveWmatic = uint256(meshSwapWmaticUsdc.reserve0());
-        uint256 reserveUsdc = uint256(meshSwapWmaticUsdc.reserve1());
-        wmaticBalance = reserveWmatic * lpTokenBalance / totalLpBalance;
-        usdcBalance = reserveUsdc * lpTokenBalance / totalLpBalance;
     }
 
     function liquidityToActions(CalcContext2 memory calcContext2) view public returns (Action2[] memory, uint256){
@@ -261,15 +228,43 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
         return (actions2, code);
     }
 
-    function runActions(Action[] memory actions) internal {
+    /**
+     * Own liquidity in pool in their native digits. Used in strategy.
+     */
+    function _getLiquidity() internal view returns (uint256 wmaticBalance, uint256 usdcBalance) {
+        uint256 lpTokenBalance = meshSwapWmaticUsdc.balanceOf(address(strategy));
+        uint256 totalLpBalance = meshSwapWmaticUsdc.totalSupply();
+        (uint256 reserveWmatic, uint256 reserveUsdc,) = meshSwapWmaticUsdc.getReserves();
+        wmaticBalance = reserveWmatic * lpTokenBalance / totalLpBalance;
+        usdcBalance = reserveUsdc * lpTokenBalance / totalLpBalance;
+    }
 
+    // Current price wmatic/usdc in mesh pool in USD/USD in e+2
+    function _pricePool() internal view returns (uint256){
+        // on another pools tokens order may be another and calc price in pool should changed
+        // token 0 - wmatic
+        // token 1 - usdc
+        (uint256 reserveWmatic, uint256 reserveUsdc,) = meshSwapWmaticUsdc.getReserves();
+        uint256 reserveWmaticUsd = wmaticToUsd(reserveWmatic);
+        uint256 reserveUsdcUsd = usdcToUsd(reserveUsdc);
+
+        console.log("----------------- priceInDystUsdpMaticPool()");
+        console.log("reserveWmatic       ", reserveWmatic);
+        console.log("reserveWmaticUsd    ", reserveWmaticUsd);
+        console.log("reserveUsdc         ", reserveUsdc);
+        console.log("reserveUsdcUsd      ", reserveUsdcUsd);
+        console.log("-----------------");
+        // 10^8 because of 10^6 plus additional 2 digits to be comparable to USD price from oracles
+        return reserveUsdcUsd * 10 ** 8 / reserveWmaticUsd;
+    }
+
+    function _runActions(Action[] memory actions) internal {
         console.log("--------- execute actions");
         for (uint j; j < actions.length; j++) {
             console.log(j, uint(actions[j].actionType), actions[j].amount);
             strategy.executeAction(actions[j]);
         }
         console.log("---------");
-
     }
 
     /**

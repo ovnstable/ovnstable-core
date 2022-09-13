@@ -24,22 +24,25 @@ let healthFactor = 1500;
 
 
 describe("POLYGON", function () {
+    let value = {
+        name: 'StrategyWmaticUsdc',
+        enabledReward: true,
+    };
 
-    let value =
-        {
-            name: 'StrategyWmaticUsdc',
-            enabledReward: false,
-            isRunStrategyLogic: false,
-        };
-
-        strategyTest(value, 'POLYGON', POLYGON.usdPlus, () => {
-    });
+    strategyTest(value, 'POLYGON', POLYGON.usdPlus, () => {});
 });
-
 
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
+        {
+            value: 0.02,
+            deltaPercent: 5,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+        },
         {
             value: 2,
             deltaPercent: 5,
@@ -68,7 +71,7 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
         stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
-        // claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
+        claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
     });
 }
 
@@ -107,8 +110,8 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             let control = await ethers.getContract('ControlWmaticUsdc');
             await strategy.setExchanger(recipient.address);
 
-            const exchange = await getContract('Exchange', 'polygon');
-            const usdPlus = await getContract('UsdPlusToken', 'polygon');
+            const exchange = await getContract('Exchange');
+            const usdPlus = await getContract('UsdPlusToken');
 
             let setupParams = {
                 // common params
@@ -169,9 +172,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
                     try {
-                        // let balances = await strategy.balances();
-                        // console.log(`balances before:\n${JSON.stringify(balances, null, 2)}`)
-
                         await m2m(strategy);
 
                         let assetValue = toAsset(stakeValue);
@@ -196,14 +196,11 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         console.log(`----------------------`)
                         healthFactor = await strategy.currentHealthFactor();
 
-                        // balances = await strategy.balances();
-                        // console.log(`balances after:\n${JSON.stringify(balances, null, 2)}`)
                         await m2m(strategy);
                     } catch (e) {
                         console.log(e)
                         throw e;
                     }
-
                 });
 
                 it(`Balance asset is in range`, async function () {
@@ -240,7 +237,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
-                        // expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
 
                         await strategy.connect(recipient).unstake(assetValue, recipient.address);
 
@@ -287,6 +283,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
         let strategy;
         let strategyName;
 
+        let usdcToken;
         let asset;
         let toAsset = function () {
         };
@@ -306,14 +303,14 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             await transferUSDPlus(1000000, account.address);
             strategyName = strategyParams.name;
 
-            await deployments.fixture([strategyName, 'ControlWmaticUsdc', `${strategyName}Setting`]);
+            await deployments.fixture([strategyName, 'ControlWmaticUsdc']);
 
             strategy = await ethers.getContract(strategyName);
             let control = await ethers.getContract('ControlWmaticUsdc');
             await strategy.setExchanger(recipient.address);
 
-            const exchange = await getContract('Exchange', 'polygon');
-            const usdPlus = await getContract('UsdPlusToken', 'polygon');
+            const exchange = await getContract('Exchange');
+            const usdPlus = await getContract('UsdPlusToken');
 
             let setupParams = {
                 // common params
@@ -344,6 +341,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 console.log(`FREE_RIDER_ROLE granted to ${strategy.address}`);
             });
 
+            usdcToken = await getERC20("usdc");
             asset = await getERC20("usdPlus");
             let decimals = await asset.decimals();
             if (decimals === 18) {
@@ -371,12 +369,11 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 let netAssetValueCheck;
                 let healthFactor;
 
+                let balanceUsdc;
+
                 sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
                     try {
-                        // let balances = await strategy.balances();
-                        // console.log(`balances before:\n${JSON.stringify(balances, null, 2)}`)
-
                         await m2m(strategy);
 
                         let assetValue = toAsset(stakeValue);
@@ -407,9 +404,11 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                         await ethers.provider.send("evm_increaseTime", [sevenDays])
                         await ethers.provider.send('evm_mine');
 
+                        balanceUsdcBefore = new BigNumber((await usdcToken.balanceOf(strategy.address)).toString());
                         await strategy.connect(recipient).claimRewards(recipient.address);
+                        balanceUsdcAfter = new BigNumber((await usdcToken.balanceOf(strategy.address)).toString());
 
-                        balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                        balanceUsdc = balanceUsdcAfter.minus(balanceUsdcBefore);
 
                         await m2m(strategy);
                     } catch (e) {
@@ -419,8 +418,8 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
                 });
 
-                it(`Balance asset is not 0`, async function () {
-                    expect(balanceAsset.toNumber()).to.greaterThan(0);
+                it(`Balance usdc > 0`, async function () {
+                    expect(balanceUsdc.toNumber()).to.greaterThan(0);
                 });
 
             });
@@ -429,7 +428,6 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
     });
 }
-
 
 async function m2m(strategy) {
     console.log('ETS:')
@@ -440,18 +438,18 @@ async function m2m(strategy) {
 
     console.table(values);
 
-
     let items = await strategy.balances();
 
+    let names = ['borrowToken', 'collateralAsset', 'poolToken', 'poolUsdPlus', 'freeUsdPlus', 'freeAsset', 'freeToken']
     let arrays = [];
     for (let i = 0; i < items.length; i++) {
 
         let item = items[i];
 
         arrays.push({
-            name: item[0],
+            asset: item[0],
+            name: names[i],
             amountUSD: fromE6(item[1].toString()),
-            //amount: fromE18(item[2].toString()),
             borrowed: item[3].toString()
         })
 
