@@ -13,7 +13,7 @@ module.exports = async ({deployments}) => {
 
     if (hre.ovn.setting) {
         let exchanger = await ethers.getContract('HedgeExchangerWmaticUsdc');
-        let ets = await ethers.getContract('ETSWmaticUsdc');
+        let ets = await ethers.getContract('EtsWmaticUsdc');
         let usdPlus = await getContract('UsdPlusToken');
         let strategy = await getContract('StrategyWmaticUsdc');
 

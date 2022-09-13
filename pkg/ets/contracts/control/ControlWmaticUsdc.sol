@@ -110,19 +110,13 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
             require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
             // for unstake make deficit as amount
             retAmount = - amountUsd;
-        //TODO need else if?
-//        } else if (method == Method.STAKE) {
-//            int256 amountUsd = toInt256(usdcToUsd(amount));
-//            retAmount = amountUsd;
         }
 
         (Action[] memory actions, uint256 code) = EtsCalculationLibrary.liquidityToActions(CalcContext2(K1, K2, retAmount, liq, tokenAssetSlippagePercent));
 
         _runActions(actions);
 
-        liq = currentLiquidity();
-        uint256 realHealthFactor = toUint256(liq.collateralAsset) * liquidationThreshold / toUint256(liq.borrowToken);
-
+        (,,,,, uint256 realHealthFactor) = aavePool().getUserAccountData(address(strategy));
         strategy.setRealHealthFactor(realHealthFactor);
     }
 
