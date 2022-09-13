@@ -76,23 +76,23 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
 
 
     function stake(
-        uint256 _amount // value for staking in USDC
+        uint256 _amount
     ) external override onlyExchanger {
-        emit Stake(_amount);
         _stake(asset.balanceOf(address(this)));
+        emit Stake(_amount);
     }
 
     function unstake(
         uint256 _amount,
         address _to
     ) external override onlyExchanger returns (uint256) {
-        uint256   withdrawAmount = _unstake(_amount );
+        uint256 withdrawAmount = _unstake(_amount);
         require(withdrawAmount >= _amount, 'Returned value less than requested amount');
 
-        asset.transfer(_to, withdrawAmount);
+        asset.transfer(_to, _amount);
         emit Unstake(_amount, withdrawAmount);
 
-        return withdrawAmount;
+        return _amount;
     }
 
     function claimRewards(address _to) external override onlyExchanger returns (uint256) {
