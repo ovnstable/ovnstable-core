@@ -8,7 +8,7 @@ let meshSwapRouter = '0x10f4A785F458Bc144e3706575924889954946639';
 let poolFeeMaticUsdc = 500;
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 850;
-let healthFactor = 1500;
+let healthFactor = 1200;
 
 module.exports = async () => {
 

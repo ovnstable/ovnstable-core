@@ -17,6 +17,7 @@ module.exports = async ({deployments}) => {
         if (ets) {
             await (await ets.setExchanger(exchanger.address)).wait();
             await (await ets.setName('ETS WMATIC/USDC', 'WMATIC/USDC')).wait();
+            console.log('Setting done()');
         }
     }
 };

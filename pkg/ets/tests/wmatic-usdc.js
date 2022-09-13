@@ -20,7 +20,7 @@ let meshSwapRouter = '0x10f4A785F458Bc144e3706575924889954946639';
 let poolFeeMaticUsdc = 500;
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 850;
-let healthFactor = 1500;
+let healthFactor = 1200;
 
 
 describe("POLYGON", function () {
@@ -89,7 +89,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         let toAsset = function () {
         };
 
-        let expectedHealthFactor = '1500000000000000000';
+        let expectedHealthFactor = '1200000000000000000';
         let healthFactorDELTA = '10000000000000000';
 
         sharedBeforeEach("deploy", async () => {
@@ -288,7 +288,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
         let toAsset = function () {
         };
 
-        let expectedHealthFactor = '1500000000000000000';
+        let expectedHealthFactor = '1200000000000000000';
         let healthFactorDELTA = '10000000000000000';
 
         sharedBeforeEach("deploy", async () => {
