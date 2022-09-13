@@ -21,7 +21,7 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse BUSD",
             "minWeight": 0,
-            "targetWeight": 17.5,
+            "targetWeight": 32.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -33,16 +33,6 @@ async function main() {
             "targetWeight": 15,
             "maxWeight": 100,
             "enabled": false,
-            "enabledReward": true
-        },
-
-        {
-            "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
-            "name": "Cone BUSD/USDC",
-            "minWeight": 0,
-            "targetWeight": 15,
-            "maxWeight": 100,
-            "enabled": true,
             "enabledReward": true
         },
 
@@ -102,9 +92,9 @@ async function proposal(weights) {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []));
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []));
 
     await createProposal(addresses, values, abis);
 }
