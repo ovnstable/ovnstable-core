@@ -106,7 +106,9 @@ contract ControlWmaticUsdc is Initializable, AccessControlUpgradeable, UUPSUpgra
         int256 retAmount;
         if (method == Method.UNSTAKE) {
             int256 navUsd = EtsCalculationLibrary._netAssetValue(liq);
+            console.log("amount ", amount);
             int256 amountUsd = toInt256(usdcToUsd(amount));
+            console.log("usdcToUsd(amount) ", usdcToUsd(amount));
             require(navUsd >= amountUsd, "Not enough NAV for UNSTAKE");
             // for unstake make deficit as amount
             retAmount = - amountUsd;

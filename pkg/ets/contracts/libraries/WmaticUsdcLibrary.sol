@@ -97,7 +97,7 @@ library WmaticUsdcLibrary {
      * @param delta - UsdPlus in USD e6
      */
     function _swapUsdPlusToUsdc(StrategyWmaticUsdc self, uint256 delta) public {
-        uint256 redeemUsdPlusAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 redeemUsdPlusAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdPlus().balanceOf(address(self)))
                 ? self.usdPlus().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
         if (redeemUsdPlusAmount == 0) return;
@@ -111,7 +111,7 @@ library WmaticUsdcLibrary {
      * @param delta - Usdc in USD e6
      */
     function _swapUsdcToUsdPlus(StrategyWmaticUsdc self, uint256 delta) public {
-        uint256 buyUsdcAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 buyUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
         console.log("self.usdc().balanceOf(address(self)) ", self.usdc().balanceOf(address(self)));
@@ -128,7 +128,7 @@ library WmaticUsdcLibrary {
      * @param delta - Usdc in USD e6
      */
     function _supplyUsdcToAave(StrategyWmaticUsdc self, uint256 delta) public {
-        uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 supplyUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
         if (supplyUsdcAmount == 0) return;
@@ -181,7 +181,7 @@ library WmaticUsdcLibrary {
      * @param delta - Wmatic in USD e6
      */
     function _repayWmaticToAave(StrategyWmaticUsdc self, uint256 delta) public {
-        uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 repayWmaticAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToWmatic(delta) > self.wmatic().balanceOf(address(self)))
                 ? self.wmatic().balanceOf(address(self))
                 : self.control().usdToWmatic(delta);
         console.log("self.wmatic().balanceOf(address(self)) ", self.wmatic().balanceOf(address(self)));
@@ -206,7 +206,7 @@ library WmaticUsdcLibrary {
      * @param delta - Wmatic in USD e6
      */
     function _swapWmaticToUsdc(StrategyWmaticUsdc self, uint256 delta, uint256 slippagePercent) public {
-        uint256 swapWmaticAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 swapWmaticAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToWmatic(delta) > self.wmatic().balanceOf(address(self)))
                 ? self.wmatic().balanceOf(address(self))
                 : self.control().usdToWmatic(delta);
         if (swapWmaticAmount == 0) return;
@@ -229,7 +229,7 @@ library WmaticUsdcLibrary {
      * @param delta - Usdc in USD e6
      */
     function _swapUsdcToWmatic(StrategyWmaticUsdc self, uint256 delta, uint256 slippagePercent) public {
-        uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE())
+        uint256 swapUsdcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToUsdc(delta) > self.usdc().balanceOf(address(self)))
                 ? self.usdc().balanceOf(address(self))
                 : self.control().usdToUsdc(delta);
         if (swapUsdcAmount == 0) return;

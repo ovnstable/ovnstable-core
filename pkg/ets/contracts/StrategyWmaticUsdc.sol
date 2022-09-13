@@ -5,6 +5,7 @@ import "@overnight-contracts/connectors/contracts/stuff/MeshSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 
@@ -130,7 +131,7 @@ contract StrategyWmaticUsdc is HedgeStrategy {
     function _unstake(
         uint256 _amount
     ) internal override returns (uint256) {
-        control.calcDeltas(Method.UNSTAKE, _amount);
+        control.calcDeltas(Method.UNSTAKE, OvnMath.addBasisPoints(_amount, 1));
         return _amount;
     }
 
