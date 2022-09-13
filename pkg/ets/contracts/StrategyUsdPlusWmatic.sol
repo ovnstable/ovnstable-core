@@ -271,6 +271,10 @@ contract StrategyUsdPlusWmatic is HedgeStrategy {
         return realHealthFactor;
     }
 
+    function _setHealthFactor(uint256 newHealthFactor) internal override {
+        healthFactor = newHealthFactor;
+    }
+
     /**
      * Current price Usd+/Wmatic in dyst pool in USD/USD in e+2
      */

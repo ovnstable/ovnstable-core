@@ -219,6 +219,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         return realHealthFactor;
     }
 
+    function _setHealthFactor(uint256 newHealthFactor) internal override {
+        healthFactor = newHealthFactor;
+    }
+
     function executeAction(Action memory action) external onlyControl {
         if (action.actionType == ActionType.ADD_LIQUIDITY) {
             console.log("execute action ADD_LIQUIDITY");

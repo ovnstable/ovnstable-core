@@ -204,6 +204,10 @@ contract StrategyBusdWbnb is HedgeStrategy {
         return realHealthFactor;
     }
 
+    function _setHealthFactor(uint256 newHealthFactor) internal override {
+        healthFactor = newHealthFactor;
+    }
+
     function executeAction(Action memory action) external {
         if (action.actionType == ActionType.ADD_LIQUIDITY) {
             console.log("execute action ADD_LIQUIDITY");
