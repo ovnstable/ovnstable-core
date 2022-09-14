@@ -17,6 +17,7 @@ import "./interfaces/IStrategy.sol";
 
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
@@ -66,6 +67,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     modifier cashStrategySet() {
         require(address(cashStrategy) != address(0), "Cash strategy not set yet");
+        _;
+    }
+
+    modifier onlyPortfolioAgent() {
+        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
@@ -289,14 +295,14 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             }
 
             // UnstakeFull from Strategies with targetWeight == 0
-            if(strategies[i].targetWeight == 0){
+            if (strategies[i].targetWeight == 0) {
                 totalAsset += IStrategy(strategies[i].strategy).unstake(
                     address(asset),
                     0,
                     address(this),
                     true
                 );
-            }else {
+            } else {
                 totalAsset += IStrategy(strategies[i].strategy).netAssetValue();
                 totalWeight += strategies[i].targetWeight;
             }
@@ -372,36 +378,77 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     }
 
-    function setStrategyWeights(StrategyWeight[] calldata _strategyWeights) external onlyAdmin {
+    function setStrategyWeights(StrategyWeight[] calldata _strategyWeights) external onlyPortfolioAgent {
+
         uint256 totalTarget = 0;
+
         for (uint8 i = 0; i < _strategyWeights.length; i++) {
-            StrategyWeight memory strategyWeight = _strategyWeights[i];
-            require(strategyWeight.strategy != address(0), "weight without strategy");
-            require(
-                strategyWeight.minWeight <= strategyWeight.targetWeight,
-                "minWeight shouldn't higher than targetWeight"
+            StrategyWeight memory weightNew = _strategyWeights[i];
+
+            uint256 index = strategyWeightPositions[weightNew.strategy];
+
+            StrategyWeight memory weightOld = strategyWeights[index];
+
+            require(weightOld.strategy != weightNew.strategy, 'Incorrect strategy index');
+            require(weightNew.minWeight <= weightNew.targetWeight, "minWeight shouldn't higher than targetWeight");
+            require(weightNew.targetWeight <= weightNew.maxWeight, "targetWeight shouldn't higher than maxWeight");
+
+            totalTarget += weightNew.targetWeight;
+
+            strategyWeights[index] = weightNew;
+            emit StrategyWeightUpdated(
+                index,
+                weightNew.strategy,
+                weightNew.minWeight,
+                weightNew.targetWeight,
+                weightNew.maxWeight,
+                weightNew.enabled,
+                weightNew.enabledReward
             );
-            require(
-                strategyWeight.targetWeight <= strategyWeight.maxWeight,
-                "targetWeight shouldn't higher than maxWeight"
-            );
-            totalTarget += strategyWeight.targetWeight;
         }
+
         require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
-
-        for (uint8 i = 0; i < _strategyWeights.length; i++) {
-            _addStrategyWeightAt(_strategyWeights[i], i);
-            strategyWeightPositions[strategyWeights[i].strategy] = i;
-        }
-
-        // truncate if need
-        if (strategyWeights.length > _strategyWeights.length) {
-            uint256 removeCount = strategyWeights.length - _strategyWeights.length;
-            for (uint8 i = 0; i < removeCount; i++) {
-                strategyWeights.pop();
-            }
-        }
     }
+
+    function addStrategy(address _strategy) external onlyAdmin{
+
+        for (uint8 i = 0; i < strategyWeights.length; i++) {
+            require(strategyWeights[i].strategy != _strategy, 'Strategy already exist');
+        }
+
+
+        // Strategy is disabled always when only created
+        StrategyWeight memory strategyWeight = StrategyWeight(_strategy, 0, 0, 0, false, false);
+        uint256 index = strategyWeights.length + 1;
+
+        // Add strategy to last position
+        _addStrategyWeightAt(strategyWeight, index);
+        strategyWeightPositions[strategyWeight.strategy] = index;
+    }
+
+    function removeStrategy(address _strategy) external onlyAdmin {
+
+        uint256 index = strategyWeightPositions[_strategy];
+        StrategyWeight memory weight = strategyWeights[index];
+
+        require(weight.strategy == _strategy, 'Address strategy not equals');
+        require(weight.targetWeight == 0, 'Target weight must be 0');
+        require(IStrategy(weight.strategy).netAssetValue() == 0, 'Strategy nav must be 0');
+
+
+        // Remove gap from array
+        for (uint i = index; i < strategyWeights.length-1; i++){
+
+            StrategyWeight memory _tempWeight = strategyWeights[i+1];
+
+            strategyWeights[i] = _tempWeight;
+            strategyWeightPositions[_tempWeight.strategy] = i;
+        }
+
+        delete strategyWeights[strategyWeights.length-1];
+        delete strategyWeightPositions[_strategy];
+    }
+
 
     function _addStrategyWeightAt(StrategyWeight memory strategyWeight, uint256 index) internal {
         uint256 currentLength = strategyWeights.length;
