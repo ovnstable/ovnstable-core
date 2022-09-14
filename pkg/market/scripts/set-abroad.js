@@ -3,7 +3,8 @@ const {getContract, getPrice} = require("@overnight-contracts/common/utils/scrip
 async function main() {
 
     let contract = await getContract('HedgeExchanger' + process.env.ETS);
-    await (await contract.setAbroad(1000001, 1001950)).wait();
+    let params = await getPrice();
+    await (await contract.setAbroad(1000001, 1001950, params)).wait();
 
 }
 

@@ -5,9 +5,9 @@ async function main() {
 
     let exchange = await getContract('Exchange');
     let usdPlus = await getContract('UsdPlusToken');
-    let exchanger = await getContract('HedgeExchangerWmaticUsdc');
-    let strategy = await getContract('StrategyWmaticUsdc');
-    let ets = await getContract('EtsWmaticUsdc');
+    let exchanger = await getContract('HedgeExchanger' + process.env.ETS);
+    let strategy = await getContract('Strategy' + process.env.ETS);
+    let ets = await getContract('Ets' + process.env.ETS);
 
     await showHedgeM2M();
 
