@@ -1,8 +1,9 @@
-const {getContract, getPrice, changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice, changeWeightsAndBalance, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 const {toE18} = require("@overnight-contracts/common/utils/decimals");
+const {BSC} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
 
@@ -20,7 +21,7 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse BUSD",
             "minWeight": 0,
-            "targetWeight": 17.5,
+            "targetWeight": 32.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -29,19 +30,9 @@ async function main() {
             "strategy": "0xed197258b388AfaAD5f0D46B608B583E395ede92",
             "name": "Unknown BUSD/USDC",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": false,
-            "enabledReward": true
-        },
-
-        {
-            "strategy": "0x9d59569817FCa07c8AfE626c0813eE646660B7C6",
-            "name": "Cone BUSD/USDC",
-            "minWeight": 0,
-            "targetWeight": 78,
-            "maxWeight": 100,
-            "enabled": true,
             "enabledReward": true
         },
 
@@ -49,11 +40,21 @@ async function main() {
             "strategy": "0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8",
             "name": "Unknown BUSD/TUSD",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 15,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
         },
+        {
+            "strategy": "0x9D430C0A05da519335ee022ECF8f7690F1d402Ba",
+            "name": "Aequinox BUSD",
+            "minWeight": 0,
+            "targetWeight": 35,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
     ]
 
     let totalWeight = 0;
@@ -75,14 +76,13 @@ async function main() {
         return value;
     })
 
-    await changeWeightsAndBalance(weights);
-    // await proposal(weights);
+    // await changeWeightsAndBalance(weights);
+    await proposal(weights);
     // await setWeights(weights);
 }
 
 async function proposal(weights) {
     let pm = await getContract('PortfolioManager');
-    let exchange = await getContract('Exchange');
 
     let addresses = [];
     let values = [];
@@ -92,9 +92,9 @@ async function proposal(weights) {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []));
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []));
 
     await createProposal(addresses, values, abis);
 }

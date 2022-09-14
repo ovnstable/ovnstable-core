@@ -18,7 +18,7 @@ let coneVoter = "0xC3B5d80E4c094B17603Ea8Bb15d2D31ff5954aAE";
 let coneToken = "0xa60205802e1b5c6ec1cafa3cacd49dfeece05ac9";
 let coneGauge = "0xA766094e9bf0AFc1BB5208EC9a81a782663d797a";
 let veCone = '0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef';
-let veConeId = 2;
+let veConeId = 0;
 
 let unkwnToken = '0xD7FbBf5CB43b4A902A8c994D94e821f3149441c7';
 let unkwnUserProxy = '0xAED5a268dEE37677584af58CCC2b9e3c83Ab7dd8';
@@ -28,7 +28,7 @@ let pancakeRouter = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
 let wbnbBusdSlippagePercent = 100; //1%
 let liquidationThreshold = 800;
-let healthFactor = 1350;
+let healthFactor = 1200;
 
 
 module.exports = async () => {
@@ -39,16 +39,6 @@ module.exports = async () => {
     const exchange = await getContract('Exchange', 'bsc');
     const usdPlus = await getContract('UsdPlusToken', 'bsc');
     const hedgeExchanger = await getContract('HedgeExchangerBusdWbnb', 'bsc');
-    let rebase1 = await getContract('RebaseTokenBusdWbnb', 'bsc');
-    
-    if (hedgeExchanger) {
-        await hedgeExchanger.setTokens(usdPlus.address, rebase1.address);
-        await hedgeExchanger.setStrategy(strategy.address);
-        await hedgeExchanger.setCollector('0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46');
-
-        console.log('Setting done()');
-    }
-
 
     if (strategy) {
 

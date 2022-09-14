@@ -9,6 +9,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Dodo.sol";
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -63,6 +64,14 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     ControlUsdPlusWbnb public control;
 
+    address public collector;
+    VeDist public veDist;
+
+    IERC20 public xvsToken;
+    IPancakeRouter02 public pancakeRouter;
+
+    Unitroller public unitroller;
+
     struct SetupParams {
         address usdPlus;
         address busd;
@@ -88,6 +97,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         uint256 liquidationThreshold;
         uint256 healthFactor;
         address control;
+        address collector;
+        address veDist;
+        address xvsToken;
+        address pancakeRouter;
     }
 
 
@@ -105,6 +118,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         usdPlus = IERC20(params.usdPlus);
         busd = IERC20(params.busd);
         wbnb = IERC20(params.wbnb);
+        xvsToken = IERC20(params.xvsToken);
         vBusdToken = VenusInterface(params.vBusdToken);
         vBnbToken = VenusInterface(params.vBnbToken);
         busdDm = 10 ** IERC20Metadata(params.busd).decimals();
@@ -130,6 +144,11 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
         tokenAssetSlippagePercent = params.tokenAssetSlippagePercent;
 
+        collector = params.collector;
+        veDist = VeDist(params.veDist);
+
+        pancakeRouter = IPancakeRouter02(params.pancakeRouter);
+
         busd.approve(address(params.dodoApprove), type(uint256).max);
         wbnb.approve(address(params.dodoApprove), type(uint256).max);
 
@@ -141,11 +160,12 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         usdPlus.approve(address(exchange), type(uint256).max);
         busd.approve(address(exchange), type(uint256).max);
 
-        Unitroller troll = Unitroller(params.unitroller);
+        unitroller = Unitroller(params.unitroller);
         address[] memory vTokens = new address[](2);
         vTokens[0] = address(vBusdToken);
         vTokens[1] = address(vBnbToken);
-        uint[] memory errors = troll.enterMarkets(vTokens);
+
+        uint[] memory errors = unitroller.enterMarkets(vTokens);
 
         maximillion = Maximillion(params.maximillion);
 
@@ -154,7 +174,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         realHealthFactor = 0;
 
 
-        if(address(control) != address(0)){
+        if (address(control) != address(0)) {
             revokeRole(CONTROL_ROLE, address(control));
         }
 
@@ -181,7 +201,7 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
         return control.netAssetValue();
     }
 
-    function balances() external view override returns(BalanceItem[] memory ){
+    function balances() external view override returns (BalanceItem[] memory){
         return control.balances();
     }
 
@@ -197,6 +217,10 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
 
     function currentHealthFactor() external view override returns (uint256){
         return realHealthFactor;
+    }
+
+    function _setHealthFactor(uint256 newHealthFactor) internal override {
+        healthFactor = newHealthFactor;
     }
 
     function executeAction(Action memory action) external onlyControl {
@@ -234,42 +258,52 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     }
 
 
-
-    function _claimFeesBribes() internal {
-
-        coneGauge.claimFees();
-        IBribe bribe = IBribe(coneGauge.bribe());
-
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(coneToken);
-        tokens[1] = address(wbnb);
-        tokens[2] = address(usdPlus);
-        bribe.getRewardForOwner(veConeId, tokens);
-
-        uint256 wbnbAmount = wbnb.balanceOf(address(this));
-        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
-        uint256 coneAmount = coneToken.balanceOf(address(this));
-
-        if (wbnbAmount > 0) {
-            coneGauge.notifyRewardAmount(address(wbnb), wbnbAmount);
-        }
-
-        if (usdPlusAmount > 0) {
-            coneGauge.notifyRewardAmount(address(usdPlus), usdPlusAmount);
-        }
-
-        if (coneAmount > 0) {
-            coneGauge.notifyRewardAmount(address(coneToken), coneAmount);
-        }
-
-    }
-
-
     function _claimRewards(address _to) internal override returns (uint256){
 
-//        _claimFeesBribes();
-//        _increaseVeConeUnlockTime();
+        uint256 totalUsdPlus;
 
+        totalUsdPlus += _claimCone();
+        totalUsdPlus += _claimVenus();
+
+        return totalUsdPlus;
+    }
+
+    function _claimVenus() internal returns (uint256) {
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(vBusdToken);
+        tokens[1] = address(vBnbToken);
+        unitroller.claimVenus(address(this), tokens);
+
+        uint256 xvsBalance = xvsToken.balanceOf(address(this));
+
+        uint256 totalBusd;
+
+        if (xvsBalance > 0) {
+            uint256 amountOutMin = PancakeSwapLibrary.getAmountsOut(
+                pancakeRouter,
+                address(xvsToken),
+                address(busd),
+                xvsBalance
+            );
+
+            if (amountOutMin > 0) {
+                uint256 stgBusd = PancakeSwapLibrary.swapExactTokensForTokens(
+                    pancakeRouter,
+                    address(xvsToken),
+                    address(busd),
+                    xvsBalance,
+                    amountOutMin,
+                    address(this)
+                );
+                totalBusd += stgBusd;
+            }
+        }
+
+        return totalBusd / 1e12 ; // convert from 1e18 to 1e6 (USD+)
+    }
+
+    function _claimCone() internal returns (uint256){
         // claim rewards
         address[] memory tokens = new address[](1);
         tokens[0] = address(coneToken);
@@ -313,26 +347,54 @@ contract StrategyUsdPlusWbnb is HedgeStrategy, IERC721Receiver {
     }
 
 
-    function lockAvailableCone() external onlyPortfolioAgent {
-
-        if (veConeId > 0) {
-            veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
-        }
-    }
-
-    function _increaseVeConeUnlockTime() internal {
-
-        if (veConeId > 0) {
-            veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
-        }
-    }
 
     function vote(address[] calldata _poolVote, int256[] calldata _weights) external onlyPortfolioAgent {
-        coneToken.approve(address(veCone), coneToken.balanceOf(address(this)));
-        veCone.increaseAmount(veConeId, coneToken.balanceOf(address(this)));
+        veDist.claim(veConeId);
+
+        uint256 coneAmount = coneToken.balanceOf(address(this));
+        if(coneAmount > 0){
+            coneToken.approve(address(veCone), coneAmount);
+            veCone.increaseAmount(veConeId, coneAmount);
+        }
+
         veCone.increaseUnlockTime(veConeId, MAX_TIME_LOCK);
         coneVoter.vote(veConeId, _poolVote, _weights);
     }
+
+    function claimBribes(address[] calldata _bribes , address[][] calldata _tokens) external onlyPortfolioAgent {
+
+        coneVoter.claimBribes(_bribes, _tokens, veConeId);
+
+        uint256 wbnbAmount = wbnb.balanceOf(address(this));
+        uint256 busdAmount = busd.balanceOf(address(this));
+        uint256 usdPlusAmount = usdPlus.balanceOf(address(this));
+        uint256 coneAmount = coneToken.balanceOf(address(this));
+
+//        console.log('claimBribes');
+//        console.log('WBNB %s', wbnbAmount);
+//        console.log('BUSD %s', busdAmount);
+//        console.log('USD+ %s', usdPlusAmount);
+//        console.log('CONE %s', coneAmount);
+
+        if(busdAmount > 0){
+            busd.transfer(collector, busdAmount);
+        }
+
+        if (wbnbAmount > 0) {
+            wbnb.transfer(collector, wbnbAmount);
+        }
+
+        if (usdPlusAmount > 0) {
+            usdPlus.transfer(collector, usdPlusAmount);
+        }
+
+        if (coneAmount > 0) {
+            coneToken.transfer(collector, coneAmount);
+        }
+
+    }
+
+
 
     /// @notice Used for ERC721 safeTransferFrom
     function onERC721Received(address, address, uint256, bytes memory)

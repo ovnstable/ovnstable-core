@@ -16,6 +16,15 @@ let arrays = [
         name: 'StrategyVelodromeUsdcDai',
         enabledReward: true,
     },
+    {
+        name: 'StrategyRubiconUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyPikaUsdc',
+        enabledReward: true,
+        unstakeDelay:  60 * 60 * 1000
+    },
 ];
 
 if (id !== undefined && id !== "") {

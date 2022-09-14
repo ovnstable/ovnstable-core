@@ -22,9 +22,9 @@ module.exports = async ({deployments}) => {
         let strategy = await getContract('StrategyBusdWbnb')
 
         if (exchanger) {
-            await exchanger.setTokens(usdPlus.address, rebase.address);
-            await exchanger.setStrategy(strategy.address);
-            await exchanger.setCollector('0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46');
+            await (await exchanger.setTokens(usdPlus.address, rebase.address)).wait();
+            await (await exchanger.setStrategy(strategy.address)).wait();
+            await (await exchanger.setCollector('0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46')).wait();
 
             console.log('Setting done()');
         }

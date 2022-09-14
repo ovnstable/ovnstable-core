@@ -32,46 +32,46 @@ describe("Polygon", function () {
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.002,
-        //     deltaPercent: 50,
-        // },
-        // {
-        //     value: 0.02,
-        //     deltaPercent: 10,
-        // },
-        // {
-        //     value: 0.2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 20,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200,
-        //     deltaPercent: 1,
-        // },
+        {
+            value: 0.002,
+            deltaPercent: 50,
+        },
+        {
+            value: 0.02,
+            deltaPercent: 10,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+        },
+        {
+            value: 2,
+            deltaPercent: 5,
+        },
+        {
+            value: 20,
+            deltaPercent: 1,
+        },
+        {
+            value: 200,
+            deltaPercent: 1,
+        },
         {
             value: 2000,
             deltaPercent: 1,
         },
-        // {
-        //     value: 20000,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200000,
-        //     deltaPercent: 0.1,
-        // },
-        // {
-        //     value: 2000000,
-        //     deltaPercent: 0.1,
-        // },
+        {
+            value: 20000,
+            deltaPercent: 1,
+        },
+        {
+            value: 200000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 2000000,
+            deltaPercent: 0.1,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -99,7 +99,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
 
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+            //hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
 
             const signers = await ethers.getSigners();
             account = signers[0];

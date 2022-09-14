@@ -18,20 +18,10 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0x50D3560397864a3c7a24116D0dcd27A27Ef852c7",
-            "name": "Vector USDC",
-            "minWeight": 0,
-            "targetWeight": 15,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-
-        {
             "strategy": "0xc2c84ca763572c6aF596B703Df9232b4313AD4e3",
             "name": "Echidna USDC",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 30,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true

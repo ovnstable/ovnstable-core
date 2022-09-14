@@ -175,6 +175,9 @@ describe("Exchange", function () {
         let balanceUserUsdPlus;
         let balanceUserAsset;
         let vaultBalance;
+        let referralCode = "test";
+        let transaction;
+
 
         sharedBeforeEach("buy usd+", async () => {
             const sum = toAsset(100);
@@ -183,8 +186,13 @@ describe("Exchange", function () {
 
             await asset.approve(exchange.address, sum);
 
-            await (await exchange.buy(asset.address, sum)).wait();
+            let mintParams = {
+                asset: asset.address,
+                amount: sum,
+                referral: referralCode
+            }
 
+            transaction = await (await exchange.mint(mintParams)).wait();
             strategyAssets = await m2m.strategyAssets();
 
             vaultBalance = new BigNumber(0);
@@ -206,6 +214,16 @@ describe("Exchange", function () {
         it("balance asset must be less than 100 ", async function () {
             expect(new BigNumber(fromAsset((await asset.balanceOf(account)).toString())).toNumber()).to.eq(balanceUserAsset - 100)
         });
+
+        it("EventExchange is correct", function () {
+            let event = transaction.events.find((e) => e.event === 'EventExchange');
+            expect(referralCode).to.eq(event.args.referral)
+            expect("mint").to.eq(event.args.label)
+            expect("40000").to.eq(event.args.fee.toString())
+            expect("99960000").to.eq(event.args.amount.toString())
+            expect(account).to.eq(event.args.sender)
+        });
+
 
         it("Balance USD+ should 99.96", function () {
             expect(balanceUserUsdPlus.toString()).to.eq("99.96")

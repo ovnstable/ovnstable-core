@@ -3,13 +3,13 @@ const {toE6} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
-    let exchanger = await getContract('HedgeExchangerUsdPlusWbnb');
-    let rebase = await getContract('RebaseTokenUsdPlusWbnb');
+    let exchanger = await getContract('HedgeExchanger' + process.env.ETS);
+    let ets = await getContract('Ets' + process.env.ETS);
 
     await showHedgeM2M();
 
     let params = await getPrice();
-    await (await rebase.approve(exchanger.address, toE6(1), params)).wait();
+    await (await ets.approve(exchanger.address, toE6(1), params)).wait();
     await (await exchanger.redeem(toE6(1), params)).wait();
 
     await showHedgeM2M();

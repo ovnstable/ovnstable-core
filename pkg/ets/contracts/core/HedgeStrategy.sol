@@ -14,6 +14,7 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant CONTROL_ROLE = keccak256("CONTROL_ROLE");
+    bytes32 public constant BALANCING_BOT_ROLE = keccak256("BALANCING_BOT_ROLE");
 
     IERC20 public asset;
     address public exchanger;
@@ -55,6 +56,11 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         _;
     }
 
+    modifier onlyBalancingBot() {
+        require(hasRole(BALANCING_BOT_ROLE, msg.sender), "Restricted to Balancing Bot");
+        _;
+    }
+
     // --- setters
 
     function setExchanger(address _value) public onlyAdmin {
@@ -76,23 +82,23 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
 
 
     function stake(
-        uint256 _amount // value for staking in USDC
+        uint256 _amount
     ) external override onlyExchanger {
-        emit Stake(_amount);
         _stake(asset.balanceOf(address(this)));
+        emit Stake(_amount);
     }
 
     function unstake(
         uint256 _amount,
         address _to
     ) external override onlyExchanger returns (uint256) {
-        uint256   withdrawAmount = _unstake(_amount );
+        uint256 withdrawAmount = _unstake(_amount);
         require(withdrawAmount >= _amount, 'Returned value less than requested amount');
 
-        asset.transfer(_to, withdrawAmount);
+        asset.transfer(_to, _amount);
         emit Unstake(_amount, withdrawAmount);
 
-        return withdrawAmount;
+        return _amount;
     }
 
     function claimRewards(address _to) external override onlyExchanger returns (uint256) {
@@ -105,6 +111,9 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         _balance();
     }
 
+    function setHealthFactor(uint256 newHealthFactor) external onlyBalancingBot override {
+        _setHealthFactor(newHealthFactor);
+    }
 
 
     function _stake(
@@ -124,8 +133,12 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
     }
 
     function _balance() internal virtual returns (uint256) {
-
+        revert("Not implemented");
     }
+
+    function _setHealthFactor(uint256 newHealthFactor) internal virtual{
+        revert("Not implemented");
+    } 
 
 
     uint256[49] private __gap;

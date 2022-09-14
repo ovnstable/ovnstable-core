@@ -7,6 +7,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Unknown.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyUnknownBusdUsdc is Strategy {
@@ -181,8 +182,8 @@ contract StrategyUnknownBusdUsdc is Strategy {
                 synapseStableSwapPool,
                 address(busdToken),
                 address(usdcToken),
-                // add 1e13 to _amount for smooth withdraw
-                _amount + 1e13,
+                // add 4bp and 1e14 to _amount for smooth withdraw
+                OvnMath.addBasisPoints(_amount, 4) + 1e14,
                 totalLpBalance,
                 reserveBusd,
                 reserveUsdc,

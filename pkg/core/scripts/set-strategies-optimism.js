@@ -1,4 +1,4 @@
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, changeWeightsAndBalance} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -15,10 +15,19 @@ async function main() {
         },
 
         {
-            "strategy": "0xF7d693CE960e70721F0353F967360046Ba7d4eFA",
-            "name": "Synapse USDC",
+            "strategy": "0x9520aEF41161f09Dce78a8e79482b654d4FFe641",
+            "name": "Pika USDC",
             "minWeight": 0,
-            "targetWeight": 97.5,
+            "targetWeight": 26,
+            "maxWeight": 100,
+            "enabled": false,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x6C93A2A9eBC61ce664eE3D44531B76365150BFd8",
+            "name": "Rubicon USDC",
+            "minWeight": 0,
+            "targetWeight": 71.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -45,8 +54,8 @@ async function main() {
     })
 
     // await changeWeightsAndBalance(weights);
-    // await proposal(weights);
-    await setWeights(weights);
+    await proposal(weights);
+    // await setWeights(weights);
 }
 
 async function proposal(weights) {
@@ -60,9 +69,9 @@ async function proposal(weights) {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setStrategyWeights', [weights]));
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('balance', []));
+    // addresses.push(pm.address);
+    // values.push(0);
+    // abis.push(pm.interface.encodeFunctionData('balance', []));
 
     await createProposal(addresses, values, abis);
 }

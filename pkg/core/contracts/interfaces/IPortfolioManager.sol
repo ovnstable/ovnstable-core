@@ -35,6 +35,5 @@ interface IPortfolioManager {
 
     function balance() external;
 
-    function healthFactorBalance() external;
 
 }

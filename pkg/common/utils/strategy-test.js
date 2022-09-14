@@ -207,6 +207,12 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         VALUE = new BigNumber(assetValue);
                         DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
+                        if (strategyParams.unstakeDelay) {
+                            let delay = strategyParams.unstakeDelay;
+                            await ethers.provider.send("evm_increaseTime", [delay]);
+                            await ethers.provider.send('evm_mine');
+                        }
+
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
@@ -221,6 +227,10 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                         liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
+                    });
+
+                    it(`Balance asset after unstake >= unstakeValue`, async function () {
+                        expect(balanceAsset.gte(VALUE)).to.equal(true);
                     });
 
                     it(`Balance asset is in range`, async function () {
@@ -315,15 +325,32 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
                     await strategy.connect(recipient).stake(asset.address, assetValue);
 
+                    if (strategyParams.unstakeDelay) {
+                        let delay = strategyParams.unstakeDelay;
+                        await ethers.provider.send("evm_increaseTime", [delay]);
+                        await ethers.provider.send('evm_mine');
+                    }
+
+
                     liquidationValueAfterStake = new BigNumber((await strategy.liquidationValue()).toString());
 
-                    await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true);
+                    let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
+                    let rewardEvent = tx.events.find((e)=>e.event === 'Reward');
+                    let rewardAmount = new BigNumber('0');
+                    if (rewardEvent){
+                        rewardAmount = new BigNumber(rewardEvent.args.amount.toString());
+                    }
 
-                    balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                    // UnstakeFull call claimRewards and getting value may distort the result => Remove the sum of the received rewards
+                    balanceAssetAfter = (new BigNumber((await asset.balanceOf(recipient.address)).toString())).minus(rewardAmount);
 
                     netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
+                });
+
+                it(`Balance asset after unstakeFull >= stake value minus 4 bp`, async function () {
+                    expect(balanceAssetAfter.gte(VALUE.times(9996).div(10000))).to.equal(true);
                 });
 
                 it(`Balance asset = liquidation value`, async function () {
@@ -406,8 +433,13 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
                     await strategy.connect(recipient).stake(asset.address, assetValue);
 
-                    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-                    await ethers.provider.send("evm_increaseTime", [sevenDays])
+                    let delay;
+                    if (strategyParams.delay) {
+                        delay = strategyParams.delay;
+                    } else {
+                        delay = 7 * 24 * 60 * 60 * 1000;
+                    }
+                    await ethers.provider.send("evm_increaseTime", [delay]);
                     await ethers.provider.send('evm_mine');
 
                     if (strategyParams.doubleStakeReward) {

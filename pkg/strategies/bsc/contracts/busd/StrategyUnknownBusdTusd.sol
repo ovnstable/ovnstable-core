@@ -6,6 +6,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Unknown.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyUnknownBusdTusd is Strategy {
@@ -216,8 +217,8 @@ contract StrategyUnknownBusdTusd is Strategy {
             // count amount to unstake
             uint256 totalLpBalance = conePair.totalSupply();
             uint256 lpTokensToWithdraw = _getAmountLpTokens(
-                // add 4bp and 1e13 to _amount for smooth withdraw
-                _amount * 10004 / 10000 + 1e13,
+                // add 4bp and 1e14 to _amount for smooth withdraw
+                OvnMath.addBasisPoints(_amount, 4) + 1e14,
                 totalLpBalance,
                 reserveBusd,
                 reserveTusd,
