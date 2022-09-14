@@ -5,7 +5,7 @@ async function main() {
 
 
     let usdPlus = await getContract('UsdPlusToken');
-    let exchanger = await getContract('HedgeExchangerBusdWbnb');
+    let exchanger = await getContract('HedgeExchangerWmaticUsdc');
 
     await showHedgeM2M();
 
