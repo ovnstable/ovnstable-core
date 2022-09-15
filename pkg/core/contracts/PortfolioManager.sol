@@ -14,7 +14,6 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 
-
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -380,22 +379,31 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function setStrategyWeights(StrategyWeight[] calldata _strategyWeights) external onlyPortfolioAgent {
 
+        require(_strategyWeights.length == strategyWeights.length, 'Wrong number of strategies');
+
         uint256 totalTarget = 0;
+
+        bool[] memory updatedStrategies = new bool[](strategyWeights.length);
 
         for (uint8 i = 0; i < _strategyWeights.length; i++) {
             StrategyWeight memory weightNew = _strategyWeights[i];
 
             uint256 index = strategyWeightPositions[weightNew.strategy];
+            require(updatedStrategies[index] != true, 'Strategy was updated');
+
 
             StrategyWeight memory weightOld = strategyWeights[index];
 
-            require(weightOld.strategy != weightNew.strategy, 'Incorrect strategy index');
+            require(weightOld.strategy == weightNew.strategy, 'Incorrect strategy index');
             require(weightNew.minWeight <= weightNew.targetWeight, "minWeight shouldn't higher than targetWeight");
             require(weightNew.targetWeight <= weightNew.maxWeight, "targetWeight shouldn't higher than maxWeight");
 
             totalTarget += weightNew.targetWeight;
 
             strategyWeights[index] = weightNew;
+
+            updatedStrategies[index] = true;
+
             emit StrategyWeightUpdated(
                 index,
                 weightNew.strategy,
@@ -410,7 +418,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
     }
 
-    function addStrategy(address _strategy) external onlyAdmin{
+    function addStrategy(address _strategy) external onlyAdmin {
 
         for (uint8 i = 0; i < strategyWeights.length; i++) {
             require(strategyWeights[i].strategy != _strategy, 'Strategy already exist');
@@ -419,7 +427,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         // Strategy is disabled always when only created
         StrategyWeight memory strategyWeight = StrategyWeight(_strategy, 0, 0, 0, false, false);
-        uint256 index = strategyWeights.length + 1;
+
+        uint256 index; // default index = 0
+        if(strategyWeights.length != 0){
+            index = strategyWeights.length; // next index = length (+1)
+        }
 
         // Add strategy to last position
         _addStrategyWeightAt(strategyWeight, index);
@@ -445,8 +457,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             strategyWeightPositions[_tempWeight.strategy] = i;
         }
 
-        delete strategyWeights[strategyWeights.length-1];
+        strategyWeights.pop();
         delete strategyWeightPositions[_strategy];
+
     }
 
 
@@ -473,7 +486,14 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
 
     function getStrategyWeight(address strategy) public override view returns (StrategyWeight memory) {
-        return strategyWeights[strategyWeightPositions[strategy]];
+
+        if (strategyWeights.length == 0) {
+            revert('Strategy not found');
+        }
+
+        StrategyWeight memory weight = strategyWeights[strategyWeightPositions[strategy]];
+        require(weight.strategy == strategy, 'Strategy not found');
+        return weight;
     }
 
     function getAllStrategyWeights() public override view returns (StrategyWeight[] memory) {
