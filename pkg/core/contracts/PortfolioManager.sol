@@ -263,7 +263,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         }
     }
 
-    function balance() public override onlyAdmin {
+    function balance() public override onlyPortfolioAgent {
         _balance();
         emit Balance();
     }
