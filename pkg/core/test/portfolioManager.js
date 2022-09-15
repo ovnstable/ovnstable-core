@@ -14,6 +14,17 @@ chai.use(require('chai-bignumber')());
 const { solidity } =  require("ethereum-waffle");
 chai.use(solidity);
 
+const {waffle} = require("hardhat");
+const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
+const {provider} = waffle;
+
+let assetAddress;
+if (process.env.STAND === 'bsc') {
+    assetAddress = DEFAULT.busd;
+} else {
+    assetAddress = DEFAULT.usdc;
+}
+
 describe("PortfolioManager set new cash strategy", function () {
 
     let asset;
@@ -31,12 +42,6 @@ describe("PortfolioManager set new cash strategy", function () {
 
         await deployments.fixture(['base', 'setting', 'test']);
 
-        let assetAddress;
-        if (process.env.STAND === 'bsc') {
-            assetAddress = DEFAULT.busd;
-        } else {
-            assetAddress = DEFAULT.usdc;
-        }
         asset = await ethers.getContractAt("ERC20", assetAddress);
         mockCashStrategyA = await deploy("MockStrategy", {
             from: deployer,
@@ -134,8 +139,550 @@ describe("PortfolioManager not set cash strategy", function () {
 
 });
 
+describe("PortfolioManager: addStrategy", function () {
 
-describe("PortfolioManager", function () {
+    let pm;
+    let strategy1;
+    let strategy2;
+    let account;
+    let notAdminUser;
+
+    sharedBeforeEach(async () => {
+        await hre.run("compile");
+        await resetHardhat(process.env.STAND);
+
+        const {deploy} = deployments;
+        const {deployer} = await getNamedAccounts();
+
+        account = deployer;
+
+        await deployments.fixture([]);
+
+        notAdminUser = provider.createEmptyWallet();
+        await transferETH(1, notAdminUser.address);
+
+        pm = await deployContract("PortfolioManager");
+
+        strategy1 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 1],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+
+        strategy2 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 2],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+    });
+
+
+
+    it("success added", async function () {
+        await pm.addStrategy(strategy1.address);
+
+        let weight = await pm.getStrategyWeight(strategy1.address);
+
+        expect(strategy1.address).to.eq(weight.strategy);
+        expect(0).to.eq(weight.minWeight);
+        expect(0).to.eq(weight.targetWeight);
+        expect(0).to.eq(weight.maxWeight);
+        expect(false).to.eq(weight.enabled);
+        expect(false).to.eq(weight.enabledReward);
+
+        let index = await pm.strategyWeightPositions(strategy1.address);
+        expect(0).to.eq(index);
+
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(1).to.eq(weights.length);
+
+        expect(strategy1.address).to.eq(weights[0].strategy);
+    });
+
+    it("Call only onlyAdmin", async function () {
+        await expectRevert(pm.connect(notAdminUser).addStrategy(strategy1.address), 'Restricted to admins');
+    });
+
+    it("Strategy already exist", async function () {
+        await pm.addStrategy(strategy1.address);
+        await expectRevert(pm.addStrategy(strategy1.address), 'Strategy already exist');
+    });
+
+    it("Two strategy added", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+
+        let index = await pm.strategyWeightPositions(strategy1.address);
+        expect(0).to.eq(index);
+
+        index = await pm.strategyWeightPositions(strategy2.address);
+        expect(1).to.eq(index);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(2).to.eq(weights.length);
+
+        expect(strategy1.address).to.eq(weights[0].strategy);
+        expect(strategy2.address).to.eq(weights[1].strategy);
+    });
+
+});
+
+
+
+describe("PortfolioManager: removeStrategy", function () {
+
+    let pm;
+    let strategy1;
+    let strategy2;
+    let strategy3;
+    let account;
+    let notAdminUser;
+
+    sharedBeforeEach(async () => {
+        await hre.run("compile");
+        await resetHardhat(process.env.STAND);
+
+        const {deploy} = deployments;
+        const {deployer} = await getNamedAccounts();
+
+        account = deployer;
+
+        await deployments.fixture([]);
+
+        notAdminUser = provider.createEmptyWallet();
+        await transferETH(1, notAdminUser.address);
+
+        pm = await deployContract("PortfolioManager");
+        await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), account);
+
+        strategy1 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 1],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+
+        strategy2 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 2],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+
+        strategy3 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 3],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+    });
+
+
+
+    it("remove strategy", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.removeStrategy(strategy1.address);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(0).to.eq(weights.length);
+
+        await expectRevert(pm.getStrategyWeight(strategy1.address), 'Strategy not found');
+
+    });
+
+    it("Revert: Address strategy not equals", async function () {
+        await pm.addStrategy(strategy1.address);
+        await expectRevert(pm.removeStrategy(strategy2.address), 'Address strategy not equals');
+    });
+
+
+    it("Revert: Target weight must be 0", async function () {
+        await pm.addStrategy(strategy1.address);
+
+        let weights = [{
+            strategy: strategy1.address,
+            minWeight: 0,
+            targetWeight: 100000,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: false,
+        }];
+
+        await pm.setStrategyWeights(weights);
+
+        await expectRevert(pm.removeStrategy(strategy1.address), 'Target weight must be 0');
+    });
+
+    it("remove: first element -> shift all elements", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+        await pm.addStrategy(strategy3.address);
+
+        await pm.removeStrategy(strategy1.address);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(2).to.eq(weights.length);
+        expect(strategy2.address).to.eq(weights[0].strategy);
+        expect(strategy3.address).to.eq(weights[1].strategy);
+
+        await expectRevert(pm.getStrategyWeight(strategy1.address), 'Strategy not found');
+
+        let weight = await pm.getStrategyWeight(strategy2.address);
+        expect(strategy2.address).to.eq(weight.strategy);
+
+        weight = await pm.getStrategyWeight(strategy3.address);
+        expect(strategy3.address).to.eq(weight.strategy);
+    });
+
+    it("remove: second element -> shift right element", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+        await pm.addStrategy(strategy3.address);
+
+        await pm.removeStrategy(strategy2.address);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(2).to.eq(weights.length);
+        expect(strategy1.address).to.eq(weights[0].strategy);
+        expect(strategy3.address).to.eq(weights[1].strategy);
+
+        await expectRevert(pm.getStrategyWeight(strategy2.address), 'Strategy not found');
+
+        let weight = await pm.getStrategyWeight(strategy1.address);
+        expect(strategy1.address).to.eq(weight.strategy);
+
+        weight = await pm.getStrategyWeight(strategy3.address);
+        expect(strategy3.address).to.eq(weight.strategy);
+    });
+
+    it("remove: last element -> not shifts", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+        await pm.addStrategy(strategy3.address);
+
+        await pm.removeStrategy(strategy3.address);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(2).to.eq(weights.length);
+        expect(strategy1.address).to.eq(weights[0].strategy);
+        expect(strategy2.address).to.eq(weights[1].strategy);
+
+        await expectRevert(pm.getStrategyWeight(strategy3.address), 'Strategy not found');
+
+        let weight = await pm.getStrategyWeight(strategy1.address);
+        expect(strategy1.address).to.eq(weight.strategy);
+
+        weight = await pm.getStrategyWeight(strategy2.address);
+        expect(strategy2.address).to.eq(weight.strategy);
+    });
+
+    it("add multi and remove all", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+        await pm.addStrategy(strategy3.address);
+
+        await pm.removeStrategy(strategy3.address);
+        await pm.removeStrategy(strategy1.address);
+        await pm.removeStrategy(strategy2.address);
+
+        let weights = await pm.getAllStrategyWeights();
+        expect(0).to.eq(weights.length);
+
+        await expectRevert(pm.getStrategyWeight(strategy3.address), 'Strategy not found');
+        await expectRevert(pm.getStrategyWeight(strategy2.address), 'Strategy not found');
+        await expectRevert(pm.getStrategyWeight(strategy1.address), 'Strategy not found');
+
+    });
+
+    it("Call only onlyAdmin", async function () {
+        await expectRevert(pm.connect(notAdminUser).removeStrategy(strategy1.address), 'Restricted to admins');
+    });
+
+});
+
+
+
+describe("PortfolioManager: setStrategyWeights", function () {
+
+    let pm;
+    let strategy1;
+    let strategy2;
+    let account;
+    let notAdminUser;
+
+    sharedBeforeEach(async () => {
+        await hre.run("compile");
+        await resetHardhat(process.env.STAND);
+
+        const {deploy} = deployments;
+        const {deployer} = await getNamedAccounts();
+
+        account = deployer;
+
+        await deployments.fixture([]);
+
+        notAdminUser = provider.createEmptyWallet();
+        await transferETH(1, notAdminUser.address);
+
+        pm = await deployContract("PortfolioManager");
+        await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), account);
+
+        strategy1 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 1],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+
+        strategy2 = await deploy("MockStrategy", {
+            from: deployer,
+            args: [assetAddress, 2],
+            log: true,
+            skipIfAlreadyDeployed: false
+        });
+
+    });
+
+    it("Success change", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+
+        let weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+            {
+                strategy: strategy2.address,
+                minWeight: 0,
+                targetWeight: 90000,
+                maxWeight: 100000,
+                enabled: false,
+                enabledReward: true,
+            },
+        ];
+
+        await pm.setStrategyWeights(weights);
+
+        let results = await pm.getAllStrategyWeights();
+
+        let weight = results[0];
+        expect(strategy1.address).to.eq(weight.strategy);
+        expect(0).to.eq(weight.minWeight);
+        expect(10000).to.eq(weight.targetWeight);
+        expect(100000).to.eq(weight.maxWeight);
+        expect(true).to.eq(weight.enabled);
+        expect(false).to.eq(weight.enabledReward);
+
+        weight = results[1];
+        expect(strategy2.address).to.eq(weight.strategy);
+        expect(0).to.eq(weight.minWeight);
+        expect(90000).to.eq(weight.targetWeight);
+        expect(100000).to.eq(weight.maxWeight);
+        expect(false).to.eq(weight.enabled);
+        expect(true).to.eq(weight.enabledReward);
+
+
+        weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 90000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: true,
+            },
+            {
+                strategy: strategy2.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: false,
+                enabledReward: false,
+            },
+        ];
+
+        await pm.setStrategyWeights(weights);
+
+        results = await pm.getAllStrategyWeights();
+
+        weight = results[0];
+        expect(strategy1.address).to.eq(weight.strategy);
+        expect(0).to.eq(weight.minWeight);
+        expect(90000).to.eq(weight.targetWeight);
+        expect(100000).to.eq(weight.maxWeight);
+        expect(true).to.eq(weight.enabled);
+        expect(true).to.eq(weight.enabledReward);
+
+        weight = results[1];
+        expect(strategy2.address).to.eq(weight.strategy);
+        expect(0).to.eq(weight.minWeight);
+        expect(10000).to.eq(weight.targetWeight);
+        expect(100000).to.eq(weight.maxWeight);
+        expect(false).to.eq(weight.enabled);
+        expect(false).to.eq(weight.enabledReward);
+
+
+    });
+
+    it("Revert: Wrong number of strategies", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+
+        let weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+        ];
+
+        await expectRevert(pm.setStrategyWeights(weights), "Wrong number of strategies");
+    });
+
+    it("Revert: Strategy was updated", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+
+        let weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+        ];
+
+        await expectRevert(pm.setStrategyWeights(weights), "Strategy was updated");
+    });
+
+
+    it("Revert: Total target should equal to TOTAL_WEIGHT", async function () {
+        await pm.addStrategy(strategy1.address);
+        await pm.addStrategy(strategy2.address);
+
+        let weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+
+            {
+                strategy: strategy2.address,
+                minWeight: 0,
+                targetWeight: 10000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            }
+        ];
+
+        await expectRevert(pm.setStrategyWeights(weights), "Total target should equal to TOTAL_WEIGHT");
+
+        weights = [
+            {
+                strategy: strategy1.address,
+                minWeight: 0,
+                targetWeight: 60000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            },
+
+            {
+                strategy: strategy2.address,
+                minWeight: 0,
+                targetWeight: 50000,
+                maxWeight: 100000,
+                enabled: true,
+                enabledReward: false,
+            }
+        ];
+
+        await expectRevert(pm.setStrategyWeights(weights), "Total target should equal to TOTAL_WEIGHT");
+    });
+
+
+    it("Revert: targetWeight shouldn't higher than maxWeight", async function () {
+        await pm.addStrategy(strategy1.address);
+
+        let weights = [{
+            strategy: strategy1.address,
+            minWeight: 0,
+            targetWeight: 100000,
+            maxWeight: 20000,
+            enabled: true,
+            enabledReward: false,
+        }];
+
+        await expectRevert(pm.setStrategyWeights(weights), "targetWeight shouldn't higher than maxWeight");
+    });
+
+
+    it("Revert: minWeight shouldn't higher than targetWeight", async function () {
+        await pm.addStrategy(strategy1.address);
+
+        let weights = [{
+            strategy: strategy1.address,
+            minWeight: 100000,
+            targetWeight: 500,
+            maxWeight: 0,
+            enabled: true,
+            enabledReward: false,
+        }];
+
+        await expectRevert(pm.setStrategyWeights(weights), 'minWeight shouldn\'t higher than targetWeight');
+    });
+
+    it("Revert: Incorrect strategy index", async function () {
+        await pm.addStrategy(strategy1.address);
+
+        let weights = [{
+            strategy: strategy2.address,
+            minWeight: 0,
+            targetWeight: 100000,
+            maxWeight: 100000,
+            enabled: true,
+            enabledReward: false,
+        }];
+
+        await expectRevert(pm.setStrategyWeights(weights), 'Incorrect strategy index');
+    });
+
+
+    it("Call only Portfolio Agent", async function () {
+        await expectRevert(pm.connect(notAdminUser).setStrategyWeights([]), 'Restricted to Portfolio Agent');
+    });
+
+});
+
+
+describe("PortfolioManager: Deposit/Withdraw", function () {
 
     let asset;
     let cashStrategy;
@@ -154,12 +701,7 @@ describe("PortfolioManager", function () {
 
         await deployments.fixture(['test']);
 
-        let assetAddress;
-        if (process.env.STAND === 'bsc') {
-            assetAddress = DEFAULT.busd;
-        } else {
-            assetAddress = DEFAULT.usdc;
-        }
+
         asset = await ethers.getContractAt("ERC20", assetAddress);
         cashStrategy = await deploy("MockStrategy", {
             from: deployer,
@@ -186,6 +728,7 @@ describe("PortfolioManager", function () {
         await pm.setExchanger(deployer);
         await pm.setMark2Market(m2m.address);
 
+        await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), account);
 
         let weights = [{
             strategy: nonCashStrategy.address,
@@ -201,7 +744,10 @@ describe("PortfolioManager", function () {
             maxWeight: 20000,
             enabled: true,
             enabledReward: false,
-        }]
+        }];
+
+        await pm.addStrategy(nonCashStrategy.address);
+        await pm.addStrategy(cashStrategy.address);
 
         await pm.setStrategyWeights(weights);
         await pm.setCashStrategy(cashStrategy.address);
