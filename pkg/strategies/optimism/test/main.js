@@ -25,6 +25,15 @@ let arrays = [
         enabledReward: true,
         unstakeDelay:  60 * 60 * 1000
     },
+    {
+        name: 'StrategyRubiconDai',
+        enabledReward: true,
+    },
+
+    {
+        name: 'StrategyRubiconUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {

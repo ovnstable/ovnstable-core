@@ -5,48 +5,36 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../PayoutListener.sol";
-
 
 contract PolygonPayoutListener is PayoutListener {
 
     address[] public qsSyncPools;
+    address[] public qsSkimPools;
+    address[] public qsBribes;
+    IERC20 public usdPlus;
+    mapping(address => uint256) public skimPoolBalances; // pool address -> USD+ balance
 
     // ---  events
 
-    event QsSyncPoolsUpdated(uint256 index, address pool);
-    event QsSyncPoolsRemoved(uint256 index, address pool);
+    event SkimReward(address pool, uint256 amount);
 
     // --- setters
 
-    function setQsSyncPools(address[] calldata _qsSyncPools) external onlyAdmin {
+    function setTokens(address _usdPlus) external onlyAdmin {
+        usdPlus = IERC20(_usdPlus);
+    }
 
-        uint256 minLength = (qsSyncPools.length < _qsSyncPools.length) ? qsSyncPools.length : _qsSyncPools.length;
+    function setSkimPools(address[] calldata _pools, address[] calldata _bribes) external onlyAdmin {
+        require(_pools.length == _bribes.length, 'pools.size != bribes.size');
+        qsSkimPools = _pools;
+        qsBribes = _bribes;
+    }
 
-        // replace already exists
-        for (uint256 i = 0; i < minLength; i++) {
-            qsSyncPools[i] = _qsSyncPools[i];
-            emit QsSyncPoolsUpdated(i, _qsSyncPools[i]);
-        }
-
-        // add if need
-        if (minLength < _qsSyncPools.length) {
-            for (uint256 i = minLength; i < _qsSyncPools.length; i++) {
-                qsSyncPools.push(_qsSyncPools[i]);
-                emit QsSyncPoolsUpdated(i, _qsSyncPools[i]);
-            }
-        }
-
-        // truncate if need
-        if (qsSyncPools.length > _qsSyncPools.length) {
-            uint256 removeCount = qsSyncPools.length - _qsSyncPools.length;
-            for (uint256 i = 0; i < removeCount; i++) {
-                address qsPool = qsSyncPools[qsSyncPools.length - 1];
-                qsSyncPools.pop();
-                emit QsSyncPoolsRemoved(qsSyncPools.length, qsPool);
-            }
-        }
+    function setSyncPools(address[] calldata _pools) external onlyAdmin {
+        qsSyncPools = _pools;
     }
 
     // ---  constructor
@@ -61,17 +49,62 @@ contract PolygonPayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
+        _sync();
+        _skim();
+    }
+
+
+    function _sync() internal {
         for (uint256 i = 0; i < qsSyncPools.length; i++) {
-            QsSyncPool(qsSyncPools[i]).sync();
+            Pool(qsSyncPools[i]).sync();
         }
     }
 
-    function getAllQsSyncPools() external view returns (address[] memory) {
-        return qsSyncPools;
+    function _skim() internal {
+
+        for (uint256 i = 0; i < qsSkimPools.length; i++) {
+            address pool = qsSkimPools[i];
+
+            uint256 balanceBefore = usdPlus.balanceOf(address(this));
+            Pool(pool).skim(address(this));
+
+            // calculate how to much has increase USD+ after call SKIM
+            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - balanceBefore;
+
+            // Add previous balance USD+
+            amountUsdPlus += skimPoolBalances[pool];
+
+            if(amountUsdPlus > 0) {
+                Bribe bribe = Bribe(qsBribes[i]);
+
+                // Amount USD+ on Bribe contract
+                uint256 bribeAmount = bribe.left(address(usdPlus));
+
+                // if we do not have enough amount USD+, then we do not charge bribes and save this USD+ to next payout
+                if(amountUsdPlus > bribeAmount){
+
+                    usdPlus.approve(address(bribe), amountUsdPlus);
+                    bribe.notifyRewardAmount(address(usdPlus), amountUsdPlus);
+
+                    // reset balance for pool
+                    skimPoolBalances[pool] = 0;
+                    emit SkimReward(pool, amountUsdPlus);
+                }else {
+                    // save balance for the next payout
+                    skimPoolBalances[pool] = amountUsdPlus;
+                }
+            }
+        }
     }
 }
 
 
-interface QsSyncPool {
+interface Bribe {
+    function notifyRewardAmount(address token, uint256 amount) external;
+    function left(address token) external view returns (uint);
+}
+
+interface Pool {
     function sync() external;
+    function skim(address to) external;
 }

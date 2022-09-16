@@ -18,7 +18,7 @@ async function main() {
             "strategy": "0x9520aEF41161f09Dce78a8e79482b654d4FFe641",
             "name": "Pika USDC",
             "minWeight": 0,
-            "targetWeight": 26,
+            "targetWeight": 35,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -27,7 +27,28 @@ async function main() {
             "strategy": "0x6C93A2A9eBC61ce664eE3D44531B76365150BFd8",
             "name": "Rubicon USDC",
             "minWeight": 0,
-            "targetWeight": 71.5,
+            "targetWeight": 45,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x2c80d9ee6f42a9AF2f681fE569AB409Df3aa46f7",
+            "name": "Rubicon USDT",
+            "minWeight": 0,
+            "targetWeight": 5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+
+        {
+            "strategy": "0xfa5328a029575f460d9fb499B1cDCE25b69B1038",
+            "name": "Rubicon DAI",
+            "minWeight": 0,
+            "targetWeight": 12.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -53,8 +74,8 @@ async function main() {
         return value;
     })
 
-    // await changeWeightsAndBalance(weights);
-    await proposal(weights);
+    await changeWeightsAndBalance(weights);
+    // await proposal(weights);
     // await setWeights(weights);
 }
 
