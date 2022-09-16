@@ -36,38 +36,38 @@ describe("OPTIMISM", function () {
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 0.2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 20,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200,
-        //     deltaPercent: 1,
-        // },
+        {
+            value: 0.02,
+            deltaPercent: 5,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+        },
+        {
+            value: 2,
+            deltaPercent: 5,
+        },
+        {
+            value: 20,
+            deltaPercent: 1,
+        },
+        {
+            value: 200,
+            deltaPercent: 1,
+        },
         {
             value: 2000,
             deltaPercent: 1,
         },
-        // {
-        //     value: 20000,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 200000,
-        //     deltaPercent: 0.1,
-        // },
+        {
+            value: 20000,
+            deltaPercent: 1,
+        },
+        {
+            value: 200000,
+            deltaPercent: 0.1,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {

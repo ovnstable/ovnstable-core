@@ -38,6 +38,7 @@ module.exports = async () => {
             gauge: gauge,
             pair: pair,
             uniswapV3Router: OPTIMISM.uniswapV3Router,
+            poolFee0: poolFee0,
             poolFee1: poolFee1,
             // aave params
             aavePoolAddressesProvider: OPTIMISM.aaveProvider,

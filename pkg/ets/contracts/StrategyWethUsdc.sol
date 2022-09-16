@@ -118,6 +118,7 @@ contract StrategyWethUsdc is HedgeStrategy {
         weth.approve(address(router), MAX_UINT_VALUE);
         usdc.approve(address(router), MAX_UINT_VALUE);
         pair.approve(address(router), MAX_UINT_VALUE);
+        pair.approve(address(gauge), MAX_UINT_VALUE);
 
         usdPlus.approve(address(exchange), MAX_UINT_VALUE);
         usdc.approve(address(exchange), MAX_UINT_VALUE);

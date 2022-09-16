@@ -33,7 +33,6 @@ library WethUsdcLibrary {
         );
 
         uint256 lpTokenBalance = self.pair().balanceOf(address(this));
-        self.pair().approve(address(self.gauge()), lpTokenBalance);
         self.gauge().deposit(lpTokenBalance, 0);
     }
 
@@ -46,8 +45,6 @@ library WethUsdcLibrary {
     function _removeLiquidity(StrategyWethUsdc self, uint256 delta) public returns (uint256, uint256) {
         // calc weth tokens amount
         uint256 lpForUnstake = _getLpForUnstake(self, delta);
-
-        self.pair().approve(address(self.router()), lpForUnstake);
         self.gauge().withdraw(lpForUnstake);
 
         uint256 usdcBalanceBefore = self.usdc().balanceOf(address(self));
@@ -73,10 +70,15 @@ library WethUsdcLibrary {
     function _getLpForUnstake(StrategyWethUsdc self, uint256 delta) internal view returns (uint256 lpForUnstake) {
         uint256 poolTokenDelta = self.control().usdToWeth(delta);
         uint256 lpTokenBalance = self.gauge().balanceOf(address(this));
-        uint256 totalLpBalance = self.pair().totalSupply();
-        (uint256 reserveWeth,,) = self.pair().getReserves();
-        uint256 wethBalance = reserveWeth * lpTokenBalance / totalLpBalance;
-        lpForUnstake = poolTokenDelta * lpTokenBalance / wethBalance;
+        if (lpTokenBalance > 0) {
+            uint256 totalLpBalance = self.pair().totalSupply();
+            (uint256 reserveWeth,,) = self.pair().getReserves();
+            uint256 wethBalance = reserveWeth * lpTokenBalance / totalLpBalance;
+            lpForUnstake = poolTokenDelta * lpTokenBalance / wethBalance;
+            if (lpForUnstake > lpTokenBalance) {
+                lpForUnstake = lpTokenBalance;
+            }
+        }
     }
 
     /**
