@@ -6,8 +6,8 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Cone.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Unknown.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Annex.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-
 
 contract StrategyUnknownBusdTusd is Strategy {
 
@@ -28,6 +28,7 @@ contract StrategyUnknownBusdTusd is Strategy {
         address unkwnUserProxy;
         address unkwnLens;
         uint256 stakeStep;
+        address annexStablePool;
     }
 
     // --- params
@@ -54,6 +55,8 @@ contract StrategyUnknownBusdTusd is Strategy {
     IUnkwnLens public unkwnLens;
 
     uint256 public stakeStep;
+
+    address public annexStablePool;
 
     // --- events
 
@@ -82,6 +85,8 @@ contract StrategyUnknownBusdTusd is Strategy {
 
         chainlinkBusd = IPriceFeed(params.chainlinkBusd);
         chainlinkTusd = IPriceFeed(params.chainlinkTusd);
+
+        annexStablePool = params.annexStablePool;
 
         rewardWallet = params.rewardWallet;
         rewardWalletPercent = params.rewardWalletPercent;
@@ -113,86 +118,56 @@ contract StrategyUnknownBusdTusd is Strategy {
         uint256 busdBalance = busdToken.balanceOf(address(this));
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
 
-        // number of cycles
-        uint256 k = busdBalance / stakeStep + 1;
-        for (uint i; i < k; i++) {
-            if (busdBalance > stakeStep) {
-                busdBalance = stakeStep;
-            }
+        uint256 priceBusd = uint256(chainlinkBusd.latestAnswer());
+        uint256 priceTusd = uint256(chainlinkTusd.latestAnswer());
+        uint256 busdBalanceFromTusd = (tusdBalance * busdTokenDenominator * priceTusd) / (tusdTokenDenominator * priceBusd);
 
-            uint256 priceBusd = uint256(chainlinkBusd.latestAnswer());
-            uint256 priceTusd = uint256(chainlinkTusd.latestAnswer());
-            uint256 busdBalanceFromTusd = (tusdBalance * busdTokenDenominator * priceTusd) / (tusdTokenDenominator * priceBusd);
+        uint256 amountBusdToSwap = _getAmountTusdInBusd(
+            busdBalance - busdBalanceFromTusd,
+            reserveBusd,
+            reserveTusd,
+            1
+        );
 
-            // swap needed token
-            if (busdBalance > busdBalanceFromTusd) {
-                uint256 amountBusdToSwap = _getAmountTusdInBusd(
-                    busdBalance - busdBalanceFromTusd,
-                    reserveBusd,
-                    reserveTusd,
-                    1
-                );
+        AnnexLibrary.swap(
+            address(busdToken),
+            address(tusdToken),
+            amountBusdToSwap,
+            amountBusdToSwap * 99 / 100,
+            annexStablePool
+        );
 
-                ConeLibrary.swap(
-                    coneRouter,
-                    address(busdToken),
-                    address(tusdToken),
-                    true,
-                    amountBusdToSwap,
-                    amountBusdToSwap * 99 / 100,
-                    address(this)
-                );
-            } else {
-                uint256 amountTusdToSwap = _getAmountBusdInTusd(
-                    tusdBalance,
-                    reserveTusd,
-                    reserveBusd,
-                    1
-                );
+        (reserveTusd, reserveBusd,) = conePair.getReserves();
 
-                ConeLibrary.swap(
-                    coneRouter,
-                    address(tusdToken),
-                    address(busdToken),
-                    true,
-                    amountTusdToSwap,
-                    amountTusdToSwap * 99 / 100,
-                    address(this)
-                );
-            }
+        busdBalance = busdToken.balanceOf(address(this));
+        tusdBalance = tusdToken.balanceOf(address(this));
 
-            (reserveTusd, reserveBusd,) = conePair.getReserves();
-
-            busdBalance = busdToken.balanceOf(address(this));
-            tusdBalance = tusdToken.balanceOf(address(this));
-
-            uint256 amountTusdMin = busdBalance * reserveTusd / reserveBusd;
-            if (amountTusdMin > tusdBalance) {
-                amountTusdMin = tusdBalance;
-            }
-            uint256 amountBusdMin = tusdBalance * reserveBusd / reserveTusd;
-            if (amountBusdMin > busdBalance) {
-                amountBusdMin = busdBalance;
-            }
-
-            // add liquidity
-            busdToken.approve(address(coneRouter), busdBalance);
-            tusdToken.approve(address(coneRouter), tusdBalance);
-            coneRouter.addLiquidity(
-                address(busdToken),
-                address(tusdToken),
-                true,
-                busdBalance,
-                tusdBalance,
-                amountBusdMin * 99 / 100,
-                amountTusdMin * 99 / 100,
-                address(this),
-                block.timestamp
-            );
-
-            busdBalance = busdToken.balanceOf(address(this));
-            tusdBalance = tusdToken.balanceOf(address(this));
+        uint256 amountTusdMin = busdBalance * reserveTusd / reserveBusd;
+        if (amountTusdMin > tusdBalance) {
+            amountTusdMin = tusdBalance;
         }
+        uint256 amountBusdMin = tusdBalance * reserveBusd / reserveTusd;
+        if (amountBusdMin > busdBalance) {
+            amountBusdMin = busdBalance;
+        }
+
+        // add liquidity
+        busdToken.approve(address(coneRouter), busdBalance);
+        tusdToken.approve(address(coneRouter), tusdBalance);
+        coneRouter.addLiquidity(
+            address(busdToken),
+            address(tusdToken),
+            true,
+            busdBalance,
+            tusdBalance,
+            amountBusdMin * 99 / 100,
+            amountTusdMin * 99 / 100,
+            address(this),
+            block.timestamp
+        );
+
+        busdBalance = busdToken.balanceOf(address(this));
+        tusdBalance = tusdToken.balanceOf(address(this));
 
         // stake to unknown
         uint256 lpTokenBalance = conePair.balanceOf(address(this));
@@ -217,7 +192,7 @@ contract StrategyUnknownBusdTusd is Strategy {
             // count amount to unstake
             uint256 totalLpBalance = conePair.totalSupply();
             uint256 lpTokensToWithdraw = _getAmountLpTokens(
-                // add 4bp and 1e14 to _amount for smooth withdraw
+            // add 4bp and 1e14 to _amount for smooth withdraw
                 OvnMath.addBasisPoints(_amount, 4) + 1e14,
                 totalLpBalance,
                 reserveBusd,
@@ -253,14 +228,20 @@ contract StrategyUnknownBusdTusd is Strategy {
         // swap tusd to busd
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
         if (tusdBalance > 0) {
-            ConeLibrary.swap(
-                coneRouter,
+
+            uint256 amountMin = AnnexLibrary.getAmountOut(
                 address(tusdToken),
                 address(busdToken),
-                true,
                 tusdBalance,
-                tusdBalance * 99 / 100,
-                address(this)
+                annexStablePool
+            );
+
+            AnnexLibrary.swap(
+                address(tusdToken),
+                address(busdToken),
+                tusdBalance,
+                amountMin,
+                annexStablePool
             );
         }
 
@@ -306,14 +287,19 @@ contract StrategyUnknownBusdTusd is Strategy {
         // swap tusd to busd
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
         if (tusdBalance > 0) {
-            ConeLibrary.swap(
-                coneRouter,
+            uint256 amountMin = AnnexLibrary.getAmountOut(
                 address(tusdToken),
                 address(busdToken),
-                true,
                 tusdBalance,
-                tusdBalance * 99 / 100,
-                address(this)
+                annexStablePool
+            );
+
+            AnnexLibrary.swap(
+                address(tusdToken),
+                address(busdToken),
+                tusdBalance,
+                amountMin,
+                annexStablePool
             );
         }
 
@@ -348,12 +334,11 @@ contract StrategyUnknownBusdTusd is Strategy {
                 uint256 priceTusd = uint256(chainlinkTusd.latestAnswer());
                 busdBalanceFromTusd = (tusdBalance * busdTokenDenominator * priceTusd) / (tusdTokenDenominator * priceBusd);
             } else {
-                busdBalanceFromTusd = ConeLibrary.getAmountOut(
-                    coneRouter,
+                busdBalanceFromTusd = AnnexLibrary.getAmountOut(
                     address(tusdToken),
                     address(busdToken),
-                    true,
-                    tusdBalance
+                    tusdBalance,
+                    annexStablePool
                 );
             }
         }
@@ -448,12 +433,11 @@ contract StrategyUnknownBusdTusd is Strategy {
     ) internal view returns (uint256 amountTusdInBusd) {
         amountTusdInBusd = (amountBusdTotal * reserveTusd) / (reserveBusd * tusdTokenDenominator / busdTokenDenominator + reserveTusd);
         for (uint i = 0; i < precision; i++) {
-            uint256 amountTusd = ConeLibrary.getAmountOut(
-                coneRouter,
+            uint256 amountTusd = AnnexLibrary.getAmountOut(
                 address(busdToken),
                 address(tusdToken),
-                true,
-                amountTusdInBusd
+                amountTusdInBusd,
+                annexStablePool
             );
             amountTusdInBusd = (amountBusdTotal * reserveTusd) / (reserveBusd * amountTusd / amountTusdInBusd + reserveTusd);
         }
@@ -467,12 +451,11 @@ contract StrategyUnknownBusdTusd is Strategy {
     ) internal view returns (uint256 amountBusdInTusd) {
         amountBusdInTusd = (amountTusdTotal * reserveBusd) / (reserveTusd * tusdTokenDenominator / busdTokenDenominator + reserveBusd);
         for (uint i = 0; i < precision; i++) {
-            uint256 amountBusd = ConeLibrary.getAmountOut(
-                coneRouter,
+            uint256 amountBusd = AnnexLibrary.getAmountOut(
                 address(busdToken),
                 address(tusdToken),
-                true,
-                amountBusdInTusd
+                amountBusdInTusd,
+                annexStablePool
             );
             amountBusdInTusd = (amountTusdTotal * reserveBusd) / (reserveTusd * amountBusd / amountBusdInTusd + reserveBusd);
         }
@@ -488,12 +471,11 @@ contract StrategyUnknownBusdTusd is Strategy {
         amountLpTokens = (totalAmountLpTokens * amountBusdTotal) / (reserveBusd + reserveTusd * busdTokenDenominator / tusdTokenDenominator);
         for (uint i = 0; i < precision; i++) {
             uint256 amountTusd = reserveTusd * amountLpTokens / totalAmountLpTokens;
-            uint256 amountBusd = ConeLibrary.getAmountOut(
-                coneRouter,
+            uint256 amountBusd = AnnexLibrary.getAmountOut(
                 address(tusdToken),
                 address(busdToken),
-                true,
-                amountTusd
+                amountTusd,
+                annexStablePool
             );
             amountLpTokens = (totalAmountLpTokens * amountBusdTotal) / (reserveBusd + reserveTusd * amountBusd / amountTusd);
         }
