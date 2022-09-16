@@ -2,12 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Pika.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
-
-import "hardhat/console.sol";
 
 contract StrategyPikaUsdc is Strategy {
 

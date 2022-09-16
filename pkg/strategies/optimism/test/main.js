@@ -13,7 +13,7 @@ let arrays = [
         enabledReward: true,
     },
     {
-        name: 'StrategyVelodromeUsdcDai',
+        name: 'StrategyVelodromeUsdcWeth',
         enabledReward: true,
     },
     {
