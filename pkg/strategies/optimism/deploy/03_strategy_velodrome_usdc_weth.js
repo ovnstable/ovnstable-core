@@ -26,8 +26,8 @@ module.exports = async ({deployments}) => {
                 router: router,
                 gauge: gauge,
                 pair: pair,
-                oracleUsdc: OPTIMISM.oracleChainlinkUsdc,
-                oracleWeth: OPTIMISM.oracleChainlinkWeth,
+                oracleUsdc: OPTIMISM.oracleUsdc,
+                oracleWeth: OPTIMISM.oracleWeth,
                 uniswapV3Router: OPTIMISM.uniswapV3Router,
                 poolFee0: poolFee0,
                 poolFee1: poolFee1
