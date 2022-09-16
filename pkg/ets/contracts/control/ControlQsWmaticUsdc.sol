@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Quickswap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 
 import "../StrategyQsWmaticUsdc.sol";
 import "../libraries/EtsCalculationLibrary.sol";

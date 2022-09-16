@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/connectors/contracts/stuff/Quickswap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
@@ -207,10 +208,10 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
         uint256 wmaticBalanceBefore = wmatic.balanceOf(address(this));
         stakingDualRewards.getReward();
 
-        // swap only dQuick rewards to wmatic
+        // swap dQuick rewards to wmatic
         uint256 dQuickBalance = dQuickToken.balanceOf(address(this));
         if (dQuickBalance > 0) {
-            uint256 amountOut = QuickswapLibrary.getAmountsOut(
+            uint256 amountOut = UniswapV2Library.getAmountsOut(
                 quickswapRouter,
                 address(dQuickToken),
                 address(wmatic),
@@ -218,7 +219,7 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
             );
 
             if (amountOut > 0) {
-                uint256 dQuickWmatic = QuickswapLibrary.swapExactTokensForTokens(
+                uint256 dQuickWmatic = UniswapV2Library.swapExactTokensForTokens(
                     quickswapRouter,
                     address(dQuickToken),
                     address(wmatic),
@@ -230,13 +231,19 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
             }
         }
 
-        // return all wmatic rewards in usdc for test
-        return QuickswapLibrary.getAmountsOut(
-            quickswapRouter,
+        // swap all wmatic rewards to usdc
+        uint256 wmaticBalanceToSwap = wmatic.balanceOf(address(this)) - wmaticBalanceBefore;
+        uint256 usdcAmount = UniswapV3Library.singleSwap(
+            uniswapV3Router,
             address(wmatic),
             address(usdc),
-            wmatic.balanceOf(address(this)) - wmaticBalanceBefore
+            poolFeeMaticUsdc,
+            address(this),
+            wmaticBalanceToSwap,
+            0
         );
+
+        return usdcAmount;
     }
 
     receive() external payable {

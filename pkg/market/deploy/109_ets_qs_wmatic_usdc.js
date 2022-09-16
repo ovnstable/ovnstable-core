@@ -16,7 +16,7 @@ module.exports = async ({deployments}) => {
 
         if (ets) {
             await (await ets.setExchanger(exchanger.address)).wait();
-            await (await ets.setName('ETS QS WMATIC/USDC', 'QS WMATIC/USDC')).wait();
+            await (await ets.setName('ETS MOONSTONE', 'MOONSTONE')).wait();
             console.log('Setting done()');
         }
     }
