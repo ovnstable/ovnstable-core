@@ -2,11 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./libraries/UniswapV3Library.sol";
-import "./connectors/aave/v3/interfaces/IPoolAddressesProvider.sol";
-import "./connectors/aave/v3/interfaces/IPool.sol";
-import "./connectors/aave/v3/interfaces/IRewardsController.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 contract StrategyAave is Strategy {
 
@@ -16,7 +14,7 @@ contract StrategyAave is Strategy {
     IPoolAddressesProvider public aaveProvider;
 
     IRewardsController public rewardsController;
-    address public uniswapV3Router;
+    ISwapRouter public uniswapV3Router;
     IERC20 public opToken;
     uint24 public poolFee;
 
@@ -55,7 +53,7 @@ contract StrategyAave is Strategy {
         aUsdcToken = IERC20(params.aUsdc);
         aaveProvider = IPoolAddressesProvider(params.aaveProvider);
         rewardsController = IRewardsController(params.rewardsController);
-        uniswapV3Router = params.uniswapV3Router;
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         opToken = IERC20(params.op);
         poolFee = params.poolFee;
 
@@ -138,9 +136,9 @@ contract StrategyAave is Strategy {
                 address(opToken),
                 address(usdcToken),
                 poolFee,
+                address(this),
                 opBalance,
-                0,
-                address(this)
+                0
             );
             totalUsdc += opUsdc;
         }

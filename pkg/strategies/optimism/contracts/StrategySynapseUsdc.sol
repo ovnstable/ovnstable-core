@@ -2,14 +2,12 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./libraries/OvnMath.sol";
-import "./libraries/UniswapV3Library.sol";
-import "./connectors/synapse/interfaces/ISwap.sol";
-import "./connectors/synapse/interfaces/IMiniChefV2.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 
 contract StrategySynapseUsdc is Strategy {
-    using OvnMath for uint256;
 
     IERC20 public usdcToken;
     IERC20 public nUsdLPToken;
@@ -20,7 +18,7 @@ contract StrategySynapseUsdc is Strategy {
     IMiniChefV2 public miniChefV2;
     uint256 public pid;
 
-    address public uniswapV3Router;
+    ISwapRouter public uniswapV3Router;
     uint24 public poolFee0;
     uint24 public poolFee1;
 
@@ -67,7 +65,7 @@ contract StrategySynapseUsdc is Strategy {
         swap = ISwap(params.swap);
         miniChefV2 = IMiniChefV2(params.miniChefV2);
         pid = params.pid;
-        uniswapV3Router = params.uniswapV3Router;
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee0 = params.poolFee0;
         poolFee1 = params.poolFee1;
 
@@ -88,7 +86,7 @@ contract StrategySynapseUsdc is Strategy {
         // add liquidity
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 0;
-        amounts[1] = _amount.subBasisPoints(4, 1e4); // 0.04%
+        amounts[1] = OvnMath.subBasisPoints(_amount, 4); // 0.04%
 
         // calculating minimum LP tokens which we will receive at staking
         uint256 minToMint = swap.calculateTokenAmount(amounts, true);
@@ -112,7 +110,7 @@ contract StrategySynapseUsdc is Strategy {
         // unstake
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 0;
-        amounts[1] = _amount.addBasisPoints(4, 1e4) + 1; // 0.04% slippage + 1 for rounding
+        amounts[1] = OvnMath.addBasisPoints(_amount, 4) + 1; // 0.04% slippage + 1 for rounding
         uint256 balanceLP = swap.calculateTokenAmount(amounts, false);
         (uint256 amount,) = miniChefV2.userInfo(pid, address(this));
         if (balanceLP > amount) {
@@ -193,9 +191,9 @@ contract StrategySynapseUsdc is Strategy {
                 address(usdcToken),
                 poolFee0,
                 poolFee1,
+                address(this),
                 synBalance,
-                0,
-                address(this)
+                0
             );
             totalUsdc += synUsdc;
         }
