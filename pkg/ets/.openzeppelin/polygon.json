@@ -54,6 +54,16 @@
       "address": "0xb74d67c622eD77641f129eD678Eab69008b33BCa",
       "txHash": "0x90fae04e567cb6fc4a87d655307ed9eae2c7c7f5c903ae96a9c615af04940949",
       "kind": "uups"
+    },
+    {
+      "address": "0x67B274096051Fb9835e4475f5371220Eea9F5070",
+      "txHash": "0x3e5184dfca758606aeecab72ea979bdc98e98f7807b2b39126f8ef431460df00",
+      "kind": "uups"
+    },
+    {
+      "address": "0xCc2bEE49b2b038b42F2A5d75b5F246bcCFE66bb2",
+      "txHash": "0x77d0e132ea75a660cc2b51ae9aec774a391d80d211f49d4a9a0caad649830598",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -9011,6 +9021,612 @@
           "t_uint24": {
             "label": "uint24",
             "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "b80d8c184e4008a75f6a23b6ee2cb679aff69a87bc91a529df7ba42657d38bdb": {
+      "address": "0x3E5974D5D11b87d40ffacAF9A8758c7C3C4025e5",
+      "txHash": "0x1ee15f6277a24cbb664d211c50b7b7fc4a0bf18a19737dbb05452b0e5370221d",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "asset",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(IERC20)2347",
+            "contract": "HedgeStrategy",
+            "src": "contracts\\core\\HedgeStrategy.sol:19"
+          },
+          {
+            "label": "exchanger",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_address",
+            "contract": "HedgeStrategy",
+            "src": "contracts\\core\\HedgeStrategy.sol:20"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "HedgeStrategy",
+            "src": "contracts\\core\\HedgeStrategy.sol:144"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IExchange)16198",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:28"
+          },
+          {
+            "label": "control",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(ControlQsWmaticUsdc)25566",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:29"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2347",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:31"
+          },
+          {
+            "label": "wmatic",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IERC20)2347",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:32"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_contract(IERC20)2347",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:33"
+          },
+          {
+            "label": "dQuickToken",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IERC20)2347",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:34"
+          },
+          {
+            "label": "wmaticDm",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:36"
+          },
+          {
+            "label": "usdcDm",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:37"
+          },
+          {
+            "label": "quickswapWmaticUsdc",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_contract(IUniswapV2Pair)12159",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:39"
+          },
+          {
+            "label": "quickswapRouter",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_contract(IUniswapV2Router02)12563",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:40"
+          },
+          {
+            "label": "stakingDualRewards",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_contract(IStakingDualRewards)11915",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:41"
+          },
+          {
+            "label": "uniswapV3Router",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_contract(ISwapRouter)13238",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:43"
+          },
+          {
+            "label": "poolFeeMaticUsdc",
+            "offset": 20,
+            "slot": "313",
+            "type": "t_uint24",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:44"
+          },
+          {
+            "label": "aavePoolAddressesProvider",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_contract(IPoolAddressesProvider)4564",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:46"
+          },
+          {
+            "label": "oracleWmatic",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_contract(IPriceFeed)5074",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:47"
+          },
+          {
+            "label": "oracleUsdc",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_contract(IPriceFeed)5074",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:48"
+          },
+          {
+            "label": "tokenAssetSlippagePercent",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:50"
+          },
+          {
+            "label": "liquidationThreshold",
+            "offset": 0,
+            "slot": "318",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:51"
+          },
+          {
+            "label": "healthFactor",
+            "offset": 0,
+            "slot": "319",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:52"
+          },
+          {
+            "label": "realHealthFactor",
+            "offset": 0,
+            "slot": "320",
+            "type": "t_uint256",
+            "contract": "StrategyQsWmaticUsdc",
+            "src": "contracts\\StrategyQsWmaticUsdc.sol:53"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ControlQsWmaticUsdc)25566": {
+            "label": "contract ControlQsWmaticUsdc",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC20)2347": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IExchange)16198": {
+            "label": "contract IExchange",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPoolAddressesProvider)4564": {
+            "label": "contract IPoolAddressesProvider",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPriceFeed)5074": {
+            "label": "contract IPriceFeed",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStakingDualRewards)11915": {
+            "label": "contract IStakingDualRewards",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISwapRouter)13238": {
+            "label": "contract ISwapRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUniswapV2Pair)12159": {
+            "label": "contract IUniswapV2Pair",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUniswapV2Router02)12563": {
+            "label": "contract IUniswapV2Router02",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "ac0cc0107005b3f9af655201cea68287c3a66074c9c7540748c4fc60f95979be": {
+      "address": "0xf7b8335da08EdFcb87B635929F2020E6A2E646Be",
+      "txHash": "0x8515ea09708b0fb772f1aae3ad590bcb595de2b278db8fb6ad4b45d18f58d360",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "strategy",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(StrategyQsWmaticUsdc)18301",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:24"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_contract(IERC20)2347",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:26"
+          },
+          {
+            "label": "wmatic",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_contract(IERC20)2347",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:27"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_contract(IERC20)2347",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:28"
+          },
+          {
+            "label": "wmaticDm",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_uint256",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:30"
+          },
+          {
+            "label": "usdcDm",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_uint256",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:31"
+          },
+          {
+            "label": "quickswapWmaticUsdc",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_contract(IUniswapV2Pair)12159",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:33"
+          },
+          {
+            "label": "aavePoolAddressesProvider",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_contract(IPoolAddressesProvider)4564",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:35"
+          },
+          {
+            "label": "oracleWmatic",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_contract(IPriceFeed)5074",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:36"
+          },
+          {
+            "label": "oracleUsdc",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_contract(IPriceFeed)5074",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:37"
+          },
+          {
+            "label": "tokenAssetSlippagePercent",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_uint256",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:39"
+          },
+          {
+            "label": "liquidationThreshold",
+            "offset": 0,
+            "slot": "262",
+            "type": "t_uint256",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:40"
+          },
+          {
+            "label": "healthFactor",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_uint256",
+            "contract": "ControlQsWmaticUsdc",
+            "src": "contracts\\control\\ControlQsWmaticUsdc.sol:41"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2347": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPoolAddressesProvider)4564": {
+            "label": "contract IPoolAddressesProvider",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPriceFeed)5074": {
+            "label": "contract IPriceFeed",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUniswapV2Pair)12159": {
+            "label": "contract IUniswapV2Pair",
+            "numberOfBytes": "20"
+          },
+          "t_contract(StrategyQsWmaticUsdc)18301": {
+            "label": "contract StrategyQsWmaticUsdc",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
           },
           "t_uint256": {
             "label": "uint256",
