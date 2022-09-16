@@ -45,6 +45,7 @@ let OPTIMISM = {
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     oracleChainlinkUsdc: "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3",
     oracleChainlinkDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
+    oracleChainlinkWeth: "0x13e3ee699d1909e989722e753853ae30b17e08c5",
 }
 
 let FANTOM = {
