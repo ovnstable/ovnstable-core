@@ -6,6 +6,7 @@ import "./interfaces/ISwapper.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
@@ -35,14 +36,11 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
     uint256 public stakeStep;
 
+    address public curveStablePool;
+    address public curveMetaPool;
 
-    // --- events
-
-    event StrategyUpdatedTokens(address usdcToken, address usdtToken, address dystToken, address wmaticToken, address penToken,
-        uint256 usdcTokenDenominator, uint256 tusdTokenDenominator);
-
-    event StrategyUpdatedParams(address gauge, address dystPair, address dystRouter,
-        address oracleUsdc, address oracleTusd, address userProxy, address penLens, address swapper);
+    int128 public curveIndexUsdc;
+    int128 public curveIndexTusd;
 
 
     // ---  constructor
@@ -62,7 +60,9 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         address _tusdToken,
         address _dystToken,
         address _wmaticToken,
-        address _penToken
+        address _penToken,
+        int128 _curveIndexUsdc,
+        int128 _curveIndexTusd
     ) external onlyAdmin {
 
         require(_usdcToken != address(0), "Zero address not allowed");
@@ -79,7 +79,8 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         usdcTokenDenominator = 10 ** IERC20Metadata(_usdcToken).decimals();
         tusdTokenDenominator = 10 ** IERC20Metadata(_tusdToken).decimals();
 
-        emit StrategyUpdatedTokens(_usdcToken, _tusdToken, _dystToken, _wmaticToken, _penToken, usdcTokenDenominator, tusdTokenDenominator);
+        curveIndexUsdc = _curveIndexUsdc;
+        curveIndexTusd = _curveIndexTusd;
     }
 
     function setParams(
@@ -91,7 +92,9 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         address _userProxy,
         address _penLens,
         address _swapper,
-        uint256 _stakeStep
+        uint256 _stakeStep,
+        address _curveStablePool,
+        address _curveMetaPool
     ) external onlyAdmin {
 
         require(_gauge != address(0), "Zero address not allowed");
@@ -112,8 +115,9 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         penLens = IPenLens(_penLens);
         swapper = ISwapper(_swapper);
         stakeStep = _stakeStep;
+        curveStablePool = _curveStablePool;
+        curveMetaPool = _curveMetaPool;
 
-        emit StrategyUpdatedParams(_gauge, _dystPair, _dystRouter, _oracleUsdc, _oracleTusd, _userProxy, _penLens, _swapper);
     }
 
 
@@ -223,16 +227,20 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
         // swap tusd to usdc
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            tusdBalance,
-            0,
-            1
-        );
+        if (tusdBalance > 0) {
 
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+            tusdToken.approve(curveMetaPool, tusdBalance);
+            CurveMetaLibrary.swapByIndex(
+                curveIndexTusd,
+                curveIndexUsdc,
+                true,
+                tusdBalance,
+                0,
+                curveMetaPool,
+                curveStablePool
+            );
+        }
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -274,15 +282,20 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
         // swap tusd to usdc
         uint256 tusdBalance = tusdToken.balanceOf(address(this));
-        ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
-            address(tusdToken),
-            address(usdcToken),
-            tusdBalance,
-            0,
-            1
-        );
-        IERC20(swapParams.tokenIn).approve(address(swapper), swapParams.amountIn);
-        swapper.swap(swapParams);
+        if (tusdBalance > 0) {
+
+            tusdToken.approve(curveMetaPool, tusdBalance);
+
+            CurveMetaLibrary.swapByIndex(
+                curveIndexTusd,
+                curveIndexUsdc,
+                true,
+                tusdBalance,
+                0,
+                curveMetaPool,
+                curveStablePool
+            );
+        }
 
         return usdcToken.balanceOf(address(this));
     }

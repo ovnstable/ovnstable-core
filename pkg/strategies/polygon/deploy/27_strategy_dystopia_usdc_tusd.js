@@ -14,6 +14,10 @@ let userProxy = '0xc9Ae7Dac956f82074437C6D40f67D6a5ABf3E34b';
 let penLens = '0x1432c3553FDf7FBD593a84B3A4d380c643cbf7a2';
 let swapper = '0x019D17272687904F855D235dbBA7fD9268088Ea5';
 let stakeStep = 10000000000;
+let curveStablePool = "0xAdf577B69eEaC9Df325536cf1aF106372f2Da263";
+let curveMetaPool = "0x5ab5c56b9db92ba45a0b46a207286cd83c15c939";
+let curveIndexUsdc = 2;
+let curveIndexTusd = 0;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -25,7 +29,15 @@ module.exports = async ({deployments}) => {
 
     await settingSection(async (strategy) => {
 
-        await (await strategy.setTokens(POLYGON.usdc, POLYGON.tusd, dystToken, POLYGON.wMatic, penToken)).wait();
+        await (await strategy.setTokens(
+            POLYGON.usdc,
+            POLYGON.tusd,
+            dystToken,
+            POLYGON.wMatic,
+            penToken,
+            curveIndexUsdc,
+            curveIndexTusd
+        )).wait();
         console.log(`setTokens done for ${strategy.address}`)
 
         await (await strategy.setParams(
@@ -37,7 +49,10 @@ module.exports = async ({deployments}) => {
             userProxy,
             penLens,
             swapper,
-            stakeStep
+            stakeStep,
+            curveStablePool,
+            curveMetaPool,
+
         )).wait();
         console.log(`setParams done for ${strategy.address}`)
 
