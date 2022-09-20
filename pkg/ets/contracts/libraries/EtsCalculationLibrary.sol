@@ -249,13 +249,11 @@ library EtsCalculationLibrary{
 
 
         if (deltas.d1 < 0 && deltas.d3 < 0 && deltas.d4 < 0
-            || deltas.d1 > 0 && deltas.d3 > 0 && deltas.d4 > 0
         ) {
             revert("D1-D3-D4 have same sign");
         }
 
-        if (deltas.d3 < 0 && deltas.d5 < 0 && deltas.d6 < 0
-            || deltas.d3 > 0 && deltas.d5 > 0 && deltas.d6 > 0
+        if (deltas.d3 > 0 && deltas.d5 > 0 && deltas.d6 > 0
         ) {
             revert("D3-D5-D6 have same sign");
         }
@@ -304,6 +302,48 @@ library EtsCalculationLibrary{
             actions[index++] = Action((deltas.d3 < 0) ? ActionType.SWAP_TOKEN_TO_ASSET : ActionType.SWAP_ASSET_TO_TOKEN, abs(deltas.d3), ctx.tokenAssetSlippagePercent);
             actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, MAX_UINT_VALUE, 0);
             actions[index++] = Action(ActionType.ADD_LIQUIDITY, (ctx2.amount < 0) ? uint(-ctx2.amount) : MAX_UINT_VALUE, 0);
+        } else if (deltas.d1 >= 0 && deltas.d2 < 0 && deltas.d3 >= 0 && deltas.d4 >= 0 && deltas.d5 >= 0) {
+            // D1-D3-D4 have same sign case (11101)
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, abs(deltas.d1), 0);
+            actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, abs(deltas.d4), 0);
+            actions[index++] = Action(ActionType.BORROW_TOKEN_FROM_AAVE, abs(deltas.d5), 0);
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_TOKEN, MAX_UINT_VALUE, ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.ADD_LIQUIDITY, MAX_UINT_VALUE, 0);
+        } else if (deltas.d1 >= 0 && deltas.d2 >= 0 && deltas.d3 >= 0 && deltas.d4 >= 0 && deltas.d5 < 0) {
+            // D1-D3-D4 have same sign case (01111)
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, abs(deltas.d1), 0);
+            actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, abs(deltas.d4), 0);
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_TOKEN, MAX_UINT_VALUE, ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.REMOVE_LIQUIDITY, abs(deltas.d6), 0);
+            actions[index++] = Action(ActionType.REPAY_TOKEN_TO_AAVE, abs(deltas.d5), 0);
+        } else if (deltas.d1 >= 0 && deltas.d2 < 0 && deltas.d3 >= 0 && deltas.d4 >= 0 && deltas.d5 < 0) {
+            // D1-D3-D4 have same sign case (01101)
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, abs(deltas.d1), 0);
+            actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, abs(deltas.d4), 0);
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_TOKEN, MAX_UINT_VALUE, ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.REPAY_TOKEN_TO_AAVE, abs(deltas.d5), 0);
+            actions[index++] = Action(ActionType.ADD_LIQUIDITY, MAX_UINT_VALUE, 0);
+        } else if (deltas.d1 >= 0 && deltas.d2 < 0 && deltas.d3 < 0 && deltas.d4 < 0 && deltas.d5 < 0) {
+            // D3-D5-D6 have same sign case (00001)
+            actions[index++] = Action(ActionType.REPAY_TOKEN_TO_AAVE, abs(deltas.d5), 0);
+            actions[index++] = Action(ActionType.SWAP_TOKEN_TO_ASSET, abs(deltas.d3), ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.WITHDRAW_ASSET_FROM_AAVE, abs(deltas.d4), 0);
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, MAX_UINT_VALUE, 0);
+            actions[index++] = Action(ActionType.ADD_LIQUIDITY, MAX_UINT_VALUE, 0);
+        } else if (deltas.d1 >= 0 && deltas.d2 < 0 && deltas.d3 < 0 && deltas.d4 >= 0 && deltas.d5 < 0) {
+            // D3-D5-D6 have same sign case (01001)
+            actions[index++] = Action(ActionType.REPAY_TOKEN_TO_AAVE, abs(deltas.d5), 0);
+            actions[index++] = Action(ActionType.SWAP_TOKEN_TO_ASSET, abs(deltas.d3), ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, abs(deltas.d4), 0);
+            actions[index++] = Action(ActionType.SWAP_ASSET_TO_USDPLUS, MAX_UINT_VALUE, 0);
+            actions[index++] = Action(ActionType.ADD_LIQUIDITY, MAX_UINT_VALUE, 0);
+        } else if (deltas.d1 < 0 && deltas.d2 < 0 && deltas.d3 < 0 && deltas.d4 >= 0 && deltas.d5 < 0) {
+            // D3-D5-D6 have same sign case (01001)
+            actions[index++] = Action(ActionType.REPAY_TOKEN_TO_AAVE, abs(deltas.d5), 0);
+            actions[index++] = Action(ActionType.SWAP_TOKEN_TO_ASSET, abs(deltas.d3), ctx.tokenAssetSlippagePercent);
+            actions[index++] = Action(ActionType.SWAP_USDPLUS_TO_ASSET, abs(deltas.d1), 0);
+            actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, MAX_UINT_VALUE, 0);
+            actions[index++] = Action(ActionType.ADD_LIQUIDITY, MAX_UINT_VALUE, 0);
         } else {
             revert("non-existent case");
         }
