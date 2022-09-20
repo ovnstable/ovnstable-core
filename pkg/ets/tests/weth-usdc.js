@@ -23,6 +23,8 @@ let poolFee1 = 500; // 0.05%
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 850;
 let healthFactor = 1200;
+let isStableVeloUsdc = false;
+let isStableOpUsdc = false;
 
 describe("OPTIMISM", function () {
     let value = {
@@ -71,8 +73,8 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
     ]
 
     describe(`${strategyParams.name}`, function () {
-        stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
-        //claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
+        //stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
+        claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
     });
 }
 
@@ -134,6 +136,11 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 tokenAssetSlippagePercent: tokenAssetSlippagePercent,
                 liquidationThreshold: liquidationThreshold,
                 healthFactor: healthFactor,
+                rewardsController: OPTIMISM.rewardsController,
+                aUsdc: OPTIMISM.aUsdc,
+                op: OPTIMISM.op,
+                isStableVeloUsdc: isStableVeloUsdc,
+                isStableOpUsdc: isStableOpUsdc
             }
 
             await (await strategy.setParams(setupParams)).wait();
@@ -334,6 +341,11 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 tokenAssetSlippagePercent: tokenAssetSlippagePercent,
                 liquidationThreshold: liquidationThreshold,
                 healthFactor: healthFactor,
+                rewardsController: OPTIMISM.rewardsController,
+                aUsdc: OPTIMISM.aUsdc,
+                op: OPTIMISM.op,
+                isStableVeloUsdc: isStableVeloUsdc,
+                isStableOpUsdc: isStableOpUsdc
             }
 
             await (await strategy.setParams(setupParams)).wait();

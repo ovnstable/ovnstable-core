@@ -11,6 +11,8 @@ let poolFee1 = 500; // 0.05%
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 850;
 let healthFactor = 1200;
+let isStableVeloUsdc = false;
+let isStableOpUsdc = false;
 
 module.exports = async () => {
 
@@ -45,6 +47,11 @@ module.exports = async () => {
             tokenAssetSlippagePercent: tokenAssetSlippagePercent,
             liquidationThreshold: liquidationThreshold,
             healthFactor: healthFactor,
+            rewardsController: OPTIMISM.rewardsController,
+            aUsdc: OPTIMISM.aUsdc,
+            op: OPTIMISM.op,
+            isStableVeloUsdc: isStableVeloUsdc,
+            isStableOpUsdc: isStableOpUsdc
         }
 
         await (await strategy.setParams(setupParams)).wait();
