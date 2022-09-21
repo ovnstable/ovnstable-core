@@ -16,12 +16,12 @@ let isStableOpUsdc = false;
 
 module.exports = async () => {
 
-    const strategy = await ethers.getContract("StrategyWethUsdc");
-    const control = await ethers.getContract('ControlWethUsdc');
+    const strategy = await getContract("StrategyWethUsdc");
+    const control = await getContract('ControlWethUsdc');
 
-    const exchange = await getContract('Exchange', 'optimism');
-    const usdPlus = await getContract('UsdPlusToken', 'optimism');
-    const hedgeExchanger = await getContract('HedgeExchangerWethUsdc', 'optimism');
+    const exchange = await getContract('Exchange');
+    const usdPlus = await getContract('UsdPlusToken');
+    const hedgeExchanger = await getContract('HedgeExchangerWethUsdc');
 
     if (strategy) {
 
