@@ -3,7 +3,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface WrappedExternalBribe {
 
@@ -155,4 +154,110 @@ interface IGauge {
     function withdraw(uint amount) external;
     function balanceOf(address) external view returns (uint);
     function getReward(address account, address[] memory tokens) external;
+}
+
+library VelodromeLibrary {
+
+    function getAmountsOut(
+        IRouter velodromeRouter,
+        address inputToken,
+        address outputToken,
+        bool isStablePair0,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        IRouter.route[] memory routes = new IRouter.route[](1);
+        routes[0].from = inputToken;
+        routes[0].to = outputToken;
+        routes[0].stable = isStablePair0;
+
+        uint[] memory amounts = velodromeRouter.getAmountsOut(amountInput, routes);
+
+        return amounts[1];
+    }
+
+    function getAmountsOut(
+        IRouter velodromeRouter,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        IRouter.route[] memory routes = new IRouter.route[](2);
+        routes[0].from = inputToken;
+        routes[0].to = middleToken;
+        routes[0].stable = isStablePair0;
+        routes[1].from = middleToken;
+        routes[1].to = outputToken;
+        routes[1].stable = isStablePair1;
+
+        uint[] memory amounts = velodromeRouter.getAmountsOut(amountInput, routes);
+
+        return amounts[2];
+    }
+
+    function swapExactTokensForTokens(
+        IRouter velodromeRouter,
+        address inputToken,
+        address outputToken,
+        bool isStablePair0,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(velodromeRouter), amountInput);
+
+        IRouter.route[] memory routes = new IRouter.route[](1);
+        routes[0].from = inputToken;
+        routes[0].to = outputToken;
+        routes[0].stable = isStablePair0;
+
+        uint[] memory amounts = velodromeRouter.swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            routes,
+            recipient,
+            block.timestamp
+        );
+
+        return amounts[1];
+    }
+
+    function swapExactTokensForTokens(
+        IRouter velodromeRouter,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStablePair0,
+        bool isStablePair1,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(velodromeRouter), amountInput);
+
+        IRouter.route[] memory routes = new IRouter.route[](2);
+        routes[0].from = inputToken;
+        routes[0].to = middleToken;
+        routes[0].stable = isStablePair0;
+        routes[1].from = middleToken;
+        routes[1].to = outputToken;
+        routes[1].stable = isStablePair1;
+
+        uint[] memory amounts = velodromeRouter.swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            routes,
+            recipient,
+            block.timestamp
+        );
+
+        return amounts[2];
+    }
+
 }

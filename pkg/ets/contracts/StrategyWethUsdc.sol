@@ -53,6 +53,14 @@ contract StrategyWethUsdc is HedgeStrategy {
     uint256 public healthFactor;
     uint256 public realHealthFactor;
 
+    IRewardsController public rewardsController;
+
+    IERC20 public aUsdc;
+    IERC20 public op;
+
+    bool public isStableVeloUsdc;
+    bool public isStableOpUsdc;
+
 
     struct SetupParams {
         address exchange;
@@ -71,6 +79,11 @@ contract StrategyWethUsdc is HedgeStrategy {
         uint256 tokenAssetSlippagePercent;
         uint256 liquidationThreshold;
         uint256 healthFactor;
+        address rewardsController;
+        address aUsdc;
+        address op;
+        bool isStableVeloUsdc;
+        bool isStableOpUsdc;
     }
 
 
@@ -112,6 +125,14 @@ contract StrategyWethUsdc is HedgeStrategy {
         liquidationThreshold = params.liquidationThreshold * 10 ** 15;
         healthFactor = params.healthFactor * 10 ** 15;
         realHealthFactor = 0;
+
+        rewardsController = IRewardsController(params.rewardsController);
+
+        aUsdc = IERC20(params.aUsdc);
+        op = IERC20(params.op);
+
+        isStableVeloUsdc = params.isStableVeloUsdc;
+        isStableOpUsdc = params.isStableOpUsdc;
 
         setAsset(params.usdPlus);
 
@@ -202,35 +223,80 @@ contract StrategyWethUsdc is HedgeStrategy {
         }
     }
 
-    function _claimRewards(address _to) internal override returns (uint256){
+    function _claimRewards(address _to) internal override returns (uint256) {
 
-        // claim rewards
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(velo);
-        gauge.getReward(address(this), tokens);
+        // claim rewards velodrome
+        uint256 gaugeBalance = gauge.balanceOf(address(this));
+        if (gaugeBalance > 0) {
+            address[] memory tokens = new address[](1);
+            tokens[0] = address(velo);
+            gauge.getReward(address(this), tokens);
+        }
 
-        // sell rewards
+        // claim rewards aave
+        uint256 aUsdcBalance = aUsdc.balanceOf(address(this));
+        if (aUsdcBalance > 0) {
+            address[] memory assets = new address[](1);
+            assets[0] = address(aUsdc);
+            rewardsController.claimAllRewardsToSelf(assets);
+        }
+
+        // sell rewards velo
         uint256 totalUsdc;
-
         uint256 veloBalance = velo.balanceOf(address(this));
         if (veloBalance > 0) {
-            uint256 veloUsdc = UniswapV3Library.multiSwap(
-                uniswapV3Router,
+            uint256 amountOut = VelodromeLibrary.getAmountsOut(
+                router,
                 address(velo),
-                address(weth),
                 address(usdc),
-                poolFee0,
-                poolFee1,
-                address(this),
-                veloBalance,
-                0
+                isStableVeloUsdc,
+                veloBalance
             );
 
-            totalUsdc += veloUsdc;
+            if (amountOut > 0) {
+                uint256 veloUsdc = VelodromeLibrary.swapExactTokensForTokens(
+                    router,
+                    address(velo),
+                    address(usdc),
+                    isStableVeloUsdc,
+                    veloBalance,
+                    amountOut * 99 / 100,
+                    address(this)
+                );
+
+                totalUsdc += veloUsdc;
+            }
+        }
+
+        // sell rewards op
+        uint256 opBalance = op.balanceOf(address(this));
+        if (opBalance > 0) {
+            uint256 amountOut = VelodromeLibrary.getAmountsOut(
+                router,
+                address(op),
+                address(usdc),
+                isStableOpUsdc,
+                opBalance
+            );
+
+            if (amountOut > 0) {
+                uint256 opUsdc = VelodromeLibrary.swapExactTokensForTokens(
+                    router,
+                    address(op),
+                    address(usdc),
+                    isStableOpUsdc,
+                    opBalance,
+                    amountOut * 99 / 100,
+                    address(this)
+                );
+
+                totalUsdc += opUsdc;
+            }
         }
 
         return totalUsdc;
     }
+
 
     receive() external payable {
     }
