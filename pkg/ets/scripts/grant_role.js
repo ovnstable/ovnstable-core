@@ -9,7 +9,7 @@ async function main(){
     let hedgeStrategy;
 
     let params = await getPrice();
-    hedgeStrategy = await getContract('StrategyQsWmaticUsdc');
+    hedgeStrategy = await getContract('StrategyOpUsdc');
     await hedgeStrategy.grantRole(await hedgeStrategy.BALANCING_BOT_ROLE(), '0xCbcc0a48BBeAB7925DDf28a40C74376aDCd6526F', params);
 
 //    hedgeStrategy = await getContract('StrategyUsdPlusWmatic');
