@@ -509,3 +509,48 @@ interface ILendingPoolAddressesProvider {
 
     function setLendingRateOracle(address lendingRateOracle) external;
 }
+
+/// @title AaveOracle
+/// @author Aave
+/// @notice Proxy smart contract to get the price of an asset from a price source, with Chainlink Aggregator
+///         smart contracts as primary option
+/// - If the returned price by a Chainlink aggregator is <= 0, the call is forwarded to a fallbackOracle
+/// - Owned by the Aave governance system, allowed to add sources for assets, replace them
+///   and change the fallbackOracle
+interface IAaveOracle {
+
+    event BaseCurrencySet(address indexed baseCurrency, uint256 baseCurrencyUnit);
+    event AssetSourceUpdated(address indexed asset, address indexed source);
+    event FallbackOracleUpdated(address indexed fallbackOracle);
+
+    /**
+     * @notice Returns the base currency address
+     * @dev Address 0x0 is reserved for USD as base currency.
+     * @return Returns the base currency address.
+     **/
+    function BASE_CURRENCY() external view returns (address);
+
+    /**
+     * @notice Returns the base currency unit
+     * @dev 1 ether for ETH, 1e8 for USD.
+     * @return Returns the base currency unit.
+     **/
+    function BASE_CURRENCY_UNIT() external view returns (uint256);
+
+    /// @notice Gets an asset price by address
+    /// @param asset The asset address
+    function getAssetPrice(address asset) external view returns (uint256);
+
+    /// @notice Gets a list of prices from a list of assets addresses
+    /// @param assets The list of assets addresses
+    function getAssetsPrices(address[] calldata assets) external view returns (uint256[] memory);
+
+    /// @notice Gets the address of the source for an asset address
+    /// @param asset The address of the asset
+    /// @return address The address of the source
+    function getSourceOfAsset(address asset) external view returns (address);
+
+    /// @notice Gets the address of the fallback oracle
+    /// @return address The addres of the fallback oracle
+    function getFallbackOracle() external view returns (address);
+}
