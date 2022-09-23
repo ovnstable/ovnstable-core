@@ -13,12 +13,12 @@ let poolFeeWethUsdc = 500; // 0.05%
 let isStableVeloUsdc = false;
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 850;
-let healthFactor = 1200;
+let healthFactor = 1250;
 
 module.exports = async () => {
 
-    const strategy = await ethers.getContract("StrategyOpUsdc");
-    const control = await ethers.getContract('ControlOpUsdc');
+    const strategy = await getContract("StrategyOpUsdc");
+    const control = await getContract('ControlOpUsdc');
 
     const exchange = await getContract('Exchange');
     const usdPlus = await getContract('UsdPlusToken');
