@@ -303,7 +303,7 @@ async function getPrice(){
     else if(process.env.ETH_NETWORK === 'AVALANCHE')
         params.gasLimit = 8000000;
     else if (process.env.ETH_NETWORK === 'BSC'){
-        params = {gasPrice: "5000000000", gasLimit:  15000000}; // BSC gasPrice always 5 GWEI
+        params = {gasPrice: "5000000000", gasLimit:  9000000}; // BSC gasPrice always 5 GWEI
     }else if (process.env.ETH_NETWORK === "OPTIMISM"){
         params = {gasPrice: "1000000", gasLimit: 8000000}; // gasPrice 0.001
     }
@@ -363,6 +363,25 @@ async function execTimelock(exec){
 
 async function changeWeightsAndBalance(weights){
 
+    let totalWeight = 0;
+    for (const weight of weights) {
+        totalWeight += weight.targetWeight * 1000;
+    }
+    console.log(`totalWeight: ${totalWeight}`)
+
+    if (totalWeight !== 100000) {
+        console.log(`Total weight not 100000`)
+        return
+    }
+
+    weights = weights.map(value => {
+        delete value.name
+        value.targetWeight = value.targetWeight * 1000;
+        value.maxWeight = value.maxWeight * 1000;
+
+        return value;
+    })
+
     await evmCheckpoint('Before');
 
     let timelock = await getContract('OvnTimelockController' );
@@ -385,6 +404,8 @@ async function changeWeightsAndBalance(weights){
     await checkTimeLockBalance();
 
     const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
+    await (await pm.connect(timelockAccount).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelockAccount.address));
 
     await (await pm.connect(timelockAccount).setStrategyWeights(weights)).wait();
     console.log('setStrategyWeights done()');

@@ -9,7 +9,6 @@ async function main() {
         await showHedgeM2M();
 
         let opts = await getPrice();
-        opts.gasLimit = "15000000"
 
         try {
             await exchanger.estimateGas.payout(opts);
