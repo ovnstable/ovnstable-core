@@ -471,7 +471,7 @@ async function showHedgeM2M() {
     let wallet = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken');
-    let ets = await getContract('Ets' + process.env.ETS);
+    let ets = await getContract('RebaseToken' + process.env.ETS);
     let strategy = await getContract('Strategy' + process.env.ETS);
 
     console.log('User balances:')
@@ -532,6 +532,38 @@ async function transferETH(amount, to) {
     console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 }
 
+
+async function transferWTC(amount, to) {
+
+
+    //work only for Optimism
+    // This address has WBTC
+    let address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+
+    await transferETH(1, address);
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+
+    const account = await hre.ethers.getSigner(address);
+
+    let wbtc = await getERC20('wbtc');
+
+    await wbtc.connect(account).transfer(to, await wbtc.balanceOf(account.address));
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [account.address],
+    });
+
+
+    console.log('Balance WBTC: ' + await wbtc.balanceOf(to));
+}
+
 async function transferUSDPlus(amount, to){
 
     let usdPlus = await getContract('UsdPlusToken');
@@ -554,6 +586,7 @@ module.exports = {
     initWallet: initWallet,
     getDevWallet: getDevWallet,
     transferETH: transferETH,
+    transferWTC: transferWTC,
     transferUSDPlus: transferUSDPlus,
     showM2M: showM2M,
     showPlatform: showPlatform,
