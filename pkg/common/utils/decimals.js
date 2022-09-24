@@ -19,6 +19,14 @@ function fromE6(value){
     return  value / 10 ** 6;
 }
 
+function toE8(value){
+    return value * 10 ** 8;
+}
+
+function fromE8(value){
+    return  value / 10 ** 8;
+}
+
 function toAsset(value){
     if (process.env.ETH_NETWORK === 'BSC'){
         return toE18(value);
@@ -39,6 +47,9 @@ module.exports = {
 
     toE18: toE18,
     fromE18: fromE18,
+
+    toE8: toE8,
+    fromE8: fromE8,
 
     toE6: toE6,
     fromE6: fromE6,

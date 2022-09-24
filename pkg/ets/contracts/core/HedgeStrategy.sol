@@ -115,6 +115,9 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         _setHealthFactor(newHealthFactor);
     }
 
+    function balancePosition() external onlyBalancingBot override {
+        _balancePosition();
+    }
 
     function _stake(
         uint256 _amount
@@ -140,6 +143,9 @@ abstract contract HedgeStrategy is IHedgeStrategy, Initializable, AccessControlU
         revert("Not implemented");
     } 
 
+    function _balancePosition() internal virtual{
+        revert("Not implemented");
+    } 
 
     uint256[49] private __gap;
 }
