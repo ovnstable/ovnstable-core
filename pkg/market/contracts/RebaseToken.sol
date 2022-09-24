@@ -65,8 +65,9 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
 
     }
 
-    function setDecimals(uint8 _decimals) external onlyAdmin {
-        _decimals = _decimals;
+    function setDecimals(uint8 decimals) external onlyAdmin {
+        require(_decimals == 0, 'Decimals already set');
+        _decimals = decimals;
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
