@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Beethovenx.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -86,6 +87,8 @@ contract StrategyWethWbtc is HedgeStrategy {
         bytes32 poolIdWethWbtc;
     }
 
+    IRouter public veloRouter;
+
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -130,7 +133,7 @@ contract StrategyWethWbtc is HedgeStrategy {
 
         pool = IUniswapV3Pool(params.uniswapV3Pool);
         nonfungiblePositionManager = INonfungiblePositionManager(params.nonfungiblePositionManager);
-        tokenId = 0;
+
         lowerPercent = params.lowerPercent;
         upperPercent = params.upperPercent;
 
@@ -144,6 +147,7 @@ contract StrategyWethWbtc is HedgeStrategy {
         
         beethovenxVault = IVault(params.beethovenxVault);
         poolIdWethWbtc = params.poolIdWethWbtc;
+        veloRouter = IRouter(0x9c12939390052919aF3155f41Bf4160Fd3666A6f);
 
         if (address(control) != address(0)) {
             revokeRole(CONTROL_ROLE, address(control));
@@ -283,77 +287,42 @@ contract StrategyWethWbtc is HedgeStrategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        // // claim rewards velodrome
-        // uint256 gaugeBalance = gauge.balanceOf(address(this));
-        // if (gaugeBalance > 0) {
-        //     address[] memory tokens = new address[](1);
-        //     tokens[0] = address(velo);
-        //     gauge.getReward(address(this), tokens);
-        // }
+        INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
+        nonfungiblePositionManager.collect(collectParam);
+        
+        // claim rewards aave
+        uint256 aUsdcBalance = aWbtc.balanceOf(address(this));
+        if (aUsdcBalance > 0) {
+            address[] memory assets = new address[](1);
+            assets[0] = address(aWbtc);
+            rewardsController.claimAllRewardsToSelf(assets);
+        }
+       
+        VelodromeLibrary.swapExactTokensForTokens(
+            veloRouter,
+            address(op),
+            0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
+            address(wbtc),
+            true,
+            false,
+            op.balanceOf(address(this)),
+            0,
+            address(this)
+        );
 
-        // // claim rewards aave
-        // uint256 aWbtcBalance = aWbtc.balanceOf(address(this));
-        // if (aWbtcBalance > 0) {
-        //     address[] memory assets = new address[](1);
-        //     assets[0] = address(aWbtc);
-        //     rewardsController.claimAllRewardsToSelf(assets);
-        // }
+        BeethovenExchange.swap(
+            beethovenxVault,
+            poolIdWethWbtc,
+            IVault.SwapKind.GIVEN_IN,
+            IAsset(address(weth)),
+            IAsset(address(wbtc)),
+            address(this),
+            address(this),
+            weth.balanceOf(address(this)),
+            0
+        );
 
-        // // sell rewards velo
-        // uint256 totalWbtc;
-        // uint256 veloBalance = velo.balanceOf(address(this));
-        // if (veloBalance > 0) {
-        //     uint256 amountOut = VelodromeLibrary.getAmountsOut(
-        //         router,
-        //         address(velo),
-        //         address(wbtc),
-        //         isStableVeloWbtc,
-        //         veloBalance
-        //     );
-
-        //     if (amountOut > 0) {
-        //         uint256 veloWbtc = VelodromeLibrary.swapExactTokensForTokens(
-        //             router,
-        //             address(velo),
-        //             address(wbtc),
-        //             isStableVeloWbtc,
-        //             veloBalance,
-        //             amountOut * 99 / 100,
-        //             address(this)
-        //         );
-
-        //         totalWbtc += veloWbtc;
-        //     }
-        // }
-
-        // // sell rewards op
-        // uint256 opBalance = op.balanceOf(address(this));
-        // if (opBalance > 0) {
-        //     uint256 amountOut = VelodromeLibrary.getAmountsOut(
-        //         router,
-        //         address(op),
-        //         address(wbtc),
-        //         isStableOpWbtc,
-        //         opBalance
-        //     );
-
-        //     if (amountOut > 0) {
-        //         uint256 opWbtc = VelodromeLibrary.swapExactTokensForTokens(
-        //             router,
-        //             address(op),
-        //             address(wbtc),
-        //             isStableOpWbtc,
-        //             opBalance,
-        //             amountOut * 99 / 100,
-        //             address(this)
-        //         );
-
-        //         totalWbtc += opWbtc;
-        //     }
-        // }
-
-        // return totalWbtc;
-        return 0;
+        return wbtc.balanceOf(address(this));
     }
 
 

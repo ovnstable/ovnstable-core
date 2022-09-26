@@ -18,6 +18,7 @@ let nonfungiblePositionManager = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
 let uniswapV3Pool = '0x73B14a78a0D396C521f954532d43fd5fFe385216';
 let beethovenxVault = '0xBA12222222228d8Ba445958a75a0704d566BF2C8';
 let poolIdWethWbtc = "0x5028497af0c9a54ea8c6d42a054c0341b9fc6168000100000000000000000004";
+let veloRouter = '0x9c12939390052919af3155f41bf4160fd3666a6f';
 let poolFee0 = 3000; // 0.3%
 let tokenAssetSlippagePercent = 100; //1%
 let liquidationThreshold = 750;
