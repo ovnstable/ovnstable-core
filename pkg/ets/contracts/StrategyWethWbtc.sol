@@ -119,7 +119,6 @@ contract StrategyWethWbtc is HedgeStrategy {
         tokenAssetSlippagePercent = params.tokenAssetSlippagePercent;
         liquidationThreshold = params.liquidationThreshold * 10 ** 15;
         healthFactor = params.healthFactor * 10 ** 15;
-        realHealthFactor = 0;
 
         rewardsController = IRewardsController(params.rewardsController);
 
