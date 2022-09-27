@@ -1,4 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
+const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {ethers} = require("hardhat");
 
 module.exports = async (plugin) => {
@@ -6,6 +7,7 @@ module.exports = async (plugin) => {
     const {deployer} = await plugin.getNamedAccounts();
     const {save} = plugin.deployments;
 
+    // await transferETH(1, deployer);
     const etsCalculationLibrary2 = await deploy("EtsCalculationLibrary2", {
         from: deployer
     });
