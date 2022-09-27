@@ -238,7 +238,7 @@ library EtsCalculationLibrary2{
             actions[index++] = Action(ActionType.SUPPLY_ASSET_TO_AAVE, abs(deltas.d4), 0);
             actions[index++] = Action(ActionType.BORROW_TOKEN_FROM_AAVE, abs(deltas.d5), 0);
             actions[index++] = Action(ActionType.ADD_LIQUIDITY, (ctx2.amount < 0) ? uint(-ctx2.amount) : MAX_UINT_VALUE, 0);
-        } else if (deltas.d3 < 0 && deltas.d4 >= 0 && deltas.d5 >= 0) {
+        } else if (deltas.d3 >= 0 && deltas.d4 < 0 && deltas.d5 < 0) {
             // 2 circle cases: 0010,0011 --> 23542
             actions[index++] = Action(ActionType.REMOVE_LIQUIDITY, abs(deltas.d3), 0);
             actions[index++] = Action(ActionType.SWAP_ASSET_TO_TOKEN, MAX_UINT_VALUE, ctx.tokenAssetSlippagePercent);
