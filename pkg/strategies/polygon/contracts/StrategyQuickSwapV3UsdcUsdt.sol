@@ -121,6 +121,15 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
         (uint256 amount0, uint256 amount1) = _getAmounts(totalLiquidity);
         require(amount0 > 10 ** 3 && amount1 > 10 ** 3, 'Liquidity reserves too low');
 
+        if (tokenId != 0) {
+            // if we already farming then exit farm
+            if (farmingCenter.balanceOf(address(this)) == 1) {
+                _exitFarm();
+            }
+
+            _collectFees();
+        }
+
         // count amount usdt to swap
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
         uint256 amountUsdcFromUsdt;
@@ -182,12 +191,6 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
             _enterFarm();
 
         } else {
-
-            // if we already farming then exit farm
-            if (farmingCenter.balanceOf(address(this)) == 1) {
-                _exitFarm();
-            }
-
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: tokenId,
                 amount0Desired: usdcBalance,
@@ -255,15 +258,7 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
 
             nonfungiblePositionManager.decreaseLiquidity(params);
 
-            // collect fees
-            INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            });
-
-            nonfungiblePositionManager.collect(collectParams);
+            _collectFees();
 
             (,,,,,, liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
             if (liquidity > 0) {
@@ -321,15 +316,7 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
 
             nonfungiblePositionManager.decreaseLiquidity(params);
 
-            // collect fees
-            INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
-                tokenId: tokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            });
-
-            nonfungiblePositionManager.collect(collectParams);
+            _collectFees();
 
             (,,,,,, liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
             if (liquidity > 0) {
@@ -408,16 +395,7 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
 
         // collect fees
         _exitFarm();
-
-        INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
-            tokenId: tokenId,
-            recipient: address(this),
-            amount0Max: type(uint128).max,
-            amount1Max: type(uint128).max
-        });
-
-        (uint256 amount0, uint256 amount1) = nonfungiblePositionManager.collect(collectParams);
-
+        _collectFees();
         _enterFarm();
 
         // claim rewards
@@ -531,5 +509,16 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
             startTime: uint256(1663631794),
             endTime: uint256(4104559500)
         });
+    }
+
+    function _collectFees() internal {
+        INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
+            tokenId: tokenId,
+            recipient: address(this),
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
+        });
+
+        nonfungiblePositionManager.collect(collectParams);
     }
 }
