@@ -377,6 +377,8 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
 
 function claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic) {
 
+    let balances = [];
+
     describe(`Stake/ClaimRewards`, function () {
 
         let account;
@@ -451,10 +453,11 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                     await strategy.connect(recipient).claimRewards(recipient.address);
 
                     balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                    balances.push(balanceAsset.toString());
 
                 });
 
-                it(`Balance asset is not 0`, async function () {
+                it(`Balance asset > 0`, async function () {
                     expect(balanceAsset.toNumber()).to.greaterThan(0);
                 });
 
@@ -464,6 +467,108 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
     });
 
+    if (strategyParams.doubleFarm) {
+
+        describe(`Double Stake/ClaimRewards`, function () {
+
+            let account;
+            let recipient;
+
+            let strategy;
+            let strategyName;
+
+            let asset;
+            let toAsset = function() {};
+
+            let i = 0;
+
+            sharedBeforeEach(`deploy`, async () => {
+                await hre.run("compile");
+                await resetHardhat(network);
+
+                hre.ovn.tags = strategyParams.name;
+                hre.ovn.setting = true;
+
+                strategyName = strategyParams.name;
+                await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+
+                const signers = await ethers.getSigners();
+                account = signers[0];
+                recipient = signers[1];
+
+                strategy = await ethers.getContract(strategyName);
+                await strategy.setPortfolioManager(recipient.address);
+                if (strategyParams.isRunStrategyLogic) {
+                    await runStrategyLogic(strategyName, strategy.address);
+                }
+
+                asset = await ethers.getContractAt("ERC20", assetAddress);
+                let decimals = await asset.decimals();
+                if (decimals === 18) {
+                    toAsset = toE18;
+                } else {
+                    toAsset = toE6;
+                }
+            });
+
+            values.forEach(item => {
+
+                let stakeValue = item.value;
+
+                describe(`Stake ${stakeValue} => ClaimRewards`, function () {
+
+                    let balanceAsset;
+                    let balanceAssetDoubleFarm;
+
+                    sharedBeforeEach(`rewards ${stakeValue}`, async () => {
+
+                        let assetValue = toAsset(stakeValue);
+                        let totalStaked = assetValue;
+
+                        await asset.transfer(recipient.address, assetValue);
+                        await asset.connect(recipient).transfer(strategy.address, assetValue);
+                        await strategy.connect(recipient).stake(asset.address, assetValue);
+
+                        if (strategyParams.doubleStakeReward) {
+                            await asset.transfer(recipient.address, assetValue);
+                            await asset.connect(recipient).transfer(strategy.address, assetValue);
+                            await strategy.connect(recipient).stake(asset.address, assetValue);
+                            totalStaked += assetValue;
+                        }
+
+                        await asset.transfer(recipient.address, totalStaked);
+                        await asset.connect(recipient).transfer(strategy.address, totalStaked);
+                        await strategy.connect(recipient).stake(asset.address, totalStaked);
+
+                        let delay;
+                        if (strategyParams.delay) {
+                            delay = strategyParams.delay;
+                        } else {
+                            delay = 7 * 24 * 60 * 60 * 1000;
+                        }
+                        await ethers.provider.send("evm_increaseTime", [delay]);
+                        await ethers.provider.send('evm_mine');
+
+                        await strategy.connect(recipient).claimRewards(recipient.address);
+
+                        balanceAssetDoubleFarm = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                        balanceAsset = new BigNumber(balances[i]);
+                        i++;
+
+                    });
+
+                    it(`Balance asset after double farm 1.2 times greater than balance asset after single farm`, async function () {
+                        if (balanceAssetDoubleFarm > 0) {
+                            expect(balanceAssetDoubleFarm.toNumber()).to.greaterThan(balanceAsset.times(new BigNumber(1.2)).toNumber());
+                        }
+                    });
+
+                });
+
+            });
+
+        });
+    }
 }
 
 function healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic) {

@@ -100,6 +100,7 @@ let FANTOM = {
 }
 
 let POLYGON = {
+    // tokens
     usdPlus: "0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f",
     idleUsdc: "0x1ee6470cd75d5686d0b2b90c0305fa46fb0c89a1",
     usdc: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
@@ -122,7 +123,11 @@ let POLYGON = {
     yin: "0x794Baab6b878467F93EF17e2f2851ce04E3E34C8",
     weth: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
     dodo: "0xe4Bf2864ebeC7B7fDf6Eeca9BaCAe7cDfDAffe78",
+    // swap routers
     quickSwapRouter: "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+    synapseSwapRouter: "0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5",
+    uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    // strategies params
     crvAavePool: "0x445FE580eF8d70FF569aB36e80c647af338db351",
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     balancerVault: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
@@ -132,7 +137,6 @@ let POLYGON = {
     balancerPoolIdWmaticMtaWeth: "0x614b5038611729ed49e0ded154d8a5d3af9d1d9e00010000000000000000001d",
     uniswapV3PositionManager: "0xc36442b4a4522e871399cd717abdd847ab11fe88",
     uniswapV3Pool: "0x3F5228d0e7D75467366be7De2c31D0d098bA2C23",
-    uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     izumiBoost: "0x01cc44fc1246d17681b325926865cdb6242277a5",
     uniswapNftToken: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
     aaveCurve: "0x445fe580ef8d70ff569ab36e80c647af338db351",
@@ -143,12 +147,14 @@ let POLYGON = {
     imxbTokenQsMaiUsdt: "0x0065A0effbb58e4BeB2f3A40fDcA740F85585213",
     tetu: "0x255707B70BF90aa112006E1b07B9AeA6De021424",
     arrakisRouter: "0xbc91a120ccd8f80b819eaf32f0996dac3fa76a6c",
+    // oracles
     oracleChainlinkUsdc: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7",
     oracleChainlinkUsdt: "0x0A6513e40db6EB1b165753AD52E80663aeA50545",
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
     oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
-    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46", // corporative address
+    // corporative wallet
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
 let DEFAULT = POLYGON;
