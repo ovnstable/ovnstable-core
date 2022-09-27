@@ -112,6 +112,11 @@ let arrays = [
         name: 'StrategyKyberSwapUsdcUsdt',
         enabledReward: false,
     },
+    {
+        name: 'StrategyQuickSwapV3UsdcUsdt',
+        enabledReward: true,
+        doubleFarm: true,
+    },
 
 ];
 
