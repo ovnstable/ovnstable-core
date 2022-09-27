@@ -115,6 +115,7 @@ let arrays = [
     {
         name: 'StrategyQuickSwapV3UsdcUsdt',
         enabledReward: true,
+        doubleStakeReward: true,
         doubleFarm: true,
     },
 

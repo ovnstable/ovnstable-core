@@ -183,6 +183,7 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
 
         } else {
 
+            // if we already farming then exit farm
             if (farmingCenter.balanceOf(address(this)) == 1) {
                 _exitFarm();
             }
@@ -198,6 +199,7 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
 
             nonfungiblePositionManager.increaseLiquidity(params);
 
+            // if we are not farming then enter farm
             if (farmingCenter.balanceOf(address(this)) == 0) {
                 _enterFarm();
             }
@@ -404,15 +406,30 @@ contract StrategyQuickSwapV3UsdcUsdt is Strategy, IERC721Receiver {
             return 0;
         }
 
+        // collect fees
+        _exitFarm();
+
+        INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
+            tokenId: tokenId,
+            recipient: address(this),
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
+        });
+
+        (uint256 amount0, uint256 amount1) = nonfungiblePositionManager.collect(collectParams);
+
+        _enterFarm();
+
+        // claim rewards
         (,,,,,, uint128 liquidity,,,,) = nonfungiblePositionManager.positions(tokenId);
         if (liquidity > 0) {
-            // claim rewards
             IFarmingCenter.IncentiveKey memory incentiveKey = _getIncentiveKey();
             farmingCenter.collectRewards(incentiveKey, tokenId);
             farmingCenter.claimReward(IERC20Minimal(address(dquickToken)), address(this), 0, type(uint256).max);
             farmingCenter.claimReward(IERC20Minimal(address(wmaticToken)), address(this), 0, type(uint256).max);
         }
 
+        // sell rewards
         uint256 totalUsdc;
 
         // convert dquick to quick
