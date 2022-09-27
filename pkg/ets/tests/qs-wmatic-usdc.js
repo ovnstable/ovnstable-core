@@ -14,6 +14,7 @@ const {transferETH, transferUSDPlus} = require("@overnight-contracts/common/util
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 const {provider} = waffle;
 
+let quickToken = '0x831753DD7087CaC61aB5644b308642cc1c33Dc13';
 let dQuickToken = '0xf28164A485B0B2C90639E47b0f377b4a438a16B1';
 let quickswapWmaticUsdc = '0x6e7a5FAFcec6BB1e78bAE2A1F0B612012BF14827';
 let quickswapRouter = '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff';
@@ -133,6 +134,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 tokenAssetSlippagePercent: tokenAssetSlippagePercent,
                 liquidationThreshold: liquidationThreshold,
                 healthFactor: healthFactor,
+                quickToken: quickToken,
             }
 
             await (await strategy.setParams(setupParams)).wait();
@@ -333,6 +335,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 tokenAssetSlippagePercent: tokenAssetSlippagePercent,
                 liquidationThreshold: liquidationThreshold,
                 healthFactor: healthFactor,
+                quickToken: quickToken,
             }
 
             await (await strategy.setParams(setupParams)).wait();

@@ -31,7 +31,7 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
     IERC20 public usdPlus;
     IERC20 public wmatic;
     IERC20 public usdc;
-    IERC20 public dQuickToken;
+    IDragonLair public dQuickToken;
 
     uint256 public wmaticDm;
     uint256 public usdcDm;
@@ -52,6 +52,8 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
     uint256 public healthFactor;
     uint256 public realHealthFactor;
 
+    IERC20 public quickToken;
+
 
     struct SetupParams {
         address exchange;
@@ -69,6 +71,7 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
         uint256 tokenAssetSlippagePercent;
         uint256 liquidationThreshold;
         uint256 healthFactor;
+        address quickToken;
     }
 
 
@@ -88,7 +91,8 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
         usdPlus = IERC20(params.usdPlus);
         wmatic = IERC20(params.wmatic);
         usdc = IERC20(params.usdc);
-        dQuickToken = IERC20(params.dQuickToken);
+        dQuickToken = IDragonLair(params.dQuickToken);
+        quickToken = IERC20(params.quickToken);
 
         wmaticDm = 10 ** IERC20Metadata(params.wmatic).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
@@ -208,43 +212,57 @@ contract StrategyQsWmaticUsdc is HedgeStrategy {
         uint256 wmaticBalanceBefore = wmatic.balanceOf(address(this));
         stakingDualRewards.getReward();
 
-        // swap dQuick rewards to wmatic
+        // convert dQuick to quick
         uint256 dQuickBalance = dQuickToken.balanceOf(address(this));
         if (dQuickBalance > 0) {
-            uint256 amountOut = UniswapV2Library.getAmountsOut(
+            dQuickToken.leave(dQuickBalance);
+        }
+
+        uint256 totalUsdc;
+
+        // swap quick to usdc
+        uint256 quickBalance = quickToken.balanceOf(address(this));
+        if (quickBalance > 0) {
+            uint256 amountOutMin = UniswapV2Library.getAmountsOut(
                 quickswapRouter,
-                address(dQuickToken),
-                address(wmatic),
-                dQuickBalance
+                address(quickToken),
+                address(usdc),
+                quickBalance
             );
 
-            if (amountOut > 0) {
-                uint256 dQuickWmatic = UniswapV2Library.swapExactTokensForTokens(
+            if (amountOutMin > 0) {
+                uint256 quickUsdc = UniswapV2Library.swapExactTokensForTokens(
                     quickswapRouter,
-                    address(dQuickToken),
-                    address(wmatic),
-                    dQuickBalance,
-                    // slippage could be big
-                    0,
+                    address(quickToken),
+                    address(usdc),
+                    quickBalance,
+                    amountOutMin * 99 / 100,
                     address(this)
                 );
+
+                totalUsdc += quickUsdc;
             }
         }
 
-        // swap all wmatic rewards to usdc
+        // swap wmatic to usdc
         uint256 wmaticBalanceToSwap = wmatic.balanceOf(address(this)) - wmaticBalanceBefore;
-        uint256 usdcAmount = UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(wmatic),
-            address(usdc),
-            poolFeeMaticUsdc,
-            address(this),
-            wmaticBalanceToSwap,
-            0
-        );
+        if (wmaticBalanceToSwap > 0) {
+            uint256 wmaticUsdc = UniswapV3Library.singleSwap(
+                uniswapV3Router,
+                address(wmatic),
+                address(usdc),
+                poolFeeMaticUsdc,
+                address(this),
+                wmaticBalanceToSwap,
+                0
+            );
 
-        return usdcAmount;
+            totalUsdc += wmaticUsdc;
+        }
+
+        return totalUsdc;
     }
+
 
     receive() external payable {
     }
