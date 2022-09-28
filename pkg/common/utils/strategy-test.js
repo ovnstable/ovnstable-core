@@ -8,6 +8,7 @@ const {expect} = require("chai");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
 const BigNumber = require('bignumber.js');
 const chai = require("chai");
+const {transferDAI, getERC20, transferETH, initWallet} = require("./script-utils");
 chai.use(require('chai-bignumber')());
 
 
@@ -16,7 +17,7 @@ hre.ovn = {
     noDeploy: false
 }
 
-function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
+function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
         {
@@ -71,62 +72,39 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
 
-        stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
+        stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
 
-        unstakeFull(strategyParams, network, assetAddress, values, runStrategyLogic);
+        unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
-            claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
+            claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
         }
 
     });
 }
 
-function stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic) {
+function stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic) {
 
     describe(`Stake/unstake`, function () {
 
-        let account;
         let recipient;
 
         let strategy;
-        let strategyName;
 
         let asset;
         let toAsset = function() {};
 
         sharedBeforeEach("deploy", async () => {
-            await hre.run("compile");
-            await resetHardhat(network);
 
-            hre.ovn.tags = strategyParams.name;
-            hre.ovn.setting = true;
+            let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
 
-            strategyName = strategyParams.name;
-            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
-
-            const signers = await ethers.getSigners();
-            account = signers[0];
-            recipient = signers[1];
-
-            strategy = await ethers.getContract(strategyName);
-            await strategy.setPortfolioManager(recipient.address);
-            if (strategyParams.isRunStrategyLogic) {
-                await runStrategyLogic(strategyName, strategy.address);
-            }
-
-            asset = await ethers.getContractAt("ERC20", assetAddress);
-            let decimals = await asset.decimals();
-            if (decimals === 18) {
-                toAsset = toE18;
-            } else {
-                toAsset = toE6;
-            }
+            recipient = values.recipient;
+            strategy = values.strategy;
+            asset = values.asset;
+            toAsset = values.toAsset;
         });
 
-        it("log gas", async () => {
-            await logStrategyGasUsage(strategyName, strategy, asset, recipient)
-        });
+
 
         values.forEach(item => {
 
@@ -250,46 +228,24 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 }
 
 
-function unstakeFull(strategyParams, network, assetAddress, values, runStrategyLogic) {
+function unstakeFull(strategyParams, network, assetName, values, runStrategyLogic) {
 
     describe(`Stake/unstakeFull`, function () {
 
-        let account;
         let recipient;
 
         let strategy;
-        let strategyName;
 
         let asset;
         let toAsset = function() {};
 
         sharedBeforeEach("deploy", async () => {
-            await hre.run("compile");
-            await resetHardhat(network);
+            let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
 
-            hre.ovn.tags = strategyParams.name;
-            hre.ovn.setting = true;
-
-            strategyName = strategyParams.name;
-            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
-
-            const signers = await ethers.getSigners();
-            account = signers[0];
-            recipient = signers[1];
-
-            strategy = await ethers.getContract(strategyName);
-            await strategy.setPortfolioManager(recipient.address);
-            if (strategyParams.isRunStrategyLogic) {
-                await runStrategyLogic(strategyName, strategy.address);
-            }
-
-            asset = await ethers.getContractAt("ERC20", assetAddress);
-            let decimals = await asset.decimals();
-            if (decimals === 18) {
-                toAsset = toE18;
-            } else {
-                toAsset = toE6;
-            }
+            recipient = values.recipient;
+            strategy = values.strategy;
+            asset = values.asset;
+            toAsset = values.toAsset
         });
 
 
@@ -371,48 +327,26 @@ function unstakeFull(strategyParams, network, assetAddress, values, runStrategyL
 }
 
 
-function claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic) {
+function claimRewards(strategyParams, network, assetName, values, runStrategyLogic) {
 
     let balances = [];
 
     describe(`Stake/ClaimRewards`, function () {
 
-        let account;
         let recipient;
 
         let strategy;
-        let strategyName;
 
         let asset;
         let toAsset = function() {};
 
         sharedBeforeEach(`deploy`, async () => {
-            await hre.run("compile");
-            await resetHardhat(network);
+            let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
 
-            hre.ovn.tags = strategyParams.name;
-            hre.ovn.setting = true;
-
-            strategyName = strategyParams.name;
-            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
-
-            const signers = await ethers.getSigners();
-            account = signers[0];
-            recipient = signers[1];
-
-            strategy = await ethers.getContract(strategyName);
-            await strategy.setPortfolioManager(recipient.address);
-            if (strategyParams.isRunStrategyLogic) {
-                await runStrategyLogic(strategyName, strategy.address);
-            }
-
-            asset = await ethers.getContractAt("ERC20", assetAddress);
-            let decimals = await asset.decimals();
-            if (decimals === 18) {
-                toAsset = toE18;
-            } else {
-                toAsset = toE6;
-            }
+            recipient = values.recipient;
+            strategy = values.strategy;
+            asset = values.asset;
+            toAsset = values.toAsset
         });
 
         values.forEach(item => {
@@ -467,11 +401,9 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
         describe(`Double Stake/ClaimRewards`, function () {
 
-            let account;
             let recipient;
 
             let strategy;
-            let strategyName;
 
             let asset;
             let toAsset = function() {};
@@ -479,32 +411,12 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             let i = 0;
 
             sharedBeforeEach(`deploy`, async () => {
-                await hre.run("compile");
-                await resetHardhat(network);
+                let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
 
-                hre.ovn.tags = strategyParams.name;
-                hre.ovn.setting = true;
-
-                strategyName = strategyParams.name;
-                await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
-
-                const signers = await ethers.getSigners();
-                account = signers[0];
-                recipient = signers[1];
-
-                strategy = await ethers.getContract(strategyName);
-                await strategy.setPortfolioManager(recipient.address);
-                if (strategyParams.isRunStrategyLogic) {
-                    await runStrategyLogic(strategyName, strategy.address);
-                }
-
-                asset = await ethers.getContractAt("ERC20", assetAddress);
-                let decimals = await asset.decimals();
-                if (decimals === 18) {
-                    toAsset = toE18;
-                } else {
-                    toAsset = toE6;
-                }
+                recipient = values.recipient;
+                strategy = values.strategy;
+                asset = values.asset;
+                toAsset = values.toAsset
             });
 
             values.forEach(item => {
@@ -565,6 +477,60 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
         });
     }
+}
+
+async function setUp(network, strategyParams, assetName, runStrategyLogic){
+
+    await hre.run("compile");
+    await resetHardhat(network);
+
+    hre.ovn.tags = strategyParams.name;
+    hre.ovn.setting = true;
+
+    let strategyName = strategyParams.name;
+    await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+
+    const signers = await ethers.getSigners();
+    const account = signers[0];
+    const recipient = signers[1];
+
+    const strategy = await ethers.getContract(strategyName);
+    await strategy.setPortfolioManager(recipient.address);
+    if (strategyParams.isRunStrategyLogic) {
+        await runStrategyLogic(strategyName, strategy.address);
+    }
+
+    let mainAddress = (await initWallet()).address;
+    // Get amount asset for test
+    await getAssetAmount(mainAddress, assetName);
+
+    await transferETH(100, mainAddress);
+
+    const asset = await getERC20(assetName);
+    let decimals = await asset.decimals();
+
+    let toAsset;
+    if (decimals === 18) {
+        toAsset = toE18;
+    } else {
+        toAsset = toE6;
+    }
+
+    return {
+        recipient: recipient,
+        asset: asset,
+        strategy: strategy,
+        toAsset: toAsset,
+    }
+}
+
+async function getAssetAmount(to, assetName){
+
+    switch (assetName){
+        case "dai":
+            await transferDAI(to);
+    }
+
 }
 
 module.exports = {

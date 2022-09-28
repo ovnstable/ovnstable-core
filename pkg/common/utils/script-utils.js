@@ -524,12 +524,13 @@ async function transferETH(amount, to) {
     let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
     let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
 
+    let price = await getPrice();
     await walletWithProvider.sendTransaction({
         to: to,
-        value: ethers.utils.parseEther(amount+"")
+        value: ethers.utils.parseEther(amount+""),
+        ...price
     });
 
-    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 }
 
 
@@ -579,12 +580,51 @@ async function transferUSDPlus(amount, to){
     console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
 }
 
-async function transferWBTC(amount, to) {
+async function transferDAI(to) {
 
+    let address;
+    switch (process.env.ETH_NETWORK){
+        case "OPTIMISM":
+            address = '0x441b02540b16b22d64a5be8d3a4dcf9a4e0efa98';
+            break
+        default:
+            throw new Error('Unknown mapping ETH_NETWORK');
+    }
+
+    await transferETH(1, address);
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+    const account = await hre.ethers.getSigner(address);
+
+    let token = await getERC20('dai');
+
+    await token.connect(account).transfer(to, await token.balanceOf(account.address));
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [account.address],
+    });
+
+
+}
+
+
+async function transferWBTC(amount, to) {
 
     //work only for Optimism
     // This address has WBTC
     let address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+    switch (process.env.ETH_NETWORK){
+        case "OPTIMISM":
+            address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+            break
+        default:
+            throw new Error('Unknown mapping ETH_NETWORK');
+    }
 
     await transferETH(1, address);
 
@@ -616,6 +656,7 @@ module.exports = {
     initWallet: initWallet,
     getDevWallet: getDevWallet,
     transferETH: transferETH,
+    transferDAI: transferDAI,
     transferWTC: transferWTC,
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,

@@ -35,6 +35,6 @@ console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 describe("Avalanche", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'AVALANCHE', AVALANCHE.usdc, runStrategyLogic);
+        strategyTest(value, 'AVALANCHE', 'usdc', runStrategyLogic);
     })
 });

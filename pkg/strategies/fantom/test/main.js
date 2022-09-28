@@ -91,6 +91,6 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 describe("Fantom", function () {
 
     arrays.forEach(value => {
-        strategyTest(value, 'FANTOM', FANTOM.usdc, runStrategyLogic);
+        strategyTest(value, 'FANTOM', 'usdc', runStrategyLogic);
     })
 });

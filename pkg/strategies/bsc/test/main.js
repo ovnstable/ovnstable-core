@@ -93,13 +93,13 @@ describe("BSC", function () {
     arrays.forEach(value => {
         switch (process.env.STAND) {
             case 'bsc_usdc':
-                strategyTest(value, 'BSC', BSC.usdc, runStrategyLogic);
+                strategyTest(value, 'BSC', 'usdc', runStrategyLogic);
                 break;
             case 'bsc_usdt':
-                strategyTest(value, 'BSC', BSC.usdt, runStrategyLogic);
+                strategyTest(value, 'BSC', 'usdt', runStrategyLogic);
                 break;
             default:
-                strategyTest(value, 'BSC', BSC.busd, runStrategyLogic);
+                strategyTest(value, 'BSC', 'busd', runStrategyLogic);
                 break;
         }
     })

@@ -1,4 +1,4 @@
-const {OPTIMISM} = require('@overnight-contracts/common/utils/assets');
+const {OPTIMISM, BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 
 let id = process.env.TEST_STRATEGY;
@@ -34,6 +34,10 @@ let arrays = [
         name: 'StrategyRubiconUsdt',
         enabledReward: true,
     },
+    {
+        name: 'StrategyAaveDai',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -48,6 +52,14 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
 describe("OPTIMISM", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'OPTIMISM', OPTIMISM.usdc, runStrategyLogic);
+
+        switch (process.env.STAND) {
+            case 'optimism_dai':
+                strategyTest(value, 'OPTIMISM', 'dai', runStrategyLogic);
+                break;
+            default:
+                strategyTest(value, 'OPTIMISM', 'usdc', runStrategyLogic);
+                break;
+        }
     })
 });
