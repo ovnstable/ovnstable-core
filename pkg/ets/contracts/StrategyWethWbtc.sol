@@ -136,13 +136,9 @@ contract StrategyWethWbtc is HedgeStrategy {
         lowerPercent = params.lowerPercent;
         upperPercent = params.upperPercent;
 
-        //calcTicksByPercents();
-        lowerTick = -260580;
-        upperTick = -254400;
-
-        // lowerTick = -260599;
-        // upperTick = -254409;
-
+        if (lowerTick == 0 || upperTick == 0) {
+            calcTicksByPercents();
+        }
         
         beethovenxVault = IVault(params.beethovenxVault);
         poolIdWethWbtc = params.poolIdWethWbtc;
@@ -162,29 +158,22 @@ contract StrategyWethWbtc is HedgeStrategy {
     function calcTicksByPercents() public {
 
         if (lowerPercent == 0 && upperPercent == 0) {
-            lowerTick = -887270;
-            upperTick = -233040;
-            console.log("lowerTick", uint24(-lowerTick));
-            console.log("upperTick", uint24(upperTick));
+            // full: [-887220, 887220]
+            lowerTick = -279660; //-90%
+            upperTick = -234960; //800%
             return;
         }
 
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-        console.log("sqrtRatioX96", sqrtRatioX96);
         uint256 price = getPriceBySqrtRatio(sqrtRatioX96);
-        console.log("price", price);
         uint256 lowerPrice = price * (10000 - lowerPercent) / 10000;
-        console.log("lowerPrice", lowerPrice);
         uint256 upperPrice = price * (10000 + upperPercent) / 10000;
-        console.log("upperPrice", upperPrice);
         uint160 lowerSqrt = uint160(sqrt(lowerPrice * 2 ** 192 / 10**18));
-        console.log("lowerSqrt", lowerSqrt);
         uint160 upperSqrt = uint160(sqrt(upperPrice * 2 ** 192 / 10**18));
-        console.log("upperSqrt", upperSqrt);
         lowerTick = TickMath.getTickAtSqrtRatio(lowerSqrt);
-        console.log("lowerTick", uint24(-lowerTick));
+        lowerTick = ((lowerTick / 60) - 1) * 60; 
         upperTick = TickMath.getTickAtSqrtRatio(upperSqrt);
-        console.log("upperTick", uint24(-upperTick));
+        upperTick = ((upperTick / 60) + 1) * 60; 
     }
 
     function getPriceBySqrtRatio(uint160 sqrtRatio) public returns (uint256) {
@@ -253,7 +242,9 @@ contract StrategyWethWbtc is HedgeStrategy {
     }
 
     function _balancePosition() internal override {
-        
+        WethWbtcLibrary._removeLiquidity(this, type(uint256).max);
+        calcTicksByPercents();
+        control.calcDeltas(Method.NOTHING, 0);
     }
 
     function executeAction(Action memory action) external {
@@ -307,18 +298,6 @@ contract StrategyWethWbtc is HedgeStrategy {
             op.balanceOf(address(this)),
             0,
             address(this)
-        );
-
-        BeethovenExchange.swap(
-            beethovenxVault,
-            poolIdWethWbtc,
-            IVault.SwapKind.GIVEN_IN,
-            IAsset(address(weth)),
-            IAsset(address(wbtc)),
-            address(this),
-            address(this),
-            weth.balanceOf(address(this)),
-            0
         );
 
         return wbtc.balanceOf(address(this));

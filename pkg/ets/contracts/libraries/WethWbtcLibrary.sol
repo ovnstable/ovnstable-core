@@ -20,30 +20,20 @@ library WethWbtcLibrary {
             return;
         }
 
-        console.log("amountWeth", self.weth().balanceOf(address(self)));
-        console.log("amountWbtc", self.wbtc().balanceOf(address(self)));
         uint256 amountWeth = self.weth().balanceOf(address(self));
         uint256 amountWbtc = self.wbtc().balanceOf(address(self)) - (delta == self.MAX_UINT_VALUE() ? 0 : self.control().usdToWbtc(delta));
 
         if (self.tokenId() == 0) {
-            // console.log("mint");
-            // create NFT in UniswapV3
             uint256 newTokenId = _mint(self, amountWeth, amountWbtc);
             self.setTokenId(newTokenId);
         } else {
-            //  console.log("_addPartLiquidity()");
             _addPartLiquidity(self, amountWeth, amountWbtc);
         }
     }
 
     function _mint(StrategyWethWbtc self, uint256 amountWeth, uint256 amountWbtc) public returns (uint256) {
-        // console.log("Start");
-
         self.weth().approve(address(self.nonfungiblePositionManager()), amountWeth);
         self.wbtc().approve(address(self.nonfungiblePositionManager()), amountWbtc);
-
-        // console.log("amountWeth", amountWeth);
-        // console.log("amountWbtc", amountWbtc);
 
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
@@ -60,23 +50,7 @@ library WethWbtcLibrary {
                 deadline: block.timestamp + 600
             });
 
-        console.log("self.lowerTick()", uint24(-self.lowerTick()));
-        console.log("self.upperTick()", uint24(-self.upperTick()));
-        console.log("amountWeth", amountWeth);
-        console.log("amountWbtc", amountWbtc);
-
-        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) = self.nonfungiblePositionManager().mint(params);
-
-        // console.log("tokenId", tokenId);
-        // console.log("liquidity", liquidity);
-        // console.log("amount0 (weth)", amount0);
-        // console.log("amount1 (wbtc)", amount1);
-
-        // console.log("remain weth", self.weth().balanceOf(address(self)));
-        // console.log("remain wbtc", self.wbtc().balanceOf(address(self)));
-
-
-        // console.log("Finish");
+        (uint256 tokenId,,,) = self.nonfungiblePositionManager().mint(params);
         return tokenId;
     }
 
@@ -98,12 +72,7 @@ library WethWbtcLibrary {
             block.timestamp + 600
         );
 
-        // console.log("1", amountWeth);
-        // console.log("2", amountWbtc);
-        // console.log("1", self.control().wethToUsd(amountWeth));
-        // console.log("2", self.control().wbtcToUsd(amountWbtc));
-
-        (uint128 liquidity, uint256 amount0, uint256 amount1) = self.nonfungiblePositionManager().increaseLiquidity(params);
+        self.nonfungiblePositionManager().increaseLiquidity(params);
     }
 
     /**
@@ -114,18 +83,24 @@ library WethWbtcLibrary {
      */
     function _removeLiquidity(StrategyWethWbtc self, uint256 delta) public returns (uint256, uint256) {
 
-        // console.log("_removeLiquidity");
-        // uint256 usdtAmount = 0;//_getNeedToByUsdt(_amount);
-        // uint256 usdcAmount = 0;//_amount - usdtAmount;
+        uint128 liquidity;
+        if (delta == self.MAX_UINT_VALUE()) {
+            (,,,,,,, liquidity,,,,) = self.nonfungiblePositionManager().positions(self.tokenId());
+        } else {
+            (uint160 sqrtPriceX96,,,,,,) = self.pool().slot0();
+            liquidity = LiquidityAmounts.getLiquidityForAmounts(
+                sqrtPriceX96, 
+                TickMath.getSqrtRatioAtTick(self.lowerTick()), 
+                TickMath.getSqrtRatioAtTick(self.upperTick()), 
+                self.control().usdToWeth(delta), 
+                1000000000000
+            );
+        }
 
-        (uint160 sqrtPriceX96,,,,,,) = self.pool().slot0();
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-            sqrtPriceX96, 
-            TickMath.getSqrtRatioAtTick(self.lowerTick()), 
-            TickMath.getSqrtRatioAtTick(self.upperTick()), 
-            self.control().usdToWeth(delta), 
-            1000000000000
-        );
+        if (self.tokenId() == 0) {
+            return (0, 0);
+        }
+        
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams(
             self.tokenId(),
             liquidity,
@@ -134,37 +109,16 @@ library WethWbtcLibrary {
             block.timestamp + 600
         );
 
-        // console.log("2", self.control().usdToWeth(delta));
-        // console.log("2", self.control().wbtcToUsd(self.control().usdToWeth(delta)));
-
-
-        // console.log("real", self.weth().balanceOf(address(self)));
         (uint256 amount0, uint256 amount1) = self.nonfungiblePositionManager().decreaseLiquidity(params);
-        // console.log("amount0", amount0);
-        // console.log("amount1", amount1);
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(self.tokenId(), address(this), type(uint128).max, type(uint128).max);
         self.nonfungiblePositionManager().collect(collectParam);
-        // console.log("real", self.weth().balanceOf(address(self)));
 
-        //todo
-        // _collectLiquidityAndSwap();
+        if (delta == self.MAX_UINT_VALUE()) {
+            self.setTokenId(0);
+        }
 
         return (amount0, amount1);
     }
-
-    // function _getLpForUnstake(StrategyWethWbtc self, uint256 delta) internal view returns (uint256 lpForUnstake) {
-    //     uint256 poolTokenDelta = self.control().usdToWeth(delta);
-    //     uint256 lpTokenBalance = self.gauge().balanceOf(address(this));
-    //     if (lpTokenBalance > 0) {
-    //         uint256 totalLpBalance = self.pair().totalSupply();
-    //         (uint256 reserveWeth,,) = self.pair().getReserves();
-    //         uint256 wethBalance = reserveWeth * lpTokenBalance / totalLpBalance;
-    //         lpForUnstake = poolTokenDelta * lpTokenBalance / wethBalance;
-    //         if (lpForUnstake > lpTokenBalance) {
-    //             lpForUnstake = lpTokenBalance;
-    //         }
-    //     }
-    // }
 
     /**
      * ActionType: SUPPLY_ASSET_TO_AAVE
@@ -175,14 +129,12 @@ library WethWbtcLibrary {
         uint256 supplyWbtcAmount = (delta == self.MAX_UINT_VALUE() || self.control().usdToWbtc(delta) > self.wbtc().balanceOf(address(self)))
                 ? self.wbtc().balanceOf(address(self))
                 : self.control().usdToWbtc(delta);
-        //supplyWbtcAmount = self.control().usdToWbtc(delta);
-        // console.log("supplyWbtcAmount", supplyWbtcAmount);
+     
         if (supplyWbtcAmount == 0) {
             return;
         }
         // aave pool may be changed, so we need always approve
         self.wbtc().approve(address(self.control().aavePool()), supplyWbtcAmount);
-        // console.log("wbtc address", address(self.wbtc()));
         
         self.control().aavePool().supply(
             address(self.wbtc()),
@@ -190,9 +142,6 @@ library WethWbtcLibrary {
             address(self),
             self.REFERRAL_CODE()
         );
-        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = self.control().aavePool().getUserAccountData(address(self));
-        // console.log("aaveCollateralUsd", aaveCollateralUsd);
-        // console.log("aaveBorrowUsd", aaveBorrowUsd);
     }
 
     /**
@@ -202,9 +151,7 @@ library WethWbtcLibrary {
      */
     function _withdrawWbtcFromAave(StrategyWethWbtc self, uint256 delta) public {
         uint256 withdrawWbtcAmount = self.control().usdToWbtc(delta);
-        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = self.control().aavePool().getUserAccountData(address(self));
-        // console.log("aaveCollateralUsd", aaveCollateralUsd);
-        // console.log("aaveBorrowUsd", aaveBorrowUsd);
+        
         self.control().aavePool().withdraw(
             address(self.wbtc()),
             withdrawWbtcAmount,
@@ -219,7 +166,6 @@ library WethWbtcLibrary {
      */
     function _borrowWethFromAave(StrategyWethWbtc self, uint256 delta) public {
         uint256 borrowWethAmount = self.control().usdToWeth(delta);
-        // console.log("borrowWethAmount", borrowWethAmount);
         
         self.control().aavePool().borrow(
             address(self.weth()),
@@ -228,10 +174,6 @@ library WethWbtcLibrary {
             self.REFERRAL_CODE(),
             address(self)
         );
-        (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,uint256 currentLiquidationThreshold,,) = self.control().aavePool().getUserAccountData(address(self));
-        // console.log("aaveCollateralUsd", aaveCollateralUsd);
-        // console.log("aaveBorrowUsd", aaveBorrowUsd);
-        // console.log("currentLiquidationThreshold", currentLiquidationThreshold);
     }
 
     /**
@@ -244,9 +186,6 @@ library WethWbtcLibrary {
                 ? self.weth().balanceOf(address(self))
                 : self.control().usdToWeth(delta);
 
-        // console.log("self.weth().balanceOf(address(self))", self.weth().balanceOf(address(self)));
-        // console.log("self.control().usdToWeth(delta)", self.control().usdToWeth(delta));
-        // console.log("repayWethAmount", repayWethAmount);
         if (repayWethAmount == 0) {
             return;
         }
@@ -302,8 +241,6 @@ library WethWbtcLibrary {
             return;
         }
         uint256 amountOutMin = self.control().usdToWeth(self.control().wbtcToUsd(swapWbtcAmount / 10000 * (10000 - slippagePercent)));
-        console.log("swapWbtcAmount", swapWbtcAmount);
-        console.log("amountOutMin", amountOutMin);
         BeethovenExchange.swap(
             self.beethovenxVault(),
             self.poolIdWethWbtc(),
@@ -316,5 +253,4 @@ library WethWbtcLibrary {
             amountOutMin
         );
     }
-
 }

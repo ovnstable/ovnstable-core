@@ -121,8 +121,7 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
 
         _runActions(actions);
 
-        (,,,uint256 kt,, uint256 realHealthFactor) = aavePool().getUserAccountData(address(strategy));
-        console.log("kt", kt);
+        (,,,,, uint256 realHealthFactor) = aavePool().getUserAccountData(address(strategy));
         strategy.setRealHealthFactor(realHealthFactor);
     }
 
@@ -176,13 +175,10 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
         console.log("currentAmounts");
 
         (uint256 poolToken, uint256 poolWbtc) = _getLiquidity();
-        console.log("1");
         (uint256 aaveCollateralUsd, uint256 aaveBorrowUsd,,,,) = aavePool().getUserAccountData(address(strategy));
-        console.log("2");
         uint256 aaveBorrowAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveBorrowUsd, wethDm, uint256(oracleWeth.latestAnswer()));
-        console.log("3");
         uint256 aaveCollateralAmount = AaveBorrowLibrary.convertUsdToTokenAmount(aaveCollateralUsd, wbtcDm, uint256(oracleWbtc.latestAnswer()));
-        console.log("4");
+        
         return Amounts(
             aaveCollateralAmount,
             aaveBorrowAmount,
@@ -235,13 +231,10 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
     function _getLiquidity() internal view returns (uint256 wethBalance, uint256 wbtcBalance) {
 
         (uint160 sqrtRatioX96, int24 tick, , , , , ) = pool.slot0();
-        console.log("sqrtRatioX96", sqrtRatioX96);
-        console.log("tick", uint24(-tick));
         uint128 liquidity = 0;
         if (strategy.tokenId() != 0) {
             (,,,,,,,liquidity,,,,) = nonfungiblePositionManager.positions(strategy.tokenId());
         }
-        console.log("liquidity1", liquidity);
 
         // compute current holdings from liquidity
         (wethBalance, wbtcBalance) = LiquidityAmounts
@@ -251,7 +244,6 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
             strategy.upperTick().getSqrtRatioAtTick(),
             liquidity
         );
-        console.log("liquidity2");
     }
 
     function getPriceBySqrtRatio(uint160 sqrtRatio) public returns (uint256) {
@@ -261,9 +253,7 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
 
     function getPriceByTick(int24 tick) public returns (uint256) {
         uint160 sqrtRatio = TickMath.getSqrtRatioAtTick(tick);
-        console.log("sqrtRatio11", sqrtRatio);
         uint256 price = FullMath.mulDiv(uint256(sqrtRatio) * 10**10, uint256(sqrtRatio) * 10**8, 2 ** (96+96));
-        console.log("price11", price);
         return price;
     }
 
@@ -280,9 +270,6 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
         uint256 sa = sqrt(getPriceByTick(lowerTick));
         uint256 sb = sqrt(getPriceByTick(upperTick));
         uint256 sp = sqrt(getPriceBySqrtRatio(sqrtRatio));
-        console.log("sa", sa);
-        console.log("sb", sb);
-        console.log("sp", sp);
         uint256 result = (sp * sb * (sp - sa)) / (sb - sp);
         return result;
     }
@@ -291,42 +278,18 @@ contract ControlWethWbtc is Initializable, AccessControlUpgradeable, UUPSUpgrade
         uint256 sa = sqrt(getPriceByTick(lowerTick));
         uint256 sb = sqrt(getPriceByTick(upperTick));
         uint256 sp = sqrt(getPriceBySqrtRatio(sqrtRatio));
-        
         uint256 result = ((sb - sp)*10**26) / (sp * sb * (sp - sa));
         return result;
     }
 
     // Current price weth/wbtc in mesh pool in USD/USD in e+2
-    function _pricePool() internal returns (uint256){
+    function _pricePool() public returns (uint256){
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         uint256 price = getPoolPrice(strategy.lowerTick(), strategy.upperTick(), sqrtRatioX96);
-        uint256 anotherprice = getPoolAnotherPrice(strategy.lowerTick(), strategy.upperTick(), sqrtRatioX96);
-        console.log("prise!0", price);
-        console.log("prise!1", anotherprice);
-
         uint256 price1usd = wbtcToUsd(price);
-        uint256 price1usdD = wbtcToUsd(100000000);
-        uint256 price2usd = wethToUsd(anotherprice);
         uint256 price2usdD = wethToUsd(1000000000000000000);
-        console.log("price1usd", price1usd);
-        console.log("price1usdD", price1usdD);
-        console.log("price2usd", price2usd);
-        console.log("price2usdD", price2usdD);
-
         uint256 price1frac = price1usd*10**8/price2usdD;
-        uint256 price2frac = price2usdD*10**8/price1usd;
-        uint256 price3frac = price2usd*10**8/price1usdD;
-        uint256 price4frac = price1usdD*10**8/price2usd;
-        console.log("price1frac", price1frac);
-        console.log("price2frac", price2frac);
-        console.log("price3frac", price3frac);
-        console.log("price4frac", price4frac);
 
-        // uint256 price00 = FullMath.mulDiv(10 ** 18, sqrtRatioX96 ** 2, 2 ** 192);
-        // uint256 price11 = FullMath.mulDiv(1, 2 ** 192, sqrtRatioX96 ** 2);
-        // price11 = price11 / 100;
-        // console.log("price!0", price00);
-        // console.log("price!1", price11);
         return price1frac;
     }
 

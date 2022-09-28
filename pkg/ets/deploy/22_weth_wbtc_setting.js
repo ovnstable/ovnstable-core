@@ -14,8 +14,8 @@ let liquidationThreshold = 750;
 let healthFactor = 1200;
 let isStableVeloWbtc = false;
 let isStableOpWbtc = false;
-let lowerPercent = 0; //30%
-let upperPercent = 0; //30%
+let lowerPercent = 3000; //30%
+let upperPercent = 3000; //30%
 
 module.exports = async () => {
 

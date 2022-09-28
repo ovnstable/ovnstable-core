@@ -25,8 +25,8 @@ let liquidationThreshold = 750;
 let healthFactor = 1200;
 let isStableVeloWbtc = false;
 let isStableOpWbtc = false;
-let lowerPercent = 0; //30%
-let upperPercent = 0; //30%
+let lowerPercent = 3000; //30%
+let upperPercent = 3000; //30%
 
 describe("OPTIMISM", function () {
     let value = {
@@ -52,18 +52,18 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
         //     value: 0.002,
         //     deltaPercent: 5,
         // },
-        // {
-        //     value: 0.02,
-        //     deltaPercent: 1,
-        // },
+        {
+            value: 0.02,
+            deltaPercent: 1,
+        },
         // {
         //     value: 0.2,
         //     deltaPercent: 1,
         // },
-        {
-            value: 2,
-            deltaPercent: 1,
-        },
+        // {
+        //     value: 2,
+        //     deltaPercent: 1,
+        // },
         // {
         //     value: 20,
         //     deltaPercent: 1,
@@ -172,21 +172,13 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
 
                     try {
                         await m2m(strategy);
-                        console.log("1");
                         let assetValue = toAsset(stakeValue);
-                        console.log("2");
                         VALUE = new BigNumber(assetValue);
-                        console.log("3");
                         DELTA = VALUE.multipliedBy(new BigNumber(deltaPercent)).div(100);
-                        console.log("4");
                         await asset.connect(account).transfer(recipient.address, assetValue);
-                        console.log("5");
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
-                        console.log("6");
                         expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
-                        console.log("7");
                         console.log(`expectedNetAsset: ${expectedNetAsset}`)
-                        console.log("8");
 
                         await asset.connect(recipient).transfer(strategy.address, assetValue/2);
                         await strategy.connect(recipient).stake(assetValue/2);
@@ -307,6 +299,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             await transferETH(10, recipient.address);
             await transferETH(10, account.address);
             await transferETH(10, (await initWallet()).address);
+            await transferWBTC(1000000, account.address);
             strategyName = strategyParams.name;
 
             await deployments.fixture([strategyName, 'ControlWethWbtc']);
@@ -347,11 +340,12 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 console.log(`FREE_RIDER_ROLE granted to ${strategy.address}`);
             });
 
-            wbtcToken = await getERC20("wbtc");
             asset = await getERC20("wbtc");
             let decimals = await asset.decimals();
             if (decimals === 18) {
                 toAsset = toE18;
+            } else if (decimals === 8) {
+                toAsset = toE8;
             } else {
                 toAsset = toE6;
             }
@@ -381,13 +375,10 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
                     try {
                         await m2m(strategy);
-
                         let assetValue = toAsset(stakeValue);
                         VALUE = new BigNumber(assetValue);
                         DELTA = VALUE.multipliedBy(new BigNumber(deltaPercent)).div(100);
-
                         await asset.connect(account).transfer(recipient.address, assetValue);
-
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                         expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
                         console.log(`expectedNetAsset: ${expectedNetAsset}`)
@@ -410,10 +401,10 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                         await ethers.provider.send("evm_increaseTime", [sevenDays])
                         await ethers.provider.send('evm_mine');
 
-                        balanceWbtcBefore = new BigNumber((await wbtcToken.balanceOf(strategy.address)).toString());
+                        balanceWbtcBefore = new BigNumber((await asset.balanceOf(strategy.address)).toString());
                         console.log("balanceWbtcBefore", balanceWbtcBefore.toString());
                         await strategy.connect(recipient).claimRewards(recipient.address);
-                        balanceWbtcAfter = new BigNumber((await wbtcToken.balanceOf(strategy.address)).toString());
+                        balanceWbtcAfter = new BigNumber((await asset.balanceOf(strategy.address)).toString());
                         console.log("balanceWbtcAfter", balanceWbtcAfter.toString());
 
                         balanceWbtc = balanceWbtcAfter.minus(balanceWbtcBefore);
