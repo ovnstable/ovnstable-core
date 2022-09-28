@@ -79,10 +79,6 @@ function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
             claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
         }
 
-        if (strategyParams.neutralStrategy) {
-            healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic);
-        }
-
     });
 }
 
@@ -569,127 +565,6 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
         });
     }
-}
-
-function healthFactorBalance(strategyParams, network, assetAddress, values, runStrategyLogic) {
-
-    describe(`HealthFactorBalance`, function () {
-
-        let account;
-        let recipient;
-
-        let strategy;
-        let strategyName;
-
-        let asset;
-        toAsset = function() {};
-
-        sharedBeforeEach(`deploy`, async () => {
-            await hre.run("compile");
-            await resetHardhat(network);
-
-            hre.ovn.tags = strategyParams.name;
-            hre.ovn.setting = true;
-
-            strategyName = strategyParams.name;
-            await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
-
-            const signers = await ethers.getSigners();
-            account = signers[0];
-            recipient = signers[1];
-
-            strategy = await ethers.getContract(strategyName);
-            await strategy.setPortfolioManager(recipient.address);
-            if (strategyParams.isRunStrategyLogic) {
-                await runStrategyLogic(strategyName, strategy.address);
-            }
-
-            asset = await ethers.getContractAt("ERC20", assetAddress);
-            let decimals = await asset.decimals();
-            if (decimals === 18) {
-                toAsset = toE18;
-            } else {
-                toAsset = toE6;
-            }
-        });
-
-
-        values.forEach(item => {
-
-            let stakeValue = item.value;
-            let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
-
-            describe(`Stake ${stakeValue} => Disbalancing/Balancing`, function () {
-
-                let desiredHealthFactor1;
-                let realHealthFactor1;
-
-                let desiredHealthFactor2;
-                let realHealthFactor2;
-
-                let desiredHealthFactor3;
-                let realHealthFactor3;
-
-                let desiredHealthFactor4;
-                let realHealthFactor4;
-
-                let balancingDelta;
-
-                sharedBeforeEach(`Stake ${stakeValue}`, async () => {
-
-                    let assetValue = toAsset(stakeValue);
-
-                    await asset.transfer(recipient.address, assetValue);
-
-                    await asset.connect(recipient).transfer(strategy.address, assetValue);
-                    balancingDelta = new BigNumber((await strategy.balancingDelta()).toString());
-                    await strategy.connect(recipient).stake(asset.address, assetValue);
-
-                    await strategy.grepRealHealthFactor();
-                    desiredHealthFactor1 = new BigNumber((await strategy.healthFactor()).toString());
-                    realHealthFactor1 = new BigNumber((await strategy.realHealthFactor()).toString());
-
-                    desiredHealthFactor2 = desiredHealthFactor1.times(100+1).div(100).div(new BigNumber(10).pow(15)).times(new BigNumber(10).pow(15));
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor2.div(new BigNumber(10).pow(15)).toFixed());
-                    await strategy.connect(recipient).healthFactorBalance();
-                    await strategy.grepRealHealthFactor();
-                    realHealthFactor2 = new BigNumber((await strategy.realHealthFactor()).toString());
-
-                    desiredHealthFactor3 = desiredHealthFactor1.times(100-1).div(100).div(new BigNumber(10).pow(15)).times(new BigNumber(10).pow(15));
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor3.div(new BigNumber(10).pow(15)).toFixed());
-                    await strategy.connect(recipient).healthFactorBalance();
-                    await strategy.grepRealHealthFactor();
-                    realHealthFactor3 = new BigNumber((await strategy.realHealthFactor()).toString());
-
-                    desiredHealthFactor4 = desiredHealthFactor1;
-                    await strategy.connect(recipient).setHealthFactor(desiredHealthFactor4.div(new BigNumber(10).pow(15)).toFixed());
-                    await strategy.connect(recipient).healthFactorBalance();
-                    await strategy.grepRealHealthFactor();
-                    realHealthFactor4 = new BigNumber((await strategy.realHealthFactor()).toString());
-
-                });
-
-                it(`HealthFactor after Stake`, async function () {
-                    greatLess(desiredHealthFactor1, realHealthFactor1, balancingDelta);
-                });
-
-                it(`HealthFactor after 1% increase`, async function () {
-                    greatLess(desiredHealthFactor2, realHealthFactor2, balancingDelta);
-                });
-
-                it(`HealthFactor after 1% decrease`, async function () {
-                    greatLess(desiredHealthFactor3, realHealthFactor3, balancingDelta);
-                });
-
-                it(`HealthFactor after return`, async function () {
-                    greatLess(desiredHealthFactor4, realHealthFactor4, balancingDelta);
-                });
-
-            });
-
-        });
-
-    });
 }
 
 module.exports = {
