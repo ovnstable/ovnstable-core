@@ -123,6 +123,8 @@ async function getCoreAsset() {
         return await getERC20('usdc');
     } else if (process.env.STAND === 'bsc_usdt') {
         return await getERC20('usdt');
+    }else if (process.env.STAND === 'optimism_dai') {
+        return await getERC20('dai');
     } else {
         return await getERC20('usdc');
     }
@@ -205,6 +207,7 @@ async function getStrategyMapping(){
             url = "https://dev.overnight.fi/api/dict/strategies";
             break;
         case "optimism":
+        case "optimism_dai":
             url = "https://op.overnight.fi/api/dict/strategies";
             break;
         case "bsc_usdc":
@@ -361,7 +364,8 @@ async function execTimelock(exec){
 
 }
 
-async function changeWeightsAndBalance(weights){
+async function convertWeights(weights){
+
 
     let totalWeight = 0;
     for (const weight of weights) {
@@ -381,6 +385,12 @@ async function changeWeightsAndBalance(weights){
 
         return value;
     })
+
+    return weights;
+}
+
+async function changeWeightsAndBalance(weights){
+
 
     await evmCheckpoint('Before');
 
@@ -653,6 +663,7 @@ async function transferWBTC(amount, to) {
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
+    convertWeights: convertWeights,
     initWallet: initWallet,
     getDevWallet: getDevWallet,
     transferETH: transferETH,

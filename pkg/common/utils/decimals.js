@@ -1,44 +1,45 @@
 const BigNumber = require('bignumber.js');
 
 
-
-function toE18(value){
+function toE18(value) {
     return new BigNumber(value.toString()).times(new BigNumber(10).pow(18)).toFixed(0)
 
 }
 
-function fromE18(value){
+function fromE18(value) {
     return new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(4)
 }
 
-function toE6(value){
+function toE6(value) {
     return value * 10 ** 6;
 }
 
-function fromE6(value){
-    return  value / 10 ** 6;
+function fromE6(value) {
+    return value / 10 ** 6;
 }
 
-function toE8(value){
+function toE8(value) {
     return value * 10 ** 8;
 }
 
-function fromE8(value){
-    return  value / 10 ** 8;
+function fromE8(value) {
+    return value / 10 ** 8;
 }
 
-function toAsset(value){
-    if (process.env.ETH_NETWORK === 'BSC'){
+function toAsset(value) {
+
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai') {
         return toE18(value);
-    }else {
+    } else {
         return toE6(value);
     }
+
 }
 
-function fromAsset(value){
-    if (process.env.ETH_NETWORK === 'BSC'){
+function fromAsset(value) {
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai') {
         return fromE18(value);
-    }else {
+    } else {
         return fromE6(value);
     }
 }
@@ -54,6 +55,6 @@ module.exports = {
     toE6: toE6,
     fromE6: fromE6,
 
-    toAsset:toAsset,
+    toAsset: toAsset,
     fromAsset: fromAsset,
 }
