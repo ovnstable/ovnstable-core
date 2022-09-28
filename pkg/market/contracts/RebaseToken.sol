@@ -38,6 +38,7 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
     EnumerableSet.AddressSet _owners;
 
     address public exchange;
+    uint8 private _decimals;
 
     // ---  events
 
@@ -62,6 +63,11 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
         _name = name;
         _symbol = symbol;
 
+    }
+
+    function setDecimals(uint8 decimals) external onlyAdmin {
+        require(_decimals == 0, 'Decimals already set');
+        _decimals = decimals;
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
@@ -498,8 +504,12 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public pure override returns (uint8) {
-        return 6;
+    function decimals() public view override returns (uint8) {
+        if(_decimals == 0){
+            return 6; // support old tokens which always had 6 decimals
+        }else {
+            return _decimals;
+        }
     }
 
 

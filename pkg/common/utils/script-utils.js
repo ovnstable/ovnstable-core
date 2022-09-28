@@ -579,6 +579,36 @@ async function transferUSDPlus(amount, to){
     console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
 }
 
+async function transferWBTC(amount, to) {
+
+
+    //work only for Optimism
+    // This address has WBTC
+    let address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+
+    await transferETH(1, address);
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+
+    const account = await hre.ethers.getSigner(address);
+
+    let wbtc = await getERC20('wbtc');
+
+    await wbtc.connect(account).transfer(to, await wbtc.balanceOf(account.address));
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [account.address],
+    });
+
+
+    console.log('Balance WBTC: ' + await wbtc.balanceOf(to));
+}
 
 module.exports = {
     getStrategyMapping: getStrategyMapping,
@@ -588,6 +618,7 @@ module.exports = {
     transferETH: transferETH,
     transferWTC: transferWTC,
     transferUSDPlus: transferUSDPlus,
+    transferWBTC: transferWBTC,
     showM2M: showM2M,
     showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,

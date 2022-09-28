@@ -39,4 +39,6 @@ interface IHedgeStrategy {
     function balances() external view returns (BalanceItem[] memory ); // Balancing aave health factor
 
     function setHealthFactor(uint256 newHealthFactor) external; // Set a new health factor
+
+    function balancePosition() external; // Balancing position
 }
