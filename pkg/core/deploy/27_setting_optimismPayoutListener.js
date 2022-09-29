@@ -16,7 +16,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     ];
 
     let velodromeBribes= [
-        '0xfd42e5d79567997552986fc8d96434e8a2ad9fb6', // USD+/USDC
+        '0xe01a297289f0ae9e745dddc61f139537ab733710', // USD+/USDC
         '0x41a7540ec8cb3afafe16a834abe0863f22016ec0', // USD+/LUSD
     ];
     await (await pl.setVelodromePools(velodromePools, velodromeBribes)).wait();
