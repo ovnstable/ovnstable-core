@@ -7,8 +7,6 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyGainsDai is Strategy {
 
     IERC20 public usdc;
@@ -77,7 +75,8 @@ contract StrategyGainsDai is Strategy {
     ) internal override {
         require(_asset == address(usdc), "Some token not compatible");
 
-        usdc.approve(address(uniswapV3Router), _amount);
+        uint256 usdcAmount = usdc.balanceOf(address(this));
+        usdc.approve(address(uniswapV3Router), usdcAmount);
 
         uint256 daiAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
@@ -85,8 +84,8 @@ contract StrategyGainsDai is Strategy {
             address(dai),
             poolUsdcDaiFee,
             address(this),
-            _amount,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), 10) // slippage 0.1%
+            usdcAmount,
+            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcAmount), 10) // slippage 0.1%
         );
 
         dai.approve(address(gainsVault), daiAmount);
@@ -135,6 +134,10 @@ contract StrategyGainsDai is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         uint256 daiAmount = gainsVault.users(address(this)).daiDeposited;
+        if(daiAmount == 0){
+            return 0;
+        }
+
         gainsVault.withdrawDai(daiAmount);
 
         dai.approve(address(uniswapV3Router), daiAmount);
@@ -175,7 +178,7 @@ contract StrategyGainsDai is Strategy {
 
         uint256 totalUsdc;
         if (daiAmount > 0) {
-            UniswapV3Library.singleSwap(
+            uint256 amountUsdc = UniswapV3Library.singleSwap(
                 uniswapV3Router,
                 address(dai),
                 address(usdc),
@@ -185,7 +188,6 @@ contract StrategyGainsDai is Strategy {
                 0
             );
 
-            uint256 amountUsdc = usdc.balanceOf(address(this));
             if (amountUsdc > 0) {
                 usdc.transfer(_beneficiary, amountUsdc);
                 totalUsdc += amountUsdc;
