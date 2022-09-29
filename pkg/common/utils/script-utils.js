@@ -103,10 +103,13 @@ async function getStrategy(address){
 
 }
 
-async function getERC20(name){
+async function getERC20(name, wallet){
 
     let ethers = hre.ethers;
-    let wallet = await initWallet(ethers);
+
+    if (!wallet){
+        wallet = await initWallet(ethers);
+    }
 
     const ERC20 = require("./abi/IERC20.json");
 
