@@ -16,7 +16,7 @@ module.exports = async ({deployments}) => {
     if (hre.ovn.setting) {
 
         let exchanger = await ethers.getContract('HedgeExchangerUsdPlusWbnb');
-        let rebase = await ethers.getContract('RebaseTokenUsdPlusWbnb');
+        let rebase = await ethers.getContract('EtsUsdPlusWbnb');
 
         let usdPlus = await getContract('UsdPlusToken')
         let strategy = await getContract('StrategyUsdPlusWbnb')
