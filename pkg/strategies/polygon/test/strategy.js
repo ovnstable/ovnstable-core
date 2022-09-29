@@ -119,6 +119,13 @@ let arrays = [
         doubleFarm: true,
     },
 
+    {
+        name: 'StrategyGainsDai',
+        unstakeDelay:  10 * 60 * 60 * 1000,
+        unstakePercent: 20, // Gains allow unstake only 20% amounts per 24 hours
+        enabledReward: false // Rewards word only onchain - need trade transactions
+    },
+
 ];
 
 

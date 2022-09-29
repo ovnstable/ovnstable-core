@@ -3,7 +3,7 @@ const {deployments, getNamedAccounts, ethers} = require("hardhat");
 const {resetHardhat, greatLess} = require("./tests");
 const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
-const {toE6, toE18} = require("./decimals");
+const {toE6, toE18, fromAsset} = require("./decimals");
 const {expect} = require("chai");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
 const BigNumber = require('bignumber.js');
@@ -111,7 +111,8 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
             let stakeValue = item.value;
             let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
 
-            let unstakeValue = stakeValue / 2;
+            let unstakePercent = strategyParams.unstakePercent ? strategyParams.unstakePercent : 50;
+            let unstakeValue = stakeValue * unstakePercent / 100;
 
             describe(`Stake ${stakeValue}`, function () {
 
@@ -147,6 +148,15 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
+
+
+                    let items = [
+                        ...createCheck('stake', 'balance', assetValue, balanceAsset, VALUE, DELTA),
+                        ...createCheck('stake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset, DELTA),
+                        ...createCheck('stake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation, DELTA),
+                    ]
+
+                    console.table(items);
 
                 });
 
@@ -201,6 +211,14 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                         netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                         liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
+
+                        let items = [
+                            ...createCheck('unstake', 'balance', assetValue, balanceAsset, VALUE, DELTA),
+                            ...createCheck('unstake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset, DELTA),
+                            ...createCheck('unstake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation, DELTA),
+                        ]
+
+                        console.table(items);
                     });
 
                     it(`Balance asset after unstake >= unstakeValue`, async function () {
@@ -502,11 +520,14 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
 
     let mainAddress = (await initWallet()).address;
     // Get amount asset for test
-    await getAssetAmount(mainAddress, assetName);
+    await getAssetAmount(mainAddress, assetName, account);
 
     await transferETH(100, mainAddress);
 
     const asset = await getERC20(assetName);
+
+    console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
+
     let decimals = await asset.decimals();
 
     let toAsset;
@@ -524,13 +545,49 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
     }
 }
 
-async function getAssetAmount(to, assetName){
+async function getAssetAmount(to, assetName, ganacheWallet){
 
-    switch (assetName){
-        case "dai":
-            await transferDAI(to);
+
+    if (assetName === 'dai'){
+        await transferDAI(to);
+    }else if(assetName === 'usdc'){
+        let usdc = await getERC20('usdc', ganacheWallet);
+
+        let amount = await usdc.balanceOf(ganacheWallet.address);
+        await usdc.transfer(to, amount);
     }
 
+}
+
+function createCheck(type, name , assetValue, currentValue, expectedValue, DELTA){
+
+    let maxValue = expectedValue.plus(DELTA);
+    let minValue = expectedValue.minus(DELTA);
+
+    let min = {
+        type: type,
+        name: `${name}:min`,
+        input: fromAsset(assetValue.toString()),
+        current: fromAsset(currentValue.toString()),
+        expected: fromAsset(minValue.toString()),
+        difference: fromAsset(currentValue.minus(minValue).toString()),
+        delta: fromAsset(DELTA.toString()),
+        status: currentValue.gte(minValue) ? '✔': '✘'
+    }
+
+    let max = {
+        type: type,
+        name: `${name}:max`,
+        input: fromAsset(assetValue.toString()),
+        current: fromAsset(currentValue.toString()),
+        expected: fromAsset(maxValue.toString()),
+        difference: fromAsset(maxValue.minus(currentValue).toString()),
+        delta: fromAsset(DELTA.toString()),
+        status: currentValue.lte(maxValue) ? '✔': '✘'
+    }
+
+
+    return [min, max];
 }
 
 module.exports = {
