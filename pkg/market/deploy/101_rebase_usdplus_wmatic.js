@@ -8,15 +8,15 @@ module.exports = async ({deployments}) => {
 
     if (!hre.ovn.noDeploy) {
 
-        await deployProxyMulti('RebaseTokenUsdPlusWmatic', 'RebaseToken', deployments, save, null);
-        console.log("RebaseTokenUsdPlusWmatic created");
+        await deployProxyMulti('EtsUsdPlusWmatic', 'RebaseToken', deployments, save, null);
+        console.log("EtsUsdPlusWmatic created");
 
     }
 
     if (hre.ovn.setting) {
 
         let exchanger = await ethers.getContract('HedgeExchangerUsdPlusWmatic');
-        let rebase = await ethers.getContract('RebaseTokenUsdPlusWmatic');
+        let rebase = await ethers.getContract('EtsUsdPlusWmatic');
 
         if (rebase) {
             await (await rebase.setExchanger(exchanger.address)).wait();
@@ -28,4 +28,4 @@ module.exports = async ({deployments}) => {
 
 };
 
-module.exports.tags = ['RebaseTokenUsdPlusWmatic'];
+module.exports.tags = ['EtsUsdPlusWmatic'];

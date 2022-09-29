@@ -1,7 +1,7 @@
 const { verify } = require("@overnight-contracts/common/utils/verify-utils");
 
 async function main() {
-    let items = ["RebaseTokenUsdPlusWmatic", "HedgeExchangerUsdPlusWmatic"];
+    let items = ["EtsUsdPlusWmatic", "HedgeExchangerUsdPlusWmatic"];
     await verify(items);
 }
 

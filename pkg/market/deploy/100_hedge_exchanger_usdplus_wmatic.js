@@ -15,7 +15,7 @@ module.exports = async ({deployments}) => {
     if (hre.ovn.setting) {
 
         let exchanger = await ethers.getContract('HedgeExchangerUsdPlusWmatic');
-        let rebase = await ethers.getContract('RebaseTokenUsdPlusWmatic');
+        let rebase = await ethers.getContract('EtsUsdPlusWmatic');
 
         if (exchanger) {
             await exchanger.setTokens("0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f", rebase.address, POLYGON.usdc);
