@@ -175,6 +175,7 @@ contract StrategyOpUsdc is HedgeStrategy {
 
     function _setHealthFactor(uint256 newHealthFactor) internal override {
         healthFactor = newHealthFactor;
+        control.setStrategy(payable(this));
     }
 
     function executeAction(Action memory action) external {

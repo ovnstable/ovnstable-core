@@ -6,8 +6,10 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 
 import "../PayoutListener.sol";
+
 
 contract PolygonPayoutListener is PayoutListener {
 
@@ -16,6 +18,9 @@ contract PolygonPayoutListener is PayoutListener {
     address[] public qsBribes;
     IERC20 public usdPlus;
     mapping(address => uint256) public skimPoolBalances; // pool address -> USD+ balance
+    IERC20 public dyst;
+    IERC20 public wmatic;
+    IDystopiaRouter public dystRouter;
 
     // ---  events
 
@@ -23,8 +28,19 @@ contract PolygonPayoutListener is PayoutListener {
 
     // --- setters
 
-    function setTokens(address _usdPlus) external onlyAdmin {
-        usdPlus = IERC20(_usdPlus);
+
+    struct Params{
+        address usdPlus;
+        address dyst;
+        address wmatic;
+        address dystRouter;
+    }
+
+    function setParams(Params calldata params) external onlyAdmin {
+        usdPlus = IERC20(params.usdPlus);
+        dyst = IERC20(params.dyst);
+        wmatic = IERC20(params.wmatic);
+        dystRouter = IDystopiaRouter(params.dystRouter);
     }
 
     function setSkimPools(address[] calldata _pools, address[] calldata _bribes) external onlyAdmin {
@@ -60,38 +76,73 @@ contract PolygonPayoutListener is PayoutListener {
         }
     }
 
+
+    function swapUsdPlusToDyst() external onlyAdmin {
+
+        for (uint256 i = 0; i < qsSkimPools.length; i++) {
+            address pool = qsSkimPools[i];
+
+            uint256 usdPlusAmount = skimPoolBalances[pool];
+            uint256 dystAmount;
+            if (usdPlusAmount != 0) {
+                dystAmount = DystopiaLibrary._swapExactTokensForTokens(
+                    dystRouter,
+                    address(usdPlus),
+                    address (wmatic),
+                    address(dyst),
+                    false,
+                    false,
+                    usdPlusAmount,
+                    address(this)
+                );
+
+                skimPoolBalances[pool] = dystAmount;
+            }
+
+        }
+
+    }
+
     function _skim() internal {
 
         for (uint256 i = 0; i < qsSkimPools.length; i++) {
             address pool = qsSkimPools[i];
 
-            uint256 balanceBefore = usdPlus.balanceOf(address(this));
             Pool(pool).skim(address(this));
 
-            // calculate how to much has increase USD+ after call SKIM
-            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - balanceBefore;
 
-            // Add previous balance USD+
-            amountUsdPlus += skimPoolBalances[pool];
+            uint256 dystAmount = DystopiaLibrary._swapExactTokensForTokens(
+                dystRouter,
+                address(usdPlus),
+                address(wmatic),
+                address(dyst),
+                false,
+                false,
+                usdPlus.balanceOf(address(this)),
+                address(this)
+            );
 
-            if(amountUsdPlus > 0) {
+            // Add previous balance DYST
+            dystAmount += skimPoolBalances[pool];
+
+            if(dystAmount > 0) {
                 Bribe bribe = Bribe(qsBribes[i]);
 
-                // Amount USD+ on Bribe contract
-                uint256 bribeAmount = bribe.left(address(usdPlus));
+                // Amount DYST on Bribe contract
+                uint256 bribeAmount = bribe.left(address(dyst));
 
-                // if we do not have enough amount USD+, then we do not charge bribes and save this USD+ to next payout
-                if(amountUsdPlus > bribeAmount){
+                // if we do not have enough amount DYST, then we do not charge bribes and save this DYST to next payout
+                if(dystAmount > bribeAmount){
 
-                    usdPlus.approve(address(bribe), amountUsdPlus);
-                    bribe.notifyRewardAmount(address(usdPlus), amountUsdPlus);
+                    dyst.approve(address(bribe), dystAmount);
+                    bribe.notifyRewardAmount(address(dyst), dystAmount);
 
                     // reset balance for pool
                     skimPoolBalances[pool] = 0;
-                    emit SkimReward(pool, amountUsdPlus);
+                    emit SkimReward(pool, dystAmount);
                 }else {
                     // save balance for the next payout
-                    skimPoolBalances[pool] = amountUsdPlus;
+                    skimPoolBalances[pool] = dystAmount;
                 }
             }
         }

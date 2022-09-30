@@ -19,15 +19,23 @@ library OpUsdcLibrary {
             return;
         }
         uint256 usdcBalanceBefore = self.usdc().balanceOf(address(self));
-        self.exchange().redeem(address(self.usdc()), self.usdPlus().balanceOf(address(self)) - (delta == self.MAX_UINT_VALUE() ? 0 : delta));
-        uint256 usdcBalanceAfter = self.usdc().balanceOf(address(self));
+
+        uint256 usdPlusBalance = self.usdPlus().balanceOf(address(self)) - (delta == self.MAX_UINT_VALUE() ? 0 : delta);
+        if (usdPlusBalance > 0) {
+            self.exchange().redeem(address(self.usdc()), usdPlusBalance);
+        }
+
+        uint256 usdcBalance = self.usdc().balanceOf(address(self)) - usdcBalanceBefore;
+        if (usdcBalance == 0) {
+            return;
+        }
 
         self.router().addLiquidity(
             address(self.op()),
             address(self.usdc()),
             false,
             self.op().balanceOf(address(self)),
-            usdcBalanceAfter - usdcBalanceBefore,
+            usdcBalance,
             0,
             0,
             address(this),
@@ -45,8 +53,14 @@ library OpUsdcLibrary {
      * @param delta - op amount in USD e6
      */
     function _removeLiquidity(StrategyOpUsdc self, uint256 delta) public returns (uint256, uint256) {
+        if (delta == 0) {
+            return (0, 0);
+        }
         // calc op tokens amount
         uint256 lpForUnstake = _getLpForUnstake(self, delta);
+        if (lpForUnstake == 0) {
+            return (0, 0);
+        }
         self.gauge().withdraw(lpForUnstake);
 
         uint256 usdcBalanceBefore = self.usdc().balanceOf(address(self));
@@ -64,7 +78,10 @@ library OpUsdcLibrary {
 
         uint256 usdPlusBalanceBefore = self.usdPlus().balanceOf(address(self));
 
-        self.exchange().buy(address(self.usdc()), self.usdc().balanceOf(address(self)) - usdcBalanceBefore);
+        uint256 usdcBalance = self.usdc().balanceOf(address(self)) - usdcBalanceBefore;
+        if (usdcBalance > 0) {
+            self.exchange().buy(address(self.usdc()), usdcBalance);
+        }
 
         return (amountOp, self.usdPlus().balanceOf(address(self)) - usdPlusBalanceBefore);
     }
