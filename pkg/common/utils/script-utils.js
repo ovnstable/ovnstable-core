@@ -537,12 +537,13 @@ async function transferETH(amount, to) {
     let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
     let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
 
-    let price = await getPrice();
+    // вернул как было. у меня не работала почему-то твоя версия
     await walletWithProvider.sendTransaction({
         to: to,
-        value: ethers.utils.parseEther(amount+""),
-        ...price
+        value: ethers.utils.parseEther(amount+"")
     });
+
+    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 
 }
 

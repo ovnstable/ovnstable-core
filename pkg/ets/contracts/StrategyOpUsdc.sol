@@ -148,7 +148,7 @@ contract StrategyOpUsdc is HedgeStrategy {
     function _unstake(
         uint256 _amount
     ) internal override returns (uint256) {
-        control.calcDeltas(Method.UNSTAKE, OvnMath.addBasisPoints(_amount, 1));
+        control.calcDeltas(Method.UNSTAKE, OvnMath.addBasisPoints(_amount, 2));
         return _amount;
     }
 
@@ -175,6 +175,7 @@ contract StrategyOpUsdc is HedgeStrategy {
 
     function _setHealthFactor(uint256 newHealthFactor) internal override {
         healthFactor = newHealthFactor;
+        control.setStrategy(payable(this));
     }
 
     function executeAction(Action memory action) external {
