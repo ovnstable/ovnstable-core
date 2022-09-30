@@ -1,3 +1,4 @@
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {ethers} = require("hardhat");
 const {getContract } = require("@overnight-contracts/common/utils/script-utils");
 const {BSC} = require("@overnight-contracts/common/utils/assets");
@@ -33,14 +34,57 @@ let liquidationThreshold = 800;
 let healthFactor = 1200
 
 
-module.exports = async () => {
+module.exports = async (plugin) => {
+    const {deploy} = plugin.deployments;
+    const {deployer} = await plugin.getNamedAccounts();
+    const {save} = plugin.deployments;
+
+
+    // deploy strategy
+    const usdPlusWbnbLibrary = await deploy("UsdPlusWbnbLibrary", {
+        from: deployer
+    });
+
+    let params = {
+        factoryOptions: {
+            libraries: {
+                "UsdPlusWbnbLibrary": usdPlusWbnbLibrary.address,
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyUsdPlusWbnb', plugin.deployments, save, params);
+
+
+    // deploy control
+    const etsCalculationLibrary = await deploy("EtsCalculationLibrary", {
+        from: deployer
+    });
+
+    params = {
+        factoryOptions: {
+            libraries: {
+                "EtsCalculationLibrary": etsCalculationLibrary.address
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('ControlUsdPlusWbnb', plugin.deployments, save, params);
 
     const strategy = await ethers.getContract("StrategyUsdPlusWbnb");
-    const control = await ethers.getContract('ControlUsdPlusWbnb');
+    const control = await ethers.getContract('ControlUsdPlusWbnb' );
 
+    await (await control.grantRole(await control.STRATEGY_ROLE(), strategy.address)).wait();
+    console.log('GrantRole: STRATEGY_ROLE() done()')
+
+
+    // setting
     const exchange = await getContract('Exchange', 'bsc');
     const usdPlus = await getContract('UsdPlusToken', 'bsc');
     const hedgeExchanger = await getContract('HedgeExchangerUsdPlusWbnb', 'bsc');
+
 
     if (strategy) {
 
@@ -81,8 +125,6 @@ module.exports = async () => {
 
         console.log('Setting done');
     }
-
-
 };
 
-module.exports.tags = ['StrategyUsdPlusWbnbSetting'];
+module.exports.tags = ['StrategyUsdPlusWbnb'];

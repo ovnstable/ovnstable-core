@@ -1,5 +1,6 @@
-const {ethers} = require("hardhat");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {ethers} = require("hardhat");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
 let velo = '0x3c8B650257cFb5f272f799F5e2b4e65093a11a05';
@@ -14,11 +15,52 @@ let healthFactor = 1200;
 let isStableVeloUsdc = false;
 let isStableOpUsdc = false;
 
-module.exports = async () => {
+module.exports = async (plugin) => {
+    const {deploy} = plugin.deployments;
+    const {deployer} = await plugin.getNamedAccounts();
+    const {save} = plugin.deployments;
 
-    const strategy = await getContract("StrategyWethUsdc");
-    const control = await getContract('ControlWethUsdc');
+    // deploy strategy
+    const library = await deploy("WethUsdcLibrary", {
+        from: deployer
+    });
 
+    let params = {
+        factoryOptions: {
+            libraries: {
+                "WethUsdcLibrary": library.address
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyWethUsdc', plugin.deployments, save, params);
+
+
+    // deploy control
+    const etsCalculationLibrary = await deploy("EtsCalculationLibrary", {
+        from: deployer
+    });
+
+    params = {
+        factoryOptions: {
+            libraries: {
+                "EtsCalculationLibrary": etsCalculationLibrary.address
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('ControlWethUsdc', plugin.deployments, save, params);
+
+    const strategy = await ethers.getContract("StrategyWethUsdc");
+    const control = await ethers.getContract('ControlWethUsdc');
+
+    await (await control.grantRole(await control.STRATEGY_ROLE(), strategy.address)).wait();
+    console.log('GrantRole: STRATEGY_ROLE() done()')
+
+
+    // setting
     const exchange = await getContract('Exchange');
     const usdPlus = await getContract('UsdPlusToken');
     const hedgeExchanger = await getContract('HedgeExchangerWethUsdc');
@@ -60,4 +102,4 @@ module.exports = async () => {
     }
 };
 
-module.exports.tags = ['StrategyWethUsdcSetting'];
+module.exports.tags = ['StrategyWethUsdc'];
