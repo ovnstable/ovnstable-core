@@ -1,5 +1,7 @@
-const {ethers} = require("hardhat");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
+const {ethers} = require("hardhat");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
 let nonfungiblePositionManager = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
@@ -17,10 +19,53 @@ let isStableOpWbtc = false;
 let lowerPercent = 3000; //30%
 let upperPercent = 3000; //30%
 
-module.exports = async () => {
 
-    const strategy = await getContract("StrategyWethWbtc");
-    const control = await getContract('ControlWethWbtc');
+module.exports = async (plugin) => {
+    const {deploy} = plugin.deployments;
+    const {deployer} = await plugin.getNamedAccounts();
+    const {save} = plugin.deployments;
+
+    // deploy strategy
+    // await transferETH(1, deployer);
+    const library = await deploy("WethWbtcLibrary", {
+        from: deployer
+    });
+
+    let params = {
+        factoryOptions: {
+            libraries: {
+                "WethWbtcLibrary": library.address
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('StrategyWethWbtc', plugin.deployments, save, params);
+
+    // deploy control
+    // await transferETH(1, deployer);
+    const etsCalculationLibrary2 = await deploy("EtsCalculationLibrary2", {
+        from: deployer
+    });
+
+    params = {
+        factoryOptions: {
+            libraries: {
+                "EtsCalculationLibrary2": etsCalculationLibrary2.address
+            }
+        },
+        unsafeAllow: ["external-library-linking"]
+    };
+
+    await deployProxy('ControlWethWbtc', plugin.deployments, save, params);
+
+    const strategy = await ethers.getContract("StrategyWethWbtc");
+    const control = await ethers.getContract('ControlWethWbtc');
+
+    await (await control.grantRole(await control.STRATEGY_ROLE(), strategy.address)).wait();
+    console.log('GrantRole: STRATEGY_ROLE() done()')
+
+    // setting
     const hedgeExchanger = await getContract('HedgeExchangerWethWbtc');
 
     if (strategy) {
@@ -57,4 +102,4 @@ module.exports = async () => {
     }
 };
 
-module.exports.tags = ['StrategyWethWbtcSetting'];
+module.exports.tags = ['StrategyWethWbtc'];

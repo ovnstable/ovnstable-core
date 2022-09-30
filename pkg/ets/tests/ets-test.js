@@ -1,96 +1,90 @@
 const hre = require("hardhat");
 const {deployments, ethers} = require("hardhat");
 const {resetHardhat} = require("@overnight-contracts/common/utils/tests");
-const {toE6, toE18, fromAsset} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, toE18, fromE6, fromAsset} = require("@overnight-contracts/common/utils/decimals");
 const {expect} = require("chai");
-const {
-    sharedBeforeEach
-} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BigNumber = require('bignumber.js');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
-
 const {waffle} = require("hardhat");
 const {getContract, execTimelock, getERC20, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {transferETH, transferUSDPlus} = require("@overnight-contracts/common/utils/script-utils");
-const {BSC} = require("@overnight-contracts/common/utils/assets");
 const {provider} = waffle;
-
-
-let busd = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
-let wbnb = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-let vBusdToken = '0x95c78222B3D6e262426483D42CfA53685A67Ab9D';
-let vBnbToken = '0xA07c5b74C9B40447a954e1466938b865b6BBea36';
-let xvsToken = '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63';
-let unitroller = "0xfD36E2c2a6789Db23113685031d7F16329158384";
-let maximillion = '0x5efA1e46F4Fd738FF721F5AebC895b970F13E8A1';
-let oracleBusd = '0xcBb98864Ef56E9042e7d2efef76141f15731B82f';
-let oracleWbnb = '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE';
-
-let coneRouter = "0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F";
-let conePair = "0x881b608ec7e15cd5bb4da9db6ae9c477b4f67731"; // WBNB-BUSD Pair
-let coneVoter = "0xC3B5d80E4c094B17603Ea8Bb15d2D31ff5954aAE";
-let coneToken = "0xa60205802e1b5c6ec1cafa3cacd49dfeece05ac9";
-let coneGauge = "0xA766094e9bf0AFc1BB5208EC9a81a782663d797a";
-let veCone = '0xd0C1378c177E961D96c06b0E8F6E7841476C81Ef';
-
-let unkwnToken = '0xD7FbBf5CB43b4A902A8c994D94e821f3149441c7';
-let unkwnUserProxy = '0xAED5a268dEE37677584af58CCC2b9e3c83Ab7dd8';
-let unkwnLens = '0x5b1cEB9adcec674552CB26dD55a5E5846712394C';
-
-let pancakeRouter = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-
-let wbnbBusdSlippagePercent = 100; //1%
-let liquidationThreshold = 800;
-let healthFactor = 1350
-
-
-describe("BSC", function () {
-
-    let value =
-        {
-            name: 'StrategyBusdWbnb',
-            enabledReward: false,
-            isRunStrategyLogic: false,
-        };
-
-    strategyTest(value, 'BSC', BSC.usdPlus, () => {
-    });
-});
 
 
 function strategyTest(strategyParams, network, assetAddress, runStrategyLogic) {
 
     let values = [
         {
+            value: 0.02,
+            deltaPercent: 5,
+            maxBalanceDeltaInBps: 300,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+            maxBalanceDeltaInBps: 300,
+        },
+        {
             value: 2,
             deltaPercent: 5,
+            maxBalanceDeltaInBps: 100,
         },
         {
             value: 20,
             deltaPercent: 1,
+            maxBalanceDeltaInBps: 50,
         },
         {
             value: 200,
             deltaPercent: 1,
+            maxBalanceDeltaInBps: 50,
         },
         {
             value: 2000,
             deltaPercent: 1,
+            maxBalanceDeltaInBps: 50,
         },
         {
             value: 20000,
             deltaPercent: 1,
+            maxBalanceDeltaInBps: 50,
         },
         {
             value: 200000,
             deltaPercent: 0.1,
+            maxBalanceDeltaInBps: 50,
         },
-    ]
+    ];
+
+    let hfValues = [
+        {
+            value: '1100000000000000000',
+            deltaPercent: '10000000000000000',
+        },
+        {
+            value: '1150000000000000000',
+            deltaPercent: '10000000000000000',
+        },
+        {
+            value: '1200000000000000000',
+            deltaPercent: '10000000000000000',
+        },
+        {
+            value: '1250000000000000000',
+            deltaPercent: '10000000000000000',
+        },
+        {
+            value: '1300000000000000000',
+            deltaPercent: '10000000000000000',
+        },
+    ];
 
     describe(`${strategyParams.name}`, function () {
         stakeUnstake(strategyParams, network, assetAddress, values, runStrategyLogic);
-        // claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
+        claimRewards(strategyParams, network, assetAddress, values, runStrategyLogic);
+        balance(strategyParams, network, assetAddress, values, hfValues, runStrategyLogic);
     });
 }
 
@@ -108,12 +102,11 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
         let toAsset = function () {
         };
 
-        let expectedHealthFactor = '1350000000000000000';
+        let expectedHealthFactor = '1200000000000000000';
         let healthFactorDELTA = '10000000000000000';
 
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
             const signers = await ethers.getSigners();
             account = signers[0];
             recipient = provider.createEmptyWallet();
@@ -121,48 +114,13 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             await transferETH(10, recipient.address);
             await transferETH(10, account.address);
             await transferETH(10, (await initWallet()).address);
-            await transferUSDPlus(1000, account.address);
+            await transferUSDPlus(250000, account.address);
             strategyName = strategyParams.name;
-
-            await deployments.fixture([strategyName, 'ControlBusdWbnb', `${strategyName}Setting`]);
+            
+            await deployments.fixture([strategyName]);
 
             strategy = await ethers.getContract(strategyName);
-            let control = await ethers.getContract('ControlBusdWbnb');
             await strategy.setExchanger(recipient.address);
-
-            const exchange = await getContract('Exchange', 'bsc');
-            const usdPlus = await getContract('UsdPlusToken', 'bsc');
-
-            let setupParams = {
-                usdPlus: usdPlus.address,
-                busd: busd,
-                wbnb: wbnb,
-                vBusdToken: vBusdToken,
-                vBnbToken: vBnbToken,
-                xvsToken: xvsToken,
-                unitroller: unitroller,
-                maximillion: maximillion,
-                oracleBusd: oracleBusd,
-                oracleWbnb: oracleWbnb,
-                coneRouter: coneRouter,
-                conePair: conePair,
-                coneVoter: coneVoter,
-                coneGauge: coneGauge,
-                coneToken: coneToken,
-                veCone: veCone,
-                veConeId: 0,
-                exchange: exchange.address,
-                tokenAssetSlippagePercent: wbnbBusdSlippagePercent,
-                liquidationThreshold: liquidationThreshold,
-                healthFactor: healthFactor,
-                unkwnToken: unkwnToken,
-                unkwnUserProxy: unkwnUserProxy,
-                unkwnLens: unkwnLens,
-                control: control.address,
-                pancakeRouter: pancakeRouter,
-            }
-
-            await (await strategy.setParams(setupParams)).wait();
 
             await execTimelock(async (timelock) => {
                 let exchange = await getContract('Exchange');
@@ -170,7 +128,7 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 await exchange.connect(timelock).grantRole(await exchange.FREE_RIDER_ROLE(), strategy.address);
                 console.log(`FREE_RIDER_ROLE granted to ${strategy.address}`);
             });
-
+            
             asset = await getERC20("usdPlus");
             let decimals = await asset.decimals();
             if (decimals === 18) {
@@ -178,7 +136,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
             } else {
                 toAsset = toE6;
             }
-
         });
 
         values.forEach(item => {
@@ -201,9 +158,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                 sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
                     try {
-                        // let balances = await strategy.balances();
-                        // console.log(`balances before:\n${JSON.stringify(balances, null, 2)}`)
-
                         await m2m(strategy);
 
                         let assetValue = toAsset(stakeValue);
@@ -228,14 +182,11 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         console.log(`----------------------`)
                         healthFactor = await strategy.currentHealthFactor();
 
-                        // balances = await strategy.balances();
-                        // console.log(`balances after:\n${JSON.stringify(balances, null, 2)}`)
                         await m2m(strategy);
                     } catch (e) {
                         console.log(e)
                         throw e;
                     }
-
                 });
 
                 it(`Balance asset is in range`, async function () {
@@ -272,7 +223,6 @@ function stakeUnstake(strategyParams, network, assetAddress, values, runStrategy
                         let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                         expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).minus(VALUE);
-                        // expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).minus(VALUE);
 
                         await strategy.connect(recipient).unstake(assetValue, recipient.address);
 
@@ -319,16 +269,16 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
         let strategy;
         let strategyName;
 
+        let usdcToken;
         let asset;
         let toAsset = function () {
         };
 
-        let expectedHealthFactor = '1350000000000000000';
+        let expectedHealthFactor = '1200000000000000000';
         let healthFactorDELTA = '10000000000000000';
 
         sharedBeforeEach("deploy", async () => {
             await hre.run("compile");
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
             const signers = await ethers.getSigners();
             account = signers[0];
             recipient = provider.createEmptyWallet();
@@ -336,48 +286,13 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
             await transferETH(10, recipient.address);
             await transferETH(10, account.address);
             await transferETH(10, (await initWallet()).address);
-            await transferUSDPlus(1000, account.address);
+            await transferUSDPlus(250000, account.address);
             strategyName = strategyParams.name;
 
-            await deployments.fixture([strategyName, 'ControlBusdWbnb', `${strategyName}Setting`]);
+            await deployments.fixture([strategyName]);
 
             strategy = await ethers.getContract(strategyName);
-            let control = await ethers.getContract('ControlBusdWbnb');
             await strategy.setExchanger(recipient.address);
-
-            const exchange = await getContract('Exchange', 'bsc');
-            const usdPlus = await getContract('UsdPlusToken', 'bsc');
-
-            let setupParams = {
-                usdPlus: usdPlus.address,
-                busd: busd,
-                wbnb: wbnb,
-                vBusdToken: vBusdToken,
-                vBnbToken: vBnbToken,
-                xvsToken: xvsToken,
-                unitroller: unitroller,
-                maximillion: maximillion,
-                oracleBusd: oracleBusd,
-                oracleWbnb: oracleWbnb,
-                coneRouter: coneRouter,
-                conePair: conePair,
-                coneVoter: coneVoter,
-                coneGauge: coneGauge,
-                coneToken: coneToken,
-                veCone: veCone,
-                veConeId: 0,
-                exchange: exchange.address,
-                tokenAssetSlippagePercent: wbnbBusdSlippagePercent,
-                liquidationThreshold: liquidationThreshold,
-                healthFactor: healthFactor,
-                unkwnToken: unkwnToken,
-                unkwnUserProxy: unkwnUserProxy,
-                unkwnLens: unkwnLens,
-                control: control.address,
-                pancakeRouter: pancakeRouter,
-            }
-
-            await (await strategy.setParams(setupParams)).wait();
 
             await execTimelock(async (timelock) => {
                 let exchange = await getContract('Exchange');
@@ -386,6 +301,7 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 console.log(`FREE_RIDER_ROLE granted to ${strategy.address}`);
             });
 
+            usdcToken = await getERC20("usdc");
             asset = await getERC20("usdPlus");
             let decimals = await asset.decimals();
             if (decimals === 18) {
@@ -413,12 +329,11 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
                 let netAssetValueCheck;
                 let healthFactor;
 
+                let claimedRewards;
+
                 sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
                     try {
-                        // let balances = await strategy.balances();
-                        // console.log(`balances before:\n${JSON.stringify(balances, null, 2)}`)
-
                         await m2m(strategy);
 
                         let assetValue = toAsset(stakeValue);
@@ -445,13 +360,13 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
                         await m2m(strategy);
 
-                        const sevenDays = 7 * 24 * 60 * 60 * 1000;
-                        await ethers.provider.send("evm_increaseTime", [sevenDays])
+                        const delay = 60 * 60 * 1000;
+                        await ethers.provider.send("evm_increaseTime", [delay])
                         await ethers.provider.send('evm_mine');
 
-                        await strategy.connect(recipient).claimRewards(recipient.address);
-
-                        balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                        let receipt = await (await strategy.connect(recipient).claimRewards(recipient.address)).wait();
+                        claimedRewards = new BigNumber(receipt.events.find((e) => e.event === 'Reward').args[0].toString());
+                        console.log("claimedRewards " + claimedRewards.toNumber());
 
                         await m2m(strategy);
                     } catch (e) {
@@ -461,8 +376,8 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
 
                 });
 
-                it(`Balance asset is not 0`, async function () {
-                    expect(balanceAsset.toNumber()).to.greaterThan(0);
+                it(`Balance rewards > 0`, async function () {
+                    expect(claimedRewards.toNumber()).to.greaterThan(0);
                 });
 
             });
@@ -472,9 +387,203 @@ function claimRewards(strategyParams, network, assetAddress, values, runStrategy
     });
 }
 
+function balance(strategyParams, network, assetAddress, values, hfValues, runStrategyLogic) {
 
-function fromE6(value) {
-    return value / 10 ** 6;
+    describe(`Stake/balance`, function () {
+
+        let account;
+        let recipient;
+
+        let strategy;
+        let strategyName;
+
+        let asset;
+        let toAsset = function () {
+        };
+
+        sharedBeforeEach("deploy", async () => {
+            await hre.run("compile");
+            const signers = await ethers.getSigners();
+            account = signers[0];
+            recipient = provider.createEmptyWallet();
+
+            await transferETH(100, recipient.address);
+            await transferETH(100, account.address);
+            await transferETH(100, (await initWallet()).address);
+            await transferUSDPlus(250000, account.address);
+            strategyName = strategyParams.name;
+
+            await deployments.fixture([strategyName]);
+
+            strategy = await ethers.getContract(strategyName);
+            await strategy.setExchanger(recipient.address);
+
+            await strategy.grantRole(await strategy.BALANCING_BOT_ROLE(), recipient.address);
+            console.log(`BALANCING_BOT_ROLE granted to ${recipient.address}`);
+
+            await execTimelock(async (timelock) => {
+                let exchange = await getContract('Exchange');
+                console.log(`exchange: ${exchange.address}`);
+                await exchange.connect(timelock).grantRole(await exchange.FREE_RIDER_ROLE(), strategy.address);
+                console.log(`FREE_RIDER_ROLE granted to ${strategy.address}`);
+            });
+
+            asset = await getERC20("usdPlus");
+            let decimals = await asset.decimals();
+            if (decimals === 18) {
+                toAsset = toE18;
+            } else {
+                toAsset = toE6;
+            }
+        });
+
+        hfValues.forEach(item1 => {
+
+            let hfValue = item1.value;
+            let hfDeltaPercent = item1.deltaPercent;
+
+            describe(`Set HF ${hfValue}`, function () {
+
+                sharedBeforeEach("deploy", async () => {
+                    await (await strategy.connect(recipient).setHealthFactor(hfValue)).wait();
+                });
+
+                values.forEach(item => {
+
+                    let stakeValue = item.value;
+                    let deltaPercent = item.deltaPercent ? item.deltaPercent : 5;
+                    let maxBalanceDeltaInBps = item.maxBalanceDeltaInBps;
+
+                    describe(`Stake ${stakeValue} and balance`, function () {
+
+                        let balanceAsset;
+                        let expectedNetAsset;
+
+                        let VALUE;
+                        let DELTA;
+
+                        let netAssetValueCheck;
+
+                        let healthFactorBefore;
+                        let borrowAssetBefore;
+                        let poolAssetBefore;
+                        let deltaInAssetBefore;
+                        let deltaInBpsBefore;
+
+                        let healthFactorAfter;
+                        let borrowAssetAfter;
+                        let poolAssetAfter;
+                        let deltaInAssetAfter;
+                        let deltaInBpsAfter;
+
+                        sharedBeforeEach(`Stake ${stakeValue}`, async () => {
+
+                            try {
+                                let assetValue = toAsset(stakeValue);
+                                VALUE = new BigNumber(assetValue);
+                                DELTA = VALUE.multipliedBy(new BigNumber(deltaPercent)).div(100);
+
+                                await asset.connect(account).transfer(recipient.address, assetValue);
+
+                                let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                                expectedNetAsset = (new BigNumber((await strategy.netAssetValue()).toString())).plus(VALUE);
+
+                                await asset.connect(recipient).transfer(strategy.address, assetValue);
+                                await strategy.connect(recipient).stake(assetValue);
+                                let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                                balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
+                                netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
+
+                                let delay;
+                                if (strategyParams.balanceDelay) {
+                                    delay = strategyParams.balanceDelay;
+                                } else {
+                                    delay = 60 * 60 * 1000;
+                                }
+                                await ethers.provider.send("evm_increaseTime", [delay])
+                                await ethers.provider.send('evm_mine');
+
+                                healthFactorBefore = await strategy.currentHealthFactor();
+                                let balances = await strategy.balances();
+
+                                borrowAssetBefore = new BigNumber(balances[0][1].toString());
+                                poolAssetBefore = new BigNumber(balances[2][1].toString());
+
+                                if (borrowAssetBefore.comparedTo(poolAssetBefore) == 1) {
+                                    deltaInAssetBefore = borrowAssetBefore.minus(poolAssetBefore);
+                                    deltaInBpsBefore = deltaInAssetBefore.multipliedBy(10000).div(borrowAssetBefore);
+                                } else {
+                                    deltaInAssetBefore = poolAssetBefore.minus(borrowAssetBefore);
+                                    deltaInBpsBefore = deltaInAssetBefore.multipliedBy(10000).div(poolAssetBefore);
+                                }
+
+                                await strategy.connect(recipient).balance();
+
+                                healthFactorAfter = await strategy.currentHealthFactor();
+                                balances = await strategy.balances();
+
+                                borrowAssetAfter = new BigNumber(balances[0][1].toString());
+                                poolAssetAfter = new BigNumber(balances[2][1].toString());
+
+                                if (borrowAssetAfter.comparedTo(poolAssetAfter) == 1) {
+                                    deltaInAssetAfter = borrowAssetAfter.minus(poolAssetAfter);
+                                    deltaInBpsAfter = deltaInAssetAfter.multipliedBy(10000).div(borrowAssetAfter);
+                                } else {
+                                    deltaInAssetAfter = poolAssetAfter.minus(borrowAssetAfter);
+                                    deltaInBpsAfter = deltaInAssetAfter.multipliedBy(10000).div(poolAssetAfter);
+                                }
+
+                                console.log("healthFactorBefore: " + healthFactorBefore);
+                                console.log("healthFactorAfter: " + healthFactorAfter);
+                                console.log("borrowAssetBefore: " + borrowAssetBefore);
+                                console.log("poolAssetBefore: " + poolAssetBefore);
+                                console.log("borrowAssetAfter: " + borrowAssetAfter);
+                                console.log("poolAssetAfter: " + poolAssetAfter);
+                                console.log("deltaInAssetBefore: " + deltaInAssetBefore.toFixed(0));
+                                console.log("deltaInBpsBefore: " + deltaInBpsBefore.toFixed(0));
+                                console.log("deltaInAssetAfter: " + deltaInAssetAfter.toFixed(0));
+                                console.log("deltaInBpsAfter: " + deltaInBpsAfter.toFixed(0));
+
+                            } catch (e) {
+                                console.log(e)
+                                throw e;
+                            }
+                        });
+
+                        it(`Balance asset is in range`, async function () {
+                            greatLess(balanceAsset, VALUE, DELTA);
+                        });
+
+                        it(`NetAssetValue asset is in range`, async function () {
+                            greatLess(netAssetValueCheck, expectedNetAsset, DELTA);
+                        });
+
+                        it(`Health Factor Before is in range`, async function () {
+                            greatLess(healthFactorBefore, hfValue, hfDeltaPercent);
+                        });
+
+                        it(`Health Factor After is in range`, async function () {
+                            greatLess(healthFactorAfter, hfValue, hfDeltaPercent);
+                        });
+
+                        it(`Delta in BPS Before greater than Delta in BPS After`, async function () {
+                            expect(deltaInBpsBefore.gt(deltaInBpsAfter)).to.equal(true);
+                        });
+
+                        it(`Delta in BPS After is in range (0, ${maxBalanceDeltaInBps})`, async function () {
+                            let delta = maxBalanceDeltaInBps / 2;
+                            greatLess(deltaInBpsAfter.toFixed(0), delta, delta);
+                        });
+
+                    });
+
+                });
+
+            });
+
+        });
+
+    });
 }
 
 async function m2m(strategy) {
@@ -486,18 +595,18 @@ async function m2m(strategy) {
 
     console.table(values);
 
-
     let items = await strategy.balances();
 
+    let names = ['borrowToken', 'collateralAsset', 'poolToken', 'poolUsdPlus', 'freeUsdPlus', 'freeAsset', 'freeToken']
     let arrays = [];
     for (let i = 0; i < items.length; i++) {
 
         let item = items[i];
 
         arrays.push({
-            name: item[0],
+            asset: item[0],
+            name: names[i],
             amountUSD: fromE6(item[1].toString()),
-            //amount: fromE18(item[2].toString()),
             borrowed: item[3].toString()
         })
 
