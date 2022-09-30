@@ -13,6 +13,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         params = {args: [usdPlusToken.address, "Wrapped cUSD+", "wcUSD+"]}
     } else if (hre.network.name === "bsc_usdt") {
         params = {args: [usdPlusToken.address, "Wrapped tUSD+", "wtUSD+"]}
+    } else if (hre.network.name === "optimism_dai") {
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+"]}
     } else {
         params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+"]};
     }
