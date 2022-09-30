@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+let {DEFAULT, POLYGON} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -11,8 +11,18 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const usdPlus = await ethers.getContract("UsdPlusToken");
 
     await (await polygonPL.setExchanger(exchange.address)).wait();
-    await (await polygonPL.setTokens(usdPlus.address)).wait();
 
+    let dystToken = '0x39aB6574c289c3Ae4d88500eEc792AB5B947A5Eb';
+    let dystRouter = '0xbE75Dd16D029c6B32B7aD57A0FD9C1c20Dd2862e';
+
+    let params = {
+        usdPlus: usdPlus.address,
+        dyst: dystToken,
+        wmatic: POLYGON.wMatic,
+        dystRouter: dystRouter
+    }
+
+    await (await polygonPL.setParams(params)).wait();
 
     let syncPools = [
 
