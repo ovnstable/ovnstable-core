@@ -251,7 +251,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         // claim rewards
         uint256 lpBalance = gauge.balanceOf(address(this));
         if (lpBalance > 0) {
-            balancerMinter.mint(address(gauge));
+            gauge.claim_rewards();
         }
 
         // sell rewards
