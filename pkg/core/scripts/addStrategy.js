@@ -1,4 +1,4 @@
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -9,11 +9,13 @@ async function main() {
     let values = [];
     let abis = [];
 
+
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x956E1DA95b339Eda148AC22158a252bf6C0a4f59']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x2B65fb73A3fB0E738BBE0726754801BB422fad6d']));
 
     await createProposal(addresses, values, abis);
+
 }
 
 
@@ -23,3 +25,4 @@ main()
         console.error(error);
         process.exit(1);
     });
+
