@@ -8,6 +8,7 @@ const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/s
 const BN = require('bn.js');
 const {core} = require("./core");
 const {fromAsset, toAsset } = require("./decimals");
+const ERC20 = require("./abi/IERC20.json");
 
 let ethers = require('hardhat').ethers;
 
@@ -114,6 +115,20 @@ async function getERC20(name, wallet){
     const ERC20 = require("./abi/IERC20.json");
 
     return await ethers.getContractAt(ERC20, DEFAULT[name], wallet);
+
+}
+
+async function getERC20ByAddress(address, wallet){
+
+    let ethers = hre.ethers;
+
+    if (!wallet){
+        wallet = await initWallet(ethers);
+    }
+
+    const ERC20 = require("./abi/IERC20.json");
+
+    return await ethers.getContractAt(ERC20, address, wallet);
 
 }
 
@@ -681,6 +696,7 @@ module.exports = {
     getPrice: getPrice,
     getContract: getContract,
     getERC20: getERC20,
+    getERC20ByAddress: getERC20ByAddress,
     getCoreAsset: getCoreAsset,
     getStrategy: getStrategy,
     changeWeightsAndBalance: changeWeightsAndBalance,

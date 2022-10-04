@@ -38,6 +38,10 @@ let arrays = [
         name: 'StrategyAaveDai',
         enabledReward: true,
     },
+    {
+        name: 'StrategyBeethovenxUsdc',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {

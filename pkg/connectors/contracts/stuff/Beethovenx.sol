@@ -4,20 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 interface IPoolSwapStructs {
     // This is not really an interface - it just defines common structs used by other interfaces: IGeneralPool and
     // IMinimalSwapInfoPool.
@@ -57,19 +43,6 @@ interface IPoolSwapStructs {
     }
 }
 
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /**
@@ -144,19 +117,6 @@ interface IBasePool is IPoolSwapStructs {
     function getPoolId() external view returns (bytes32);
 }
 
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 interface IVault {
@@ -574,21 +534,31 @@ interface IVault {
         bool toInternalBalance;
     }
 
+
+    /**
+  * @dev Simulates a call to `batchSwap`, returning an array of Vault asset deltas. Calls to `swap` cannot be
+     * simulated directly, but an equivalent `batchSwap` call can and will yield the exact same result.
+     *
+     * Each element in the array corresponds to the asset at the same index, and indicates the number of tokens (or ETH)
+     * the Vault would take from the sender (if positive) or send to the recipient (if negative). The arguments it
+     * receives are the same that an equivalent `batchSwap` call would receive.
+     *
+     * Unlike `batchSwap`, this function performs no checks on the sender or recipient field in the `funds` struct.
+     * This makes it suitable to be called by off-chain applications via eth_call without needing to hold tokens,
+     * approve them for the Vault, or even know a user's address.
+     *
+     * Note that this function is not 'view' (due to implementation details): the client code must explicitly execute
+     * eth_call instead of eth_sendTransaction.
+     */
+    function queryBatchSwap(
+        SwapKind kind,
+        BatchSwapStep[] memory swaps,
+        IAsset[] memory assets,
+        FundManagement memory funds
+    ) external returns (int256[] memory assetDeltas);
+
 }
 
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /**
@@ -603,18 +573,6 @@ interface IAsset {
 }
 
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
@@ -639,19 +597,6 @@ interface IGeneralPool is IBasePool {
 }
 
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 
 /**
  * @dev Pool contracts with the MinimalSwapInfo or TwoToken specialization settings should implement this interface.
@@ -675,28 +620,28 @@ interface IMinimalSwapInfoPool is IBasePool {
 
 
 
-library BeethovenExchange {
+library BeethovenLibrary {
 
 
     function swap(
         IVault beethovenxVault,
         bytes32 poolId,
         IVault.SwapKind kind,
-        IAsset tokenIn,
-        IAsset tokenOut,
+        IERC20 tokenIn,
+        IERC20 tokenOut,
         address sender,
         address recipient,
         uint256 amount,
         uint256 limit
     ) internal returns (uint256) {
 
-        IERC20(address(tokenIn)).approve(address(beethovenxVault), IERC20(address(tokenIn)).balanceOf(address(this)));
+        tokenIn.approve(address(beethovenxVault), tokenIn.balanceOf(address(this)));
 
         IVault.SingleSwap memory singleSwap;
         singleSwap.poolId = poolId;
         singleSwap.kind = kind;
-        singleSwap.assetIn = tokenIn;
-        singleSwap.assetOut = tokenOut;
+        singleSwap.assetIn = IAsset(address(tokenIn));
+        singleSwap.assetOut = IAsset(address(tokenOut));
         singleSwap.amount = amount;
 
         IVault.FundManagement memory fundManagement;
@@ -827,4 +772,48 @@ library BeethovenExchange {
         }
     }
 
+
+    function queryBatchSwap(
+        IVault vault,
+        IVault.SwapKind kind,
+        IERC20 token0,
+        IERC20 token1,
+        bytes32 poolId0,
+        uint256 amount0,
+        address sender,
+        address recipient
+    ) internal returns (uint256) {
+
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](1);
+        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount0, new bytes(0));
+
+        IAsset[] memory assets = new IAsset[](2);
+        assets[0] = IAsset(address(token0));
+        assets[1] = IAsset(address(token1));
+
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
+
+        return uint256(- vault.queryBatchSwap(kind, swaps, assets, fundManagement)[1]);
+    }
+
+
+}
+
+
+interface BptToken is IERC20 {
+
+    function getActualSupply() external view returns (uint256);
+    function getRate() external view returns (uint256);
+
+}
+
+interface IGauge {
+
+    function balanceOf(address account) view external returns (uint256);
+
+    function deposit(uint256 _amount) external;
+
+    function withdraw(uint256 wad) external;
+
+    function claim_rewards() external;
 }
