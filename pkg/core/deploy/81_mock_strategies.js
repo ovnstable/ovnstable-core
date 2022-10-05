@@ -53,6 +53,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         strategy2,
     ]
 
+    await (await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), deployer)).wait();
+
+    await pm.addStrategy(mockStrategy1.address);
+    await pm.addStrategy(mockStrategy2.address);
+
     await (await pm.setStrategyWeights(weights)).wait();
     console.log("portfolio.setWeights done");
 
