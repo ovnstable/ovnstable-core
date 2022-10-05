@@ -39,6 +39,10 @@ module.exports = async () => {
     await tx.wait();
     console.log("exchange.setMark2Market done");
 
+    tx = await exchange.setInsurance(DEFAULT.rewardWallet);
+    await tx.wait();
+    console.log("exchange.setInsurance done");
+
 };
 
 module.exports.tags = ['setting', 'SettingExchange'];

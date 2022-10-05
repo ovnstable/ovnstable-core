@@ -55,6 +55,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     uint256 public abroadMin;
     uint256 public abroadMax;
 
+    address insurance;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
@@ -64,6 +66,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
     event PayoutListenerUpdated(address payoutListener);
+    event InsuranceUpdated(address insurance);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
     event PayoutEvent(
@@ -119,12 +122,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _grantRole(PAUSABLE_ROLE, msg.sender);
 
         buyFee = 40;
-        buyFeeDenominator = 100000; // ~ 100 %
+        // ~ 100 %
+        buyFeeDenominator = 100000;
 
         redeemFee = 40;
-        redeemFeeDenominator = 100000; // ~ 100 %
+        // ~ 100 %
+        redeemFeeDenominator = 100000;
 
-        nextPayoutTime = 1637193600; // 1637193600 = 2021-11-18T00:00:00Z
+        // 1637193600 = 2021-11-18T00:00:00Z
+        nextPayoutTime = 1637193600;
 
         payoutPeriod = 24 * 60 * 60;
 
@@ -182,6 +188,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
+    function setInsurance(address _insurance) external onlyAdmin {
+        require(_insurance != address(0), "Zero address not allowed");
+        insurance = _insurance;
+        emit InsuranceUpdated(_insurance);
+    }
+
+
     function setAbroad(uint256 _min, uint256 _max) external onlyPortfolioAgent {
         abroadMin = _min;
         abroadMax = _max;
@@ -212,7 +225,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _unpause();
     }
 
-    struct MintParams{
+    struct MintParams {
         address asset;   // USDC | BUSD depends at chain
         uint256 amount;  // amount asset
         string referral; // code from Referral Program -> if not have -> set empty
@@ -236,7 +249,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _referral Referral code
      * @return Amount of minted USD+ to caller
      */
-    function _buy(address _asset, uint256 _amount, string memory _referral) internal  returns (uint256) {
+    function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
         require(_asset == address(usdc), "Only asset available for buy");
 
         uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
@@ -353,13 +366,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             totalAsset = totalAsset * (10 ** (usdPlusDecimals - assetDecimals));
         }
 
-        uint difference;
-        if (totalAsset <= totalUsdPlusSupply) {
-            difference = totalUsdPlusSupply - totalAsset;
-        } else {
-            difference = totalAsset - totalUsdPlusSupply;
-        }
-
         uint256 totalAssetSupplyRay = totalAsset.wadToRay();
         // in ray
         uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
@@ -367,13 +373,54 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
-        if (delta <= abroadMin) {
+
+        if (delta < abroadMin) {
             revert('Delta abroad:min');
         }
 
-        if (abroadMax <= delta) {
-            revert('Delta abroad:max');
+        if (abroadMax < delta) {
+
+            // Calculate the amount of USD+ to hit the maximum delta.
+            // We send the difference to the insurance wallet.
+
+            // How it works?
+            // 1. Calculating target liquidity index
+            // 2. Calculating target usdPlus.totalSupply
+            // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
+            // 4. Convert delta USD+ from scaled to normal amount
+
+            uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
+            uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
+            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - totalUsdPlusSupplyRay;
+            uint256 targetUsdPlusAmount = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+
+            // Mint USD+ to insurance wallet
+            require(insurance != address(0), 'Insurance address is zero');
+            usdPlus.mint(insurance, targetUsdPlusAmount);
+
+            // updating fields - used below
+            totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+            totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+
+            // Calculating a new index
+            newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+            delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+
+            // re-check for emergencies
+            if (abroadMax < delta) {
+                revert('Delta abroad:max');
+            }
+
         }
+
+
+        uint difference;
+        if (totalAsset <= totalUsdPlusSupply) {
+            difference = totalUsdPlusSupply - totalAsset;
+        } else {
+            difference = totalAsset - totalUsdPlusSupply;
+        }
+
 
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 

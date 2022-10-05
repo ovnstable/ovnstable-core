@@ -23,6 +23,7 @@ describe("Exchange", function () {
     let usdPlus;
     let m2m;
     let multiCallWrapper;
+    let rewardWallet;
 
     let asset;
     let toAsset = function() {};
@@ -35,6 +36,8 @@ describe("Exchange", function () {
         await resetHardhat(process.env.STAND);
 
         const [mockDeployer] = provider.getWallets();
+
+        rewardWallet = provider.createEmptyWallet();
         let payoutListener = await deployMockContract(mockDeployer, await getAbi('IPayoutListener'));
         await payoutListener.mock.payoutDone.returns();
 
@@ -45,6 +48,7 @@ describe("Exchange", function () {
         exchange = await ethers.getContract("Exchange");
 
         await exchange.setPayoutListener(payoutListener.address);
+        await exchange.setInsurance(rewardWallet.address);
 
         usdPlus = await ethers.getContract("UsdPlusToken");
         pm = await ethers.getContract('PortfolioManager');
@@ -80,9 +84,10 @@ describe("Exchange", function () {
 
         });
 
-        it("Expect revert: Delta abroad:max ", async function () {
+        it("Delta abroad:max -> mint USD+ to insurance wallet", async function () {
             await asset.transfer(pm.address, toAsset(4));
-            await expectRevert(exchange.payout(), "Delta abroad:max");
+            await exchange.payout();
+            expect(500000).to.equal(await usdPlus.balanceOf(rewardWallet.address));
         });
 
         it("Expect revert: Delta abroad:min", async function () {

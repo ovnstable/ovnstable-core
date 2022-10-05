@@ -1,6 +1,10 @@
 const dotenv = require("dotenv");
 dotenv.config({path:__dirname+ '/../../../.env'});
 
+let COMMON = {
+    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
+}
+
 let AVALANCHE = {
     traderJoeRouter: "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",
     platypus: "0x66357dCaCe80431aee0A7507e2E361B7e2402370",
@@ -194,5 +198,6 @@ module.exports = {
     POLYGON: POLYGON,
     OPTIMISM: OPTIMISM,
     DEFAULT: DEFAULT,
+    COMMON: COMMON,
     setDefault: setDefault
 }
