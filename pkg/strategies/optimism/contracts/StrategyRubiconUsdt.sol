@@ -94,7 +94,7 @@ contract StrategyRubiconUsdt is Strategy {
             poolUsdcUsdtFee,
             address(this),
             _amount,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(_amount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleUsdcToUsdt(_amount), 20) // slippage 0.2%
         );
 
         usdtToken.approve(address(rubiconUsdt), usdtAmount);
@@ -132,7 +132,7 @@ contract StrategyRubiconUsdt is Strategy {
             poolUsdcUsdtFee,
             address(this),
             usdtAmount,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 20) // slippage 0.2%
         );
 
         return usdcToken.balanceOf(address(this));
@@ -163,7 +163,7 @@ contract StrategyRubiconUsdt is Strategy {
             poolUsdcUsdtFee,
             address(this),
                 usdtAmount,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 20) // slippage 0.2%
         );
 
         return usdcToken.balanceOf(address(this));

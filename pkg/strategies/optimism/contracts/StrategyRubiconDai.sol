@@ -94,7 +94,7 @@ contract StrategyRubiconDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             _amount,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), 20) // slippage 0.2%
         );
 
         daiToken.approve(address(rubiconDai), daiAmount);
@@ -132,7 +132,7 @@ contract StrategyRubiconDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             daiAmount,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 20) // slippage 0.2%
         );
 
         return usdcToken.balanceOf(address(this));
@@ -163,7 +163,7 @@ contract StrategyRubiconDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             daiAmount,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 4) // slippage 0.04%
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 20) // slippage 0.2%
         );
 
         return usdcToken.balanceOf(address(this));
