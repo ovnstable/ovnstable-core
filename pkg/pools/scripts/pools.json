@@ -1,0 +1,17 @@
+[
+    {
+        "name": "bb-USD+",
+        "address": "0x88D07558470484c03d3bb44c3ECc36CAfCF43253"
+    },
+
+    {
+        "name": "bb-DAI+",
+        "address": "0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15"
+    },
+
+    {
+        "name": "bpt-USD+",
+        "address": "0x7d6Bff131B359dA66d92f215FD4e186003BFAA42"
+    }
+]
+
