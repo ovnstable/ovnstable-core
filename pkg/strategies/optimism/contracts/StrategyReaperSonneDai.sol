@@ -103,9 +103,9 @@ contract StrategyReaperSonneDai is Strategy {
             return 0;
         }
 
-        uint256 daiAmount = _oracleUsdcToDai(_amount);
-        // add 11 bp and 10 for unstake more than requested
-        uint256 shares = (OvnMath.addBasisPoints(daiAmount, 11) + 10)* soDai.totalSupply() / soDai.balance();
+        // add 10 for unstake more than requested
+        uint256 daiAmount = _oracleUsdcToDai(_amount + 10);
+        uint256 shares = daiAmount * soDai.totalSupply() / soDai.balance();
         soDai.withdraw(shares);
 
         uint256 daiBalance = daiToken.balanceOf(address(this));

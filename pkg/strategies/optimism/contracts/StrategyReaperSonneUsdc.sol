@@ -52,8 +52,9 @@ contract StrategyReaperSonneUsdc is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        usdcToken.approve(address(soUsdc), _amount);
-        soUsdc.deposit(_amount);
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        usdcToken.approve(address(soUsdc), usdcBalance);
+        soUsdc.deposit(usdcBalance);
     }
 
     function _unstake(
@@ -69,8 +70,8 @@ contract StrategyReaperSonneUsdc is Strategy {
             return 0;
         }
 
-        // add 11 bp and 10 for unstake more than requested
-        uint256 shares = (OvnMath.addBasisPoints(_amount, 11) + 10) * soUsdc.totalSupply() / soUsdc.balance();
+        // add 10 for unstake more than requested
+        uint256 shares = (_amount + 10) * soUsdc.totalSupply() / soUsdc.balance();
         soUsdc.withdraw(shares);
 
         return usdcToken.balanceOf(address(this));
