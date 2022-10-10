@@ -42,6 +42,14 @@ let arrays = [
         name: 'StrategyBeethovenxUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyReaperSonneUsdc',
+        enabledReward: false,
+    },
+    {
+        name: 'StrategyReaperSonneDai',
+        enabledReward: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
