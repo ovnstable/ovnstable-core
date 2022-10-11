@@ -1,5 +1,9 @@
 const {OPTIMISM, BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
+const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
+
+const ReaperSonneUsdc = require("./abi/reaper/ReaperSonneUsdc.json");
+const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
 
 let id = process.env.TEST_STRATEGY;
 
@@ -42,6 +46,16 @@ let arrays = [
         name: 'StrategyBeethovenxUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyReaperSonneUsdc',
+        enabledReward: false,
+        isRunStrategyLogic: true
+    },
+    {
+        name: 'StrategyReaperSonneDai',
+        enabledReward: false,
+        isRunStrategyLogic: true
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -52,6 +66,35 @@ if (id !== undefined && id !== "") {
 console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 async function runStrategyLogic(strategyName, strategyAddress) {
+    if (strategyName == 'StrategyReaperSonneUsdc') {
+        let governanceAddress = "0x4c3490df15edfa178333445ce568ec6d99b5d71c";
+        await transferETH(1, governanceAddress);
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [governanceAddress],
+        });
+        const governance = await ethers.getSigner(governanceAddress);
+        let reaperSonneUsdc = await ethers.getContractAt(ReaperSonneUsdc, "0x566c68Cd2f1e8b6D780c342B207B60c9c4f32767");
+        await reaperSonneUsdc.connect(governance).updateSecurityFee(0);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [governanceAddress],
+        });
+    } else if (strategyName == 'StrategyReaperSonneDai') {
+        let governanceAddress = "0x4c3490df15edfa178333445ce568ec6d99b5d71c";
+        await transferETH(1, governanceAddress);
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [governanceAddress],
+        });
+        const governance = await ethers.getSigner(governanceAddress);
+        let reaperSonneDai = await ethers.getContractAt(ReaperSonneDai, "0x071A922d81d604617AD5276479146bF9d7105EFC");
+        await reaperSonneDai.connect(governance).updateSecurityFee(0);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [governanceAddress],
+        });
+    }
 }
 
 describe("OPTIMISM", function () {
