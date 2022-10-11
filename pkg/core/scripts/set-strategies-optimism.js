@@ -49,7 +49,7 @@ async function main() {
             "strategy": "0xfa5328a029575f460d9fb499B1cDCE25b69B1038",
             "name": "Rubicon DAI",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 5,
             "maxWeight": 100,
             "enabled": false,
             "enabledReward": true
@@ -60,9 +60,28 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 22.5,
             "maxWeight": 100,
+            "enabled": false,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0xd27a3640CDF245f97b739F20605e66a79160361B",
+            "name": "Reaper Sonne DAI",
+            "minWeight": 0,
+            "targetWeight": 5,
+            "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
+        {
+            "strategy": "0xF3a75b6dD1A60526755A370afaB48fF3501e0D15",
+            "name": "Reaper Sonne USDC",
+            "minWeight": 0,
+            "targetWeight": 5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        }
     ]
 
 
@@ -78,8 +97,8 @@ async function main() {
 
         weights = await convertWeights(weights);
 
-        // await strategy.connect(timelock).upgradeTo('0xd33aBa7D93FD4c15BBAde1b2f50fB4B6cEdD0Cea');
-        // await pm.connect(timelock).addStrategy('0x2C74452B89e078858eAe7bC829C18e62E920fe27');
+        await pm.connect(timelock).addStrategy('0xd27a3640CDF245f97b739F20605e66a79160361B');
+        await pm.connect(timelock).addStrategy('0xF3a75b6dD1A60526755A370afaB48fF3501e0D15');
         await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);
         await pm.connect(timelock).setStrategyWeights(weights);
         await pm.connect(timelock).balance();
