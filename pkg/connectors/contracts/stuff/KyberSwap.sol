@@ -179,6 +179,17 @@ interface IBasePositionManager {
    * This function call must use less than 30 000 gas.
    */
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
+
+    /// @notice Transfers the full amount of a token held by this contract to recipient
+    /// @dev The minAmount parameter prevents malicious contracts from stealing the token from users
+    /// @param token The contract address of the token which will be transferred to `recipient`
+    /// @param minAmount The minimum amount of token required for a transfer
+    /// @param recipient The destination address of the token
+    function transferAllTokens(
+        address token,
+        uint256 minAmount,
+        address recipient
+    ) external payable;
 }
 
 
@@ -376,164 +387,128 @@ interface IKyberSwapElasticLM {
 }
 
 
-/// @notice Functions for swapping tokens via KyberSwap v2
-/// - Support swap with exact input or exact output
-/// - Support swap with a price limit
-/// - Support swap within a single pool and between multiple pools
-interface IRouter {
-    /// @dev Params for swapping exact input amount
-    /// @param tokenIn the token to swap
-    /// @param tokenOut the token to receive
-    /// @param fee the pool's fee
-    /// @param recipient address to receive tokenOut
-    /// @param deadline time that the transaction will be expired
-    /// @param amountIn the tokenIn amount to swap
-    /// @param amountOutMinimum the minimum receive amount
-    /// @param limitSqrtP the price limit, if reached, stop swapping
-    struct ExactInputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24 fee;
-        address recipient;
-        uint256 deadline;
-        uint256 amountIn;
-        uint256 minAmountOut;
-        uint160 limitSqrtP;
-    }
+interface IKyberPool {
 
-    /// @notice Swaps `amountIn` of one token for as much as possible of another token
-    /// @param params The parameters necessary for the swap, encoded as `ExactInputSingleParams` in calldata
-    /// @return amountOut The amount of the received token
-    function swapExactInputSingle(ExactInputSingleParams calldata params)
-    external
-    payable
-    returns (uint256 amountOut);
-
-    /// @dev Params for swapping exact input using multiple pools
-    /// @param path the encoded path to swap from tokenIn to tokenOut
-    ///   If the swap is from token0 -> token1 -> token2, then path is encoded as [token0, fee01, token1, fee12, token2]
-    /// @param recipient address to receive tokenOut
-    /// @param deadline time that the transaction will be expired
-    /// @param amountIn the tokenIn amount to swap
-    /// @param amountOutMinimum the minimum receive amount
-    struct ExactInputParams {
+    struct SwapCallbackData {
         bytes path;
-        address recipient;
-        uint256 deadline;
-        uint256 amountIn;
-        uint256 minAmountOut;
+        address source;
     }
 
-    /// @notice Swaps `amountIn` of one token for as much as possible of another along the specified path
-    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactInputParams` in calldata
-    /// @return amountOut The amount of the received token
-    function swapExactInput(ExactInputParams calldata params)
-    external
-    payable
-    returns (uint256 amountOut);
+    function swap(
+        address recipient,
+        int256 swapQty,
+        bool isToken0,
+        uint160 limitSqrtP,
+        bytes calldata data
+    ) external returns (int256 deltaQty0, int256 deltaQty1);
 
-    /// @dev Params for swapping exact output amount
-    /// @param tokenIn the token to swap
-    /// @param tokenOut the token to receive
-    /// @param fee the pool's fee
-    /// @param recipient address to receive tokenOut
-    /// @param deadline time that the transaction will be expired
-    /// @param amountOut the tokenOut amount of tokenOut
-    /// @param amountInMaximum the minimum input amount
-    /// @param limitSqrtP the price limit, if reached, stop swapping
-    struct ExactOutputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24 fee;
-        address recipient;
-        uint256 deadline;
-        uint256 amountOut;
-        uint256 maxAmountIn;
-        uint160 limitSqrtP;
-    }
-
-    /// @notice Swaps as little as possible of one token for `amountOut` of another token
-    /// @param params The parameters necessary for the swap, encoded as `ExactOutputSingleParams` in calldata
-    /// @return amountIn The amount of the input token
-    function swapExactOutputSingle(ExactOutputSingleParams calldata params)
-    external
-    payable
-    returns (uint256 amountIn);
-
-    /// @dev Params for swapping exact output using multiple pools
-    /// @param path the encoded path to swap from tokenIn to tokenOut
-    ///   If the swap is from token0 -> token1 -> token2, then path is encoded as [token2, fee12, token1, fee01, token0]
-    /// @param recipient address to receive tokenOut
-    /// @param deadline time that the transaction will be expired
-    /// @param amountOut the tokenOut amount of tokenOut
-    /// @param amountInMaximum the minimum input amount
-    struct ExactOutputParams {
-        bytes path;
-        address recipient;
-        uint256 deadline;
-        uint256 amountOut;
-        uint256 maxAmountIn;
-    }
-
-    /// @notice Swaps as little as possible of one token for `amountOut` of another along the specified path (reversed)
-    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactOutputParams` in calldata
-    /// @return amountIn The amount of the input token
-    function swapExactOutput(ExactOutputParams calldata params)
-    external
-    payable
-    returns (uint256 amountIn);
 }
 
-library KyberSwapLibrary {
 
-    function singleSwap(
-        IRouter router,
-        address tokenIn,
-        address tokenOut,
-        uint24 fee,
-        address recipient,
-        uint256 amountIn,
-        uint256 minAmountOut
-    ) internal returns (uint256 amountOut) {
 
-        IERC20(tokenIn).approve(address(router), amountIn);
+interface ReinvestmentToken is IERC20 {
 
-        IRouter.ExactInputSingleParams memory params = IRouter.ExactInputSingleParams({
-            tokenIn: tokenIn,
-            tokenOut: tokenOut,
-            fee: fee,
-            recipient: recipient,
-            deadline: block.timestamp,
-            amountIn: amountIn,
-            minAmountOut: minAmountOut,
-            limitSqrtP: 0
-        });
+    /// @notice The first of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token0() external view returns (IERC20);
 
-        amountOut = router.swapExactInputSingle(params);
-    }
+    /// @notice The second of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token1() external view returns (IERC20);
 
-    function multiSwap(
-        IRouter router,
-        address tokenIn,
-        address tokenMid,
-        address tokenOut,
-        uint24 fee0,
-        uint24 fee1,
-        address recipient,
-        uint256 amountIn,
-        uint256 minAmountOut
-    ) internal returns (uint256 amountOut) {
+    /// @notice The fee to be charged for a swap in basis points
+    /// @return The swap fee in basis points
+    function swapFeeUnits() external view returns (uint24);
 
-        IERC20(tokenIn).approve(address(router), amountIn);
+    /// @notice The pool tick distance
+    /// @dev Ticks can only be initialized and used at multiples of this value
+    /// It remains an int24 to avoid casting even though it is >= 1.
+    /// e.g: a tickDistance of 5 means ticks can be initialized every 5th tick, i.e., ..., -10, -5, 0, 5, 10, ...
+    /// @return The tick distance
+    function tickDistance() external view returns (int24);
 
-        IRouter.ExactInputParams memory params = IRouter.ExactInputParams({
-            path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
-            recipient: recipient,
-            deadline: block.timestamp,
-            amountIn: amountIn,
-            minAmountOut: minAmountOut
-        });
+    /// @notice Maximum gross liquidity that an initialized tick can have
+    /// @dev This is to prevent overflow the pool's active base liquidity (uint128)
+    /// also prevents out-of-range liquidity from being used to prevent adding in-range liquidity to a pool
+    /// @return The max amount of liquidity per tick
+    function maxTickLiquidity() external view returns (uint128);
 
-        amountOut = router.swapExactInput(params);
-    }
+    /// @notice Look up information about a specific tick in the pool
+    /// @param tick The tick to look up
+    /// @return liquidityGross total liquidity amount from positions that uses this tick as a lower or upper tick
+    /// liquidityNet how much liquidity changes when the pool tick crosses above the tick
+    /// feeGrowthOutside the fee growth on the other side of the tick relative to the current tick
+    /// secondsPerLiquidityOutside the seconds spent on the other side of the tick relative to the current tick
+    function ticks(int24 tick)
+    external
+    view
+    returns (
+        uint128 liquidityGross,
+        int128 liquidityNet,
+        uint256 feeGrowthOutside,
+        uint128 secondsPerLiquidityOutside
+    );
+
+    /// @notice Returns the previous and next initialized ticks of a specific tick
+    /// @dev If specified tick is uninitialized, the returned values are zero.
+    /// @param tick The tick to look up
+    function initializedTicks(int24 tick) external view returns (int24 previous, int24 next);
+
+    /// @notice Returns the information about a position by the position's key
+    /// @return liquidity the liquidity quantity of the position
+    /// @return feeGrowthInsideLast fee growth inside the tick range as of the last mint / burn action performed
+    function getPositions(
+        address owner,
+        int24 tickLower,
+        int24 tickUpper
+    ) external view returns (uint128 liquidity, uint256 feeGrowthInsideLast);
+
+    /// @notice Fetches the pool's prices, ticks and lock status
+    /// @return sqrtP sqrt of current price: sqrt(token1/token0)
+    /// @return currentTick pool's current tick
+    /// @return nearestCurrentTick pool's nearest initialized tick that is <= currentTick
+    /// @return locked true if pool is locked, false otherwise
+    function getPoolState()
+    external
+    view
+    returns (
+        uint160 sqrtP,
+        int24 currentTick,
+        int24 nearestCurrentTick,
+        bool locked
+    );
+
+    /// @notice Fetches the pool's liquidity values
+    /// @return baseL pool's base liquidity without reinvest liqudity
+    /// @return reinvestL the liquidity is reinvested into the pool
+    /// @return reinvestLLast last cached value of reinvestL, used for calculating reinvestment token qty
+    function getLiquidityState()
+    external
+    view
+    returns (
+        uint128 baseL,
+        uint128 reinvestL,
+        uint128 reinvestLLast
+    );
+
+    /// @return feeGrowthGlobal All-time fee growth per unit of liquidity of the pool
+    function getFeeGrowthGlobal() external view returns (uint256);
+
+    /// @return secondsPerLiquidityGlobal All-time seconds per unit of liquidity of the pool
+    /// @return lastUpdateTime The timestamp in which secondsPerLiquidityGlobal was last updated
+    function getSecondsPerLiquidityData()
+    external
+    view
+    returns (uint128 secondsPerLiquidityGlobal, uint32 lastUpdateTime);
+
+    /// @notice Calculates and returns the active time per unit of liquidity until current block.timestamp
+    /// @param tickLower The lower tick (of a position)
+    /// @param tickUpper The upper tick (of a position)
+    /// @return secondsPerLiquidityInside active time (multiplied by 2^96)
+    /// between the 2 ticks, per unit of liquidity.
+    function getSecondsPerLiquidityInside(int24 tickLower, int24 tickUpper)
+    external
+    view
+    returns (uint128 secondsPerLiquidityInside);
 }
+

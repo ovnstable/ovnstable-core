@@ -110,7 +110,7 @@ let arrays = [
     },
     {
         name: 'StrategyKyberSwapUsdcUsdt',
-        enabledReward: false,
+        enabledReward: true,
     },
     {
         name: 'StrategyQuickSwapV3UsdcUsdt',

@@ -12,23 +12,22 @@ import "hardhat/console.sol";
 
 contract StrategyKyberSwapUsdcUsdt is Strategy {
 
+    uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
+    uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
+
     IERC20 public usdcToken;
     IERC20 public usdtToken;
     IERC20 public kncToken;
-    IERC20 public ldoToken;
 
     IBasePositionManager public basePositionManager;
     IKyberSwapElasticLM public elasticLM;
-    IERC20 public reinvestmentToken;
+    ReinvestmentToken public reinvestmentToken;
     uint256 public pid;
 
-    ISwap public synapseSwapRouter;
-    IRouter public kyberSwapRouter;
-    ISwapRouter public uniswapV3Router;
+    IKyberPool public poolUsdcKnc;
 
+    ISwap public synapseSwapRouter;
     uint24 public poolFeeUsdcUsdtInUnits;
-    uint24 public poolFeeKncUsdc;
-    uint24 public poolFeeLdoUsdc;
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleUsdt;
@@ -37,6 +36,9 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
     uint256 public usdtTokenDenominator;
 
     uint256 public tokenId;
+
+    int24 public tickLower;
+    int24 public tickUpper;
 
 
     // --- events
@@ -50,19 +52,17 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         address usdcToken;
         address usdtToken;
         address kncToken;
-        address ldoToken;
         address basePositionManager;
         address elasticLM;
         address reinvestmentToken;
         uint256 pid;
         address synapseSwapRouter;
-        address kyberSwapRouter;
-        address uniswapV3Router;
+        address poolUsdcKnc;
         uint24 poolFeeUsdcUsdtInUnits;
-        uint24 poolFeeKncUsdc;
-        uint24 poolFeeLdoUsdc;
         address oracleUsdc;
         address oracleUsdt;
+        int24 tickLower;
+        int24 tickUpper;
     }
 
 
@@ -82,23 +82,22 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         usdcToken = IERC20(params.usdcToken);
         usdtToken = IERC20(params.usdtToken);
         kncToken = IERC20(params.kncToken);
-        ldoToken = IERC20(params.ldoToken);
 
         basePositionManager = IBasePositionManager(params.basePositionManager);
         elasticLM = IKyberSwapElasticLM(params.elasticLM);
-        reinvestmentToken = IERC20(params.reinvestmentToken);
+        reinvestmentToken = ReinvestmentToken(params.reinvestmentToken);
         pid = params.pid;
 
         synapseSwapRouter = ISwap(params.synapseSwapRouter);
-        kyberSwapRouter = IRouter(params.kyberSwapRouter);
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        poolUsdcKnc = IKyberPool(params.poolUsdcKnc);
 
         poolFeeUsdcUsdtInUnits = params.poolFeeUsdcUsdtInUnits;
-        poolFeeKncUsdc = params.poolFeeKncUsdc;
-        poolFeeLdoUsdc = params.poolFeeLdoUsdc;
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
+
+        tickLower = params.tickLower;
+        tickUpper = params.tickUpper;
 
         usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
         usdtTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
@@ -113,167 +112,117 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 reserveUsdc = usdcToken.balanceOf(address(reinvestmentToken));
-        uint256 reserveUsdt = usdtToken.balanceOf(address(reinvestmentToken));
-        require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity reserves too low');
+        _swapUsdcToUsdt();
 
-        // count amount usdt to swap
+        _addLiquidity();
+
+        _depositToGauge();
+
+    }
+
+    function _swapUsdcToUsdt() internal {
+
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        uint256 amountUsdcFromUsdt;
-        if (usdtBalance > 0) {
-            amountUsdcFromUsdt = SynapseLibrary.calculateSwap(
-                synapseSwapRouter,
-                address(usdtToken),
-                address(usdcToken),
-                usdtBalance
-            );
-        }
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        uint256 amountUsdcToSwap = SynapseLibrary.getAmount0(
-            synapseSwapRouter,
-            address(usdcToken),
-            address(usdtToken),
-            usdcBalance - amountUsdcFromUsdt,
-            reserveUsdc,
-            reserveUsdt,
-            usdcTokenDenominator,
-            usdtTokenDenominator,
-            1
-        );
 
-        // swap usdc to usdt
+        uint256 needUsdt = _getNeedToByUsdt(usdcBalance - usdtBalance);
+
         SynapseLibrary.swap(
             synapseSwapRouter,
             address(usdcToken),
             address(usdtToken),
-            amountUsdcToSwap
+            needUsdt
         );
 
+    }
+
+    function _addLiquidity() internal {
+
         // add liquidity
-        usdcBalance = usdcToken.balanceOf(address(this));
-        usdtBalance = usdtToken.balanceOf(address(this));
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
         usdcToken.approve(address(basePositionManager), usdcBalance);
         usdtToken.approve(address(basePositionManager), usdtBalance);
+
         if (tokenId == 0) {
+
+            (int24 previousTickLower,) = reinvestmentToken.initializedTicks(tickLower);
+            (int24 previousTickUpper,) = reinvestmentToken.initializedTicks(tickUpper);
+
             IBasePositionManager.MintParams memory params = IBasePositionManager.MintParams({
-                token0: address(usdcToken),
-                token1: address(usdtToken),
-                fee: poolFeeUsdcUsdtInUnits,
-                //TODO find how to choose ticks
-                tickLower: int24(-10),
-                tickUpper: int24(10),
-                ticksPrevious: [int24(-22), int24(6)],
-                amount0Desired: usdcBalance,
-                amount1Desired: usdtBalance,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp
+            token0 : address(usdcToken),
+            token1 : address(usdtToken),
+            fee : poolFeeUsdcUsdtInUnits,
+            tickLower : tickLower,
+            tickUpper : tickUpper,
+            ticksPrevious : [previousTickLower, previousTickUpper],
+            amount0Desired : usdcBalance,
+            amount1Desired : usdtBalance,
+            amount0Min : 0,
+            amount1Min : 0,
+            recipient : address(this),
+            deadline : block.timestamp
             });
+
             (uint256 tokenIdGen,,,) = basePositionManager.mint(params);
             tokenId = tokenIdGen;
-            console.log("tokenId: %s", tokenId);
         } else {
+
             IBasePositionManager.IncreaseLiquidityParams memory params = IBasePositionManager.IncreaseLiquidityParams({
-                tokenId: tokenId,
-                amount0Desired: usdcBalance,
-                amount1Desired: usdtBalance,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp
+            tokenId : tokenId,
+            amount0Desired : usdcBalance,
+            amount1Desired : usdtBalance,
+            amount0Min : 0,
+            amount1Min : 0,
+            deadline : block.timestamp
             });
             basePositionManager.addLiquidity(params);
         }
 
-        // deposit lpTokens
-        uint256 lpBalance = reinvestmentToken.balanceOf(address(this));
-        console.log("lpBalance: %s", lpBalance);
+    }
+
+
+    function _depositToGauge() internal {
+
+        // 1. Deposit NFT to Farm Contract
+
+        IERC721 nft = IERC721(address(basePositionManager));
+
+        uint256[] memory nftIds = new uint256[](1);
+        nftIds[0] = tokenId;
+
+        if(nft.ownerOf(tokenId) != address(elasticLM)){
+            nft.approve(address(elasticLM), tokenId);
+            elasticLM.deposit(nftIds);
+        }
+
+        // 2. Stake available liquidity to Farm Pool
+        (IBasePositionManager.Position memory pos,) = basePositionManager.positions(tokenId);
+        uint256[] memory liqs = new uint256[](1);
+        liqs[0] = pos.liquidity;
+
+        elasticLM.join(pid, nftIds, liqs);
+    }
+
+    function _withdrawFromGauge(uint256 liquidity) internal {
+
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
         uint256[] memory liqs = new uint256[](1);
-        liqs[0] = lpBalance;
-        IERC721(address(basePositionManager)).approve(address(elasticLM), tokenId);
-        elasticLM.deposit(nftIds);
-        elasticLM.join(pid, nftIds, liqs);
+        liqs[0] = liquidity;
+        elasticLM.exit(pid, nftIds, liqs);
+        elasticLM.withdraw(nftIds);
     }
+
 
     function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
         require(_asset == address(usdcToken), "Some token not compatible");
-
-        uint256 reserveUsdc = usdcToken.balanceOf(address(reinvestmentToken));
-        uint256 reserveUsdt = usdtToken.balanceOf(address(reinvestmentToken));
-        require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity reserves too low');
-
-        (uint256 lpBalanceUser,,) = elasticLM.getUserInfo(tokenId, pid);
-        if (lpBalanceUser > 0) {
-            // count amount to unstake
-            uint256 totalLpBalance = reinvestmentToken.totalSupply();
-            uint256 lpBalanceToWithdraw = SynapseLibrary.getAmountLpTokens(
-                synapseSwapRouter,
-                address(usdcToken),
-                address(usdtToken),
-                // add 10 to _amount for smooth withdraw
-                _amount + 10,
-                totalLpBalance,
-                reserveUsdc,
-                reserveUsdt,
-                usdcTokenDenominator,
-                usdtTokenDenominator,
-                1
-            );
-            if (lpBalanceToWithdraw > lpBalanceUser) {
-                lpBalanceToWithdraw = lpBalanceUser;
-            }
-
-            // withdraw lpTokens
-            uint256[] memory nftIds = new uint256[](1);
-            nftIds[0] = tokenId;
-            uint256[] memory liqs = new uint256[](1);
-            liqs[0] = lpBalanceToWithdraw;
-            elasticLM.exit(pid, nftIds, liqs);
-            elasticLM.withdraw(nftIds);
-
-            // remove liquidity
-            uint256 amountOutUsdcMin = reserveUsdc * lpBalanceToWithdraw / totalLpBalance;
-            uint256 amountOutUsdtMin = reserveUsdt * lpBalanceToWithdraw / totalLpBalance;
-            reinvestmentToken.approve(address(basePositionManager), lpBalanceToWithdraw);
-            IBasePositionManager.RemoveLiquidityParams memory params = IBasePositionManager.RemoveLiquidityParams({
-                tokenId: tokenId,
-                liquidity: uint128(lpBalanceToWithdraw),
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp
-            });
-            basePositionManager.removeLiquidity(params);
-        }
-
-        // swap usdt to usdc
-        uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        if (usdtBalance > 0) {
-            uint256 amountUsdcFromUsdt = SynapseLibrary.calculateSwap(
-                synapseSwapRouter,
-                address(usdtToken),
-                address(usdcToken),
-                usdtBalance
-            );
-
-            if (amountUsdcFromUsdt > 0) {
-                SynapseLibrary.swap(
-                    synapseSwapRouter,
-                    address(usdtToken),
-                    address(usdcToken),
-                    usdtBalance
-                );
-            }
-        }
 
         return usdcToken.balanceOf(address(this));
     }
@@ -285,55 +234,58 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        (uint256 lpBalanceUser,,) = elasticLM.getUserInfo(tokenId, pid);
-        if (lpBalanceUser > 0) {
-            // withdraw lpTokens
-            uint256[] memory nftIds = new uint256[](1);
-            nftIds[0] = tokenId;
-            uint256[] memory liqs = new uint256[](1);
-            liqs[0] = lpBalanceUser;
-            elasticLM.exit(pid, nftIds, liqs);
-            elasticLM.withdraw(nftIds);
+        (uint256 liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
 
-            // remove liquidity
-            uint256 reserveUsdc = usdcToken.balanceOf(address(reinvestmentToken));
-            uint256 reserveUsdt = usdtToken.balanceOf(address(reinvestmentToken));
-            uint256 totalLpBalance = reinvestmentToken.totalSupply();
-            uint256 amountOutUsdcMin = reserveUsdc * lpBalanceUser / totalLpBalance;
-            uint256 amountOutUsdtMin = reserveUsdt * lpBalanceUser / totalLpBalance;
-
-            reinvestmentToken.approve(address(basePositionManager), lpBalanceUser);
-            IBasePositionManager.RemoveLiquidityParams memory params = IBasePositionManager.RemoveLiquidityParams({
-                tokenId: tokenId,
-                liquidity: uint128(lpBalanceUser),
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: block.timestamp
-            });
-            basePositionManager.removeLiquidity(params);
+        if(liquidity == 0){
+            return 0;
         }
 
-        // swap usdt to usdc
+        // 1. Withdraw Liquidity and NFT from Gauge
+        _withdrawFromGauge(liquidity);
+
+
+        // 2. Unstake All liquidity from Pool
+        IBasePositionManager.RemoveLiquidityParams memory params = IBasePositionManager.RemoveLiquidityParams({
+            tokenId : tokenId,
+            liquidity : uint128(liquidity),
+            amount0Min : 0,
+            amount1Min : 0,
+            deadline : block.timestamp
+        });
+
+        basePositionManager.removeLiquidity(params);
+        basePositionManager.transferAllTokens(address(usdcToken), 0, address(this));
+        basePositionManager.transferAllTokens(address(usdtToken), 0, address(this));
+
+        // 3. Swap all USDT to USDC
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
+
         if (usdtBalance > 0) {
-            uint256 amountUsdcFromUsdt = SynapseLibrary.calculateSwap(
+            SynapseLibrary.swap(
                 synapseSwapRouter,
                 address(usdtToken),
                 address(usdcToken),
                 usdtBalance
             );
-
-            if (amountUsdcFromUsdt > 0) {
-                SynapseLibrary.swap(
-                    synapseSwapRouter,
-                    address(usdtToken),
-                    address(usdcToken),
-                    usdtBalance
-                );
-            }
         }
 
         return usdcToken.balanceOf(address(this));
+    }
+
+
+    function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
+
+        (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
+        (uint128 baseL,,) = reinvestmentToken.getLiquidityState();
+
+        (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtP,
+            MIN_SQRT_RATIO,
+            MAX_SQRT_RATIO,
+            baseL);
+
+        uint256 needUsdtValue = (_amount * amountLiq1) / (amountLiq0 + amountLiq1);
+        return needUsdtValue;
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -349,44 +301,52 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
         if (tokenId > 0) {
-            (uint256 lpBalance,,) = elasticLM.getUserInfo(tokenId, pid);
-            if (lpBalance > 0) {
-                uint256 totalLpBalance = reinvestmentToken.totalSupply();
-                uint256 reserveUsdc = usdcToken.balanceOf(address(reinvestmentToken));
-                uint256 reserveUsdt = usdtToken.balanceOf(address(reinvestmentToken));
-                usdcBalance += reserveUsdc * lpBalance / totalLpBalance;
-                usdtBalance += reserveUsdt * lpBalance / totalLpBalance;
-            }
-        }
 
-        uint256 usdcBalanceFromUsdt;
-        if (usdtBalance > 0) {
+            (IBasePositionManager.Position memory pos,) = basePositionManager.positions(tokenId);
+
+            (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
+
+            uint160 sqrtUpper = TickMath.getSqrtRatioAtTick(pos.tickUpper);
+            uint160 sqrtLower = TickMath.getSqrtRatioAtTick(pos.tickLower);
+            usdcBalance += uint256(SqrtPriceMath.getAmount0Delta(sqrtP, sqrtUpper, int128(pos.liquidity)));
+            usdtBalance += uint256(SqrtPriceMath.getAmount1Delta(sqrtLower, sqrtP, int128(pos.liquidity)));
+
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
-                usdcBalanceFromUsdt = (usdtBalance * usdcTokenDenominator * priceUsdt) / (usdtTokenDenominator * priceUsdc);
+                usdcBalance += ChainlinkLibrary.convertTokenToToken(
+                    usdtBalance,
+                    6,
+                    6,
+                    uint256(oracleUsdt.latestAnswer()),
+                    uint256(oracleUsdc.latestAnswer())
+                );
             } else {
-                usdcBalanceFromUsdt = SynapseLibrary.calculateSwap(
+                usdcBalance += SynapseLibrary.calculateSwap(
                     synapseSwapRouter,
                     address(usdtToken),
                     address(usdcToken),
                     usdtBalance
                 );
             }
+
         }
 
-        return usdcBalance + usdcBalanceFromUsdt;
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        (uint256 lpBalance,,) = elasticLM.getUserInfo(tokenId, pid);
-        if (lpBalance > 0) {
+        (uint256 liquidity,,) = elasticLM.getUserInfo(tokenId, pid);
+
+        if (liquidity > 0) {
             uint256[] memory nftIds = new uint256[](1);
             nftIds[0] = tokenId;
+
+            uint256[] memory pIds = new uint256[](1);
+            pIds[0] = pid;
+
             bytes[] memory datas = new bytes[](1);
-            datas[0] = abi.encode(pid);
+            datas[0] = abi.encode(IKyberSwapElasticLM.HarvestData(pIds));
             elasticLM.harvestMultiplePools(nftIds, datas);
         }
 
@@ -394,40 +354,46 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         uint256 totalUsdc;
 
         uint256 kncBalance = kncToken.balanceOf(address(this));
+
         if (kncBalance > 0) {
-            uint256 kncUsdc = KyberSwapLibrary.singleSwap(
-                kyberSwapRouter,
-                address(kncToken),
-                address(usdcToken),
-                poolFeeKncUsdc,
+
+            bool isFromToken0 = kncToken < usdcToken;
+
+            IKyberPool.SwapCallbackData memory data = IKyberPool.SwapCallbackData({
+                path: abi.encodePacked(address(kncToken), uint24(400), address(usdcToken)),
+                source: address(this)
+            });
+
+            uint256 balanceUsdcBefore = usdcToken.balanceOf(address(this));
+
+            poolUsdcKnc.swap(
                 address(this),
-                kncBalance,
-                0
+                int256(kncBalance),
+                isFromToken0,
+                isFromToken0 ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                new bytes(0)
             );
 
-            totalUsdc += kncUsdc;
+            uint256 balanceUsdcAfter = usdcToken.balanceOf(address(this));
+
+            totalUsdc += balanceUsdcAfter - balanceUsdcBefore;
+
         }
 
-        uint256 ldoBalance = ldoToken.balanceOf(address(this));
-        if (ldoBalance > 0) {
-            uint256 ldoUsdc = UniswapV3Library.singleSwap(
-                uniswapV3Router,
-                address(ldoToken),
-                address(usdcToken),
-                poolFeeLdoUsdc,
-                address(this),
-                ldoBalance,
-                0
-            );
-
-            totalUsdc += ldoUsdc;
-        }
 
         if (totalUsdc > 0) {
             usdcToken.transfer(_to, totalUsdc);
         }
 
         return totalUsdc;
+    }
+
+    function swapCallback(
+        int256 deltaQty0,
+        int256 deltaQty1,
+        bytes calldata data
+    ) external {
+        kncToken.transfer(address(poolUsdcKnc), uint256(deltaQty0));
     }
 
 }
