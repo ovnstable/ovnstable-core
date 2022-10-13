@@ -23,8 +23,7 @@ contract AvalanchePayoutListener is PayoutListener {
 
     event QsSyncPoolsUpdated(uint256 index, address pool);
     event QsSyncPoolsRemoved(uint256 index, address pool);
-    event SwapsicleSkimPoolsUpdated(uint256 index, address pool);
-    event SwapsicleSkimPoolsRemoved(uint256 index, address pool);
+    event SwapsicleSkimPoolsUpdated(address[] pool);
     event SwapsicleDepositWalletUpdated(address wallet);
     event UsdPlusUpdated(address usdPlus);
     event SkimReward(address pool, uint256 amount);
@@ -62,40 +61,19 @@ contract AvalanchePayoutListener is PayoutListener {
     }
 
     function setSwapsicleSkimPools(address[] calldata _swapsicleSkimPools) external onlyAdmin {
-
-        uint256 minLength = (swapsicleSkimPools.length < _swapsicleSkimPools.length) ? swapsicleSkimPools.length : _swapsicleSkimPools.length;
-
-        // replace already exists
-        for (uint256 i = 0; i < minLength; i++) {
-            swapsicleSkimPools[i] = _swapsicleSkimPools[i];
-            emit SwapsicleSkimPoolsUpdated(i, _swapsicleSkimPools[i]);
-        }
-
-        // add if need
-        if (minLength < _swapsicleSkimPools.length) {
-            for (uint256 i = minLength; i < _swapsicleSkimPools.length; i++) {
-                swapsicleSkimPools.push(_swapsicleSkimPools[i]);
-                emit SwapsicleSkimPoolsUpdated(i, _swapsicleSkimPools[i]);
-            }
-        }
-
-        // truncate if need
-        if (swapsicleSkimPools.length > _swapsicleSkimPools.length) {
-            uint256 removeCount = swapsicleSkimPools.length - _swapsicleSkimPools.length;
-            for (uint256 i = 0; i < removeCount; i++) {
-                address qsPool = swapsicleSkimPools[swapsicleSkimPools.length - 1];
-                swapsicleSkimPools.pop();
-                emit SwapsicleSkimPoolsRemoved(swapsicleSkimPools.length, qsPool);
-            }
-        }
+        require(_swapsicleSkimPools.length != 0, "Zero pools not allowed");
+        swapsicleSkimPools = _swapsicleSkimPools;
+        emit SwapsicleSkimPoolsUpdated(_swapsicleSkimPools);
     }
 
     function setSwapsicleDepositWallet(address _swapsicleDepositWallet) external onlyAdmin {
+        require(_swapsicleDepositWallet != address(0), "Zero address not allowed");
         swapsicleDepositWallet = _swapsicleDepositWallet;
         emit SwapsicleDepositWalletUpdated(_swapsicleDepositWallet);
     }
 
     function setUsdPlus(address _usdPlus) external onlyAdmin {
+        require(_usdPlus != address(0), "Zero address not allowed");
         usdPlus = IERC20(_usdPlus);
         emit UsdPlusUpdated(_usdPlus);
     }
@@ -132,7 +110,9 @@ contract AvalanchePayoutListener is PayoutListener {
             emit SkimReward(pool, delta);
         }
         uint256 totalDelta = usdPlus.balanceOf(address(this)) - usdPlusBalanceBefore;
-        usdPlus.transfer(swapsicleDepositWallet, totalDelta);
+        if (totalDelta > 0) {
+            usdPlus.transfer(swapsicleDepositWallet, totalDelta);
+        }
         emit TotalSkimReward(totalDelta);
     }
 
