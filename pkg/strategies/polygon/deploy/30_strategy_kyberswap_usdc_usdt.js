@@ -11,8 +11,8 @@ let synapseSwapRouter = '0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5';
 let poolUsdcKnc = '0xCBD258f33B7A2705e8418708a4F615C43fedf23c';
 let poolFeeUsdcUsdtInUnits = 8; // 0.008%
 
-let tickLower = -10;
-let tickUpper = 10;
+let tickLower = -1;
+let tickUpper = 3;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;

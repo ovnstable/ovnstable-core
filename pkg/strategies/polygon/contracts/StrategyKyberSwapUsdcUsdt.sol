@@ -7,13 +7,9 @@ import "@overnight-contracts/connectors/contracts/stuff/KyberSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
-
-import "hardhat/console.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyKyberSwapUsdcUsdt is Strategy {
-
-    uint160 internal constant MIN_SQRT_RATIO = 79188560314459151373725315960; // TickMath.getSqrtRatioAtTick(-10)
-    uint160 internal constant MAX_SQRT_RATIO = 79267784519130042428790663799; // TickMath.getSqrtRatioAtTick(10)
 
     IERC20 public usdcToken;
     IERC20 public usdtToken;
@@ -129,12 +125,14 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         uint256 needUsdt = _getNeedToByUsdt(usdcBalance - usdtBalance);
 
-        SynapseLibrary.swap(
-            synapseSwapRouter,
-            address(usdcToken),
-            address(usdtToken),
-            needUsdt
-        );
+        if(needUsdt > 0 ){
+            SynapseLibrary.swap(
+                synapseSwapRouter,
+                address(usdcToken),
+                address(usdtToken),
+                needUsdt
+            );
+        }
 
     }
 
@@ -193,20 +191,27 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
 
+        uint256 liquidity;
         if(nft.ownerOf(tokenId) != address(elasticLM)){
             nft.approve(address(elasticLM), tokenId);
             elasticLM.deposit(nftIds);
+
+        }else {
+            (liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
         }
 
         // 2. Stake available liquidity to Farm Pool
         (IBasePositionManager.Position memory pos,) = basePositionManager.positions(tokenId);
+
         uint256[] memory liqs = new uint256[](1);
-        liqs[0] = pos.liquidity;
+        liqs[0] = pos.liquidity - liquidity;
 
         elasticLM.join(pid, nftIds, liqs);
     }
 
-    function _withdrawFromGauge(uint256 liquidity) internal {
+    function _withdrawFromGauge() internal {
+
+        (uint256 liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
 
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
@@ -224,27 +229,40 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
     ) internal override returns (uint256) {
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        _amount = OvnMath.addBasisPoints(_amount, 10); // add 0.1%
+
+        uint256 amountUsdt = _getNeedToByUsdt(_amount);
+        uint256 amountUsdc = _amount - amountUsdt;
+
+        // 1. Withdraw liquidity and NFT from Gauge
+        _withdrawFromGauge();
+
+        (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
+
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            sqrtP,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            amountUsdc,
+            amountUsdt
+        );
+
+        // 2. Unstake All liquidity from Pool
+        _removeLiquidity(uint256(liquidity));
+
+        // 3. Swap all USDT to USDC
+        _swapAllUsdtToUsdc();
+
+        // 4. Deposit NFT and liquidity to Gauge
+        _depositToGauge();
+
         return usdcToken.balanceOf(address(this));
     }
 
-    function _unstakeFull(
-        address _asset,
-        address _beneficiary
-    ) internal override returns (uint256) {
+    function _removeLiquidity(uint256 liquidity) internal {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        reinvestmentToken.approve(address(basePositionManager), liquidity);
 
-        (uint256 liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
-
-        if(liquidity == 0){
-            return 0;
-        }
-
-        // 1. Withdraw Liquidity and NFT from Gauge
-        _withdrawFromGauge(liquidity);
-
-
-        // 2. Unstake All liquidity from Pool
         IBasePositionManager.RemoveLiquidityParams memory params = IBasePositionManager.RemoveLiquidityParams({
             tokenId : tokenId,
             liquidity : uint128(liquidity),
@@ -256,8 +274,10 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         basePositionManager.removeLiquidity(params);
         basePositionManager.transferAllTokens(address(usdcToken), 0, address(this));
         basePositionManager.transferAllTokens(address(usdtToken), 0, address(this));
+    }
 
-        // 3. Swap all USDT to USDC
+    function _swapAllUsdtToUsdc() internal {
+
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
         if (usdtBalance > 0) {
@@ -269,9 +289,34 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
             );
         }
 
-        return usdcToken.balanceOf(address(this));
     }
 
+    function _unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) internal override returns (uint256) {
+
+        require(_asset == address(usdcToken), "Some token not compatible");
+
+        if(tokenId == 0){
+            return usdcToken.balanceOf(address(this));
+        }
+
+        // 1. Withdraw Liquidity and NFT from Gauge
+        _withdrawFromGauge();
+
+        (IBasePositionManager.Position memory pos,) = basePositionManager.positions(tokenId);
+
+        // 2. Unstake All liquidity from Pool
+        _removeLiquidity(pos.liquidity);
+
+        // 3. Swap all USDT to USDC
+        _swapAllUsdtToUsdc();
+
+        tokenId = 0;
+
+        return usdcToken.balanceOf(address(this));
+    }
 
     function _getNeedToByUsdt(uint256 _amount) internal returns (uint256){
 
@@ -280,8 +325,8 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         (uint256 amountLiq0, uint256 amountLiq1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtP,
-            MIN_SQRT_RATIO,
-            MAX_SQRT_RATIO,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
             baseL);
 
         uint256 needUsdtValue = (_amount * amountLiq1) / (amountLiq0 + amountLiq1);
@@ -306,10 +351,15 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
             (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
 
-            uint160 sqrtUpper = TickMath.getSqrtRatioAtTick(pos.tickUpper);
-            uint160 sqrtLower = TickMath.getSqrtRatioAtTick(pos.tickLower);
-            usdcBalance += uint256(SqrtPriceMath.getAmount0Delta(sqrtP, sqrtUpper, int128(pos.liquidity)));
-            usdtBalance += uint256(SqrtPriceMath.getAmount1Delta(sqrtLower, sqrtP, int128(pos.liquidity)));
+            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                sqrtP,
+                TickMath.getSqrtRatioAtTick(pos.tickLower),
+                TickMath.getSqrtRatioAtTick(pos.tickUpper),
+                pos.liquidity
+            );
+
+            usdcBalance += amount0;
+            usdtBalance += amount1;
 
             if (nav) {
                 usdcBalance += ChainlinkLibrary.convertTokenToToken(
@@ -336,9 +386,8 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        (uint256 liquidity,,) = elasticLM.getUserInfo(tokenId, pid);
 
-        if (liquidity > 0) {
+        if (tokenId > 0) {
             uint256[] memory nftIds = new uint256[](1);
             nftIds[0] = tokenId;
 
