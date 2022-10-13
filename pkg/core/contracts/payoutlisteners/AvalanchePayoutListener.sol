@@ -5,18 +5,31 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../PayoutListener.sol";
 
+import "hardhat/console.sol";
 
 contract AvalanchePayoutListener is PayoutListener {
 
     address[] public qsSyncPools;
 
+    address[] public swapsicleSkimPools;
+    address public swapsicleDepositWallet;
+
+    IERC20 public usdPlus;
+
     // ---  events
 
     event QsSyncPoolsUpdated(uint256 index, address pool);
     event QsSyncPoolsRemoved(uint256 index, address pool);
+    event SwapsicleSkimPoolsUpdated(uint256 index, address pool);
+    event SwapsicleSkimPoolsRemoved(uint256 index, address pool);
+    event SwapsicleDepositWalletUpdated(address wallet);
+    event UsdPlusUpdated(address usdPlus);
+    event SkimReward(address pool, uint256 amount);
+    event TotalSkimReward(uint256 amount);
 
     // --- setters
 
@@ -49,6 +62,45 @@ contract AvalanchePayoutListener is PayoutListener {
         }
     }
 
+    function setSwapsicleSkimPools(address[] calldata _swapsicleSkimPools) external onlyAdmin {
+
+        uint256 minLength = (swapsicleSkimPools.length < _swapsicleSkimPools.length) ? swapsicleSkimPools.length : _swapsicleSkimPools.length;
+
+        // replace already exists
+        for (uint256 i = 0; i < minLength; i++) {
+            swapsicleSkimPools[i] = _swapsicleSkimPools[i];
+            emit SwapsicleSkimPoolsUpdated(i, _swapsicleSkimPools[i]);
+        }
+
+        // add if need
+        if (minLength < _swapsicleSkimPools.length) {
+            for (uint256 i = minLength; i < _swapsicleSkimPools.length; i++) {
+                swapsicleSkimPools.push(_swapsicleSkimPools[i]);
+                emit SwapsicleSkimPoolsUpdated(i, _swapsicleSkimPools[i]);
+            }
+        }
+
+        // truncate if need
+        if (swapsicleSkimPools.length > _swapsicleSkimPools.length) {
+            uint256 removeCount = swapsicleSkimPools.length - _swapsicleSkimPools.length;
+            for (uint256 i = 0; i < removeCount; i++) {
+                address qsPool = swapsicleSkimPools[swapsicleSkimPools.length - 1];
+                swapsicleSkimPools.pop();
+                emit SwapsicleSkimPoolsRemoved(swapsicleSkimPools.length, qsPool);
+            }
+        }
+    }
+
+    function setSwapsicleDepositWallet(address _swapsicleDepositWallet) external onlyAdmin {
+        swapsicleDepositWallet = _swapsicleDepositWallet;
+        emit SwapsicleDepositWalletUpdated(_swapsicleDepositWallet);
+    }
+
+    function setUsdPlus(address _usdPlus) external onlyAdmin {
+        usdPlus = IERC20(_usdPlus);
+        emit UsdPlusUpdated(_usdPlus);
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -61,9 +113,34 @@ contract AvalanchePayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
+        _sync();
+        _skim();
+    }
+
+    function _sync() internal {
         for (uint256 i = 0; i < qsSyncPools.length; i++) {
             QsSyncPool(qsSyncPools[i]).sync();
         }
+    }
+
+    function _skim() internal {
+        uint256 usdPlusBalanceBefore = usdPlus.balanceOf(address(this));
+        for (uint256 i = 0; i < swapsicleSkimPools.length; i++) {
+            address pool = swapsicleSkimPools[i];
+            console.log("pool %s: %s", i, pool);
+            uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
+            console.log("usd+ balance before: %s", usdPlusBalance);
+            QsSyncPool(pool).skim(address(this));
+            console.log("usd+ balance after: %s", usdPlus.balanceOf(address(this)));
+            uint256 delta = usdPlus.balanceOf(address(this)) - usdPlusBalance;
+            console.log("usd+ delta: %s", delta);
+            emit SkimReward(pool, delta);
+        }
+        uint256 totalDelta = usdPlus.balanceOf(address(this)) - usdPlusBalanceBefore;
+        console.log("usd+ totalDelta: %s", totalDelta);
+        usdPlus.transfer(swapsicleDepositWallet, totalDelta);
+        console.log("usd+ balance after transfer: %s", usdPlus.balanceOf(address(this)));
+        emit TotalSkimReward(totalDelta);
     }
 
     function getAllQsSyncPools() external view returns (address[] memory) {
@@ -74,4 +151,5 @@ contract AvalanchePayoutListener is PayoutListener {
 
 interface QsSyncPool {
     function sync() external;
+    function skim(address to) external;
 }
