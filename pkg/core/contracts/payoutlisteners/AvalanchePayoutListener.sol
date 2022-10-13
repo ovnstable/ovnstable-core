@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../PayoutListener.sol";
 
-import "hardhat/console.sol";
 
 contract AvalanchePayoutListener is PayoutListener {
 
@@ -127,19 +126,13 @@ contract AvalanchePayoutListener is PayoutListener {
         uint256 usdPlusBalanceBefore = usdPlus.balanceOf(address(this));
         for (uint256 i = 0; i < swapsicleSkimPools.length; i++) {
             address pool = swapsicleSkimPools[i];
-            console.log("pool %s: %s", i, pool);
             uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-            console.log("usd+ balance before: %s", usdPlusBalance);
             QsSyncPool(pool).skim(address(this));
-            console.log("usd+ balance after: %s", usdPlus.balanceOf(address(this)));
             uint256 delta = usdPlus.balanceOf(address(this)) - usdPlusBalance;
-            console.log("usd+ delta: %s", delta);
             emit SkimReward(pool, delta);
         }
         uint256 totalDelta = usdPlus.balanceOf(address(this)) - usdPlusBalanceBefore;
-        console.log("usd+ totalDelta: %s", totalDelta);
         usdPlus.transfer(swapsicleDepositWallet, totalDelta);
-        console.log("usd+ balance after transfer: %s", usdPlus.balanceOf(address(this)));
         emit TotalSkimReward(totalDelta);
     }
 

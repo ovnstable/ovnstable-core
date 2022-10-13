@@ -7,9 +7,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const signers = await ethers.getSigners();
-    const account = signers[0];
-    await transferETH(1, account.address);
+//    const signers = await ethers.getSigners();
+//    const account = signers[0];
+//    await transferETH(1, account.address);
 
     const avalanchePL = await ethers.getContract("AvalanchePayoutListener");
     const usdPlus = await ethers.getContract("UsdPlusToken");
