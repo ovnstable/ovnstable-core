@@ -139,8 +139,12 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     expectedNetAsset = new BigNumber((await strategy.netAssetValue()).toString()).plus(VALUE);
                     expectedLiquidation = new BigNumber((await strategy.liquidationValue()).toString()).plus(VALUE);
 
-                    await asset.connect(recipient).transfer(strategy.address, assetValue);
-                    await strategy.connect(recipient).stake(asset.address, assetValue);
+                    let amount = toAsset(stakeValue / 2);
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    await strategy.connect(recipient).stake(asset.address, amount);
+
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    await strategy.connect(recipient).stake(asset.address, amount);
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
