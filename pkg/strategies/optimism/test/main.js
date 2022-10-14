@@ -4,6 +4,7 @@ const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 
 const ReaperSonneUsdc = require("./abi/reaper/ReaperSonneUsdc.json");
 const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
+const ReaperSonneUsdt = require("./abi/reaper/ReaperSonneUsdt.json");
 
 let id = process.env.TEST_STRATEGY;
 
@@ -56,6 +57,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true
     },
+    {
+        name: 'StrategyReaperSonneUsdt',
+        enabledReward: false,
+        isRunStrategyLogic: true
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -90,6 +96,20 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         const governance = await ethers.getSigner(governanceAddress);
         let reaperSonneDai = await ethers.getContractAt(ReaperSonneDai, "0x071A922d81d604617AD5276479146bF9d7105EFC");
         await reaperSonneDai.connect(governance).updateSecurityFee(0);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [governanceAddress],
+        });
+    } else if (strategyName == 'StrategyReaperSonneUsdt') {
+        let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
+        await transferETH(1, governanceAddress);
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [governanceAddress],
+        });
+        const governance = await ethers.getSigner(governanceAddress);
+        let reaperSonneUsdt = await ethers.getContractAt(ReaperSonneUsdt, "0xcF14ef7C69166847c71913dc449c3958F55998d7");
+        await reaperSonneUsdt.connect(governance).updateSecurityFee(0);
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",
             params: [governanceAddress],
