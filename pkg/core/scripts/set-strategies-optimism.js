@@ -9,7 +9,7 @@ async function main() {
             "strategy": "0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 2.5,
+            "targetWeight": 40.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -19,9 +19,9 @@ async function main() {
             "strategy": "0x9520aEF41161f09Dce78a8e79482b654d4FFe641",
             "name": "Pika USDC",
             "minWeight": 0,
-            "targetWeight": 38,
+            "targetWeight": 0,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
         {
@@ -70,7 +70,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 8,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
         {
@@ -79,7 +79,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 5.5,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
         {
@@ -88,7 +88,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 2,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         }
     ]
@@ -101,6 +101,10 @@ async function main() {
         await showM2M();
 
         weights = await convertWeights(weights);
+
+        let delay = 3600 * 1;
+        await ethers.provider.send("evm_increaseTime", [delay]);
+        await ethers.provider.send('evm_mine');
 
         await pm.connect(timelock).addStrategy('0x8855e27ABE0C121c5B9e1D1572B40cab184daf21');
         await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);

@@ -6,6 +6,8 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pika.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyPikaUsdc is Strategy {
 
     IERC20 public usdcToken;
@@ -110,18 +112,19 @@ contract StrategyPikaUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        PikaPerpV3.Stake memory stake = pika.getStake(address(this));
-        return uint256(stake.amount) / 1e2;
+        return _total();
     }
 
     function liquidationValue() external view override returns (uint256) {
+        return _total();
+    }
+
+    function _total() internal view returns (uint256){
         PikaPerpV3.Stake memory stake = pika.getStake(address(this));
-        uint256 amount = (uint256(stake.amount) / 1e2);
-        if (amount > 0) {
-            return amount - 1; // When unstake value Pika rounds sum to down => Always 20 000 000 > 19 999 999
-        } else {
-            return 0;
-        }
+        PikaPerpV3.Vault memory vault = pika.getVault();
+
+        uint256 amount = stake.shares * vault.balance / pika.getTotalShare();
+        return uint256(amount) / 1e2;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
