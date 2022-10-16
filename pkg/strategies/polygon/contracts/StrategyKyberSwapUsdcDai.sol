@@ -110,9 +110,9 @@ contract StrategyKyberSwapUsdcDai is Strategy {
 
         uint256 daiBalance = daiToken.balanceOf(address(this));
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-
-//        uint256 needDai = _getNeedToByDai(usdcBalance);
-        uint256 needDai = usdcBalance / 2;
+        (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
+        uint256 price = getPoolPrice(tickLower, tickUpper, sqrtP);
+        uint256 needDai = usdcBalance * price / (price + 10 ** 30);
 
         if(needDai > 0){
             SynapseLibrary.swap(
@@ -123,6 +123,36 @@ contract StrategyKyberSwapUsdcDai is Strategy {
             );
         }
 
+    }
+
+    function getPriceBySqrtRatio(uint160 sqrtRatio) public returns (uint256) {
+        uint256 price = FullMath.mulDiv(uint256(sqrtRatio) * 10**10, uint256(sqrtRatio) * 10**8, 2 ** (96+96));
+        // console.log("getPriceBySqrtRatio", price);
+        return price;
+    }
+
+    function getPriceByTick(int24 tick) public returns (uint256) {
+        uint160 sqrtRatio = TickMath.getSqrtRatioAtTick(tick);
+        uint256 price = FullMath.mulDiv(uint256(sqrtRatio) * 10**10, uint256(sqrtRatio) * 10**8, 2 ** (96+96));
+        // console.log("getPriceByTick", price);
+        return price;
+    }
+
+    function sqrt(uint256 x) internal pure returns (uint256 y) {
+        uint256 z = x / 2 + 1;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+    }
+
+    function getPoolPrice(int24 lowerTick, int24 upperTick, uint160 sqrtRatio) public returns (uint256) {
+        uint256 sa = sqrt(getPriceByTick(lowerTick));
+        uint256 sb = sqrt(getPriceByTick(upperTick));
+        uint256 sp = sqrt(getPriceBySqrtRatio(sqrtRatio));
+        uint256 result = (sp * sb * (sp - sa)) / (sb - sp);
+        return result;
     }
 
     function _addLiquidity() internal {
@@ -295,15 +325,7 @@ contract StrategyKyberSwapUsdcDai is Strategy {
         // 1. Withdraw liquidity and NFT from Gauge
         _withdrawFromGauge();
 
-        (uint160 sqrtP, , ,) = reinvestmentToken.getPoolState();
-
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-            sqrtP,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            amountUsdc,
-            amountDai
-        );
+        uint128 liquidity = uint128(_amount * 2 * 10 ** 10);
 
         // 2. Unstake All liquidity from Pool
         _removeLiquidity(uint256(liquidity));
@@ -352,6 +374,34 @@ contract StrategyKyberSwapUsdcDai is Strategy {
         return _totalValue(false);
     }
 
+    // function getAmount0Delta(
+    //     uint160 sqrtRatioAX96,
+    //     uint160 sqrtRatioBX96,
+    //     uint128 liquidity
+    // ) internal view returns (uint256 amount0) {
+    //     console.log("sqrtRatioAX96", sqrtRatioAX96);
+    //     console.log("sqrtRatioBX96", sqrtRatioBX96);
+    //     console.log("liquidity", liquidity);
+    //     if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+
+    //     uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
+    //     uint256 numerator2 = sqrtRatioBX96 - sqrtRatioAX96;
+
+    //     console.log("numerator1", numerator1);
+    //     console.log("numerator2", numerator2);
+
+    //     require(sqrtRatioAX96 > 0);
+
+    //     uint256 result = FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96);
+    //     console.log("result", result);
+
+    //     return
+    //         UnsafeMath.divRoundingUp(
+    //                 FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),
+    //                 sqrtRatioAX96
+    //             );
+    // }
+
     function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
         uint256 daiBalance = daiToken.balanceOf(address(this));
@@ -370,8 +420,8 @@ contract StrategyKyberSwapUsdcDai is Strategy {
             if (nav) {
                 usdcBalance += ChainlinkLibrary.convertTokenToToken(
                     daiBalance,
-                    18,
-                    6,
+                    10 ** 18,
+                    10 ** 6,
                     uint256(oracleDai.latestAnswer()),
                     uint256(oracleUsdc.latestAnswer())
                 );
