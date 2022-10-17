@@ -59,7 +59,7 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         {
             value: 200000,
             deltaPercent: 0.1,
-        },/*
+        },
         {
             value: 1000000,
             deltaPercent: 0.1,
@@ -67,7 +67,7 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         {
             value: 2000000,
             deltaPercent: 0.1,
-        },*/
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {

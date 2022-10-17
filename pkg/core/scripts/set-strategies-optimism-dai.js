@@ -8,7 +8,17 @@ async function main() {
             "strategy": "0x2E80122B1A095C25Aa5717B2bE8DC1eaFE9C8850",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 100,
+            "targetWeight": 2.5,
+            "maxWeight": 5,
+            "enabled": true,
+            "enabledReward": true
+        },
+
+        {
+            "strategy": "0x307418340F5991CD895CA0Fc4Eba04995e9BE861",
+            "name": "USD+",
+            "minWeight": 0,
+            "targetWeight": 97.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
