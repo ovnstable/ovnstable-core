@@ -62,6 +62,10 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true
     },
+    {
+        name: 'StrategyUsdPlusDai',
+        enabledReward: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
