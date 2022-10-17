@@ -499,21 +499,21 @@ async function showHedgeM2M() {
     let wallet = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken');
-    let ets = await getContract('Ets' + process.env.ETS);
+    let rebaseToken = await getContract('RebaseToken' + process.env.ETS);
     let strategy = await getContract('Strategy' + process.env.ETS);
 
     console.log('User balances:')
     let user = [];
-    user.push({name: 'Ets', value: fromE6(await ets.balanceOf(wallet.address))});
+    user.push({name: 'rebaseToken', value: fromE6(await rebaseToken.balanceOf(wallet.address))});
     user.push({name: 'usdPlus', value: fromE6(await usdPlus.balanceOf(wallet.address))});
 
     console.table(user);
 
     console.log('ETS balances:')
     let values = [];
-    values.push({name: 'Total Ets', value: fromE6(await ets.totalSupply())});
+    values.push({name: 'Total Ets', value: fromE6(await rebaseToken.totalSupply())});
     values.push({name: 'Total NAV', value: fromE6((await strategy.netAssetValue()).toString())});
-    values.push({name: 'Liq index', value: (await ets.liquidityIndex()).toString()});
+    values.push({name: 'Liq index', value: (await rebaseToken.liquidityIndex()).toString()});
     values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
 
     console.table(values)
@@ -679,6 +679,37 @@ async function transferWBTC(amount, to) {
     console.log('Balance WBTC: ' + await wbtc.balanceOf(to));
 }
 
+async function transferUSDC(amount, to) {
+
+
+    //work only for Polygon
+    // This address has USDC
+    let address = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
+
+    await transferETH(1, address);
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+
+    const account = await hre.ethers.getSigner(address);
+
+    let usdc = await getERC20('usdc');
+
+    await usdc.connect(account).transfer(to, await usdc.balanceOf(account.address));
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [account.address],
+    });
+
+
+    console.log('Balance USDC: ' + await usdc.balanceOf(to));
+}
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
@@ -690,6 +721,7 @@ module.exports = {
     transferWTC: transferWTC,
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,
+    transferUSDC: transferUSDC,
     showM2M: showM2M,
     showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,
