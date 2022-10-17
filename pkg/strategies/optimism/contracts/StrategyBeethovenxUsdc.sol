@@ -20,7 +20,7 @@ contract StrategyBeethovenxUsdc is Strategy {
     IVault public vault;
     bytes32 public aUsdcPoolId;
     bytes32 public stablePoolId;
-    IGauge public gauge;
+    IGaugeBeethoven public gauge;
 
     IPriceFeed public oracleDai;
     IPriceFeed public oracleUsdt;
@@ -79,7 +79,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         vault = IVault(params.vault);
         stablePoolId = params.stablePoolId;
         aUsdcPoolId = params.aUsdcPoolId;
-        gauge = IGauge(params.gauge);
+        gauge = IGaugeBeethoven(params.gauge);
 
         oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdt = IPriceFeed(params.oracleUsdt);

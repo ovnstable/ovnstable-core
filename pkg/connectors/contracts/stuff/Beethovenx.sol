@@ -807,7 +807,7 @@ interface BptToken is IERC20 {
 
 }
 
-interface IGauge {
+interface IGaugeBeethoven {
 
     function balanceOf(address account) view external returns (uint256);
 
