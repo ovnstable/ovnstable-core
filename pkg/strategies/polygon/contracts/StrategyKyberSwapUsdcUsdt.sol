@@ -361,21 +361,24 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
             usdcBalance += amount0;
             usdtBalance += amount1;
 
-            if (nav) {
-                usdcBalance += ChainlinkLibrary.convertTokenToToken(
-                    usdtBalance,
-                    6,
-                    6,
-                    uint256(oracleUsdt.latestAnswer()),
-                    uint256(oracleUsdc.latestAnswer())
-                );
-            } else {
-                usdcBalance += SynapseLibrary.calculateSwap(
-                    synapseSwapRouter,
-                    address(usdtToken),
-                    address(usdcToken),
-                    usdtBalance
-                );
+            if(usdtBalance > 0){
+
+                if (nav) {
+                    usdcBalance += ChainlinkLibrary.convertTokenToToken(
+                        usdtBalance,
+                        6,
+                        6,
+                        uint256(oracleUsdt.latestAnswer()),
+                        uint256(oracleUsdc.latestAnswer())
+                    );
+                } else {
+                    usdcBalance += SynapseLibrary.calculateSwap(
+                        synapseSwapRouter,
+                        address(usdtToken),
+                        address(usdcToken),
+                        usdtBalance
+                    );
+                }
             }
 
         }
