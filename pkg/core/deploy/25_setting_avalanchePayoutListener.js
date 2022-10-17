@@ -24,6 +24,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         "0x7B4BFbEed1DEBb17c612a343CE392A9aFa1B3F6A", //WAVAX/USD+
         "0x3e938F737696a0370bF01E8Cc30ed0e845cF78F2", //USDC/USD+
         "0x4464F197317C3b65F63CCfE21D6184E65ca88d52", //POPS/USD+
+        "0x3A05181Dec73D83Bb13ebA4F64293D14470d273d", //XRP/USD+
     ]
 
     await (await avalanchePL.setSwapsicleSkimPools(swapsicleSkimPools)).wait();
