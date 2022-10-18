@@ -6263,7 +6263,7 @@
             "label": "busdToken",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:32"
           },
@@ -6271,7 +6271,7 @@
             "label": "usdcToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:33"
           },
@@ -6279,7 +6279,7 @@
             "label": "usdtToken",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:34"
           },
@@ -6287,7 +6287,7 @@
             "label": "wBnbToken",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:35"
           },
@@ -6295,7 +6295,7 @@
             "label": "aeqToken",
             "offset": 0,
             "slot": "305",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:36"
           },
@@ -6303,7 +6303,7 @@
             "label": "lpToken",
             "offset": 0,
             "slot": "306",
-            "type": "t_contract(IERC20)2379",
+            "type": "t_contract(IERC20)1793",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:37"
           },
@@ -6311,7 +6311,7 @@
             "label": "vault",
             "offset": 0,
             "slot": "307",
-            "type": "t_contract(IVault)3643",
+            "type": "t_contract(IVault)2907",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:39"
           },
@@ -6319,7 +6319,7 @@
             "label": "gauge",
             "offset": 0,
             "slot": "308",
-            "type": "t_contract(IGauge)3664",
+            "type": "t_contract(IGauge)2928",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:40"
           },
@@ -6399,7 +6399,7 @@
             "label": "balancerMinter",
             "offset": 0,
             "slot": "318",
-            "type": "t_contract(IBalancerMinter)3749",
+            "type": "t_contract(IBalancerMinter)3013",
             "contract": "StrategyAequinoxBusdUsdcUsdt",
             "src": "contracts/busd/StrategyAequinoxBusdUsdcUsdt.sol:54"
           }
@@ -6425,19 +6425,19 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBalancerMinter)3749": {
+          "t_contract(IBalancerMinter)3013": {
             "label": "contract IBalancerMinter",
             "numberOfBytes": "20"
           },
-          "t_contract(IERC20)2379": {
+          "t_contract(IERC20)1793": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IGauge)3664": {
+          "t_contract(IGauge)2928": {
             "label": "contract IGauge",
             "numberOfBytes": "20"
           },
-          "t_contract(IVault)3643": {
+          "t_contract(IVault)2907": {
             "label": "contract IVault",
             "numberOfBytes": "20"
           },
