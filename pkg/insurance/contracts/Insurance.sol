@@ -10,8 +10,6 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IRebaseToken.sol";
 
-import "hardhat/console.sol";
-
 abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
 

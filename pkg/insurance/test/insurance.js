@@ -301,6 +301,7 @@ describe("Exchange", function () {
                 await mintSenior(400);
                 await mintJunior(10);
                 await asset.transfer(insurance.address, toE6(1));
+                await insurance.setAvgApy(7500000); // 7.5%
                 await insurance.payout();
             });
 
@@ -327,6 +328,7 @@ describe("Exchange", function () {
 
                 await mintSenior(400);
                 await mintJunior(10);
+                await insurance.setAvgApy(7500000); // 7.5%
                 await insurance.payout();
             });
 
@@ -363,6 +365,25 @@ describe("Exchange", function () {
 
                 await insurance.payout();
                 expect(400000000).to.equal(await insurance.totalSupply());
+            });
+
+        });
+
+        describe('Payout: AvgApy', function () {
+
+            it("avgApy is zero", async function () {
+                await mintSenior(400);
+                await mintJunior(10);
+                await insurance.setAvgApy(0);
+                await expectRevert(insurance.payout(), 'avgApy is zero');
+
+            });
+
+            it("dailyApy is zero", async function () {
+                await mintSenior(400);
+                await mintJunior(10);
+                await insurance.setAvgApy(10);
+                await expectRevert(insurance.payout(), 'dailyApy is zero');
             });
 
         });
