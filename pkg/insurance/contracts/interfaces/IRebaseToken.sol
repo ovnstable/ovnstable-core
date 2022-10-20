@@ -95,6 +95,8 @@ interface IRebaseToken {
 
     function ownerBalanceAt(uint256 index) external view returns (uint256);
 
+    function setLiquidityIndex(uint256 liquidityIndex) external;
+
     /**
    * @dev Returns the name of the token.
      */

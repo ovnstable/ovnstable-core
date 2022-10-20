@@ -7,6 +7,8 @@ const hre = require("hardhat");
 const fs = require("fs-extra")
 
 const { node_url, blockNumber } = require("../utils/network");
+const {ethers} = require("hardhat");
+const {transferETH} = require("./script-utils");
 
 function greatLess(value, expected, delta) {
     let maxValue = expected.plus(delta);
@@ -50,8 +52,15 @@ async function prepareArtifacts(){
     });
 }
 
+async function createRandomWallet(){
+    let wallet = ethers.Wallet.createRandom().connect(ethers.provider);
+    await transferETH(1, wallet.address);
+    return  wallet;
+}
+
 module.exports = {
     greatLess: greatLess,
     resetHardhat: resetHardhat,
     prepareArtifacts: prepareArtifacts,
+    createRandomWallet: createRandomWallet
 }

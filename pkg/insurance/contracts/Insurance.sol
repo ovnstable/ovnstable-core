@@ -6,9 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IRebaseToken.sol";
 
+import "hardhat/console.sol";
+
 abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+    using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
@@ -19,6 +24,18 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     uint256 public minJuniorWeight;
     uint256 public maxJuniorWeight;
 
+
+    enum TrancheType {SENIOR, JUNIOR}
+
+    struct InputMint {
+        uint256 amount;
+        TrancheType tranche;
+    }
+
+    struct InputRedeem {
+        uint256 amount;
+        TrancheType tranche;
+    }
 
     struct InsuranceParams {
         address senior;
@@ -73,53 +90,132 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     }
 
 
-    function totalSupply() public returns (uint256){
+    function totalSupply() public view returns (uint256){
         return senior.totalSupply() + junior.totalSupply();
     }
 
-    function mintSenior(uint256 _amount) external {
+    function mint(InputMint calldata input) external {
+        _mint(input.amount, input.tranche == TrancheType.JUNIOR);
+    }
+
+    function _mint(uint256 _amount, bool isJunior) internal {
         require(_amount > 0, "Amount of asset is zero");
+        require(asset.balanceOf(msg.sender) >= _amount, "Not enough tokens to mint");
 
-        uint256 currentBalance = asset.balanceOf(msg.sender);
-        require(currentBalance >= _amount, "Not enough tokens to buy");
-
-        uint256 seniorAmount;
-        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
-        uint256 seniorDecimals = senior.decimals();
-
-        if (assetDecimals > seniorDecimals) {
-            seniorAmount = _amount / (10 ** (assetDecimals - seniorDecimals));
-        } else {
-            seniorAmount = _amount * (10 ** (seniorDecimals - assetDecimals));
+        if(isJunior){
+            require(_amount <= maxMintJunior(), 'Max mint junior');
         }
 
-        require(seniorAmount > 0, "Amount of Senior is zero");
+        IRebaseToken token = isJunior ? junior : senior;
 
         asset.transferFrom(msg.sender, address(this), _amount);
+        uint256 minNavExpected = OvnMath.subBasisPoints(netAssetValue(), 4); //0.04%
         _deposit(_amount);
+        require(netAssetValue() >= minNavExpected, "NAV less than expected");
 
-        senior.mint(msg.sender, seniorAmount);
-    }
-
-    function redeemSenior(uint256 _amount) external {
-
-
-    }
-
-    function maxMintJunior() public returns (uint256){
-        return totalSupply() * maxJuniorWeight - junior.totalSupply();
-    }
-
-    function mintJunior(uint256 _amount) external {
+        uint256 trancheAmount = _assetToTrancheAmount(_amount, token);
+        require(trancheAmount > 0, "Amount of Senior is zero");
+        token.mint(msg.sender, trancheAmount);
 
     }
 
-    function redeemJunior(uint256 _amount) external {
+    // Convert Asset amount (e6 | e18) to (Senior|Junior) amount (e6)
+    function _assetToTrancheAmount(uint256 _amount, IRebaseToken token) internal returns (uint256) {
+        uint256 trancheDecimals = token.decimals();
+        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
+
+        uint256 trancheAmount;
+        if (assetDecimals > trancheDecimals) {
+            trancheAmount = _amount / (10 ** (assetDecimals - trancheDecimals));
+        } else {
+            trancheAmount = _amount * (10 ** (trancheDecimals - assetDecimals));
+        }
+        return trancheAmount;
 
     }
 
-    function maxRedeemJunior() public returns (uint256){
-        return junior.totalSupply() - (totalSupply() * maxJuniorWeight);
+    function redeem(InputRedeem calldata input) external {
+        _redeem(input.amount, input.tranche == TrancheType.JUNIOR);
+    }
+
+    function _redeem(uint256 _amount, bool isJunior) internal {
+        require(_amount > 0, "Amount of asset is zero");
+
+        if(isJunior){
+            require(_amount <= maxRedeemJunior(), 'Max redeem junior');
+        }
+
+        IRebaseToken token = isJunior ? junior : senior;
+
+        require(token.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        token.burn(msg.sender, _amount);
+
+        uint256 assetAmount = _trancheAmountToAsset(_amount, token);
+        require(assetAmount > 0, "Amount of asset is zero");
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(netAssetValue() - assetAmount, 4); //0.04%
+        _withdraw(assetAmount);
+        require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer" );
+        asset.transfer(msg.sender, assetAmount);
+        require(netAssetValue() >= minNavExpected, "NAV less than expected");
+    }
+
+    // Convert (Senior|Junior) amount (e6) to Asset amount (e6 | e18)
+    function _trancheAmountToAsset(uint256 _amount, IRebaseToken token) internal returns (uint256) {
+
+        uint256 trancheAmount;
+        uint256 assetDecimals = IERC20Metadata(address(asset)).decimals();
+        uint256 trancheDecimals = token.decimals();
+        if (assetDecimals > trancheDecimals) {
+            trancheAmount = _amount * (10 ** (assetDecimals - trancheDecimals));
+        } else {
+            trancheAmount = _amount / (10 ** (trancheDecimals - assetDecimals));
+        }
+        return trancheAmount;
+
+    }
+    function maxMintJunior() public view returns (uint256){
+
+        if(senior.totalSupply() == 0){
+            return 0;
+        }
+
+        uint256 temp = (totalSupply() * maxJuniorWeight / 100);
+        uint256 juniorSupply = junior.totalSupply();
+
+        if(temp > juniorSupply){
+            return temp - juniorSupply;
+        }else {
+            return 0;
+        }
+    }
+
+    function maxRedeemJunior() public view returns (uint256){
+
+        if(senior.totalSupply() == 0){
+            return junior.totalSupply();
+        }
+
+        uint256 temp = (totalSupply() * minJuniorWeight / 100);
+        uint256 juniorSupply = junior.totalSupply();
+
+        if(juniorSupply > temp){
+            return juniorSupply - temp;
+        }else {
+            return 0;
+        }
+    }
+
+
+    function getWeight() public view returns (uint256) {
+
+        uint256 juniorTotalSupply = junior.totalSupply();
+
+        if(juniorTotalSupply > 0){
+            return juniorTotalSupply / totalSupply();
+        }else {
+            return 0;
+        }
     }
 
     function _deposit(
@@ -134,7 +230,11 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         revert("Not implemented");
     }
 
-    function netAssetValue() public virtual returns (uint256){
+    function netAssetValue() public view virtual returns (uint256){
+        revert("Not implemented");
+    }
+
+    function getAvgApy() public view virtual returns (uint256) {
         revert("Not implemented");
     }
 
@@ -145,6 +245,29 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
 
     function _payout() internal {
 
+        if(senior.totalSupply() == 0 || junior.totalSupply() == 0){
+            return;
+        }
 
+        uint256 avgApy = getAvgApy();
+        require(avgApy != 0, 'avgApy is zero');
+        uint256 dailyApy =  avgApy / 365;
+        require(dailyApy != 0, 'dailyApy is zero');
+
+        uint256 seniorTotalNew = senior.totalSupply() + (senior.totalSupply() / 100 * dailyApy) / 1e6;
+
+        uint256 seniorIndexNew = seniorTotalNew.wadToRay() * 1e27 / senior.scaledTotalSupply();
+        senior.setLiquidityIndex(seniorIndexNew);
+        require(seniorTotalNew == senior.totalSupply(), 'senior.total not equal');
+
+        uint256 juniorTotalNew = netAssetValue() - seniorTotalNew;
+
+        uint256 juniorIndexNew = juniorTotalNew.wadToRay() * 1e27 / junior.scaledTotalSupply();
+        junior.setLiquidityIndex(juniorIndexNew);
+        require(juniorTotalNew == junior.totalSupply(), 'junior.total not equal');
+
+        require(netAssetValue() == totalSupply(), 'nav not equal total');
     }
+
+    uint256[50] private __gap;
 }
