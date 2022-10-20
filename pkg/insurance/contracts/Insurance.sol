@@ -22,6 +22,9 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     uint256 public minJuniorWeight;
     uint256 public maxJuniorWeight;
 
+    // last block number when buy/redeem was executed
+    uint256 public lastBlockNumber;
+
 
     enum TrancheType {SENIOR, JUNIOR}
 
@@ -76,6 +79,12 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         _;
     }
 
+    modifier oncePerBlock() {
+        require(lastBlockNumber < block.number, "Only once in block");
+        lastBlockNumber = block.number;
+        _;
+    }
+
     function setParams(InsuranceParams calldata params) external onlyAdmin {
         senior = IRebaseToken(params.senior);
         junior = IRebaseToken(params.junior);
@@ -92,7 +101,7 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         return senior.totalSupply() + junior.totalSupply();
     }
 
-    function mint(InputMint calldata input) external {
+    function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
         _mint(input.amount, input.tranche == TrancheType.JUNIOR);
     }
 
@@ -132,7 +141,7 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
 
     }
 
-    function redeem(InputRedeem calldata input) external {
+    function redeem(InputRedeem calldata input) external whenNotPaused oncePerBlock {
         _redeem(input.amount, input.tranche == TrancheType.JUNIOR);
     }
 
@@ -237,7 +246,7 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     }
 
 
-    function payout() public whenNotPaused {
+    function payout() public whenNotPaused oncePerBlock onlyAdmin {
         _payout();
     }
 
