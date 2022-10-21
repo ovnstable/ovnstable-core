@@ -257,6 +257,7 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         }
 
         uint256 avgApy = getAvgApy();
+        //TODO add check MAX_APY and MIN_APY
         require(avgApy != 0, 'avgApy is zero');
         uint256 dailyApy =  avgApy / 365;
         require(dailyApy != 0, 'dailyApy is zero');
