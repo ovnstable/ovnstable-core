@@ -25,6 +25,8 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
+    uint256 public maxAvgApyAbroad;
+    uint256 public minAvgApyAbroad;
 
     enum TrancheType {SENIOR, JUNIOR}
 
@@ -44,6 +46,9 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         address asset;
     }
 
+    event Payout();
+    event MintBurn(string label, uint256 amount, uint256 fee, address sender);
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -58,9 +63,13 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
 
         // 10%
         minJuniorWeight = 10;
-
         // 30%
         maxJuniorWeight = 30;
+
+        // 3.5%
+        minAvgApyAbroad = 3500000;
+        // 45%
+        maxAvgApyAbroad = 45000000;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -86,6 +95,10 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     }
 
     function setParams(InsuranceParams calldata params) external onlyAdmin {
+        require(params.junior != address(0), 'junior zero');
+        require(params.senior != address(0), 'senior zero');
+        require(params.asset != address(0), 'asset zero');
+
         senior = IRebaseToken(params.senior);
         junior = IRebaseToken(params.junior);
         asset = IERC20(params.asset);
@@ -94,6 +107,11 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     function setWeights(uint256 _minJuniorWeight, uint256 _maxJuniorWeight) external onlyPortfolioAgent {
         minJuniorWeight = _minJuniorWeight;
         maxJuniorWeight = _maxJuniorWeight;
+    }
+
+    function setAvgApyAbroad(uint256 _minAvgApyAbroad, uint256 _maxAvgApyAbroad) external onlyAdmin {
+        minAvgApyAbroad = _minAvgApyAbroad;
+        maxAvgApyAbroad = _maxAvgApyAbroad;
     }
 
 
@@ -124,6 +142,7 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         require(trancheAmount > 0, "Amount of Senior is zero");
         token.mint(msg.sender, trancheAmount);
 
+        emit MintBurn(isJunior ? 'mint:junior' : 'mint:senior', trancheAmount, 0, msg.sender);
     }
 
     // Convert Asset amount (e6 | e18) to (Senior|Junior) amount (e6)
@@ -165,6 +184,8 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer" );
         asset.transfer(msg.sender, assetAmount);
         require(netAssetValue() >= minNavExpected, "NAV less than expected");
+
+        emit MintBurn(isJunior ? 'redeem:junior' : 'redeem:senior', _amount, 0, msg.sender);
     }
 
     // Convert (Senior|Junior) amount (e6) to Asset amount (e6 | e18)
@@ -246,19 +267,18 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
     }
 
 
-    function payout() public whenNotPaused oncePerBlock onlyAdmin {
-        _payout();
+    function payout(uint256 avgApy) public whenNotPaused oncePerBlock onlyAdmin {
+        _payout(avgApy);
     }
 
-    function _payout() internal {
+    function _payout(uint256 avgApy) internal {
 
         if(senior.totalSupply() == 0 || junior.totalSupply() == 0){
             return;
         }
 
-        uint256 avgApy = getAvgApy();
-        //TODO add check MAX_APY and MIN_APY
-        require(avgApy != 0, 'avgApy is zero');
+//        uint256 avgApy = getAvgApy();
+        require(avgApy >= minAvgApyAbroad && maxAvgApyAbroad >= avgApy, 'avgApy abroad');
         uint256 dailyApy =  avgApy / 365;
         require(dailyApy != 0, 'dailyApy is zero');
 
@@ -275,6 +295,8 @@ abstract contract Insurance is Initializable, AccessControlUpgradeable, UUPSUpgr
         require(juniorTotalNew == junior.totalSupply(), 'junior.total not equal');
 
         require(netAssetValue() == totalSupply(), 'nav not equal total');
+
+        emit Payout();
     }
 
     uint256[50] private __gap;

@@ -301,8 +301,8 @@ describe("Exchange", function () {
                 await mintSenior(400);
                 await mintJunior(10);
                 await asset.transfer(insurance.address, toE6(1));
-                await insurance.setAvgApy(7500000); // 7.5%
-                await insurance.payout();
+                // await insurance.setAvgApy(7500000); // 7.5%
+                await insurance.payout(7500000);
             });
 
             it("Junior: equal", async function () {
@@ -328,8 +328,8 @@ describe("Exchange", function () {
 
                 await mintSenior(400);
                 await mintJunior(10);
-                await insurance.setAvgApy(7500000); // 7.5%
-                await insurance.payout();
+                // await insurance.setAvgApy(7500000); // 7.5%
+                await insurance.payout(7500000);
             });
 
             it("Junior: equal", async function () {
@@ -356,14 +356,14 @@ describe("Exchange", function () {
                 await mintJunior(10);
                 await redeemSenior(400);
 
-                await insurance.payout();
+                await insurance.payout(0);
                 expect(10000000).to.equal(await insurance.totalSupply());
             });
 
             it("Junior: totalSupply is zero", async function () {
                 await mintSenior(400);
 
-                await insurance.payout();
+                await insurance.payout(0);
                 expect(400000000).to.equal(await insurance.totalSupply());
             });
 
@@ -371,19 +371,18 @@ describe("Exchange", function () {
 
         describe('Payout: AvgApy', function () {
 
-            it("avgApy is zero", async function () {
+            it("avgApy abroad:min", async function () {
                 await mintSenior(400);
                 await mintJunior(10);
-                await insurance.setAvgApy(0);
-                await expectRevert(insurance.payout(), 'avgApy is zero');
+                await expectRevert(insurance.payout(10), 'avgApy abroad');
 
             });
 
-            it("dailyApy is zero", async function () {
+            it("avgApy abroad:max", async function () {
                 await mintSenior(400);
                 await mintJunior(10);
-                await insurance.setAvgApy(10);
-                await expectRevert(insurance.payout(), 'dailyApy is zero');
+                await expectRevert(insurance.payout(45000001), 'avgApy abroad');
+
             });
 
         });
