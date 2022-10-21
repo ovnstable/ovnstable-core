@@ -10,7 +10,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 
 import "../PayoutListener.sol";
 
-import "hardhat/console.sol";
 
 contract PolygonPayoutListener is PayoutListener {
 
@@ -169,28 +168,18 @@ contract PolygonPayoutListener is PayoutListener {
     }
 
     function _sushiSkim(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) internal {
-        console.log("oldLiquidityIndex: %s", oldLiquidityIndex);
-        console.log("newLiquidityIndex: %s", newLiquidityIndex);
         for (uint256 i = 0; i < sushiSkimPools.length; i++) {
             address pool = sushiSkimPools[i];
-            console.log("pool: %s", pool);
             uint256 usdPlusPoolBalance = sushiBentoBox.balanceOf(usdPlus, pool);
-            console.log("usdPlusPoolBalance before: %s", usdPlusPoolBalance);
             if (newLiquidityIndex > oldLiquidityIndex) {
                 uint256 deltaShares = usdPlusPoolBalance * (newLiquidityIndex - oldLiquidityIndex) / oldLiquidityIndex;
-                console.log("deltaShares: %s", deltaShares);
                 sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
                 uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
-                console.log("deltaAmount: %s", deltaAmount);
-                console.log("usdPlusPoolBalance after deposit: %s", sushiBentoBox.balanceOf(usdPlus, pool));
                 emit SushiSkimReward(pool, deltaAmount, true);
             } else {
                 uint256 deltaShares = usdPlusPoolBalance * (oldLiquidityIndex - newLiquidityIndex) / oldLiquidityIndex;
-                console.log("deltaShares: %s", deltaShares);
                 sushiBentoBox.withdraw(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
                 uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
-                console.log("deltaAmount: %s", deltaAmount);
-                console.log("usdPlusPoolBalance after withdraw: %s", sushiBentoBox.balanceOf(usdPlus, pool));
                 emit SushiSkimReward(pool, deltaAmount, false);
             }
         }
