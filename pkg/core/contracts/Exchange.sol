@@ -426,7 +426,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // notify listener about payout done
         if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone();
+            payoutListener.payoutDone(currentLiquidityIndex, newLiquidityIndex);
         }
 
         emit PayoutEvent(

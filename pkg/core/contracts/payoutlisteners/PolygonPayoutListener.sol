@@ -10,6 +10,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 
 import "../PayoutListener.sol";
 
+import "hardhat/console.sol";
 
 contract PolygonPayoutListener is PayoutListener {
 
@@ -22,9 +23,16 @@ contract PolygonPayoutListener is PayoutListener {
     IERC20 public wmatic;
     IDystopiaRouter public dystRouter;
 
+    address[] public sushiSkimPools;
+    IBentoBoxV1 public sushiBentoBox;
+
     // ---  events
 
+    event SushiSkimPoolsUpdated(address[] pool);
+    event SushiBentoBoxUpdated(address wallet);
+
     event SkimReward(address pool, uint256 amount);
+    event SushiSkimReward(address pool, uint256 amount, bool isDeposit);
 
     // --- setters
 
@@ -53,6 +61,17 @@ contract PolygonPayoutListener is PayoutListener {
         qsSyncPools = _pools;
     }
 
+    function setSushiSkimPools(address[] calldata _pools) external onlyAdmin {
+        sushiSkimPools = _pools;
+        emit SushiSkimPoolsUpdated(_pools);
+    }
+
+    function setSushiBentoBox(address _sushiBentoBox) external onlyAdmin {
+        require(_sushiBentoBox != address(0), "Zero address not allowed");
+        sushiBentoBox = IBentoBoxV1(_sushiBentoBox);
+        emit SushiBentoBoxUpdated(_sushiBentoBox);
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -64,9 +83,10 @@ contract PolygonPayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone() external override onlyExchanger {
+    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override onlyExchanger {
         _sync();
         _skim();
+        _sushiSkim(oldLiquidityIndex, newLiquidityIndex);
     }
 
 
@@ -147,6 +167,34 @@ contract PolygonPayoutListener is PayoutListener {
             }
         }
     }
+
+    function _sushiSkim(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) internal {
+        console.log("oldLiquidityIndex: %s", oldLiquidityIndex);
+        console.log("newLiquidityIndex: %s", newLiquidityIndex);
+        for (uint256 i = 0; i < sushiSkimPools.length; i++) {
+            address pool = sushiSkimPools[i];
+            console.log("pool: %s", pool);
+            uint256 usdPlusPoolBalance = sushiBentoBox.balanceOf(usdPlus, pool);
+            console.log("usdPlusPoolBalance before: %s", usdPlusPoolBalance);
+            if (newLiquidityIndex > oldLiquidityIndex) {
+                uint256 deltaShares = usdPlusPoolBalance * (newLiquidityIndex - oldLiquidityIndex) / oldLiquidityIndex;
+                console.log("deltaShares: %s", deltaShares);
+                sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
+                uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
+                console.log("deltaAmount: %s", deltaAmount);
+                console.log("usdPlusPoolBalance after deposit: %s", sushiBentoBox.balanceOf(usdPlus, pool));
+                emit SushiSkimReward(pool, deltaAmount, true);
+            } else {
+                uint256 deltaShares = usdPlusPoolBalance * (oldLiquidityIndex - newLiquidityIndex) / oldLiquidityIndex;
+                console.log("deltaShares: %s", deltaShares);
+                sushiBentoBox.withdraw(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
+                uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
+                console.log("deltaAmount: %s", deltaAmount);
+                console.log("usdPlusPoolBalance after withdraw: %s", sushiBentoBox.balanceOf(usdPlus, pool));
+                emit SushiSkimReward(pool, deltaAmount, false);
+            }
+        }
+    }
 }
 
 
@@ -158,4 +206,16 @@ interface Bribe {
 interface Pool {
     function sync() external;
     function skim(address to) external;
+}
+
+interface IBentoBoxV1 {
+    function balanceOf(IERC20, address) external view returns (uint256);
+    function deposit(IERC20 token_, address from, address to, uint256 amount, uint256 share) external payable returns (uint256 amountOut, uint256 shareOut);
+    function harvest(IERC20 token, bool balance, uint256 maxChangeAmount) external;
+    function strategyData(IERC20) external view returns (uint64 strategyStartDate, uint64 targetPercentage, uint128 balance);
+    function toAmount(IERC20 token, uint256 share, bool roundUp) external view returns (uint256 amount);
+    function toShare(IERC20 token, uint256 amount, bool roundUp) external view returns (uint256 share);
+    function transfer(IERC20 token, address from, address to, uint256 share) external;
+    function transferMultiple(IERC20 token, address from, address[] calldata tos, uint256[] calldata shares) external;
+    function withdraw(IERC20 token_, address from, address to, uint256 amount, uint256 share) external returns (uint256 amountOut, uint256 shareOut);
 }

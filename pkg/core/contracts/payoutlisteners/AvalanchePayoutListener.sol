@@ -89,7 +89,7 @@ contract AvalanchePayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone() external override onlyExchanger {
+    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override onlyExchanger {
         _sync();
         _skim();
     }
