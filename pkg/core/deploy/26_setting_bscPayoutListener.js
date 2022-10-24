@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+let {BSC, COMMON} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -21,6 +21,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     ]
 
     await (await pl.setQsSyncPools(pools)).wait();
+
+    let pancakeSkimPools = [
+        "0x2BD37f67EF2894024D3ee52b20A6cB87d71B2933",  // USD+/BUSD
+    ]
+
+    await (await pl.setPancakeSkimPools(pancakeSkimPools)).wait();
+
+    await (await pl.setPancakeDepositWallet(COMMON.rewardWallet)).wait();
+
+    await (await pl.setUsdPlus(BSC.usdPlus)).wait();
 
     console.log('BscPayoutListener done');
 
