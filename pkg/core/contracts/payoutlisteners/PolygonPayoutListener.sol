@@ -82,10 +82,10 @@ contract PolygonPayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override onlyExchanger {
+    function payoutDone() external override onlyExchanger {
         _sync();
         _skim();
-        _sushiSkim(oldLiquidityIndex, newLiquidityIndex);
+        _sushiSkim();
     }
 
 
