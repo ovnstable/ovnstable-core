@@ -211,13 +211,14 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
     function _withdrawFromGauge() internal {
 
-        (uint256 liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
+//        (uint256 liquidity ,,) = elasticLM.getUserInfo(tokenId, pid);
+        (IBasePositionManager.Position memory pos,) = basePositionManager.positions(tokenId);
 
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
         uint256[] memory liqs = new uint256[](1);
-        liqs[0] = liquidity;
-        elasticLM.exit(pid, nftIds, liqs);
+        liqs[0] = pos.liquidity;
+//        elasticLM.exit(pid, nftIds, liqs);
         elasticLM.withdraw(nftIds);
     }
 
@@ -391,15 +392,16 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         // claim rewards
 
         if (tokenId > 0) {
-            uint256[] memory nftIds = new uint256[](1);
-            nftIds[0] = tokenId;
-
-            uint256[] memory pIds = new uint256[](1);
-            pIds[0] = pid;
-
-            bytes[] memory datas = new bytes[](1);
-            datas[0] = abi.encode(IKyberSwapElasticLM.HarvestData(pIds));
-            elasticLM.harvestMultiplePools(nftIds, datas);
+            // TODO Disable - harvest throw error: not joined yet
+//            uint256[] memory nftIds = new uint256[](1);
+//            nftIds[0] = tokenId;
+//
+//            uint256[] memory pIds = new uint256[](1);
+//            pIds[0] = pid;
+//
+//            bytes[] memory datas = new bytes[](1);
+//            datas[0] = abi.encode(IKyberSwapElasticLM.HarvestData(pIds));
+//            elasticLM.harvestMultiplePools(nftIds, datas);
         }
 
         // sell rewards
