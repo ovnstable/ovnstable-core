@@ -22,16 +22,15 @@ contract PolygonPayoutListener is PayoutListener {
     IERC20 public wmatic;
     IDystopiaRouter public dystRouter;
 
-    address[] public sushiSkimPools;
     IBentoBoxV1 public sushiBentoBox;
+    address public sushiWallet;
 
     // ---  events
 
-    event SushiSkimPoolsUpdated(address[] pool);
-    event SushiBentoBoxUpdated(address wallet);
-
     event SkimReward(address pool, uint256 amount);
-    event SushiSkimReward(address pool, uint256 amount, bool isDeposit);
+    event SushiSkimReward(uint256 amount);
+    event SushiBentoBoxUpdated(address sushiBentoBox);
+    event SushiWalletUpdated(address sushiWallet);
 
     // --- setters
 
@@ -60,15 +59,16 @@ contract PolygonPayoutListener is PayoutListener {
         qsSyncPools = _pools;
     }
 
-    function setSushiSkimPools(address[] calldata _pools) external onlyAdmin {
-        sushiSkimPools = _pools;
-        emit SushiSkimPoolsUpdated(_pools);
-    }
-
     function setSushiBentoBox(address _sushiBentoBox) external onlyAdmin {
         require(_sushiBentoBox != address(0), "Zero address not allowed");
         sushiBentoBox = IBentoBoxV1(_sushiBentoBox);
         emit SushiBentoBoxUpdated(_sushiBentoBox);
+    }
+
+    function setSushiWallet(address _sushiWallet) external onlyAdmin {
+        require(_sushiWallet != address(0), "Zero address not allowed");
+        sushiWallet = _sushiWallet;
+        emit SushiWalletUpdated(_sushiWallet);
     }
 
     // ---  constructor
@@ -168,21 +168,10 @@ contract PolygonPayoutListener is PayoutListener {
     }
 
     function _sushiSkim(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) internal {
-        for (uint256 i = 0; i < sushiSkimPools.length; i++) {
-            address pool = sushiSkimPools[i];
-            uint256 usdPlusPoolBalance = sushiBentoBox.balanceOf(usdPlus, pool);
-            if (newLiquidityIndex > oldLiquidityIndex) {
-                uint256 deltaShares = usdPlusPoolBalance * (newLiquidityIndex - oldLiquidityIndex) / oldLiquidityIndex;
-                sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
-                uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
-                emit SushiSkimReward(pool, deltaAmount, true);
-            } else {
-                uint256 deltaShares = usdPlusPoolBalance * (oldLiquidityIndex - newLiquidityIndex) / oldLiquidityIndex;
-                sushiBentoBox.withdraw(usdPlus, address(sushiBentoBox), pool, 0, deltaShares);
-                uint256 deltaAmount = sushiBentoBox.toAmount(usdPlus, deltaShares, false);
-                emit SushiSkimReward(pool, deltaAmount, false);
-            }
-        }
+        uint256 usdPlusBalance = usdPlus.balanceOf(address(sushiBentoBox));
+        uint256 deltaAmount = usdPlusBalance * (newLiquidityIndex - oldLiquidityIndex) / oldLiquidityIndex;
+        sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), sushiWallet, deltaAmount, 0);
+        emit SushiSkimReward(deltaAmount);
     }
 }
 
