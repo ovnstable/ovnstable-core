@@ -87,7 +87,7 @@ contract StrategyUsdPlusDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             daiBalance,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), 20) // slippage 0.2%
+            0
         );
 
         // mint usdPlus
@@ -133,7 +133,7 @@ contract StrategyUsdPlusDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             usdcBalance,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), 20) // slippage 0.2%
+            0
         );
 
         return daiToken.balanceOf(address(this));
@@ -164,7 +164,7 @@ contract StrategyUsdPlusDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             usdcBalance,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), 20) // slippage 0.2%
+            0
         );
 
         return daiToken.balanceOf(address(this));
