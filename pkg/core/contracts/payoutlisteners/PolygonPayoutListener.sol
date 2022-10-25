@@ -169,9 +169,12 @@ contract PolygonPayoutListener is PayoutListener {
 
     function _sushiSkim(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) internal {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(sushiBentoBox));
-        uint256 deltaAmount = usdPlusBalance * (newLiquidityIndex - oldLiquidityIndex) / oldLiquidityIndex;
-        sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), sushiWallet, deltaAmount, 0);
-        emit SushiSkimReward(deltaAmount);
+        uint256 usdPlusBalanceInPool = uint256(sushiBentoBox.totals(usdPlus).elastic);
+        if (usdPlusBalance > usdPlusBalanceInPool) {
+            uint256 deltaAmount = usdPlusBalance - usdPlusBalanceInPool;
+            sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), sushiWallet, deltaAmount, 0);
+            emit SushiSkimReward(deltaAmount);
+        }
     }
 }
 
@@ -187,6 +190,11 @@ interface Pool {
 }
 
 interface IBentoBoxV1 {
+    struct Rebase {
+        uint128 elastic;
+        uint128 base;
+    }
+    function totals(IERC20) external view returns (Rebase calldata);
     function balanceOf(IERC20, address) external view returns (uint256);
     function deposit(IERC20 token_, address from, address to, uint256 amount, uint256 share) external payable returns (uint256 amountOut, uint256 shareOut);
     function harvest(IERC20 token, bool balance, uint256 maxChangeAmount) external;
