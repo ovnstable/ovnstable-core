@@ -60,7 +60,7 @@ contract BscPayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override onlyExchanger {
+    function payoutDone() external override onlyExchanger {
         for (uint256 i = 0; i < qsSyncPools.length; i++) {
             QsSyncPool(qsSyncPools[i]).sync();
         }

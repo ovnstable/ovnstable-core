@@ -48,7 +48,7 @@ describe("PolygonPayoutListener", function () {
         expect(await pl.getAllQsSyncPools()).to.empty;
 
         // just no errors on call
-        await pl.payoutDone(0, 0);
+        await pl.payoutDone();
     });
 
 

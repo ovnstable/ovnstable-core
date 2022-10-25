@@ -167,7 +167,7 @@ contract PolygonPayoutListener is PayoutListener {
         }
     }
 
-    function _sushiSkim(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) internal {
+    function _sushiSkim() internal {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(sushiBentoBox));
         uint256 usdPlusBalanceInPool = uint256(sushiBentoBox.totals(usdPlus).elastic);
         if (usdPlusBalance > usdPlusBalanceInPool) {

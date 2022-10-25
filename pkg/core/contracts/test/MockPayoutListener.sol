@@ -8,7 +8,7 @@ contract MockPayoutListener is IPayoutListener {
 
     // --- logic
 
-    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override {
+    function payoutDone() external override {
         // need just detect that method was called and could be
         // made by revert usage in tests
         revert("MockPayoutListener.payoutDone() called");

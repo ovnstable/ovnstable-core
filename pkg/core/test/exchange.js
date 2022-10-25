@@ -39,7 +39,7 @@ describe("Exchange", function () {
 
         rewardWallet = provider.createEmptyWallet();
         let payoutListener = await deployMockContract(mockDeployer, await getAbi('IPayoutListener'));
-        await payoutListener.mock.payoutDone(0, 0).returns();
+        await payoutListener.mock.payoutDone.returns();
 
         await deployments.fixture(['setting', 'base', 'test', 'MockStrategies', 'ExchangeMultiCallWrapper']);
 
@@ -488,7 +488,7 @@ describe("Exchange", function () {
             const updatedEvent = receipt.events.find((e) => e.event === 'PayoutListenerUpdated');
             expect(updatedEvent.args[0]).to.equals(mockPL.address);
 
-            await expectRevert(mockPL.payoutDone(0, 0), 'MockPayoutListener.payoutDone() called');
+            await expectRevert(mockPL.payoutDone(), 'MockPayoutListener.payoutDone() called');
             await expectRevert(exchange.payout(), 'MockPayoutListener.payout() called');
         });
 

@@ -38,7 +38,7 @@ contract OptimismPayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone(uint256 oldLiquidityIndex, uint256 newLiquidityIndex) external override onlyExchanger {
+    function payoutDone() external override onlyExchanger {
         for (uint256 i = 0; i < velodromePools.length; i++) {
 
             VelodromePool(velodromePools[i]).skim(address(this));
