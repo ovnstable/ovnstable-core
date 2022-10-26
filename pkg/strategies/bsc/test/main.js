@@ -82,11 +82,11 @@ let arrays = [
         enabledReward: true,
     },
     {
-        name: 'StrategyWombexBusdUsdc',
+        name: 'StrategyWombexUsdc',
         enabledReward: true,
     },
     {
-        name: 'StrategyWombexBusdUsdt',
+        name: 'StrategyWombexUsdt',
         enabledReward: true,
     },
 ];

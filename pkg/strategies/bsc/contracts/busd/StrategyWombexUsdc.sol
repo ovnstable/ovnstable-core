@@ -8,7 +8,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import {IWombatRouter, WombatLibrary} from '@overnight-contracts/connectors/contracts/stuff/Wombat.sol';
 
 
-contract StrategyWombexBusdUsdc is Strategy {
+contract StrategyWombexUsdc is Strategy {
 
     // --- structs
 
