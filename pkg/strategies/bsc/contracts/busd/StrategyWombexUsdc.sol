@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -13,23 +14,25 @@ contract StrategyWombexUsdc is Strategy {
     // --- structs
 
     struct StrategyParams {
-        address busdToken;
-        address usdcToken;
-        address womToken;
-        address wmxToken;
+        address busd;
+        address usdc;
+        address wom;
+        address wmx;
         address lpUsdc;
         address wmxLpUsdc;
         address poolDepositor;
         address pancakeRouter;
         address wombatRouter;
+        address oracleBusd;
+        address oracleUsdc;
     }
 
     // --- params
 
-    IERC20 public busdToken;
-    IERC20 public usdcToken;
-    IERC20 public womToken;
-    IERC20 public wmxToken;
+    IERC20 public busd;
+    IERC20 public usdc;
+    IERC20 public wom;
+    IERC20 public wmx;
 
     IAsset public lpUsdc;
     IBaseRewardPool public wmxLpUsdc;
@@ -39,7 +42,12 @@ contract StrategyWombexUsdc is Strategy {
     IPancakeRouter02 public pancakeRouter;
     IWombatRouter public wombatRouter;
 
-    uint256 public lpUsdcTokenDenominator;
+    IPriceFeed public oracleBusd;
+    IPriceFeed public oracleUsdc;
+
+    uint256 public busdDm;
+    uint256 public usdcDm;
+    uint256 public lpUsdcDm;
 
     // --- events
 
@@ -57,10 +65,10 @@ contract StrategyWombexUsdc is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        busdToken = IERC20(params.busdToken);
-        usdcToken = IERC20(params.usdcToken);
-        womToken = IERC20(params.womToken);
-        wmxToken = IERC20(params.wmxToken);
+        busd = IERC20(params.busd);
+        usdc = IERC20(params.usdc);
+        wom = IERC20(params.wom);
+        wmx = IERC20(params.wmx);
 
         lpUsdc = IAsset(params.lpUsdc);
         wmxLpUsdc = IBaseRewardPool(params.wmxLpUsdc);
@@ -70,9 +78,14 @@ contract StrategyWombexUsdc is Strategy {
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);
         wombatRouter = IWombatRouter(params.wombatRouter);
 
-        lpUsdcTokenDenominator = 10 ** IERC20Metadata(params.lpUsdc).decimals();
+        oracleBusd = IPriceFeed(params.oracleBusd);
+        oracleUsdc = IPriceFeed(params.oracleUsdc);
 
-        usdcToken.approve(address(poolDepositor), type(uint256).max);
+        busdDm = 10 ** IERC20Metadata(params.busd).decimals();
+        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
+        lpUsdcDm = 10 ** IERC20Metadata(params.lpUsdc).decimals();
+
+        usdc.approve(address(poolDepositor), type(uint256).max);
         wmxLpUsdc.approve(address(poolDepositor), type(uint256).max);
 
         emit StrategyUpdatedParams();
@@ -85,22 +98,22 @@ contract StrategyWombexUsdc is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(busd), "Some  not compatible");
 
         // swap busd to usdc
-        uint256 busdBalance = busdToken.balanceOf(address(this));
+        uint256 busdBalance = busd.balanceOf(address(this));
         uint256 usdcBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(busdToken),
-            address(usdcToken),
+            address(busd),
+            address(usdc),
             address(pool),
             busdBalance
         );
         if (usdcBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
-                address(busdToken),
-                address(usdcToken),
+                address(busd),
+                address(usdc),
                 address(pool),
                 busdBalance,
                 OvnMath.subBasisPoints(usdcBalanceOut, 4),
@@ -108,8 +121,8 @@ contract StrategyWombexUsdc is Strategy {
             );
         }
 
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        (uint256 lpUsdcAmount,) = pool.quotePotentialDeposit(address(usdcToken), usdcBalance);
+        uint256 usdcBalance = usdc.balanceOf(address(this));
+        (uint256 lpUsdcAmount,) = pool.quotePotentialDeposit(address(usdc), usdcBalance);
         poolDepositor.deposit(address(lpUsdc), usdcBalance, OvnMath.subBasisPoints(lpUsdcAmount, 1), true);
     }
 
@@ -119,39 +132,39 @@ contract StrategyWombexUsdc is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(busd), "Some  not compatible");
 
         // calculate swap _amount usdc to busd
         uint256 busdAmountForUsdcAmount = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(usdcToken),
-            address(busdToken),
+            address(usdc),
+            address(busd),
             address(pool),
             _amount
         );
         // get usdcAmount for _amount in busd
         uint256 usdcAmount = _amount * _amount / busdAmountForUsdcAmount;
         // get amount to unstake
-        (uint256 usdcAmountOneAsset,) = pool.quotePotentialWithdraw(address(usdcToken), lpUsdcTokenDenominator);
+        (uint256 usdcAmountOneAsset,) = pool.quotePotentialWithdraw(address(usdc), lpUsdcDm);
         // add 1bp for smooth withdraw
-        uint256 lpUsdcAmount = OvnMath.addBasisPoints(usdcAmount, 1) * lpUsdcTokenDenominator / usdcAmountOneAsset;
+        uint256 lpUsdcAmount = OvnMath.addBasisPoints(usdcAmount, 1) * lpUsdcDm / usdcAmountOneAsset;
 
         poolDepositor.withdraw(address(lpUsdc), lpUsdcAmount, _amount);
 
         // swap usdc to busd
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 busdBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(usdcToken),
-            address(busdToken),
+            address(usdc),
+            address(busd),
             address(pool),
             usdcBalance
         );
         if (busdBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
-                address(usdcToken),
-                address(busdToken),
+                address(usdc),
+                address(busd),
                 address(pool),
                 usdcBalance,
                 OvnMath.subBasisPoints(busdBalanceOut, 4),
@@ -159,7 +172,7 @@ contract StrategyWombexUsdc is Strategy {
             );
         }
 
-        return busdToken.balanceOf(address(this));
+        return busd.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -167,28 +180,28 @@ contract StrategyWombexUsdc is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(busd), "Some  not compatible");
 
         uint256 lpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
         if (lpUsdcBalance > 0) {
-            (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdcToken), lpUsdcBalance);
+            (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdc), lpUsdcBalance);
             poolDepositor.withdraw(address(lpUsdc), lpUsdcBalance, OvnMath.subBasisPoints(usdcAmount, 1));
         }
 
         // swap usdc to busd
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 busdBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(usdcToken),
-            address(busdToken),
+            address(usdc),
+            address(busd),
             address(pool),
             usdcBalance
         );
         if (busdBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
-                address(usdcToken),
-                address(busdToken),
+                address(usdc),
+                address(busd),
                 address(pool),
                 usdcBalance,
                 OvnMath.subBasisPoints(busdBalanceOut, 4),
@@ -196,7 +209,7 @@ contract StrategyWombexUsdc is Strategy {
             );
         }
 
-        return busdToken.balanceOf(address(this));
+        return busd.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -208,28 +221,29 @@ contract StrategyWombexUsdc is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        uint256 busdBalance = busdToken.balanceOf(address(this));
-        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 busdBalance = busd.balanceOf(address(this));
+        uint256 usdcBalance = usdc.balanceOf(address(this));
 
         uint256 wmxLpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
         if (wmxLpUsdcBalance > 0) {
-            if (nav) {
-                (uint256 usdcAmountOneAsset,) = pool.quotePotentialWithdraw(address(usdcToken), lpUsdcTokenDenominator);
-                usdcBalance += wmxLpUsdcBalance * usdcAmountOneAsset / lpUsdcTokenDenominator;
-            } else {
-                (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdcToken), wmxLpUsdcBalance);
-                usdcBalance += usdcAmount;
-            }
+            (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdc), wmxLpUsdcBalance);
+            usdcBalance += usdcAmount;
         }
 
         if (usdcBalance > 0) {
-            busdBalance += WombatLibrary.getAmountOut(
-                wombatRouter,
-                address(usdcToken),
-                address(busdToken),
-                address(pool),
-                usdcBalance
-            );
+            if (nav) {
+                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+                uint256 priceBusd = uint256(oracleBusd.latestAnswer());
+                busdBalance += (usdcBalance * busdDm * priceUsdc) / (usdcDm * priceBusd);
+            } else {
+                busdBalance += WombatLibrary.getAmountOut(
+                    wombatRouter,
+                    address(usdc),
+                    address(busd),
+                    address(pool),
+                    usdcBalance
+                );
+            }
         }
 
         return busdBalance;
@@ -246,20 +260,20 @@ contract StrategyWombexUsdc is Strategy {
         // sell rewards
         uint256 totalBusd;
 
-        uint256 womBalance = womToken.balanceOf(address(this));
+        uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
             uint256 amountOut = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
-                address(womToken),
-                address(busdToken),
+                address(wom),
+                address(busd),
                 womBalance
             );
 
             if (amountOut > 0) {
                 uint256 womBusd = PancakeSwapLibrary.swapExactTokensForTokens(
                     pancakeRouter,
-                    address(womToken),
-                    address(busdToken),
+                    address(wom),
+                    address(busd),
                     womBalance,
                     amountOut * 99 / 100,
                     address(this)
@@ -269,20 +283,20 @@ contract StrategyWombexUsdc is Strategy {
             }
         }
 
-        uint256 wmxBalance = wmxToken.balanceOf(address(this));
+        uint256 wmxBalance = wmx.balanceOf(address(this));
         if (wmxBalance > 0) {
             uint256 amountOut = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
-                address(wmxToken),
-                address(busdToken),
+                address(wmx),
+                address(busd),
                 wmxBalance
             );
 
             if (amountOut > 0) {
                 uint256 wmxBusd = PancakeSwapLibrary.swapExactTokensForTokens(
                     pancakeRouter,
-                    address(wmxToken),
-                    address(busdToken),
+                    address(wmx),
+                    address(busd),
                     wmxBalance,
                     amountOut * 99 / 100,
                     address(this)
@@ -293,7 +307,7 @@ contract StrategyWombexUsdc is Strategy {
         }
 
         if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd);
+            busd.transfer(_to, totalBusd);
         }
 
         return totalBusd;
