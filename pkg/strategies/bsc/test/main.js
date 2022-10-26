@@ -77,6 +77,18 @@ let arrays = [
         name: 'StrategyWombatBusdUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyWombexBusd',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyWombexUsdc',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyWombexUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {

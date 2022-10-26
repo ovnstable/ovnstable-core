@@ -154,13 +154,131 @@ interface IMasterWombatV2 {
 }
 
 
-interface IRouter {
+interface IWombatRouter {
+    function getAmountOut(
+        address[] calldata tokenPath,
+        address[] calldata poolPath,
+        int256 amountIn
+    ) external view returns (uint256 amountOut, uint256[] memory haircuts);
+
+    /**
+     * @notice Returns the minimum input asset amount required to buy the given output asset amount
+     * (accounting for fees and slippage)
+     * Note: This function should be used as estimation only. The actual swap amount might
+     * be different due to precision error (the error is typically under 1e-6)
+     */
+    function getAmountIn(
+        address[] calldata tokenPath,
+        address[] calldata poolPath,
+        uint256 amountOut
+    ) external view returns (uint256 amountIn, uint256[] memory haircuts);
+
     function swapExactTokensForTokens(
         address[] calldata tokenPath,
+        address[] calldata poolPath,
+        uint256 fromAmount,
+        uint256 minimumToAmount,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountOut);
+
+    function swapExactNativeForTokens(
+        address[] calldata tokenPath, // the first address should be WBNB
+        address[] calldata poolPath,
+        uint256 minimumamountOut,
+        address to,
+        uint256 deadline
+    ) external payable returns (uint256 amountOut);
+
+    function swapExactTokensForNative(
+        address[] calldata tokenPath, // the last address should be WBNB
         address[] calldata poolPath,
         uint256 amountIn,
         uint256 minimumamountOut,
         address to,
-        uint deadline
+        uint256 deadline
     ) external returns (uint256 amountOut);
+
+    function addLiquidityNative(
+        IPool pool,
+        uint256 minimumLiquidity,
+        address to,
+        uint256 deadline,
+        bool shouldStake
+    ) external payable returns (uint256 liquidity);
+
+    function removeLiquidityNative(
+        IPool pool,
+        uint256 liquidity,
+        uint256 minimumAmount,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amount);
+
+    function removeLiquidityFromOtherAssetAsNative(
+        IPool pool,
+        address fromToken,
+        uint256 liquidity,
+        uint256 minimumAmount,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amount);
+}
+
+
+library WombatLibrary {
+
+    function getAmountOut(
+        IWombatRouter wombatRouter,
+        address token0,
+        address token1,
+        address pool0,
+        uint256 amountIn
+    ) internal view returns (uint256) {
+
+        address[] memory tokenPath = new address[](2);
+        tokenPath[0] = token0;
+        tokenPath[1] = token1;
+
+        address[] memory poolPath = new address[](1);
+        poolPath[0] = pool0;
+
+        (uint256 amountOut,) = wombatRouter.getAmountOut(
+            tokenPath,
+            poolPath,
+            int256(amountIn)
+        );
+
+        return amountOut;
+    }
+
+    function swapExactTokensForTokens(
+        IWombatRouter wombatRouter,
+        address token0,
+        address token1,
+        address pool0,
+        uint256 fromAmount,
+        uint256 minimumToAmount,
+        address to
+    ) internal returns (uint256) {
+
+        IERC20(token0).approve(address(wombatRouter), fromAmount);
+
+        address[] memory tokenPath = new address[](2);
+        tokenPath[0] = token0;
+        tokenPath[1] = token1;
+
+        address[] memory poolPath = new address[](1);
+        poolPath[0] = pool0;
+
+        return wombatRouter.swapExactTokensForTokens(
+            tokenPath,
+            poolPath,
+            fromAmount,
+            minimumToAmount,
+            to,
+            block.timestamp
+        );
+    }
+
 }
