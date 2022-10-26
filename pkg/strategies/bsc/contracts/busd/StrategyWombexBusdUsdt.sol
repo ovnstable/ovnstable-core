@@ -7,7 +7,6 @@ import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import {IWombatRouter, WombatLibrary} from '@overnight-contracts/connectors/contracts/stuff/Wombat.sol';
 
-import "hardhat/console.sol";
 
 contract StrategyWombexBusdUsdt is Strategy {
 
@@ -88,7 +87,6 @@ contract StrategyWombexBusdUsdt is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        console.log("usdtBalance before swap: %s", usdtToken.balanceOf(address(this)));
         // swap busd to usdt
         uint256 busdBalance = busdToken.balanceOf(address(this));
         uint256 usdtBalanceOut = WombatLibrary.getAmountOut(
@@ -109,13 +107,10 @@ contract StrategyWombexBusdUsdt is Strategy {
                 address(this)
             );
         }
-        console.log("usdtBalance after swap: %s", busdToken.balanceOf(address(this)));
 
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        console.log("usdtBalance before deposit: %s", usdtToken.balanceOf(address(this)));
         (uint256 lpUsdtAmount,) = pool.quotePotentialDeposit(address(usdtToken), usdtBalance);
         poolDepositor.deposit(address(lpUsdt), usdtBalance, OvnMath.subBasisPoints(lpUsdtAmount, 1), true);
-        console.log("usdtBalance after deposit: %s", usdtToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -140,11 +135,8 @@ contract StrategyWombexBusdUsdt is Strategy {
         (uint256 usdtAmountOneAsset,) = pool.quotePotentialWithdraw(address(usdtToken), lpUsdtTokenDenominator);
         // add 1bp for smooth withdraw
         uint256 lpUsdtAmount = OvnMath.addBasisPoints(usdtAmount, 1) * lpUsdtTokenDenominator / usdtAmountOneAsset;
-        console.log("lpUsdtAmount: %s", lpUsdtAmount);
 
-        console.log("usdtBalance before withdraw: %s", usdtToken.balanceOf(address(this)));
         poolDepositor.withdraw(address(lpUsdt), lpUsdtAmount, _amount);
-        console.log("usdtBalance after withdraw: %s", usdtToken.balanceOf(address(this)));
 
         // swap usdt to busd
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
@@ -167,8 +159,6 @@ contract StrategyWombexBusdUsdt is Strategy {
             );
         }
 
-        console.log("usdtBalance after swap: %s", usdtToken.balanceOf(address(this)));
-        console.log("busdToken after swap: %s", busdToken.balanceOf(address(this)));
         return busdToken.balanceOf(address(this));
     }
 
@@ -179,15 +169,11 @@ contract StrategyWombexBusdUsdt is Strategy {
 
         require(_asset == address(busdToken), "Some token not compatible");
 
-        console.log("usdtBalance before withdraw: %s", usdtToken.balanceOf(address(this)));
         uint256 lpUsdtBalance = wmxLpUsdt.balanceOf(address(this));
-        console.log("lpUsdtBalance before withdraw: %s", lpUsdtBalance);
         if (lpUsdtBalance > 0) {
             (uint256 usdtAmount,) = pool.quotePotentialWithdraw(address(usdtToken), lpUsdtBalance);
             poolDepositor.withdraw(address(lpUsdt), lpUsdtBalance, OvnMath.subBasisPoints(usdtAmount, 1));
         }
-        console.log("lpUsdtBalance after withdraw: %s", wmxLpUsdt.balanceOf(address(this)));
-        console.log("usdtBalance after withdraw: %s", usdtToken.balanceOf(address(this)));
 
         // swap usdt to busd
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
@@ -210,8 +196,6 @@ contract StrategyWombexBusdUsdt is Strategy {
             );
         }
 
-        console.log("usdtBalance after swap: %s", usdtToken.balanceOf(address(this)));
-        console.log("busdToken after swap: %s", busdToken.balanceOf(address(this)));
         return busdToken.balanceOf(address(this));
     }
 
@@ -248,11 +232,6 @@ contract StrategyWombexBusdUsdt is Strategy {
             );
         }
 
-        if (nav) {
-            console.log("nav: %s", busdBalance);
-        } else {
-            console.log("liq: %s", busdBalance);
-        }
         return busdBalance;
     }
 
@@ -260,7 +239,6 @@ contract StrategyWombexBusdUsdt is Strategy {
 
         // claim rewards
         uint256 lpUsdtBalance = wmxLpUsdt.balanceOf(address(this));
-        console.log("lpUsdtBalance: %s", lpUsdtBalance);
         if (lpUsdtBalance > 0) {
             wmxLpUsdt.getReward(address(this), false);
         }
@@ -269,7 +247,6 @@ contract StrategyWombexBusdUsdt is Strategy {
         uint256 totalBusd;
 
         uint256 womBalance = womToken.balanceOf(address(this));
-        console.log("womBalance: %s", womBalance);
         if (womBalance > 0) {
             uint256 amountOut = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
@@ -287,14 +264,12 @@ contract StrategyWombexBusdUsdt is Strategy {
                     amountOut * 99 / 100,
                     address(this)
                 );
-                console.log("womBusd: %s", womBusd);
 
                 totalBusd += womBusd;
             }
         }
 
         uint256 wmxBalance = wmxToken.balanceOf(address(this));
-        console.log("wmxBalance: %s", wmxBalance);
         if (wmxBalance > 0) {
             uint256 amountOut = PancakeSwapLibrary.getAmountsOut(
                 pancakeRouter,
@@ -312,7 +287,6 @@ contract StrategyWombexBusdUsdt is Strategy {
                     amountOut * 99 / 100,
                     address(this)
                 );
-                console.log("wmxBusd: %s", wmxBusd);
 
                 totalBusd += wmxBusd;
             }
@@ -322,7 +296,6 @@ contract StrategyWombexBusdUsdt is Strategy {
             busdToken.transfer(_to, totalBusd);
         }
 
-        console.log("totalBusd: %s", totalBusd);
         return totalBusd;
     }
 
