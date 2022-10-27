@@ -9,18 +9,25 @@ async function main() {
     let values = [];
     let abis = [];
 
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x53fF0d71645D106E058d83404ccD975924c26dCB']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xeF7913b8EBD17a725D684bf86DcAB1e9b1dB44bE']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x621409Ad21B486eA8688c5608abc904Cd8DB8e9b']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x8ED7b474cFE7Ef362c32ffa2FB55aF7dC87D6048']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xFe7f3FEa8972313F859194EE00158798be3ED108']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0xc1Ab7F3C4a0c9b0A1cebEf532953042bfB9ebED5']));
+    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0xed197258b388AfaAD5f0D46B608B583E395ede92']));
+
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8']));
 
     await createProposal(addresses, values, abis);
 
