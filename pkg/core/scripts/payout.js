@@ -4,7 +4,7 @@ const {getContract, getPrice, execTimelock, showM2M} = require("@overnight-contr
 
 async function main() {
 
-    let exchange = await getContract('Exchange' );
+    let exchange = await getContract('Exchange');
     //
     // await execTimelock(async (timelock)=>{
     //

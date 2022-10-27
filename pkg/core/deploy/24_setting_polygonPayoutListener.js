@@ -62,6 +62,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     ];
     await (await polygonPL.setSkimPools(skimPools, bribes)).wait();
 
+    await (await polygonPL.setSushiBentoBox('0x0319000133d3AdA02600f0875d2cf03D442C3367')).wait();
+
+    await (await polygonPL.setSushiWallet('0x850a57630A2012B2494779fBc86bBc24F2a7baeF')).wait();
+
     console.log('PolygonPayoutListener done');
 
 };

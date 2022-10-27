@@ -489,7 +489,7 @@ describe("Exchange", function () {
             expect(updatedEvent.args[0]).to.equals(mockPL.address);
 
             await expectRevert(mockPL.payoutDone(), 'MockPayoutListener.payoutDone() called');
-            await expectRevert(exchange.payout(), 'MockPayoutListener.payoutDone() called');
+            await expectRevert(exchange.payout(), 'MockPayoutListener.payout() called');
         });
 
     });

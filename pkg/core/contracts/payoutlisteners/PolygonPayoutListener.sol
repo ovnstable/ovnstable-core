@@ -22,9 +22,15 @@ contract PolygonPayoutListener is PayoutListener {
     IERC20 public wmatic;
     IDystopiaRouter public dystRouter;
 
+    IBentoBoxV1 public sushiBentoBox;
+    address public sushiWallet;
+
     // ---  events
 
     event SkimReward(address pool, uint256 amount);
+    event SushiSkimReward(uint256 amount);
+    event SushiBentoBoxUpdated(address sushiBentoBox);
+    event SushiWalletUpdated(address sushiWallet);
 
     // --- setters
 
@@ -53,6 +59,18 @@ contract PolygonPayoutListener is PayoutListener {
         qsSyncPools = _pools;
     }
 
+    function setSushiBentoBox(address _sushiBentoBox) external onlyAdmin {
+        require(_sushiBentoBox != address(0), "Zero address not allowed");
+        sushiBentoBox = IBentoBoxV1(_sushiBentoBox);
+        emit SushiBentoBoxUpdated(_sushiBentoBox);
+    }
+
+    function setSushiWallet(address _sushiWallet) external onlyAdmin {
+        require(_sushiWallet != address(0), "Zero address not allowed");
+        sushiWallet = _sushiWallet;
+        emit SushiWalletUpdated(_sushiWallet);
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -67,6 +85,7 @@ contract PolygonPayoutListener is PayoutListener {
     function payoutDone() external override onlyExchanger {
         _sync();
         _skim();
+        _sushiSkim();
     }
 
 
@@ -147,6 +166,16 @@ contract PolygonPayoutListener is PayoutListener {
             }
         }
     }
+
+    function _sushiSkim() internal {
+        uint256 usdPlusBalance = usdPlus.balanceOf(address(sushiBentoBox));
+        uint256 usdPlusBalanceInPool = uint256(sushiBentoBox.totals(usdPlus).elastic);
+        if (usdPlusBalance > usdPlusBalanceInPool) {
+            uint256 deltaAmount = usdPlusBalance - usdPlusBalanceInPool;
+            sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), sushiWallet, deltaAmount, 0);
+            emit SushiSkimReward(deltaAmount);
+        }
+    }
 }
 
 
@@ -158,4 +187,21 @@ interface Bribe {
 interface Pool {
     function sync() external;
     function skim(address to) external;
+}
+
+interface IBentoBoxV1 {
+    struct Rebase {
+        uint128 elastic;
+        uint128 base;
+    }
+    function totals(IERC20) external view returns (Rebase calldata);
+    function balanceOf(IERC20, address) external view returns (uint256);
+    function deposit(IERC20 token_, address from, address to, uint256 amount, uint256 share) external payable returns (uint256 amountOut, uint256 shareOut);
+    function harvest(IERC20 token, bool balance, uint256 maxChangeAmount) external;
+    function strategyData(IERC20) external view returns (uint64 strategyStartDate, uint64 targetPercentage, uint128 balance);
+    function toAmount(IERC20 token, uint256 share, bool roundUp) external view returns (uint256 amount);
+    function toShare(IERC20 token, uint256 amount, bool roundUp) external view returns (uint256 share);
+    function transfer(IERC20 token, address from, address to, uint256 share) external;
+    function transferMultiple(IERC20 token, address from, address[] calldata tos, uint256[] calldata shares) external;
+    function withdraw(IERC20 token_, address from, address to, uint256 amount, uint256 share) external returns (uint256 amountOut, uint256 shareOut);
 }
