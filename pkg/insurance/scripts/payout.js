@@ -8,7 +8,7 @@ async function main() {
 
     await showInsurance();
 
-    await (await insurance.payout(7500000)).wait();
+    await (await insurance.payout(14100000)).wait();
 
     await showInsurance();
 
