@@ -78,7 +78,7 @@ contract StrategyWombexBusd is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         uint256 busdBalance = busd.balanceOf(address(this));
         (uint256 lpBusdAmount,) = pool.quotePotentialDeposit(address(busd), busdBalance);
@@ -91,7 +91,7 @@ contract StrategyWombexBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         // get amount to unstake
         (uint256 busdAmountOneAsset,) = pool.quotePotentialWithdraw(address(busd), lpBusdDm);
@@ -107,7 +107,7 @@ contract StrategyWombexBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         uint256 lpBusdBalance = wmxLpBusd.balanceOf(address(this));
         if (lpBusdBalance > 0) {

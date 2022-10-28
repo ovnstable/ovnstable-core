@@ -66,6 +66,14 @@ let arrays = [
         name: 'StrategyUsdPlusDai',
         enabledReward: false,
     },
+    {
+        name: 'StrategyArrakisUsdcDai',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyArrakisDaiUsdc',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
