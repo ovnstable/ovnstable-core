@@ -817,3 +817,32 @@ interface IGaugeBeethoven {
 
     function claim_rewards() external;
 }
+
+
+interface LinearPool {
+    //BasePool
+    function getPoolId() external view returns (bytes32);
+
+    function getSwapFeePercentage() external view returns (uint256);
+
+    function getScalingFactors() external view returns (uint256[] memory);
+
+    //LinearPool
+    function getMainToken() external view returns (address);
+
+    function getWrappedToken() external view returns (address);
+
+    function getBptIndex() external view returns (uint256);
+
+    function getMainIndex() external view returns (uint256);
+
+    function getWrappedIndex() external view returns (uint256);
+
+    function getRate() external view returns (uint256);
+
+    function getWrappedTokenRate() external view returns (uint256);
+
+    function getTargets() external view returns (uint256 lowerTarget, uint256 upperTarget);
+
+    function balanceOf(address account) external view returns (uint256);
+}

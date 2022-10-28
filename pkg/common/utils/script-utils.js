@@ -89,7 +89,7 @@ async function getContract(name, network){
 
 async function getAbi(name){
 
-    let searchPath = fromDir(require('app-root-path').path, path.join(name + ".json"));
+    let searchPath = fromDir(require('app-root-path').path, path.join("/" + name + ".json"));
     return JSON.parse(fs.readFileSync(searchPath)).abi;
 
 }

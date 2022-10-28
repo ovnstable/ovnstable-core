@@ -12,4 +12,5 @@ interface IWrappedUsdPlusToken is IERC20Upgradeable, IERC4626 {
      **/
     function rate() external view returns (uint256);
 
+    function asset() external view returns(address);
 }
