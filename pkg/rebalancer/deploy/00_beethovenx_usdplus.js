@@ -21,4 +21,4 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-module.exports.tags = ['RebalancerPlus'];
+module.exports.tags = ['BeethovenxUsdPlus'];

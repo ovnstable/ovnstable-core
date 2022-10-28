@@ -363,7 +363,7 @@ contract RebalancerPlus {
         } else {
             // для врапированного (статик) надо пересчитать
             uint256 _amountUsdcNeeded = IWrappedUsdPlusToken(address(_swap.assetIn)).convertToAssets(_amountInNeededForSwap);
-            _amountUsdcNeeded = _amountUsdcNeeded * 10000 / 9996 + 1;
+//            _amountUsdcNeeded = _amountUsdcNeeded * 10000 / 9996 + 1;
             return (_amountUsdcNeeded, address(_swap.assetIn));
         }
     }
