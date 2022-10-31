@@ -64,45 +64,48 @@ contract RebalancerPlus {
         //                     (статик врапер) значения не имеет для пула и его не надо балансить
         );
 
-//        // скока надо занять
-//        uint256 _amountUsdcNeededForFlashLoan;
-//
-//        if (_swap.kind == IVault.SwapKind.GIVEN_IN) {
-//            // мейн токен не требует корректировки и объем занимается как есть
-//            _amountUsdcNeededForFlashLoan = _amountInNeededForSwap;
-//        } else {
-//            // для врапированного (статик) надо пересчитать
-//            _amountUsdcNeededForFlashLoan = IStaticUsdPlusToken(address(_swap.assetIn)).staticToDynamicAmount(_amountInNeededForSwap);
+        // скока надо занять
+        uint256 _amountUsdcNeededForFlashLoan;
+
+        if (_swap.kind == IVault.SwapKind.GIVEN_IN) {
+            // мейн токен не требует корректировки и объем занимается как есть
+            _amountUsdcNeededForFlashLoan = _amountInNeededForSwap;
+        } else {
+            // для врапированного (статик) надо пересчитать
+            _amountUsdcNeededForFlashLoan = IWrappedUsdPlusToken(address(_swap.assetIn)).convertToAssets(_amountInNeededForSwap);
 //            _amountUsdcNeededForFlashLoan = _amountUsdcNeededForFlashLoan * 10000 / 9996 + 1;
-//        }
-//
-//
-//        // perform flash loan
-//
-//        // данные для передачи в колбэк флеша
-//        bytes memory _swapData = abi.encode(
-//            _swap, // описано что на что обменивать
-//            _amountUsdcNeededForFlashLoan, // сколько занять
-//            _amountInNeededForSwap, // сколько обменять
-//            msg.sender // кто инициировал
-//        );
-//
-//        if (_useFlash) {
-//            // USDC в левой части (token0), а в правой USDT
-//            // Uniswap -> {Usdc} -> this
-//            USDC_USDT_POOL.flash(address(this), _amountUsdcNeededForFlashLoan, 0, _swapData);
-//        } else {
-//            // user -> {Usdc} -> this
-//            IERC20(USDC).safeTransferFrom(msg.sender, address(this), _amountUsdcNeededForFlashLoan);
-//            doSwap(_swap, _amountUsdcNeededForFlashLoan, _amountInNeededForSwap);
-//        }
-//
-//        // возвращаем неиспользованное
-//        uint256 balance = IERC20(USDC).balanceOf(address(this));
-//        if (balance > 0) {
-//            // this -> {Usdc} -> user
-//            IERC20(USDC).transfer(msg.sender, balance);
-//        }
+        }
+
+        console.log('1: BorrowAmount %s', _amountUsdcNeededForFlashLoan);
+        console.log('1: SwapAmount   %s', _amountInNeededForSwap);
+
+        // perform flash loan
+
+        // данные для передачи в колбэк флеша
+        bytes memory _swapData = abi.encode(
+            _swap, // описано что на что обменивать
+            _amountUsdcNeededForFlashLoan, // сколько занять
+            _amountInNeededForSwap, // сколько обменять
+            msg.sender // кто инициировал
+        );
+
+        if (_useFlash) {
+            // USDC в левой части (token0), а в правой USDT
+            // Uniswap -> {Usdc} -> this
+            flashPool.flash(address(this), _amountUsdcNeededForFlashLoan, 0, _swapData);
+        } else {
+            // user -> {Usdc} -> this
+            asset.safeTransferFrom(msg.sender, address(this), _amountUsdcNeededForFlashLoan);
+            doSwap(_swap, _amountUsdcNeededForFlashLoan, _amountInNeededForSwap);
+        }
+
+        // возвращаем неиспользованное
+        uint256 balance = asset.balanceOf(address(this));
+        console.log('Balance %s', balance);
+        if (balance > 0) {
+            // this -> {Usdc} -> user
+            asset.transfer(msg.sender, balance);
+        }
     }
 
     function getPoolParams(LinearPool _pool) public view returns (LinearMath.Params memory _params){
@@ -135,6 +138,9 @@ contract RebalancerPlus {
             }
         }
 
+        console.log('MainTokenBalance %s', _mainTokenBalance);
+        console.log('DesiredBalance   %s', _desiredBalance);
+
         //  токена меньше желаемого баланса
         if (_mainTokenBalance < _desiredBalance) {
             // USDC < desired
@@ -152,6 +158,7 @@ contract RebalancerPlus {
             // объем для обмена
             _amountInNeededForSwap = _swapAmount;
 
+            console.log('SwapAmount %s', _swapAmount);
         } else {
             // USDC >= desired
             uint256 _swapAmount = _mainTokenBalance - _desiredBalance;
@@ -180,7 +187,8 @@ contract RebalancerPlus {
     }
 
     // Uniswap V3 Flash Callback
-    function uniswapV3FlashCallback(uint256, uint256, bytes calldata _data) external payable {
+    function uniswapV3FlashCallback(uint256 fee0, uint256 fee1, bytes calldata _data) external payable {
+        console.log('Init uniV3 callback');
         (
         IVault.SingleSwap  memory _swap, // описано что на что обменивать
         uint256 _initialAmount, // сколько заняли
@@ -190,6 +198,10 @@ contract RebalancerPlus {
             _data,
             (IVault.SingleSwap, uint256, uint256, address)
         );
+
+        console.log('2: BorrowAmount %s', _initialAmount);
+        console.log('2: SwapAmount   %s', _requiredBalance);
+
         address mainToken = address(_swap.kind == IVault.SwapKind.GIVEN_IN ? _swap.assetIn : _swap.assetOut);
 
         // пул один из ожидаемых
@@ -205,12 +217,21 @@ contract RebalancerPlus {
         // процент указан на юнисвопе, например для DAI_POOL
         // https://info.uniswap.org/#/pools/0x5777d92f208679db4b9778590fa3cab3ac9e2168
         // и там указан 0.01%
-        uint256 _repayment = _initialAmount + (_initialAmount * poolFee / poolFeeDenominator) + 1;
+        uint256 _repayment = _initialAmount + fee0;
+
+        console.log('Fee0 %s', fee0);
+        console.log('Fee1 %s', fee1);
 
         uint256 _balance = IERC20(mainToken).balanceOf(address(this));
+        console.log('Borrow    %s', _initialAmount);
+        console.log('Repayment %s', _repayment);
+        console.log('USDC      %s', _balance);
+
         if (_balance < _repayment) {
             // после свопа образовался дефицит
             uint256 _deficit = _repayment - _balance;
+
+            console.log('Deficit %s', _deficit);
             // и его надо покрыть за счет вызывающего (_msgSender)
             IERC20(mainToken).safeTransferFrom(_msgSender, address(this), _deficit);
         }
@@ -224,6 +245,7 @@ contract RebalancerPlus {
     // Usdc<->StaticUsdPlus swap
     function doSwap(IVault.SingleSwap memory swap, uint256 _initialAmount, uint256 _requiredBalance) private {
 
+        console.log('DoSwap');
         IVault.FundManagement memory fundManagement = IVault.FundManagement(
             address(this),
             false,
@@ -233,6 +255,7 @@ contract RebalancerPlus {
 
         // on StaticUsdPlus -> Usdc
         if (swap.kind == IVault.SwapKind.GIVEN_OUT) {
+            console.log('Wrap -> USDC');
             // перегоняем весь заемный баланс мейн токенов в статикАТокены
             require(IERC20(address(swap.assetOut)).balanceOf(address(this)) >= _initialAmount, "Not enough main asset to wrap");
 
@@ -259,6 +282,7 @@ contract RebalancerPlus {
     // таким образом перегоняем нативный токен (Usdc) в статикТокен
     // Usdc -> StaticUsdPlus
     function wrapToken(address _wrappedToken, uint256 _amount) private {
+        console.log('1: WrapToken %s', _amount);
         address usdPlusToken = IWrappedUsdPlusToken(_wrappedToken).asset();
         address exchange = IUsdPlusToken(usdPlusToken).exchange();
 
@@ -268,12 +292,14 @@ contract RebalancerPlus {
 
         // UsdPlus -> StaticUsdPlus
         IERC20(usdPlusToken).approve(_wrappedToken, buyAmount);
+        console.log('2: WrapToken %s', buyAmount);
         uint256 staticTokenResult = IWrappedUsdPlusToken(_wrappedToken).deposit(buyAmount, address(this));
     }
 
     // обратное к wrapToken, перегон статикТокенов в нативный токен (Usdc)
     // StaticUsdPlus -> Usdc
     function unwrapToken(address _wrappedToken, uint256 _amount) private {
+        console.log('1: UnwrapToken %s', _amount);
         address mainToken = IWrappedUsdPlusToken(_wrappedToken).asset();
         address exchange = IUsdPlusToken(mainToken).exchange();
 
@@ -282,6 +308,8 @@ contract RebalancerPlus {
 
         // UsdPlus -> Usdc
         uint256 resultAmount = IExchange(exchange).redeem(address(asset), redeemAmount);
+        console.log('3: UnwrapToken %s', resultAmount);
+
     }
 
 

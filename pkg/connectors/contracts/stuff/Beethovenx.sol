@@ -843,6 +843,8 @@ interface LinearPool {
     function getWrappedTokenRate() external view returns (uint256);
 
     function getTargets() external view returns (uint256 lowerTarget, uint256 upperTarget);
+    function getOwner() external view returns (address);
+    function setTargets(uint256 lowerTarget, uint256 upperTarget) external;
 
     function balanceOf(address account) external view returns (uint256);
 }
