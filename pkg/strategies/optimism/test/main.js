@@ -74,6 +74,11 @@ let arrays = [
         name: 'StrategyArrakisDaiUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyReaperSonneDaiDai',
+        enabledReward: false,
+        isRunStrategyLogic: true
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -85,7 +90,7 @@ console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 async function runStrategyLogic(strategyName, strategyAddress) {
     if (strategyName == 'StrategyReaperSonneUsdc') {
-        let governanceAddress = "0x4c3490df15edfa178333445ce568ec6d99b5d71c";
+        let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
         await transferETH(1, governanceAddress);
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -98,8 +103,8 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [governanceAddress],
         });
-    } else if (strategyName == 'StrategyReaperSonneDai') {
-        let governanceAddress = "0x4c3490df15edfa178333445ce568ec6d99b5d71c";
+    } else if (strategyName == 'StrategyReaperSonneDai' || strategyName == 'StrategyReaperSonneDaiDai') {
+        let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
         await transferETH(1, governanceAddress);
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
