@@ -98,7 +98,7 @@ contract StrategyWombexUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         // swap busd to usdt
         uint256 busdBalance = busd.balanceOf(address(this));
@@ -132,7 +132,7 @@ contract StrategyWombexUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         // calculate swap _amount usdt to busd
         uint256 busdAmountForUsdtAmount = WombatLibrary.getAmountOut(
@@ -180,7 +180,7 @@ contract StrategyWombexUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some  not compatible");
+        require(_asset == address(busd), "Some token not compatible");
 
         uint256 lpUsdtBalance = wmxLpUsdt.balanceOf(address(this));
         if (lpUsdtBalance > 0) {

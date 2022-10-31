@@ -67,6 +67,14 @@ let arrays = [
         enabledReward: false,
     },
     {
+        name: 'StrategyArrakisUsdcDai',
+        enabledReward: true,
+    },
+    {
+        name: 'StrategyArrakisDaiUsdc',
+        enabledReward: true,
+    },
+    {
         name: 'StrategyReaperSonneDaiDai',
         enabledReward: false,
         isRunStrategyLogic: true
