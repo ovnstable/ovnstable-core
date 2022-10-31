@@ -9,17 +9,17 @@ import "@overnight-contracts/connectors/contracts/stuff/Reaper.sol";
 
 contract StrategyReaperSonneDaiDai is Strategy {
 
+    // --- params
+
+    IERC20 public dai;
+    IReaperVault public soDai;
+
     // --- structs
 
     struct StrategyParams {
         address dai;
         address soDai;
     }
-
-    // --- params
-
-    IERC20 public dai;
-    IReaperVault public soDai;
 
     // --- events
 
