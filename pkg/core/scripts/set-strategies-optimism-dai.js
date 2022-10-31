@@ -1,4 +1,4 @@
-const {getContract, changeWeightsAndBalance, convertWeights, initWallet} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, changeWeightsAndBalance, convertWeights, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -13,32 +13,50 @@ async function main() {
             "enabled": true,
             "enabledReward": true
         },
-
         {
             "strategy": "0x307418340F5991CD895CA0Fc4Eba04995e9BE861",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 97.5,
+            "targetWeight": 10,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
-
+        {
+            "strategy": "0x701E4b49497098080ce99545B4277819529F573e",
+            "name": "Reaper Sonne DAI",
+            "minWeight": 0,
+            "targetWeight": 70,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": false
+        },
+        {
+            "strategy": "0xE8Deea3769f4dbC6046276C7d6076C33ff56442D",
+            "name": "Arrakis DAI/USDC",
+            "minWeight": 0,
+            "targetWeight": 17.5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
     ]
 
 
     weights = await convertWeights(weights);
 
     await changeWeightsAndBalance(weights);
-    // await setWeights(weights)
+//    await setWeights(weights)
 }
 
 
 async function setWeights(weights) {
-    let pm = await getContract('PortfolioManager', 'optimism_dai');
+    let pm = await getContract('PortfolioManager');
 
-    await (await pm.setStrategyWeights(weights)).wait();
-    await (await pm.balance()).wait();
+    let params = await getPrice();
+    await (await pm.setStrategyWeights(weights, params)).wait();
+    await (await pm.balance(params)).wait();
+    await showM2M();
 }
 
 

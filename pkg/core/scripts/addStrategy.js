@@ -1,10 +1,14 @@
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
     let pm = await getContract('PortfolioManager');
-
+/*
+    let params = await getPrice();
+    await pm.addStrategy('0xE8Deea3769f4dbC6046276C7d6076C33ff56442D', params);
+    console.log("Strategy added");
+*/
     let addresses = [];
     let values = [];
     let abis = [];

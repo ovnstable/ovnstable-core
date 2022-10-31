@@ -14,7 +14,7 @@ async function main() {
     await (await usdPlusToken.approve(exchange.address, toE6(5))).wait();
     console.log('UsdPlus approve done');
     await (await exchange.redeem(asset.address, toE6(5))).wait();
-    console.log('Exchange.buy done');
+    console.log('Exchange.redeem done');
 
     await showM2M();
 }
