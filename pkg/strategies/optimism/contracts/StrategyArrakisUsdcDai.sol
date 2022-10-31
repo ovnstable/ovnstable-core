@@ -38,9 +38,9 @@ contract StrategyArrakisUsdcDai is Strategy {
     IERC20 public dai;
     IERC20 public op;
 
-    IArrakisV1RouterStaking arrakisRouter;
-    IArrakisRewards arrakisRewards;
-    IArrakisVault arrakisVault;
+    IArrakisV1RouterStaking public arrakisRouter;
+    IArrakisRewards public arrakisRewards;
+    IArrakisVault public arrakisVault;
 
     IVault public beethovenxVault;
     bytes32 public beethovenxPoolIdUsdc;
@@ -55,8 +55,8 @@ contract StrategyArrakisUsdcDai is Strategy {
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
-    uint256 usdcDm;
-    uint256 daiDm;
+    uint256 public usdcDm;
+    uint256 public daiDm;
 
     // --- events
 
