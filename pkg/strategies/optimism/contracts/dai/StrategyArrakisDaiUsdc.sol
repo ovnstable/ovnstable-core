@@ -11,29 +11,6 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 contract StrategyArrakisDaiUsdc is Strategy {
 
-    // --- structs
-
-    struct StrategyParams {
-        address dai;
-        address usdc;
-        address op;
-        address weth;
-        address arrakisRouter;
-        address arrakisRewards;
-        address arrakisVault;
-        address beethovenxVault;
-        bytes32 beethovenxPoolIdDai;
-        bytes32 beethovenxPoolIdDaiUsdtUsdc;
-        bytes32 beethovenxPoolIdUsdc;
-        address bbRfADai;
-        address bbRfAUsdc;
-        address uniswapV3Router;
-        uint24 poolWethOpFee;
-        uint24 poolWethDaiFee;
-        address oracleDai;
-        address oracleUsdc;
-    }
-
     // --- params
 
     IERC20 public dai;
@@ -61,6 +38,29 @@ contract StrategyArrakisDaiUsdc is Strategy {
 
     uint256 public daiDm;
     uint256 public usdcDm;
+
+    // --- structs
+
+    struct StrategyParams {
+        address dai;
+        address usdc;
+        address op;
+        address weth;
+        address arrakisRouter;
+        address arrakisRewards;
+        address arrakisVault;
+        address beethovenxVault;
+        bytes32 beethovenxPoolIdDai;
+        bytes32 beethovenxPoolIdDaiUsdtUsdc;
+        bytes32 beethovenxPoolIdUsdc;
+        address bbRfADai;
+        address bbRfAUsdc;
+        address uniswapV3Router;
+        uint24 poolWethOpFee;
+        uint24 poolWethDaiFee;
+        address oracleDai;
+        address oracleUsdc;
+    }
 
     // --- events
 
@@ -119,23 +119,34 @@ contract StrategyArrakisDaiUsdc is Strategy {
         // 1. Calculate needed DAI to swap to USDC
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
         uint256 daiBalance = dai.balanceOf(address(this));
-        uint256 amountDaiToSwap = _getAmount1InToken0(
-            daiBalance,
-            amountDaiCurrent,
-            amountUsdcCurrent
-        );
+        BeethovenLibrary.SwapParams memory swapParams = BeethovenLibrary.SwapParams({
+        beethovenxVault: beethovenxVault,
+            kind: IVault.SwapKind.GIVEN_IN,
+            token0: address(dai),
+            token1: address(bbRfADai),
+            token2: address(bbRfAUsdc),
+            token3: address(usdc),
+            poolId0: beethovenxPoolIdDai,
+            poolId1: beethovenxPoolIdDaiUsdtUsdc,
+            poolId2: beethovenxPoolIdUsdc,
+            amount: 0,
+            sender: address(this),
+            recipient: address(this)
+        });
+        BeethovenLibrary.CalculateParams memory calculateParams = BeethovenLibrary.CalculateParams({
+            amount0Total: daiBalance,
+            totalLpBalance: 0,
+            reserve0: amountDaiCurrent,
+            reserve1: amountUsdcCurrent,
+            denominator0: daiDm,
+            denominator1: usdcDm,
+            precision: 1
+        });
+        uint256 amountUsdcToSwap = BeethovenLibrary.getAmount1InToken0(swapParams, calculateParams);
 
         // 2. Swap DAI to needed USDC amount
-        _batchSwap(
-            dai,
-            bbRfADai,
-            bbRfAUsdc,
-            usdc,
-            beethovenxPoolIdDai,
-            beethovenxPoolIdDaiUsdtUsdc,
-            beethovenxPoolIdUsdc,
-            amountDaiToSwap
-        );
+        swapParams.amount = amountUsdcToSwap;
+        BeethovenLibrary.batchSwap(swapParams);
 
         // 3. Stake DAI/USDC to Arrakis
         uint256 daiAmount = dai.balanceOf(address(this));
@@ -163,13 +174,31 @@ contract StrategyArrakisDaiUsdc is Strategy {
         // 1. Calculating need amount lp - depends on amount DAI/USDC
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
         uint256 totalLpBalance = arrakisVault.totalSupply();
-        uint256 amountLp = _getAmountLpTokens(
+        BeethovenLibrary.SwapParams memory swapParams = BeethovenLibrary.SwapParams({
+            beethovenxVault: beethovenxVault,
+            kind: IVault.SwapKind.GIVEN_IN,
+            token0: address(usdc),
+            token1: address(bbRfAUsdc),
+            token2: address(bbRfADai),
+            token3: address(dai),
+            poolId0: beethovenxPoolIdUsdc,
+            poolId1: beethovenxPoolIdDaiUsdtUsdc,
+            poolId2: beethovenxPoolIdDai,
+            amount: 0,
+            sender: address(this),
+            recipient: address(this)
+        });
+        BeethovenLibrary.CalculateParams memory calculateParams = BeethovenLibrary.CalculateParams({
             // add 1 bp and 1e13 for unstake more than requested
-            OvnMath.addBasisPoints(_amount + 1e13, 1),
-            arrakisVault.totalSupply(),
-            amountDaiCurrent,
-            amountUsdcCurrent
-        );
+            amount0Total: OvnMath.addBasisPoints(_amount + 1e13, 1),
+            totalLpBalance: arrakisVault.totalSupply(),
+            reserve0: amountDaiCurrent,
+            reserve1: amountUsdcCurrent,
+            denominator0: daiDm,
+            denominator1: usdcDm,
+            precision: 1
+        });
+        uint256 amountLp = BeethovenLibrary.getAmountLpTokens(swapParams, calculateParams);
         if (amountLp > totalLpBalance) {
             amountLp = totalLpBalance;
         }
@@ -187,16 +216,8 @@ contract StrategyArrakisDaiUsdc is Strategy {
         );
 
         // 3. Swap USDC to DAI
-        _batchSwap(
-            usdc,
-            bbRfAUsdc,
-            bbRfADai,
-            dai,
-            beethovenxPoolIdUsdc,
-            beethovenxPoolIdDaiUsdtUsdc,
-            beethovenxPoolIdDai,
-            usdc.balanceOf(address(this))
-        );
+        swapParams.amount = usdc.balanceOf(address(this));
+        BeethovenLibrary.batchSwap(swapParams);
 
         return dai.balanceOf(address(this));
     }
@@ -230,16 +251,21 @@ contract StrategyArrakisDaiUsdc is Strategy {
         );
 
         // 4. Swap USDC to DAI
-        _batchSwap(
-            usdc,
-            bbRfAUsdc,
-            bbRfADai,
-            dai,
-            beethovenxPoolIdUsdc,
-            beethovenxPoolIdDaiUsdtUsdc,
-            beethovenxPoolIdDai,
-            usdc.balanceOf(address(this))
-        );
+        BeethovenLibrary.SwapParams memory swapParams = BeethovenLibrary.SwapParams({
+            beethovenxVault: beethovenxVault,
+            kind: IVault.SwapKind.GIVEN_IN,
+            token0: address(usdc),
+            token1: address(bbRfAUsdc),
+            token2: address(bbRfADai),
+            token3: address(dai),
+            poolId0: beethovenxPoolIdUsdc,
+            poolId1: beethovenxPoolIdDaiUsdtUsdc,
+            poolId2: beethovenxPoolIdDai,
+            amount: usdc.balanceOf(address(this)),
+            sender: address(this),
+            recipient: address(this)
+        });
+        BeethovenLibrary.batchSwap(swapParams);
 
         return dai.balanceOf(address(this));
     }
@@ -309,149 +335,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
         }
 
         return totalDai;
-    }
-
-    function _getAmount1InToken0(
-        uint256 amount0Total,
-        uint256 reserve0,
-        uint256 reserve1
-    ) internal returns (uint256 amount1InToken0) {
-        amount1InToken0 = (amount0Total * reserve1) / (reserve0 * usdcDm / daiDm + reserve1);
-        uint256 amount1 = _queryBatchSwap(
-            dai,
-            bbRfADai,
-            bbRfAUsdc,
-            usdc,
-            beethovenxPoolIdDai,
-            beethovenxPoolIdDaiUsdtUsdc,
-            beethovenxPoolIdUsdc,
-            amount1InToken0
-        );
-        amount1InToken0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount1InToken0 + reserve1);
-    }
-
-    function _getAmountLpTokens(
-        uint256 amount0Total,
-        uint256 totalLpBalance,
-        uint256 reserve0,
-        uint256 reserve1
-    ) internal returns (uint256 lpBalance) {
-        lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * daiDm / usdcDm);
-        uint256 amount1 = reserve1 * lpBalance / totalLpBalance;
-        uint256 amount0 = _queryBatchSwap(
-            usdc,
-            bbRfAUsdc,
-            bbRfADai,
-            dai,
-            beethovenxPoolIdUsdc,
-            beethovenxPoolIdDaiUsdtUsdc,
-            beethovenxPoolIdDai,
-            amount1
-        );
-        lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
-    }
-
-    function _queryBatchSwap(
-        IERC20 token0,
-        IERC20 token1,
-        IERC20 token2,
-        IERC20 token3,
-        bytes32 poolId0,
-        bytes32 poolId1,
-        bytes32 poolId2,
-        uint256 amount
-    ) internal returns (uint256) {
-
-        IVault.BatchSwapStep memory batchSwap0;
-        batchSwap0.poolId = poolId0;
-        batchSwap0.assetInIndex = 0;
-        batchSwap0.assetOutIndex = 1;
-        batchSwap0.amount = amount;
-
-        IVault.BatchSwapStep memory batchSwap1;
-        batchSwap1.poolId = poolId1;
-        batchSwap1.assetInIndex = 1;
-        batchSwap1.assetOutIndex = 2;
-        batchSwap1.amount = 0;
-
-        IVault.BatchSwapStep memory batchSwap2;
-        batchSwap2.poolId = poolId2;
-        batchSwap2.assetInIndex = 2;
-        batchSwap2.assetOutIndex = 3;
-        batchSwap2.amount = 0;
-
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](3);
-        swaps[0] = batchSwap0;
-        swaps[1] = batchSwap1;
-        swaps[2] = batchSwap2;
-
-        IAsset[] memory assets = new IAsset[](4);
-        assets[0] = IAsset(address(token0));
-        assets[1] = IAsset(address(token1));
-        assets[2] = IAsset(address(token2));
-        assets[3] = IAsset(address(token3));
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = address(this);
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(address(this));
-        fundManagement.toInternalBalance = false;
-
-        return uint256(- beethovenxVault.queryBatchSwap(IVault.SwapKind.GIVEN_IN, swaps, assets, fundManagement)[3]);
-    }
-
-    function _batchSwap(
-        IERC20 token0,
-        IERC20 token1,
-        IERC20 token2,
-        IERC20 token3,
-        bytes32 poolId0,
-        bytes32 poolId1,
-        bytes32 poolId2,
-        uint256 amount
-    ) internal returns (uint256) {
-
-        token0.approve(address(beethovenxVault), amount);
-
-        IVault.BatchSwapStep memory batchSwap0;
-        batchSwap0.poolId = poolId0;
-        batchSwap0.assetInIndex = 0;
-        batchSwap0.assetOutIndex = 1;
-        batchSwap0.amount = amount;
-
-        IVault.BatchSwapStep memory batchSwap1;
-        batchSwap1.poolId = poolId1;
-        batchSwap1.assetInIndex = 1;
-        batchSwap1.assetOutIndex = 2;
-        batchSwap1.amount = 0;
-
-        IVault.BatchSwapStep memory batchSwap2;
-        batchSwap2.poolId = poolId2;
-        batchSwap2.assetInIndex = 2;
-        batchSwap2.assetOutIndex = 3;
-        batchSwap2.amount = 0;
-
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](3);
-        swaps[0] = batchSwap0;
-        swaps[1] = batchSwap1;
-        swaps[2] = batchSwap2;
-
-        IAsset[] memory assets = new IAsset[](4);
-        assets[0] = IAsset(address(token0));
-        assets[1] = IAsset(address(token1));
-        assets[2] = IAsset(address(token2));
-        assets[3] = IAsset(address(token3));
-
-        IVault.FundManagement memory fundManagement;
-        fundManagement.sender = address(this);
-        fundManagement.fromInternalBalance = false;
-        fundManagement.recipient = payable(address(this));
-        fundManagement.toInternalBalance = false;
-
-        int256[] memory limits = new int256[](4);
-        limits[0] = 1e27;
-
-        return uint256(- beethovenxVault.batchSwap(IVault.SwapKind.GIVEN_IN, swaps, assets, fundManagement, limits, block.timestamp)[3]);
     }
 
 }

@@ -797,6 +797,138 @@ library BeethovenLibrary {
     }
 
 
+    struct SwapParams {
+        IVault beethovenxVault;
+        IVault.SwapKind kind;
+        address token0;
+        address token1;
+        address token2;
+        address token3;
+        bytes32 poolId0;
+        bytes32 poolId1;
+        bytes32 poolId2;
+        uint256 amount;
+        address sender;
+        address recipient;
+    }
+
+    struct CalculateParams {
+        uint256 amount0Total;
+        uint256 totalLpBalance;
+        uint256 reserve0;
+        uint256 reserve1;
+        uint256 denominator0;
+        uint256 denominator1;
+        uint256 precision;
+    }
+
+    function queryBatchSwap(SwapParams memory swapParams) internal returns (uint256) {
+
+        IVault.BatchSwapStep memory batchSwap0;
+        batchSwap0.poolId = swapParams.poolId0;
+        batchSwap0.assetInIndex = 0;
+        batchSwap0.assetOutIndex = 1;
+        batchSwap0.amount = swapParams.amount;
+
+        IVault.BatchSwapStep memory batchSwap1;
+        batchSwap1.poolId = swapParams.poolId1;
+        batchSwap1.assetInIndex = 1;
+        batchSwap1.assetOutIndex = 2;
+        batchSwap1.amount = 0;
+
+        IVault.BatchSwapStep memory batchSwap2;
+        batchSwap2.poolId = swapParams.poolId2;
+        batchSwap2.assetInIndex = 2;
+        batchSwap2.assetOutIndex = 3;
+        batchSwap2.amount = 0;
+
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](3);
+        swaps[0] = batchSwap0;
+        swaps[1] = batchSwap1;
+        swaps[2] = batchSwap2;
+
+        IAsset[] memory assets = new IAsset[](4);
+        assets[0] = IAsset(swapParams.token0);
+        assets[1] = IAsset(swapParams.token1);
+        assets[2] = IAsset(swapParams.token2);
+        assets[3] = IAsset(swapParams.token3);
+
+        IVault.FundManagement memory fundManagement;
+        fundManagement.sender = swapParams.sender;
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(swapParams.recipient);
+        fundManagement.toInternalBalance = false;
+
+        return uint256(- swapParams.beethovenxVault.queryBatchSwap(swapParams.kind, swaps, assets, fundManagement)[3]);
+    }
+
+    function batchSwap(SwapParams memory swapParams) internal returns (uint256) {
+
+        IERC20(swapParams.token0).approve(address(swapParams.beethovenxVault), swapParams.amount);
+
+        IVault.BatchSwapStep memory batchSwap0;
+        batchSwap0.poolId = swapParams.poolId0;
+        batchSwap0.assetInIndex = 0;
+        batchSwap0.assetOutIndex = 1;
+        batchSwap0.amount = swapParams.amount;
+
+        IVault.BatchSwapStep memory batchSwap1;
+        batchSwap1.poolId = swapParams.poolId1;
+        batchSwap1.assetInIndex = 1;
+        batchSwap1.assetOutIndex = 2;
+        batchSwap1.amount = 0;
+
+        IVault.BatchSwapStep memory batchSwap2;
+        batchSwap2.poolId = swapParams.poolId2;
+        batchSwap2.assetInIndex = 2;
+        batchSwap2.assetOutIndex = 3;
+        batchSwap2.amount = 0;
+
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](3);
+        swaps[0] = batchSwap0;
+        swaps[1] = batchSwap1;
+        swaps[2] = batchSwap2;
+
+        IAsset[] memory assets = new IAsset[](4);
+        assets[0] = IAsset(swapParams.token0);
+        assets[1] = IAsset(swapParams.token1);
+        assets[2] = IAsset(swapParams.token2);
+        assets[3] = IAsset(swapParams.token3);
+
+        IVault.FundManagement memory fundManagement;
+        fundManagement.sender = swapParams.sender;
+        fundManagement.fromInternalBalance = false;
+        fundManagement.recipient = payable(swapParams.recipient);
+        fundManagement.toInternalBalance = false;
+
+        int256[] memory limits = new int256[](4);
+        limits[0] = 1e27;
+
+        return uint256(- swapParams.beethovenxVault.batchSwap(swapParams.kind, swaps, assets, fundManagement, limits, block.timestamp)[3]);
+    }
+
+    function getAmount1InToken0(SwapParams memory swapParams, CalculateParams memory calculateParams) internal returns (uint256 amount1InToken0) {
+        amount1InToken0 = (calculateParams.amount0Total * calculateParams.reserve1)
+                / (calculateParams.reserve0 * calculateParams.denominator1 / calculateParams.denominator0 + calculateParams.reserve1);
+        for (uint i = 0; i < calculateParams.precision; i++) {
+            swapParams.amount = amount1InToken0;
+            uint256 amount1 = queryBatchSwap(swapParams);
+            amount1InToken0 = (calculateParams.amount0Total * calculateParams.reserve1)
+                    / (calculateParams.reserve0 * amount1 / amount1InToken0 + calculateParams.reserve1);
+        }
+    }
+
+    function getAmountLpTokens(SwapParams memory swapParams, CalculateParams memory calculateParams) internal returns (uint256 lpBalance) {
+        lpBalance = (calculateParams.totalLpBalance * calculateParams.amount0Total)
+                / (calculateParams.reserve0 + calculateParams.reserve1 * calculateParams.denominator0 / calculateParams.denominator1);
+        for (uint i = 0; i < calculateParams.precision; i++) {
+            uint256 amount1 = calculateParams.reserve1 * lpBalance / calculateParams.totalLpBalance;
+            swapParams.amount = amount1;
+            uint256 amount0 = queryBatchSwap(swapParams);
+            lpBalance = (calculateParams.totalLpBalance * calculateParams.amount0Total)
+                    / (calculateParams.reserve0 + calculateParams.reserve1 * amount0 / amount1);
+        }
+    }
 }
 
 
