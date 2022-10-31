@@ -8,7 +8,6 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyArrakisUsdcDai is Strategy {
 
@@ -119,7 +118,6 @@ contract StrategyArrakisUsdcDai is Strategy {
             amountUsdcCurrent,
             amountDaiCurrent
         );
-        console.log("amountUsdcToSwap: %s", amountUsdcToSwap);
 
         // 2. Swap USDC to needed DAI amount
         _batchSwap(
@@ -135,9 +133,7 @@ contract StrategyArrakisUsdcDai is Strategy {
 
         // 3. Stake USDC/DAI to Arrakis
         uint256 usdcAmount = usdc.balanceOf(address(this));
-        console.log("usdcAmount: %s", usdcAmount);
         uint256 daiAmount = dai.balanceOf(address(this));
-        console.log("daiAmount: %s", daiAmount);
         usdc.approve(address(arrakisRouter), usdcAmount);
         dai.approve(address(arrakisRouter), daiAmount);
         arrakisRouter.addLiquidityAndStake(
@@ -148,8 +144,6 @@ contract StrategyArrakisUsdcDai is Strategy {
             OvnMath.subBasisPoints(daiAmount, 4),
             address(this)
         );
-        console.log("usdcAmount after: %s", usdc.balanceOf(address(this)));
-        console.log("daiAmount after: %s", dai.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -163,7 +157,6 @@ contract StrategyArrakisUsdcDai is Strategy {
         // 1. Calculating need amount lp - depends on amount USDC/DAI
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
         uint256 totalLpBalance = arrakisVault.totalSupply();
-        console.log("totalLpBalance: %s", totalLpBalance);
         uint256 amountLp = _getAmountLpTokens(
             // add 1 bp and 10 for unstake more than requested
             OvnMath.addBasisPoints(_amount + 10, 1),
@@ -174,11 +167,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         if (amountLp > totalLpBalance) {
             amountLp = totalLpBalance;
         }
-        console.log("amountLp: %s", amountLp);
         uint256 amountUsdc = amountUsdcCurrent * amountLp / totalLpBalance;
         uint256 amountDai = amountDaiCurrent * amountLp / totalLpBalance;
-        console.log("amountUsdc: %s", amountUsdc);
-        console.log("amountDai: %s", amountDai);
 
         // 2. Get USDC/DAI from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
@@ -190,8 +180,6 @@ contract StrategyArrakisUsdcDai is Strategy {
             address(this)
         );
 
-        console.log("usdc balance before: %s", usdc.balanceOf(address(this)));
-        console.log("dai balance before: %s", dai.balanceOf(address(this)));
         // 3. Swap DAI to USDC
         _batchSwap(
             dai,
@@ -204,8 +192,6 @@ contract StrategyArrakisUsdcDai is Strategy {
             dai.balanceOf(address(this))
         );
 
-        console.log("usdc balance after: %s", usdc.balanceOf(address(this)));
-        console.log("dai balance after: %s", dai.balanceOf(address(this)));
         return usdc.balanceOf(address(this));
     }
 
@@ -218,7 +204,6 @@ contract StrategyArrakisUsdcDai is Strategy {
 
         // 1. Get balance LP
         uint256 amountLp = arrakisRewards.balanceOf(address(this));
-        console.log("amountLp: %s", amountLp);
         if (amountLp == 0) {
             return 0;
         }
