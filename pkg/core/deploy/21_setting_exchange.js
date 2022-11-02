@@ -1,7 +1,7 @@
 const {ethers} = require("hardhat");
 
 const hre = require("hardhat");
-let {DEFAULT, BSC, OPTIMISM} = require('@overnight-contracts/common/utils/assets');
+let {DEFAULT, BSC, OPTIMISM, COMMON} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async () => {
 
@@ -39,7 +39,7 @@ module.exports = async () => {
     await tx.wait();
     console.log("exchange.setMark2Market done");
 
-    tx = await exchange.setInsurance(DEFAULT.rewardWallet);
+    tx = await exchange.setInsurance(COMMON.rewardWallet);
     await tx.wait();
     console.log("exchange.setInsurance done");
 

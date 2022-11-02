@@ -102,6 +102,92 @@ describe("Exchange", function () {
 
     });
 
+    describe('Payout: Abroad:max', function (){
+
+        sharedBeforeEach("Payout: Abroad", async () => {
+            const sum = toAsset(1000000);
+
+            await usdPlus.setExchanger(account);
+            await usdPlus.setLiquidityIndex('1000000000000000000000000000');
+            await usdPlus.setExchanger(exchange.address);
+
+            await asset.approve(exchange.address, sum);
+
+            await exchange.setBuyFee(0, 100000);
+
+            await (await exchange.buy(asset.address, sum)).wait();
+        });
+
+        it("Delta > abroad:max -> mint USD+ to insurance wallet", async function () {
+            let usdPlusBalance0 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance0: %s", usdPlusBalance0);
+            let usdPlusBalanceAccount0 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount0: %s", usdPlusBalanceAccount0);
+            let usdPlustotalSupply0 = await usdPlus.totalSupply();
+            console.log("usdPlustotalSupply0: %s", usdPlustotalSupply0);
+            await asset.transfer(pm.address, toAsset(360));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+            console.log("payoutEvent.args[0].toString(): %s", payoutEvent.args[0].toString());
+            console.log("payoutEvent.args[1].toString(): %s", payoutEvent.args[1].toString());
+            console.log("payoutEvent.args[2].toString(): %s", payoutEvent.args[2].toString());
+            console.log("payoutEvent.args[3].toString(): %s", payoutEvent.args[3].toString());
+            let usdPlustotalSupply1 = await usdPlus.totalSupply();
+            console.log("usdPlustotalSupply1: %s", usdPlustotalSupply1);
+            let usdPlusBalance2 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance2: %s", usdPlusBalance2);
+            let usdPlusBalanceAccount2 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount2: %s", usdPlusBalanceAccount2);
+            expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
+            expect(toAsset(10)).to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+        it("Delta = abroad:max -> mint USD+ to insurance wallet", async function () {
+            let usdPlusBalance0 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance0: %s", usdPlusBalance0);
+            let usdPlusBalanceAccount0 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount0: %s", usdPlusBalanceAccount0);
+            let usdPlustotalSupply0 = await usdPlus.totalSupply();
+            console.log("usdPlustotalSupply0: %s", usdPlustotalSupply0);
+            await asset.transfer(pm.address, toAsset(350));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+            console.log("payoutEvent.args[0].toString(): %s", payoutEvent.args[0].toString());
+            console.log("payoutEvent.args[1].toString(): %s", payoutEvent.args[1].toString());
+            console.log("payoutEvent.args[2].toString(): %s", payoutEvent.args[2].toString());
+            console.log("payoutEvent.args[3].toString(): %s", payoutEvent.args[3].toString());
+            let usdPlustotalSupply1 = await usdPlus.totalSupply();
+            console.log("usdPlustotalSupply1: %s", usdPlustotalSupply1);
+            let usdPlusBalance2 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance2: %s", usdPlusBalance2);
+            let usdPlusBalanceAccount2 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount2: %s", usdPlusBalanceAccount2);
+            expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
+            expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+        it("Delta < abroad:max -> don't mint USD+ to insurance wallet", async function () {
+            let usdPlusBalance0 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance0: %s", usdPlusBalance0);
+            let usdPlusBalanceAccount0 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount0: %s", usdPlusBalanceAccount0);
+            await asset.transfer(pm.address, toAsset(340));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+            console.log("payoutEvent.args[0].toString(): %s", payoutEvent.args[0].toString());
+            console.log("payoutEvent.args[1].toString(): %s", payoutEvent.args[1].toString());
+            console.log("payoutEvent.args[2].toString(): %s", payoutEvent.args[2].toString());
+            console.log("payoutEvent.args[3].toString(): %s", payoutEvent.args[3].toString());
+            let usdPlusBalance2 = await usdPlus.balanceOf(rewardWallet.address);
+            console.log("usdPlusBalance2: %s", usdPlusBalance2);
+            let usdPlusBalanceAccount2 = await usdPlus.balanceOf(account);
+            console.log("usdPlusBalanceAccount2: %s", usdPlusBalanceAccount2);
+            expect(toAsset(1000340)).to.equal(await usdPlus.balanceOf(account));
+            expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+    });
+
     describe('FreeRider: Buy/Redeem', function (){
 
         sharedBeforeEach("FreeRider", async () => {

@@ -12,6 +12,7 @@ import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 import "./PayoutListener.sol";
 
+import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -356,7 +357,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
         uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+        console.log("totalUsdPlusSupply: %s", totalUsdPlusSupply);
         uint256 totalAsset = mark2market.totalNetAssets();
+        console.log("totalAsset: %s", totalAsset);
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
         uint256 usdPlusDecimals = usdPlus.decimals();
@@ -389,10 +392,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
             // 4. Convert delta USD+ from scaled to normal amount
 
+            console.log("currentLiquidityIndex: %s", currentLiquidityIndex);
             uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
+            console.log("targetLiquidityIndex: %s", targetLiquidityIndex);
+            console.log("totalAssetSupplyRay: %s", totalAssetSupplyRay);
             uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
+            console.log("targetUsdPlusSupplyRay: %s", targetUsdPlusSupplyRay);
             uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - totalUsdPlusSupplyRay;
+            console.log("deltaUsdPlusSupplyRay: %s", deltaUsdPlusSupplyRay);
             uint256 targetUsdPlusAmount = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+            console.log("targetUsdPlusAmount: %s", targetUsdPlusAmount);
 
             // Mint USD+ to insurance wallet
             require(insurance != address(0), 'Insurance address is zero');
@@ -401,6 +410,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             // updating fields - used below
             totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
             totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+            console.log("totalUsdPlusSupply after: %s", totalUsdPlusSupply);
 
             // Calculating a new index
             newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
