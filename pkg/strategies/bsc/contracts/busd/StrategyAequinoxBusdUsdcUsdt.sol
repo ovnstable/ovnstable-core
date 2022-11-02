@@ -235,15 +235,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        uint256 busdBalance = busdToken.balanceOf(address(this));
-
-        uint256 lpBalance = gauge.balanceOf(address(this));
-        if (lpBalance > 0) {
-            (address pool,) = vault.getPool(poolIdBusdUsdcUsdt);
-            busdBalance += lpBalance * IBasePool(pool).getRate() / lpTokenDenominator;
-        }
-
-        return busdBalance;
+        return 0;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
