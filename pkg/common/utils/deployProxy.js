@@ -91,17 +91,20 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
 
         console.log(`Verify proxy [${proxy.address}] ....`);
 
+        try {
+            await hre.run("verify:verify", {
+                address: proxy.address,
+                constructorArguments: [args],
+            });
+        } catch (e) {
+            console.log(e);
+        }
+
+
+        console.log(`Verify impl [${impl.impl}] ....`);
+
         await hre.run("verify:verify", {
-            address: proxy.address,
-            constructorArguments: [args],
-        });
-
-        const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
-
-        console.log(`Verify impl [${currentImplAddress}] ....`);
-
-        await hre.run("verify:verify", {
-            address: currentImplAddress,
+            address: impl.impl,
             constructorArguments: [],
         });
     }
