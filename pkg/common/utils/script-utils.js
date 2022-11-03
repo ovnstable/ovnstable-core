@@ -682,9 +682,14 @@ async function transferWBTC(amount, to) {
 async function transferUSDC(amount, to) {
 
 
-    //work only for Polygon
-    // This address has USDC
-    let address = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
+    let address;
+    if (process.env.STAND == 'polygon'){
+        //work only for Polygon
+        // This address has USDC
+        address = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
+    }else if (process.env.STAND == 'optimism'){
+        address = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+    }
 
     await transferETH(1, address);
 
