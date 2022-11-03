@@ -73,8 +73,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlus,
         uint256 totalAsset,
         uint256 totallyAmountPaid,
-        uint256 newLiquidityIndex,
-        uint256 amountPaid
+        uint256 newLiquidityIndex
     );
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
@@ -415,20 +414,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         // count totallyAmountPaid
+        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
         uint totallyAmountPaid;
         if (totalAsset <= scaledTotalUsdPlusSupply) {
-            totallyAmountPaid = scaledTotalUsdPlusSupply - totalAsset;
+            totallyAmountPaid = totalUsdPlusSupply - totalAsset;
         } else {
-            totallyAmountPaid = totalAsset - scaledTotalUsdPlusSupply;
-        }
-
-        // count amountPaid
-        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint amountPaid;
-        if (totalAsset <= totalUsdPlusSupply) {
-            amountPaid = totalUsdPlusSupply - totalAsset;
-        } else {
-            amountPaid = totalAsset - totalUsdPlusSupply;
+            totallyAmountPaid = totalAsset - totalUsdPlusSupply;
         }
 
         // set newLiquidityIndex
@@ -443,8 +434,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             scaledTotalUsdPlusSupply,
             totalAsset,
             totallyAmountPaid,
-            newLiquidityIndex,
-            amountPaid
+            newLiquidityIndex
         );
 
         // update next payout time. Cycle for preventing gaps
