@@ -73,7 +73,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlus,
         uint256 totalAsset,
         uint256 totallyAmountPaid,
-        uint256 newLiquidityIndex
+        uint256 newLiquidityIndex,
+        uint256 insuranceFee
     );
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
@@ -378,6 +379,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             revert('Delta abroad:min');
         }
 
+        uint256 insuranceBalanceBefore = usdPlus.balanceOf(insurance);
         if (abroadMax < delta) {
 
             // Calculate the amount of USD+ to hit the maximum delta.
@@ -425,6 +427,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // set newLiquidityIndex
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 
+        // count fee
+        uint256 insuranceFee = usdPlus.balanceOf(insurance) - insuranceBalanceBefore;
+
         // notify listener about payout done
         if (address(payoutListener) != address(0)) {
             payoutListener.payoutDone();
@@ -434,7 +439,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             scaledTotalUsdPlusSupply,
             totalAsset,
             totallyAmountPaid,
-            newLiquidityIndex
+            newLiquidityIndex,
+            insuranceFee
         );
 
         // update next payout time. Cycle for preventing gaps
