@@ -73,7 +73,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlus,
         uint256 totalAsset,
         uint256 totallyAmountPaid,
-        uint256 newLiquidityIndex
+        uint256 newLiquidityIndex,
+        uint256 amountPaid
     );
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
@@ -354,8 +355,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-        uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+        uint256 scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+        uint256 scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
         uint256 totalAsset = mark2market.totalNetAssets();
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
@@ -368,7 +369,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalAssetSupplyRay = totalAsset.wadToRay();
         // in ray
-        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
         uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
@@ -391,7 +392,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
             uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
-            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - totalUsdPlusSupplyRay;
+            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - scaledTotalUsdPlusSupplyRay;
             uint256 targetUsdPlusAmount = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
 
             // Mint USD+ to insurance wallet
@@ -399,11 +400,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             usdPlus.mint(insurance, targetUsdPlusAmount);
 
             // updating fields - used below
-            totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-            totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+            scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+            scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
 
             // Calculating a new index
-            newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+            newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
             delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
             // re-check for emergencies
@@ -413,15 +414,24 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         }
 
-
-        uint difference;
-        if (totalAsset <= totalUsdPlusSupply) {
-            difference = totalUsdPlusSupply - totalAsset;
+        // count totallyAmountPaid
+        uint totallyAmountPaid;
+        if (totalAsset <= scaledTotalUsdPlusSupply) {
+            totallyAmountPaid = scaledTotalUsdPlusSupply - totalAsset;
         } else {
-            difference = totalAsset - totalUsdPlusSupply;
+            totallyAmountPaid = totalAsset - scaledTotalUsdPlusSupply;
         }
 
+        // count amountPaid
+        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
+        uint amountPaid;
+        if (totalAsset <= totalUsdPlusSupply) {
+            amountPaid = totalUsdPlusSupply - totalAsset;
+        } else {
+            amountPaid = totalAsset - totalUsdPlusSupply;
+        }
 
+        // set newLiquidityIndex
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         // notify listener about payout done
@@ -430,10 +440,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         emit PayoutEvent(
-            totalUsdPlusSupply,
+            scaledTotalUsdPlusSupply,
             totalAsset,
-            difference,
-            newLiquidityIndex
+            totallyAmountPaid,
+            newLiquidityIndex,
+            amountPaid
         );
 
         // update next payout time. Cycle for preventing gaps
