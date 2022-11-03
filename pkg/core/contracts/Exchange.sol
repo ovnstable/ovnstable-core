@@ -70,10 +70,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
     event PayoutEvent(
-        uint256 totalUsdPlus,
-        uint256 totalAsset,
-        uint256 totallyAmountPaid,
-        uint256 newLiquidityIndex
+        uint256 profit,
+        uint256 newLiquidityIndex,
+        uint256 insuranceFee
     );
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
@@ -354,8 +353,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-        uint256 totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+        uint256 scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+        uint256 scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
         uint256 totalAsset = mark2market.totalNetAssets();
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
@@ -368,7 +367,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalAssetSupplyRay = totalAsset.wadToRay();
         // in ray
-        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
         uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
 
         uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
@@ -377,6 +376,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         if (delta < abroadMin) {
             revert('Delta abroad:min');
         }
+
+        uint256 insuranceFee;
 
         if (abroadMax < delta) {
 
@@ -391,19 +392,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
             uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
-            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - totalUsdPlusSupplyRay;
-            uint256 targetUsdPlusAmount = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - scaledTotalUsdPlusSupplyRay;
+            insuranceFee = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
 
             // Mint USD+ to insurance wallet
             require(insurance != address(0), 'Insurance address is zero');
-            usdPlus.mint(insurance, targetUsdPlusAmount);
+            usdPlus.mint(insurance, insuranceFee);
 
             // updating fields - used below
-            totalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-            totalUsdPlusSupply = totalUsdPlusSupplyRay.rayToWad();
+            scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+            scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
 
             // Calculating a new index
-            newLiquidityIndex = totalAssetSupplyRay.rayDiv(totalUsdPlusSupplyRay);
+            newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
             delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
 
             // re-check for emergencies
@@ -413,15 +414,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         }
 
-
-        uint difference;
+        // Calculating how much users profit after insurance fee
+        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
+        uint profit;
         if (totalAsset <= totalUsdPlusSupply) {
-            difference = totalUsdPlusSupply - totalAsset;
+            profit = totalUsdPlusSupply - totalAsset;
         } else {
-            difference = totalAsset - totalUsdPlusSupply;
+            profit = totalAsset - totalUsdPlusSupply;
         }
 
-
+        // set newLiquidityIndex
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         // notify listener about payout done
@@ -430,10 +432,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         emit PayoutEvent(
-            totalUsdPlusSupply,
-            totalAsset,
-            difference,
-            newLiquidityIndex
+            profit,
+            newLiquidityIndex,
+            insuranceFee
         );
 
         // update next payout time. Cycle for preventing gaps

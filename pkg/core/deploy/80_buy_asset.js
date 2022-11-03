@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat");
+const {getERC20, getDevWallet, transferUSDC} = require("@overnight-contracts/common/utils/script-utils");
 
 let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 
@@ -31,6 +32,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
             break;
         case 'polygon_dev':
             await buyonSwap.buy(DEFAULT.usdc, DEFAULT.quickSwapRouter, {value: value});
+            break;
+        case 'optimism':
+            await transferUSDC(1, deployer);
             break;
     }
 

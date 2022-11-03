@@ -102,6 +102,60 @@ describe("Exchange", function () {
 
     });
 
+    describe('Payout: Abroad:max', function (){
+
+        sharedBeforeEach("Payout: Abroad", async () => {
+            const sum = toAsset(1000000);
+
+            await usdPlus.setExchanger(account);
+            await usdPlus.setLiquidityIndex('1000000000000000000000000000');
+            await usdPlus.setExchanger(exchange.address);
+
+            await asset.approve(exchange.address, sum);
+
+            await exchange.setBuyFee(0, 100000);
+
+            await (await exchange.buy(asset.address, sum)).wait();
+        });
+
+        it("Delta > abroad:max -> mint USD+ to insurance wallet", async function () {
+            await asset.transfer(pm.address, toAsset(360));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('350');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('10');
+
+            expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
+            expect(toAsset(10)).to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+        it("Delta = abroad:max -> mint USD+ to insurance wallet", async function () {
+            await asset.transfer(pm.address, toAsset(350));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('350');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('0');
+
+            expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
+            expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+        it("Delta < abroad:max -> don't mint USD+ to insurance wallet", async function () {
+            await asset.transfer(pm.address, toAsset(340));
+            let receipt = await (await exchange.payout()).wait();
+            const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('340');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('0');
+
+            expect(toAsset(1000340)).to.equal(await usdPlus.balanceOf(account));
+            expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
+        });
+
+    });
+
     describe('FreeRider: Buy/Redeem', function (){
 
         sharedBeforeEach("FreeRider", async () => {
@@ -489,7 +543,7 @@ describe("Exchange", function () {
             expect(updatedEvent.args[0]).to.equals(mockPL.address);
 
             await expectRevert(mockPL.payoutDone(), 'MockPayoutListener.payoutDone() called');
-            await expectRevert(exchange.payout(), 'MockPayoutListener.payout() called');
+            await expectRevert(exchange.payout(), 'MockPayoutListener.payoutDone() called');
         });
 
     });
