@@ -70,9 +70,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
     event PayoutEvent(
-        uint256 totalUsdPlus,
-        uint256 totalAsset,
-        uint256 totallyAmountPaid,
+        uint256 profit,
         uint256 newLiquidityIndex,
         uint256 insuranceFee
     );
@@ -379,7 +377,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             revert('Delta abroad:min');
         }
 
-        uint256 insuranceBalanceBefore = usdPlus.balanceOf(insurance);
+        uint256 insuranceFee;
+
         if (abroadMax < delta) {
 
             // Calculate the amount of USD+ to hit the maximum delta.
@@ -394,11 +393,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
             uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
             uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - scaledTotalUsdPlusSupplyRay;
-            uint256 targetUsdPlusAmount = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+            insuranceFee = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
 
             // Mint USD+ to insurance wallet
             require(insurance != address(0), 'Insurance address is zero');
-            usdPlus.mint(insurance, targetUsdPlusAmount);
+            usdPlus.mint(insurance, insuranceFee);
 
             // updating fields - used below
             scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
@@ -415,20 +414,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         }
 
-        // count totallyAmountPaid
+        // Calculating how much users profit after insurance fee
         uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint totallyAmountPaid;
-        if (totalAsset <= scaledTotalUsdPlusSupply) {
-            totallyAmountPaid = totalUsdPlusSupply - totalAsset;
+        uint profit;
+        if (totalAsset <= totalUsdPlusSupply) {
+            profit = totalUsdPlusSupply - totalAsset;
         } else {
-            totallyAmountPaid = totalAsset - totalUsdPlusSupply;
+            profit = totalAsset - totalUsdPlusSupply;
         }
 
         // set newLiquidityIndex
         usdPlus.setLiquidityIndex(newLiquidityIndex);
-
-        // count fee
-        uint256 insuranceFee = usdPlus.balanceOf(insurance) - insuranceBalanceBefore;
 
         // notify listener about payout done
         if (address(payoutListener) != address(0)) {
@@ -436,9 +432,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         emit PayoutEvent(
-            scaledTotalUsdPlusSupply,
-            totalAsset,
-            totallyAmountPaid,
+            profit,
             newLiquidityIndex,
             insuranceFee
         );

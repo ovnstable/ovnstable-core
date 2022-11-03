@@ -122,8 +122,10 @@ describe("Exchange", function () {
             await asset.transfer(pm.address, toAsset(360));
             let receipt = await (await exchange.payout()).wait();
             const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
-            expect(new BigNumber(payoutEvent.args[2].toString()).gte(new BigNumber(toAsset(350)))).to.equal(true);
-            expect(new BigNumber(payoutEvent.args[4].toString()).gte(new BigNumber(toAsset(10)))).to.equal(true);
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('350');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('10');
+
             expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
             expect(toAsset(10)).to.equal(await usdPlus.balanceOf(rewardWallet.address));
         });
@@ -132,8 +134,10 @@ describe("Exchange", function () {
             await asset.transfer(pm.address, toAsset(350));
             let receipt = await (await exchange.payout()).wait();
             const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
-            expect(payoutEvent.args[2].toString()).to.equal(toAsset(350).toString());
-            expect(payoutEvent.args[4].toString()).to.equal("0");
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('350');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('0');
+
             expect(toAsset(1000350)).to.equal(await usdPlus.balanceOf(account));
             expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
         });
@@ -142,8 +146,10 @@ describe("Exchange", function () {
             await asset.transfer(pm.address, toAsset(340));
             let receipt = await (await exchange.payout()).wait();
             const payoutEvent = receipt.events.find((e) => e.event === 'PayoutEvent');
-            expect(payoutEvent.args[2].toString()).to.equal(toAsset(340).toString());
-            expect(payoutEvent.args[4].toString()).to.equal("0");
+
+            expect(fromE6(payoutEvent.args[0].toString()).toFixed(0)).to.equal('340');
+            expect(fromE6(payoutEvent.args[2].toString()).toFixed(0)).to.equal('0');
+
             expect(toAsset(1000340)).to.equal(await usdPlus.balanceOf(account));
             expect("0").to.equal(await usdPlus.balanceOf(rewardWallet.address));
         });
