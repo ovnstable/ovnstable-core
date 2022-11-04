@@ -134,6 +134,10 @@ task(TASK_RUN, 'Run task')
             tags: args.tags,
         }
 
+        if (hre.network.name === 'localhost'){
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        }
+
         if (args.reset)
             await evmCheckpoint('task', hre.network.provider);
 
@@ -163,6 +167,10 @@ task(TASK_TEST, 'test')
             impl: false,
             setting: true,
             noDeploy: false
+        }
+
+        if (hre.network.name === 'localhost'){
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
 
         await evmCheckpoint('task', hre.network.provider);

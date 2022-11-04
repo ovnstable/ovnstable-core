@@ -19,11 +19,11 @@ async function initWallet() {
         return wallet;
 
     let provider = ethers.provider;
-    console.log('Provider: ' + provider.connection.url);
+    console.log('[User] Provider: ' + provider.connection.url);
     wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
-    console.log('Wallet: ' + wallet.address);
+    console.log('[User] Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
-    console.log('Balance wallet: ' + fromE18(balance.toString()));
+    console.log('[User] Balance wallet: ' + fromE18(balance.toString()));
 
     return wallet;
 }
@@ -89,7 +89,7 @@ async function getContract(name, network){
 
 async function getAbi(name){
 
-    let searchPath = fromDir(require('app-root-path').path, path.join(name + ".json"));
+    let searchPath = fromDir(require('app-root-path').path, path.join("/" + name + ".json"));
     return JSON.parse(fs.readFileSync(searchPath)).abi;
 
 }
@@ -175,35 +175,6 @@ function fromDir(startPath, filter) {
 
 }
 
-async function showPlatform(platform, blocknumber) {
-
-    let strategyAssets;
-    if (blocknumber){
-        strategyAssets = await platform.getStrategies({blockNumber: blocknumber});
-    }else {
-        strategyAssets = await platform.getStrategies();
-    }
-
-    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
-
-    const StrategyJson = require("./abi/Strategy.json");
-
-    let items = [];
-    for (let i = 0; i < strategyAssets.length; i++) {
-        let asset = strategyAssets[i];
-
-        let mapping = strategiesMapping.find(value => value.address === asset);
-
-        let contract = await hre.ethers.getContractAt(StrategyJson.abi, asset, wallet);
-
-        let nav = fromE6(await contract.netAssetValue());
-        let liq = fromE6(await contract.liquidationValue());
-
-        items.push({name: mapping ? mapping.name : asset,netAssetValue: nav, liquidationValue: liq});
-    }
-
-    console.table(items);
-}
 
 
 async function getStrategyMapping(){
@@ -354,6 +325,18 @@ async function upgradeStrategy(strategy, newImplAddress) {
         params: [timelock.address],
     });
 
+}
+
+async function impersonateAccount(address){
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+    await transferETH(10, address);
+
+    return await hre.ethers.getSigner(address);
 }
 
 async function execTimelock(exec){
@@ -558,8 +541,7 @@ async function transferETH(amount, to) {
         value: ethers.utils.parseEther(amount+"")
     });
 
-    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
-
+    console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]:`);
 }
 
 
@@ -644,20 +626,17 @@ async function transferDAI(to) {
 
 async function transferWBTC(amount, to) {
 
-    //work only for Optimism
-    // This address has WBTC
-    let address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
-    switch (process.env.ETH_NETWORK){
-        case "OPTIMISM":
+    let address;
+    switch (process.env.STAND){
+        case "optimism":
             address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
             break
         default:
-            throw new Error('Unknown mapping ETH_NETWORK');
+            throw new Error(`Unknown holder for chain: [${process.env.STAND}]`);
     }
 
     await transferETH(1, address);
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -676,7 +655,8 @@ async function transferWBTC(amount, to) {
     });
 
 
-    console.log('Balance WBTC: ' + await wbtc.balanceOf(to));
+    console.log(`[Node] Transfer WBTC [${fromE6(await wbtc.balanceOf(to))}] to [${to}]:`);
+
 }
 
 async function transferUSDC(amount, to) {
@@ -689,11 +669,12 @@ async function transferUSDC(amount, to) {
         address = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
     }else if (process.env.STAND == 'optimism'){
         address = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+    }else {
+        throw new Error(`Unknown holder for chain: [${process.env.STAND}]`);
     }
 
     await transferETH(1, address);
 
-    // hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -711,8 +692,7 @@ async function transferUSDC(amount, to) {
         params: [account.address],
     });
 
-
-    console.log('Balance USDC: ' + await usdc.balanceOf(to));
+    console.log(`[Node] Transfer USDC [${fromE6(await usdc.balanceOf(to))}] to [${to}]:`);
 }
 
 module.exports = {
@@ -728,7 +708,6 @@ module.exports = {
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
     showM2M: showM2M,
-    showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,
     getPrice: getPrice,
     getContract: getContract,
@@ -743,4 +722,5 @@ module.exports = {
     deploySection: deploySection,
     settingSection: settingSection,
     checkTimeLockBalance: checkTimeLockBalance,
+    impersonateAccount: impersonateAccount,
 }
