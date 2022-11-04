@@ -1,4 +1,6 @@
 const dotenv = require('dotenv');
+
+console.log('Procee:' + process.cwd());
 dotenv.config({path:__dirname+ '/../../../.env'});
 
 const {node_url, accounts, blockNumber} = require("./network");

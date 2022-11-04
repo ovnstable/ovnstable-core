@@ -175,35 +175,6 @@ function fromDir(startPath, filter) {
 
 }
 
-async function showPlatform(platform, blocknumber) {
-
-    let strategyAssets;
-    if (blocknumber){
-        strategyAssets = await platform.getStrategies({blockNumber: blocknumber});
-    }else {
-        strategyAssets = await platform.getStrategies();
-    }
-
-    let strategiesMapping = (await axios.get('https://app.overnight.fi/api/dapp/strategies')).data;
-
-    const StrategyJson = require("./abi/Strategy.json");
-
-    let items = [];
-    for (let i = 0; i < strategyAssets.length; i++) {
-        let asset = strategyAssets[i];
-
-        let mapping = strategiesMapping.find(value => value.address === asset);
-
-        let contract = await hre.ethers.getContractAt(StrategyJson.abi, asset, wallet);
-
-        let nav = fromE6(await contract.netAssetValue());
-        let liq = fromE6(await contract.liquidationValue());
-
-        items.push({name: mapping ? mapping.name : asset,netAssetValue: nav, liquidationValue: liq});
-    }
-
-    console.table(items);
-}
 
 
 async function getStrategyMapping(){
@@ -737,7 +708,6 @@ module.exports = {
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
     showM2M: showM2M,
-    showPlatform: showPlatform,
     showHedgeM2M: showHedgeM2M,
     getPrice: getPrice,
     getContract: getContract,

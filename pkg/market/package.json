@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/market",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Market contracts",
   "main": "hardhat.config",
   "directories": {
