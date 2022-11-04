@@ -12,7 +12,7 @@ function getNetworkByName(network) {
     let forkingUrl = node_url(network);
     let accountsNetwork = accounts(network);
     let blockNumberValue = blockNumber(network);
-    console.log(`Forking url: [${forkingUrl}:${blockNumberValue}]`);
+    console.log(`[Node] Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
     return {
 
@@ -105,7 +105,7 @@ function getNetworkByName(network) {
 }
 
 function getNetwork(network) {
-    console.log(`Network: [${network}]`);
+    console.log(`[Node] Network: [${network}]`);
     return getNetworkByName(network.toLowerCase());
 }
 

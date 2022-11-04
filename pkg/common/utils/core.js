@@ -58,7 +58,7 @@ function polygon_platform(){
 function getCoreAddresses(){
 
     let stand = process.env.STAND;
-    console.log('STAND: ' + stand);
+    console.log('[Node] STAND: ' + stand);
     switch (stand){
         case "avalanche":
             return avalanche();
