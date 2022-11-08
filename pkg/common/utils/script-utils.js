@@ -274,9 +274,18 @@ async function showM2M(blocknumber) {
 
         let totalUsdPlus;
         if (blocknumber){
-            totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
+
+            if (process.env.STAND === 'optimism_dai'){
+                totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}));
+            }else {
+                totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
+            }
         }else {
-            totalUsdPlus = fromE6(await usdPlus.totalSupply());
+            if (process.env.STAND === 'optimism_dai'){
+                totalUsdPlus = fromAsset(await usdPlus.totalSupply());
+            }else {
+                totalUsdPlus = fromE6(await usdPlus.totalSupply());
+            }
         }
         console.log('Total USD+: ' + totalUsdPlus);
     }

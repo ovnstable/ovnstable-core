@@ -50,6 +50,11 @@
       "address": "0x9E88f7CF6c9fC2895dFAa1b7c21D446EC1749f89",
       "txHash": "0x66b303b8d40c1bd72fdbe5a0773e5e448cb5255b129be7fa5a02c99e76557f73",
       "kind": "uups"
+    },
+    {
+      "address": "0x0b8f31480249cC717081928B8aF733F45f6915BB",
+      "txHash": "0x2844ad9c5a7c9fd7e1b93576ff8644a3d9de764f5a240c555fc0a87038f1d878",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -2786,9 +2791,9 @@
             "label": "asset",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IUsdPlusToken)8340",
+            "type": "t_contract(IUsdPlusToken)5057",
             "contract": "WrappedUsdPlusToken",
-            "src": "contracts/WrappedUsdPlusToken.sol:17"
+            "src": "contracts/WrappedUsdPlusToken.sol:18"
           },
           {
             "label": "_decimals",
@@ -2796,7 +2801,7 @@
             "slot": "301",
             "type": "t_uint8",
             "contract": "WrappedUsdPlusToken",
-            "src": "contracts/WrappedUsdPlusToken.sol:18"
+            "src": "contracts/WrappedUsdPlusToken.sol:19"
           }
         ],
         "types": {
@@ -2824,7 +2829,7 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IUsdPlusToken)8340": {
+          "t_contract(IUsdPlusToken)5057": {
             "label": "contract IUsdPlusToken",
             "numberOfBytes": "20"
           },

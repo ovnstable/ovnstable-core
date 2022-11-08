@@ -8,13 +8,13 @@ module.exports = async ({deployments}) => {
     let params;
 
     if (hre.network.name === "bsc_usdc") {
-        params = {args: ["cUSD+", "cUSD+"]}
+        params = {args: ["cUSD+", "cUSD+", 6]}
     } else if (hre.network.name === "bsc_usdt") {
-        params = {args: ["tUSD+", "tUSD+"]}
+        params = {args: ["tUSD+", "tUSD+", 6]}
     } else if (hre.network.name === "optimism_dai") {
-        params = {args: ["DAI+", "DAI+"]}
+        params = {args: ["DAI+", "DAI+", 18]}
     } else {
-        params = {args: ["USD+", "USD+"]};
+        params = {args: ["USD+", "USD+", 6]};
     }
     await deployProxy('UsdPlusToken', deployments, save, params);
 

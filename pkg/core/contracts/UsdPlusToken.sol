@@ -41,6 +41,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256[50] private __gap;
 
     address public exchange;
+    uint8 private _decimals;
 
     // ---  events
 
@@ -81,7 +82,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(string calldata name, string calldata symbol) initializer public {
+    function initialize(string calldata name, string calldata symbol, uint8 decimals) initializer public {
         __Context_init_unchained();
 
         _name = name;
@@ -97,6 +98,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         liquidityIndex = 10 ** 27;
         // 1 Ray
         liquidityIndexDenominator = 10 ** 27;
+
+        _decimals = decimals;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -104,6 +107,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     onlyRole(UPGRADER_ROLE)
     override
     {}
+
+
+    /**
+    * Support method for old version tokens which not has field _decimals at deploy
+    */
+
+    function setDecimals(uint8 decimals) external onlyAdmin {
+        require(_decimals == 0, 'Decimals already set');
+        _decimals = decimals;
+    }
 
 
     // ---  logic
@@ -504,8 +517,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public pure override returns (uint8) {
-        return 6;
+    function decimals() public view override returns (uint8) {
+        return _decimals == 0 ? 6 : _decimals;
     }
 
 
