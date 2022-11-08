@@ -1,4 +1,4 @@
-const {getContract, changeWeightsAndBalance, convertWeights, initWallet, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, changeWeightsAndBalance, convertWeights, initWallet, getPrice, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
             "name": "Aave",
             "minWeight": 0,
             "targetWeight": 2.5,
-            "maxWeight": 5,
+            "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
@@ -19,7 +19,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 10,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
         {
@@ -45,17 +45,16 @@ async function main() {
 
     weights = await convertWeights(weights);
 
-    await changeWeightsAndBalance(weights);
-//    await setWeights(weights)
+    // await changeWeightsAndBalance(weights);
+   await setWeights(weights)
 }
 
 
 async function setWeights(weights) {
     let pm = await getContract('PortfolioManager');
 
-    let params = await getPrice();
-    await (await pm.setStrategyWeights(weights, params)).wait();
-    await (await pm.balance(params)).wait();
+    await (await pm.setStrategyWeights(weights)).wait();
+    // await (await pm.balance()).wait();
     await showM2M();
 }
 

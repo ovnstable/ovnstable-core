@@ -605,7 +605,7 @@ async function transferDAI(to) {
     let address;
     switch (process.env.ETH_NETWORK){
         case "OPTIMISM":
-            address = '0x441b02540b16b22d64a5be8d3a4dcf9a4e0efa98';
+            address = '0x777a044ceff2305a06ce06ab4644ea025d4ddeb5';
             break
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
@@ -629,7 +629,7 @@ async function transferDAI(to) {
         params: [account.address],
     });
 
-
+    console.log(`[Node] Transfer DAI [${fromE6(await token.balanceOf(to))}] to [${to}]:`);
 }
 
 
