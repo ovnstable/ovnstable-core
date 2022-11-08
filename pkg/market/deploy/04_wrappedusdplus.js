@@ -10,13 +10,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let params;
 
     if (hre.network.name === "bsc_usdc") {
-        params = {args: [usdPlusToken.address, "Wrapped cUSD+", "wcUSD+"]}
+        params = {args: [usdPlusToken.address, "Wrapped cUSD+", "wcUSD+", 6]}
     } else if (hre.network.name === "bsc_usdt") {
-        params = {args: [usdPlusToken.address, "Wrapped tUSD+", "wtUSD+"]}
+        params = {args: [usdPlusToken.address, "Wrapped tUSD+", "wtUSD+", 6]}
     } else if (hre.network.name === "optimism_dai") {
-        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+"]}
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]}
     } else {
-        params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+"]};
+        params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+", 6]};
     }
 
     await deployProxy('WrappedUsdPlusToken', deployments, save, params);

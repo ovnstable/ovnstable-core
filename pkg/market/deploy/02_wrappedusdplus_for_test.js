@@ -6,7 +6,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
 
-    let params = { args: [mockUsdPlusToken.address] };
+    let params = { args: [mockUsdPlusToken.address, 'Wrapped MockUSD+', 'wMockUSD+', 6] };
 
     await deployProxy('WrappedUsdPlusToken', deployments, save, params);
 

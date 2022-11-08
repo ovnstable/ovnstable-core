@@ -4,23 +4,24 @@ pragma solidity >=0.5.0 <0.9.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
+import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
 
 import "./interfaces/IWrappedUsdPlusToken.sol";
-import "./interfaces/IUsdPlusToken.sol";
 
-contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IUsdPlusToken public asset;
-
+    uint8 private _decimals;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address usdPlusTokenAddress, string calldata name, string calldata symbol) initializer public {
+    function initialize(address usdPlusTokenAddress, string calldata name, string calldata symbol, uint8 decimals) initializer public {
         __ERC20_init(name, symbol);
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -29,6 +30,8 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         _grantRole(UPGRADER_ROLE, msg.sender);
 
         asset = IUsdPlusToken(usdPlusTokenAddress);
+
+        _decimals = decimals;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -37,25 +40,31 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
     override
     {}
 
-    function _convertToSharesUp(uint256 assets) internal view returns (uint256) {
-        return assets.rayDiv(asset.liquidityIndex());
+    function setDecimals(uint8 decimals) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_decimals == 0, 'Decimals already set');
+        _decimals = decimals;
     }
 
-    function _convertToAssetsUp(uint256 shares) internal view returns (uint256) {
-        return shares.rayMul(asset.liquidityIndex());
+    function _convertToSharesUp(uint256 assets) internal view returns (uint256) {
+        return assets.rayDiv(asset.liquidityIndex());
     }
 
     function _convertToSharesDown(uint256 assets) internal view returns (uint256) {
         return assets.rayDivDown(asset.liquidityIndex());
     }
 
+    function _convertToAssetsUp(uint256 shares) internal view returns (uint256) {
+        return shares.rayMul(asset.liquidityIndex());
+    }
+
     function _convertToAssetsDown(uint256 shares) internal view returns (uint256) {
         return shares.rayMulDown(asset.liquidityIndex());
     }
 
+
     /// @inheritdoc ERC20Upgradeable
     function decimals() public view override(ERC20Upgradeable) returns (uint8) {
-        return 6;
+        return _decimals;
     }
 
     /// @inheritdoc IERC4626
@@ -199,8 +208,7 @@ contract WrappedUsdPlusToken is IWrappedUsdPlusToken, ERC20Upgradeable, AccessCo
         return assets;
     }
 
-    /// @inheritdoc IWrappedUsdPlusToken
-    function rate() external view override returns (uint256) {
+    function rate() external view returns (uint256) {
         return asset.liquidityIndex();
     }
 
