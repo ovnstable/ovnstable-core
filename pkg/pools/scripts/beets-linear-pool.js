@@ -39,15 +39,60 @@ async function main() {
     let wUsdPlus = await getContract('WrappedUsdPlusToken', 'optimism');
     let wDai = await getContract('WrappedUsdPlusToken', 'optimism_dai');
 
-    await showBalances();
 
     // 0x88D07558470484c03d3bb44c3ECc36CAfCF43253
-    let usdPool = await createPool('USD+', usdc.address, wUsdPlus.address);
+    // let usdPool = await createPool('USD+', usdc.address, wUsdPlus.address);
     // await testPool(usdPool, usdc, usdPlus, wUsdPlus);
 
-    // 0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15
-    let daiPool = await createPool('DAI+', dai.address, wDai.address);
+    await (await daiPus.approve(wDai.address, toE18(1))).wait();
+    await (await wDai.deposit(toE18(1), wallet.address)).wait();
+
+    let daiBalanceBefore = fromE18(await dai.balanceOf(wallet.address));
+    let wDaiBalanceBefore = fromE18(await wDai.balanceOf(wallet.address));
+    let daiPlusBalanceBefore = fromE18(await daiPus.balanceOf(wallet.address));
+
+    // 0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809
+    // let daiPool = await createPool('DAI+', dai.address, wDai.address);
     // await testPool(daiPool, dai, daiPus, wDai);
+
+    let daiBalanceAfter = fromE18(await dai.balanceOf(wallet.address));
+    let wDaiBalanceAfter = fromE18(await wDai.balanceOf(wallet.address));
+    let daiPlusBalanceAfter = fromE18(await daiPus.balanceOf(wallet.address));
+
+
+    let pool = await ethers.getContractAt(Pool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809', wallet);
+    let poolId = await pool.getPoolId();
+
+    await showPooBalances(pool);
+
+
+    // console.log('Unswap ' + await dai.symbol());
+    // await unSwap(pool, dai);
+    // console.log('Unswap ' + await wDai.symbol());
+    // await unSwap(pool, wDai);
+    //
+    // await showPooBalances(pool);
+
+    // console.table([
+    //     {
+    //         name: await  dai.symbol(),
+    //         before: daiBalanceBefore,
+    //         after: daiBalanceAfter,
+    //         diff: daiBalanceBefore - daiBalanceAfter
+    //     },
+    //     {
+    //         name: await  wDai.symbol(),
+    //         before: wDaiBalanceBefore,
+    //         after: wDaiBalanceAfter,
+    //         diff: wDaiBalanceBefore - wDaiBalanceAfter
+    //     },
+    //     {
+    //         name: await  daiPus.symbol(),
+    //         before: daiPlusBalanceBefore,
+    //         after: daiPlusBalanceAfter,
+    //         diff: daiPlusBalanceBefore - daiPlusBalanceAfter
+    //     }
+    // ])
 
 
     async function createPool(pairName, asset, wrapper) {
@@ -67,7 +112,7 @@ async function main() {
 
     async function testPool(pool, asset, usdPlus, wUsdPlus) {
 
-        await showPooBalances(pool);
+        // await showPooBalances(pool);
 
         let toAsset;
         if (await asset.decimals() === 18){
@@ -79,16 +124,38 @@ async function main() {
         console.log('Put ' + await asset.symbol());
         await swap(asset, pool, toAsset(1), await pool.getPoolId());
         console.log('Put ' + await usdPlus.symbol());
-        await swap(wUsdPlus, pool, toE6(1), await pool.getPoolId());
+        await swap(wUsdPlus, pool, toAsset(1), await pool.getPoolId());
 
-        await showPooBalances(pool);
+        // await showPooBalances(pool);
 
-        console.log('Unswap ' + await asset.symbol());
-        await unSwap(pool, asset);
-        console.log('Unswap ' + await wUsdPlus.symbol());
-        await unSwap(pool, wUsdPlus);
+        // await (await daiPus.setExchanger(wallet.address)).wait();
+        // await (await daiPus.setLiquidityIndex('1033539704147588662777413882')).wait();
+        // await (await daiPus.setExchanger('0x7C7938B6a1eF49470aa53Da53bE9A0baa8CE0b10')).wait();
+        //
+        // console.log('DAI:    ' + fromE18(await dai.balanceOf(wallet.address)));
+        // console.log('wDAI+: ' + fromE18(await wDai.balanceOf(wallet.address)));
+        //
+        // console.log('Swap DAI-> wDAI+');
+        // await swap(asset, wUsdPlus, toAsset(1), await pool.getPoolId());
+        //
+        // console.log('DAI:    ' + fromE18(await dai.balanceOf(wallet.address)));
+        // console.log('wDAI+: ' + fromE18(await wDai.balanceOf(wallet.address)));
+        //
+        // console.log('Swap wDAI+ -> DAI');
+        // await swap(wUsdPlus, asset, toAsset(0.5), await pool.getPoolId());
+        //
+        // console.log('DAI:    ' + fromE18(await dai.balanceOf(wallet.address)));
+        // console.log('wDAI+: ' + fromE18(await wDai.balanceOf(wallet.address)));
+        //
+        // // await showPooBalances(pool);
+        //
+        //
+        // console.log('Unswap ' + await asset.symbol());
+        // await unSwap(pool, asset);
+        // console.log('Unswap ' + await wUsdPlus.symbol());
+        // await unSwap(pool, wUsdPlus);
 
-        await showPooBalances(pool );
+        // await showPooBalances(pool );
 
     }
 
@@ -99,11 +166,11 @@ async function main() {
         let targets = await pool.getTargets();
         let balances = await vault.getPoolTokens(poolId);
 
-        console.log('--- User ---');
-        await showBalances();
-
-        console.log('--- Pool ---');
-        console.log(`Targets: lower: ${targets[0].toString()} upper: ${targets[1].toString()}`);
+        // console.log('--- User ---');
+        // await showBalances();
+        //
+        // console.log('--- Pool ---');
+        // console.log(`Targets: lower: ${targets[0].toString()} upper: ${targets[1].toString()}`);
 
         console.table([
             await showTokenAmount(balances[0][0], balances[1][0]),
@@ -193,7 +260,7 @@ async function showBalances(){
         },
         {
             name: 'DAI+',
-            amount: fromE6(await daiPus.balanceOf(wallet.address))
+            amount: fromE18(await daiPus.balanceOf(wallet.address))
         },
         {
             name: 'wUSD+',
@@ -201,7 +268,7 @@ async function showBalances(){
         },
         {
             name: 'wDAI+',
-            amount: fromE6(await wDai.balanceOf(wallet.address))
+            amount: fromE18(await wDai.balanceOf(wallet.address))
         }
     ]
 

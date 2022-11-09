@@ -23,21 +23,21 @@ async function main() {
 
     let wallet = await initWallet(ethers);
 
-
     // let poolAddress = await createStablePool(wallet);
+    // console.log('PoolAddress: ' + poolAddress);
 
-    await initPool(wallet);
+    // await initPool(wallet);
     // await test(wallet);
 
 }
 
 async function test(wallet){
 
-    let stablePool = await ethers.getContractAt(Pool, '0x7d6Bff131B359dA66d92f215FD4e186003BFAA42', wallet);
+    let stablePool = await ethers.getContractAt(Pool, '0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024', wallet);
     let vault = await ethers.getContractAt(Vault, VaultAddress, wallet);
 
     let usdPool = await ethers.getContractAt(Pool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253', wallet);
-    let daiPool = await ethers.getContractAt(Pool, '0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15', wallet);
+    let daiPool = await ethers.getContractAt(Pool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809', wallet);
 
     await showBalances();
     await swap(stablePool, usdPool, toE18(0.5));
@@ -77,7 +77,7 @@ async function test(wallet){
 
 async function initPool(wallet) {
 
-    let stablePool = await ethers.getContractAt(Pool, '0x7d6Bff131B359dA66d92f215FD4e186003BFAA42', wallet);
+    let stablePool = await ethers.getContractAt(Pool, '0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024', wallet);
     let vault = await ethers.getContractAt(Vault, VaultAddress, wallet);
 
     console.log('[Init Stable pool] ...');
@@ -86,7 +86,7 @@ async function initPool(wallet) {
     await showBalances();
 
     let usdPool = await ethers.getContractAt(Pool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253', wallet);
-    let daiPool = await ethers.getContractAt(Pool, '0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15', wallet);
+    let daiPool = await ethers.getContractAt(Pool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809', wallet);
 
 
     let {tokens, initAmountsIn} = await makeInitialBalances(vault, stablePool);
@@ -134,7 +134,7 @@ async function makeInitialBalances(vault, pool) {
                 name = "bb-USD+";
                 initAmountsIn[i] = toE18(1);
                 break
-            case "0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15".toLowerCase():
+            case "0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809".toLowerCase():
                 name = "bb-DAI+";
                 initAmountsIn[i] = toE18(1);
                 break
@@ -163,7 +163,7 @@ async function createStablePool(wallet) {
 
 
     let usdPlusLinearPool = '0x88D07558470484c03d3bb44c3ECc36CAfCF43253';
-    let daiPlusLinearPool = '0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15';
+    let daiPlusLinearPool = '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809';
     let tokens = [usdPlusLinearPool, daiPlusLinearPool];
 
     tokens.sort((tokenA, tokenB) => (tokenA.toLowerCase() > tokenB.toLowerCase() ? 1 : -1));
@@ -212,8 +212,8 @@ async function showBalances(){
     let wDai = await getContract('WrappedUsdPlusToken', 'optimism_dai');
 
     let usdPool = await ethers.getContractAt(Pool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253', wallet);
-    let daiPool = await ethers.getContractAt(Pool, '0xFBf87D2C22d1d298298ab5b0Ec957583a2731d15', wallet);
-    let stablePool = await ethers.getContractAt(Pool, '0x7d6Bff131B359dA66d92f215FD4e186003BFAA42', wallet);
+    let daiPool = await ethers.getContractAt(Pool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809', wallet);
+    let stablePool = await ethers.getContractAt(Pool, '0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024', wallet);
 
     let usdc = await getERC20('usdc');
     let dai = await getERC20('dai');
@@ -234,7 +234,7 @@ async function showBalances(){
         },
         {
             name: 'DAI+',
-            amount: fromE6(await daiPus.balanceOf(wallet.address))
+            amount: fromE18(await daiPus.balanceOf(wallet.address))
         },
         {
             name: 'wUSD+',
@@ -242,7 +242,7 @@ async function showBalances(){
         },
         {
             name: 'wDAI+',
-            amount: fromE6(await wDai.balanceOf(wallet.address))
+            amount: fromE18(await wDai.balanceOf(wallet.address))
         },
         {
             name: 'bb-DAI+',

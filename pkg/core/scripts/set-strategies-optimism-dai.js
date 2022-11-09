@@ -37,7 +37,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 17.5,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
     ]
