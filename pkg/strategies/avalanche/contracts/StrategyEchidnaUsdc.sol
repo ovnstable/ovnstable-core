@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./core/Strategy.sol";
-
+import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Echidna.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Platypus.sol";
@@ -22,12 +21,16 @@ contract StrategyEchidnaUsdc is Strategy {
     IRewardPool public rewardPool;
     uint256 public pid;
 
+    uint256 public slippage;
+
 
     // --- events
 
     event StrategyUpdatedTokens(address usdcToken, address wAvaxToken, address ptpToken, address platypusLPUsdc);
 
     event StrategyUpdatedParams(address traderJoeRouter, address booster, address rewardPool, uint256 pid);
+
+    event StrategyUpdatedSlippage(uint256 slippage);
 
 
     // ---  constructor
@@ -81,6 +84,13 @@ contract StrategyEchidnaUsdc is Strategy {
         emit StrategyUpdatedParams(_traderJoeRouter, _booster, _rewardPool, _pid);
     }
 
+    function setSlippage(
+        uint256 _slippage
+    ) external onlyPortfolioAgent {
+        slippage = _slippage;
+        emit StrategyUpdatedSlippage(_slippage);
+    }
+
 
     // --- logic
 
@@ -108,7 +118,8 @@ contract StrategyEchidnaUsdc is Strategy {
         uint256 totalSupply = platypusLPUsdc.totalSupply();
         uint256 unstakeLPBalance = _amount * totalSupply / liability;
 
-        booster.withdraw(pid, unstakeLPBalance.addBasisPoints(4), false, unstakeLPBalance);
+        // add 10 for small values
+        booster.withdraw(pid, (unstakeLPBalance + 10).addBasisPoints(slippage), false, unstakeLPBalance);
 
         return usdcToken.balanceOf(address(this));
     }
@@ -125,7 +136,7 @@ contract StrategyEchidnaUsdc is Strategy {
             return usdcToken.balanceOf(address(this));
         }
 
-        booster.withdraw(pid, userLPBalance, false, userLPBalance.subBasisPoints(4));
+        booster.withdraw(pid, userLPBalance, false, userLPBalance.subBasisPoints(slippage));
 
         return usdcToken.balanceOf(address(this));
     }
@@ -146,7 +157,7 @@ contract StrategyEchidnaUsdc is Strategy {
         if (nav) {
             return totalValue;
         } else {
-            return totalValue.subBasisPoints(4);
+            return totalValue.subBasisPoints(slippage);
         }
     }
 
@@ -189,7 +200,9 @@ contract StrategyEchidnaUsdc is Strategy {
             }
         }
 
-        usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)));
+        if (totalUsdc > 0) {
+            usdcToken.transfer(_beneficiary, totalUsdc);
+        }
 
         return totalUsdc;
     }
