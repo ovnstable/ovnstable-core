@@ -66,6 +66,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await polygonPL.setSushiWallet('0x850a57630A2012B2494779fBc86bBc24F2a7baeF')).wait();
 
+    await (await polygonPL.setDystopiaWallet('0x20D61737f972EEcB0aF5f0a85ab358Cd083Dd56a')).wait();
+
     console.log('PolygonPayoutListener done');
 
 };
