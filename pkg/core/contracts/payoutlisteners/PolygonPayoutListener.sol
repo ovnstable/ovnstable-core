@@ -141,7 +141,6 @@ contract PolygonPayoutListener is PayoutListener {
 
             // send skim from pool USD+/SPHERE to dystopiaWallet
             if (pool == address(0xb8E91631F348dD1F47Cb46f162df458a556c6f1e)) {
-                uint256 usdPlusBalanceBefore = usdPlus.balanceOf(dystopiaWallet);
                 usdPlus.transfer(dystopiaWallet, usdPlusSkimmed);
                 continue;
             }
