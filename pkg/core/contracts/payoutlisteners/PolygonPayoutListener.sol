@@ -24,6 +24,7 @@ contract PolygonPayoutListener is PayoutListener {
 
     IBentoBoxV1 public sushiBentoBox;
     address public sushiWallet;
+    address public dystopiaWallet;
 
     // ---  events
 
@@ -31,6 +32,7 @@ contract PolygonPayoutListener is PayoutListener {
     event SushiSkimReward(uint256 amount);
     event SushiBentoBoxUpdated(address sushiBentoBox);
     event SushiWalletUpdated(address sushiWallet);
+    event DystopiaWalletUpdated(address dystopiaWallet);
 
     // --- setters
 
@@ -69,6 +71,12 @@ contract PolygonPayoutListener is PayoutListener {
         require(_sushiWallet != address(0), "Zero address not allowed");
         sushiWallet = _sushiWallet;
         emit SushiWalletUpdated(_sushiWallet);
+    }
+
+    function setDystopiaWallet(address _dystopiaWallet) external onlyAdmin {
+        require(_dystopiaWallet != address(0), "Zero address not allowed");
+        dystopiaWallet = _dystopiaWallet;
+        emit DystopiaWalletUpdated(_dystopiaWallet);
     }
 
     // ---  constructor
@@ -129,6 +137,13 @@ contract PolygonPayoutListener is PayoutListener {
 
             Pool(pool).skim(address(this));
 
+            uint256 usdPlusSkimmed = usdPlus.balanceOf(address(this));
+
+            // send skim from pool USD+/SPHERE to dystopiaWallet
+            if (pool == address(0xb8E91631F348dD1F47Cb46f162df458a556c6f1e)) {
+                usdPlus.transfer(dystopiaWallet, usdPlusSkimmed);
+                continue;
+            }
 
             uint256 dystAmount = DystopiaLibrary._swapExactTokensForTokens(
                 dystRouter,
@@ -137,7 +152,7 @@ contract PolygonPayoutListener is PayoutListener {
                 address(dyst),
                 false,
                 false,
-                usdPlus.balanceOf(address(this)),
+                usdPlusSkimmed,
                 address(this)
             );
 
