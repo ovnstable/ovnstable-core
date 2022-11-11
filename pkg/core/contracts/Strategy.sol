@@ -12,6 +12,7 @@ import "./interfaces/IStrategy.sol";
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     address public portfolioManager;
 
@@ -43,6 +44,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         _;
     }
 
+    modifier onlyPortfolioAgent() {
+        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to PORTFOLIO_AGENT_ROLE");
+        _;
+    }
 
     // --- setters
 
