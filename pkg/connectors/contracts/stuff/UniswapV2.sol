@@ -317,6 +317,33 @@ library UniswapV2Library {
         address inputToken,
         address outputToken,
         uint256 amountInput,
+        address to
+    ) internal returns (uint256) {
+
+        address[] memory path = new address[](2);
+        path[0] = inputToken;
+        path[1] = outputToken;
+
+        if (uniswapRouter.getAmountsOut(amountInput, path)[1] == 0) {
+            return 0;
+        }
+
+        IERC20(inputToken).approve(address(uniswapRouter), amountInput);
+
+        return uniswapRouter.swapExactTokensForTokens(
+            amountInput,
+            0,
+            path,
+            to,
+            block.timestamp
+        )[1];
+    }
+
+    function swapExactTokensForTokens(
+        IUniswapV2Router02 uniswapRouter,
+        address inputToken,
+        address outputToken,
+        uint256 amountInput,
         uint256 amountOutMin,
         address to
     ) internal returns (uint256) {
