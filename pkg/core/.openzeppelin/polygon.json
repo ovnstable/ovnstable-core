@@ -23670,7 +23670,7 @@
             "label": "sushiBentoBox",
             "offset": 0,
             "slot": "310",
-            "type": "t_contract(IBentoBoxV1)14290",
+            "type": "t_contract(IBentoBoxV1)14347",
             "contract": "PolygonPayoutListener",
             "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:25"
           },
@@ -23708,7 +23708,7 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBentoBoxV1)14290": {
+          "t_contract(IBentoBoxV1)14347": {
             "label": "contract IBentoBoxV1",
             "numberOfBytes": "20"
           },
@@ -24020,6 +24020,260 @@
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "34f1de0a9bfd8941238a1795c8fae6d3831904289d4a0c594f5e054516c5fae4": {
+      "address": "0x165FFf829658d572c7E122CE7Bc16f7B01Adc6f3",
+      "txHash": "0x7c9222d585f3f2ffc5fbc1b5bced49807120eadaa885ed56cc4e4b31bcd11559",
+      "layout": {
+        "solcVersion": "0.8.6",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "exchange",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_address",
+            "contract": "PayoutListener",
+            "src": "contracts/PayoutListener.sol:16"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "PayoutListener",
+            "src": "contracts/PayoutListener.sol:60"
+          },
+          {
+            "label": "qsSyncPools",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:16"
+          },
+          {
+            "label": "qsSkimPools",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:17"
+          },
+          {
+            "label": "qsBribes",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:18"
+          },
+          {
+            "label": "usdPlus",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IERC20)3596",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:19"
+          },
+          {
+            "label": "skimPoolBalances",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:20"
+          },
+          {
+            "label": "dyst",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IERC20)3596",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:21"
+          },
+          {
+            "label": "wmatic",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_contract(IERC20)3596",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:22"
+          },
+          {
+            "label": "dystRouter",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_contract(IDystopiaRouter)5271",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:23"
+          },
+          {
+            "label": "sushiBentoBox",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_contract(IBentoBoxV1)14399",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:25"
+          },
+          {
+            "label": "sushiWallet",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_address",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:26"
+          },
+          {
+            "label": "dystopiaWallet",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_address",
+            "contract": "PolygonPayoutListener",
+            "src": "contracts/payoutlisteners/PolygonPayoutListener.sol:27"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IBentoBoxV1)14399": {
+            "label": "contract IBentoBoxV1",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDystopiaRouter)5271": {
+            "label": "contract IDystopiaRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC20)3596": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
