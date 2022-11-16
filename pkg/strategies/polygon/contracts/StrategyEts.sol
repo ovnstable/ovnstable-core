@@ -4,7 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "./interfaces/IHedgeExchanger.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyEts is Strategy {
 
@@ -58,12 +57,8 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        console.log("asset balance before: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance before: %s", rebaseToken.balanceOf(address(this)));
         asset.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.buy(_amount, "");
-        console.log("asset balance after: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance after: %s", rebaseToken.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -74,12 +69,8 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        console.log("asset balance before: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance before: %s", rebaseToken.balanceOf(address(this)));
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
-        console.log("asset balance after: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance after: %s", rebaseToken.balanceOf(address(this)));
 
         return asset.balanceOf(address(this));
     }
@@ -91,13 +82,10 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        console.log("asset balance before: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance before: %s", rebaseToken.balanceOf(address(this)));
-        uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
+        // we can't unstake more from ETS
+        uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this)) * 95 / 100;
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
         hedgeExchanger.redeem(rebaseTokenAmount);
-        console.log("asset balance after: %s", asset.balanceOf(address(this)));
-        console.log("rebaseToken balance after: %s", rebaseToken.balanceOf(address(this)));
 
         return asset.balanceOf(address(this));
     }
