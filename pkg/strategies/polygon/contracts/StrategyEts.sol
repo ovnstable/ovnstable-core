@@ -82,8 +82,7 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        // we can't unstake more from ETS
-        uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this)) * 95 / 100;
+        uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
         hedgeExchanger.redeem(rebaseTokenAmount);
 
