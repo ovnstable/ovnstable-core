@@ -7,5 +7,4 @@ interface IHedgeExchanger {
 
     function redeem(uint256 _amount) external returns (uint256);
 
-    function strategy() external returns (address);
 }

@@ -519,7 +519,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
     const strategy = await ethers.getContract(strategyName);
     await strategy.setPortfolioManager(recipient.address);
     if (strategyParams.isRunStrategyLogic) {
-        await runStrategyLogic(strategyName, strategy.address, recipient.address);
+        await runStrategyLogic(strategyName, strategy.address);
     }
 
     let mainAddress = (await initWallet()).address;
