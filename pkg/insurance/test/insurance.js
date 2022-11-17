@@ -17,12 +17,11 @@ const {deployMockContract, provider} = waffle;
 const SENIOR = 0;
 const JUNIOR = 1;
 
-describe("Exchange", function () {
+describe("InsuranceExchange", function () {
 
     let account;
     let insurance;
-    let senior;
-    let junior;
+    let rebase;
     let asset;
 
     let testAccount;
@@ -44,22 +43,9 @@ describe("Exchange", function () {
         account = deployer;
         testAccount = await createRandomWallet();
 
-        insurance = await ethers.getContract("MockInsurance");
-        senior = await ethers.getContract('MockSeniorTranche');
-        junior = await ethers.getContract('MockJuniorTranche');
-
-        await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), account);
-        await insurance.setWeights(15, 30);
-
-        asset = await getERC20('usdc', await ethers.getSigner(account));
-
-        let params = {
-            senior: senior.address,
-            junior: junior.address,
-            asset: DEFAULT.usdc,
-        }
-
-        await insurance.setParams(params);
+        insurance = await ethers.getContract("InsuranceExchange");
+        rebase = await ethers.getContract('RebaseToken');
+        asset = await ethers.getContract('AssetToken');
 
         toAsset = toE6;
         fromAsset = fromE6;
@@ -70,44 +56,6 @@ describe("Exchange", function () {
 
     describe('Mint/Redeem', function () {
 
-        it("Case: Mint [800 ST, 200 JT] => Redeem [0 ST, 0 JT]", async function () {
-
-            await startBalance();
-
-            await mintSenior(800);
-            await expectBalance({
-                senior: 800,
-                junior: 0,
-                maxMintJunior: 240,
-                maxRedeemJunior: 0
-            });
-
-            await mintJunior(200);
-            await expectBalance({
-                senior: 800,
-                junior: 200,
-                maxMintJunior: 100,
-                maxRedeemJunior: 50
-            });
-
-            await redeemSenior(800);
-            await expectBalance({
-                senior: 0,
-                junior: 200,
-                maxMintJunior: 0,
-                maxRedeemJunior: 200
-            });
-
-            await redeemJunior(200);
-            await expectBalance({
-                senior: 0,
-                junior: 0,
-                maxMintJunior: 0,
-                maxRedeemJunior: 0
-            })
-
-            await endBalance();
-        });
 
         describe('Mint', function () {
 
