@@ -207,15 +207,9 @@ interface IBaseRewardPool is IERC20 {
 
 interface IPoolDepositor {
 
-    function booster() external view returns (address);
-
-    function pool() external view returns (address);
-
-    function masterWombat() external view returns (address);
-
     function deposit(address _lptoken, uint256 _amount, uint256 _minLiquidity, bool _stake) external;
 
-    function withdraw(address _lptoken, uint256 _amount, uint256 _minOut) external;
+    function withdraw(address _lptoken, uint256 _amount, uint256 _minOut, address recipient) external;
 }
 
 
