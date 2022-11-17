@@ -30,7 +30,10 @@ async function main() {
 
 
     let names = [
-        'StrategyQuickSwapV3UsdcUsdt',
+        'StrategyEtsAlfaWmaticUsdc',
+        'StrategyEtsBetaWmaticUsdc',
+        'StrategyEtsDeltaUsdcWeth',
+        'StrategyEtsGammaUsdcWeth',
     ]
 
     await showRules(names);
