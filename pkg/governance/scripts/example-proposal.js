@@ -7,8 +7,8 @@ const {createProposal} = require("@overnight-contracts/common/utils/governance")
 
 async function main() {
 
-    // await test();
-    await proposal();
+    await test();
+//    await proposal();
 
 }
 
@@ -18,18 +18,20 @@ async function test(){
 
         await showM2M();
 
-        let ehidna = await getContract('StrategyEchidnaUsdc');
-        let vector= await getContract('StrategyVectorUsdc');
-
+        let StrategyWombexBusd = await getContract('StrategyWombexBusd');
+        let StrategyWombexUsdc = await getContract('StrategyWombexUsdc');
+        let StrategyWombexUsdt = await getContract('StrategyWombexUsdt');
+/*
         let exchange = await getContract('Exchange');
 
         let listener = await getContract('AvalanchePayoutListener');
-
-        await vector.connect(timelock).upgradeTo('0x5EF6c5F6Db0854c34f2E7dee2E4B19F13c94841c');
-        await ehidna.connect(timelock).upgradeTo('0x9E55aA8c57f51655d634C7182a5a44b61Db0eD94');
+*/
+        await StrategyWombexBusd.connect(timelock).upgradeTo('0xd23682c0e8f58f788263050a6229D1AB272141F2');
+        await StrategyWombexUsdc.connect(timelock).upgradeTo('0x3dB8C161fe6F9b40A4bF40dF77753Bad6C9f4Ed8');
+        await StrategyWombexUsdt.connect(timelock).upgradeTo('0xf4b175330De5671Cb7F13F8CF1Dcb2Fff6E7c7E3');
 
         await showM2M();
-
+/*
         await exchange.connect(timelock).upgradeTo('0xde13EbA3109336E43533CbCA0F3817928F40734E');
         await exchange.connect(timelock).setPayoutListener(listener.address);
 
@@ -37,7 +39,7 @@ async function test(){
 
         await (await exchange.payout()).wait();
 
-        await showM2M();
+        await showM2M();*/
     });
 }
 
