@@ -8,7 +8,7 @@ async function main() {
             "strategy": "0x2E80122B1A095C25Aa5717B2bE8DC1eaFE9C8850",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 2.5,
+            "targetWeight": 50,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -17,16 +17,16 @@ async function main() {
             "strategy": "0x307418340F5991CD895CA0Fc4Eba04995e9BE861",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 50,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
         {
             "strategy": "0x701E4b49497098080ce99545B4277819529F573e",
             "name": "Reaper Sonne DAI",
             "minWeight": 0,
-            "targetWeight": 70,
+            "targetWeight": 0,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": false
@@ -35,9 +35,9 @@ async function main() {
             "strategy": "0xE8Deea3769f4dbC6046276C7d6076C33ff56442D",
             "name": "Arrakis DAI/USDC",
             "minWeight": 0,
-            "targetWeight": 17.5,
+            "targetWeight": 0,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
     ]
@@ -53,8 +53,9 @@ async function main() {
 async function setWeights(weights) {
     let pm = await getContract('PortfolioManager');
 
+    await showM2M();
     await (await pm.setStrategyWeights(weights)).wait();
-    // await (await pm.balance()).wait();
+    await (await pm.balance()).wait();
     await showM2M();
 }
 

@@ -11,8 +11,7 @@ async function main(){
 
     addresses.push(exchange.address);
     values.push(0);
-    // при деплое ЕТС указать адрес стратегии
-    abis.push(exchange.interface.encodeFunctionData('grantRole', [await exchange.FREE_RIDER_ROLE(), '0x794Fb31e55D3583c94B8F3344B8e2aA19AdE7AD1']))
+    abis.push(exchange.interface.encodeFunctionData('grantRole', [await exchange.FREE_RIDER_ROLE(), '0x307418340F5991CD895CA0Fc4Eba04995e9BE861']))
 
     await createProposal(addresses, values, abis);
 }
