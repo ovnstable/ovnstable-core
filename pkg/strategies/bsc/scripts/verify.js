@@ -1,7 +1,7 @@
 const {verify } = require("@overnight-contracts/common/utils/verify-utils");
 
 async function main() {
-    let items = ["StrategyConeBusdUsdc",];
+    let items = ["StrategyWombexBusd","StrategyWombexUsdc","StrategyWombexUsdt"];
     await verify(items);
 }
 
