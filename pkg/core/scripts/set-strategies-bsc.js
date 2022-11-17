@@ -17,36 +17,25 @@ async function main() {
             "strategy": "0xb9D731080b9e862C3a6B7eaF0E5a086614d0a2d9",
             "name": "Synapse BUSD",
             "minWeight": 0,
+            "targetWeight": 55.5,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x621409Ad21B486eA8688c5608abc904Cd8DB8e9b",
+            "name": "Wombex USDC",
+            "minWeight": 0,
             "targetWeight": 10,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
         {
-            "strategy": "0x9D430C0A05da519335ee022ECF8f7690F1d402Ba",
-            "name": "Aequinox BUSD",
-            "minWeight": 0,
-            "targetWeight": 47,
-            "maxWeight": 100,
-            "enabled": false,
-            "enabledReward": false
-        },
-
-        {
-            "strategy": "0x621409Ad21B486eA8688c5608abc904Cd8DB8e9b",
-            "name": "Wombex USDC",
-            "minWeight": 0,
-            "targetWeight": 13,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": true
-        },
-
-        {
             "strategy": "0x53fF0d71645D106E058d83404ccD975924c26dCB",
             "name": "Wombex USDT",
             "minWeight": 0,
-            "targetWeight": 13.5,
+            "targetWeight": 13,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -55,7 +44,7 @@ async function main() {
             "strategy": "0xFe7f3FEa8972313F859194EE00158798be3ED108",
             "name": "Wombex BUSD",
             "minWeight": 0,
-            "targetWeight": 14,
+            "targetWeight": 19,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
