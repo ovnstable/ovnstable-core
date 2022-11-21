@@ -1,4 +1,4 @@
-const {getContract, changeWeightsAndBalance, convertWeights, initWallet, getPrice, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, changeWeightsAndBalance, convertWeights, initWallet, getPrice, showM2M, transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -8,8 +8,8 @@ async function main() {
             "strategy": "0x2E80122B1A095C25Aa5717B2bE8DC1eaFE9C8850",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 50,
-            "maxWeight": 100,
+            "targetWeight": 2.5,
+            "maxWeight": 10,
             "enabled": true,
             "enabledReward": true
         },
@@ -17,7 +17,7 @@ async function main() {
             "strategy": "0x307418340F5991CD895CA0Fc4Eba04995e9BE861",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 50,
+            "targetWeight": 97.5,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -38,7 +38,7 @@ async function main() {
             "targetWeight": 0,
             "maxWeight": 100,
             "enabled": true,
-            "enabledReward": true
+            "enabledReward": false
         },
     ]
 
