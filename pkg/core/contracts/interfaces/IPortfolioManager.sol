@@ -19,6 +19,7 @@ interface IPortfolioManager {
         uint256 minWeight;
         uint256 targetWeight;
         uint256 maxWeight;
+        uint256 riskFactor;
         bool enabled;
         bool enabledReward;
     }
@@ -35,5 +36,5 @@ interface IPortfolioManager {
 
     function balance() external;
 
-
+    function getTotalRiskFactor() external view returns (uint256);
 }
