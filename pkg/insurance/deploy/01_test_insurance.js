@@ -26,11 +26,9 @@ module.exports = async ({deployments, getNamedAccounts}) => {
 
     await asset.setExchanger(deployer);
     await asset.setName('MockUSDC', 'MockUSDC');
-    await asset.setDecimals(6);
 
     await rebase.setExchanger(insurance.address);
     await rebase.setName('Insurance', 'INSR');
-    await rebase.setDecimals(await asset.decimals());
 
 
     let params = {
@@ -42,6 +40,9 @@ module.exports = async ({deployments, getNamedAccounts}) => {
 
 
     await insurance.setUpParams(params);
+    await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), deployer);
+
+    await pm.setAsset(asset.address);
 };
 
 module.exports.tags = ['MockInsurance'];

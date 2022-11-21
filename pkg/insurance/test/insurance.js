@@ -2,25 +2,18 @@ const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {toE6, fromE6, toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
-const BigNumber = require('bignumber.js');
-const {greatLess, resetHardhat, createRandomWallet} = require("@overnight-contracts/common/utils/tests");
+const {resetHardhat, createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
-const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
-const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
-const {waffle} = require("hardhat");
-const {getAbi, getERC20, transferUSDC} = require("@overnight-contracts/common/utils/script-utils");
-const {deployMockContract, provider} = waffle;
 
-const SENIOR = 0;
-const JUNIOR = 1;
 
 describe("InsuranceExchange", function () {
 
     let account;
     let insurance;
+    let pm;
     let rebase;
     let asset;
 
@@ -31,355 +24,408 @@ describe("InsuranceExchange", function () {
     let fromAsset = function () {
     };
 
-    let balanceAssetBefore;
+    let fromRebase = function () {
+    };
+    let toRebase = function () {
+    };
 
-    sharedBeforeEach("deploy contracts", async () => {
-        await hre.run("compile");
-        await resetHardhat(process.env.STAND);
+    let decimals = [
+        {
+            asset: 6,
+            rebase: 6
+        },
+        {
+            asset: 18,
+            rebase: 6
+        },
+        {
+            asset: 18,
+            rebase: 18
+        }
+    ];
 
-        await deployments.fixture(['MockInsurance']);
+    decimals.forEach((decimal, index) => {
 
-        const {deployer} = await getNamedAccounts();
-        account = deployer;
-        testAccount = await createRandomWallet();
 
-        insurance = await ethers.getContract("InsuranceExchange");
-        rebase = await ethers.getContract('RebaseToken');
-        asset = await ethers.getContract('AssetToken');
+        describe(`Decimal: asset [${decimal.asset}] rebase [{${decimal.rebase}]`, async function () {
 
-        toAsset = toE6;
-        fromAsset = fromE6;
+            sharedBeforeEach("deploy contracts", async () => {
+                await hre.run("compile");
+                await resetHardhat(process.env.STAND);
 
-        await transferUSDC(1, account);
+                await deployments.fixture(['MockInsurance']);
+
+                const {deployer} = await getNamedAccounts();
+                account = deployer;
+                testAccount = await createRandomWallet();
+
+                insurance = await ethers.getContract("InsuranceExchange");
+                pm = await ethers.getContract("MockPortfolioManager");
+                rebase = await ethers.getContract('RebaseToken');
+                asset = await ethers.getContract('AssetToken');
+
+
+                if (decimal.rebase === 6){
+                    toRebase = toE6;
+                    fromRebase = fromE6;
+                }else {
+                    toRebase = toE18;
+                    fromRebase = fromE18;
+                }
+
+                if (decimal.asset === 6) {
+                    toAsset = toE6;
+                    fromAsset = fromE6;
+                } else {
+                    toAsset = toE18;
+                    fromAsset = fromE18;
+                }
+
+                await asset.setDecimals(decimal.asset);
+                await rebase.setDecimals(decimal.rebase);
+            });
+
+
+            describe('Mint/Redeem', function () {
+
+
+                describe('Mint', function () {
+
+                    it("Revert: Amount of asset is zero", async function () {
+                        await expectRevert(insurance.mint({amount: 0}), 'Amount of asset is zero');
+                    });
+
+                    it("Revert: Not enough tokens to mint", async function () {
+                        await expectRevert(insurance.mint({amount: toAsset(10)}), 'Not enough tokens to mint');
+                    });
+
+                    it("deposit: nav correct", async function () {
+                        await mint(10);
+                        expect(await asset.balanceOf(pm.address)).to.equal(toAsset(10));
+                        expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(0));
+                        expect(await pm.totalNetAssets()).to.equal(toAsset(10));
+                    });
+
+
+                    it("asset.transferFrom", async function () {
+
+                        await asset.mint(account, toAsset(10));
+                        await asset.approve(insurance.address, toAsset(10));
+                        let assetBalanceBefore = await asset.balanceOf(account);
+                        await insurance.mint({amount: toAsset(10)})
+                        let assetBalanceAfter = await asset.balanceOf(account);
+                        expect(10).to.equal(fromAsset(assetBalanceBefore.sub(assetBalanceAfter)));
+                    });
+
+
+                    it("rebase.mint | fee 0", async function () {
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        await mint(10);
+                        expect(10).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+                    it("rebase.mint | fee 10%", async function () {
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+
+                        await insurance.setMintFee(10000, 100000);
+                        await mint(10);
+                        expect(9).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+                    it("event MintBurn", async function () {
+
+                        await insurance.setMintFee(10000, 100000);
+                        let tx = await (await mint(10)).wait();
+
+                        let event = tx.events.find((e) => e.event == 'MintBurn');
+
+                        expect('mint').to.equal(event.args[0]);
+                        expect(9).to.equal(fromRebase(event.args[1]));
+                        expect(1).to.equal(fromRebase(event.args[2]));
+                        expect(account).to.equal(event.args[3]);
+                    });
+
+
+                });
+
+                describe('Redeem', function () {
+
+                    it("Revert: Amount of asset is zero", async function () {
+                        await expectRevert(insurance.redeem({amount: 0}), 'Amount of asset is zero');
+                    });
+
+
+                    it("Revert: Not enough tokens to redeem", async function () {
+                        await expectRevert(insurance.redeem({amount: 10}), 'Not enough tokens to redeem');
+                    });
+
+
+                    it("checkWithdraw: need withdraw request", async function () {
+                        await mint(10);
+                        await expectRevert(insurance.redeem({amount: toRebase(10)}), 'need withdraw request');
+                    });
+
+                    it("checkWithdraw: requestWaitPeriod", async function () {
+                        await mint(10);
+                        await requestWithdraw();
+                        await expectRevert(insurance.redeem({amount: toRebase(10)}), 'requestWaitPeriod');
+                    });
+
+                    it("checkWithdraw: withdrawPeriod", async function () {
+                        await mint(10);
+                        await requestWithdraw();
+                        await waitWithdrawPeriod();
+                        await expectRevert(insurance.redeem({amount: toRebase(10)}), 'withdrawPeriod');
+                    });
+
+                    it("checkWithdraw -> wait -> mint -> revert", async function () {
+                        await mint(10);
+                        await requestWithdraw();
+                        await waitPeriod();
+                        await mint(5);
+                        await expectRevert(insurance.redeem({amount: toRebase(10)}), 'need withdraw request');
+                    });
+
+                    it("checkWithdraw -> wait -> redeem -> redeem -> revert", async function () {
+                        await mint(10);
+                        await requestWithdraw();
+                        await waitPeriod();
+                        await redeem(5);
+                        await expectRevert(insurance.redeem({amount: toRebase(5)}), 'need withdraw request');
+                    });
+
+                    it("checkWithdraw -> TRUST_ROLE -> ignore", async function () {
+                        await mint(10);
+
+                        await insurance.grantRole(await insurance.TRUST_ROLE(), account);
+                        await redeem(10);
+                    });
+
+
+                    it("rebase.burn | fee 0", async function () {
+                        await mint(100);
+                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        await redeem(100);
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+                    it("rebase.burn | fee 10%", async function () {
+                        await mint(100);
+                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        await insurance.setRedeemFee(10000, 100000);
+                        await redeem(100);
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+                    it("asset.transfer | fee 0", async function () {
+                        await mint(100);
+                        expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
+                        await redeem(100);
+                        expect(100).to.equal(fromAsset(await asset.balanceOf(account)));
+                    });
+
+                    it("asset.transfer | fee 10%", async function () {
+                        await mint(100);
+                        expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
+                        await insurance.setRedeemFee(10000, 100000);
+                        await redeem(100);
+                        expect(90).to.equal(fromAsset(await asset.balanceOf(account)));
+                    });
+
+
+                    it("event MintBurn", async function () {
+
+                        await mint(100);
+
+                        await insurance.setRedeemFee(10000, 100000);
+                        let tx = await (await redeem(100)).wait();
+
+                        let event = tx.events.find((e) => e.event == 'MintBurn');
+
+                        expect('redeem').to.equal(event.args[0]);
+                        expect(100).to.equal(fromRebase(event.args[1]));
+                        expect(10).to.equal(fromRebase(event.args[2]));
+                        expect(account).to.equal(event.args[3]);
+                    });
+
+
+                    it("withdraw: nav correct", async function () {
+                        await mint(10);
+                        await redeem(10);
+                        expect(await asset.balanceOf(pm.address)).to.equal(toAsset(0));
+                        expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(0));
+                        expect(await pm.totalNetAssets()).to.equal(toAsset(0));
+                    });
+
+
+                    it("withdraw: Not enough for transfer", async function () {
+                        await mint(10);
+
+                        await rebase.approve(insurance.address, toRebase(10));
+                        await requestWithdraw();
+                        await waitPeriod();
+
+                        await pm.setNavLess(true, testAccount.address);
+                        await expectRevert(insurance.redeem({amount: toRebase(10)}), "Not enough for transfer");
+                    });
+
+
+                });
+
+                describe('Insurance Holder', function () {
+
+                    sharedBeforeEach("Insurance Holder", async () => {
+                        await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
+                    });
+
+                    it("addPremium: Not enough for transfer", async function () {
+                        await expectRevert(insurance.addPremium(toAsset(10)), 'Not enough for transfer');
+                    });
+
+
+                    it("addPremium: transferFrom", async function () {
+
+                        await asset.mint(account, toAsset(10));
+                        await asset.approve(insurance.address, toAsset(10));
+                        await insurance.addPremium(toAsset(10));
+
+                        await expect(10).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+                        await expect(10).to.equal(fromAsset(await pm.totalNetAssets()));
+                        await expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
+                    });
+
+                    it("getInsurance: Not enough for transfer", async function () {
+                        await asset.mint(pm.address, toAsset(10));
+                        await pm.setNavLess(true, testAccount.address);
+                        await expectRevert(insurance.getInsurance(toAsset(10), account), 'Not enough for transfer');
+                    });
+
+                    it("getInsurance: transfer", async function () {
+                        await asset.mint(pm.address, toAsset(10));
+                        await insurance.getInsurance(toAsset(10), account);
+
+                        await expect(0).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+                        await expect(0).to.equal(fromAsset(await pm.totalNetAssets()));
+                        await expect(10).to.equal(fromAsset(await asset.balanceOf(account)));
+                    });
+                });
+
+
+                describe('Payout: Positive', function () {
+
+                    let tx;
+                    sharedBeforeEach("Payout: Positive", async () => {
+
+                        await mint(10);
+                        await asset.mint(pm.address, toAsset(1));
+                        tx = await (await insurance.payout()).wait();
+                    });
+
+                    it("Rebase: equal", async function () {
+                        expect(11).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+
+                    it("nav: equal", async function () {
+                        expect(11).to.equal(fromAsset(await pm.totalNetAssets()));
+                    });
+
+
+                    it("event PayoutEvent", async function () {
+
+                        let event = tx.events.find((e) => e.event == 'PayoutEvent');
+
+                        expect(1).to.equal(fromRebase(event.args[0]));
+                        expect('1100000000000000000000000000').to.equal(event.args[1].toString());
+                    });
+
+                    it("event NextPayoutTime", async function () {
+
+                        let event = tx.events.find((e) => e.event == 'NextPayoutTime');
+                        expect(event).to.not.be.null;
+                    })
+
+                });
+
+                describe('Payout: Negative', function () {
+
+                    let tx;
+                    sharedBeforeEach("Payout: Negative", async () => {
+
+                        await mint(10);
+                        await asset.burn(pm.address, toAsset(1));
+                        tx = await (await insurance.payout()).wait();
+                    });
+
+                    it("Rebase: equal", async function () {
+                        expect(9).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    });
+
+
+                    it("nav: equal", async function () {
+                        expect(9).to.equal(fromAsset(await pm.totalNetAssets()));
+                    });
+
+
+                    it("event PayoutEvent", async function () {
+
+                        let event = tx.events.find((e) => e.event == 'PayoutEvent');
+
+                        expect(-1).to.equal(fromRebase(event.args[0]));
+                        expect('900000000000000000000000000').to.equal(event.args[1].toString());
+                    });
+
+                    it("event NextPayoutTime", async function () {
+
+                        let event = tx.events.find((e) => e.event == 'NextPayoutTime');
+                        expect(event).to.not.be.null;
+                    })
+                });
+
+
+            });
+        });
+
+
+        async function redeem(sum) {
+            sum = toRebase(sum);
+            await rebase.approve(insurance.address, sum);
+            await requestWithdraw();
+            await waitPeriod();
+            return await insurance.redeem({amount: sum});
+        }
+
+        async function requestWithdraw() {
+            await insurance.requestWithdraw();
+        }
+
+        async function mint(sum) {
+            sum = toAsset(sum);
+
+            await asset.mint(account, sum);
+            await asset.approve(insurance.address, sum);
+            return await insurance.mint({amount: sum});
+        }
+
+        async function waitPeriod() {
+
+            let delay = await insurance.requestWaitPeriod();
+
+            await ethers.provider.send("evm_increaseTime", [delay.toNumber()]);
+            await ethers.provider.send('evm_mine');
+        }
+
+        async function waitWithdrawPeriod() {
+
+            let delay = await insurance.requestWaitPeriod();
+            let withdrawPeriod = await insurance.withdrawPeriod();
+
+            await ethers.provider.send("evm_increaseTime", [delay.toNumber() + withdrawPeriod.toNumber()]);
+            await ethers.provider.send('evm_mine');
+        }
+
+
     });
-
-
-    describe('Mint/Redeem', function () {
-
-
-        describe('Mint', function () {
-
-            it("Revert: Max mint junior", async function () {
-                await expectRevert(insurance.mint({amount: toE6(100), tranche: JUNIOR}), 'Max mint junior');
-            });
-
-            it("Revert: Amount of asset is zero", async function () {
-                await expectRevert(insurance.mint({amount: 0, tranche: JUNIOR}), 'Amount of asset is zero');
-                await expectRevert(insurance.mint({amount: 0, tranche: SENIOR}), 'Amount of asset is zero');
-            });
-
-            it("Revert: Not enough tokens to mint", async function () {
-                await expectRevert(insurance.connect(testAccount).mint({
-                    amount: 100,
-                    tranche: SENIOR
-                }), 'Not enough tokens to mint');
-                await expectRevert(insurance.connect(testAccount).mint({
-                    amount: 100,
-                    tranche: JUNIOR
-                }), 'Not enough tokens to mint');
-            });
-
-            it("Senior: nav correct", async function () {
-                await mintSenior(800);
-                expect(await asset.balanceOf(insurance.address)).to.equal(toE6(800));
-                expect(await insurance.netAssetValue()).to.equal(toE6(800));
-            });
-
-            it("Junior: nav correct", async function () {
-                await mintSenior(800);
-                await mintSenior(200);
-                expect(await asset.balanceOf(insurance.address)).to.equal(toE6(1000));
-                expect(await insurance.netAssetValue()).to.equal(toE6(1000));
-            });
-
-            it("Senior: asset.transferFrom", async function () {
-
-                let assetBalanceBefore = await asset.balanceOf(account);
-                await mintSenior(100);
-                let assetBalanceAfter = await asset.balanceOf(account);
-                expect(100).to.equal(fromE6(assetBalanceBefore.sub(assetBalanceAfter).toNumber()));
-            });
-
-            it("Junior: asset.transferFrom", async function () {
-
-                let assetBalanceBefore = await asset.balanceOf(account);
-                await mintSenior(800);
-                await mintJunior(200);
-                let assetBalanceAfter = await asset.balanceOf(account);
-                expect(1000).to.equal(fromE6(assetBalanceBefore.sub(assetBalanceAfter).toNumber()));
-            });
-
-            it("Senior: token.mint", async function () {
-                expect(0).to.equal(fromE6(await senior.balanceOf(account)));
-                await mintSenior(100);
-                expect(100).to.equal(fromE6(await senior.balanceOf(account)));
-            });
-
-            it("Junior: token.mint", async function () {
-                expect(0).to.equal(fromE6(await junior.balanceOf(account)));
-                await mintSenior(800);
-                await mintJunior(200);
-                expect(200).to.equal(fromE6(await junior.balanceOf(account)));
-            });
-
-            it("Senior: Revert: NAV less than expected", async function () {
-                await mintSenior(100);
-
-                await insurance.setNavLess(true, testAccount.address);
-
-                await (await asset.approve(insurance.address, toE6(100))).wait();
-                await expectRevert(insurance.mint({amount: toE6(100), tranche: SENIOR}), 'NAV less than expected');
-            });
-
-            it("Junior: Revert: NAV less than expected", async function () {
-                await mintSenior(800);
-
-                await insurance.setNavLess(true, testAccount.address);
-
-                await (await asset.approve(insurance.address, toE6(100))).wait();
-                await expectRevert(insurance.mint({amount: toE6(100), tranche: JUNIOR}), 'NAV less than expected');
-            });
-
-        });
-
-        describe('Redeem', function () {
-
-            it("Revert: Amount of asset is zero", async function () {
-                await expectRevert(insurance.redeem({amount: 0, tranche: JUNIOR}), 'Amount of asset is zero');
-                await expectRevert(insurance.redeem({amount: 0, tranche: SENIOR}), 'Amount of asset is zero');
-            });
-
-            it("Revert: Max redeem junior", async function () {
-                await mintSenior(800);
-                await mintJunior(200);
-                await expectRevert(insurance.redeem({amount: toE6(100), tranche: JUNIOR}), 'Max redeem junior');
-            });
-
-
-            it("Revert: Not enough tokens to mint", async function () {
-                await mintSenior(1000);
-                await mintJunior(200);
-
-                await expectRevert(insurance.connect(testAccount).redeem({
-                    amount: 10,
-                    tranche: SENIOR
-                }), 'Not enough tokens to redeem');
-                await expectRevert(insurance.connect(testAccount).redeem({
-                    amount: 10,
-                    tranche: JUNIOR
-                }), 'Not enough tokens to redeem');
-            });
-
-            it("Senior: token.burn", async function () {
-                expect(0).to.equal(fromE6(await senior.balanceOf(account)));
-                await mintSenior(100);
-                expect(100).to.equal(fromE6(await senior.balanceOf(account)));
-                await redeemSenior(100);
-                expect(0).to.equal(fromE6(await senior.balanceOf(account)));
-            });
-
-            it("Junior: token.mint", async function () {
-                expect(0).to.equal(fromE6(await junior.balanceOf(account)));
-                await mintSenior(800);
-                await mintJunior(200);
-                expect(200).to.equal(fromE6(await junior.balanceOf(account)));
-
-            });
-
-            it("Senior: nav correct", async function () {
-                await mintSenior(800);
-                await redeemSenior(500);
-
-                expect(await asset.balanceOf(insurance.address)).to.equal(toE6(300));
-                expect(await insurance.netAssetValue()).to.equal(toE6(300));
-            });
-
-            it("Junior: nav correct", async function () {
-                await mintSenior(800);
-                await mintJunior(200);
-                await redeemJunior(10);
-                expect(await asset.balanceOf(insurance.address)).to.equal(toE6(990));
-                expect(await insurance.netAssetValue()).to.equal(toE6(990));
-            });
-
-            it("Senior: Revert: NAV less than expected", async function () {
-                await mintSenior(100);
-
-                await insurance.setNavLess(true, testAccount.address);
-
-                await (await senior.approve(insurance.address, toE6(10))).wait();
-                await expectRevert(insurance.redeem({amount: toE6(10), tranche: SENIOR}), 'NAV less than expected');
-            });
-
-            it("Junior: Revert: NAV less than expected", async function () {
-                await mintSenior(800);
-                await mintJunior(200);
-
-                await insurance.setNavLess(true, testAccount.address);
-
-                await (await asset.approve(insurance.address, toE6(10))).wait();
-                await expectRevert(insurance.mint({amount: toE6(10), tranche: JUNIOR}), 'NAV less than expected');
-            });
-
-            it("Senior: asset.transferFrom", async function () {
-
-                await mintSenior(100);
-                let assetBalanceBefore = await asset.balanceOf(account);
-                await redeemSenior(100);
-                let assetBalanceAfter = await asset.balanceOf(account);
-                expect(100).to.equal(fromE6(assetBalanceAfter.sub(assetBalanceBefore).toNumber()));
-            });
-
-            it("Junior: asset.transferFrom", async function () {
-
-                await mintSenior(800);
-                await mintJunior(200);
-                let assetBalanceBefore = await asset.balanceOf(account);
-                await redeemJunior(10);
-                let assetBalanceAfter = await asset.balanceOf(account);
-                expect(10).to.equal(fromE6(assetBalanceAfter.sub(assetBalanceBefore).toNumber()));
-            });
-        });
-
-
-        describe('Payout: Positive', function () {
-
-            sharedBeforeEach("Payout: Positive", async () => {
-
-                await mintSenior(400);
-                await mintJunior(10);
-                await asset.transfer(insurance.address, toE6(1));
-                // await insurance.setAvgApy(7500000); // 7.5%
-                await insurance.payout(7500000);
-            });
-
-            it("Junior: equal", async function () {
-                expect(10917812).to.equal(await junior.balanceOf(account));
-            });
-
-            it("Senior: equal", async function () {
-                expect(400082188).to.equal(await senior.balanceOf(account));
-            });
-
-            it("nav: equal", async function () {
-                expect(411000000).to.equal(await insurance.netAssetValue());
-            });
-
-            it("totalSupply: equal", async function () {
-                expect(411000000).to.equal(await insurance.totalSupply());
-            });
-        });
-
-        describe('Payout: Negative', function () {
-
-            sharedBeforeEach("Payout: Negative", async () => {
-
-                await mintSenior(400);
-                await mintJunior(10);
-                // await insurance.setAvgApy(7500000); // 7.5%
-                await insurance.payout(7500000);
-            });
-
-            it("Junior: equal", async function () {
-                expect(9917812).to.equal(await junior.balanceOf(account));
-            });
-
-            it("Senior: equal", async function () {
-                expect(400082188).to.equal(await senior.balanceOf(account));
-            });
-
-            it("nav: equal", async function () {
-                expect(410000000).to.equal(await insurance.netAssetValue());
-            });
-
-            it("totalSupply: equal", async function () {
-                expect(410000000).to.equal(await insurance.totalSupply());
-            });
-        });
-
-        describe('Payout: Zero totalSupply', function () {
-
-            it("Senior: totalSupply is zero", async function () {
-                await mintSenior(400);
-                await mintJunior(10);
-                await redeemSenior(400);
-
-                await insurance.payout(0);
-                expect(10000000).to.equal(await insurance.totalSupply());
-            });
-
-            it("Junior: totalSupply is zero", async function () {
-                await mintSenior(400);
-
-                await insurance.payout(0);
-                expect(400000000).to.equal(await insurance.totalSupply());
-            });
-
-        });
-
-        describe('Payout: AvgApy', function () {
-
-            it("avgApy abroad:min", async function () {
-                await mintSenior(400);
-                await mintJunior(10);
-                await expectRevert(insurance.payout(10), 'avgApy abroad');
-
-            });
-
-            it("avgApy abroad:max", async function () {
-                await mintSenior(400);
-                await mintJunior(10);
-                await expectRevert(insurance.payout(45000001), 'avgApy abroad');
-
-            });
-
-        });
-
-    });
-
-
-    async function startBalance() {
-        balanceAssetBefore = await asset.balanceOf(account);
-    }
-
-    async function endBalance() {
-        let balanceAssetAfter = await asset.balanceOf(account);
-        expect(balanceAssetBefore).to.equal(balanceAssetAfter);
-    }
-
-    async function redeemJunior(sum) {
-        sum = toE6(sum);
-        await (await junior.approve(insurance.address, sum)).wait();
-        await (await insurance.redeem({amount: sum, tranche: JUNIOR})).wait();
-    }
-
-    async function redeemSenior(sum) {
-        sum = toE6(sum);
-        await (await senior.approve(insurance.address, sum)).wait();
-        await (await insurance.redeem({amount: sum, tranche: SENIOR})).wait();
-    }
-
-    async function mintJunior(sum) {
-        sum = toE6(sum);
-        await (await asset.approve(insurance.address, sum)).wait();
-        await (await insurance.mint({amount: sum, tranche: JUNIOR})).wait();
-    }
-
-    async function mintSenior(sum) {
-        sum = toE6(sum);
-        await (await asset.approve(insurance.address, sum)).wait();
-        await (await insurance.mint({amount: sum, tranche: SENIOR})).wait();
-    }
-
-    async function expectBalance(item) {
-        expect(item.senior).to.equal(fromE6(await senior.balanceOf(account)));
-        expect(item.junior).to.equal(fromE6(await junior.balanceOf(account)));
-
-        expect(item.senior + item.junior).to.equal(fromE6(await insurance.totalSupply()));
-
-        expect(item.maxMintJunior).to.equal(fromE6(await insurance.maxMintJunior()));
-        expect(item.maxRedeemJunior).to.equal(fromE6(await insurance.maxRedeemJunior()));
-    }
 });
 
 

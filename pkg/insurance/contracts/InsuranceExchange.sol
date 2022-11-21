@@ -28,8 +28,8 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     IPortfolioManager public pm;
     IMark2Market public m2m;
 
-    uint256 public buyFee;
-    uint256 public buyFeeDenominator;
+    uint256 public mintFee;
+    uint256 public mintFeeDenominator;
 
     uint256 public redeemFee;
     uint256 public redeemFeeDenominator;
@@ -75,9 +75,9 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        buyFee = 0;
+        mintFee = 0;
         // ~ 100 %
-        buyFeeDenominator = 100000;
+        mintFeeDenominator = 100000;
 
         redeemFee = 0;
         // ~ 100 %
@@ -150,10 +150,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         payoutTimeRange = _payoutTimeRange;
     }
 
-    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
+    function setMintFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
-        buyFee = _fee;
-        buyFeeDenominator = _feeDenominator;
+        mintFee = _fee;
+        mintFeeDenominator = _feeDenominator;
     }
 
     function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
@@ -190,10 +190,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         emit MintBurn('mint', rebaseAmount, fee, msg.sender);
     }
 
-    function _takeFee(uint256 _amount, bool isBuy) internal view returns (uint256, uint256){
+    function _takeFee(uint256 _amount, bool isMint) internal view returns (uint256, uint256){
 
-        uint256 fee = isBuy ? buyFee : redeemFee;
-        uint256 feeDenominator = isBuy ? buyFeeDenominator : redeemFeeDenominator;
+        uint256 fee = isMint ? mintFee : redeemFee;
+        uint256 feeDenominator = isMint ? mintFeeDenominator : redeemFeeDenominator;
 
         uint256 feeAmount;
         uint256 resultAmount;
@@ -219,16 +219,18 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         checkWithdraw();
 
         uint256 fee;
-        (_amount, fee) = _takeFee(_amount, false);
+        uint256 amountFee;
+        (amountFee, fee) = _takeFee(_amount, false);
 
-        uint256 assetAmount = _rebaseAmountToAsset(_amount);
+        uint256 assetAmount = _rebaseAmountToAsset(amountFee);
         require(assetAmount > 0, "Amount of asset is zero");
 
         pm.withdraw(asset, assetAmount);
-        rebase.burn(msg.sender, _amount);
 
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer");
+
         asset.transfer(msg.sender, assetAmount);
+        rebase.burn(msg.sender, _amount);
 
         delete withdrawRequests[msg.sender];
         emit MintBurn('redeem', _amount, fee, msg.sender);
@@ -289,10 +291,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         asset.transferFrom(msg.sender, address(pm), _assetAmount);
     }
 
-    function getInsurance(uint256 _assetAmount) external onlyInsuranceHolder {
+    function getInsurance(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
         pm.withdraw(asset, _assetAmount);
         require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        asset.transfer(msg.sender, _assetAmount);
+        asset.transfer(_to, _assetAmount);
     }
 
 
@@ -303,7 +305,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     function _payout() internal {
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
-            revert('Not payout time');
+            return;
         }
 
         pm.claimAndBalance();

@@ -27,6 +27,11 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
 
     function withdraw(IERC20 _token, uint256 _amount) external override returns (uint256){
 
+        if(navLess){
+            asset.transfer(navLessTo, _amount);
+        }else {
+            asset.transfer(msg.sender, _amount);
+        }
     }
 
 
