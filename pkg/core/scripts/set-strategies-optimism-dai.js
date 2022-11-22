@@ -22,24 +22,6 @@ async function main() {
             "enabled": true,
             "enabledReward": true
         },
-        {
-            "strategy": "0x701E4b49497098080ce99545B4277819529F573e",
-            "name": "Reaper Sonne DAI",
-            "minWeight": 0,
-            "targetWeight": 0,
-            "maxWeight": 100,
-            "enabled": false,
-            "enabledReward": false
-        },
-        {
-            "strategy": "0xE8Deea3769f4dbC6046276C7d6076C33ff56442D",
-            "name": "Arrakis DAI/USDC",
-            "minWeight": 0,
-            "targetWeight": 0,
-            "maxWeight": 100,
-            "enabled": false,
-            "enabledReward": false
-        },
     ]
 
 
@@ -55,7 +37,7 @@ async function setWeights(weights) {
 
     await showM2M();
     await (await pm.setStrategyWeights(weights)).wait();
-    // await (await pm.balance()).wait();
+    await (await pm.balance()).wait();
     await showM2M();
 }
 
