@@ -9,7 +9,7 @@ async function main() {
             "name": "Aave",
             "minWeight": 0,
             "targetWeight": 2.5,
-            "maxWeight": 10,
+            "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
@@ -28,7 +28,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {
@@ -37,7 +37,7 @@ async function main() {
             "minWeight": 0,
             "targetWeight": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
     ]
@@ -55,7 +55,7 @@ async function setWeights(weights) {
 
     await showM2M();
     await (await pm.setStrategyWeights(weights)).wait();
-    await (await pm.balance()).wait();
+    // await (await pm.balance()).wait();
     await showM2M();
 }
 
