@@ -26,6 +26,9 @@ contract PolygonPayoutListener is PayoutListener {
     address public sushiWallet;
     address public dystopiaWallet;
 
+    address[] public swapsicleSkimPools;
+    address public swapsicleDepositWallet;
+
     // ---  events
 
     event SkimReward(address pool, uint256 amount);
@@ -33,6 +36,9 @@ contract PolygonPayoutListener is PayoutListener {
     event SushiBentoBoxUpdated(address sushiBentoBox);
     event SushiWalletUpdated(address sushiWallet);
     event DystopiaWalletUpdated(address dystopiaWallet);
+    event SwapsicleSkimPoolsUpdated(address[] pool);
+    event SwapsicleDepositWalletUpdated(address wallet);
+    event SwapsicleSkimReward(uint256 amount);
 
     // --- setters
 
@@ -79,6 +85,18 @@ contract PolygonPayoutListener is PayoutListener {
         emit DystopiaWalletUpdated(_dystopiaWallet);
     }
 
+    function setSwapsicleSkimPools(address[] calldata _swapsicleSkimPools) external onlyAdmin {
+        require(_swapsicleSkimPools.length != 0, "Zero pools not allowed");
+        swapsicleSkimPools = _swapsicleSkimPools;
+        emit SwapsicleSkimPoolsUpdated(_swapsicleSkimPools);
+    }
+
+    function setSwapsicleDepositWallet(address _swapsicleDepositWallet) external onlyAdmin {
+        require(_swapsicleDepositWallet != address(0), "Zero address not allowed");
+        swapsicleDepositWallet = _swapsicleDepositWallet;
+        emit SwapsicleDepositWalletUpdated(_swapsicleDepositWallet);
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -94,6 +112,7 @@ contract PolygonPayoutListener is PayoutListener {
         _sync();
         _skim();
         _sushiSkim();
+        _swapsicleSkim();
     }
 
 
@@ -190,6 +209,22 @@ contract PolygonPayoutListener is PayoutListener {
             sushiBentoBox.deposit(usdPlus, address(sushiBentoBox), sushiWallet, deltaAmount, 0);
             emit SushiSkimReward(deltaAmount);
         }
+    }
+
+    function _swapsicleSkim() internal {
+        uint256 usdPlusBalanceBefore = usdPlus.balanceOf(address(this));
+        for (uint256 i = 0; i < swapsicleSkimPools.length; i++) {
+            address pool = swapsicleSkimPools[i];
+            uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
+            Pool(pool).skim(address(this));
+            uint256 delta = usdPlus.balanceOf(address(this)) - usdPlusBalance;
+            emit SkimReward(pool, delta);
+        }
+        uint256 totalDelta = usdPlus.balanceOf(address(this)) - usdPlusBalanceBefore;
+        if (totalDelta > 0) {
+            usdPlus.transfer(swapsicleDepositWallet, totalDelta);
+        }
+        emit SwapsicleSkimReward(totalDelta);
     }
 }
 

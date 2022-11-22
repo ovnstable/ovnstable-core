@@ -68,6 +68,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await polygonPL.setDystopiaWallet('0x20D61737f972EEcB0aF5f0a85ab358Cd083Dd56a')).wait();
 
+    let swapsicleSkimPools = [
+        "0x87c11EaD180282F94805FB5dcd9B70E99cF7FB08", // MATIC/USD+
+        "0x9ECE2E412605AB4eC1b11C4757961fc48c879E40", // USDC/USD+
+    ]
+
+    await (await polygonPL.setSwapsicleSkimPools(swapsicleSkimPools)).wait();
+
+    await (await polygonPL.setSwapsicleDepositWallet("0x4B78B52E7De4d8B7d367297CB8a87c1875A9d591")).wait();
+
     console.log('PolygonPayoutListener done');
 
 };
