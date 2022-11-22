@@ -6,12 +6,16 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+
+import "@overnight-contracts/insurance/contracts/interfaces/IInsuranceExchange.sol";
+
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 import "./PayoutListener.sol";
 
+import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -55,7 +59,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     uint256 public abroadMin;
     uint256 public abroadMax;
 
-    address insurance;
+    IInsuranceExchange public insurance;
+
+    uint256 public oracleLoss;
+    uint256 public oracleLossDenominator;
+
+    uint256 public modifierLoss;
+    uint256 public modifierLossDenominator;
 
     // ---  events
 
@@ -173,14 +183,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit PayoutListenerUpdated(_payoutListener);
     }
 
-    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         buyFee = _fee;
         buyFeeDenominator = _feeDenominator;
         emit BuyFeeUpdated(buyFee, buyFeeDenominator);
     }
 
-    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyAdmin {
+    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
@@ -189,8 +199,20 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setInsurance(address _insurance) external onlyAdmin {
         require(_insurance != address(0), "Zero address not allowed");
-        insurance = _insurance;
+        insurance = IInsuranceExchange(_insurance);
         emit InsuranceUpdated(_insurance);
+    }
+
+    function setOracleLoss(uint256 _oracleLoss,  uint256 _denominator) external onlyPortfolioAgent {
+        require(_denominator != 0, "Zero denominator not allowed");
+        oracleLoss = _oracleLoss;
+        oracleLossDenominator = _denominator;
+    }
+
+    function setModifierLoss(uint256 _modifierLoss,  uint256 _denominator) external onlyPortfolioAgent {
+        require(_denominator != 0, "Zero denominator not allowed");
+        modifierLoss = _modifierLoss;
+        modifierLossDenominator = _denominator;
     }
 
 
@@ -340,6 +362,32 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _payout();
     }
 
+    function _rebaseToAsset(uint256 _amount) internal view returns (uint256){
+
+        uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
+        uint256 usdPlusDecimals = usdPlus.decimals();
+        if (assetDecimals > usdPlusDecimals) {
+            _amount = _amount * (10 ** (assetDecimals - usdPlusDecimals));
+        } else {
+            _amount = _amount / (10 ** (usdPlusDecimals - assetDecimals));
+        }
+
+        return _amount;
+    }
+
+
+    function _assetToRebase(uint256 _amount) internal view returns (uint256){
+
+        uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
+        uint256 usdPlusDecimals = usdPlus.decimals();
+        if (assetDecimals > usdPlusDecimals) {
+            _amount = _amount / (10 ** (assetDecimals - usdPlusDecimals));
+        } else {
+            _amount = _amount * (10 ** (usdPlusDecimals - assetDecimals));
+        }
+        return _amount;
+    }
+
     function _payout() internal {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
@@ -353,89 +401,99 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-        uint256 scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
-        uint256 totalAsset = mark2market.totalNetAssets();
+        uint256 totalUsdPlus = usdPlus.totalSupply();
+        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
 
-        uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 usdPlusDecimals = usdPlus.decimals();
-        if (assetDecimals > usdPlusDecimals) {
-            totalAsset = totalAsset / (10 ** (assetDecimals - usdPlusDecimals));
-        } else {
-            totalAsset = totalAsset * (10 ** (usdPlusDecimals - assetDecimals));
-        }
+        console.log('totalUsdPlus %s', totalUsdPlus);
+        console.log('totalNav     %s', totalNav);
 
-        uint256 totalAssetSupplyRay = totalAsset.wadToRay();
-        // in ray
-        uint256 newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
-        uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
+        if (totalUsdPlus > totalNav) {
 
-        uint256 delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+            uint256 loss = totalUsdPlus - totalNav;
+            uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
 
-
-        if (delta < abroadMin) {
-            revert('Delta abroad:min');
-        }
-
-        uint256 insuranceFee;
-
-        if (abroadMax < delta) {
-
-            // Calculate the amount of USD+ to hit the maximum delta.
-            // We send the difference to the insurance wallet.
-
-            // How it works?
-            // 1. Calculating target liquidity index
-            // 2. Calculating target usdPlus.totalSupply
-            // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
-            // 4. Convert delta USD+ from scaled to normal amount
-
-            uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
-            uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
-            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - scaledTotalUsdPlusSupplyRay;
-            insuranceFee = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
-
-            // Mint USD+ to insurance wallet
-            require(insurance != address(0), 'Insurance address is zero');
-            usdPlus.mint(insurance, insuranceFee);
-
-            // updating fields - used below
-            scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
-            scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
-
-            // Calculating a new index
-            newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
-            delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
-
-            // re-check for emergencies
-            if (abroadMax < delta) {
-                revert('Delta abroad:max');
+            if(loss <= oracleLossAmount){
+                revert('Delta abroad:min');
+            }else {
+                loss += totalUsdPlus * modifierLoss / modifierLossDenominator;
+                loss = _rebaseToAsset(loss);
+                insurance.getInsurance(loss, address(portfolioManager));
+                portfolioManager.deposit(usdc, loss);
             }
-
         }
 
-        // Calculating how much users profit after insurance fee
-        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
-        uint profit;
-        if (totalAsset <= totalUsdPlusSupply) {
-            profit = totalUsdPlusSupply - totalAsset;
-        } else {
-            profit = totalAsset - totalUsdPlusSupply;
-        }
+        totalUsdPlus = usdPlus.totalSupply();
+        totalNav = _assetToRebase(mark2market.totalNetAssets());
 
-        // set newLiquidityIndex
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
+        console.log('totalUsdPlus %s', totalUsdPlus);
+        console.log('totalNav     %s', totalNav);
 
-        // notify listener about payout done
-        if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone();
-        }
+        uint256 newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+        uint256 delta = (newLiquidityIndex * 1e6) / usdPlus.liquidityIndex();
 
-        emit PayoutEvent(
-            profit,
-            newLiquidityIndex,
-            insuranceFee
-        );
+        console.log('newLiquidityIndex %s', newLiquidityIndex);
+        console.log('delta             %s', delta);
+
+
+        //        uint256 insuranceFee;
+//
+//        if (abroadMax < delta) {
+//
+//            // Calculate the amount of USD+ to hit the maximum delta.
+//            // We send the difference to the insurance wallet.
+//
+//            // How it works?
+//            // 1. Calculating target liquidity index
+//            // 2. Calculating target usdPlus.totalSupply
+//            // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
+//            // 4. Convert delta USD+ from scaled to normal amount
+//
+//            uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / 1e6;
+//            uint256 targetUsdPlusSupplyRay = totalAssetSupplyRay.rayDiv(targetLiquidityIndex);
+//            uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - scaledTotalUsdPlusSupplyRay;
+//            insuranceFee = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+//
+//            // Mint USD+ to insurance wallet
+//            require(insurance != address(0), 'Insurance address is zero');
+//            usdPlus.mint(insurance, insuranceFee);
+//
+//            // updating fields - used below
+//            scaledTotalUsdPlusSupplyRay = usdPlus.scaledTotalSupply();
+//            scaledTotalUsdPlusSupply = scaledTotalUsdPlusSupplyRay.rayToWad();
+//
+//            // Calculating a new index
+//            newLiquidityIndex = totalAssetSupplyRay.rayDiv(scaledTotalUsdPlusSupplyRay);
+//            delta = (newLiquidityIndex * 1e6) / currentLiquidityIndex;
+//
+//            // re-check for emergencies
+//            if (abroadMax < delta) {
+//                revert('Delta abroad:max');
+//            }
+//
+//        }
+//
+//        // Calculating how much users profit after insurance fee
+//        uint256 totalUsdPlusSupply = usdPlus.totalSupply();
+//        uint profit;
+//        if (totalAsset <= totalUsdPlusSupply) {
+//            profit = totalUsdPlusSupply - totalAsset;
+//        } else {
+//            profit = totalAsset - totalUsdPlusSupply;
+//        }
+//
+//        // set newLiquidityIndex
+//        usdPlus.setLiquidityIndex(newLiquidityIndex);
+//
+//        // notify listener about payout done
+//        if (address(payoutListener) != address(0)) {
+//            payoutListener.payoutDone();
+//        }
+//
+//        emit PayoutEvent(
+//            profit,
+//            newLiquidityIndex,
+//            insuranceFee
+//        );
 
         // update next payout time. Cycle for preventing gaps
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
