@@ -30,7 +30,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     StrategyWeight[] public strategyWeights;
     IStrategy public cashStrategy;
     IMark2Market public m2m;
-    uint256 totalRiskFactor;
+    uint256 public totalRiskFactor;
 
 
     // ---  events
