@@ -47,7 +47,7 @@ describe("InsuranceExchange", function () {
     decimals.forEach((decimal, index) => {
 
 
-        describe(`Decimal: asset [${decimal.asset}] rebase [{${decimal.rebase}]`, async function () {
+        describe(`Decimal: asset [${decimal.asset}] rebase [${decimal.rebase}]`, async function () {
 
             sharedBeforeEach("deploy contracts", async () => {
                 await hre.run("compile");

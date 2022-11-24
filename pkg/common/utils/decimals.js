@@ -13,7 +13,7 @@ function toE18(value) {
  */
 
 function fromE18(value) {
-    return Number.parseInt(new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(0).toString());
+    return Number.parseFloat(new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(3).toString());
 }
 
 function toE6(value) {

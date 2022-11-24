@@ -9,9 +9,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {save} = deployments;
 
     await deployProxy('Exchange', deployments, save);
-    await deployProxy('UsdPlusToken', deployments, save, {args: ["USD+", "USD+", 6]});
+    await deployProxy('UsdPlusToken', deployments, save, {args: ["USD+", "USD+", 0]});
 
-    await deployProxyMulti('AssetToken', 'UsdPlusToken', deployments, save, {args: ["MockBUSD", "MockBUSD", 18]});
+    await deployProxyMulti('AssetToken', 'UsdPlusToken', deployments, save, {args: ["MockBUSD", "MockBUSD", 0]});
 
     await deploy('MockPortfolioManager', {
         from: deployer,

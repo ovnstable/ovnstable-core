@@ -315,6 +315,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function redeem(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
+        require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 assetAmount = _rebaseToAsset(_amount);
         require(assetAmount > 0, "Amount of asset is zero");
@@ -324,22 +325,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         (redeemAmount, redeemFeeAmount) = _takeFee(assetAmount, false);
 
-        //TODO: Real unstaked amount may be different to redeemAmount
-        uint256 unstakedAmount = portfolioManager.withdraw(IERC20(_asset), redeemAmount);
+        portfolioManager.withdraw(usdc, redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
 
-        // TODO: check threshold limits to withdraw deposit
-        require(
-            IERC20(_asset).balanceOf(address(this)) >= unstakedAmount,
-            "Not enough for transfer unstakedAmount"
-        );
-        IERC20(_asset).transfer(msg.sender, unstakedAmount);
+        require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
+        usdc.transfer(msg.sender, redeemAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
-        return unstakedAmount;
+        return redeemAmount;
     }
 
 
