@@ -65,4 +65,7 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
         return 0;
     }
 
+    function getTotalRiskFactor() external view override returns (uint256){
+        return 0;
+    }
 }

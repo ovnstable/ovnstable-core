@@ -11,9 +11,14 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
     address public navLessTo;
     uint256 public avgApy;
     IERC20 public asset;
+    uint256 public totalRiskFactor;
 
     function setAsset(address _asset) external {
         asset = IERC20(_asset);
+    }
+
+    function setTotalRiskFactor(uint256 _totalRiskFactor) external {
+        totalRiskFactor = _totalRiskFactor;
     }
 
     function setNavLess(bool value, address to) external {
@@ -67,7 +72,7 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
     }
 
     function getTotalRiskFactor() external override view returns (uint256){
-        return 0;
+        return totalRiskFactor;
     }
 
 }

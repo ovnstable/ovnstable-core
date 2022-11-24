@@ -16,9 +16,9 @@ interface IInsuranceExchange {
 
     function payout() external;
 
-    function addPremium(uint256 amount) external;
+    function premium(uint256 amount) external;
 
-    function getInsurance(uint256 assetAmount, address to) external;
+    function compensate(uint256 assetAmount, address to) external;
 
     function requestWithdraw() external;
 

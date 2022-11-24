@@ -286,12 +286,12 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
 
-    function addPremium(uint256 _assetAmount) external onlyInsuranceHolder {
-        require(asset.balanceOf(msg.sender) >= _assetAmount, "Not enough for transfer");
-        asset.transferFrom(msg.sender, address(pm), _assetAmount);
+    function premium(uint256 _assetAmount) external onlyInsuranceHolder {
+        require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
+        asset.transfer(address(pm), _assetAmount);
     }
 
-    function getInsurance(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
+    function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
         pm.withdraw(asset, _assetAmount);
         require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
         asset.transfer(_to, _assetAmount);

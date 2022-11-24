@@ -2,17 +2,13 @@ const {expect} = require("chai");
 const {deployments, ethers, getNamedAccounts} = require('hardhat');
 const {toE6, fromE6, toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
 const hre = require("hardhat");
-const BigNumber = require('bignumber.js');
-const {greatLess, resetHardhat} = require("@overnight-contracts/common/utils/tests");
+const {resetHardhat, createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
-const {waffle} = require("hardhat");
-const {getAbi} = require("@overnight-contracts/common/utils/script-utils");
-const {deployMockContract, provider} = waffle;
 
 
 describe("Exchange", function () {
@@ -22,6 +18,7 @@ describe("Exchange", function () {
     let pm;
     let usdPlus;
     let insurance;
+    let testAccount;
     let asset;
 
     let toAsset = function () {
@@ -46,6 +43,8 @@ describe("Exchange", function () {
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
+        testAccount = await createRandomWallet();
+
         exchange = await ethers.getContract("Exchange");
 
         usdPlus = await ethers.getContract("UsdPlusToken");
@@ -75,19 +74,21 @@ describe("Exchange", function () {
         }
     });
 
+
+
     describe('Payout: Negative', function () {
 
 
-        it("revert: Delta abroad:min", async function () {
+        it("revert: OracleLoss", async function () {
 
             await mint(100);
             await pm.withdraw(asset.address, toAsset(1));
-            await exchange.setOracleLoss(5000, 100000); //5%
+            await exchange.setOracleLoss(5000, 100000); // 5%
 
-            await expectRevert(exchange.payout(), 'Delta abroad:min');
+            await expectRevert(exchange.payout(), 'OracleLoss');
         });
 
-        it("getInsurance", async function () {
+        it("compensate", async function () {
 
             await mint(100);
             await pm.withdraw(asset.address, toAsset(1));
@@ -95,9 +96,107 @@ describe("Exchange", function () {
             await asset.mint(insurance.address, toAsset(10));
 
             await exchange.setOracleLoss(0, 100000);
-            await exchange.setModifierLoss(1000, 100000);
-            await exchange.payout();
+            await exchange.setCompensateLoss(1000, 100000); // 1%
+            let tx = await (await exchange.payout()).wait();
 
+            expect(101).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+            expect(101).to.equal(fromRebase(await usdPlus.totalSupply()));
+            expect('1010000000000000000000000000').to.equal(await usdPlus.liquidityIndex());
+
+            let event = tx.events.find((e)=>e.event === 'PayoutEvent');
+
+            expect(1).to.equal(fromRebase(event.args[0]));
+            expect('1010000000000000000000000000').to.equal(event.args[1]);
+            expect(0).to.equal(fromRebase(event.args[2]));
+        });
+    });
+
+    describe('Payout: Positive', function () {
+
+
+        it("revert: profitRecipient address is zero", async function () {
+
+            await mint(100);
+            await asset.mint(pm.address, toAsset(1));
+            await expectRevert(exchange.payout(), 'profitRecipient address is zero');
+
+        });
+
+        it("premium", async function () {
+
+            await mint(100);
+            await asset.mint(pm.address, toAsset(10));
+
+            await exchange.setProfitRecipient(testAccount.address);
+            await exchange.setAbroad(0, 5000350);
+
+            await pm.setTotalRiskFactor(10000); // 10%
+
+            let tx = await (await exchange.payout()).wait();
+
+            expect(1).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
+            expect(109).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+            expect(109).to.equal(fromRebase(await usdPlus.totalSupply()));
+            expect('1090000000000000000000000000').to.equal(await usdPlus.liquidityIndex());
+
+            let event = tx.events.find((e)=>e.event === 'PayoutEvent');
+
+            expect(9).to.equal(fromRebase(event.args[0]));
+            expect('1090000000000000000000000000').to.equal(event.args[1]);
+            expect(0).to.equal(fromRebase(event.args[2]));
+        });
+
+        it("excessProfit", async function () {
+
+            await mint(100);
+            await asset.mint(pm.address, toAsset(10));
+
+            await exchange.setProfitRecipient(testAccount.address);
+
+            await exchange.setAbroad(0, 1000350);
+            await pm.setTotalRiskFactor(0); // 0%
+
+
+            let tx = await (await exchange.payout()).wait();
+
+            expect(0).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
+            expect(110).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+            expect(9.965).to.equal(fromRebase(await usdPlus.balanceOf(testAccount.address)));
+            expect(110).to.equal(fromRebase(await usdPlus.totalSupply()));
+
+            expect('1000350004278315086479393931').to.equal(await usdPlus.liquidityIndex());
+
+            let event = tx.events.find((e)=>e.event === 'PayoutEvent');
+
+            expect(0.038487).to.equal(fromRebase(event.args[0]));
+            expect('1000350004278315086479393931').to.equal(event.args[1]);
+            expect(9.961513).to.equal(fromRebase(event.args[2]));
+        });
+
+        it("premium + excessProfit", async function () {
+
+            await mint(100);
+            await asset.mint(pm.address, toAsset(10));
+
+            await exchange.setProfitRecipient(testAccount.address);
+
+            await exchange.setAbroad(0, 1000350);
+            await pm.setTotalRiskFactor(50000); // 50%
+
+            let tx = await (await exchange.payout()).wait();
+
+            expect(5).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
+            expect(105).to.equal(fromAsset(await asset.balanceOf(pm.address)));
+            expect(4.965).to.equal(fromRebase(await usdPlus.balanceOf(testAccount.address)));
+            expect(105).to.equal(fromRebase(await usdPlus.totalSupply()));
+
+            expect('1000349998646669358973720167').to.equal(await usdPlus.liquidityIndex());
+
+            let event = tx.events.find((e)=>e.event === 'PayoutEvent');
+
+            expect(0.036737).to.equal(fromRebase(event.args[0]));
+            expect('1000349998646669358973720167').to.equal(event.args[1]);
+            expect(4.963263).to.equal(fromRebase(event.args[2]));
         });
     });
 

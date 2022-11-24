@@ -24,11 +24,11 @@ contract MockInsuranceExchange is IInsuranceExchange {
 
     }
 
-    function addPremium(uint256 amount) external override{
+    function premium(uint256 amount) external override {
 
     }
 
-    function getInsurance(uint256 assetAmount, address to) external override{
+    function compensate(uint256 assetAmount, address to) external override{
         asset.transfer(to, assetAmount);
     }
 
