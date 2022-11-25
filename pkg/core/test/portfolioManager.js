@@ -307,6 +307,7 @@ describe("PortfolioManager: removeStrategy", function () {
             minWeight: 0,
             targetWeight: 100000,
             maxWeight: 100000,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }];
@@ -456,6 +457,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
@@ -464,6 +466,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 90000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: false,
                 enabledReward: true,
             },
@@ -496,6 +499,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 90000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: true,
             },
@@ -504,6 +508,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: false,
                 enabledReward: false,
             },
@@ -542,6 +547,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
@@ -560,6 +566,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
@@ -569,12 +576,83 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
         ];
 
         await expectRevert(pm.setStrategyWeights(weights), "Strategy was updated");
+    });
+
+
+    describe('TotalRiskFactor', function() {
+
+        it("set 5.15%", async function () {
+            await pm.addStrategy(strategy1.address);
+            await pm.addStrategy(strategy2.address);
+
+            let weights = [
+                {
+                    strategy: strategy1.address,
+                    minWeight: 0,
+                    targetWeight: 50_000,
+                    maxWeight: 100_000,
+                    riskFactor: 5_100,
+                    enabled: true,
+                    enabledReward: false,
+                },
+
+                {
+                    strategy: strategy2.address,
+                    minWeight: 0,
+                    targetWeight: 50_000,
+                    maxWeight: 100_000,
+                    riskFactor: 5_200,
+                    enabled: true,
+                    enabledReward: false,
+                },
+            ];
+
+            let tx = await (await pm.setStrategyWeights(weights)).wait();
+
+            let event = tx.events.find((e)=>e.event === 'TotalRiskFactorUpdated');
+            await expect(5_150).to.equal(Number.parseInt(event.args[0]));
+            await expect(5_150).to.equal(await pm.getTotalRiskFactor());
+        });
+
+        it("set 0%", async function () {
+            await pm.addStrategy(strategy1.address);
+            await pm.addStrategy(strategy2.address);
+
+            let weights = [
+                {
+                    strategy: strategy1.address,
+                    minWeight: 0,
+                    targetWeight: 50_000,
+                    maxWeight: 100_000,
+                    riskFactor: 0,
+                    enabled: true,
+                    enabledReward: false,
+                },
+
+                {
+                    strategy: strategy2.address,
+                    minWeight: 0,
+                    targetWeight: 50_000,
+                    maxWeight: 100_000,
+                    riskFactor: 0,
+                    enabled: true,
+                    enabledReward: false,
+                },
+            ];
+
+            let tx = await (await pm.setStrategyWeights(weights)).wait();
+
+            let event = tx.events.find((e)=>e.event === 'TotalRiskFactorUpdated');
+            await expect(0).to.equal(Number.parseInt(event.args[0]));
+            await expect(0).to.equal(await pm.getTotalRiskFactor());
+        })
     });
 
 
@@ -588,6 +666,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
@@ -597,6 +676,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 10000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             }
@@ -610,6 +690,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 60000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             },
@@ -619,6 +700,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
                 minWeight: 0,
                 targetWeight: 50000,
                 maxWeight: 100000,
+                riskFactor: 0,
                 enabled: true,
                 enabledReward: false,
             }
@@ -636,6 +718,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
             minWeight: 0,
             targetWeight: 100000,
             maxWeight: 20000,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }];
@@ -652,6 +735,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
             minWeight: 100000,
             targetWeight: 500,
             maxWeight: 0,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }];
@@ -667,6 +751,7 @@ describe("PortfolioManager: setStrategyWeights", function () {
             minWeight: 0,
             targetWeight: 100000,
             maxWeight: 100000,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }];
@@ -735,6 +820,7 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
             minWeight: 0,
             targetWeight: 90000,
             maxWeight: 100000,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }, {
@@ -742,6 +828,7 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
             minWeight: 0,
             targetWeight: 10000,
             maxWeight: 20000,
+            riskFactor: 0,
             enabled: true,
             enabledReward: false,
         }];

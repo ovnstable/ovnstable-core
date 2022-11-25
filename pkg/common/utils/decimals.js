@@ -6,8 +6,14 @@ function toE18(value) {
 
 }
 
+/**
+ * Convert from e18 decimals to simple number.
+ * @param value BigNumber or String or Number
+ * @returns {number} Must be NUMBER not STRING
+ */
+
 function fromE18(value) {
-    return new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(4)
+    return Number.parseFloat(new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(3).toString());
 }
 
 function toE6(value) {

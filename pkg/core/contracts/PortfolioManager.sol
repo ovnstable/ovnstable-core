@@ -14,6 +14,8 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 
+import "hardhat/console.sol";
+
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -28,6 +30,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     StrategyWeight[] public strategyWeights;
     IStrategy public cashStrategy;
     IMark2Market public m2m;
+    uint256 public totalRiskFactor;
 
 
     // ---  events
@@ -39,6 +42,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     event CashStrategyUpdated(address value);
     event CashStrategyRestaked(uint256 value);
     event Balance();
+    event TotalRiskFactorUpdated(uint256 value);
     event Exchanged(uint256 amount, address from, address to);
 
     event StrategyWeightUpdated(
@@ -47,6 +51,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         uint256 minWeight,
         uint256 targetWeight,
         uint256 maxWeight,
+        uint256 riskFactor,
         bool enabled,
         bool enabledReward
     );
@@ -385,6 +390,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         bool[] memory updatedStrategies = new bool[](strategyWeights.length);
 
+        uint256 _totalRiskFactor = 0;
+
         for (uint8 i = 0; i < _strategyWeights.length; i++) {
             StrategyWeight memory weightNew = _strategyWeights[i];
 
@@ -404,18 +411,25 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
             updatedStrategies[index] = true;
 
+            _totalRiskFactor += (weightNew.riskFactor / 100 * weightNew.targetWeight) / 1000;
+
             emit StrategyWeightUpdated(
                 index,
                 weightNew.strategy,
                 weightNew.minWeight,
                 weightNew.targetWeight,
                 weightNew.maxWeight,
+                weightNew.riskFactor,
                 weightNew.enabled,
                 weightNew.enabledReward
             );
         }
 
         require(totalTarget == TOTAL_WEIGHT, "Total target should equal to TOTAL_WEIGHT");
+
+        totalRiskFactor = _totalRiskFactor;
+        emit TotalRiskFactorUpdated(_totalRiskFactor);
+
     }
 
     function addStrategy(address _strategy) external onlyAdmin {
@@ -426,7 +440,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
 
         // Strategy is disabled always when only created
-        StrategyWeight memory strategyWeight = StrategyWeight(_strategy, 0, 0, 0, false, false);
+        StrategyWeight memory strategyWeight = StrategyWeight(_strategy, 0, 0, 0, 0, false, false);
 
         uint256 index; // default index = 0
         if(strategyWeights.length != 0){
@@ -479,6 +493,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             strategyWeight.minWeight,
             strategyWeight.targetWeight,
             strategyWeight.maxWeight,
+            strategyWeight.riskFactor,
             strategyWeight.enabled,
             strategyWeight.enabledReward
         );
@@ -500,5 +515,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         return strategyWeights;
     }
 
-
+    function getTotalRiskFactor() external override view returns (uint256) {
+        return totalRiskFactor;
+    }
 }
