@@ -1,7 +1,17 @@
-const {getContract, changeWeightsAndBalance, execTimelock, initWallet, convertWeights, showM2M} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const {toAsset} = require("@overnight-contracts/common/utils/decimals");
+
+const {getContract, showM2M, getCoreAsset, transferETH, initWallet, execTimelock, convertWeights} = require("@overnight-contracts/common/utils/script-utils");
+const {DEFAULT} = require("@overnight-contracts/common/utils/assets");
+
 
 async function main() {
+
+    let pm = await getContract('PortfolioManager', 'localhost');
+    let m2m = await getContract('Mark2Market', 'localhost');
+    let exchange = await getContract('Exchange', 'localhost');
+
+    let wallet = await initWallet();
+
 
     let weights = [
         {
@@ -76,24 +86,33 @@ async function main() {
         }
     ]
 
-
-    weights = await convertWeights(weights);
-
     await execTimelock(async (timelock)=>{
 
-       await showM2M();
-       let pm = await getContract('PortfolioManager');
-       await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), (await initWallet()).address);
-       await pm.setStrategyWeights(weights);
-       // await pm.balance();
-       await showM2M();
-    });
+        await (await exchange.connect(timelock).setPortfolioManager(pm.address)).wait();
+        await (await m2m.connect(timelock).setPortfolioManager(pm.address)).wait();
 
-    // await changeWeightsAndBalance(weights);
+        await (await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), wallet.address));
+        await (await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), '0x0bE3f37201699F00C21dCba18861ed4F60288E1D'));
+        await (await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), '0xe497285e466227F4E8648209E34B465dAA1F90a0'));
+
+
+        for (let i = 0; i < weights.length; i++) {
+            let item = weights[i];
+
+            await (await pm.connect(timelock).addStrategy(item.strategy));
+        }
+
+        await (await pm.connect(timelock).setCashStrategy(weights[0].strategy));
+        console.log('setCashStrategy: ' + weights[0].name);
+
+
+        weights = await convertWeights(weights);
+        await pm.setStrategyWeights(weights);
+
+    });
 
 
 }
-
 
 
 main()

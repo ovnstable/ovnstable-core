@@ -5,25 +5,10 @@ const {getContract, getPrice, execTimelock, showM2M} = require("@overnight-contr
 async function main() {
 
     let exchange = await getContract('Exchange');
-    //
-    // await execTimelock(async (timelock)=>{
-    //
-    //     await showM2M();
-    //
-    //     await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
-    //
-    //     try {
-    //         let tx = await exchange.connect(timelock).payout(await getPrice());
-    //         await tx.wait();
-    //     } catch (e) {
-    //         console.log(e.message);
-    //     }
-    //
-    //     let tx = await exchange.payout(await getPrice());
-    //     await tx.wait();
-    //
-    //     await showM2M();
-    // })
+
+    await execTimelock(async (timelock)=>{
+        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    })
 
 
     while (true) {
