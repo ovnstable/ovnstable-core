@@ -2,15 +2,14 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./core/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/AaveV2.sol";
 
-
-contract StrategyAaveV3 is Strategy {
+contract StrategyAaveV2 is Strategy {
 
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
 
-    IPoolAddressesProvider public aaveProvider;
+    ILendingPoolAddressesProvider public aaveProvider;
 
 
     // --- events
@@ -52,7 +51,7 @@ contract StrategyAaveV3 is Strategy {
 
         require(_aaveProvider != address(0), "Zero address not allowed");
 
-        aaveProvider = IPoolAddressesProvider(_aaveProvider);
+        aaveProvider = ILendingPoolAddressesProvider(_aaveProvider);
 
         emit StrategyAaveUpdatedParams(_aaveProvider);
     }
@@ -66,7 +65,7 @@ contract StrategyAaveV3 is Strategy {
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         usdcToken.approve(address(pool), _amount);
 
         pool.deposit(address(usdcToken), _amount, address(this), 0);
@@ -80,7 +79,7 @@ contract StrategyAaveV3 is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         aUsdcToken.approve(address(pool), _amount);
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
@@ -96,7 +95,7 @@ contract StrategyAaveV3 is Strategy {
 
         uint256 _amount = aUsdcToken.balanceOf(address(this));
 
-        IPool pool = IPool(aaveProvider.getPool());
+        ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         aUsdcToken.approve(address(pool), _amount);
 
         uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
