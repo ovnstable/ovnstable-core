@@ -8,8 +8,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
-import "@overnight-contracts/core/contracts/interfaces/IPortfolioManager.sol";
-import "@overnight-contracts/core/contracts/interfaces/IMark2Market.sol";
+import "./interfaces/IPortfolioManager.sol";
+import "./interfaces/IMark2Market.sol";
 
 import "./interfaces/IRebaseToken.sol";
 

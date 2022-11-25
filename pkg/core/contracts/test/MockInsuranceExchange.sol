@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "@overnight-contracts/insurance/contracts/interfaces/IInsuranceExchange.sol";
+import "../interfaces/IInsuranceExchange.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MockInsuranceExchange is IInsuranceExchange {
