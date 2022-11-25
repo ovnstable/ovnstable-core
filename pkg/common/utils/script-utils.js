@@ -190,6 +190,7 @@ async function getStrategyMapping(){
             fromAsset = fromE18;
             break;
         case "polygon":
+        case "polygon_ins":
             url = "https://app.overnight.fi/api/dict/strategies";
             break;
         case "polygon_dev":
@@ -222,7 +223,13 @@ async function getStrategyMapping(){
 async function showM2M(blocknumber) {
 
     let m2m = await getContract('Mark2Market', process.env.STAND);
-    let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
+
+    let usdPlus;
+    if (process.env.STAND.includes('_ins')){
+        usdPlus = await getContract('InsuranceToken', process.env.STAND);
+    }else {
+        usdPlus = await getContract('UsdPlusToken', process.env.STAND);
+    }
     let pm = await getContract('PortfolioManager', process.env.STAND);
 
     let strategyAssets;

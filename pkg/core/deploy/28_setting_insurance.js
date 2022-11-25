@@ -10,9 +10,8 @@ module.exports = async ({getNamedAccounts}) => {
 
     let insurance = await ethers.getContract('InsuranceExchange');
     let rebase = await ethers.getContract('InsuranceToken');
-    let m2m = await ethers.getContract('InsuranceMark2Market');
-    let pm = await ethers.getContract('InsurancePortfolioManager');
-
+    let m2m = await ethers.getContract('Mark2Market');
+    let pm = await ethers.getContract('PortfolioManager');
 
     await (await pm.setMark2Market(m2m.address)).wait();
     console.log("pm.setMark2Market done");
@@ -28,6 +27,9 @@ module.exports = async ({getNamedAccounts}) => {
 
     await (await rebase.setExchanger(insurance.address)).wait();
     await (await rebase.setName('USD+ Insurance', 'USD+ INS')).wait();
+
+    // TODO need to set for different versions USD+
+    // await (await rebase.setDecimals(6)).wait();
     console.log('InsuranceToken setting done()');
 
 

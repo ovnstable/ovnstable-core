@@ -81,6 +81,13 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        polygon_ins: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
         polygon_dev: {
             url: forkingUrl,
             accounts: accountsNetwork,
