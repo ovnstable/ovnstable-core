@@ -62,7 +62,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     uint256 public abroadMin;
     uint256 public abroadMax;
 
-    IInsuranceExchange public insurance;
+    address public insurance;
 
     uint256 public oracleLoss;
     uint256 public oracleLossDenominator;
@@ -204,7 +204,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setInsurance(address _insurance) external onlyAdmin {
         require(_insurance != address(0), "Zero address not allowed");
-        insurance = IInsuranceExchange(_insurance);
+        insurance = _insurance;
         emit InsuranceUpdated(_insurance);
     }
 
@@ -424,7 +424,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             }else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
-                insurance.compensate(loss, address(portfolioManager));
+                IInsuranceExchange(insurance).compensate(loss, address(portfolioManager));
                 portfolioManager.deposit(usdc, loss);
             }
 
@@ -439,8 +439,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             if(premium > 0){
                 portfolioManager.withdraw(usdc, premium);
-                usdc.transfer(address(insurance), premium);
-                insurance.premium(premium);
+                usdc.transfer(insurance, premium);
+                IInsuranceExchange(insurance).premium(premium);
 
                 totalNav = totalNav - _assetToRebase(premium);
             }
