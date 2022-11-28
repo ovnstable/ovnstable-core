@@ -87,7 +87,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PayoutEvent(
         uint256 profit,
         uint256 newLiquidityIndex,
-        uint256 excessProfit
+        uint256 excessProfit,
+        uint256 insurancePremium,
+        uint256 insuranceLoss
     );
     event PaidBuyFee(uint256 amount, uint256 feeAmount);
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
@@ -405,6 +407,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
         uint256 excessProfit;
+        uint256 premium;
+        uint256 loss;
 
         uint256 newLiquidityIndex;
         uint256 delta;
@@ -416,7 +420,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             // 1. Loss may be related to oracles: we wait
             // 2. Loss is real then compensate all loss + [1] bps
 
-            uint256 loss = totalUsdPlus - totalNav;
+            loss = totalUsdPlus - totalNav;
             uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
 
             if(loss <= oracleLossAmount){
@@ -435,7 +439,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             // 1. Pay premium to Insurance
             // 2. If profit more max delta then transfer excess profit to OVN wallet
 
-            uint256 premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
+            premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
             if(premium > 0){
                 portfolioManager.withdraw(usdc, premium);
@@ -503,7 +507,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit PayoutEvent(
             profit,
             newLiquidityIndex,
-            excessProfit
+            excessProfit,
+            premium,
+            loss
         );
 
         // update next payout time. Cycle for preventing gaps
