@@ -1,6 +1,6 @@
-const {fromE18} = require("./decimals");
+const {fromE18, toE18} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -23,6 +23,8 @@ async function createProposal(addresses, values, abis){
     let tx = await proposeTx.wait();
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
     console.log('Proposal id ' + proposalId)
+
+    return proposalId;
 }
 
 async function testProposal(addresses, values, abis){
@@ -59,7 +61,9 @@ async function execProposal(id) {
     let governator = await getContract('OvnGovernor' );
     let ovn = await getContract('OvnToken');
 
-    await ovn.delegate(wallet.address);
+    let ovnOwner = await impersonateAccount('0xe497285e466227f4e8648209e34b465daa1f90a0');
+    await ovn.connect(ovnOwner).transfer(wallet.address, await ovn.balanceOf(ovnOwner.address));
+    await ovn.connect(wallet).delegate(wallet.address);
 
     let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber() - 1)).toString());
     console.log('Quorum: ' + quorum);
@@ -92,18 +96,21 @@ async function execProposal(id) {
     console.log('Votes for: ' + item.forVotes / 10 ** 18);
 
     let total = fromE18((await ovn.getVotes(wallet.address)).toString());
-    console.log('Delegated ' + total)
+    console.log('Delegated ' + total);
 
-    let waitBlock = 200;
-    const sevenDays = 7 * 24 * 60 * 60;
+    console.log('State: ' + proposalStates[await governator.state(proposalId)]);
+
+    let waitBlock = 150;
     for (let i = 0; i < waitBlock; i++) {
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
         await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
     }
 
     state = proposalStates[await governator.state(proposalId)];
     expect('Succeeded').to.eq(state);
     await governator.connect(wallet).queueExec(proposalId);
+
+    const sevenDays = 6 * 60 * 60 * 1000;
+    await ethers.provider.send("evm_increaseTime", [sevenDays])
     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
     await governator.connect(wallet).executeExec(proposalId);
 

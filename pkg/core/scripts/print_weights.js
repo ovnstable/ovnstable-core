@@ -25,6 +25,7 @@ async function main() {
             "name": mapping ? mapping.name : 'Not found',
             "minWeight": weight.minWeight / 1000,
             "targetWeight": weight.targetWeight / 1000,
+            "riskFactor": weight.riskFactor / 1000,
             "maxWeight": weight.maxWeight / 1000,
             "enabled": weight.enabled,
             "enabledReward": weight.enabledReward

@@ -255,6 +255,10 @@ async function showM2M(blocknumber) {
         let asset = strategyAssets[i];
         let weight = strategyWeights[i];
 
+        if (weight === undefined){
+            continue;
+        }
+
         let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
         items.push(
@@ -345,6 +349,7 @@ async function upgradeStrategy(strategy, newImplAddress) {
 
 async function impersonateAccount(address){
 
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -399,6 +404,7 @@ async function convertWeights(weights){
         delete value.name
         value.targetWeight = value.targetWeight * 1000;
         value.maxWeight = value.maxWeight * 1000;
+        value.riskFactor = value.riskFactor * 1000;
 
         return value;
     })
@@ -468,7 +474,7 @@ async function checkTimeLockBalance(){
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
     if (new BN(balance.toString()).lt(new BN("10000000000000000000"))){
-        await transferETH(1, timelock.address);
+        await transferETH(10, timelock.address);
     }
 
 }
