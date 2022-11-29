@@ -6,24 +6,6 @@ const {fromE6} = require("@overnight-contracts/common/utils/decimals");
 async function main() {
 
     let exchange = await getContract('Exchange');
-    let opts = await getPrice();
-    let pmIns = await getContract('PortfolioManager', 'polygon_ins');
-    let pm = await getContract('PortfolioManager', 'polygon');
-
-    await execTimelock(async (timelock)=>{
-        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, opts)).wait();
-
-        await (await exchange.setOracleLoss(100, 100000, opts)).wait(); // 0.1%
-        console.log('exchange.setOracleLoss');
-
-        await (await exchange.setCompensateLoss(10, 100000, opts)).wait(); // 0.01%
-        console.log('exchange.setCompensateLoss');
-    })
-
-
-
-    let asset = await getCoreAsset();
-    console.log('NAV ins: ' + fromE6(await asset.balanceOf(pmIns.address)));
 
     while (true) {
         await showM2M();
@@ -48,9 +30,7 @@ async function main() {
 
             console.log('Profit:  ' + fromE6(await event.args[0].toString()));
             console.log('Premium: ' + fromE6(await event.args[3].toString()));
-            console.log('NAV ins: ' + fromE6(await asset.balanceOf(pmIns.address)));
             console.log('Loss:    ' + fromE6(await event.args[4].toString()));
-            console.log('TotalRiskFactor: ' + await pm.getTotalRiskFactor());
 
             break
         } catch (e) {

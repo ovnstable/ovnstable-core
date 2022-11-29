@@ -153,35 +153,35 @@ async function main() {
     abis.push(exchange.interface.encodeFunctionData('grantRole', [await exchange.PORTFOLIO_AGENT_ROLE(), '0xe497285e466227F4E8648209E34B465dAA1F90a0']));
 
 
-    // await transferETH(10, wallet.address);
+    await transferETH(10, wallet.address);
     let proposalId =  await createProposal(addresses, values, abis);
-    // await execProposal(proposalId);
-    //
-    // let price = await getPrice();
-    //
-    // await showM2M();
-    //
-    // weights = await convertWeights(weights);
-    // await (await pm.setStrategyWeights(weights, price)).wait();
-    // await (await pm.balance(price)).wait();
-    //
-    // await showM2M();
-    //
-    // let asset = await getCoreAsset();
-    //
-    // await (await asset.approve(exchange.address, toAsset(1), price)).wait();
-    // console.log('Asset approve done');
-    // await (await exchange.buy(asset.address, toAsset(1), price)).wait();
-    // console.log('Exchange.buy done');
-    //
-    // await showM2M();
-    //
-    // await (await usdPlusToken.approve(exchange.address, toE6(1))).wait();
-    // console.log('UsdPlus approve done');
-    // await (await exchange.redeem(asset.address, toE6(1))).wait();
-    // console.log('Exchange.redeem done');
-    //
-    // await showM2M();
+    await execProposal(proposalId);
+
+    let price = await getPrice();
+
+    await showM2M();
+
+    weights = await convertWeights(weights);
+    await (await pm.setStrategyWeights(weights, price)).wait();
+    await (await pm.balance(price)).wait();
+
+    await showM2M();
+
+    let asset = await getCoreAsset();
+
+    await (await asset.approve(exchange.address, toAsset(1), price)).wait();
+    console.log('Asset approve done');
+    await (await exchange.buy(asset.address, toAsset(1), price)).wait();
+    console.log('Exchange.buy done');
+
+    await showM2M();
+
+    await (await usdPlusToken.approve(exchange.address, toE6(1))).wait();
+    console.log('UsdPlus approve done');
+    await (await exchange.redeem(asset.address, toE6(1))).wait();
+    console.log('Exchange.redeem done');
+
+    await showM2M();
 
 
 }
