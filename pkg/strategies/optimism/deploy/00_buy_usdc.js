@@ -6,7 +6,7 @@ const {ethers} = require("hardhat");
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
-    let holder = '0xebe80f029b1c02862b9e8a70a7e5317c06f62cae';
+    let holder = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
 
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
