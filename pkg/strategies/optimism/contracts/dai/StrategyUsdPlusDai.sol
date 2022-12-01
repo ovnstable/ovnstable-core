@@ -125,7 +125,7 @@ contract StrategyUsdPlusDai is Strategy {
         }
 
         // add 1 bp and 1e13 for swap slippage
-        uint256 usdPlusAmount = OvnMath.addBasisPoints(_oracleDaiToUsdc(_amount + 1e13), 1);
+        uint256 usdPlusAmount = OvnMath.addBasisPoints(_oracleDaiToUsdc(_amount + 1e13), swapSlippage);
         if (usdPlusAmount >= usdPlusBalance) {
             usdPlusAmount = usdPlusBalance;
         }
