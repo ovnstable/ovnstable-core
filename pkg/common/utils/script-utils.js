@@ -620,6 +620,9 @@ async function transferDAI(to) {
         case "OPTIMISM":
             address = '0x777a044ceff2305a06ce06ab4644ea025d4ddeb5';
             break
+        case "POLYGON":
+            address = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
+            break
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
