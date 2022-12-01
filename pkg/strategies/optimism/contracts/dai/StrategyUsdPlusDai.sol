@@ -71,6 +71,10 @@ contract StrategyUsdPlusDai is Strategy {
         emit StrategyUpdatedParams();
     }
 
+    function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
+        swapSlippage = _swapSlippage;
+    }
+
     // --- logic
 
     function _stake(
