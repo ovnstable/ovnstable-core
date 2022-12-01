@@ -208,6 +208,7 @@ interface IAlgebraPool {
    * Returned value cannot exceed type(uint128).max
    */
     function liquidity() external view returns (uint128);
+    function token0() external view returns (address);
 }
 
 
