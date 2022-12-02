@@ -269,7 +269,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         withdrawRequests[msg.sender] = block.timestamp + requestWaitPeriod;
     }
 
-    function checkWithdraw() public {
+    function checkWithdraw() public view {
 
         if (hasRole(TRUST_ROLE, msg.sender)) {
             return;
