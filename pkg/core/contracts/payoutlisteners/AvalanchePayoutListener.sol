@@ -32,38 +32,11 @@ contract AvalanchePayoutListener is PayoutListener {
     // --- setters
 
     function setQsSyncPools(address[] calldata _qsSyncPools) external onlyAdmin {
-
-        uint256 minLength = (qsSyncPools.length < _qsSyncPools.length) ? qsSyncPools.length : _qsSyncPools.length;
-
-        // replace already exists
-        for (uint256 i = 0; i < minLength; i++) {
-            qsSyncPools[i] = _qsSyncPools[i];
-            emit QsSyncPoolsUpdated(i, _qsSyncPools[i]);
-        }
-
-        // add if need
-        if (minLength < _qsSyncPools.length) {
-            for (uint256 i = minLength; i < _qsSyncPools.length; i++) {
-                qsSyncPools.push(_qsSyncPools[i]);
-                emit QsSyncPoolsUpdated(i, _qsSyncPools[i]);
-            }
-        }
-
-        // truncate if need
-        if (qsSyncPools.length > _qsSyncPools.length) {
-            uint256 removeCount = qsSyncPools.length - _qsSyncPools.length;
-            for (uint256 i = 0; i < removeCount; i++) {
-                address qsPool = qsSyncPools[qsSyncPools.length - 1];
-                qsSyncPools.pop();
-                emit QsSyncPoolsRemoved(qsSyncPools.length, qsPool);
-            }
-        }
+        qsSyncPools = _qsSyncPools;
     }
 
     function setSwapsicleSkimPools(address[] calldata _swapsicleSkimPools) external onlyAdmin {
-        require(_swapsicleSkimPools.length != 0, "Zero pools not allowed");
         swapsicleSkimPools = _swapsicleSkimPools;
-        emit SwapsicleSkimPoolsUpdated(_swapsicleSkimPools);
     }
 
     function setSwapsicleDepositWallet(address _swapsicleDepositWallet) external onlyAdmin {

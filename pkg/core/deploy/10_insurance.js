@@ -7,10 +7,10 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     const {deployer} = await getNamedAccounts();
 
     await deployProxy('InsuranceExchange', deployments, save);
-    await deployProxyMulti('InsuranceToken', 'RebaseToken', deployments, save, {});
+    // await deployProxyMulti('InsuranceToken', 'RebaseToken', deployments, save, {});
 
-    await deployProxy('PortfolioManager', deployments, save);
-    await deployProxy('Mark2Market', deployments, save);
+    // await deployProxy('PortfolioManager', deployments, save);
+    // await deployProxy('Mark2Market', deployments, save);
 
 };
 
