@@ -9,7 +9,7 @@ async function main() {
             "name": "Aave",
             "minWeight": 0,
             "targetWeight": 10,
-            "maxWeight": 15,
+            "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
         },
