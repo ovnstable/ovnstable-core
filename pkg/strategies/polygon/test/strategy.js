@@ -154,6 +154,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyEtsZeta',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
 
 ];
 
@@ -252,7 +257,20 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             params: [ownerAddress],
         });
         const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xB53Ecca6CB52279e80D8d05a0BC741aDf50bfce4");
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xe63ae88251aaf0bc2ea4d3637D3131A294FD74d7");
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
+        });
+    } else if (strategyName == 'StrategyEtsZeta') {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+            await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xC5544e6C53AcDaC83876567f5D485d55cD03e72D");
         await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",

@@ -2,9 +2,10 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '0x2a0821a851F75de8E4057C5ebd05dce7288A035B';
-let hedgeExchanger = '0xB53Ecca6CB52279e80D8d05a0BC741aDf50bfce4';
-let allowedSlippageBp = 100;
+let rebaseToken = '0x8268609395784EBF89F26F22ac45852E1F25f597';
+let hedgeExchanger = '0xe63ae88251aaf0bc2ea4d3637D3131A294FD74d7';
+let poolUsdcDaiFee = 100; // 0.01%
+let allowedSlippageBp = 10;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -21,7 +22,8 @@ module.exports = async ({deployments}) => {
                 dai: POLYGON.dai,
                 rebaseToken: rebaseToken,
                 hedgeExchanger: hedgeExchanger,
-                synapseSwap: POLYGON.synapseSwapRouter,
+                uniswapV3Router: POLYGON.uniswapV3Router,
+                poolUsdcDaiFee: poolUsdcDaiFee,
                 oracleUsdc: POLYGON.oracleChainlinkUsdc,
                 oracleDai: POLYGON.oracleChainlinkDai,
                 allowedSlippageBp: allowedSlippageBp,

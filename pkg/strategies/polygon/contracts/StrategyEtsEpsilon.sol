@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "./interfaces/IHedgeExchanger.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
@@ -14,11 +14,16 @@ contract StrategyEtsEpsilon is Strategy {
 
     IERC20 public usdc;
     IERC20 public dai;
+
     IERC20 public rebaseToken;
     IHedgeExchanger public hedgeExchanger;
-    ISwap public synapseSwap;
+
+    ISwapRouter public uniswapV3Router;
+    uint24 public poolUsdcDaiFee;
+
     IPriceFeed public oracleDai;
     IPriceFeed public oracleUsdc;
+
     uint256 public allowedSlippageBp;
 
     uint256 daiDm;
@@ -36,7 +41,8 @@ contract StrategyEtsEpsilon is Strategy {
         address dai;
         address rebaseToken;
         address hedgeExchanger;
-        address synapseSwap;
+        address uniswapV3Router;
+        uint24 poolUsdcDaiFee;
         address oracleDai;
         address oracleUsdc;
         uint256 allowedSlippageBp;
@@ -58,11 +64,16 @@ contract StrategyEtsEpsilon is Strategy {
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdc = IERC20(params.usdc);
         dai = IERC20(params.dai);
+
         rebaseToken = IERC20(params.rebaseToken);
         hedgeExchanger = IHedgeExchanger(params.hedgeExchanger);
-        synapseSwap = ISwap(params.synapseSwap);
+
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        poolUsdcDaiFee = params.poolUsdcDaiFee;
+
         oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
+
         allowedSlippageBp = params.allowedSlippageBp;
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
@@ -82,11 +93,15 @@ contract StrategyEtsEpsilon is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // swap usdc to dai
-        SynapseLibrary.swap(
-            synapseSwap,
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp);
+        uint256 daiAmount = UniswapV3Library.singleSwap(
+            uniswapV3Router,
             address(usdc),
             address(dai),
-            _amount
+            poolUsdcDaiFee,
+            address(this),
+            _amount,
+            daiMinAmount
         );
 
         // buy
@@ -103,28 +118,29 @@ contract StrategyEtsEpsilon is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        // calculate swap _amount usdc to dai
-        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-        uint256 priceDai = uint256(oracleDai.latestAnswer());
-        uint256 daiForUsdcAmount = ChainlinkLibrary.convertTokenToToken(_amount, usdcDm, daiDm, priceUsdc, priceDai);
-        // add 10 bp and 10 for unstake more than requested
-        uint256 daiAmount = OvnMath.addBasisPoints(daiForUsdcAmount + 10, 10);
-        // sub allowedSlippageBp + 1 bp for unstakeFull
-        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), allowedSlippageBp + 1);
-        if (daiAmount > rebaseTokenBalance) {
-            daiAmount = rebaseTokenBalance;
+        // add for unstake more than requested
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount) + 10, allowedSlippageBp);
+        // get allowed balance for unstake full (need less 99%)
+        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
+        if (rebaseTokenAmount > rebaseTokenBalance) {
+            rebaseTokenAmount = rebaseTokenBalance;
         }
 
         // redeem
-        rebaseToken.approve(address(hedgeExchanger), daiAmount);
-        hedgeExchanger.redeem(daiAmount);
+        rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
+        hedgeExchanger.redeem(rebaseTokenAmount);
 
         // swap dai to usdc
-        SynapseLibrary.swap(
-            synapseSwap,
+        uint256 daiBalance = dai.balanceOf(address(this));
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
+        uint256 usdcAmount = UniswapV3Library.singleSwap(
+            uniswapV3Router,
             address(dai),
             address(usdc),
-            dai.balanceOf(address(this))
+            poolUsdcDaiFee,
+            address(this),
+            daiBalance,
+            usdcMinAmount
         );
 
         return usdc.balanceOf(address(this));
@@ -137,19 +153,24 @@ contract StrategyEtsEpsilon is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        // sub allowedSlippageBp + 1 bp for unstakeFull
-        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), allowedSlippageBp + 1);
+        // get allowed balance for unstake full (need less 99%)
+        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
 
         // redeem
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenBalance);
         hedgeExchanger.redeem(rebaseTokenBalance);
 
         // swap dai to usdc
-        SynapseLibrary.swap(
-            synapseSwap,
+        uint256 daiBalance = dai.balanceOf(address(this));
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
+        uint256 usdcAmount = UniswapV3Library.singleSwap(
+            uniswapV3Router,
             address(dai),
             address(usdc),
-            dai.balanceOf(address(this))
+            poolUsdcDaiFee,
+            address(this),
+            daiBalance,
+            usdcMinAmount
         );
 
         return usdc.balanceOf(address(this));
@@ -169,16 +190,9 @@ contract StrategyEtsEpsilon is Strategy {
 
         if (daiBalance > 0) {
             if (nav) {
-                uint256 priceDai = uint256(oracleDai.latestAnswer());
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                usdcBalance += ChainlinkLibrary.convertTokenToToken(daiBalance, daiDm, usdcDm, priceDai, priceUsdc);
+                usdcBalance += _oracleDaiToUsdc(daiBalance);
             } else {
-                usdcBalance += SynapseLibrary.calculateSwap(
-                    synapseSwap,
-                    address(dai),
-                    address(usdc),
-                    daiBalance
-                );
+                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
             }
         }
 
@@ -187,6 +201,18 @@ contract StrategyEtsEpsilon is Strategy {
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         return 0;
+    }
+
+    function _oracleDaiToUsdc(uint256 daiAmount) internal view returns (uint256) {
+        uint256 priceDai = uint256(oracleDai.latestAnswer());
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
+    }
+
+    function _oracleUsdcToDai(uint256 usdcAmount) internal view returns (uint256) {
+        uint256 priceDai = uint256(oracleDai.latestAnswer());
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, daiDm, priceUsdc, priceDai);
     }
 
 }

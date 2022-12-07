@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "./interfaces/IHedgeExchanger.sol";
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 
 contract StrategyEts is Strategy {
@@ -69,6 +70,12 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
+        // get allowed balance for unstake full (need less 99%)
+        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
+        if (_amount > rebaseTokenBalance) {
+            _amount = rebaseTokenBalance;
+        }
+
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
 
@@ -82,9 +89,11 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
-        rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
-        hedgeExchanger.redeem(rebaseTokenAmount);
+        // get allowed balance for unstake full (need less 99%)
+        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
+
+        rebaseToken.approve(address(hedgeExchanger), rebaseTokenBalance);
+        hedgeExchanger.redeem(rebaseTokenBalance);
 
         return asset.balanceOf(address(this));
     }
