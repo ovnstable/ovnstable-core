@@ -194,6 +194,19 @@ library SynapseLibrary {
         return synapseSwap.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
     }
 
+    function swap(
+        ISwap synapseSwap,
+        address tokenFrom,
+        address tokenTo,
+        uint256 dx,
+        uint256 minDy
+    ) internal returns (uint256) {
+        uint8 tokenIndexFrom = synapseSwap.getTokenIndex(tokenFrom);
+        uint8 tokenIndexTo = synapseSwap.getTokenIndex(tokenTo);
+        IERC20(tokenFrom).approve(address(synapseSwap), dx);
+        return synapseSwap.swap(tokenIndexFrom, tokenIndexTo, dx, minDy, block.timestamp);
+    }
+
     /**
      * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
      *
