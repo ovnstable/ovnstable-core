@@ -15,12 +15,12 @@ async function main() {
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x03eBAAb0AF4C5450a1824B9158aC43349c61fdDa']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xC2E31e0909B23029C39A28E733CbF10b9dDA9277']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x3114bfDce69a13d2258BD273D231386A074cEC48']));
-
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x3fc3750658cd19e84e962d73D7aB0C1a04cC1f6E']));
+/*
     addresses.push(pm.address);
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x0B5b9451b3b8C2Ba4e5CDF0ac6d9D05EE3ba9d30']));
@@ -28,7 +28,7 @@ async function main() {
     addresses.push(pm.address);
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xA035AA89B56ab8A5b7865c936f70f02979ea5867']));
-/*
+
     addresses.push(pm.address);
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x6A9d96f5eaCa97D61AD8f82C98591462Af9a7fc8']));
