@@ -92,8 +92,9 @@ contract StrategyEtsEpsilon is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
+        // sub for stake
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp) - 1e13;
         // swap usdc to dai
-        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp);
         uint256 daiAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(usdc),
@@ -119,9 +120,8 @@ contract StrategyEtsEpsilon is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // add for unstake more than requested
-        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount) + 10, allowedSlippageBp);
-        // get allowed balance for unstake full (need less 99%)
-        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp) + 1e13;
+        uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         if (rebaseTokenAmount > rebaseTokenBalance) {
             rebaseTokenAmount = rebaseTokenBalance;
         }
@@ -153,10 +153,8 @@ contract StrategyEtsEpsilon is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        // get allowed balance for unstake full (need less 99%)
-        uint256 rebaseTokenBalance = OvnMath.subBasisPoints(rebaseToken.balanceOf(address(this)), 101);
-
         // redeem
+        uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenBalance);
         hedgeExchanger.redeem(rebaseTokenBalance);
 
