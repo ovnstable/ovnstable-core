@@ -30,8 +30,8 @@ async function main() {
 
 
     let names = [
-        'StrategyEtsEpsilon',
-        'StrategyEtsZeta',
+        'StrategyEtsEpsilonPlus',
+        'StrategyEtsZetaPlus',
     ]
 
     await showRules(names);

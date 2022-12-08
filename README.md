@@ -59,4 +59,16 @@ Params in `.prettierrc`
 
 Install plugin (https://plugins.jetbrains.com/plugin/9475-solidity)
 
+## How to deploy new strategy:
+
+1. Set in .env file your parameters and check actual gas price in gas station.
+2. Deploy strategy and setting in pkg/strategies/polygon
+   npx hardhat deploy --tags StrategyAlfaPlus --setting --network polygon
+3. Verify strategy in pkg/strategies/polygon
+   npx hardhat run scripts/verify.js --network polygon
+4. Add strategy in PM through proposal in pkg/core
+   npx hardhat run scripts/addStrategy.js --network polygon
+5. Move rules of strategy to governance in pkg/governance
+   npx hardhat run scripts/move_strategies_to_gov.js --network polygon
+6. Also add new record in dict.strategies and percentage in anal.collateral after adding liquidity in strategy
 

@@ -2,8 +2,8 @@ const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProx
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '0x8B6174956520cdFF6aD532F13590d73aFC7288e6';
-let hedgeExchanger = '0xdD7e3823d9178CEFBB486b1c56Fd31EE7DcfF323';
+let rebaseToken = '0x0526Ee5DAc4F85D960CB9539cc78eE77B7fcD719';
+let hedgeExchanger = '0x4279474D4643269613ff1832ff9aD88077b4E67F';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -24,4 +24,4 @@ module.exports = async ({deployments}) => {
     });
 };
 
-module.exports.tags = ['StrategyEtsGammaUsdcWeth'];
+module.exports.tags = ['StrategyEtsDelta'];
