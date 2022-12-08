@@ -5,15 +5,15 @@ const {POLYGON} = require("@overnight-contracts/common/utils/assets");
 const {toE6} = require("@overnight-contracts/common/utils/decimals");
 const {getContract, execTimelock, getERC20} = require("@overnight-contracts/common/utils/script-utils");
 
-//let strategyEtsAlfaWmaticUsdc = JSON.parse(fs.readFileSync('./deployments/localhost/StrategyEtsAlfaWmaticUsdc.json'));
-//let HedgeExchangerQsV3WmaticUsdc1 = JSON.parse(fs.readFileSync("./deployments/localhost/HedgeExchangerQsV3WmaticUsdc1.json"));
+//let strategyEtsAlfa = JSON.parse(fs.readFileSync('./deployments/localhost/StrategyEtsAlfa.json'));
+//let HedgeExchangerAlfa = JSON.parse(fs.readFileSync("./deployments/localhost/HedgeExchangerAlfa.json"));
 
 async function main() {
 
     const signers = await hre.ethers.getSigners();
     account = signers[0];
 
-    let strategy = await ethers.getContract('StrategyEtsAlfaWmaticUsdc');
+    let strategy = await ethers.getContract('StrategyEtsAlfa');
     const usdc = await getERC20('usdc');
 
 //    let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
@@ -22,7 +22,7 @@ async function main() {
 //        params: [ownerAddress],
 //    });
 //    const owner = await ethers.getSigner(ownerAddress);
-    let hedgeExchanger = await ethers.getContract('HedgeExchangerQsV3WmaticUsdc1');
+    let hedgeExchanger = await ethers.getContract('HedgeExchangerAlfa');
 //    await (await hedgeExchanger.connect(account).setRedeemFee(0, 100000)).wait();
     await hedgeExchanger.grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategy.address);
 //    await hre.network.provider.request({

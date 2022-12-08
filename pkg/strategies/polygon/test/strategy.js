@@ -130,32 +130,32 @@ let arrays = [
         enabledReward: true
     },
     {
-        name: 'StrategyEtsAlfaWmaticUsdc',
+        name: 'StrategyEtsAlfa',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyEtsBetaWmaticUsdc',
+        name: 'StrategyEtsBeta',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyEtsGammaUsdcWeth',
+        name: 'StrategyEtsGamma',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyEtsDeltaUsdcWeth',
+        name: 'StrategyEtsDelta',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyEtsEpsilon',
+        name: 'StrategyEtsEpsilonPlus',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
     {
-        name: 'StrategyEtsZeta',
+        name: 'StrategyEtsZetaPlus',
         enabledReward: false,
         isRunStrategyLogic: true,
     },
@@ -198,7 +198,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsAlfaWmaticUsdc') {
+    } else if (strategyName == 'StrategyEtsAlfa') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -211,7 +211,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsBetaWmaticUsdc') {
+    } else if (strategyName == 'StrategyEtsBeta') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -224,7 +224,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsGammaUsdcWeth') {
+    } else if (strategyName == 'StrategyEtsGamma') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -237,7 +237,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsDeltaUsdcWeth') {
+    } else if (strategyName == 'StrategyEtsDelta') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -250,7 +250,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsEpsilon') {
+    } else if (strategyName == 'StrategyEtsEpsilonPlus') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
             await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -263,7 +263,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsZeta') {
+    } else if (strategyName == 'StrategyEtsZetaPlus') {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
             await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
