@@ -15,11 +15,11 @@ async function main() {
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xC2E31e0909B23029C39A28E733CbF10b9dDA9277']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xBE8dE6350cF2090B1603e721B5BF1720F2aBD541']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x3fc3750658cd19e84e962d73D7aB0C1a04cC1f6E']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xd2D69cF43974622Dc6546F85aDA7B58088B25DD7']));
 /*
     addresses.push(pm.address);
     values.push(0);

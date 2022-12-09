@@ -63,8 +63,8 @@ Install plugin (https://plugins.jetbrains.com/plugin/9475-solidity)
 
 1. Set in .env file your parameters and check actual gas price in gas station.
 2. Deploy strategy and setting in pkg/strategies/polygon
-   npx hardhat deploy --tags StrategyAlfaPlus --setting --network polygon
-3. Verify strategy in pkg/strategies/polygon
+   npx hardhat deploy --tags StrategyEtsAlfaPlus --setting --network polygon
+3. Verify strategy in pkg/strategies/polygon and verify it on scan service
    npx hardhat run scripts/verify.js --network polygon
 4. Add strategy in PM through proposal in pkg/core
    npx hardhat run scripts/addStrategy.js --network polygon
