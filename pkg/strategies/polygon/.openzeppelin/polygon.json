@@ -784,6 +784,16 @@
       "address": "0xd2D69cF43974622Dc6546F85aDA7B58088B25DD7",
       "txHash": "0xdf3d648044e9fa70d6b8da43c29505be6ea182e236fe96c4025a4ec76c1521a1",
       "kind": "uups"
+    },
+    {
+      "address": "0x85e8c510DA139E41225ecb61954417dd2F953681",
+      "txHash": "0xd506cbdc9420632f0ca1973ed0b51ecb69a3fd694bcd4dd4e582f81e15159f8a",
+      "kind": "uups"
+    },
+    {
+      "address": "0x446e79Fd6793c2c3a4C69F112374edB86fe4F82a",
+      "txHash": "0x7ac64b75d84c872250ed735853d98703ccfff092835855a781d3806841c843e7",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -54802,7 +54812,7 @@
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)49037",
+            "type": "t_contract(IHedgeExchanger)49895",
             "contract": "StrategyEts",
             "src": "contracts/StrategyEts.sol:14"
           }
@@ -54832,7 +54842,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)49037": {
+          "t_contract(IHedgeExchanger)49895": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },

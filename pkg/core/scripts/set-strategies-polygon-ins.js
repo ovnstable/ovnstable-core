@@ -14,9 +14,10 @@ async function main() {
             "enabled": true,
             "enabledReward": true
         },
+
         {
-            "strategy": "0xDA31BeD342D68a553Cf8d14231B8784b2A0aEc74",
-            "name": "Gamma",
+            "strategy": "0x446e79Fd6793c2c3a4C69F112374edB86fe4F82a",
+            "name": "GammaPlus",
             "minWeight": 0,
             "targetWeight": 45,
             "maxWeight": 100,
@@ -25,8 +26,8 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0xe9c0c12D1e6F47b9338fF5E6Be894Fbbd454c68B",
-            "name": "Alfa",
+            "strategy": "0x85e8c510DA139E41225ecb61954417dd2F953681",
+            "name": "AlfaPlus",
             "minWeight": 0,
             "targetWeight": 45,
             "maxWeight": 100,
