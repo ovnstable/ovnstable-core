@@ -19,6 +19,10 @@ describe("Exchange", function () {
 
     let multiCallWrapper;
 
+    let UNIT_ROLE;
+    let FREE_RIDER_ROLE;
+    let PORTFOLIO_AGENT_ROLE;
+
     let toAsset = function () {
     };
     let fromAsset = function () {
@@ -63,6 +67,7 @@ describe("Exchange", function () {
                 testAccount = await createRandomWallet();
 
                 exchange = await ethers.getContract("Exchange");
+                await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), account);
 
                 usdPlus = await ethers.getContract("UsdPlusToken");
                 pm = await ethers.getContract('MockPortfolioManager');
@@ -89,6 +94,73 @@ describe("Exchange", function () {
 
                 await asset.setDecimals(decimal.asset);
                 await usdPlus.setDecimals(decimal.rebase);
+
+                UNIT_ROLE = await exchange.UNIT_ROLE();
+                FREE_RIDER_ROLE = await exchange.FREE_RIDER_ROLE();
+                PORTFOLIO_AGENT_ROLE = await exchange.PORTFOLIO_AGENT_ROLE();
+
+            });
+
+
+            describe("PortfolioManager: role", function () {
+
+                sharedBeforeEach("PortfolioManager: role", async () => {
+                    await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), account);
+
+                });
+
+                it("grantRole: UNIT_ROLE [success]", async function () {
+                    await exchange.grantRole(UNIT_ROLE, testAccount.address);
+                    expect(await exchange.hasRole(UNIT_ROLE, testAccount.address)).to.be.true;
+                });
+
+                it("grantRole: UNIT_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await exchange.connect(testAccount).grantRole(UNIT_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+
+                it("grantRole: FREE_RIDER_ROLE [success]", async function () {
+                    await exchange.grantRole(FREE_RIDER_ROLE, testAccount.address);
+                    expect(await exchange.hasRole(FREE_RIDER_ROLE, testAccount.address)).to.be.true;
+                });
+
+                it("grantRole: FREE_RIDER_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await exchange.connect(testAccount).grantRole(FREE_RIDER_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+                it("grantRole: PORTFOLIO_AGENT_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await exchange.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
+                        await exchange.connect(collector).grantRole(PORTFOLIO_AGENT_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+                it("grantRole: DEFAULT_ADMIN_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await exchange.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
+                        await exchange.connect(collector).grantRole(await exchange.DEFAULT_ADMIN_ROLE(), testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
 
             });
 
@@ -268,6 +340,9 @@ describe("Exchange", function () {
 
             describe('Payout: Negative', function () {
 
+                sharedBeforeEach("Payout: Negative", async () => {
+                    await exchange.grantRole(UNIT_ROLE, account);
+                });
 
                 it("revert: OracleLoss", async function () {
 
@@ -303,6 +378,9 @@ describe("Exchange", function () {
 
             describe('Payout: Positive', function () {
 
+                sharedBeforeEach("Payout: Positive", async () => {
+                    await exchange.grantRole(UNIT_ROLE, account);
+                });
 
                 it("revert: profitRecipient address is zero", async function () {
 
