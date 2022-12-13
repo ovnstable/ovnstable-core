@@ -169,6 +169,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyUniV3DaiUsdt',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    }
 
 ];
 
