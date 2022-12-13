@@ -18,10 +18,9 @@ import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant PAUSABLE_ROLE = keccak256("PAUSABLE_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     uint256 public constant LIQ_DELTA_DM   = 1000000; // 1e6
     uint256 public constant FISK_FACTOR_DM = 100000;  // 1e5
@@ -97,16 +96,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
     event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
     event Abroad(uint256 min, uint256 max);
+    event ProfitRecipientUpdated(address recipient);
+    event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
+    event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
 
     // ---  modifiers
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyPausable() {
-        require(hasRole(PAUSABLE_ROLE, msg.sender), "Restricted to Pausable");
         _;
     }
 
@@ -123,6 +120,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
+    modifier onlyUnit(){
+        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        _;
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -134,8 +136,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
-        _grantRole(PAUSABLE_ROLE, msg.sender);
 
         buyFee = 40;
         // ~ 100 %
@@ -154,16 +154,26 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         abroadMin = 1000100;
         abroadMax = 1000350;
+
+        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
+        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
+    // Support old version - need call after update
 
-    // ---  setters
+    function changeAdminRoles() external onlyAdmin {
+        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
+        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
+    }
+
+
+    // ---  setters Admin
 
     function setTokens(address _usdPlus, address _asset) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
@@ -190,6 +200,20 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit PayoutListenerUpdated(_payoutListener);
     }
 
+    function setInsurance(address _insurance) external onlyAdmin {
+        require(_insurance != address(0), "Zero address not allowed");
+        insurance = _insurance;
+        emit InsuranceUpdated(_insurance);
+    }
+
+    function setProfitRecipient(address _profitRecipient) external onlyAdmin {
+        require(_profitRecipient != address(0), "Zero address not allowed");
+        profitRecipient = _profitRecipient;
+        emit ProfitRecipientUpdated(_profitRecipient);
+    }
+
+    // ---  setters Portfolio Manager
+
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
         buyFee = _fee;
@@ -204,28 +228,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-    function setInsurance(address _insurance) external onlyAdmin {
-        require(_insurance != address(0), "Zero address not allowed");
-        insurance = _insurance;
-        emit InsuranceUpdated(_insurance);
-    }
-
-    function setProfitRecipient(address _profitRecipient) external onlyAdmin {
-        require(_profitRecipient != address(0), "Zero address not allowed");
-        profitRecipient = _profitRecipient;
-    }
-
 
     function setOracleLoss(uint256 _oracleLoss,  uint256 _denominator) external onlyPortfolioAgent {
         require(_denominator != 0, "Zero denominator not allowed");
         oracleLoss = _oracleLoss;
         oracleLossDenominator = _denominator;
+        emit OracleLossUpdate(_oracleLoss, _denominator);
     }
 
     function setCompensateLoss(uint256 _compensateLoss,  uint256 _denominator) external onlyPortfolioAgent {
         require(_denominator != 0, "Zero denominator not allowed");
         compensateLoss = _compensateLoss;
         compensateLossDenominator = _denominator;
+        emit CompensateLossUpdate(_compensateLoss, _denominator);
     }
 
 
@@ -239,7 +254,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 _nextPayoutTime,
         uint256 _payoutPeriod,
         uint256 _payoutTimeRange
-    ) external onlyAdmin {
+    ) external onlyPortfolioAgent {
         require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
         require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
         require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
@@ -251,11 +266,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  logic
 
-    function pause() public onlyPausable {
+    function pause() public onlyPortfolioAgent {
         _pause();
     }
 
-    function unpause() public onlyPausable {
+    function unpause() public onlyPortfolioAgent {
         _unpause();
     }
 
@@ -384,12 +399,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function payout() public whenNotPaused {
-        _payout();
-    }
 
-
-    function _payout() internal {
+    function payout() public whenNotPaused onlyUnit {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
