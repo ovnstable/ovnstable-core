@@ -205,7 +205,7 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         console.log('1: USDT %s', usdt.balanceOf(address(this)));
 
         (uint256 am0, uint256 am1) = getAssetPoolRatio();
-        uint256 p = _amount * am0 / (am0 + am1);        
+        uint256 p = _amount * am0 / (am0 + am1);
 
         (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
@@ -243,7 +243,7 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         console.log('3: USDC %s', usdc.balanceOf(address(this)));
         console.log('3: DAI  %s', dai.balanceOf(address(this)));
         console.log('3: USDT %s', usdt.balanceOf(address(this)));
-        
+
         return _realAmount;
     }
 
@@ -309,7 +309,7 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
                 (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
                 uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
                 uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-                (balance0, balance1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);                
+                (balance0, balance1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
             }
         }
         uint256 daiBalance = usdToUsdc(daiToUsd(balance0 + dai.balanceOf(address(this))));
@@ -325,9 +325,9 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
             (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
             uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
             uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-            (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);                
+            (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
         }
-        
+
         return (daiToUsd(amount0), usdtToUsd(amount1));
     }
 

@@ -170,6 +170,11 @@ let arrays = [
         isRunStrategyLogic: true,
     },
     {
+        name: 'StrategyUniV3DaiUsdt',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
+    {
         name: 'StrategyBalancerUsdc',
         enabledReward: true,
     },
