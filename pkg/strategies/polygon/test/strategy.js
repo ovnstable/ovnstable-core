@@ -169,6 +169,10 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyBalancerUsdc',
+        enabledReward: true,
+    },
 
 ];
 
