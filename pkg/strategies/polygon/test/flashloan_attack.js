@@ -16,7 +16,7 @@ hre.ovn = {
 
 let attackAmount = 10000000;
 let percentAmount = 10000;
-let putAmount = 50000;
+let putAmount = 10000;
 let deltaPercent = 0.1;
 
 
