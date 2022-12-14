@@ -126,7 +126,7 @@ contract StrategyBalancerUsdc is Strategy {
             address(this)
         );
 
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(bbamUsdPoolId);
+        (IERC20[] memory tokens,,) = vault.getPoolTokens(bbamUsdPoolId);
 
         IAsset[] memory assets = new IAsset[](4);
         uint256[] memory maxAmountsIn = new uint256[](4);
@@ -160,6 +160,15 @@ contract StrategyBalancerUsdc is Strategy {
         uint256 bptAmount = bpt.balanceOf(address(this));
         bpt.approve(address(gauge), bptAmount);
         gauge.deposit(bptAmount);
+
+        uint256 delta;
+        uint256 usdcAmount = _convertBptToUsdc(bptAmount);
+        if (usdcAmount > usdcBalance) {
+            delta = usdcAmount - usdcBalance;
+        } else {
+            delta = usdcBalance - usdcAmount;
+        }
+        require(delta <= usdcBalance * allowedSlippageBp / 10000, "Stake amount not equal staked amount");
     }
 
     function _unstake(
@@ -178,7 +187,7 @@ contract StrategyBalancerUsdc is Strategy {
             address(bpt),
             bbamUsdcPoolId,
             bbamUsdPoolId,
-            OvnMath.addBasisPoints(_amount, 10),
+            OvnMath.addBasisPoints(_amount, allowedSlippageBp),
             address(this),
             address(this)
         );
@@ -208,6 +217,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         // 1. Unstake bpt from Gauge
         gauge.withdraw(bptAmount);
+        uint256 usdcAmount = _convertBptToUsdc(bptAmount);
 
         IAsset[] memory assets = new IAsset[](4);
         uint256[] memory minAmountsOut = new uint256[](4);
@@ -242,7 +252,16 @@ contract StrategyBalancerUsdc is Strategy {
             address(this)
         );
 
-        return usdc.balanceOf(address(this));
+        uint256 delta;
+        uint256 usdcBalance = usdc.balanceOf(address(this));
+        if (usdcAmount > usdcBalance) {
+            delta = usdcAmount - usdcBalance;
+        } else {
+            delta = usdcBalance - usdcAmount;
+        }
+        require(delta <= usdcBalance * allowedSlippageBp / 10000, "Unstake amount not equal unstaked amount");
+
+        return usdcBalance;
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -270,7 +289,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         uint256 totalBalanceUsdc = usdc.balanceOf(address(this));
 
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(bbamUsdPoolId);
+        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(bbamUsdPoolId);
 
         // How it work?
         // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
