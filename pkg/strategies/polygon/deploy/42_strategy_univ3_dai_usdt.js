@@ -13,7 +13,7 @@ let params =  {
     npm: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
     fee: 100,
     pool: '0x254aa3A898071D6A2dA0DB11dA73b02B4646078F',
-    tickLower: -276326,
+    tickLower: -276327,
     tickUpper: -276323,
     allowedSlippageBp: 50, // 0.5%
 }

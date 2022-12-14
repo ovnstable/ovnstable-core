@@ -95,6 +95,10 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
 
         allowedSlippageBp = params.allowedSlippageBp;
 
+        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
+        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
+        daiDm = 10 ** IERC20Metadata(params.dai).decimals();
+
         dai.approve(address(npm), type(uint256).max);
         usdt.approve(address(npm), type(uint256).max);
 
@@ -119,7 +123,7 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         console.log('Reserve DAI  %s', reserveDai);
         console.log('Reserve USDT %s', reserveUsdt);
 
-        getPoolPrice();
+        getPoolPrice(_amount);
 
         uint256 amountUsdcToDai = 0;
         console.log('USDC to DAI  %s', amountUsdcToDai);
@@ -251,21 +255,43 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         }
     }
 
-    function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public pure returns(uint256 priceX96) {
-        return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96);
-    }
 
-    function getPoolPrice() public view returns (uint256) {
+
+    function getPoolPrice(uint256 _amount) public view returns (uint256) {
 
         (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
 
-        uint256 price = (sqrtPriceX96 * 1e18 / FixedPoint96.Q96) ** 2;
-        console.log('poolPrice    %s', price);
+//        uint256 sa = (TickMath.getSqrtRatioAtTick(tickLower) * 1e18 / FixedPoint96.Q96) ** 2;
+        uint160 sa = TickMath.getSqrtRatioAtTick(tickLower);
+//        uint256 sb = (TickMath.getSqrtRatioAtTick(tickUpper) * 1e18 / FixedPoint96.Q96) ** 2;
+        uint160 sb = TickMath.getSqrtRatioAtTick(tickUpper);
+//        uint256 sp = (sqrtPriceX96 * 1e18 / FixedPoint96.Q96) ** 2;
+        uint160 sp = sqrtPriceX96;
 
-        console.log('DAI %s', )
+        console.log('sa %s', sa);
+        console.log('sb %s', sb);
+        console.log('sp %s', sp);
+
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            sqrtPriceX96,
+            sa,
+            sb,
+            _amount * 1e12,
+            _amount
+        );
+
+        console.log('liq %s', liquidity);
+
+        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sp, sb, int128(liquidity)));
+        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sa, sp, int128(liquidity)));
+        console.log('Input amount %s', _amount / 1e6);
+        console.log('DAI          %s', amount0);
+        console.log('USDT         %s', amount1);
+        console.log('PRICE        %s', amount0 / amount1);
 
         return 0;
     }
+
 
     function getPriceBySqrtRatio(uint160 sqrtRatio) public view returns (uint256) {
         uint256 price = FullMath.mulDiv(uint256(sqrtRatio) * 10**10, uint256(sqrtRatio) * 10**8, 2 ** (96+96));
