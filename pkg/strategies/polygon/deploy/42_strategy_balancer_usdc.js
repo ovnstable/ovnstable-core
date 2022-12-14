@@ -11,6 +11,7 @@ let gauge = "0x1c514fEc643AdD86aeF0ef14F4add28cC3425306";
 let bbamUsdcPoolId = "0xf93579002dbe8046c43fefe86ec78b1112247bb8000000000000000000000759";
 let bbamUsdPoolId = "0x48e6b98ef6329f8f0a30ebb8c7c960330d64808500000000000000000000075b";
 let balPoolId = "0x0297e37f1873d2dab4487aa67cd56b58e2f27875000100000000000000000002";
+let swapSlippageBp = 4;
 let allowedSlippageBp = 10;
 
 module.exports = async ({deployments}) => {
@@ -37,6 +38,7 @@ module.exports = async ({deployments}) => {
                 oracleUsdc: POLYGON.oracleChainlinkUsdc,
                 oracleUsdt: POLYGON.oracleChainlinkUsdt,
                 oracleDai: POLYGON.oracleChainlinkDai,
+                swapSlippageBp: swapSlippageBp,
                 allowedSlippageBp: allowedSlippageBp,
             }
         )).wait();

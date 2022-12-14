@@ -30,6 +30,7 @@ contract StrategyBalancerUsdc is Strategy {
     IPriceFeed public oracleUsdt;
     IPriceFeed public oracleDai;
 
+    uint256 public swapSlippageBp;
     uint256 public allowedSlippageBp;
 
 
@@ -55,6 +56,7 @@ contract StrategyBalancerUsdc is Strategy {
         address oracleUsdc;
         address oracleUsdt;
         address oracleDai;
+        uint256 swapSlippageBp;
         uint256 allowedSlippageBp;
     }
 
@@ -91,6 +93,7 @@ contract StrategyBalancerUsdc is Strategy {
         oracleUsdt = IPriceFeed(params.oracleUsdt);
         oracleDai = IPriceFeed(params.oracleDai);
 
+        swapSlippageBp = params.swapSlippageBp;
         allowedSlippageBp = params.allowedSlippageBp;
 
         emit StrategyUpdatedParams();
@@ -111,9 +114,11 @@ contract StrategyBalancerUsdc is Strategy {
         // 2. Stake bb-USDC to stable pool
         // 3. Stake bpt tokens to gauge
 
-        //1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
+        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(), allowedSlippageBp);
+
+        // 1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 minAmountBbamUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbamUsdc.getRate(), allowedSlippageBp);
+        uint256 minAmountBbamUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbamUsdc.getRate(), swapSlippageBp);
         BalancerLibrary.swap(
             vault,
             IVault.SwapKind.GIVEN_IN,
@@ -161,14 +166,7 @@ contract StrategyBalancerUsdc is Strategy {
         bpt.approve(address(gauge), bptAmount);
         gauge.deposit(bptAmount);
 
-        uint256 delta;
-        uint256 usdcAmount = _convertBptToUsdc(bptAmount);
-        if (usdcAmount > usdcBalance) {
-            delta = usdcAmount - usdcBalance;
-        } else {
-            delta = usdcBalance - usdcAmount;
-        }
-        require(delta <= usdcBalance * allowedSlippageBp / 10000, "Stake amount not equal staked amount");
+        require(_totalValue() >= minNavExpected, "StrategyBalancerUsdc: NAV less than expected");
     }
 
     function _unstake(
@@ -187,7 +185,7 @@ contract StrategyBalancerUsdc is Strategy {
             address(bpt),
             bbamUsdcPoolId,
             bbamUsdPoolId,
-            OvnMath.addBasisPoints(_amount, allowedSlippageBp),
+            OvnMath.addBasisPoints(_amount, swapSlippageBp),
             address(this),
             address(this)
         );
@@ -215,6 +213,8 @@ contract StrategyBalancerUsdc is Strategy {
         // 2. Get all bb-am-USDC from stable pool
         // 3. Swap all bb-am-USDC to USDC by linear pool
 
+        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(), allowedSlippageBp);
+
         // 1. Unstake bpt from Gauge
         gauge.withdraw(bptAmount);
         uint256 usdcAmount = _convertBptToUsdc(bptAmount);
@@ -239,7 +239,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         // 3. Swap
         uint256 bbamUsdcBalance = bbamUsdc.balanceOf(address(this));
-        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbamUsdcBalance * bbamUsdc.getRate() / 1e30, allowedSlippageBp);
+        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbamUsdcBalance * bbamUsdc.getRate() / 1e30, swapSlippageBp);
         BalancerLibrary.swap(
             vault,
             IVault.SwapKind.GIVEN_IN,
@@ -252,16 +252,9 @@ contract StrategyBalancerUsdc is Strategy {
             address(this)
         );
 
-        uint256 delta;
-        uint256 usdcBalance = usdc.balanceOf(address(this));
-        if (usdcAmount > usdcBalance) {
-            delta = usdcAmount - usdcBalance;
-        } else {
-            delta = usdcBalance - usdcAmount;
-        }
-        require(delta <= usdcBalance * allowedSlippageBp / 10000, "Unstake amount not equal unstaked amount");
+        require(_totalValue() >= minNavExpected, "StrategyBalancerUsdc: NAV less than expected");
 
-        return usdcBalance;
+        return usdc.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -274,11 +267,9 @@ contract StrategyBalancerUsdc is Strategy {
 
     function _totalValue() internal view returns (uint256){
         uint256 bptAmount = gauge.balanceOf(address(this));
-
         if (bptAmount == 0) {
-            return 0;
+            return usdc.balanceOf(address(this));
         }
-
         return _convertBptToUsdc(bptAmount);
     }
 
