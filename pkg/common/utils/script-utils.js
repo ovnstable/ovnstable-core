@@ -525,7 +525,7 @@ async function showHedgeM2M() {
 
     let items = await strategy.balances();
 
-    let names = ['borrowToken', 'collateralAsset', 'poolToken', 'poolUsdPlus', 'freeUsdPlus', 'freeAsset', 'freeToken']
+    let names = ['baseCollateral', 'sideBorrow', 'basePool', 'sidePool', 'baseFree', 'sideFree']
     let arrays = [];
     for (let i = 0; i < items.length; i++) {
 
