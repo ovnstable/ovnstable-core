@@ -1232,50 +1232,122 @@ contract MerkleOrchard {
 
 library BalancerLibrary {
 
+    function onSwap(
+        IVault vault,
+        IVault.SwapKind kind,
+        IERC20 tokenIn,
+        IERC20 tokenOut,
+        bytes32 poolId,
+        uint256 amount
+    ) internal view returns (uint256) {
+
+        IPoolSwapStructs.SwapRequest memory swapRequest;
+        swapRequest.kind = kind;
+        swapRequest.tokenIn = tokenIn;
+        swapRequest.tokenOut = tokenOut;
+        swapRequest.amount = amount;
+
+        (IERC20[] memory tokens, uint256[] memory balances, ) = vault.getPoolTokens(poolId);
+
+        (address pool, IVault.PoolSpecialization poolSpecialization) = vault.getPool(poolId);
+
+        if (poolSpecialization == IVault.PoolSpecialization.GENERAL) {
+
+            uint256 indexIn;
+            uint256 indexOut;
+            for (uint8 i = 0; i < tokens.length; i++) {
+                if (tokens[i] == tokenIn) {
+                    indexIn = i;
+                } else if (tokens[i] == tokenOut) {
+                    indexOut = i;
+                }
+            }
+
+            return IGeneralPool(pool).onSwap(swapRequest, balances, indexIn, indexOut);
+
+        } else {
+
+            uint256 balanceIn;
+            uint256 balanceOut;
+            for (uint8 i = 0; i < tokens.length; i++) {
+                if (tokens[i] == tokenIn) {
+                    balanceIn = balances[i];
+                } else if (tokens[i] == tokenOut) {
+                    balanceOut = balances[i];
+                }
+            }
+
+            return IMinimalSwapInfoPool(pool).onSwap(swapRequest, balanceIn, balanceOut);
+        }
+    }
+
     function queryBatchSwap(
         IVault vault,
         IVault.SwapKind kind,
-        IERC20 token0,
-        IERC20 token1,
+        address token0,
+        address token1,
         bytes32 poolId0,
-        uint256 amount0,
+        uint256 amount,
         address sender,
         address recipient
     ) internal returns (uint256) {
 
         IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](1);
-        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount0, new bytes(0));
+        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount, new bytes(0));
 
         IAsset[] memory assets = new IAsset[](2);
-        assets[0] = IAsset(address(token0));
-        assets[1] = IAsset(address(token1));
+        assets[0] = IAsset(token0);
+        assets[1] = IAsset(token1);
 
         IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
         return uint256(- vault.queryBatchSwap(kind, swaps, assets, fundManagement)[1]);
     }
 
-    function swap(
+    function queryBatchSwap(
         IVault vault,
         IVault.SwapKind kind,
-        IERC20 token0,
-        IERC20 token1,
+        address token0,
+        address token1,
+        address token2,
         bytes32 poolId0,
-        uint256 amount0,
+        bytes32 poolId1,
+        uint256 amount,
         address sender,
         address recipient
     ) internal returns (uint256) {
 
-        token0.approve(address(vault), amount0);
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
+        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount, new bytes(0));
+        swaps[1] = IVault.BatchSwapStep(poolId1, 1, 2, 0, new bytes(0));
 
-        IVault.SingleSwap memory singleSwap = IVault.SingleSwap(poolId0, kind, IAsset(address(token0)), IAsset(address(token1)), amount0, new bytes(0));
+        IAsset[] memory assets = new IAsset[](3);
+        assets[0] = IAsset(token0);
+        assets[1] = IAsset(token1);
+        assets[2] = IAsset(token2);
 
         IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
-        uint256 limit;
-        if (kind == IVault.SwapKind.GIVEN_IN) {
-            limit = 1e27;
-        }
+        return uint256(- vault.queryBatchSwap(kind, swaps, assets, fundManagement)[2]);
+    }
+
+    function swap(
+        IVault vault,
+        IVault.SwapKind kind,
+        address token0,
+        address token1,
+        bytes32 poolId,
+        uint256 amount,
+        uint256 limit,
+        address sender,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(token0).approve(address(vault), amount);
+
+        IVault.SingleSwap memory singleSwap = IVault.SingleSwap(poolId, kind, IAsset(token0), IAsset(token1), amount, new bytes(0));
+
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
         return vault.swap(singleSwap, fundManagement, limit, block.timestamp);
     }
@@ -1283,35 +1355,55 @@ library BalancerLibrary {
     function batchSwap(
         IVault vault,
         IVault.SwapKind kind,
-        IERC20 token0,
-        IERC20 token1,
-        IERC20 token2,
+        address token0,
+        address token1,
         bytes32 poolId0,
-        bytes32 poolId1,
-        uint256 amount0,
+        uint256 amount,
+        int256[] memory limits,
         address sender,
         address recipient
     ) internal returns (uint256) {
 
-        token0.approve(address(vault), amount0);
+        IERC20(token0).approve(address(vault), amount);
 
-        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
-        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount0, new bytes(0));
-        swaps[1] = IVault.BatchSwapStep(poolId1, 1, 2, 0, new bytes(0));
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](1);
+        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount, new bytes(0));
 
-        IAsset[] memory assets = new IAsset[](3);
-        assets[0] = IAsset(address(token0));
-        assets[1] = IAsset(address(token1));
-        assets[2] = IAsset(address(token2));
+        IAsset[] memory assets = new IAsset[](2);
+        assets[0] = IAsset(token0);
+        assets[1] = IAsset(token1);
 
         IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
-        int256[] memory limits = new int256[](3);
-        if (kind == IVault.SwapKind.GIVEN_IN) {
-            limits[0] = 1e27;
-            limits[1] = 1e27;
-            limits[2] = 1e27;
-        }
+        return uint256(- vault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp)[1]);
+    }
+
+    function batchSwap(
+        IVault vault,
+        IVault.SwapKind kind,
+        address token0,
+        address token1,
+        address token2,
+        bytes32 poolId0,
+        bytes32 poolId1,
+        uint256 amount,
+        int256[] memory limits,
+        address sender,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(token0).approve(address(vault), amount);
+
+        IVault.BatchSwapStep[] memory swaps = new IVault.BatchSwapStep[](2);
+        swaps[0] = IVault.BatchSwapStep(poolId0, 0, 1, amount, new bytes(0));
+        swaps[1] = IVault.BatchSwapStep(poolId1, 1, 2, 0, new bytes(0));
+
+        IAsset[] memory assets = new IAsset[](3);
+        assets[0] = IAsset(token0);
+        assets[1] = IAsset(token1);
+        assets[2] = IAsset(token2);
+
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
 
         return uint256(- vault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp)[2]);
     }
@@ -1323,8 +1415,8 @@ library BalancerLibrary {
      */
     function getAmount1InToken0(
         IVault vault,
-        IERC20 token0,
-        IERC20 token1,
+        address token0,
+        address token1,
         bytes32 poolId0,
         uint256 amount0Total,
         uint256 reserve0,
@@ -1356,8 +1448,8 @@ library BalancerLibrary {
      */
     function getAmountLpTokens(
         IVault vault,
-        IERC20 token0,
-        IERC20 token1,
+        address token0,
+        address token1,
         bytes32 poolId0,
         uint256 amount0Total,
         uint256 totalLpBalance,
@@ -1383,6 +1475,14 @@ library BalancerLibrary {
             lpBalance = (totalLpBalance * amount0Total) / (reserve0 + reserve1 * amount0 / amount1);
         }
     }
+}
+
+
+interface IBptToken is IERC20 {
+
+    function getActualSupply() external view returns (uint256);
+
+    function getRate() external view returns (uint256);
 }
 
 
