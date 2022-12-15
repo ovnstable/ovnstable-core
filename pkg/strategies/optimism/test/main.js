@@ -5,6 +5,7 @@ const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const ReaperSonneUsdc = require("./abi/reaper/ReaperSonneUsdc.json");
 const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
 const ReaperSonneUsdt = require("./abi/reaper/ReaperSonneUsdt.json");
+const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
 
 let id = process.env.TEST_STRATEGY;
 
@@ -83,6 +84,11 @@ let arrays = [
         name: 'StrategyGammaUsdcDai',
         enabledReward: true,
     },
+    {
+        name: 'StrategyEtsBetaPlus',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -134,6 +140,20 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",
             params: [governanceAddress],
+        });
+    } else if (strategyName == 'StrategyEtsBetaPlus') {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xFAc722133a19D38833cc105b1349715717CF050E");
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
         });
     }
 }
