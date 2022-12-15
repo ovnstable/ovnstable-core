@@ -50,6 +50,7 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
     }
 
     let impl;
+    let implAddress;
     if (hre.ovn && !hre.ovn.impl) {
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
@@ -59,8 +60,8 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
         } catch (e) {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, {unsafeAllow: unsafeAllow});
         }
-        const currentImplAddress = await getImplementationAddress(ethers.provider, proxy.address);
-        console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + currentImplAddress + "]");
+        implAddress = await getImplementationAddress(ethers.provider, proxy.address);
+        console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + implAddress + "]");
     } else {
 
         //Deploy only a new implementation without call upgradeTo
@@ -69,8 +70,9 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
             kind: 'uups',
             unsafeAllow: unsafeAllow
         }, proxy.address);
-        console.log('Deploy impl done without upgradeTo -> impl [' + impl.impl + "]");
 
+        implAddress = impl.impl;
+        console.log('Deploy impl done without upgradeTo -> impl [' + implAddress + "]");
     }
 
 
@@ -78,6 +80,7 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
         await impl.deployTransaction.wait();
 
     const artifact = await deployments.getExtendedArtifact(factoryName);
+    artifact.implementation = implAddress;
     let proxyDeployments = {
         address: proxy.address,
         ...artifact
