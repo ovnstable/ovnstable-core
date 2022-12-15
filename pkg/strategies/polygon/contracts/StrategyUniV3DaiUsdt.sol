@@ -272,6 +272,7 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
 
             INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
             npm.collect(collectParam);
+            tokenId = 0;
         }
 
         console.log('2: USDC %s', usdc.balanceOf(address(this)));
