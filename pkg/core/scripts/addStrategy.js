@@ -11,7 +11,7 @@ async function main() {
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xFed574f62eda014B0C09966D678c06ecbf1AA5df']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x24f06E7B44426235ff097CB098f0E78E90F12A09']));
 
     await createProposal(addresses, values, abis);
 
