@@ -31,8 +31,6 @@ async function testProposal(addresses, values, abis){
 
     await execTimelock(async (timelock)=>{
 
-        await showM2M();
-
         for (let i = 0; i < addresses.length; i++) {
 
             let address = addresses[i];
@@ -50,8 +48,6 @@ async function testProposal(addresses, values, abis){
             await timelock.sendTransaction(tx)
 
         }
-
-        await showM2M();
     })
 }
 
