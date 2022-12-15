@@ -38,7 +38,8 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
     uint256 public usdtDm;
     uint256 public daiDm;
 
-    uint256 allowedSlippageBp;
+    uint256 allowedSwapSlippage;
+    uint256 allowedStakeSlippage;
 
     // --- events
     event StrategyUpdatedParams();
@@ -59,7 +60,8 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         address pool;
         int24 tickLower;
         int24 tickUpper;
-        uint256 allowedSlippageBp;
+        uint256 allowedSwapSlippage;
+        uint256 allowedStakeSlippage;
     }
 
 
@@ -93,7 +95,8 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         tickLower = params.tickLower;
         tickUpper = params.tickUpper;
 
-        allowedSlippageBp = params.allowedSlippageBp;
+        allowedSwapSlippage = params.allowedSwapSlippage;
+        allowedStakeSlippage = params.allowedStakeSlippage;
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
@@ -113,96 +116,73 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         uint256 _amount
     ) internal override {
 
+        require(isSamePrices(), "The pool is very unbalanced");
+
+        uint256 sellBound = 10**7;
+
+        if (daiToUsd(dai.balanceOf(address(this))) > sellBound) {
+            SynapseLibrary.swap(synapse, address(dai), address(usdc), dai.balanceOf(address(this)), 0);
+        }
+
+        if (usdtToUsd(usdt.balanceOf(address(this))) > sellBound) {
+            SynapseLibrary.swap(synapse, address(usdt), address(usdc), usdt.balanceOf(address(this)), 0);
+        }
+
+        _amount = usdc.balanceOf(address(this));
+
         console.log('1: USDC %s', usdc.balanceOf(address(this)));
         console.log('1: DAI  %s', dai.balanceOf(address(this)));
         console.log('1: USDT %s', usdt.balanceOf(address(this)));
 
-        uint256 reserveDai = dai.balanceOf(address(pool));
-        uint256 reserveUsdt = usdt.balanceOf(address(pool));
+        (uint256 am0, uint256 am1) = getPoolPrice(_amount);
 
-        console.log('Reserve DAI  %s', reserveDai);
-        console.log('Reserve USDT %s', reserveUsdt);
-
-        getPoolPrice(_amount);
-
-        uint256 amountUsdcToDai = 0;
-        console.log('USDC to DAI  %s', amountUsdcToDai);
-        uint256 minDai = 0;
-
-        SynapseLibrary.swap(
-            synapse,
-            address(usdc),
-            address(dai),
-            amountUsdcToDai,
-            minDai
-        );
+        uint256 daiBalance = _amount * am0 / (am0 + am1);
+        uint256 usdtBalance = _amount - daiBalance;
+        uint256 daiAmountMin = OvnMath.subBasisPoints(usdToDai(usdcToUsd(daiBalance)), allowedSwapSlippage);
+        uint256 usdtAmountMin = OvnMath.subBasisPoints(usdToUsdt(usdcToUsd(usdtBalance)), allowedSwapSlippage);
+        SynapseLibrary.swap(synapse, address(usdc), address(dai), daiBalance, daiAmountMin);
+        SynapseLibrary.swap(synapse, address(usdc), address(usdt), usdtBalance, usdtAmountMin);
 
         console.log('2: USDC %s', usdc.balanceOf(address(this)));
         console.log('2: DAI  %s', dai.balanceOf(address(this)));
         console.log('2: USDT %s', usdt.balanceOf(address(this)));
 
-        uint256 amountUsdcToUsdt = _amount - amountUsdcToDai;
-        uint256 minUsdt = 0;
-        console.log('USDC to USDT %s', amountUsdcToUsdt);
-
-
-        SynapseLibrary.swap(
-            synapse,
-            address(usdc),
-            address(usdt),
-            amountUsdcToUsdt,
-            minUsdt
-        );
-
-        console.log('3: USDC %s', usdc.balanceOf(address(this)));
-        console.log('3: DAI  %s', dai.balanceOf(address(this)));
-        console.log('3: USDT %s', usdt.balanceOf(address(this)));
-
         uint256 daiAmount = dai.balanceOf(address(this));
         uint256 usdtAmount = usdt.balanceOf(address(this));
 
-        uint256 daiMinAmount = OvnMath.subBasisPoints(daiAmount, allowedSlippageBp);
-        uint256 usdtMinAmount = OvnMath.subBasisPoints(usdtAmount, allowedSlippageBp);
-
-        console.log('minDAI  %s', daiMinAmount);
-        console.log('minUSDT %s', usdtMinAmount);
-
         if (tokenId == 0) {
-
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-            token0 : address(dai),
-            token1 : address(usdt),
-            fee: fee,
-            tickLower : tickLower,
-            tickUpper : tickUpper,
-            amount0Desired : daiAmount,
-            amount1Desired : usdtAmount,
-            amount0Min : 0,
-            amount1Min : 0,
-            recipient : address(this),
-            deadline : block.timestamp
+                token0 : address(dai),
+                token1 : address(usdt),
+                fee: fee,
+                tickLower : tickLower,
+                tickUpper : tickUpper,
+                amount0Desired : daiAmount,
+                amount1Desired : usdtAmount,
+                amount0Min : 0,
+                amount1Min : 0,
+                recipient : address(this),
+                deadline : block.timestamp
             });
 
             (tokenId,,,) = npm.mint(params);
 
         } else {
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
-            tokenId: tokenId,
-            amount0Desired: daiAmount,
-            amount1Desired: usdtAmount,
-            amount0Min: daiMinAmount,
-            amount1Min: usdtMinAmount,
-            deadline: block.timestamp
+                tokenId: tokenId,
+                amount0Desired: daiAmount,
+                amount1Desired: usdtAmount,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
             });
 
             npm.increaseLiquidity(params);
-
         }
 
         console.log('4: USDC %s', usdc.balanceOf(address(this)));
         console.log('4: DAI  %s', dai.balanceOf(address(this)));
         console.log('4: USDT %s', usdt.balanceOf(address(this)));
-
     }
 
     function _unstake(
@@ -211,13 +191,103 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        return usdc.balanceOf(address(this));
+        if (tokenId == 0) {
+            return 0;
+        }
+
+        require(isSamePrices(), "The pool is very unbalanced");
+
+        uint256 _realAmount = _amount;
+        _amount = OvnMath.reverseSubBasisPoints(_amount, allowedSwapSlippage + allowedStakeSlippage);
+
+        console.log('1: USDC %s', usdc.balanceOf(address(this)));
+        console.log('1: DAI  %s', dai.balanceOf(address(this)));
+        console.log('1: USDT %s', usdt.balanceOf(address(this)));
+
+        (uint256 am0, uint256 am1) = getAssetPoolRatio();
+        uint256 p = _amount * am0 / (am0 + am1);        
+
+        (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+            sqrtPriceX96,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            usdToDai(usdcToUsd(p)),
+            10**20
+        );
+
+        INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
+            tokenId: tokenId,
+            liquidity: liquidity,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+
+        npm.decreaseLiquidity(params);
+
+        INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
+        npm.collect(collectParam);
+
+        console.log('2: USDC %s', usdc.balanceOf(address(this)));
+        console.log('2: DAI  %s', dai.balanceOf(address(this)));
+        console.log('2: USDT %s', usdt.balanceOf(address(this)));
+
+        uint256 daiBalance = dai.balanceOf(address(this));
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiAmountMin = OvnMath.subBasisPoints(usdToUsdc(daiToUsd(daiBalance)), allowedSwapSlippage);
+        uint256 usdtAmountMin = OvnMath.subBasisPoints(usdToUsdc(usdtToUsd(usdtBalance)), allowedSwapSlippage);
+        SynapseLibrary.swap(synapse, address(dai), address(usdc), daiBalance, daiAmountMin);
+        SynapseLibrary.swap(synapse, address(usdt), address(usdc), usdtBalance, usdtAmountMin);
+
+        console.log('3: USDC %s', usdc.balanceOf(address(this)));
+        console.log('3: DAI  %s', dai.balanceOf(address(this)));
+        console.log('3: USDT %s', usdt.balanceOf(address(this)));
+        
+        return _realAmount;
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
+        console.log('1: USDC %s', usdc.balanceOf(address(this)));
+        console.log('1: DAI  %s', dai.balanceOf(address(this)));
+        console.log('1: USDT %s', usdt.balanceOf(address(this)));
+
+        if (tokenId != 0) {
+            require(isSamePrices(), "The pool is very unbalanced");
+
+            (,,,,,,,uint128 liquidity,,,,) = npm.positions(tokenId);
+            INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
+                tokenId: tokenId,
+                liquidity: liquidity,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            });
+
+            npm.decreaseLiquidity(params);
+
+            INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
+            npm.collect(collectParam);
+        }
+
+        console.log('2: USDC %s', usdc.balanceOf(address(this)));
+        console.log('2: DAI  %s', dai.balanceOf(address(this)));
+        console.log('2: USDT %s', usdt.balanceOf(address(this)));
+
+        uint256 daiBalance = dai.balanceOf(address(this));
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiAmountMin = OvnMath.subBasisPoints(usdToUsdc(daiToUsd(daiBalance)), allowedSwapSlippage);
+        uint256 usdtAmountMin = OvnMath.subBasisPoints(usdToUsdc(usdtToUsd(usdtBalance)), allowedSwapSlippage);
+        SynapseLibrary.swap(synapse, address(dai), address(usdc), daiBalance, daiAmountMin);
+        SynapseLibrary.swap(synapse, address(usdt), address(usdc), usdtBalance, usdtAmountMin);
+
+        console.log('3: USDC %s', usdc.balanceOf(address(this)));
+        console.log('3: DAI  %s', dai.balanceOf(address(this)));
+        console.log('3: USDT %s', usdt.balanceOf(address(this)));
 
         return usdc.balanceOf(address(this));
     }
@@ -231,65 +301,83 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return 0;
-    }
-
-    function _getLiquidity() public view returns (uint256 daiBalance, uint256 usdtBalance) {
+        (uint256 balance0, uint256 balance1) = (0, 0);
         if (tokenId > 0) {
             (,,,,,,,uint128 liquidity,,,,) = npm.positions(tokenId);
             if (liquidity > 0) {
                 (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
                 uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
                 uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-
-                uint128 koef = 1e18;
-                uint128 div = liquidity / koef;
-                uint128 mod = liquidity - div * koef;
-
-                (uint256 balance0div, uint256 balance1div) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, koef);
-                (uint256 balance0mod, uint256 balance1mod) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, mod);
-
-                daiBalance = balance1div * div + balance1mod;
-                usdtBalance = balance0div * div + balance0mod;
+                (balance0, balance1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);                
             }
         }
+        uint256 daiBalance = usdToUsdc(daiToUsd(balance0 + dai.balanceOf(address(this))));
+        uint256 usdtBalance = usdToUsdc(usdtToUsd(balance1 + usdt.balanceOf(address(this))));
+        return daiBalance + usdtBalance + usdc.balanceOf(address(this));
     }
 
+    function getAssetPoolRatio() internal view returns (uint256, uint256) {
 
+        (uint256 amount0, uint256 amount1) = (0, 0);
+        (,,,,,,,uint128 liquidity,,,,) = npm.positions(tokenId);
+        if (liquidity > 0) {
+            (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+            uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
+            uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
+            (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);                
+        }
+        
+        return (daiToUsd(amount0), usdtToUsd(amount1));
+    }
 
-    function getPoolPrice(uint256 _amount) public view returns (uint256) {
+    function isSamePrices() internal view returns (bool) {
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+        uint256 poolPrice = getPriceBySqrtRatio(sqrtRatioX96);
+        uint256 oraclePrice = usdToUsdt(daiToUsd(daiDm));
+        uint256 deltaPrice;
+        if (poolPrice > oraclePrice) {
+            deltaPrice = poolPrice - oraclePrice;
+        } else {
+            deltaPrice = oraclePrice - poolPrice;
+        }
+        return (deltaPrice * 10000 / oraclePrice <= allowedStakeSlippage);
+    }
 
-        (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
+    function daiToUsd(uint256 amount) public view returns (uint256) {
+        return amount * uint256(oracleDai.latestAnswer()) / daiDm / 100;
+    }
 
-//        uint256 sa = (TickMath.getSqrtRatioAtTick(tickLower) * 1e18 / FixedPoint96.Q96) ** 2;
+    function usdtToUsd(uint256 amount) public view returns (uint256) {
+        return amount * uint256(oracleUsdt.latestAnswer()) / usdtDm / 100;
+    }
+
+    function usdcToUsd(uint256 amount) public view returns (uint256) {
+        return amount * uint256(oracleUsdc.latestAnswer()) / usdcDm / 100;
+    }
+
+    function usdToUsdc(uint256 amount) public view returns (uint256) {
+        return amount * 100 * usdcDm / uint256(oracleUsdc.latestAnswer());
+    }
+
+    function usdToDai(uint256 amount) public view returns (uint256) {
+        return amount * 100 * daiDm / uint256(oracleDai.latestAnswer());
+    }
+
+    function usdToUsdt(uint256 amount) public view returns (uint256) {
+        return amount * 100 * usdtDm / uint256(oracleUsdt.latestAnswer());
+    }
+
+    function getPoolPrice(uint256 _amount) internal view returns (uint256, uint256) {
+
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         uint160 sa = TickMath.getSqrtRatioAtTick(tickLower);
-//        uint256 sb = (TickMath.getSqrtRatioAtTick(tickUpper) * 1e18 / FixedPoint96.Q96) ** 2;
         uint160 sb = TickMath.getSqrtRatioAtTick(tickUpper);
-//        uint256 sp = (sqrtPriceX96 * 1e18 / FixedPoint96.Q96) ** 2;
-        uint160 sp = sqrtPriceX96;
 
-        console.log('sa %s', sa);
-        console.log('sb %s', sb);
-        console.log('sp %s', sp);
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sa, sb, 10**30, _amount);
+        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96, sb, int128(liquidity)));
+        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sa, sqrtRatioX96, int128(liquidity)));
 
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-            sqrtPriceX96,
-            sa,
-            sb,
-            _amount * 1e12,
-            _amount
-        );
-
-        console.log('liq %s', liquidity);
-
-        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sp, sb, int128(liquidity)));
-        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sa, sp, int128(liquidity)));
-        console.log('Input amount %s', _amount / 1e6);
-        console.log('DAI          %s', amount0);
-        console.log('USDT         %s', amount1);
-        console.log('PRICE        %s', amount0 / amount1);
-
-        return 0;
+        return (daiToUsd(amount0), usdtToUsd(amount1));
     }
 
 
