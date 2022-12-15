@@ -21,6 +21,7 @@ task('deploy', 'deploy')
 
         hre.ovn = {
             noDeploy: args.noDeploy,
+            deploy: !args.noDeploy,
             setting: args.setting,
             impl: args.impl,
             verify: args.verify,
@@ -128,6 +129,7 @@ task(TASK_RUN, 'Run task')
 
         hre.ovn = {
             noDeploy: args.noDeploy,
+            deploy: !args.noDeploy,
             setting: args.setting,
             impl: args.impl,
             verify: args.verify,
@@ -166,7 +168,8 @@ task(TASK_TEST, 'test')
         hre.ovn = {
             impl: false,
             setting: true,
-            noDeploy: false
+            noDeploy: false,
+            deploy: true,
         }
 
         if (hre.network.name === 'localhost'){
