@@ -6,7 +6,7 @@ import "@overnight-contracts/core/contracts/interfaces/IStrategy.sol";
 
 import "hardhat/console.sol";
 
-contract FlashLoanAttackStrategy is FlashLoanReceiverBase {
+contract FlashAttackBalancerUsdc is FlashLoanReceiverBase {
 
     struct StrategyParams {
         address usdc;

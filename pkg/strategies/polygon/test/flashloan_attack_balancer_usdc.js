@@ -72,13 +72,13 @@ async function setUp(network, assetName) {
     hre.ovn.tags = 'StrategyBalancerUsdc';
     hre.ovn.setting = true;
 
-    await deployments.fixture(['FlashLoanAttackStrategy', 'StrategyBalancerUsdc', 'test']);
+    await deployments.fixture(['FlashAttackBalancerUsdc', 'StrategyBalancerUsdc', 'test']);
 
     const signers = await ethers.getSigners();
     const account = signers[0];
     const recipient = signers[1];
 
-    const attackStrategy = await ethers.getContract('FlashLoanAttackStrategy');
+    const attackStrategy = await ethers.getContract('FlashAttackBalancerUsdc');
 
     const strategy = await ethers.getContract('StrategyBalancerUsdc');
     await strategy.setPortfolioManager(recipient.address);

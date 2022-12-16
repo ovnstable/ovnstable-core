@@ -16,13 +16,13 @@ module.exports = async ({deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deploy('FlashLoanAttackStrategy', {
+    await deploy('FlashAttackBalancerUsdc', {
         from: deployer,
         args: [POLYGON.aaveProvider],
         log: true,
     });
 
-    const attackContract = await ethers.getContract("FlashLoanAttackStrategy");
+    const attackContract = await ethers.getContract("FlashAttackBalancerUsdc");
 
     await (await attackContract.setParams(
         {
@@ -45,7 +45,7 @@ module.exports = async ({deployments}) => {
         }
     )).wait();
 
-    console.log("FlashLoanAttackStrategy deployed");
+    console.log("FlashAttackBalanceUsdc deployed");
 };
 
-module.exports.tags = ['FlashLoanAttackStrategy'];
+module.exports.tags = ['FlashAttackBalancerUsdc'];
