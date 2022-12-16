@@ -177,13 +177,7 @@ let arrays = [
     {
         name: 'StrategyBalancerUsdc',
         enabledReward: true,
-    },
-    {
-        name: 'StrategyUniV3DaiUsdt',
-        enabledReward: false,
-        isRunStrategyLogic: true,
     }
-
 ];
 
 
