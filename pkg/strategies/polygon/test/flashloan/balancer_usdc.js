@@ -121,33 +121,3 @@ async function getAssetAmount(to, assetName, ganacheWallet) {
     }
 }
 
-function createCheck(type, name , assetValue, currentValue, expectedValue, DELTA){
-
-    let maxValue = expectedValue.plus(DELTA);
-    let minValue = expectedValue.minus(DELTA);
-
-    let min = {
-        type: type,
-        name: `${name}:min`,
-        input: fromAsset(assetValue.toString()),
-        current: fromAsset(currentValue.toString()),
-        expected: fromAsset(minValue.toString()),
-        difference: fromAsset(currentValue.minus(minValue).toString()),
-        delta: fromAsset(DELTA.toString()),
-        status: currentValue.gte(minValue) ? '✔': '✘'
-    }
-
-    let max = {
-        type: type,
-        name: `${name}:max`,
-        input: fromAsset(assetValue.toString()),
-        current: fromAsset(currentValue.toString()),
-        expected: fromAsset(maxValue.toString()),
-        difference: fromAsset(maxValue.minus(currentValue).toString()),
-        delta: fromAsset(DELTA.toString()),
-        status: currentValue.lte(maxValue) ? '✔': '✘'
-    }
-
-
-    return [min, max];
-}

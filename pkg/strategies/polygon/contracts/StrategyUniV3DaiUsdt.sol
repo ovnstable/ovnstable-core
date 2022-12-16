@@ -130,10 +130,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
 
         _amount = usdc.balanceOf(address(this));
 
-        console.log('1: USDC %s', usdc.balanceOf(address(this)));
-        console.log('1: DAI  %s', dai.balanceOf(address(this)));
-        console.log('1: USDT %s', usdt.balanceOf(address(this)));
-
         (uint256 am0, uint256 am1) = getPoolPrice(_amount);
 
         uint256 daiBalance = _amount * am0 / (am0 + am1);
@@ -142,10 +138,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         uint256 usdtAmountMin = OvnMath.subBasisPoints(usdToUsdt(usdcToUsd(usdtBalance)), allowedSwapSlippage);
         SynapseLibrary.swap(synapse, address(usdc), address(dai), daiBalance, daiAmountMin);
         SynapseLibrary.swap(synapse, address(usdc), address(usdt), usdtBalance, usdtAmountMin);
-
-        console.log('2: USDC %s', usdc.balanceOf(address(this)));
-        console.log('2: DAI  %s', dai.balanceOf(address(this)));
-        console.log('2: USDT %s', usdt.balanceOf(address(this)));
 
         uint256 daiAmount = dai.balanceOf(address(this));
         uint256 usdtAmount = usdt.balanceOf(address(this));
@@ -180,9 +172,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
             npm.increaseLiquidity(params);
         }
 
-        console.log('4: USDC %s', usdc.balanceOf(address(this)));
-        console.log('4: DAI  %s', dai.balanceOf(address(this)));
-        console.log('4: USDT %s', usdt.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -200,9 +189,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         uint256 _realAmount = _amount;
         _amount = OvnMath.reverseSubBasisPoints(_amount, allowedSwapSlippage + allowedStakeSlippage);
 
-        console.log('1: USDC %s', usdc.balanceOf(address(this)));
-        console.log('1: DAI  %s', dai.balanceOf(address(this)));
-        console.log('1: USDT %s', usdt.balanceOf(address(this)));
 
         (uint256 am0, uint256 am1) = getAssetPoolRatio();
         uint256 p = _amount * am0 / (am0 + am1);
@@ -229,9 +215,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
         npm.collect(collectParam);
 
-        console.log('2: USDC %s', usdc.balanceOf(address(this)));
-        console.log('2: DAI  %s', dai.balanceOf(address(this)));
-        console.log('2: USDT %s', usdt.balanceOf(address(this)));
 
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdtBalance = usdt.balanceOf(address(this));
@@ -240,9 +223,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         SynapseLibrary.swap(synapse, address(dai), address(usdc), daiBalance, daiAmountMin);
         SynapseLibrary.swap(synapse, address(usdt), address(usdc), usdtBalance, usdtAmountMin);
 
-        console.log('3: USDC %s', usdc.balanceOf(address(this)));
-        console.log('3: DAI  %s', dai.balanceOf(address(this)));
-        console.log('3: USDT %s', usdt.balanceOf(address(this)));
 
         return _realAmount;
     }
@@ -252,9 +232,6 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        console.log('1: USDC %s', usdc.balanceOf(address(this)));
-        console.log('1: DAI  %s', dai.balanceOf(address(this)));
-        console.log('1: USDT %s', usdt.balanceOf(address(this)));
 
         if (tokenId != 0) {
             require(isSamePrices(), "The pool is very unbalanced");
@@ -275,20 +252,12 @@ contract StrategyUniV3DaiUsdt is Strategy, IERC721Receiver {
             tokenId = 0;
         }
 
-        console.log('2: USDC %s', usdc.balanceOf(address(this)));
-        console.log('2: DAI  %s', dai.balanceOf(address(this)));
-        console.log('2: USDT %s', usdt.balanceOf(address(this)));
-
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdtBalance = usdt.balanceOf(address(this));
         uint256 daiAmountMin = OvnMath.subBasisPoints(usdToUsdc(daiToUsd(daiBalance)), allowedSwapSlippage);
         uint256 usdtAmountMin = OvnMath.subBasisPoints(usdToUsdc(usdtToUsd(usdtBalance)), allowedSwapSlippage);
         SynapseLibrary.swap(synapse, address(dai), address(usdc), daiBalance, daiAmountMin);
         SynapseLibrary.swap(synapse, address(usdt), address(usdc), usdtBalance, usdtAmountMin);
-
-        console.log('3: USDC %s', usdc.balanceOf(address(this)));
-        console.log('3: DAI  %s', dai.balanceOf(address(this)));
-        console.log('3: USDT %s', usdt.balanceOf(address(this)));
 
         return usdc.balanceOf(address(this));
     }

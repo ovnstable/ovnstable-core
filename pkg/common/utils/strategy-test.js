@@ -20,64 +20,64 @@ hre.ovn = {
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.002,
-        //     deltaPercent: 50,
-        // },
-        // {
-        //     value: 0.02,
-        //     deltaPercent: 10,
-        // },
-        // {
-        //     value: 0.2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 2,
-        //     deltaPercent: 5,
-        // },
-        // {
-        //     value: 20,
-        //     deltaPercent: 1,
-        // },
+        {
+            value: 0.002,
+            deltaPercent: 50,
+        },
+        {
+            value: 0.02,
+            deltaPercent: 10,
+        },
+        {
+            value: 0.2,
+            deltaPercent: 5,
+        },
+        {
+            value: 2,
+            deltaPercent: 5,
+        },
+        {
+            value: 20,
+            deltaPercent: 1,
+        },
         {
             value: 200,
             deltaPercent: 1,
         },
-        // {
-        //     value: 2000,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 20000,
-        //     deltaPercent: 1,
-        // },
-        // {
-        //     value: 100000,
-        //     deltaPercent: 0.1,
-        // },
-        // {
-        //     value: 200000,
-        //     deltaPercent: 0.1,
-        // },
-        // {
-        //     value: 1000000,
-        //     deltaPercent: 0.1,
-        // },
-        // {
-        //     value: 2000000,
-        //     deltaPercent: 0.1,
-        // },
+        {
+            value: 2000,
+            deltaPercent: 1,
+        },
+        {
+            value: 20000,
+            deltaPercent: 1,
+        },
+        {
+            value: 100000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 200000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 1000000,
+            deltaPercent: 0.1,
+        },
+        {
+            value: 2000000,
+            deltaPercent: 0.1,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
 
         stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
 
-        // unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
+        unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
-            // claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
+            claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
         }
 
     });
