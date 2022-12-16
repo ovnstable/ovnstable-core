@@ -499,50 +499,6 @@ async function getChainId(){
 }
 
 
-async function showHedgeM2M() {
-
-    let wallet = await initWallet();
-
-    let usdPlus = await getContract('UsdPlusToken');
-    let rebaseToken = await getContract('RebaseToken' + process.env.ETS);
-    let strategy = await getContract('Strategy' + process.env.ETS);
-
-    console.log('User balances:')
-    let user = [];
-    user.push({name: 'rebaseToken', value: fromE6(await rebaseToken.balanceOf(wallet.address))});
-    user.push({name: 'usdPlus', value: fromE6(await usdPlus.balanceOf(wallet.address))});
-
-    console.table(user);
-
-    console.log('ETS balances:')
-    let values = [];
-    values.push({name: 'Total Ets', value: fromE6(await rebaseToken.totalSupply())});
-    values.push({name: 'Total NAV', value: fromE6((await strategy.netAssetValue()).toString())});
-    values.push({name: 'Liq index', value: (await rebaseToken.liquidityIndex()).toString()});
-    values.push({name: 'HF', value: (await strategy.currentHealthFactor()).toString()});
-
-    console.table(values)
-
-    let items = await strategy.balances();
-
-    let names = ['baseCollateral', 'sideBorrow', 'basePool', 'sidePool', 'baseFree', 'sideFree']
-    let arrays = [];
-    for (let i = 0; i < items.length; i++) {
-
-        let item = items[i];
-
-        arrays.push({
-            asset: item[0],
-            name: names[i],
-            amountUSD: fromE6(item[1].toString()),
-            amount: item[2].toString(),
-            borrowed: item[3].toString()
-        })
-
-    }
-
-    console.table(arrays);
-}
 
 
 async function getDevWallet(){
@@ -733,7 +689,6 @@ module.exports = {
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
     showM2M: showM2M,
-    showHedgeM2M: showHedgeM2M,
     getPrice: getPrice,
     getContract: getContract,
     getERC20: getERC20,
