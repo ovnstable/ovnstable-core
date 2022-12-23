@@ -200,7 +200,7 @@ library VelodromeLibrary {
         return amounts[2];
     }
 
-    function swapExactTokensForTokens(
+    function singleSwap(
         IRouter velodromeRouter,
         address inputToken,
         address outputToken,
@@ -228,7 +228,7 @@ library VelodromeLibrary {
         return amounts[1];
     }
 
-    function swapExactTokensForTokens(
+    function multiSwap(
         IRouter velodromeRouter,
         address inputToken,
         address middleToken,

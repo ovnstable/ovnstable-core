@@ -89,6 +89,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyBeethovenxSonne',
+        enabledReward: true,
+        isRunStrategyLogic: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
