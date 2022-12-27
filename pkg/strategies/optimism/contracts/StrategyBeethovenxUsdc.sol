@@ -30,6 +30,9 @@ contract StrategyBeethovenxUsdc is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFee;
 
+    uint256 public swapSlippageBp;
+    uint256 public allowedSlippageBp;
+
     // --- events
     event StrategyUpdatedParams();
 
@@ -53,6 +56,8 @@ contract StrategyBeethovenxUsdc is Strategy {
         address op;
         address uniswapV3Router;
         uint24 poolFee;
+        uint256 swapSlippageBp;
+        uint256 allowedSlippageBp;
     }
 
 
@@ -89,6 +94,9 @@ contract StrategyBeethovenxUsdc is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee = params.poolFee;
 
+        swapSlippageBp = params.swapSlippageBp;
+        allowedSlippageBp = params.allowedSlippageBp;
+
         emit StrategyUpdatedParams();
     }
 
@@ -102,6 +110,8 @@ contract StrategyBeethovenxUsdc is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
+        uint256 minNavExpected = OvnMath.subBasisPoints(_total(), allowedSlippageBp);
+
         _amount = usdc.balanceOf(address(this));
 
         // How it work?
@@ -109,8 +119,11 @@ contract StrategyBeethovenxUsdc is Strategy {
         // 2. Stake bb-USDC to stable pool
         // 3. Stake BPT tokens to gauge
 
+        // 6e + 30e / 18e = 18e
+        uint256 minAmountBbaUsdc = OvnMath.subBasisPoints(_amount * 1e30 / bbaUsdc.getRate(), swapSlippageBp);
+
         //1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
-        BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, usdc, bbaUsdc, address(this), address(this), _amount, 0);
+        BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, usdc, bbaUsdc, address(this), address(this), _amount, minAmountBbaUsdc);
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(stablePoolId);
 
@@ -133,7 +146,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         amountsIn[2] = aUsdcAmount;
 
         uint256 joinKind = 1;
-        uint256 minimumBPT = 0;
+        uint256 minimumBPT = 1;
         bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
 
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
@@ -146,6 +159,8 @@ contract StrategyBeethovenxUsdc is Strategy {
         uint256 bptAmount = bpt.balanceOf(address(this));
         bpt.approve(address(gauge), bptAmount);
         gauge.deposit(bptAmount);
+
+        require(_total() >= minNavExpected, "StrategyBeethovenxUsdc: NAV less than expected");
     }
 
     function _unstake(
@@ -172,6 +187,8 @@ contract StrategyBeethovenxUsdc is Strategy {
 
 
     function _unstakeUsdc(uint256 gaugeAmount) internal returns (uint256){
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(_total(), allowedSlippageBp);
 
         // How it work?
         // 1. Unstake BPT tokens from Gauge
@@ -204,7 +221,12 @@ contract StrategyBeethovenxUsdc is Strategy {
         vault.exitPool(stablePoolId, address(this), payable(address(this)), request);
 
         // 3. Swap
-        BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, bbaUsdc, usdc, address(this), address(this), bbaUsdc.balanceOf(address(this)), 0);
+        uint256 bbaUsdcBalance = bbaUsdc.balanceOf(address(this));
+        // 18e + 18e - 30e = 6e (USDC)
+        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbaUsdcBalance * bbaUsdc.getRate() / 1e30, swapSlippageBp);
+        BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, bbaUsdc, usdc, address(this), address(this), bbaUsdc.balanceOf(address(this)), minAmountUsdc);
+
+        require(_total() >= minNavExpected, "StrategyBeethovenxUsdc: NAV less than expected");
 
         return usdc.balanceOf(address(this));
     }
@@ -222,7 +244,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         uint256 bptAmount = gauge.balanceOf(address(this));
 
         if (bptAmount == 0) {
-            return 0;
+            return usdc.balanceOf(address(this));
         }
 
         return _convertBptToUsdc(bptAmount);
@@ -233,7 +255,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         // total used tokens
         uint256 totalActualSupply = bpt.getActualSupply();
 
-        uint256 totalBalanceUsdc;
+        uint256 totalBalanceUsdc = usdc.balanceOf(address(this));
 
         (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(stablePoolId);
 
@@ -247,28 +269,25 @@ contract StrategyBeethovenxUsdc is Strategy {
 
             address token = address(tokens[i]);
 
-            // plus e6 - increase precision
-            // e18 + e6 / 1e18 = e6
-            // calculate the share of each token
-            uint256 share = (totalActualSupply * 1e6) / balances[i];
-
-            // All linear pool BPT tokens has 1e18 decimals, but we convert it to (e6) USDC decimals
-            // e18 + e6 / e6 / e12 = e6
-            // calculate the amount of each token
-            uint256 amountToken = ((bptAmount * 1e6) / share) / 1e12;
-
-            // BPT token convert to underlying tokens by Rate
-            // e6 + 1e18 - 1e8 = e6
-            amountToken = amountToken * BptToken(token).getRate() / 1e18;
+            // calculate share
+            uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
 
             if (token == address(bbaUsdc)) {
+                // bpt token convert to underlying tokens by Rate
+                // e18 + e18 - e30 = e6
+                amountToken = amountToken * bbaUsdc.getRate() / 1e30;
                 totalBalanceUsdc += amountToken;
             } else if (token == address(bbaUsdt)) {
-                totalBalanceUsdc += ChainlinkLibrary.convertTokenToToken(amountToken, 6, 6, uint256(oracleUsdt.latestAnswer()), uint256(oracleUsdc.latestAnswer()));
+                // bpt token convert to underlying tokens by Rate
+                // e18 + e18 - e30 = e6
+                amountToken = amountToken * bbaUsdt.getRate() / 1e30;
+                totalBalanceUsdc += ChainlinkLibrary.convertTokenToToken(amountToken, 1e6, 1e6, oracleUsdt, oracleUsdc);
             } else if (token == address(bbaDai)) {
-                totalBalanceUsdc += ChainlinkLibrary.convertTokenToToken(amountToken, 6, 6, uint256(oracleDai.latestAnswer()), uint256(oracleUsdc.latestAnswer()));
+                // bpt token convert to underlying tokens by Rate
+                // e18 + e18 - e18 = e18
+                amountToken = amountToken * bbaDai.getRate() / 1e18;
+                totalBalanceUsdc += ChainlinkLibrary.convertTokenToToken(amountToken, 1e18, 1e6, oracleDai, oracleUsdc);
             }
-
         }
 
         return totalBalanceUsdc;

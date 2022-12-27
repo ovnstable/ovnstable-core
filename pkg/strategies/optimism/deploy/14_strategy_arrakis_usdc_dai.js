@@ -12,6 +12,8 @@ let beethovenxPoolIdDai = "0x888a6195d42a95e80d81e1c506172772a80b80bc00000000000
 let bbRfAUsdc = "0xba7834bb3cd2DB888E6A06Fb45E82b4225Cd0C71";
 let bbRfADai = "0x888a6195D42a95e80D81e1c506172772a80b80Bc";
 let poolUsdcOpFee = 500; // 0.05%
+let swapSlippageBp = 4;
+let allowedSlippageBp = 10;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -39,6 +41,8 @@ module.exports = async ({deployments}) => {
                 poolUsdcOpFee: poolUsdcOpFee,
                 oracleUsdc: OPTIMISM.oracleUsdc,
                 oracleDai: OPTIMISM.oracleDai,
+                swapSlippageBp: swapSlippageBp,
+                allowedSlippageBp: allowedSlippageBp,
             }
         )).wait();
     });

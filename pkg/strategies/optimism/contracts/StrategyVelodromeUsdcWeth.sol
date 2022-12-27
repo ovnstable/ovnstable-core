@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 
 //TODO insert slippage to all needed places
