@@ -8,7 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
 
@@ -326,14 +326,12 @@ contract StrategyDystopiaUsdcTusd is Strategy, DystopiaExchange {
         uint256 usdcBalanceFromTusd;
         if (tusdBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceTusd = uint256(oracleTusd.latestAnswer());
-                usdcBalanceFromTusd = AaveBorrowLibrary.convertTokenAmountToTokenAmount(
+                usdcBalanceFromTusd = ChainlinkLibrary.convertTokenToToken(
                     tusdBalance,
                     tusdTokenDenominator,
                     usdcTokenDenominator,
-                    priceTusd,
-                    priceUsdc
+                    oracleTusd,
+                    oracleUsdc
                 );
             } else {
                 usdcBalanceFromTusd = _getAmountsOut(address(tusdToken), address(usdcToken), true, tusdBalance);

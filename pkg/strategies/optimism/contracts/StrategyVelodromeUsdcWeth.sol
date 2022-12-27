@@ -3,11 +3,9 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-
-import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
-import "hardhat/console.sol";
 
 //TODO insert slippage to all needed places
 //TODO calculate swap amount on Stake
@@ -252,9 +250,7 @@ contract StrategyVelodromeUsdcWeth is Strategy {
         uint256 usdcBalanceFromWeth;
         if (wethBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceWeth = uint256(oracleWeth.latestAnswer());
-                usdcBalanceFromWeth = AaveBorrowLibrary.convertTokenAmountToTokenAmount(wethBalance, wethTokenDenominator, usdcTokenDenominator, priceWeth, priceUsdc);
+                usdcBalanceFromWeth = ChainlinkLibrary.convertTokenToToken(wethBalance, wethTokenDenominator, usdcTokenDenominator, oracleWeth, oracleUsdc);
             } else {
                 //TODO check this code
                 usdcBalanceFromWeth = pair.getAmountOut(wethBalance, address(wethToken));

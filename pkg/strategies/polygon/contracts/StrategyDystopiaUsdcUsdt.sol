@@ -8,7 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -315,9 +315,7 @@ contract StrategyDystopiaUsdcUsdt is Strategy, DystopiaExchange, BalancerExchang
         uint256 usdcBalanceFromUsdt;
         if (usdtBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
-                usdcBalanceFromUsdt = AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
+                usdcBalanceFromUsdt = ChainlinkLibrary.convertTokenToToken(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, oracleUsdt, oracleUsdc);
             } else {
                 ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
                     address(usdtToken),
