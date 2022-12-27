@@ -9,6 +9,8 @@ let wmxLpUsdc = '0x6155e7d1c509f63109c6fc330bb5dd295034d540';
 let poolDepositor = '0xBc502Eb6c9bAD77929dabeF3155967E0ABfA9209';
 let pool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
 let wombatRouter = '0x19609B03C976CCA288fbDae5c21d4290e9a4aDD7';
+let swapSlippageBp = 20;
+let allowedSlippageBp = 20;
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -32,6 +34,8 @@ module.exports = async ({deployments}) => {
                 wombatRouter: wombatRouter,
                 oracleBusd: BSC.chainlinkBusd,
                 oracleUsdc: BSC.chainlinkUsdc,
+                swapSlippageBp: swapSlippageBp,
+                allowedSlippageBp: allowedSlippageBp,
             }
         )).wait();
     });

@@ -26,6 +26,8 @@ contract StrategyWombexUsdc is Strategy {
         address wombatRouter;
         address oracleBusd;
         address oracleUsdc;
+        uint256 swapSlippageBp;
+        uint256 allowedSlippageBp;
     }
 
     // --- params
@@ -49,6 +51,9 @@ contract StrategyWombexUsdc is Strategy {
     uint256 public busdDm;
     uint256 public usdcDm;
     uint256 public lpUsdcDm;
+
+    uint256 public swapSlippageBp;
+    uint256 public allowedSlippageBp;
 
     // --- events
 
@@ -82,6 +87,9 @@ contract StrategyWombexUsdc is Strategy {
         oracleBusd = IPriceFeed(params.oracleBusd);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
 
+        swapSlippageBp = params.swapSlippageBp;
+        allowedSlippageBp = params.allowedSlippageBp;
+
         busdDm = 10 ** IERC20Metadata(params.busd).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         lpUsdcDm = 10 ** IERC20Metadata(params.lpUsdc).decimals();
@@ -101,6 +109,8 @@ contract StrategyWombexUsdc is Strategy {
 
         require(_asset == address(busd), "Some token not compatible");
 
+        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
+
         // swap busd to usdc
         uint256 busdBalance = busd.balanceOf(address(this));
         uint256 usdcBalanceOut = WombatLibrary.getAmountOut(
@@ -111,13 +121,20 @@ contract StrategyWombexUsdc is Strategy {
             busdBalance
         );
         if (usdcBalanceOut > 0) {
+            uint256 usdcBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                busdBalance,
+                busdDm,
+                usdcDm,
+                oracleBusd,
+                oracleUsdc
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(busd),
                 address(usdc),
                 address(pool),
                 busdBalance,
-                OvnMath.subBasisPoints(usdcBalanceOut, 4),
+                OvnMath.subBasisPoints(usdcBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
@@ -125,6 +142,8 @@ contract StrategyWombexUsdc is Strategy {
         uint256 usdcBalance = usdc.balanceOf(address(this));
         (uint256 lpUsdcAmount,) = pool.quotePotentialDeposit(address(usdc), usdcBalance);
         poolDepositor.deposit(address(lpUsdc), usdcBalance, OvnMath.subBasisPoints(lpUsdcAmount, 1), true);
+
+        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdc: NAV less than expected");
     }
 
     function _unstake(
@@ -134,6 +153,8 @@ contract StrategyWombexUsdc is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(busd), "Some token not compatible");
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // calculate swap _amount usdc to busd
         uint256 busdAmountForUsdcAmount = WombatLibrary.getAmountOut(
@@ -162,16 +183,25 @@ contract StrategyWombexUsdc is Strategy {
             usdcBalance
         );
         if (busdBalanceOut > 0) {
+            uint256 busdBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                usdcBalance,
+                usdcDm,
+                busdDm,
+                oracleUsdc,
+                oracleBusd
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(usdc),
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOut, 4),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
+
+        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdc: NAV less than expected");
 
         return busd.balanceOf(address(this));
     }
@@ -182,6 +212,8 @@ contract StrategyWombexUsdc is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(busd), "Some token not compatible");
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         uint256 lpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
         if (lpUsdcBalance > 0) {
@@ -199,16 +231,25 @@ contract StrategyWombexUsdc is Strategy {
             usdcBalance
         );
         if (busdBalanceOut > 0) {
+            uint256 busdBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                usdcBalance,
+                usdcDm,
+                busdDm,
+                oracleUsdc,
+                oracleBusd
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(usdc),
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOut, 4),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
+
+        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdc: NAV less than expected");
 
         return busd.balanceOf(address(this));
     }
@@ -233,9 +274,13 @@ contract StrategyWombexUsdc is Strategy {
 
         if (usdcBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceBusd = uint256(oracleBusd.latestAnswer());
-                busdBalance += (usdcBalance * busdDm * priceUsdc) / (usdcDm * priceBusd);
+                busdBalance += ChainlinkLibrary.convertTokenToToken(
+                    usdcBalance,
+                    usdcDm,
+                    busdDm,
+                    oracleUsdc,
+                    oracleBusd
+                );
             } else {
                 busdBalance += WombatLibrary.getAmountOut(
                     wombatRouter,

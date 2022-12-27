@@ -81,7 +81,7 @@ library ChainlinkLibrary {
         uint256 token1Denominator,
         IPriceFeed oracle0,
         IPriceFeed oracle1
-    ) internal pure returns (uint256 amount1) {
+    ) internal view returns (uint256 amount1) {
         uint256 price0 = uint256(oracle0.latestAnswer());
         uint256 price1 = uint256(oracle1.latestAnswer());
         amount1 = (amount0 * token1Denominator * price0) / (token0Denominator * price1);
@@ -91,7 +91,7 @@ library ChainlinkLibrary {
         uint256 amount,
         uint256 tokenDenominator,
         IPriceFeed oracle
-    ) internal pure returns (uint256 amountUsd) {
+    ) internal view returns (uint256 amountUsd) {
         uint256 price = uint256(oracle.latestAnswer());
         amountUsd = amount * price / tokenDenominator;
     }
@@ -100,7 +100,7 @@ library ChainlinkLibrary {
         uint256 amountUsd,
         uint256 tokenDenominator,
         IPriceFeed oracle
-    ) internal pure returns (uint256 amount) {
+    ) internal view returns (uint256 amount) {
         uint256 price = uint256(oracle.latestAnswer());
         amount = amountUsd * tokenDenominator / price;
     }
