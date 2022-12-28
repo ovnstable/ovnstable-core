@@ -30,8 +30,8 @@ contract StrategyBalancerUsdc is Strategy {
     IPriceFeed public oracleUsdt;
     IPriceFeed public oracleDai;
 
-    uint256 public swapSlippageBp;
-    uint256 public allowedSlippageBp;
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
 
 
     // --- events
@@ -56,8 +56,6 @@ contract StrategyBalancerUsdc is Strategy {
         address oracleUsdc;
         address oracleUsdt;
         address oracleDai;
-        uint256 swapSlippageBp;
-        uint256 allowedSlippageBp;
     }
 
 
@@ -93,9 +91,6 @@ contract StrategyBalancerUsdc is Strategy {
         oracleUsdt = IPriceFeed(params.oracleUsdt);
         oracleDai = IPriceFeed(params.oracleDai);
 
-        swapSlippageBp = params.swapSlippageBp;
-        allowedSlippageBp = params.allowedSlippageBp;
-
         emit StrategyUpdatedParams();
     }
 
@@ -113,8 +108,6 @@ contract StrategyBalancerUsdc is Strategy {
         // 1. Swap all USDC to bb-USDC
         // 2. Stake bb-USDC to stable pool
         // 3. Stake bpt tokens to gauge
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(), allowedSlippageBp);
 
         // 1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
         uint256 usdcBalance = usdc.balanceOf(address(this));
@@ -165,8 +158,6 @@ contract StrategyBalancerUsdc is Strategy {
         uint256 bptAmount = bpt.balanceOf(address(this));
         bpt.approve(address(gauge), bptAmount);
         gauge.deposit(bptAmount);
-
-        require(_totalValue() >= minNavExpected, "StrategyBalancerUsdc: NAV less than expected");
     }
 
     function _unstake(
@@ -213,8 +204,6 @@ contract StrategyBalancerUsdc is Strategy {
         // 2. Get all bb-am-USDC from stable pool
         // 3. Swap all bb-am-USDC to USDC by linear pool
 
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(), allowedSlippageBp);
-
         // 1. Unstake bpt from Gauge
         gauge.withdraw(bptAmount);
         uint256 usdcAmount = _convertBptToUsdc(bptAmount);
@@ -251,8 +240,6 @@ contract StrategyBalancerUsdc is Strategy {
             address(this),
             address(this)
         );
-
-        require(_totalValue() >= minNavExpected, "StrategyBalancerUsdc: NAV less than expected");
 
         return usdc.balanceOf(address(this));
     }

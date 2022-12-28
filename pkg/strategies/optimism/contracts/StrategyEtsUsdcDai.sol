@@ -24,6 +24,9 @@ contract StrategyEtsUsdcDai is Strategy {
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
     uint256 public usdcDm;
     uint256 public daiDm;
 

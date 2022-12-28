@@ -32,6 +32,9 @@ contract StrategyBeethovenxSonne is Strategy {
     IERC20 public sonne;
     IRouter public velodromeRouter;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
     // --- events
     event StrategyUpdatedParams();
 

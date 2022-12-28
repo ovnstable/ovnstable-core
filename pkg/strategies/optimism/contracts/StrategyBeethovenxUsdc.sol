@@ -30,6 +30,9 @@ contract StrategyBeethovenxUsdc is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFee;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
 
     // --- events
     event StrategyUpdatedParams();

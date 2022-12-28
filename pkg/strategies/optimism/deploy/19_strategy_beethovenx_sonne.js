@@ -16,9 +16,6 @@ let aUsdcPoolId = "0xedcfaf390906a8f91fb35b7bac23f3111dbaee1c0000000000000000000
 
 let gauge = "0x2d801513d36aA8aA2579133507462f0DE05a40Ff";
 
-let swapSlippageBp = 4;
-let allowedSlippageBp = 10;
-
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
@@ -45,8 +42,6 @@ module.exports = async ({deployments}) => {
                 op: OPTIMISM.op,
                 sonne: OPTIMISM.sonne,
                 velodromeRouter: OPTIMISM.velodromeRouter,
-                swapSlippageBp: swapSlippageBp,
-                allowedSlippageBp: allowedSlippageBp,
             }
         )).wait();
     });

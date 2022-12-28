@@ -50,6 +50,9 @@ contract StrategyWombexUsdc is Strategy {
     uint256 public usdcDm;
     uint256 public lpUsdcDm;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
     // --- events
 
     event StrategyUpdatedParams();
