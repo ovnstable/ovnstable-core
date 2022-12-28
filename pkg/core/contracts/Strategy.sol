@@ -11,7 +11,6 @@ import "./interfaces/IControlRole.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
@@ -23,12 +22,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
