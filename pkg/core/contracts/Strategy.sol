@@ -16,12 +16,18 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     address public portfolioManager;
 
+    uint256 public swapSlippageBp;
+    uint256 public navSlippageBp;
+
 
     function __Strategy_init() internal initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        swapSlippageBp = 20;
+        navSlippageBp = 20;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -61,6 +67,24 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         emit PortfolioManagerUpdated(_value);
     }
 
+    function initSlippages(
+        uint256 _swapSlippageBp,
+        uint256 _navSlippageBp
+    ) public onlyAdmin {
+        swapSlippageBp = _swapSlippageBp;
+        navSlippageBp = _navSlippageBp;
+        emit SlippagesUpdated(_swapSlippageBp, _navSlippageBp);
+    }
+
+    function setSlippages(
+        uint256 _swapSlippageBp,
+        uint256 _navSlippageBp
+    ) public onlyPortfolioAgent {
+        swapSlippageBp = _swapSlippageBp;
+        navSlippageBp = _navSlippageBp;
+        emit SlippagesUpdated(_swapSlippageBp, _navSlippageBp);
+    }
+
 
     // --- logic
 
@@ -68,7 +92,13 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _asset,
         uint256 _amount
     ) external override onlyPortfolioManager {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBp);
+
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
         emit Stake(_amount);
     }
 
@@ -78,30 +108,37 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _beneficiary,
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBp);
+
         uint256 withdrawAmount;
+        uint256 rewardAmount;
         if (_targetIsZero) {
-            uint256 totalAsset = _claimRewards(_beneficiary);
-            if (totalAsset > 0) {
-                emit Reward(totalAsset);
-            }
+            rewardAmount = _claimRewards(_beneficiary);
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
 
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
         IERC20(_asset).transfer(_beneficiary, withdrawAmount);
+
         emit Unstake(_amount, withdrawAmount);
+        if (rewardAmount > 0) {
+            emit Reward(rewardAmount);
+        }
 
         return withdrawAmount;
     }
 
     function claimRewards(address _to) external override onlyPortfolioManager returns (uint256) {
-        uint256 totalAsset = _claimRewards(_to);
-        if (totalAsset > 0) {
-            emit Reward(totalAsset);
+        uint256 rewardAmount = _claimRewards(_to);
+        if (rewardAmount > 0) {
+            emit Reward(rewardAmount);
         }
-        return totalAsset;
+        return rewardAmount;
     }
 
     function healthFactorBalance() external override onlyPortfolioManager {
@@ -150,5 +187,5 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     }
 
-    uint256[49] private __gap;
+    uint256[47] private __gap;
 }
