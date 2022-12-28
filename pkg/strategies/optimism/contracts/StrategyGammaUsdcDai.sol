@@ -38,9 +38,6 @@ contract StrategyGammaUsdcDai is Strategy {
     uint256 public usdcDm;
     uint256 public daiDm;
 
-    uint256 public swapSlippageBp;
-    uint256 public allowedSlippageBp;
-
     // --- structs
 
     struct StrategyParams {
@@ -61,8 +58,6 @@ contract StrategyGammaUsdcDai is Strategy {
         uint24 poolFeeOpUsdc;
         address oracleUsdc;
         address oracleDai;
-        uint256 swapSlippageBp;
-        uint256 allowedSlippageBp;
     }
 
     // --- events
@@ -106,9 +101,6 @@ contract StrategyGammaUsdcDai is Strategy {
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
-        swapSlippageBp = params.swapSlippageBp;
-        allowedSlippageBp = params.allowedSlippageBp;
-
         emit StrategyUpdatedParams();
     }
 
@@ -120,8 +112,6 @@ contract StrategyGammaUsdcDai is Strategy {
     ) internal override {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // calculate needed USDC to swap to DAI
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = lpToken.getTotalAmounts();
@@ -166,8 +156,6 @@ contract StrategyGammaUsdcDai is Strategy {
         // stake
         lpToken.approve(address(masterChef), lpTokenAmount);
         masterChef.deposit(pid, lpTokenAmount);
-
-        require(_totalValue(true) >= minNavExpected, "StrategyGammaUsdcDai: NAV less than expected");
     }
 
     function _unstake(
@@ -177,8 +165,6 @@ contract StrategyGammaUsdcDai is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // calculating need amount lp - depends on amount USDC/DAI
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = lpToken.getTotalAmounts();
@@ -223,8 +209,6 @@ contract StrategyGammaUsdcDai is Strategy {
         swapParams.amount = dai.balanceOf(address(this));
         BeethovenLibrary.batchSwap(swapParams);
 
-        require(_totalValue(true) >= minNavExpected, "StrategyGammaUsdcDai: NAV less than expected");
-
         return usdc.balanceOf(address(this));
     }
 
@@ -234,8 +218,6 @@ contract StrategyGammaUsdcDai is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // count balanceLP for unstake
         (uint256 amountLp,) = masterChef.userInfo(pid, address(this));
@@ -266,8 +248,6 @@ contract StrategyGammaUsdcDai is Strategy {
             recipient: address(this)
         });
         BeethovenLibrary.batchSwap(swapParams);
-
-        require(_totalValue(true) >= minNavExpected, "StrategyGammaUsdcDai: NAV less than expected");
 
         return usdc.balanceOf(address(this));
     }

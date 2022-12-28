@@ -39,9 +39,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
     uint256 public daiDm;
     uint256 public usdcDm;
 
-    uint256 public swapSlippageBp;
-    uint256 public allowedSlippageBp;
-
     // --- structs
 
     struct StrategyParams {
@@ -63,8 +60,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
         uint24 poolWethDaiFee;
         address oracleDai;
         address oracleUsdc;
-        uint256 swapSlippageBp;
-        uint256 allowedSlippageBp;
     }
 
     // --- events
@@ -109,9 +104,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
 
-        swapSlippageBp = params.swapSlippageBp;
-        allowedSlippageBp = params.allowedSlippageBp;
-
         emit StrategyUpdatedParams();
     }
 
@@ -123,8 +115,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
     ) internal override {
 
         require(_asset == address(dai), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // 1. Calculate needed DAI to swap to USDC
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
@@ -171,8 +161,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
             OvnMath.subBasisPoints(daiAmount, 20),
             address(this)
         );
-
-        require(_totalValue(true) >= minNavExpected, "StrategyArrakisUsdcDai: NAV less than expected");
     }
 
     function _unstake(
@@ -182,8 +170,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(dai), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // 1. Calculating need amount lp - depends on amount DAI/USDC
         (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
@@ -233,8 +219,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
         swapParams.amount = usdc.balanceOf(address(this));
         BeethovenLibrary.batchSwap(swapParams);
 
-        require(_totalValue(true) >= minNavExpected, "StrategyArrakisUsdcDai: NAV less than expected");
-
         return dai.balanceOf(address(this));
     }
 
@@ -244,8 +228,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(dai), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // 1. Get balance LP
         uint256 amountLp = arrakisRewards.balanceOf(address(this));
@@ -284,8 +266,6 @@ contract StrategyArrakisDaiUsdc is Strategy {
             recipient: address(this)
         });
         BeethovenLibrary.batchSwap(swapParams);
-
-        require(_totalValue(true) >= minNavExpected, "StrategyArrakisUsdcDai: NAV less than expected");
 
         return dai.balanceOf(address(this));
     }

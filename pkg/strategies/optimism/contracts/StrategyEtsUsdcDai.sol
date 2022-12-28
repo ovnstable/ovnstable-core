@@ -24,9 +24,6 @@ contract StrategyEtsUsdcDai is Strategy {
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
-    uint256 public swapSlippageBp;
-    uint256 public allowedSlippageBp;
-
     uint256 public usdcDm;
     uint256 public daiDm;
 
@@ -46,8 +43,6 @@ contract StrategyEtsUsdcDai is Strategy {
         uint24 poolUsdcDaiFee;
         address oracleUsdc;
         address oracleDai;
-        uint256 swapSlippageBp;
-        uint256 allowedSlippageBp;
     }
 
 
@@ -76,9 +71,6 @@ contract StrategyEtsUsdcDai is Strategy {
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleDai = IPriceFeed(params.oracleDai);
 
-        swapSlippageBp = params.swapSlippageBp;
-        allowedSlippageBp = params.allowedSlippageBp;
-
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
@@ -94,8 +86,6 @@ contract StrategyEtsUsdcDai is Strategy {
     ) internal override {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // sub for stake
         uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBp) - 1e13;
@@ -114,8 +104,6 @@ contract StrategyEtsUsdcDai is Strategy {
         uint256 daiBalance = dai.balanceOf(address(this));
         dai.approve(address(hedgeExchanger), daiBalance);
         hedgeExchanger.buy(daiBalance, "");
-
-        require(_totalValue(true) >= minNavExpected, "StrategyEtsUsdcDai: NAV less than expected");
     }
 
     function _unstake(
@@ -125,8 +113,6 @@ contract StrategyEtsUsdcDai is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // add for unstake more than requested
         uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount), 10) + 1e13;
@@ -152,8 +138,6 @@ contract StrategyEtsUsdcDai is Strategy {
             usdcMinAmount
         );
 
-        require(_totalValue(true) >= minNavExpected, "StrategyEtsUsdcDai: NAV less than expected");
-
         return usdc.balanceOf(address(this));
     }
 
@@ -163,8 +147,6 @@ contract StrategyEtsUsdcDai is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdc), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // redeem
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
@@ -183,8 +165,6 @@ contract StrategyEtsUsdcDai is Strategy {
             daiBalance,
             usdcMinAmount
         );
-
-        require(_totalValue(true) >= minNavExpected, "StrategyEtsUsdcDai: NAV less than expected");
 
         return usdc.balanceOf(address(this));
     }
