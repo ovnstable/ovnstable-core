@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./core/Strategy.sol";
-import "./interfaces/ISwapper.sol";
-
+import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/swapper/contracts/ISwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
