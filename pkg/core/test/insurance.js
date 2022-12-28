@@ -18,6 +18,11 @@ describe("InsuranceExchange", function () {
     let asset;
 
     let testAccount;
+    let collector;
+
+    let UNIT_ROLE;
+    let FREE_RIDER_ROLE;
+    let PORTFOLIO_AGENT_ROLE;
 
     let toAsset = function () {
     };
@@ -58,6 +63,7 @@ describe("InsuranceExchange", function () {
                 const {deployer} = await getNamedAccounts();
                 account = deployer;
                 testAccount = await createRandomWallet();
+                collector = await createRandomWallet();
 
                 insurance = await ethers.getContract("InsuranceExchange");
                 pm = await ethers.getContract("MockPortfolioManager");
@@ -83,6 +89,73 @@ describe("InsuranceExchange", function () {
 
                 await asset.setDecimals(decimal.asset);
                 await rebase.setDecimals(decimal.rebase);
+
+                UNIT_ROLE = await insurance.UNIT_ROLE();
+                FREE_RIDER_ROLE = await insurance.FREE_RIDER_ROLE();
+                PORTFOLIO_AGENT_ROLE = await insurance.PORTFOLIO_AGENT_ROLE();
+            });
+
+
+            describe("PortfolioManager: role", function () {
+
+                sharedBeforeEach("PortfolioManager: role", async () => {
+                    await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), account);
+
+                });
+
+                it("grantRole: UNIT_ROLE [success]", async function () {
+                    await insurance.grantRole(UNIT_ROLE, testAccount.address);
+                    expect(await insurance.hasRole(UNIT_ROLE, testAccount.address)).to.be.true;
+                });
+
+                it("grantRole: UNIT_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await insurance.connect(testAccount).grantRole(UNIT_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+
+                it("grantRole: FREE_RIDER_ROLE [success]", async function () {
+                    await insurance.grantRole(FREE_RIDER_ROLE, testAccount.address);
+                    expect(await insurance.hasRole(FREE_RIDER_ROLE, testAccount.address)).to.be.true;
+                });
+
+                it("grantRole: FREE_RIDER_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await insurance.connect(testAccount).grantRole(FREE_RIDER_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+                it("grantRole: PORTFOLIO_AGENT_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await insurance.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
+                        await insurance.connect(collector).grantRole(PORTFOLIO_AGENT_ROLE, testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
+                it("grantRole: DEFAULT_ADMIN_ROLE [revert]", async function () {
+                    let error = false;
+                    try {
+                        await insurance.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
+                        await insurance.connect(collector).grantRole(await insurance.DEFAULT_ADMIN_ROLE(), testAccount.address)
+                    } catch (e) {
+                        error = true;
+                    }
+                    expect(error).to.be.true;
+                });
+
             });
 
 
@@ -315,6 +388,7 @@ describe("InsuranceExchange", function () {
 
                 let tx;
                 sharedBeforeEach("Payout: Positive", async () => {
+                    await insurance.grantRole(UNIT_ROLE, account);
 
                     await mint(10);
                     await asset.mint(pm.address, toAsset(1));
@@ -351,6 +425,7 @@ describe("InsuranceExchange", function () {
 
                 let tx;
                 sharedBeforeEach("Payout: Negative", async () => {
+                    await insurance.grantRole(UNIT_ROLE, account);
 
                     await mint(10);
                     await asset.burn(pm.address, toAsset(1));

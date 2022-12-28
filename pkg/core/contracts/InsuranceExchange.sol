@@ -22,6 +22,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     bytes32 public constant TRUST_ROLE = keccak256("TRUST_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant INSURANCE_HOLDER_ROLE = keccak256("INSURANCE_HOLDER_ROLE");
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     IERC20 public asset;
     IRebaseToken public rebase;
@@ -93,7 +94,16 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
         // 4 day in seconds
         withdrawPeriod = 345600;
+
+        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
+        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
+
+    function changeAdminRoles() external onlyAdmin {
+        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
+        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
+    }
+
 
     function _authorizeUpgrade(address newImplementation)
     internal
@@ -118,6 +128,11 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
     modifier onlyPortfolioAgent() {
         require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        _;
+    }
+
+    modifier onlyUnit(){
+        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -298,11 +313,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
 
-    function payout() public whenNotPaused oncePerBlock {
-        _payout();
-    }
-
-    function _payout() internal {
+    function payout() public whenNotPaused oncePerBlock onlyUnit {
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
@@ -326,5 +337,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         }
         emit NextPayoutTime(nextPayoutTime);
     }
+
 
 }
