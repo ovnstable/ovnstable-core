@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "./interfaces/IStrategy.sol";
+import "./interfaces/IControlRole.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -45,7 +46,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to PORTFOLIO_AGENT_ROLE");
+        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender) ||
+            IControlRole(portfolioManager).hasRole(PORTFOLIO_AGENT_ROLE, msg.sender) , "Restricted to PORTFOLIO_AGENT_ROLE");
         _;
     }
 
