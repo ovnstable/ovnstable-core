@@ -12,9 +12,6 @@ interface IStrategy {
     event Stake(uint256 amount);
     event Unstake(uint256 amount, uint256 amountReceived);
 
-    event BalanceHealthFactor(uint256 healthFactor);
-    event SetHealthFactor(uint256 healthFactor);
-
     function stake(
         address _asset,
         uint256 _amount
@@ -33,7 +30,4 @@ interface IStrategy {
 
     function claimRewards(address _to) external returns (uint256);
 
-    function healthFactorBalance() external;
-
-    function setHealthFactor(uint256 healthFactor) external;
 }

@@ -142,18 +142,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         return rewardAmount;
     }
 
-    function healthFactorBalance() external override onlyPortfolioManager {
-        uint256 healthFactor = _healthFactorBalance();
-        if (healthFactor > 0) {
-            emit BalanceHealthFactor(healthFactor);
-        }
-    }
-
-    function setHealthFactor(uint256 healthFactor) external override onlyPortfolioManager {
-        _setHealthFactor(healthFactor);
-        emit SetHealthFactor(healthFactor);
-    }
-
     function _stake(
         address _asset,
         uint256 _amount
@@ -180,13 +168,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         revert("Not implemented");
     }
 
-    function _healthFactorBalance() internal virtual returns (uint256) {
-
-    }
-
-    function _setHealthFactor(uint256 _healthFactor) internal virtual {
-
-    }
 
     uint256[47] private __gap;
 }
