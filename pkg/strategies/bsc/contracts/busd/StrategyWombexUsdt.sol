@@ -26,8 +26,6 @@ contract StrategyWombexUsdt is Strategy {
         address wombatRouter;
         address oracleBusd;
         address oracleUsdt;
-        uint256 swapSlippageBp;
-        uint256 allowedSlippageBp;
     }
 
     // --- params
@@ -51,9 +49,6 @@ contract StrategyWombexUsdt is Strategy {
     uint256 public busdDm;
     uint256 public usdtDm;
     uint256 public lpUsdtDm;
-
-    uint256 public swapSlippageBp;
-    uint256 public allowedSlippageBp;
 
     // --- events
 
@@ -87,9 +82,6 @@ contract StrategyWombexUsdt is Strategy {
         oracleBusd = IPriceFeed(params.oracleBusd);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
 
-        swapSlippageBp = params.swapSlippageBp;
-        allowedSlippageBp = params.allowedSlippageBp;
-
         busdDm = 10 ** IERC20Metadata(params.busd).decimals();
         usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
         lpUsdtDm = 10 ** IERC20Metadata(params.lpUsdt).decimals();
@@ -108,8 +100,6 @@ contract StrategyWombexUsdt is Strategy {
     ) internal override {
 
         require(_asset == address(busd), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // swap busd to usdt
         uint256 busdBalance = busd.balanceOf(address(this));
@@ -142,8 +132,6 @@ contract StrategyWombexUsdt is Strategy {
         uint256 usdtBalance = usdt.balanceOf(address(this));
         (uint256 lpUsdtAmount,) = pool.quotePotentialDeposit(address(usdt), usdtBalance);
         poolDepositor.deposit(address(lpUsdt), usdtBalance, OvnMath.subBasisPoints(lpUsdtAmount, 1), true);
-
-        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdt: NAV less than expected");
     }
 
     function _unstake(
@@ -153,8 +141,6 @@ contract StrategyWombexUsdt is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(busd), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         // calculate swap _amount usdt to busd
         uint256 busdAmountForUsdtAmount = WombatLibrary.getAmountOut(
@@ -201,8 +187,6 @@ contract StrategyWombexUsdt is Strategy {
             );
         }
 
-        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdt: NAV less than expected");
-
         return busd.balanceOf(address(this));
     }
 
@@ -212,8 +196,6 @@ contract StrategyWombexUsdt is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(busd), "Some token not compatible");
-
-        uint256 minNavExpected = OvnMath.subBasisPoints(_totalValue(true), allowedSlippageBp);
 
         uint256 lpUsdtBalance = wmxLpUsdt.balanceOf(address(this));
         if (lpUsdtBalance > 0) {
@@ -248,8 +230,6 @@ contract StrategyWombexUsdt is Strategy {
                 address(this)
             );
         }
-
-        require(_totalValue(true) >= minNavExpected, "StrategyWombexUsdt: NAV less than expected");
 
         return busd.balanceOf(address(this));
     }
