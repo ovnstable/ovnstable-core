@@ -35,14 +35,6 @@ This repository contains is next modules:
 4) strategies - contains sub modules with strategies for each chain
 
 
-### Accounts for local development:
-
-- Account: **deployer**: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
-- Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-
-Private key need to import to Metamask
-
-
 ### Upgrade VS Code
 
 To prettify solidity code install prettier plugin to VSCode:
