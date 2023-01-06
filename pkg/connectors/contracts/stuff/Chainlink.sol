@@ -59,7 +59,7 @@ library ChainlinkLibrary {
         amount1 = (amount0 * token1Denominator * price0) / (token0Denominator * price1);
     }
 
-    function convertTokenToUSD(
+    function convertTokenToUsd(
         uint256 amount,
         uint256 tokenDenominator,
         uint256 price
@@ -72,6 +72,36 @@ library ChainlinkLibrary {
         uint256 tokenDenominator,
         uint256 price
     ) internal pure returns (uint256 amount) {
+        amount = amountUsd * tokenDenominator / price;
+    }
+
+    function convertTokenToToken(
+        uint256 amount0,
+        uint256 token0Denominator,
+        uint256 token1Denominator,
+        IPriceFeed oracle0,
+        IPriceFeed oracle1
+    ) internal view returns (uint256 amount1) {
+        uint256 price0 = uint256(oracle0.latestAnswer());
+        uint256 price1 = uint256(oracle1.latestAnswer());
+        amount1 = (amount0 * token1Denominator * price0) / (token0Denominator * price1);
+    }
+
+    function convertTokenToUsd(
+        uint256 amount,
+        uint256 tokenDenominator,
+        IPriceFeed oracle
+    ) internal view returns (uint256 amountUsd) {
+        uint256 price = uint256(oracle.latestAnswer());
+        amountUsd = amount * price / tokenDenominator;
+    }
+
+    function convertUsdToToken(
+        uint256 amountUsd,
+        uint256 tokenDenominator,
+        IPriceFeed oracle
+    ) internal view returns (uint256 amount) {
+        uint256 price = uint256(oracle.latestAnswer());
         amount = amountUsd * tokenDenominator / price;
     }
 }

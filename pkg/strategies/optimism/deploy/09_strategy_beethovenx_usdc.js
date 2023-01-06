@@ -10,10 +10,7 @@ let bptGauge = "0xDC785Bc8280D8fdB89aEb4980e061e34a34e71d4";
 let vault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 let stablePoolId = "0x6222ae1d2a9f6894da50aa25cb7b303497f9bebd000000000000000000000046";
 let aUsdcPoolId = "0xba7834bb3cd2db888e6a06fb45e82b4225cd0c71000000000000000000000043";
-
-
 let gauge = "0xDC785Bc8280D8fdB89aEb4980e061e34a34e71d4";
-
 let poolUsdcOpFee = 500; // 0.05%
 
 module.exports = async ({deployments}) => {

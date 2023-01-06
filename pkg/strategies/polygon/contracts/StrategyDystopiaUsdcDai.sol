@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./core/Strategy.sol";
-import "./interfaces/ISwapper.sol";
-
+import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/swapper/contracts/ISwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Dystopia.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Penrose.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange {
 
@@ -318,9 +317,7 @@ contract StrategyDystopiaUsdcDai is Strategy, DystopiaExchange, BalancerExchange
         uint256 usdcBalanceFromDai;
         if (daiBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceDai = uint256(oracleDai.latestAnswer());
-                usdcBalanceFromDai = AaveBorrowLibrary.convertTokenAmountToTokenAmount(daiBalance, daiTokenDenominator, usdcTokenDenominator, priceDai, priceUsdc);
+                usdcBalanceFromDai = ChainlinkLibrary.convertTokenToToken(daiBalance, daiTokenDenominator, usdcTokenDenominator, oracleDai, oracleUsdc);
             } else {
                 ISwapper.SwapParams memory swapParams = ISwapper.SwapParams(
                     address(daiToken),

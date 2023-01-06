@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./core/Strategy.sol";
-
+import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Stargate.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/common/contracts/libraries/AaveBorrowLibrary.sol";
 
 
 contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
@@ -197,9 +195,7 @@ contract StrategyStargateUsdt is Strategy, UniswapV2Exchange, SynapseExchange {
         if (amount > 0) {
             uint256 usdtBalance = pool.amountLPtoLD(amount);
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
-                usdcBalance += AaveBorrowLibrary.convertTokenAmountToTokenAmount(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, priceUsdt, priceUsdc);
+                usdcBalance += ChainlinkLibrary.convertTokenToToken(usdtBalance, usdtTokenDenominator, usdcTokenDenominator, oracleUsdt, oracleUsdc);
             } else {
                 usdcBalance += _synapseCalculateSwap(address(usdtToken), address(usdcToken), usdtBalance);
             }

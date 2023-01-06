@@ -50,6 +50,9 @@ contract StrategyWombexUsdc is Strategy {
     uint256 public usdcDm;
     uint256 public lpUsdcDm;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
     // --- events
 
     event StrategyUpdatedParams();
@@ -111,13 +114,20 @@ contract StrategyWombexUsdc is Strategy {
             busdBalance
         );
         if (usdcBalanceOut > 0) {
+            uint256 usdcBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                busdBalance,
+                busdDm,
+                usdcDm,
+                oracleBusd,
+                oracleUsdc
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(busd),
                 address(usdc),
                 address(pool),
                 busdBalance,
-                OvnMath.subBasisPoints(usdcBalanceOut, 4),
+                OvnMath.subBasisPoints(usdcBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
@@ -162,13 +172,20 @@ contract StrategyWombexUsdc is Strategy {
             usdcBalance
         );
         if (busdBalanceOut > 0) {
+            uint256 busdBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                usdcBalance,
+                usdcDm,
+                busdDm,
+                oracleUsdc,
+                oracleBusd
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(usdc),
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOut, 4),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
@@ -199,13 +216,20 @@ contract StrategyWombexUsdc is Strategy {
             usdcBalance
         );
         if (busdBalanceOut > 0) {
+            uint256 busdBalanceOracle = ChainlinkLibrary.convertTokenToToken(
+                usdcBalance,
+                usdcDm,
+                busdDm,
+                oracleUsdc,
+                oracleBusd
+            );
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(usdc),
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOut, 4),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
                 address(this)
             );
         }
@@ -233,9 +257,13 @@ contract StrategyWombexUsdc is Strategy {
 
         if (usdcBalance > 0) {
             if (nav) {
-                uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-                uint256 priceBusd = uint256(oracleBusd.latestAnswer());
-                busdBalance += (usdcBalance * busdDm * priceUsdc) / (usdcDm * priceBusd);
+                busdBalance += ChainlinkLibrary.convertTokenToToken(
+                    usdcBalance,
+                    usdcDm,
+                    busdDm,
+                    oracleUsdc,
+                    oracleBusd
+                );
             } else {
                 busdBalance += WombatLibrary.getAmountOut(
                     wombatRouter,

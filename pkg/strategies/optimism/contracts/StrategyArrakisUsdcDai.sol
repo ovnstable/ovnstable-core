@@ -37,6 +37,9 @@ contract StrategyArrakisUsdcDai is Strategy {
     uint256 public usdcDm;
     uint256 public daiDm;
 
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
+
     // --- structs
 
     struct StrategyParams {

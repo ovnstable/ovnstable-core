@@ -74,6 +74,25 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "bufferPercent",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bufferPercentDenominator",
+        "type": "uint256"
+      }
+    ],
+    "name": "BufferPercentUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "fee",
         "type": "uint256"
       },
@@ -233,6 +252,18 @@
         "indexed": false,
         "internalType": "uint256",
         "name": "loss",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bufferBalance",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "collectorAmount",
         "type": "uint256"
       }
     ],
@@ -566,8 +597,47 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_balanceRatio",
+        "type": "uint256"
+      }
+    ],
+    "name": "balanceRatio",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "balanceSlippageBp",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "bufferPercent",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "bufferPercentDenominator",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1072,6 +1142,24 @@
       }
     ],
     "name": "setBalanceSlippageBp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_bufferPercent",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_bufferPercentDenominator",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBufferPercent",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

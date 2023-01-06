@@ -35,8 +35,11 @@ contract StrategyGammaUsdcDai is Strategy {
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
-    uint256 usdcDm;
-    uint256 daiDm;
+    uint256 public usdcDm;
+    uint256 public daiDm;
+
+    uint256 public oldSwapSlippageBp;
+    uint256 public oldAllowedSlippageBp;
 
     // --- structs
 

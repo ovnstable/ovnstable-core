@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./interfaces/IHedgeExchanger.sol";
+import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
@@ -24,10 +24,10 @@ contract StrategyEtsEpsilon is Strategy {
     IPriceFeed public oracleDai;
     IPriceFeed public oracleUsdc;
 
-    uint256 public allowedSlippageBp;
+    uint256 public oldAllowedSlippageBp;
 
-    uint256 daiDm;
-    uint256 usdcDm;
+    uint256 public daiDm;
+    uint256 public usdcDm;
 
 
     // --- events
@@ -45,7 +45,6 @@ contract StrategyEtsEpsilon is Strategy {
         uint24 poolUsdcDaiFee;
         address oracleDai;
         address oracleUsdc;
-        uint256 allowedSlippageBp;
     }
 
 
@@ -74,8 +73,6 @@ contract StrategyEtsEpsilon is Strategy {
         oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
 
-        allowedSlippageBp = params.allowedSlippageBp;
-
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
@@ -93,7 +90,7 @@ contract StrategyEtsEpsilon is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // sub for stake
-        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp) - 1e13;
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBp) - 1e13;
         // swap usdc to dai
         uint256 daiAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
@@ -120,7 +117,7 @@ contract StrategyEtsEpsilon is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // add for unstake more than requested
-        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount), allowedSlippageBp) + 1e13;
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBp) + 1e13;
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         if (rebaseTokenAmount > rebaseTokenBalance) {
             rebaseTokenAmount = rebaseTokenBalance;
@@ -132,7 +129,7 @@ contract StrategyEtsEpsilon is Strategy {
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
         uint256 usdcAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(dai),
@@ -160,7 +157,7 @@ contract StrategyEtsEpsilon is Strategy {
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
         uint256 usdcAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(dai),
@@ -190,7 +187,7 @@ contract StrategyEtsEpsilon is Strategy {
             if (nav) {
                 usdcBalance += _oracleDaiToUsdc(daiBalance);
             } else {
-                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), allowedSlippageBp);
+                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
             }
         }
 
