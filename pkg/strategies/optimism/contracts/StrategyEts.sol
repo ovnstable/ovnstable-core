@@ -2,9 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "./interfaces/IHedgeExchanger.sol";
+import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyEts is Strategy {
 
@@ -58,10 +57,6 @@ contract StrategyEts is Strategy {
 
         require(_asset == address(asset), "Some token not compatible");
 
-        console.log("_asset: %s", _asset);
-        console.log("_amount: %s", _amount);
-        console.log("address(hedgeExchanger): %s", address(hedgeExchanger));
-        console.log("asset.balanceOf: %s", asset.balanceOf(address(this)));
         asset.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.buy(_amount, "");
     }
