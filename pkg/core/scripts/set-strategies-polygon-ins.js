@@ -29,7 +29,27 @@ async function main() {
             "strategy": "0x85e8c510DA139E41225ecb61954417dd2F953681",
             "name": "AlfaPlus",
             "minWeight": 0,
-            "targetWeight": 45,
+            "targetWeight": 15,
+            "maxWeight": 100,
+            "riskFactor": 0,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x53D0159423F8AaC1e87bF5715A6171d14ee97B50",
+            "name": "ZetaPlus",
+            "minWeight": 0,
+            "targetWeight": 15,
+            "maxWeight": 100,
+            "riskFactor": 0,
+            "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x1900dce87E6629cb4763F426e613aF408dDdb10c",
+            "name": "EpsilonPlus",
+            "minWeight": 0,
+            "targetWeight": 15,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
