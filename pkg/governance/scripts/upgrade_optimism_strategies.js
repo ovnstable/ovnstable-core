@@ -1,5 +1,5 @@
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, execProposal} = require("@overnight-contracts/common/utils/governance");
+const {getContract, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {createProposal, execProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
@@ -56,16 +56,6 @@ async function main() {
     addresses.push(StrategyEtsBetaPlus.address);
     values.push(0);
     abis.push(StrategyEtsBetaPlus.interface.encodeFunctionData('initSlippages', [20, 20]));
-
-    let StrategyPikaUsdc = await getContract('StrategyPikaUsdc');
-
-    addresses.push(StrategyPikaUsdc.address);
-    values.push(0);
-    abis.push(StrategyPikaUsdc.interface.encodeFunctionData('upgradeTo', ['0xBf005a741bc8d9a92F39662C7a8fbA59e80e836C']));
-
-    addresses.push(StrategyPikaUsdc.address);
-    values.push(0);
-    abis.push(StrategyPikaUsdc.interface.encodeFunctionData('initSlippages', [20, 20]));
 
     let StrategyReaperSonneDai = await getContract('StrategyReaperSonneDai');
 
@@ -128,7 +118,9 @@ async function main() {
     abis.push(StrategyRubiconUsdt.interface.encodeFunctionData('initSlippages', [20, 20]));
 
 
-    await createProposal(addresses, values, abis)
+    await showM2M();
+    await testProposal(addresses, values, abis);
+    await showM2M();
 
 }
 
