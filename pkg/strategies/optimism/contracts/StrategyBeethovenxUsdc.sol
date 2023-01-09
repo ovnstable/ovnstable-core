@@ -30,9 +30,6 @@ contract StrategyBeethovenxUsdc is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFee;
 
-    uint256 public oldSwapSlippageBp;
-    uint256 public oldAllowedSlippageBp;
-
 
     // --- events
     event StrategyUpdatedParams();
@@ -114,7 +111,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         // 3. Stake BPT tokens to gauge
 
         // 6e + 30e / 18e = 18e
-        uint256 minAmountBbaUsdc = OvnMath.subBasisPoints(_amount * 1e30 / bbaUsdc.getRate(), swapSlippageBp);
+        uint256 minAmountBbaUsdc = OvnMath.subBasisPoints(_amount * 1e30 / bbaUsdc.getRate(), swapSlippageBP);
 
         //1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
         BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, usdc, bbaUsdc, address(this), address(this), _amount, minAmountBbaUsdc);
@@ -213,7 +210,7 @@ contract StrategyBeethovenxUsdc is Strategy {
         // 3. Swap
         uint256 bbaUsdcBalance = bbaUsdc.balanceOf(address(this));
         // 18e + 18e - 30e = 6e (USDC)
-        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbaUsdcBalance * bbaUsdc.getRate() / 1e30, swapSlippageBp);
+        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbaUsdcBalance * bbaUsdc.getRate() / 1e30, swapSlippageBP);
         BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, bbaUsdc, usdc, address(this), address(this), bbaUsdc.balanceOf(address(this)), minAmountUsdc);
 
         return usdc.balanceOf(address(this));

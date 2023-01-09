@@ -17,8 +17,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     address public portfolioManager;
 
-    uint256 public swapSlippageBp;
-    uint256 public navSlippageBp;
+    uint256 public swapSlippageBP;
+    uint256 public navSlippageBP;
 
 
     function __Strategy_init() internal initializer {
@@ -27,8 +27,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        swapSlippageBp = 20;
-        navSlippageBp = 20;
+        swapSlippageBP = 20;
+        navSlippageBP = 20;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -69,21 +69,21 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function initSlippages(
-        uint256 _swapSlippageBp,
-        uint256 _navSlippageBp
+        uint256 _swapSlippageBP,
+        uint256 _navSlippageBP
     ) public onlyAdmin {
-        swapSlippageBp = _swapSlippageBp;
-        navSlippageBp = _navSlippageBp;
-        emit SlippagesUpdated(_swapSlippageBp, _navSlippageBp);
+        swapSlippageBP = _swapSlippageBP;
+        navSlippageBP = _navSlippageBP;
+        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP);
     }
 
     function setSlippages(
-        uint256 _swapSlippageBp,
-        uint256 _navSlippageBp
+        uint256 _swapSlippageBP,
+        uint256 _navSlippageBP
     ) public onlyPortfolioAgent {
-        swapSlippageBp = _swapSlippageBp;
-        navSlippageBp = _navSlippageBp;
-        emit SlippagesUpdated(_swapSlippageBp, _navSlippageBp);
+        swapSlippageBP = _swapSlippageBP;
+        navSlippageBP = _navSlippageBP;
+        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP);
     }
 
 
@@ -94,7 +94,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 _amount
     ) external override onlyPortfolioManager {
 
-        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBp);
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
 
@@ -110,7 +110,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
 
-        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBp);
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         uint256 withdrawAmount;
         uint256 rewardAmount;

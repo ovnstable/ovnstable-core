@@ -7,7 +7,7 @@ interface IStrategy {
 
     event Reward(uint256 amount);
     event PortfolioManagerUpdated(address value);
-    event SlippagesUpdated(uint256 swapSlippageBp, uint256 navSlippageBp);
+    event SlippagesUpdated(uint256 swapSlippageBP, uint256 navSlippageBP);
 
     event Stake(uint256 amount);
     event Unstake(uint256 amount, uint256 amountReceived);

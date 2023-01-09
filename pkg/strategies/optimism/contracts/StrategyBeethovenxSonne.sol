@@ -32,8 +32,8 @@ contract StrategyBeethovenxSonne is Strategy {
     IERC20 public sonne;
     IRouter public velodromeRouter;
 
-    uint256 public oldSwapSlippageBp;
-    uint256 public oldAllowedSlippageBp;
+    uint256 public swapSlippageBp;
+    uint256 public allowedSlippageBp;
 
     // --- events
     event StrategyUpdatedParams();
@@ -116,7 +116,7 @@ contract StrategyBeethovenxSonne is Strategy {
         uint256 usdcBalance = usdc.balanceOf(address(this));
 
         // 6e + 30e / 18e = 18e
-        uint256 minAmountBbaUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbaUsdc.getRate(), swapSlippageBp);
+        uint256 minAmountBbaUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbaUsdc.getRate(), swapSlippageBP);
 
         BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, usdc, bbaUsdc, address(this), address(this), usdcBalance, minAmountBbaUsdc);
 
@@ -215,7 +215,7 @@ contract StrategyBeethovenxSonne is Strategy {
         uint256 bbaUsdcBalance = bbaUsdc.balanceOf(address(this));
 
         // 18e + 18e - 30e = 6e (USDC)
-        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbaUsdcBalance * bbaUsdc.getRate() / 1e30, swapSlippageBp);
+        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbaUsdcBalance * bbaUsdc.getRate() / 1e30, swapSlippageBP);
         BeethovenLibrary.swap(vault, aUsdcPoolId, IVault.SwapKind.GIVEN_IN, bbaUsdc, usdc, address(this), address(this), bbaUsdcBalance, minAmountUsdc);
 
         return usdc.balanceOf(address(this));

@@ -24,8 +24,8 @@ contract StrategyEtsUsdcDai is Strategy {
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleDai;
 
-    uint256 public oldSwapSlippageBp;
-    uint256 public oldAllowedSlippageBp;
+    uint256 public swapSlippageBp;
+    uint256 public allowedSlippageBp;
 
     uint256 public usdcDm;
     uint256 public daiDm;
@@ -91,7 +91,7 @@ contract StrategyEtsUsdcDai is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // sub for stake
-        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBp) - 1e13;
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBP) - 1e13;
         // swap usdc to dai
         uint256 daiAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
@@ -130,7 +130,7 @@ contract StrategyEtsUsdcDai is Strategy {
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
         uint256 usdcAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(dai),
@@ -158,7 +158,7 @@ contract StrategyEtsUsdcDai is Strategy {
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
         uint256 usdcAmount = UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(dai),
@@ -188,7 +188,7 @@ contract StrategyEtsUsdcDai is Strategy {
             if (nav) {
                 usdcBalance += _oracleDaiToUsdc(daiBalance);
             } else {
-                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBp);
+                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
             }
         }
 

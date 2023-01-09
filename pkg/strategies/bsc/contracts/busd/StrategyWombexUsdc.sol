@@ -50,9 +50,6 @@ contract StrategyWombexUsdc is Strategy {
     uint256 public usdcDm;
     uint256 public lpUsdcDm;
 
-    uint256 public oldSwapSlippageBp;
-    uint256 public oldAllowedSlippageBp;
-
     // --- events
 
     event StrategyUpdatedParams();
@@ -127,7 +124,7 @@ contract StrategyWombexUsdc is Strategy {
                 address(usdc),
                 address(pool),
                 busdBalance,
-                OvnMath.subBasisPoints(usdcBalanceOracle, swapSlippageBp),
+                OvnMath.subBasisPoints(usdcBalanceOracle, swapSlippageBP),
                 address(this)
             );
         }
@@ -185,7 +182,7 @@ contract StrategyWombexUsdc is Strategy {
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBP),
                 address(this)
             );
         }
@@ -229,7 +226,7 @@ contract StrategyWombexUsdc is Strategy {
                 address(busd),
                 address(pool),
                 usdcBalance,
-                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBp),
+                OvnMath.subBasisPoints(busdBalanceOracle, swapSlippageBP),
                 address(this)
             );
         }

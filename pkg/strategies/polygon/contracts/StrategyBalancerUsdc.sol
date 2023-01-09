@@ -30,8 +30,8 @@ contract StrategyBalancerUsdc is Strategy {
     IPriceFeed public oracleUsdt;
     IPriceFeed public oracleDai;
 
-    uint256 public oldSwapSlippageBp;
-    uint256 public oldAllowedSlippageBp;
+    uint256 public swapSlippageBp;
+    uint256 public allowedSlippageBp;
 
 
     // --- events
@@ -111,7 +111,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         // 1. Before put liquidity to Stable pool need to swap USDC to bb-aUSDC (linear pool token)
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 minAmountBbamUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbamUsdc.getRate(), swapSlippageBp);
+        uint256 minAmountBbamUsdc = OvnMath.subBasisPoints(usdcBalance * 1e30 / bbamUsdc.getRate(), swapSlippageBP);
         BalancerLibrary.swap(
             vault,
             IVault.SwapKind.GIVEN_IN,
@@ -176,7 +176,7 @@ contract StrategyBalancerUsdc is Strategy {
             address(bpt),
             bbamUsdcPoolId,
             bbamUsdPoolId,
-            OvnMath.addBasisPoints(_amount, swapSlippageBp),
+            OvnMath.addBasisPoints(_amount, swapSlippageBP),
             address(this),
             address(this)
         );
@@ -228,7 +228,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         // 3. Swap
         uint256 bbamUsdcBalance = bbamUsdc.balanceOf(address(this));
-        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbamUsdcBalance * bbamUsdc.getRate() / 1e30, swapSlippageBp);
+        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbamUsdcBalance * bbamUsdc.getRate() / 1e30, swapSlippageBP);
         BalancerLibrary.swap(
             vault,
             IVault.SwapKind.GIVEN_IN,
