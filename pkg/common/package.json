@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/common",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Strategies Polygon",
   "main": "hardhat.config",
   "directories": {
