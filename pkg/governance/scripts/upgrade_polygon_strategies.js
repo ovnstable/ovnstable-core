@@ -1,5 +1,5 @@
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, execProposal} = require("@overnight-contracts/common/utils/governance");
+const {getContract, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {createProposal, execProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
@@ -11,73 +11,60 @@ async function main() {
 
     addresses.push(StrategyAave.address);
     values.push(0);
-    abis.push(StrategyAave.interface.encodeFunctionData('upgradeTo', ['0xb6F6e7A859BdadD9bC403c8950110662634B1Ff2']));
+    abis.push(StrategyAave.interface.encodeFunctionData('upgradeTo', ['0xbb1a9c7b5F9ecAa5DBe0A8C21fFd08DcED1D3A43']));
 
     addresses.push(StrategyAave.address);
     values.push(0);
     abis.push(StrategyAave.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let StrategyBalancerUsdc = await getContract('StrategyBalancerUsdc');
+    let gamma = await getContract('StrategyEtsGammaPlus');
 
-    addresses.push(StrategyBalancerUsdc.address);
+    addresses.push(gamma.address);
     values.push(0);
-    abis.push(StrategyBalancerUsdc.interface.encodeFunctionData('upgradeTo', ['0xd48F0a7976df6111db7CCeb8E65a92435e2fBa3e']));
+    abis.push(gamma.interface.encodeFunctionData('upgradeTo', ['0x99da9476cAD88D03ae4632B090425a234ca07CE6']));
 
-    addresses.push(StrategyBalancerUsdc.address);
+    addresses.push(gamma.address);
     values.push(0);
-    abis.push(StrategyBalancerUsdc.interface.encodeFunctionData('initSlippages', [20, 20]));
+    abis.push(gamma.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let StrategyEtsAlfaPlus = await getContract('StrategyEtsAlfaPlus');
+    let alfa = await getContract('StrategyEtsAlfaPlus');
 
-    addresses.push(StrategyEtsAlfaPlus.address);
+    addresses.push(alfa.address);
     values.push(0);
-    abis.push(StrategyEtsAlfaPlus.interface.encodeFunctionData('upgradeTo', ['0xa96780ED172B5275D814E31524E27FD2FB962bB0']));
+    abis.push(alfa.interface.encodeFunctionData('upgradeTo', ['0x99da9476cAD88D03ae4632B090425a234ca07CE6']));
 
-    addresses.push(StrategyEtsAlfaPlus.address);
+    addresses.push(alfa.address);
     values.push(0);
-    abis.push(StrategyEtsAlfaPlus.interface.encodeFunctionData('initSlippages', [20, 20]));
+    abis.push(alfa.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let StrategyEtsEpsilonPlus = await getContract('StrategyEtsEpsilonPlus');
+    let zeta = await getContract('StrategyEtsZetaPlus');
 
-    addresses.push(StrategyEtsEpsilonPlus.address);
+    addresses.push(zeta.address);
     values.push(0);
-    abis.push(StrategyEtsEpsilonPlus.interface.encodeFunctionData('upgradeTo', ['0x3Efe5589acd0f5a557449359E0461883B79e08e7']));
+    abis.push(zeta.interface.encodeFunctionData('upgradeTo', ['0x99da9476cAD88D03ae4632B090425a234ca07CE6']));
 
-    addresses.push(StrategyEtsEpsilonPlus.address);
+    addresses.push(zeta.address);
     values.push(0);
-    abis.push(StrategyEtsEpsilonPlus.interface.encodeFunctionData('initSlippages', [20, 20]));
+    abis.push(zeta.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let StrategyEtsGammaPlus = await getContract('StrategyEtsGammaPlus');
 
-    addresses.push(StrategyEtsGammaPlus.address);
+    let pm = await getContract('PortfolioManager');
+
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(StrategyEtsGammaPlus.interface.encodeFunctionData('upgradeTo', ['0xa96780ED172B5275D814E31524E27FD2FB962bB0']));
+    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x0dD66c4f9a739042d313d2db48Bb62aadBcFEdc2']));
 
-    addresses.push(StrategyEtsGammaPlus.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(StrategyEtsGammaPlus.interface.encodeFunctionData('initSlippages', [20, 20]));
+    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x3114bfDce69a13d2258BD273D231386A074cEC48']));
 
-    let StrategyEtsZetaPlus = await getContract('StrategyEtsZetaPlus');
-
-    addresses.push(StrategyEtsZetaPlus.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(StrategyEtsZetaPlus.interface.encodeFunctionData('upgradeTo', ['0xa96780ED172B5275D814E31524E27FD2FB962bB0']));
+    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x0B5b9451b3b8C2Ba4e5CDF0ac6d9D05EE3ba9d30']));
 
-    addresses.push(StrategyEtsZetaPlus.address);
-    values.push(0);
-    abis.push(StrategyEtsZetaPlus.interface.encodeFunctionData('initSlippages', [20, 20]));
-
-    let StrategyUniV3DaiUsdt = await getContract('StrategyUniV3DaiUsdt');
-
-    addresses.push(StrategyUniV3DaiUsdt.address);
-    values.push(0);
-    abis.push(StrategyUniV3DaiUsdt.interface.encodeFunctionData('upgradeTo', ['0x276CBb2612EA6e5B5F1ba5C339B1499082493467']));
-
-    addresses.push(StrategyUniV3DaiUsdt.address);
-    values.push(0);
-    abis.push(StrategyUniV3DaiUsdt.interface.encodeFunctionData('initSlippages', [20, 20]));
-
-
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
     await createProposal(addresses, values, abis)
 
 }

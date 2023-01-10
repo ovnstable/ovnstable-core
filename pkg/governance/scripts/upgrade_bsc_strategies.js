@@ -11,41 +11,12 @@ async function main() {
 
     addresses.push(venus.address);
     values.push(0);
-    abis.push(venus.interface.encodeFunctionData('upgradeTo', ['0x9572714f7D63aC2F0b91F52c18ABbBC3F2Ff9A53']));
+    abis.push(venus.interface.encodeFunctionData('upgradeTo', ['0x09E1902AbcfB29f688049EF8D13e1B3Ba2966cba']));
 
     addresses.push(venus.address);
     values.push(0);
     abis.push(venus.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let wombexBusd = await getContract('StrategyWombexBusd');
-
-    addresses.push(wombexBusd.address);
-    values.push(0);
-    abis.push(wombexBusd.interface.encodeFunctionData('upgradeTo', ['0xbBfDD0663A38FCd35BAa1261dfA4f3BC02E5e26e']));
-
-    addresses.push(wombexBusd.address);
-    values.push(0);
-    abis.push(wombexBusd.interface.encodeFunctionData('initSlippages', [20, 20]));
-
-    let wombexUsdt = await getContract('StrategyWombexUsdt');
-
-    addresses.push(wombexUsdt.address);
-    values.push(0);
-    abis.push(wombexUsdt.interface.encodeFunctionData('upgradeTo', ['0x18e4ec90f4715e14372A2d1B116148AFfcf85AC1']));
-
-    addresses.push(wombexUsdt.address);
-    values.push(0);
-    abis.push(wombexUsdt.interface.encodeFunctionData('initSlippages', [20, 20]));
-
-    let wombexUsdc = await getContract('StrategyWombexUsdc');
-
-    addresses.push(wombexUsdc.address);
-    values.push(0);
-    abis.push(wombexUsdc.interface.encodeFunctionData('upgradeTo', ['0x5d5696deC88BE163DE85d6Da3a18C3AC175F915E']));
-
-    addresses.push(wombexUsdc.address);
-    values.push(0);
-    abis.push(wombexUsdc.interface.encodeFunctionData('initSlippages', [20, 20]));
 
 
     await createProposal(addresses, values, abis);
