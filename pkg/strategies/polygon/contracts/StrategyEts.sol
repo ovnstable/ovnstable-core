@@ -98,7 +98,7 @@ contract StrategyEts is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return rebaseToken.balanceOf(address(this));
+        return rebaseToken.balanceOf(address(this)) + asset.balanceOf(address(this));
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
