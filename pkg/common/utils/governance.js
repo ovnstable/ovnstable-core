@@ -130,7 +130,7 @@ async function execProposal(id) {
         return;
     }
     if (state === "Queued"){
-        const sevenDays = 6 * 60 * 60 * 1000;
+        const sevenDays = 6 * 60 * 1000; // 6 hours
         await ethers.provider.send("evm_increaseTime", [sevenDays])
         await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
         await governator.connect(wallet).executeExec(proposalId);
@@ -164,8 +164,8 @@ async function execProposal(id) {
     expect('Succeeded').to.eq(state);
     await governator.connect(wallet).queueExec(proposalId);
 
-    const sevenDays = 6 * 60 * 60 * 1000;
-    await ethers.provider.send("evm_increaseTime", [sevenDays])
+    const hours = 6 * 60 * 1000; // 6 hours
+    await ethers.provider.send("evm_increaseTime", [hours])
     await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
     await governator.connect(wallet).executeExec(proposalId);
 
