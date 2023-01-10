@@ -11,6 +11,10 @@ async function main() {
 
     addresses.push(StrategyAave.address);
     values.push(0);
+    abis.push(StrategyAave.interface.encodeFunctionData('grantRole', ['0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3','0xa8b1981bee803c5de8c714fd0dae7a054b114653']));
+
+    addresses.push(StrategyAave.address);
+    values.push(0);
     abis.push(StrategyAave.interface.encodeFunctionData('upgradeTo', ['0xbb1a9c7b5F9ecAa5DBe0A8C21fFd08DcED1D3A43']));
 
     addresses.push(StrategyAave.address);
@@ -18,6 +22,10 @@ async function main() {
     abis.push(StrategyAave.interface.encodeFunctionData('initSlippages', [20, 20]));
 
     let gamma = await getContract('StrategyEtsGammaPlus');
+
+    addresses.push(gamma.address);
+    values.push(0);
+    abis.push(gamma.interface.encodeFunctionData('grantRole', ['0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3','0xa8b1981bee803c5de8c714fd0dae7a054b114653']));
 
     addresses.push(gamma.address);
     values.push(0);
@@ -31,36 +39,26 @@ async function main() {
 
     addresses.push(alfa.address);
     values.push(0);
+    abis.push(alfa.interface.encodeFunctionData('grantRole', ['0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3','0xa8b1981bee803c5de8c714fd0dae7a054b114653']));
+
+    addresses.push(alfa.address);
+    values.push(0);
     abis.push(alfa.interface.encodeFunctionData('upgradeTo', ['0x99da9476cAD88D03ae4632B090425a234ca07CE6']));
 
     addresses.push(alfa.address);
     values.push(0);
     abis.push(alfa.interface.encodeFunctionData('initSlippages', [20, 20]));
 
-    let zeta = await getContract('StrategyEtsZetaPlus');
-
-    addresses.push(zeta.address);
-    values.push(0);
-    abis.push(zeta.interface.encodeFunctionData('upgradeTo', ['0x99da9476cAD88D03ae4632B090425a234ca07CE6']));
-
-    addresses.push(zeta.address);
-    values.push(0);
-    abis.push(zeta.interface.encodeFunctionData('initSlippages', [20, 20]));
-
 
     let pm = await getContract('PortfolioManager');
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x0dD66c4f9a739042d313d2db48Bb62aadBcFEdc2']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xA0C1694179695B50b18b4C25373143a334FaFbed']));
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x3114bfDce69a13d2258BD273D231386A074cEC48']));
-
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0x0B5b9451b3b8C2Ba4e5CDF0ac6d9D05EE3ba9d30']));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x85542c788BA3288f3b5873C83Ca5d72D97d25D00']));
 
     // await showM2M();
     // await testProposal(addresses, values, abis);
