@@ -1,6 +1,6 @@
 const {toAsset} = require("@overnight-contracts/common/utils/decimals");
 
-const {getContract, showM2M, getCoreAsset, transferETH, initWallet} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, showM2M, getCoreAsset, transferETH, initWallet, getWalletAddress} = require("@overnight-contracts/common/utils/script-utils");
 
 
 async function main() {
@@ -10,9 +10,10 @@ async function main() {
 
     await showM2M();
 
-    await (await asset.approve(exchange.address, toAsset(1))).wait();
+    let amount = await asset.balanceOf(await getWalletAddress());
+    await (await asset.approve(exchange.address, amount)).wait();
     console.log('Asset approve done');
-    await (await exchange.buy(asset.address, toAsset(1))).wait();
+    await (await exchange.buy(asset.address, amount)).wait();
     console.log('Exchange.buy done');
 
     await showM2M();

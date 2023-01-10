@@ -27,6 +27,18 @@ async function initWallet() {
 
     return wallet;
 }
+
+
+async function getWalletAddress(){
+
+    let wallet = await initWallet();
+
+    if (wallet)
+        return wallet.address;
+    else
+        throw new Error('Wallet not found');
+}
+
 async function deploySection(exec){
 
     if (hre.ovn === undefined)
@@ -681,6 +693,7 @@ module.exports = {
     getChainId: getChainId,
     convertWeights: convertWeights,
     initWallet: initWallet,
+    getWalletAddress: getWalletAddress,
     getDevWallet: getDevWallet,
     transferETH: transferETH,
     transferDAI: transferDAI,

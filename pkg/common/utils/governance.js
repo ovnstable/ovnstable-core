@@ -1,6 +1,6 @@
-const {fromE18, toE18} = require("./decimals");
+const {fromE18, toE18, fromAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -25,6 +25,62 @@ async function createProposal(addresses, values, abis){
     console.log('Proposal id ' + proposalId)
 
     return proposalId;
+}
+
+async function testUsdPlus(){
+
+
+    let tables = [];
+
+    let exchange = await getContract('Exchange');
+    let asset = await getCoreAsset();
+    let usdPlusToken = await getContract('UsdPlusToken');
+
+    let amountAsset = await asset.balanceOf(await getWalletAddress());
+    let amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+
+
+    tables.push({
+        name: 'before: mint',
+        asset: fromAsset(amountAsset),
+        usdPlus: fromAsset(amountUsdPlus)
+    })
+
+    await (await asset.approve(exchange.address, amountAsset)).wait();
+    console.log('Asset approve done');
+    await (await exchange.buy(asset.address, amountAsset)).wait();
+    console.log('Exchange.buy done');
+
+    amountAsset = await asset.balanceOf(await getWalletAddress());
+    amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+
+    tables.push({
+        name: 'after: mint',
+        asset: fromAsset(amountAsset),
+        usdPlus: fromAsset(amountUsdPlus)
+    })
+
+    tables.push({
+        name: 'before: redeem',
+        asset: fromAsset(amountAsset),
+        usdPlus: fromAsset(amountUsdPlus)
+    })
+
+    await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
+    console.log('UsdPlus approve done');
+    await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
+    console.log('Exchange.redeem done');
+
+    amountAsset = await asset.balanceOf(await getWalletAddress());
+    amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+
+    tables.push({
+        name: 'after: redeem',
+        asset: fromAsset(amountAsset),
+        usdPlus: fromAsset(amountUsdPlus)
+    })
+
+    console.table(tables);
 }
 
 async function testProposal(addresses, values, abis){
@@ -74,7 +130,10 @@ async function execProposal(id) {
         return;
     }
     if (state === "Queued"){
-        await governator.executeExec(proposalId);
+        const sevenDays = 6 * 60 * 60 * 1000;
+        await ethers.provider.send("evm_increaseTime", [sevenDays])
+        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
+        await governator.connect(wallet).executeExec(proposalId);
         return;
     }
 
@@ -121,4 +180,5 @@ module.exports = {
     execProposal: execProposal,
     createProposal: createProposal,
     testProposal: testProposal,
+    testUsdPlus: testUsdPlus
 }
