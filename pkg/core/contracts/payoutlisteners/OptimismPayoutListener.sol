@@ -11,6 +11,8 @@ contract OptimismPayoutListener is PayoutListener {
     address[] public velodromePools;
     address[] public velodromeBribes;
     IERC20 public usdPlus;
+    address public collector;
+    address[] public velodromePoolsCollector;
 
     // ---  events
 
@@ -22,9 +24,17 @@ contract OptimismPayoutListener is PayoutListener {
         usdPlus = IERC20(_usdPlus);
     }
 
+    function setCollector(address _collector) external onlyAdmin {
+        collector = _collector;
+    }
+
     function setVelodromePools(address[] calldata _pools, address[] calldata _bribes) external onlyAdmin {
         velodromePools = _pools;
         velodromeBribes = _bribes;
+    }
+
+    function setVelodromePoolsCollector(address[] calldata _pools) external onlyAdmin {
+        velodromePoolsCollector = _pools;
     }
 
     // ---  constructor
@@ -39,6 +49,21 @@ contract OptimismPayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
+        _skim();
+        _skimCollector();
+    }
+
+    // Get income USD+ from pool and send to collector as profit of OVN
+    function _skimCollector() internal {
+        require(collector != address(0), 'collector is empty');
+
+        for (uint256 i = 0; i < velodromePoolsCollector.length; i++) {
+            VelodromePool(velodromePoolsCollector[i]).skim(collector);
+        }
+    }
+
+    // Get income USD+ from pool and send to as bribe to pool
+    function _skim() internal {
         for (uint256 i = 0; i < velodromePools.length; i++) {
 
             VelodromePool(velodromePools[i]).skim(address(this));
@@ -53,5 +78,5 @@ contract OptimismPayoutListener is PayoutListener {
     }
 
 
-}
+    }
 
