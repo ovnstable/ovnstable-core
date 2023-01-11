@@ -83,6 +83,44 @@ async function testUsdPlus(){
     console.table(tables);
 }
 
+async function testInsurance(){
+
+
+    let tables = [];
+
+    let insurance = await getContract('InsuranceExchange');
+    let asset = await getCoreAsset();
+    let insuranceToken = await getContract('InsuranceToken');
+
+    let amountAsset = await asset.balanceOf(await getWalletAddress());
+    let amountInsurance = await insuranceToken.balanceOf(await getWalletAddress());
+
+    tables.push({
+        name: 'before: mint',
+        asset: fromAsset(amountAsset),
+        ins: fromAsset(amountInsurance)
+    })
+
+    await (await asset.approve(insurance.address, amountAsset)).wait();
+    console.log('Asset approve done');
+
+    let mint = { amount: amountAsset};
+    await (await insurance.mint(mint)).wait();
+    console.log('Insurance.mint done');
+
+    amountAsset = await asset.balanceOf(await getWalletAddress());
+    amountInsurance = await insuranceToken.balanceOf(await getWalletAddress());
+
+    tables.push({
+        name: 'after: mint',
+        asset: fromAsset(amountAsset),
+        ins: fromAsset(amountInsurance)
+    })
+
+    console.table(tables);
+}
+
+
 async function testProposal(addresses, values, abis){
 
     await execTimelock(async (timelock)=>{
@@ -180,5 +218,6 @@ module.exports = {
     execProposal: execProposal,
     createProposal: createProposal,
     testProposal: testProposal,
-    testUsdPlus: testUsdPlus
+    testUsdPlus: testUsdPlus,
+    testInsurance: testInsurance
 }
