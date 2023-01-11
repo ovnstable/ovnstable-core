@@ -688,6 +688,31 @@ async function transferUSDC(amount, to) {
     console.log(`[Node] Transfer USDC [${fromE6(await usdc.balanceOf(to))}] to [${to}]:`);
 }
 
+async function transferBUSD(to) {
+
+    let address = '0xf977814e90da44bfa03b6295a0616a897441acec';
+
+    await transferETH(1, address);
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+
+    const account = await hre.ethers.getSigner(address);
+
+    let token = await getERC20('0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56');
+
+    await token.connect(account).transfer(to, await token.balanceOf(account.address));
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [account.address],
+    });
+
+    console.log(`[Node] Transfer BUSD [${fromE18(await token.balanceOf(to))}] to [${to}]:`);
+}
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
@@ -701,6 +726,7 @@ module.exports = {
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
+    transferBUSD: transferBUSD,
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,

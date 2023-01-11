@@ -31,6 +31,7 @@ let BSC = {
     xvs: "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63",
     // venus
     unitroller: "0xfD36E2c2a6789Db23113685031d7F16329158384",
+    maximillion: '0x5efA1e46F4Fd738FF721F5AebC895b970F13E8A1',
     // swaps
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
     synapseStableSwapPool: '0x28ec0B36F0819ecB5005cAB836F4ED5a2eCa4D13',
