@@ -37,6 +37,26 @@ async function main() {
         },
         {
             "strategy": "0x53D0159423F8AaC1e87bF5715A6171d14ee97B50",
+            "name": "ZetaPlus [Old]",
+            "minWeight": 0,
+            "targetWeight": 0,
+            "maxWeight": 100,
+            "riskFactor": 0,
+            "enabled": false,
+            "enabledReward": false
+        },
+        {
+            "strategy": "0x1900dce87E6629cb4763F426e613aF408dDdb10c",
+            "name": "EpsilonPlus [Old]",
+            "minWeight": 0,
+            "targetWeight": 0,
+            "maxWeight": 100,
+            "riskFactor": 0,
+            "enabled": false,
+            "enabledReward": false
+        },
+        {
+            "strategy": "0xA0C1694179695B50b18b4C25373143a334FaFbed",
             "name": "ZetaPlus",
             "minWeight": 0,
             "targetWeight": 15,
@@ -46,7 +66,7 @@ async function main() {
             "enabledReward": true
         },
         {
-            "strategy": "0x1900dce87E6629cb4763F426e613aF408dDdb10c",
+            "strategy": "0x85542c788BA3288f3b5873C83Ca5d72D97d25D00",
             "name": "EpsilonPlus",
             "minWeight": 0,
             "targetWeight": 15,
@@ -54,7 +74,7 @@ async function main() {
             "riskFactor": 0,
             "enabled": true,
             "enabledReward": true
-        },
+        }
     ]
 
 
@@ -71,7 +91,7 @@ async function setWeights(weights) {
     let params = await getPrice();
 
     await (await pm.setStrategyWeights(weights, params)).wait();
-    await (await pm.balance(params)).wait();
+    // await (await pm.balance(params)).wait();
     await showM2M();
 }
 
