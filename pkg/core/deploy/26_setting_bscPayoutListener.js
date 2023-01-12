@@ -10,31 +10,36 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const exchange = await ethers.getContract("Exchange");
 
     await (await pl.setExchanger(exchange.address)).wait();
+    await (await pl.setPancakeDepositWallet(COMMON.rewardWallet)).wait();
+    await (await pl.setUsdPlus(BSC.usdPlus)).wait();
 
-    let pools = [
-        // Cone
+    // Cone
+    let qsSyncPools = [
         "0xec30da6361905b8f3e4a93513d937db992301276",  // WBNB/USD+
         "0x30f96ad4856d7e699963b589591f03710976a6e8",  // MDB+/USD+
         "0x0f8c95890b7bdecfae7990bf32f22120111e0b44",  // TETU/USD+
         "0x0fe6cf7a2687c5bddf302c5ccea901ba0bf71816",  // USD+/BUSD
         "0xdee33737634bb7612c15b10488819e88fd62f0f9",  // TIGAR/USD+
-    ]
+    ];
+    await (await pl.setQsSyncPools(qsSyncPools)).wait();
 
-    await (await pl.setQsSyncPools(pools)).wait();
-
+    // Pancake
     let pancakeSkimPools = [
         "0x2BD37f67EF2894024D3ee52b20A6cB87d71B2933",  // USD+/BUSD
-    ]
-
+    ];
     await (await pl.setPancakeSkimPools(pancakeSkimPools)).wait();
 
-    await (await pl.setPancakeDepositWallet(COMMON.rewardWallet)).wait();
-
-    await (await pl.setUsdPlus(BSC.usdPlus)).wait();
+    // Thena
+    let thenaSkimPools = [
+        '0x92573046BD4abA37d875eb45a0A1182ac63d5580', // sAMM-ETS Alpha/USD+
+    ];
+    let thenaSkimBribes = [
+        '0x90ab86ddd5fdae0207367c2d09e10ef1fb3cb651', // sAMM-ETS Alpha/USD+
+    ];
+    await (await pl.setThenaSkimPools(thenaSkimPools, thenaSkimBribes)).wait();
 
     console.log('BscPayoutListener done');
-
 };
 
-module.exports.tags = [ 'SettingBscPayoutListener'];
+module.exports.tags = ['SettingBscPayoutListener'];
 
