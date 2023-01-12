@@ -170,19 +170,25 @@ contract StrategyRubiconDai is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 daiBalance = daiToken.balanceOf(address(this));
+
         uint256 shares = rubiconDai.balanceOf(address(this));
         uint256 daiAmount = rubiconDai.convertToAssets(shares);
+        usdcBalance += _oracleDaiToUsdc(daiAmount + daiBalance);
 
-        return _oracleDaiToUsdc(daiAmount);
+        return usdcBalance;
     }
 
     function liquidationValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 daiBalance = daiToken.balanceOf(address(this));
 
         uint256 shares = rubiconDai.balanceOf(address(this));
         uint256 daiAmount = rubiconDai.previewRedeem(shares);
+        usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount + daiBalance), 4); // swap slippage 0.04%
 
-        return OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 4); // swap slippage 0.04%
-
+        return usdcBalance;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
