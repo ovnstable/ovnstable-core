@@ -170,19 +170,25 @@ contract StrategyRubiconUsdt is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+
         uint256 shares = rubiconUsdt.balanceOf(address(this));
         uint256 usdtAmount = rubiconUsdt.convertToAssets(shares);
+        usdcBalance += _oracleUsdtToUsdc(usdtAmount + usdtBalance);
 
-        return _oracleUsdtToUsdc(usdtAmount);
+        return usdcBalance;
     }
 
     function liquidationValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
 
         uint256 shares = rubiconUsdt.balanceOf(address(this));
         uint256 usdtAmount = rubiconUsdt.previewRedeem(shares);
+        usdcBalance += OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount + usdtBalance), 4); // swap slippage 0.04%
 
-        return OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 4); // swap slippage 0.04%
-
+        return usdcBalance;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {

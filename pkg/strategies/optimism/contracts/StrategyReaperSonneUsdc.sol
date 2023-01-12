@@ -103,8 +103,12 @@ contract StrategyReaperSonneUsdc is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+
         uint256 sharesBalance = soUsdc.balanceOf(address(this));
-        return sharesBalance * soUsdc.balance() / soUsdc.totalSupply();
+        usdcBalance += sharesBalance * soUsdc.balance() / soUsdc.totalSupply();
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

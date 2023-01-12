@@ -166,8 +166,13 @@ contract StrategyReaperSonneDai is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 daiBalance = daiToken.balanceOf(address(this));
+
         uint256 sharesBalance = soDai.balanceOf(address(this));
-        return _oracleDaiToUsdc(sharesBalance * soDai.balance() / soDai.totalSupply());
+        usdcBalance += _oracleDaiToUsdc(sharesBalance * soDai.balance() / soDai.totalSupply() + daiBalance);
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

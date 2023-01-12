@@ -166,8 +166,13 @@ contract StrategyReaperSonneUsdt is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+
         uint256 sharesBalance = soUsdt.balanceOf(address(this));
-        return _oracleUsdtToUsdc(sharesBalance * soUsdt.balance() / soUsdt.totalSupply());
+        usdcBalance += _oracleUsdtToUsdc(sharesBalance * soUsdt.balance() / soUsdt.totalSupply() + usdtBalance);
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

@@ -98,14 +98,21 @@ contract StrategyRubiconUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+
         uint256 shares = rubiconUsdc.balanceOf(address(this));
-        return rubiconUsdc.convertToAssets(shares);
+        usdcBalance += rubiconUsdc.convertToAssets(shares);
+
+        return usdcBalance;
     }
 
     function liquidationValue() external view override returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
         uint256 shares = rubiconUsdc.balanceOf(address(this));
-        return rubiconUsdc.previewRedeem(shares);
+        usdcBalance += rubiconUsdc.previewRedeem(shares);
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
