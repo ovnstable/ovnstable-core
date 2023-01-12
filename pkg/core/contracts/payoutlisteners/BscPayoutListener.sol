@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "@overnight-contracts/connectors/contracts/stuff/Thena.sol";
 import "../PayoutListener.sol";
 
 
@@ -19,6 +20,9 @@ contract BscPayoutListener is PayoutListener {
 
     IERC20 public usdPlus;
 
+    address[] public thenaSkimPools;
+    address[] public thenaSkimBribes;
+
     // ---  events
 
     event QsSyncPoolsUpdated(uint256 index, address pool);
@@ -28,6 +32,8 @@ contract BscPayoutListener is PayoutListener {
     event UsdPlusUpdated(address usdPlus);
     event SkimReward(address pool, uint256 amount);
     event TotalSkimReward(uint256 amount);
+    event ThenaSkimUpdated(address[] pools, address[] bribes);
+    event ThenaSkimReward(address pool, address bribe, uint256 amount);
 
     // --- setters
 
@@ -78,6 +84,15 @@ contract BscPayoutListener is PayoutListener {
         emit UsdPlusUpdated(_usdPlus);
     }
 
+    function setThenaSkimPools(address[] calldata _thenaSkimPools, address[] calldata _thenaSkimBribes) external onlyAdmin {
+        require(_thenaSkimPools.length != 0, "Zero pools not allowed");
+        require(_thenaSkimBribes.length != 0, "Zero pools not allowed");
+        require(_thenaSkimPools.length == _thenaSkimBribes.length, "Pools and bribes not equal");
+        thenaSkimPools = _thenaSkimPools;
+        thenaSkimBribes = _thenaSkimBribes;
+        emit ThenaSkimUpdated(_thenaSkimPools, _thenaSkimBribes);
+    }
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -89,18 +104,23 @@ contract BscPayoutListener is PayoutListener {
 
     // ---  logic
 
-    function payoutDone() external override onlyExchanger {
-        _sync();
-        _skim();
+    function getAllQsSyncPools() external view returns (address[] memory) {
+        return qsSyncPools;
     }
 
-    function _sync() internal {
+    function payoutDone() external override onlyExchanger {
+        _coneSync();
+        _pancakeSkim();
+        _thenaSkim();
+    }
+
+    function _coneSync() internal {
         for (uint256 i = 0; i < qsSyncPools.length; i++) {
             QsSyncPool(qsSyncPools[i]).sync();
         }
     }
 
-    function _skim() internal {
+    function _pancakeSkim() internal {
         uint256 usdPlusBalanceBefore = usdPlus.balanceOf(address(this));
         for (uint256 i = 0; i < pancakeSkimPools.length; i++) {
             address pool = pancakeSkimPools[i];
@@ -116,8 +136,19 @@ contract BscPayoutListener is PayoutListener {
         emit TotalSkimReward(totalDelta);
     }
 
-    function getAllQsSyncPools() external view returns (address[] memory) {
-        return qsSyncPools;
+    function _thenaSkim() internal {
+        for (uint256 i = 0; i < thenaSkimPools.length; i++) {
+            address pool = thenaSkimPools[i];
+            address bribe = thenaSkimBribes[i];
+            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
+            IPair(pool).skim(address(this));
+            uint256 amount = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
+            if (amount > 0) {
+                usdPlus.approve(bribe, amount);
+                IBribe(bribe).notifyRewardAmount(address(usdPlus), amount);
+                emit ThenaSkimReward(pool, bribe, amount);
+            }
+        }
     }
 }
 
