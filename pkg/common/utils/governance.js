@@ -1,6 +1,6 @@
 const {fromE18, toE18, fromAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -81,6 +81,14 @@ async function testUsdPlus(){
     })
 
     console.table(tables);
+
+
+    console.log('Execute pm.balance()');
+    await execTimelock(async (timelock)=>{
+        let pm = await getContract('PortfolioManager');
+        await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);
+        await pm.connect(timelock).balance();
+    });
 }
 
 async function testInsurance(){
