@@ -701,7 +701,7 @@ async function transferBUSD(to) {
 
     const account = await hre.ethers.getSigner(address);
 
-    let token = await getERC20('0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56');
+    let token = await getERC20('busd');
 
     await token.connect(account).transfer(to, await token.balanceOf(account.address));
 
