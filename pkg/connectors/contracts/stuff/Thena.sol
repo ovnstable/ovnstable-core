@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 interface IPair {
 
@@ -334,5 +336,104 @@ interface IGaugeV2 {
     function _periodFinish() external view returns (uint256);
 
     function claimFees() external returns (uint claimed0, uint claimed1);
+
+}
+
+
+library ThenaLibrary {
+
+    function getAmountOut(
+        IRouter router,
+        address inputToken,
+        address outputToken,
+        bool isStable,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        IRouter.route[] memory routes = new IRouter.route[](1);
+        routes[0].from = inputToken;
+        routes[0].to = outputToken;
+        routes[0].stable = isStable;
+
+        return router.getAmountsOut(amountInput, routes)[1];
+    }
+
+    function getAmountOut(
+        IRouter router,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStable0,
+        bool isStable1,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        IRouter.route[] memory routes = new IRouter.route[](2);
+        routes[0].from = inputToken;
+        routes[0].to = middleToken;
+        routes[0].stable = isStable0;
+        routes[1].from = middleToken;
+        routes[1].to = outputToken;
+        routes[1].stable = isStable1;
+
+        return router.getAmountsOut(amountInput, routes)[2];
+    }
+
+    function swap(
+        IRouter router,
+        address inputToken,
+        address outputToken,
+        bool isStable,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(router), amountIn);
+
+        IRouter.route[] memory routes = new IRouter.route[](1);
+        routes[0].from = inputToken;
+        routes[0].to = outputToken;
+        routes[0].stable = isStable;
+
+        return router.swapExactTokensForTokens(
+            amountIn,
+            amountOutMin,
+            routes,
+            recipient,
+            block.timestamp
+        )[1];
+    }
+
+    function swap(
+        IRouter router,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        bool isStable0,
+        bool isStable1,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(router), amountIn);
+
+        IRouter.route[] memory routes = new IRouter.route[](2);
+        routes[0].from = inputToken;
+        routes[0].to = middleToken;
+        routes[0].stable = isStable0;
+        routes[1].from = middleToken;
+        routes[1].to = outputToken;
+        routes[1].stable = isStable1;
+
+        return router.swapExactTokensForTokens(
+            amountIn,
+            amountOutMin,
+            routes,
+            recipient,
+            block.timestamp
+        )[2];
+    }
 
 }
