@@ -8,7 +8,7 @@ async function main() {
             "strategy": "0x82d8F924b71459bAC871A9F0163d73B6a3FBbb10",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 55,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -29,7 +29,7 @@ async function main() {
             "strategy": "0x85e8c510DA139E41225ecb61954417dd2F953681",
             "name": "AlfaPlus",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -59,7 +59,7 @@ async function main() {
             "strategy": "0xA0C1694179695B50b18b4C25373143a334FaFbed",
             "name": "ZetaPlus",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -69,7 +69,7 @@ async function main() {
             "strategy": "0x85542c788BA3288f3b5873C83Ca5d72D97d25D00",
             "name": "EpsilonPlus",
             "minWeight": 0,
-            "targetWeight": 15,
+            "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -91,7 +91,7 @@ async function setWeights(weights) {
     let params = await getPrice();
 
     await (await pm.setStrategyWeights(weights, params)).wait();
-    // await (await pm.balance(params)).wait();
+    await (await pm.balance(params)).wait();
     await showM2M();
 }
 
