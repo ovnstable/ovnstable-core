@@ -32,8 +32,8 @@ async function main() {
             "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
-            "enabled": true,
-            "enabledReward": true
+            "enabled": false,
+            "enabledReward": false
         },
         {
             "strategy": "0x53D0159423F8AaC1e87bF5715A6171d14ee97B50",
@@ -62,8 +62,8 @@ async function main() {
             "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
-            "enabled": true,
-            "enabledReward": true
+            "enabled": false,
+            "enabledReward": false
         },
         {
             "strategy": "0x85542c788BA3288f3b5873C83Ca5d72D97d25D00",
@@ -72,8 +72,8 @@ async function main() {
             "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
-            "enabled": true,
-            "enabledReward": true
+            "enabled": false,
+            "enabledReward": false
         }
     ]
 
