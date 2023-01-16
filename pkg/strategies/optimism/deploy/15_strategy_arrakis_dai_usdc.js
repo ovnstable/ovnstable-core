@@ -13,6 +13,8 @@ let bbRfADai = "0x888a6195D42a95e80D81e1c506172772a80b80Bc";
 let bbRfAUsdc = "0xba7834bb3cd2DB888E6A06Fb45E82b4225Cd0C71";
 let poolWethOpFee = 500; // 0.05%
 let poolWethDaiFee = 500; // 0.05%
+let kyberSwapRouter = "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83";
+let poolUsdcDaiFee = 8; // 0.008%
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -42,6 +44,8 @@ module.exports = async ({deployments}) => {
                 poolWethDaiFee: poolWethDaiFee,
                 oracleDai: OPTIMISM.oracleDai,
                 oracleUsdc: OPTIMISM.oracleUsdc,
+                kyberSwapRouter: kyberSwapRouter,
+                poolUsdcDaiFee: poolUsdcDaiFee,
             }
         )).wait();
     });
