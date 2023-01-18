@@ -4,8 +4,8 @@ const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
 let lpToken = '0xaED05fdd471a4EecEe48B34d38c59CC76681A6C8';
 let uniProxy = '0xf874D4957861E193AEC9937223062679C14f9Aca';
-let masterChef = '0x45572a41F33e95ce0980e382654A6a9e42Aa5610';
-let pid = 2;
+let masterChef = '0xC7846d1bc4d8bcF7c45a7c998b77cE9B3c904365';
+let pid = 1;
 let beethovenxVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 let beethovenxPoolIdUsdc = "0xba7834bb3cd2db888e6a06fb45e82b4225cd0c71000000000000000000000043";
 let beethovenxPoolIdDaiUsdtUsdc = "0x6222ae1d2a9f6894da50aa25cb7b303497f9bebd000000000000000000000046";

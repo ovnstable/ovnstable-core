@@ -149,7 +149,7 @@ contract StrategyGammaUsdcDai is Strategy {
 
         // stake
         lpToken.approve(address(masterChef), lpTokenAmount);
-        masterChef.deposit(pid, lpTokenAmount);
+        masterChef.deposit(pid, lpTokenAmount, address(this));
     }
 
     function _unstake(
@@ -169,7 +169,7 @@ contract StrategyGammaUsdcDai is Strategy {
         }
 
         // unstake
-        masterChef.withdraw(pid, amountLp);
+        masterChef.withdraw(pid, amountLp, address(this));
 
         // remove liquidity
         lpToken.approve(address(uniProxy), amountLp);
@@ -205,7 +205,7 @@ contract StrategyGammaUsdcDai is Strategy {
         }
 
         // unstake
-        masterChef.withdraw(pid, amountLp);
+        masterChef.withdraw(pid, amountLp, address(this));
 
         // remove liquidity
         lpToken.approve(address(uniProxy), amountLp);
@@ -262,7 +262,7 @@ contract StrategyGammaUsdcDai is Strategy {
         // claim rewards
         (uint256 amountLp,) = masterChef.userInfo(pid, address(this));
         if (amountLp > 0) {
-            masterChef.deposit(pid, 0);
+            masterChef.deposit(pid, 0, address(this));
         }
 
         // sell rewards
