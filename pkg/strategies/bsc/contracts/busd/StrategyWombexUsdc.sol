@@ -74,7 +74,7 @@ contract StrategyWombexUsdc is Strategy {
         lpUsdc = IAsset(params.lpUsdc);
         wmxLpUsdc = IBaseRewardPool(params.wmxLpUsdc);
         poolDepositor = IPoolDepositor(params.poolDepositor);
-        pool = IPool(params.pool);
+        pool = IPool(lpUsdc.pool());
 
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);
         wombatRouter = IWombatRouter(params.wombatRouter);
@@ -129,8 +129,10 @@ contract StrategyWombexUsdc is Strategy {
             );
         }
 
+        // get potential deposit amount
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        (uint256 lpUsdcAmount,) = pool.quotePotentialDeposit(address(usdc), usdcBalance);
+        (uint256 lpUsdcAmount,) = poolDepositor.getDepositAmountOut(address(lpUsdc), usdcBalance);
+        // deposit
         poolDepositor.deposit(address(lpUsdc), usdcBalance, OvnMath.subBasisPoints(lpUsdcAmount, 1), true);
     }
 
@@ -152,11 +154,12 @@ contract StrategyWombexUsdc is Strategy {
         );
         // get usdcAmount for _amount in busd
         uint256 usdcAmount = _amount * _amount / busdAmountForUsdcAmount;
-        // get amount to unstake
-        (uint256 usdcAmountOneAsset,) = pool.quotePotentialWithdraw(address(usdc), lpUsdcDm);
+        // get withdraw amount for 1 LP
+        (uint256 usdcAmountOneAsset,) = poolDepositor.getWithdrawAmountOut(address(lpUsdc), lpUsdcDm);
         // add 1bp for smooth withdraw
         uint256 lpUsdcAmount = OvnMath.addBasisPoints(usdcAmount, 1) * lpUsdcDm / usdcAmountOneAsset;
 
+        // withdraw
         poolDepositor.withdraw(address(lpUsdc), lpUsdcAmount, usdcAmount, address(this));
 
         // swap usdc to busd
@@ -199,7 +202,9 @@ contract StrategyWombexUsdc is Strategy {
 
         uint256 lpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
         if (lpUsdcBalance > 0) {
-            (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdc), lpUsdcBalance);
+            // get withdraw amount
+            (uint256 usdcAmount,) = poolDepositor.getWithdrawAmountOut(address(lpUsdc), lpUsdcBalance);
+            // withdraw
             poolDepositor.withdraw(address(lpUsdc), lpUsdcBalance, OvnMath.subBasisPoints(usdcAmount, 1), address(this));
         }
 
@@ -246,9 +251,9 @@ contract StrategyWombexUsdc is Strategy {
         uint256 busdBalance = busd.balanceOf(address(this));
         uint256 usdcBalance = usdc.balanceOf(address(this));
 
-        uint256 wmxLpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
-        if (wmxLpUsdcBalance > 0) {
-            (uint256 usdcAmount,) = pool.quotePotentialWithdraw(address(usdc), wmxLpUsdcBalance);
+        uint256 lpUsdcBalance = wmxLpUsdc.balanceOf(address(this));
+        if (lpUsdcBalance > 0) {
+            (uint256 usdcAmount,) = poolDepositor.getWithdrawAmountOut(address(lpUsdc), lpUsdcBalance);
             usdcBalance += usdcAmount;
         }
 

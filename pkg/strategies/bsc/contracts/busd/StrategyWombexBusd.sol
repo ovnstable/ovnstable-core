@@ -60,7 +60,7 @@ contract StrategyWombexBusd is Strategy {
         lpBusd = IAsset(params.lpBusd);
         wmxLpBusd = IBaseRewardPool(params.wmxLpBusd);
         poolDepositor = IPoolDepositor(params.poolDepositor);
-        pool = IPool(params.pool);
+        pool = IPool(lpBusd.pool());
 
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);
 
@@ -81,8 +81,10 @@ contract StrategyWombexBusd is Strategy {
 
         require(_asset == address(busd), "Some token not compatible");
 
+        // get potential deposit amount
         uint256 busdBalance = busd.balanceOf(address(this));
-        (uint256 lpBusdAmount,) = pool.quotePotentialDeposit(address(busd), busdBalance);
+        (uint256 lpBusdAmount,) = poolDepositor.getDepositAmountOut(address(lpBusd), busdBalance);
+        // deposit
         poolDepositor.deposit(address(lpBusd), busdBalance, OvnMath.subBasisPoints(lpBusdAmount, 1), true);
     }
 
@@ -94,12 +96,13 @@ contract StrategyWombexBusd is Strategy {
 
         require(_asset == address(busd), "Some token not compatible");
 
-        // get amount to unstake
-        (uint256 busdAmountOneAsset,) = pool.quotePotentialWithdraw(address(busd), lpBusdDm);
+        // get withdraw amount for 1 LP
+        (uint256 busdAmountOneAsset,) = poolDepositor.getWithdrawAmountOut(address(lpBusd), lpBusdDm);
         // add 1bp for smooth withdraw
         uint256 lpBusdAmount = OvnMath.addBasisPoints(_amount, 1) * lpBusdDm / busdAmountOneAsset;
-
+        // withdraw
         poolDepositor.withdraw(address(lpBusd), lpBusdAmount, _amount, address(this));
+
         return busd.balanceOf(address(this));
     }
 
@@ -112,7 +115,9 @@ contract StrategyWombexBusd is Strategy {
 
         uint256 lpBusdBalance = wmxLpBusd.balanceOf(address(this));
         if (lpBusdBalance > 0) {
-            (uint256 busdAmount,) = pool.quotePotentialWithdraw(address(busd), lpBusdBalance);
+            // get withdraw amount
+            (uint256 busdAmount,) = poolDepositor.getWithdrawAmountOut(address(lpBusd), lpBusdBalance);
+            // withdraw
             poolDepositor.withdraw(address(lpBusd), lpBusdBalance, OvnMath.subBasisPoints(busdAmount, 1), address(this));
         }
 
@@ -130,9 +135,9 @@ contract StrategyWombexBusd is Strategy {
     function _totalValue() internal view returns (uint256) {
         uint256 busdBalance = busd.balanceOf(address(this));
 
-        uint256 wmxLpBusdBalance = wmxLpBusd.balanceOf(address(this));
-        if (wmxLpBusdBalance > 0) {
-            (uint256 busdAmount,) = pool.quotePotentialWithdraw(address(busd), wmxLpBusdBalance);
+        uint256 lpBusdBalance = wmxLpBusd.balanceOf(address(this));
+        if (lpBusdBalance > 0) {
+            (uint256 busdAmount,) = poolDepositor.getWithdrawAmountOut(address(lpBusd), lpBusdBalance);
             busdBalance += busdAmount;
         }
 
