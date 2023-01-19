@@ -1,8 +1,16 @@
 const hre = require("hardhat");
 
-const {getContract, showM2M, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
+const {
+    getContract,
+    showM2M,
+    execTimelock,
+    initWallet,
+    convertWeights,
+    getERC20
+} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 const {BSC} = require("@overnight-contracts/common/utils/assets");
+const {toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
 
 let wom = '0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1';
 let wmx = '0xa75d9ca2a0a1D547409D82e1B06618EC284A2CeD';
@@ -19,9 +27,9 @@ let wombatRouter = '0x19609B03C976CCA288fbDae5c21d4290e9a4aDD7';
 
 async function main() {
 
-    let StrategyWombexBusd = await getContract('StrategyWombexBusd');
-    let StrategyWombexUsdc = await getContract('StrategyWombexUsdc');
-    let StrategyWombexUsdt = await getContract('StrategyWombexUsdt');
+    let strategyWombexBusd = await getContract('StrategyWombexBusd');
+    let strategyWombexUsdc = await getContract('StrategyWombexUsdc');
+    let strategyWombexUsdt = await getContract('StrategyWombexUsdt');
 
 
     let StrategyWombexBusdParams = {
@@ -69,32 +77,71 @@ async function main() {
     let values = [];
     let abis = [];
 
-    addresses.push(StrategyWombexBusd.address);
+    addresses.push(strategyWombexBusd.address);
     values.push(0);
-    abis.push(StrategyWombexBusd.interface.encodeFunctionData('upgradeTo', ['0x1609B0849Ce1Ea7F1438ef86157Cd9C8e800B583']));
+    abis.push(strategyWombexBusd.interface.encodeFunctionData('upgradeTo', ['0x1609B0849Ce1Ea7F1438ef86157Cd9C8e800B583']));
 
-    addresses.push(StrategyWombexUsdc.address);
+    addresses.push(strategyWombexUsdc.address);
     values.push(0);
-    abis.push(StrategyWombexUsdc.interface.encodeFunctionData('upgradeTo', ['0xa181Dc5ba8821aAba59eb0eA7f1AFA1c91A0dF22']));
+    abis.push(strategyWombexUsdc.interface.encodeFunctionData('upgradeTo', ['0xa181Dc5ba8821aAba59eb0eA7f1AFA1c91A0dF22']));
 
-    addresses.push(StrategyWombexUsdt.address);
+    addresses.push(strategyWombexUsdt.address);
     values.push(0);
-    abis.push(StrategyWombexUsdt.interface.encodeFunctionData('upgradeTo', ['0x84eC45b33854C6D63B2e304aed9B9796092D86e2']));
+    abis.push(strategyWombexUsdt.interface.encodeFunctionData('upgradeTo', ['0x84eC45b33854C6D63B2e304aed9B9796092D86e2']));
 
-    addresses.push(StrategyWombexBusd.address);
+    addresses.push(strategyWombexBusd.address);
     values.push(0);
-    abis.push(StrategyWombexBusd.interface.encodeFunctionData('setParams', [StrategyWombexBusdParams]));
+    abis.push(strategyWombexBusd.interface.encodeFunctionData('setParams', [StrategyWombexBusdParams]));
 
-    addresses.push(StrategyWombexUsdc.address);
+    addresses.push(strategyWombexUsdc.address);
     values.push(0);
-    abis.push(StrategyWombexUsdc.interface.encodeFunctionData('setParams', [StrategyWombexUsdcParams]));
+    abis.push(strategyWombexUsdc.interface.encodeFunctionData('setParams', [StrategyWombexUsdcParams]));
 
-    addresses.push(StrategyWombexUsdt.address);
+    addresses.push(strategyWombexUsdt.address);
     values.push(0);
-    abis.push(StrategyWombexUsdt.interface.encodeFunctionData('setParams', [StrategyWombexUsdtParams]));
+    abis.push(strategyWombexUsdt.interface.encodeFunctionData('setParams', [StrategyWombexUsdtParams]));
 
 
-    await testProposal(addresses, values, abis);
+    await createProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    //
+    //
+    // let wallet = await initWallet();
+    // await execTimelock(async (timelock) => {
+    //
+    //     await showM2M();
+    //
+    //     await strategyWombexBusd.connect(timelock).setPortfolioManager(wallet.address);
+    //     await strategyWombexUsdc.connect(timelock).setPortfolioManager(wallet.address);
+    //     await strategyWombexUsdt.connect(timelock).setPortfolioManager(wallet.address);
+    //
+    //     let busd = await getERC20('busd', wallet);
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    //     await strategyWombexBusd.unstake(BSC.busd, toE18(100), wallet.address, false);
+    //     await strategyWombexUsdc.unstake(BSC.busd, toE18(100), wallet.address, false);
+    //     await strategyWombexUsdt.unstake(BSC.busd, toE18(100), wallet.address, false);
+    //
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    //     await showM2M();
+    //
+    //     await busd.connect(wallet).transfer(strategyWombexBusd.address, toE18(100));
+    //     await strategyWombexBusd.stake(BSC.busd, toE18(100));
+    //     await busd.connect(wallet).transfer(strategyWombexUsdc.address, toE18(100));
+    //     await strategyWombexUsdc.stake(BSC.busd, toE18(100));
+    //     await busd.connect(wallet).transfer(strategyWombexUsdt.address, toE18(100));
+    //     await strategyWombexUsdt.stake(BSC.busd, toE18(100));
+    //
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    //     await showM2M();
+    //
+    //     console.log('ClaimRewards');
+    //     await strategyWombexBusd.claimRewards(wallet.address);
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    //     await strategyWombexUsdc.claimRewards(wallet.address);
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    //     await strategyWombexUsdt.claimRewards(wallet.address);
+    //     console.log('BUSD ' + fromE18(await busd.balanceOf(wallet.address)));
+    // });
 }
 
 main()
