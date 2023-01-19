@@ -209,7 +209,11 @@ interface IPoolDepositor {
 
     function deposit(address _lptoken, uint256 _amount, uint256 _minLiquidity, bool _stake) external;
 
-    function withdraw(address _lptoken, uint256 _amount, uint256 _minOut, address recipient) external;
+    function withdraw(address _lptoken, uint256 _amount, uint256 _minOut, address _recipient) external;
+
+    function getDepositAmountOut(address _lptoken, uint256 _amount) external view returns (uint256 liquidity, uint256 reward);
+
+    function getWithdrawAmountOut(address _lptoken, uint256 _amount) external view returns (uint256 amount, uint256 fee);
 }
 
 
