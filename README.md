@@ -13,7 +13,19 @@ This repository contains all contracts Overnight
 2. Install yarn
 3. Run `yarn install`
 4. Create .env file from copy .env.example
-5. Define PK_${CHAIN} if you need to deploy contracts to real chain
+
+### For local developing
+
+1. Define ETH_NODE_URI_{CHAIN} - public RPC
+2. Define HARDHAT_BLOCK_NUMBER_{CHAIN} - blockNumber for startup hardhat node
+3. Define ETH_NETWORK - chain ID 
+4. Define STAND - stand id [polygon, bsc, optimism]
+
+### For deploy
+
+1. Define PK_${CHAIN} if you need to deploy contracts to real chain
+2. Define GAS_PRICE - gas price if you need deploy
+3. Define ETHERSCAN_API_${CHAIN} - for verify contracts
 
  
 ```
@@ -21,6 +33,8 @@ enum CHAIN:
 
 - POLYGON
 - FANTOM
+- OPTIMISM
+- BSC
 
 ```
 
@@ -33,23 +47,6 @@ This repository contains is next modules:
 2) governance - governance contracts
 3) core - core contracts 
 4) strategies - contains sub modules with strategies for each chain
-
-
-### Upgrade VS Code
-
-To prettify solidity code install prettier plugin to VSCode:
-
-```
-code --install-extension esbenp.prettier-vscode
-```
-
-(https://github.com/prettier-solidity/prettier-plugin-solidity#vscode)
-
-Params in `.prettierrc`
-
-### Upgrade IDEA
-
-Install plugin (https://plugins.jetbrains.com/plugin/9475-solidity)
 
 ## How to deploy new strategy:
 
