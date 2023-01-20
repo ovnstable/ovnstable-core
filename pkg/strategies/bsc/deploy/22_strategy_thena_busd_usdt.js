@@ -2,17 +2,16 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {BSC} = require("@overnight-contracts/common/utils/assets");
 
-let wom = '0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1';
-let wmx = '0xa75d9ca2a0a1D547409D82e1B06618EC284A2CeD';
-let lpUsdt = '0x4F95fE57BEA74b7F642cF9c097311959B9b988F7';
-let wmxLpUsdt = '0x1964ffe993d1da4ca0c717c9ea16a7846b4f13ab';
-let poolDepositor = '0xF1fE1a695b4c3e2297a37523E3675603C0892b00';
-let pool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
+let the = '0xF4C8E32EaDEC4BFe97E0F595AdD0f4450a863a11';
+let pair = '0x6321B57b6fdc14924be480c54e93294617E672aB';
+let router = '0x20a304a7d126758dfe6B243D0fc515F83bCA8431';
+let gauge = '0x41adA56DD5702906549a71666541a39B0DbcEb12';
+let wombatPool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    await deploySection(async (name) => {+
+    await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
 
@@ -21,13 +20,11 @@ module.exports = async ({deployments}) => {
             {
                 busd: BSC.busd,
                 usdt: BSC.usdt,
-                wom: wom,
-                wmx: wmx,
-                lpUsdt: lpUsdt,
-                wmxLpUsdt: wmxLpUsdt,
-                poolDepositor: poolDepositor,
-                pool: pool,
-                pancakeRouter: BSC.pancakeRouter,
+                the: the,
+                pair: pair,
+                router: router,
+                gauge: gauge,
+                wombatPool: wombatPool,
                 wombatRouter: BSC.wombatRouter,
                 oracleBusd: BSC.chainlinkBusd,
                 oracleUsdt: BSC.chainlinkUsdt,
@@ -36,4 +33,4 @@ module.exports = async ({deployments}) => {
     });
 };
 
-module.exports.tags = ['StrategyWombexUsdt'];
+module.exports.tags = ['StrategyThenaBusdUsdt'];
