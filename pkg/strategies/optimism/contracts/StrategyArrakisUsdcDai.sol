@@ -160,8 +160,8 @@ contract StrategyArrakisUsdcDai is Strategy {
             address(arrakisRewards),
             usdcAmount,
             daiAmount,
-            OvnMath.subBasisPoints(usdcAmount, 4),
-            OvnMath.subBasisPoints(daiAmount, 4),
+            OvnMath.subBasisPoints(usdcAmount, swapSlippageBP),
+            OvnMath.subBasisPoints(daiAmount, swapSlippageBP),
             address(this)
         );
     }
@@ -213,8 +213,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         arrakisRouter.removeLiquidityAndUnstake(
             address(arrakisRewards),
             amountLp,
-            OvnMath.subBasisPoints(amountUsdc, 4),
-            OvnMath.subBasisPoints(amountDai, 4),
+            OvnMath.subBasisPoints(amountUsdc, swapSlippageBP),
+            OvnMath.subBasisPoints(amountDai, swapSlippageBP),
             address(this)
         );
 
@@ -248,8 +248,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         arrakisRouter.removeLiquidityAndUnstake(
             address(arrakisRewards),
             amountLp,
-            OvnMath.subBasisPoints(amountUsdc, 4),
-            OvnMath.subBasisPoints(amountDai, 4),
+            OvnMath.subBasisPoints(amountUsdc, swapSlippageBP),
+            OvnMath.subBasisPoints(amountDai, swapSlippageBP),
             address(this)
         );
 
