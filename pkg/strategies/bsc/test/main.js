@@ -96,6 +96,10 @@ let arrays = [
         enabledReward: true,
     },
     {
+        name: 'StrategyThenaBusdUsdc',
+        enabledReward: true,
+    },
+    {
         name: 'StrategyEtsAlpha',
         enabledReward: false,
         isRunStrategyLogic: true,
