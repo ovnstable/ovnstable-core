@@ -133,8 +133,8 @@ contract StrategyThenaBusdUsdt is Strategy {
             pair.isStable(),
             usdtBalance,
             busdBalance,
-            OvnMath.subBasisPoints(usdtBalance, 4),
-            OvnMath.subBasisPoints(busdBalance, 4),
+            OvnMath.subBasisPoints(usdtBalance, swapSlippageBP),
+            OvnMath.subBasisPoints(busdBalance, swapSlippageBP),
             address(this),
             block.timestamp
         );
@@ -190,8 +190,8 @@ contract StrategyThenaBusdUsdt is Strategy {
             address(busd),
             pair.isStable(),
             lpTokensToWithdraw,
-            OvnMath.subBasisPoints(usdtLpBalance, 4),
-            OvnMath.subBasisPoints(busdLpBalance, 4),
+            OvnMath.subBasisPoints(usdtLpBalance, swapSlippageBP),
+            OvnMath.subBasisPoints(busdLpBalance, swapSlippageBP),
             address(this),
             block.timestamp
         );
@@ -252,8 +252,8 @@ contract StrategyThenaBusdUsdt is Strategy {
             address(busd),
             pair.isStable(),
             lpBalance,
-            OvnMath.subBasisPoints(usdtLpBalance, 4),
-            OvnMath.subBasisPoints(busdLpBalance, 4),
+            OvnMath.subBasisPoints(usdtLpBalance, swapSlippageBP),
+            OvnMath.subBasisPoints(busdLpBalance, swapSlippageBP),
             address(this),
             block.timestamp
         );
