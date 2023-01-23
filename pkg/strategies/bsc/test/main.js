@@ -1,6 +1,8 @@
 const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 
+const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
+
 let id = process.env.TEST_STRATEGY;
 
 let arrays = [
@@ -97,6 +99,11 @@ let arrays = [
         name: 'StrategyThenaBusdUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyEtsAlpha',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -107,6 +114,23 @@ if (id !== undefined && id !== "") {
 console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 async function runStrategyLogic(strategyName, strategyAddress) {
+    if (strategyName == 'StrategyEtsAlpha') {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0x65AfD05fbc4413948ffaaD8bCb13f71b6f79332D");
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
+        });
+//        let strategy = await ethers.getContract(strategyName);
+//        await strategy.initSlippages(20, 101);
+    }
 }
 
 describe("BSC", function () {

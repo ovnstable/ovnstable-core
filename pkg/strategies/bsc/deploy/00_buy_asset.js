@@ -1,34 +1,35 @@
-const { ethers } = require("hardhat");
-
-const { BSC } = require('@overnight-contracts/common/utils/assets');
+const {ethers} = require("hardhat");
+const {getERC20, getDevWallet, transferETH} = require("@overnight-contracts/common/utils/script-utils");
+const {BSC} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
-    const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deploy('BuyonSwap', {
-        from: deployer,
-        args: [],
-        log: true,
+    await transferETH(10, '0x5CB01385d3097b6a189d1ac8BA3364D900666445');
+    let holder = '0x5a52e96bacdabb82fd05763e25335261b270efcb';
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [holder],
     });
 
-    console.log("Deploy BuyonSwap done");
+    let wallet = await getDevWallet();
 
-    let value = "99000000000000000000000000";
-    const buyonSwap = await ethers.getContract("BuyonSwap");
-    switch (process.env.STAND) {
-        case 'bsc_usdc':
-            await buyonSwap.buy(BSC.usdc, BSC.pancakeRouter, {value: value});
-            break;
-        case 'bsc_usdt':
-            await buyonSwap.buy(BSC.usdt, BSC.pancakeRouter, {value: value});
-            break;
-        default:
-            await buyonSwap.buy(BSC.busd, BSC.pancakeRouter, {value: value});
-            break;
+    const tx = {
+        from: wallet.address,
+        to: holder,
+        value: ethers.utils.parseEther('1'),
+        nonce: await hre.ethers.provider.getTransactionCount(wallet.address, "latest"),
+        gasLimit: 10000000,
+        gasPrice: await hre.ethers.provider.getGasPrice(),
     }
+    await wallet.sendTransaction(tx);
 
-    console.log('Buy asset: ' + value);
+    const signerWithAddress = await hre.ethers.getSigner(holder);
+    let busd = await getERC20("busd");
+
+    await busd.connect(signerWithAddress).transfer(deployer, await busd.balanceOf(signerWithAddress.address));
+
 };
 
 module.exports.tags = ['test'];
