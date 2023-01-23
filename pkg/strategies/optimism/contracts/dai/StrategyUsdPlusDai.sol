@@ -190,7 +190,7 @@ contract StrategyUsdPlusDai is Strategy {
 
     function _totalValue() internal view returns (uint256) {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        return _oracleUsdcToDai(usdPlusBalance);
+        return daiToken.balanceOf(address(this)) + _oracleUsdcToDai(usdPlusBalance);
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
