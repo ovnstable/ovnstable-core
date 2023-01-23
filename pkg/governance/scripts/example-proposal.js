@@ -22,7 +22,6 @@ let wmxLpUsdc = '0x6155e7d1c509f63109c6fc330bb5dd295034d540';
 let wmxLpUsdt = '0x1964ffe993d1da4ca0c717c9ea16a7846b4f13ab';
 let poolDepositor = '0xF1fE1a695b4c3e2297a37523E3675603C0892b00';
 let pool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
-let wombatRouter = '0x19609B03C976CCA288fbDae5c21d4290e9a4aDD7';
 
 
 async function main() {
@@ -53,7 +52,7 @@ async function main() {
         poolDepositor: poolDepositor,
         pool: pool,
         pancakeRouter: BSC.pancakeRouter,
-        wombatRouter: wombatRouter,
+        wombatRouter: BSC.wombatRouter,
         oracleBusd: BSC.chainlinkBusd,
         oracleUsdc: BSC.chainlinkUsdc,
     };
@@ -68,7 +67,7 @@ async function main() {
         poolDepositor: poolDepositor,
         pool: pool,
         pancakeRouter: BSC.pancakeRouter,
-        wombatRouter: wombatRouter,
+        wombatRouter: BSC.wombatRouter,
         oracleBusd: BSC.chainlinkBusd,
         oracleUsdt: BSC.chainlinkUsdt,
     };
