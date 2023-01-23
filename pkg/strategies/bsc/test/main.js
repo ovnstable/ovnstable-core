@@ -93,6 +93,10 @@ let arrays = [
         name: 'StrategyThenaBusdUsdt',
         enabledReward: true,
     },
+    {
+        name: 'StrategyThenaBusdUsdc',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
