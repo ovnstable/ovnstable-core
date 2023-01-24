@@ -161,17 +161,15 @@ library CurveMetaLibrary {
 
 library CurveLibrary {
 
-
-
     function swap(
+        address pool,
         address tokenIn,
         address tokenOut,
         uint256 amountIn,
-        uint256 amountMinOut,
-        address pool
+        uint256 amountMinOut
     ) internal returns (uint256) {
         IERC20(tokenIn).approve(pool, amountIn);
-        (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(tokenIn, tokenOut, pool);
+        (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(pool, tokenIn, tokenOut);
 
         uint256 backAmount;
         if (isUnderlying) {
@@ -193,15 +191,13 @@ library CurveLibrary {
         return backAmount;
     }
 
-
-
     function getAmountOut(
+        address pool,
         address tokenIn,
         address tokenOut,
-        uint256 amountIn,
-        address pool
+        uint256 amountIn
     ) internal view returns (uint256) {
-        (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(tokenIn, tokenOut, pool);
+        (int128 indexIn, int128 indexOut, bool isUnderlying) = getIndexes(pool, tokenIn, tokenOut);
         if (isUnderlying) {
             return IStableSwapPool(pool).get_dy_underlying(indexIn, indexOut, amountIn);
         } else {
@@ -209,12 +205,11 @@ library CurveLibrary {
         }
     }
 
-
     function getIndexes(
+        address pool,
         address tokenIn,
-        address tokenOut,
-        address pool
-    ) internal view returns (int128, int128, bool){
+        address tokenOut
+    ) internal view returns (int128, int128, bool) {
         int128 indexIn = type(int128).max;
         int128 indexOut = type(int128).max;
 
@@ -267,7 +262,6 @@ library CurveLibrary {
         revert("CurveSP: Can't find index for tokens in pool");
     }
 
-
     function getCoin(address pool, uint256 index) internal view returns (address) {
         try IStableSwapPool(pool).coins(index) returns (address tokenAddress) {
             return tokenAddress;
@@ -281,4 +275,53 @@ library CurveLibrary {
         } catch {}
         return address(0);
     }
+
+    /**
+     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountToSwap(
+        address pool,
+        address token0,
+        address token1,
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision
+    ) internal view returns (uint256 amount0) {
+        amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = getAmountOut(pool, token0, token1, amount0);
+            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
+        }
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountLpTokens(
+        address pool,
+        address token0,
+        address token1,
+        uint256 amount0Total,
+        uint256 totalAmountLpTokens,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision
+    ) internal view returns (uint256 amountLpTokens) {
+        amountLpTokens = (totalAmountLpTokens * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = reserve1 * amountLpTokens / totalAmountLpTokens;
+            uint256 amount0 = getAmountOut(pool, token1, token0, amount1);
+            amountLpTokens = (totalAmountLpTokens * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+        }
+    }
+
 }
