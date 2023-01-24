@@ -155,9 +155,9 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
 
                     let items = [
-                        ...createCheck('stake', 'balance', assetValue, balanceAsset, VALUE, DELTA),
-                        ...createCheck('stake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset, DELTA),
-                        ...createCheck('stake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation, DELTA),
+                        ...createCheck('stake', 'balance', assetValue, balanceAsset, VALUE.minus(DELTA), VALUE.plus(DELTA)),
+                        ...createCheck('stake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset.minus(DELTA), expectedNetAsset.plus(DELTA)),
+                        ...createCheck('stake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation.minus(DELTA), expectedLiquidation.plus(DELTA)),
                     ]
 
                     console.table(items);
@@ -217,9 +217,9 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
 
                         let items = [
-                            ...createCheck('unstake', 'balance', assetValue, balanceAsset, VALUE, DELTA),
-                            ...createCheck('unstake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset, DELTA),
-                            ...createCheck('unstake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation, DELTA),
+                            ...createCheck('unstake', 'balance', assetValue, balanceAsset, VALUE.minus(DELTA), VALUE.plus(DELTA)),
+                            ...createCheck('unstake', 'netAssetValue', assetValue, netAssetValueCheck, expectedNetAsset.minus(DELTA), expectedNetAsset.plus(DELTA)),
+                            ...createCheck('unstake', 'liquidationValue', assetValue, liquidationValueCheck, expectedLiquidation.minus(DELTA), expectedLiquidation.plus(DELTA)),
                         ]
 
                         console.table(items);
@@ -321,6 +321,15 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                     netAssetValueCheck = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValueCheck = new BigNumber((await strategy.liquidationValue()).toString());
 
+                    let items = [
+                        ...createCheck('unstakeFull', 'balance0', assetValue, balanceAssetAfter, VALUE.times(9996).div(10000), new BigNumber(-1)),
+                        ...createCheck('unstakeFull', 'balance1', assetValue, balanceAssetAfter, liquidationValueAfterStake.minus(DELTA), liquidationValueAfterStake.plus(DELTA)),
+                        ...createCheck('unstakeFull', 'netAssetValue', assetValue, netAssetValueCheck, new BigNumber(0), new BigNumber(0)),
+                        ...createCheck('unstakeFull', 'liquidationValue', assetValue, liquidationValueCheck, new BigNumber(0), new BigNumber(0)),
+                    ]
+
+                    console.table(items);
+
                 });
 
                 it(`Balance asset after unstakeFull >= stake value minus 4 bp`, async function () {
@@ -407,9 +416,14 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                     balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                     balances.push(balanceAsset.toString());
 
+                    let items = [
+                        ...createCheck('claimRewards', 'rewards', new BigNumber(0), balanceAsset, new BigNumber(0), new BigNumber(-1), true),
+                    ]
+
+                    console.table(items);
                 });
 
-                it(`Balance asset > 0`, async function () {
+                it(`Rewards > 0`, async function () {
                     expect(balanceAsset.toNumber()).to.greaterThan(0);
                 });
 
@@ -485,6 +499,11 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                         balanceAsset = new BigNumber(balances[i]);
                         i++;
 
+                        let items = [
+                            ...createCheck('claimRewards', 'double rewards', new BigNumber(0), balanceAssetDoubleFarm, balanceAsset.times(new BigNumber(1.2)), new BigNumber(-1), true),
+                        ]
+
+                        console.table(items);
                     });
 
                     it(`Balance asset after double farm 1.2 times greater than balance asset after single farm`, async function () {
@@ -559,10 +578,24 @@ async function getAssetAmount(to, assetName, ganacheWallet) {
     }
 }
 
-function createCheck(type, name , assetValue, currentValue, expectedValue, DELTA){
+function createCheck(type, name, assetValue, currentValue, minValue, maxValue, isGt, isLt) {
 
-    let maxValue = expectedValue.plus(DELTA);
-    let minValue = expectedValue.minus(DELTA);
+    if (minValue.isZero() && maxValue.isZero()) {
+
+        let zero = {
+            type: type,
+            name: `${name}`,
+            input: fromAsset(assetValue.toString()),
+            current: fromAsset(currentValue.toString()),
+            expected: fromAsset(minValue.toString()),
+            difference: fromAsset(currentValue.toString()),
+            status: currentValue.eq(minValue) ? '✔': '✘'
+        }
+
+        return [zero];
+    }
+
+    let values = [];
 
     let min = {
         type: type,
@@ -571,23 +604,27 @@ function createCheck(type, name , assetValue, currentValue, expectedValue, DELTA
         current: fromAsset(currentValue.toString()),
         expected: fromAsset(minValue.toString()),
         difference: fromAsset(currentValue.minus(minValue).toString()),
-        delta: fromAsset(DELTA.toString()),
-        status: currentValue.gte(minValue) ? '✔': '✘'
+        status: (isGt ? currentValue.gt(minValue) : currentValue.gte(minValue)) ? '✔': '✘'
     }
 
-    let max = {
-        type: type,
-        name: `${name}:max`,
-        input: fromAsset(assetValue.toString()),
-        current: fromAsset(currentValue.toString()),
-        expected: fromAsset(maxValue.toString()),
-        difference: fromAsset(maxValue.minus(currentValue).toString()),
-        delta: fromAsset(DELTA.toString()),
-        status: currentValue.lte(maxValue) ? '✔': '✘'
+    values.push(min);
+
+    if (maxValue.isPositive()) {
+
+        let max = {
+            type: type,
+            name: `${name}:max`,
+            input: fromAsset(assetValue.toString()),
+            current: fromAsset(currentValue.toString()),
+            expected: fromAsset(maxValue.toString()),
+            difference: fromAsset(maxValue.minus(currentValue).toString()),
+            status: (isLt ? currentValue.lt(maxValue) : currentValue.lte(maxValue)) ? '✔': '✘'
+        }
+
+        values.push(max);
     }
 
-
-    return [min, max];
+    return values;
 }
 
 module.exports = {
