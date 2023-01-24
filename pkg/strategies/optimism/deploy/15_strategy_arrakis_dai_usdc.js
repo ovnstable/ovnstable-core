@@ -46,6 +46,7 @@ module.exports = async ({deployments}) => {
                 oracleUsdc: OPTIMISM.oracleUsdc,
                 kyberSwapRouter: kyberSwapRouter,
                 poolUsdcDaiFee: poolUsdcDaiFee,
+                curve3Pool: OPTIMISM.curve3Pool,
             }
         )).wait();
     });

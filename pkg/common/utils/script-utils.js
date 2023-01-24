@@ -1,4 +1,4 @@
-const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {fromE18, fromE6, toE18, toE6, fromE8} = require("@overnight-contracts/common/utils/decimals");
 const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
@@ -535,37 +535,6 @@ async function transferETH(amount, to) {
 }
 
 
-async function transferWTC(amount, to) {
-
-
-    //work only for Optimism
-    // This address has WBTC
-    let address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
-
-    await transferETH(1, address);
-
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [address],
-    });
-
-
-    const account = await hre.ethers.getSigner(address);
-
-    let wbtc = await getERC20('wbtc');
-
-    await wbtc.connect(account).transfer(to, await wbtc.balanceOf(account.address));
-
-    await hre.network.provider.request({
-        method: "hardhat_stopImpersonatingAccount",
-        params: [account.address],
-    });
-
-
-    console.log('Balance WBTC: ' + await wbtc.balanceOf(to));
-}
-
 async function transferUSDPlus(amount, to){
 
     let usdPlus = await getContract('UsdPlusToken');
@@ -586,7 +555,7 @@ async function transferDAI(to) {
     let address;
     switch (process.env.ETH_NETWORK){
         case "OPTIMISM":
-            address = '0x777a044ceff2305a06ce06ab4644ea025d4ddeb5';
+            address = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
             break
         case "POLYGON":
             address = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
@@ -613,7 +582,7 @@ async function transferDAI(to) {
         params: [account.address],
     });
 
-    console.log(`[Node] Transfer DAI [${fromE6(await token.balanceOf(to))}] to [${to}]:`);
+    console.log(`[Node] Transfer DAI [${fromE18(await token.balanceOf(to))}] to [${to}]:`);
 }
 
 
@@ -648,7 +617,7 @@ async function transferWBTC(amount, to) {
     });
 
 
-    console.log(`[Node] Transfer WBTC [${fromE6(await wbtc.balanceOf(to))}] to [${to}]:`);
+    console.log(`[Node] Transfer WBTC [${fromE8(await wbtc.balanceOf(to))}] to [${to}]:`);
 
 }
 
@@ -722,7 +691,6 @@ module.exports = {
     getDevWallet: getDevWallet,
     transferETH: transferETH,
     transferDAI: transferDAI,
-    transferWTC: transferWTC,
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
