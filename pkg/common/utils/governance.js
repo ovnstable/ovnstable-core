@@ -35,6 +35,7 @@ async function testUsdPlus(){
     let exchange = await getContract('Exchange');
     let asset = await getCoreAsset();
     let usdPlusToken = await getContract('UsdPlusToken');
+    let m2m = await getContract('Mark2Market');
 
     let amountAsset = await asset.balanceOf(await getWalletAddress());
     let amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
@@ -89,6 +90,12 @@ async function testUsdPlus(){
         await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);
         await pm.connect(timelock).balance();
     });
+
+
+    console.log('strategyAssets: ' + await m2m.strategyAssets());
+    console.log('totalNetAssets: ' + await m2m.totalNetAssets());
+    console.log('totalLiquidationAssets: ' + await m2m.totalLiquidationAssets());
+
 }
 
 async function testInsurance(){
