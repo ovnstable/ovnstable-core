@@ -36,6 +36,7 @@ let BSC = {
     pancakeRouter: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
     synapseStableSwapPool: '0x28ec0B36F0819ecB5005cAB836F4ED5a2eCa4D13',
     wombatRouter: '0x19609B03C976CCA288fbDae5c21d4290e9a4aDD7',
+    wombatPool: '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0',
     // oracles
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
     chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",

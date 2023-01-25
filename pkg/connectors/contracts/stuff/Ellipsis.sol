@@ -2,8 +2,9 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IPool {
+interface IEllipsisPool {
 
     function balances(uint256 i) external view returns (uint256);
 
@@ -44,5 +45,11 @@ interface IPool {
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount) external returns (uint256);
 
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount, bool _use_wrapped) external returns (uint256);
+
+}
+
+interface IAToken is IERC20 {
+
+    function getAssetPrice() external view returns (uint256);
 
 }
