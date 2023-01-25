@@ -104,6 +104,10 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyEllipsisDotDotBusd',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -128,8 +132,6 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-//        let strategy = await ethers.getContract(strategyName);
-//        await strategy.initSlippages(20, 101);
     }
 }
 
