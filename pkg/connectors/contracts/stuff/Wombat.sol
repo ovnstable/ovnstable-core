@@ -228,6 +228,23 @@ interface IWombatRouter {
 
 library WombatLibrary {
 
+    struct CalculateParams {
+        IWombatRouter wombatRouter;
+        address token0;
+        address token1;
+        address token2;
+        address pool0;
+        uint256 amount0Total;
+        uint256 totalAmountLpTokens;
+        uint256 reserve0;
+        uint256 reserve1;
+        uint256 reserve2;
+        uint256 denominator0;
+        uint256 denominator1;
+        uint256 denominator2;
+        uint256 precision;
+    }
+
     function getAmountOut(
         IWombatRouter wombatRouter,
         address token0,
@@ -321,6 +338,42 @@ library WombatLibrary {
         uint256 amount1 = reserve1 * amountLpTokens / totalAmountLpTokens;
         uint256 amount0 = getAmountOut(wombatRouter, token1, token0, pool0, amount1);
         amountLpTokens = (totalAmountLpTokens * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+    }
+
+    /**
+     * Get amount of token1 and token2 nominated in token0 where amount0Total is total getting amount nominated in token0
+     *
+     */
+    function getAmountToSwap(CalculateParams memory params) internal view returns (uint256 amount1InToken0, uint256 amount2InToken0) {
+        amount1InToken0 = (params.amount0Total * params.reserve1) / (params.reserve0 * params.denominator1 / params.denominator0
+                + params.reserve1 + params.reserve2 * params.denominator1 / params.denominator2);
+        amount2InToken0 = (params.amount0Total * params.reserve2) / (params.reserve0 * params.denominator2 / params.denominator0
+                + params.reserve1 * params.denominator2 / params.denominator1 + params.reserve2);
+        for (uint i = 0; i < params.precision; i++) {
+            uint256 amount1 = getAmountOut(params.wombatRouter, params.token0, params.token1, params.pool0, amount1InToken0);
+            uint256 amount2 = getAmountOut(params.wombatRouter, params.token0, params.token2, params.pool0, amount2InToken0);
+            amount1InToken0 = (params.amount0Total * params.reserve1) / (params.reserve0 * amount1 / amount1InToken0
+                    + params.reserve1 + params.reserve2 * amount1 / amount2);
+            amount2InToken0 = (params.amount0Total * params.reserve2) / (params.reserve0 * amount2 / amount2InToken0
+                    + params.reserve1 * amount2 / amount1 + params.reserve2);
+        }
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     */
+    function getAmountLpTokens(CalculateParams memory params) internal view returns (uint256 amountLpTokens) {
+        amountLpTokens = (params.totalAmountLpTokens * params.amount0Total) / (params.reserve0
+                + params.reserve1 * params.denominator0 / params.denominator1 + params.reserve2 * params.denominator0 / params.denominator2);
+        for (uint i = 0; i < params.precision; i++) {
+            uint256 amount1 = params.reserve1 * amountLpTokens / params.totalAmountLpTokens;
+            uint256 amount2 = params.reserve2 * amountLpTokens / params.totalAmountLpTokens;
+            uint256 amount1InToken0 = getAmountOut(params.wombatRouter, params.token1, params.token0, params.pool0, amount1);
+            uint256 amount2InToken0 = getAmountOut(params.wombatRouter, params.token2, params.token0, params.pool0, amount2);
+            amountLpTokens = (params.totalAmountLpTokens * params.amount0Total) / (params.reserve0
+                    + params.reserve1 * amount1InToken0 / amount1 + params.reserve2 * amount2InToken0 / amount2);
+        }
     }
 
 }
