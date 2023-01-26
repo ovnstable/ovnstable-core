@@ -19,6 +19,7 @@
     "app-root-path": "^3.0.0",
     "chai": "^4.3.6",
     "dotenv": "^16.0.0",
+    "hardhat-contract-sizer": "^2.7.0",
     "hardhat-gas-reporter": "^1.0.8"
   },
   "devDependencies": {
