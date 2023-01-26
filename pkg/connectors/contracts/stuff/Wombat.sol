@@ -349,6 +349,7 @@ library WombatLibrary {
                 + params.reserve1 + params.reserve2 * params.denominator1 / params.denominator2);
         amount2InToken0 = (params.amount0Total * params.reserve2) / (params.reserve0 * params.denominator2 / params.denominator0
                 + params.reserve1 * params.denominator2 / params.denominator1 + params.reserve2);
+        //TODO fix
         for (uint i = 0; i < params.precision; i++) {
             uint256 amount1 = getAmountOut(params.wombatRouter, params.token0, params.token1, params.pool0, amount1InToken0);
             uint256 amount2 = getAmountOut(params.wombatRouter, params.token0, params.token2, params.pool0, amount2InToken0);
@@ -366,6 +367,7 @@ library WombatLibrary {
     function getAmountLpTokens(CalculateParams memory params) internal view returns (uint256 amountLpTokens) {
         amountLpTokens = (params.totalAmountLpTokens * params.amount0Total) / (params.reserve0
                 + params.reserve1 * params.denominator0 / params.denominator1 + params.reserve2 * params.denominator0 / params.denominator2);
+        //TODO fix
         for (uint i = 0; i < params.precision; i++) {
             uint256 amount1 = params.reserve1 * amountLpTokens / params.totalAmountLpTokens;
             uint256 amount2 = params.reserve2 * amountLpTokens / params.totalAmountLpTokens;
