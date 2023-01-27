@@ -8,7 +8,7 @@ let id = process.env.TEST_STRATEGY;
 let arrays = [
     {
         name: 'StrategyVenusBusd',
-        enabledReward: false,
+        enabledReward: true,
     },
     {
         name: 'StrategyStargateBusd',

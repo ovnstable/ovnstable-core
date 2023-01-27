@@ -3,19 +3,35 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
 
 contract StrategyVenusBusd is Strategy {
 
-    IERC20 public busdToken;
+    // --- structs
 
+    struct StrategyParams {
+        address busdToken;
+        address vBusdToken;
+        address unitroller;
+        address pancakeRouter;
+        address xvsToken;
+        address wbnbToken;
+    }
+
+
+    // --- params
+
+    IERC20 public busdToken;
     VenusInterface public vBusdToken;
+    Unitroller public unitroller;
+    IPancakeRouter02 public pancakeRouter;
+    IERC20 public xvsToken;
+    IERC20 public wbnbToken;
 
 
     // --- events
 
-    event StrategyUpdatedTokens(address busdToken);
-
-    event StrategyUpdatedParams(address vBusdToken);
+    event StrategyUpdatedParams();
 
 
     // ---  constructor
@@ -30,26 +46,15 @@ contract StrategyVenusBusd is Strategy {
 
     // --- Setters
 
-    function setTokens(
-        address _busdToken
-    ) external onlyAdmin {
+    function setParams(StrategyParams calldata params) external onlyAdmin {
+        busdToken = IERC20(params.busdToken);
+        vBusdToken = VenusInterface(params.vBusdToken);
+        unitroller = Unitroller(params.unitroller);
+        pancakeRouter = IPancakeRouter02(params.pancakeRouter);
+        xvsToken = IERC20(params.xvsToken);
+        wbnbToken = IERC20(params.wbnbToken);
 
-        require(_busdToken != address(0), "Zero address not allowed");
-
-        busdToken = IERC20(_busdToken);
-
-        emit StrategyUpdatedTokens(_busdToken);
-    }
-
-    function setParams(
-        address _vBusdToken
-    ) external onlyAdmin {
-
-        require(_vBusdToken != address(0), "Zero address not allowed");
-
-        vBusdToken = VenusInterface(_vBusdToken);
-
-        emit StrategyUpdatedParams(_vBusdToken);
+        emit StrategyUpdatedParams();
     }
 
 
@@ -103,8 +108,46 @@ contract StrategyVenusBusd is Strategy {
         return (vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18) + busdToken.balanceOf(address(this));
     }
 
-    function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+    function _claimRewards(address _to) internal override returns (uint256) {
+
+        // claim rewards
+        if (vBusdToken.balanceOf(address(this)) > 0) {
+            address[] memory tokens = new address[](1);
+            tokens[0] = address(vBusdToken);
+            unitroller.claimVenus(address(this), tokens);
+        }
+
+        // sell rewards
+        uint256 totalBusd;
+
+        uint256 xvsBalance = xvsToken.balanceOf(address(this));
+        if (xvsBalance > 0) {
+            uint256 xvsAmountOut = PancakeSwapLibrary.getAmountsOut(
+                pancakeRouter,
+                address(xvsToken),
+                address(wbnbToken),
+                address(busdToken),
+                xvsBalance
+            );
+
+            if (xvsAmountOut > 0) {
+                totalBusd += PancakeSwapLibrary.swapExactTokensForTokens(
+                    pancakeRouter,
+                    address(xvsToken),
+                    address(wbnbToken),
+                    address(busdToken),
+                    xvsBalance,
+                    xvsAmountOut * 99 / 100,
+                    address(this)
+                );
+            }
+        }
+
+        if (totalBusd > 0) {
+            busdToken.transfer(_to, totalBusd);
+        }
+
+        return totalBusd;
     }
 
 }
