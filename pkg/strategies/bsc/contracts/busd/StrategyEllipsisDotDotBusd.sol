@@ -138,7 +138,7 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         amounts[1] = usdc.balanceOf(address(this));
         amounts[2] = usdt.balanceOf(address(this));
         // sub 4 bp to calculate min amount
-        uint256 minToMint = OvnMath.subBasisPoints(pool.calc_token_amount(amounts, true), 4);
+        uint256 minToMint = OvnMath.subBasisPoints(pool.calc_token_amount(amounts, true), stakeSlippageBP);
 
         // add liquidity
         busd.approve(address(pool), amounts[0]);
@@ -171,8 +171,7 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         params.token1 = address(usdc);
         params.token2 = address(usdt);
         params.pool0 = wombatPool;
-        // add 4 bp to unstake more than required
-        params.amount0Total = OvnMath.addBasisPoints(_amount, 4) + 10;
+        params.amount0Total = OvnMath.addBasisPoints(_amount, stakeSlippageBP) + 10;
         params.totalAmountLpTokens = totalAmountLpTokens;
         params.reserve0 = reserve0;
         params.reserve1 = reserve1;
@@ -193,9 +192,9 @@ contract StrategyEllipsisDotDotBusd is Strategy {
 
         // calculate min amount to burn
         uint256[3] memory minAmounts;
-        minAmounts[0] = OvnMath.subBasisPoints(reserve0 * val3EPSAmount / totalAmountLpTokens, 4);
-        minAmounts[1] = OvnMath.subBasisPoints(reserve1 * val3EPSAmount / totalAmountLpTokens, 4);
-        minAmounts[2] = OvnMath.subBasisPoints(reserve2 * val3EPSAmount / totalAmountLpTokens, 4);
+        minAmounts[0] = OvnMath.subBasisPoints(reserve0 * val3EPSAmount / totalAmountLpTokens, stakeSlippageBP);
+        minAmounts[1] = OvnMath.subBasisPoints(reserve1 * val3EPSAmount / totalAmountLpTokens, stakeSlippageBP);
+        minAmounts[2] = OvnMath.subBasisPoints(reserve2 * val3EPSAmount / totalAmountLpTokens, stakeSlippageBP);
 
         // remove liquidity
         val3EPS.approve(address(pool), val3EPSAmount);
@@ -224,9 +223,9 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         // calculate min amount to burn
         uint256 totalAmountLpTokens = val3EPS.totalSupply();
         uint256[3] memory minAmounts;
-        minAmounts[0] = OvnMath.subBasisPoints(pool.balances(0) * val3EPSBalance / totalAmountLpTokens, 4);
-        minAmounts[1] = OvnMath.subBasisPoints(pool.balances(1) * val3EPSBalance / totalAmountLpTokens, 4);
-        minAmounts[2] = OvnMath.subBasisPoints(pool.balances(2) * val3EPSBalance / totalAmountLpTokens, 4);
+        minAmounts[0] = OvnMath.subBasisPoints(pool.balances(0) * val3EPSBalance / totalAmountLpTokens, stakeSlippageBP);
+        minAmounts[1] = OvnMath.subBasisPoints(pool.balances(1) * val3EPSBalance / totalAmountLpTokens, stakeSlippageBP);
+        minAmounts[2] = OvnMath.subBasisPoints(pool.balances(2) * val3EPSBalance / totalAmountLpTokens, stakeSlippageBP);
 
         // remove liquidity
         val3EPS.approve(address(pool), val3EPSBalance);

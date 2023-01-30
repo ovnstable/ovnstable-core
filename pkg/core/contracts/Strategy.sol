@@ -19,6 +19,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     uint256 public swapSlippageBP;
     uint256 public navSlippageBP;
+    uint256 public stakeSlippageBP;
 
 
     function __Strategy_init() internal initializer {
@@ -29,6 +30,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         swapSlippageBP = 20;
         navSlippageBP = 20;
+        stakeSlippageBP = 4;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -70,20 +72,24 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function initSlippages(
         uint256 _swapSlippageBP,
-        uint256 _navSlippageBP
+        uint256 _navSlippageBP,
+        uint256 _stakeSlippageBP
     ) public onlyAdmin {
         swapSlippageBP = _swapSlippageBP;
         navSlippageBP = _navSlippageBP;
-        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP);
+        stakeSlippageBP = _stakeSlippageBP;
+        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
     }
 
     function setSlippages(
         uint256 _swapSlippageBP,
-        uint256 _navSlippageBP
+        uint256 _navSlippageBP,
+        uint256 _stakeSlippageBP
     ) public onlyPortfolioAgent {
         swapSlippageBP = _swapSlippageBP;
         navSlippageBP = _navSlippageBP;
-        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP);
+        stakeSlippageBP = _stakeSlippageBP;
+        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
     }
 
 
@@ -169,5 +175,5 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
 
-    uint256[47] private __gap;
+    uint256[46] private __gap;
 }
