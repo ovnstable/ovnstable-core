@@ -19,9 +19,6 @@ contract FlashStrategyEllipsisDotDotBusd {
         address usdc;
         address usdt;
         address wBnb;
-        address ddd;
-        address epx;
-        address valas;
         address val3EPS;
         address pool;
         address lpDepositor;
@@ -39,9 +36,6 @@ contract FlashStrategyEllipsisDotDotBusd {
     IERC20 public usdc;
     IERC20 public usdt;
     IERC20 public wBnb;
-    IERC20 public ddd;
-    IERC20 public epx;
-    IERC20 public valas;
 
     IERC20 public val3EPS;
 
@@ -75,9 +69,6 @@ contract FlashStrategyEllipsisDotDotBusd {
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
         wBnb = IERC20(params.wBnb);
-        ddd = IERC20(params.ddd);
-        epx = IERC20(params.epx);
-        valas = IERC20(params.valas);
 
         val3EPS = IERC20(params.val3EPS);
 
