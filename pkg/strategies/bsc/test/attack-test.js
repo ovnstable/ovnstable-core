@@ -23,7 +23,7 @@ const formatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 });
 
-describe("FlashLoanAttackStrategy", function () {
+describe("AttackStrategy", function () {
 
     describe(`Stake`, function () {
 
@@ -37,7 +37,9 @@ describe("FlashLoanAttackStrategy", function () {
 
         sharedBeforeEach("deploy", async () => {
 
-            let values = await setUp('BSC', 'busd');
+            let strategyName = process.env.TEST_STRATEGY;
+
+            let values = await setUp('BSC', 'busd', strategyName);
 
             recipient = values.recipient;
             strategy = values.strategy;
@@ -56,7 +58,7 @@ describe("FlashLoanAttackStrategy", function () {
 
             let usdc = await getERC20("usdc");
             await usdc.transfer(attackStrategy.address, attackValue);
-            await attackStrategy.connect(recipient).flashAttack(usdc.address, attackValue, 1);
+            await attackStrategy.connect(recipient).attack(usdc.address, attackValue, 1);
             makeLog('Attack to strategy', attackValue, (await strategy.netAssetValue()).toString());
 
 
@@ -117,23 +119,23 @@ describe("FlashLoanAttackStrategy", function () {
 
 });
 
-async function setUp(network, assetName) {
+async function setUp(network, assetName, strategyName) {
 
     await hre.run("compile");
     await resetHardhat(network);
 
-    hre.ovn.tags = 'StrategyEllipsisDotDotBusd';
+    hre.ovn.tags = strategyName;
     hre.ovn.setting = true;
 
-    await deployments.fixture(['FlashStrategyEllipsisDotDotBusd', 'StrategyEllipsisDotDotBusd', 'test']);
+    await deployments.fixture(['Attack' + strategyName, strategyName, 'test']);
 
     const signers = await ethers.getSigners();
     const account = signers[0];
     const recipient = signers[1];
 
-    const attackStrategy = await ethers.getContract('FlashStrategyEllipsisDotDotBusd');
+    const attackStrategy = await ethers.getContract('Attack' + strategyName);
 
-    const strategy = await ethers.getContract('StrategyEllipsisDotDotBusd');
+    const strategy = await ethers.getContract(strategyName);
     await strategy.setPortfolioManager(recipient.address);
 
     let mainAddress = (await initWallet()).address;
