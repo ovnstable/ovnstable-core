@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const {deployments, getNamedAccounts, ethers} = require("hardhat");
 const {resetHardhat, greatLess} = require("@overnight-contracts/common/utils/tests");
-const {toE6, toE18, fromAsset} = require("@overnight-contracts/common/utils/decimals");
+const {toE6, toE18, fromAsset, fromE18, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {transferDAI, getERC20, transferETH, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {expect} = require("chai");
@@ -23,6 +23,7 @@ describe("FlashLoanAttackStrategy", function () {
         let attackStrategy;
         let asset;
         let toAsset = function() {};
+        let fromAsset = function() {};
 
         sharedBeforeEach("deploy", async () => {
 
@@ -33,33 +34,53 @@ describe("FlashLoanAttackStrategy", function () {
             attackStrategy = values.attackStrategy;
             asset = values.asset;
             toAsset = values.toAsset;
+            fromAsset = values.fromAsset;
 
-            let attackValue = toAsset(50000000);
-            let assetValue = toAsset(1000000);
+            let attackValue = toAsset(50_000_000);
+            let assetValue = toAsset(1_000_000);
+
+
+            let log = [];
+
 
             await asset.transfer(strategy.address, assetValue);
             await strategy.connect(recipient).stake(asset.address, assetValue);
 
-            let netAssetValueBeforeAttack = (await strategy.netAssetValue()).toString();
-            console.log("netAssetValueBeforeAttack: " + netAssetValueBeforeAttack);
+            log.push({
+                step: 'Stake to strategy',
+                amount: fromAsset(assetValue),
+                nav: fromAsset((await strategy.netAssetValue()).toString())
+            });
 
             let usdc = await getERC20("usdc");
             await usdc.transfer(attackStrategy.address, attackValue);
             await attackStrategy.connect(recipient).flashAttack(usdc.address, attackValue, 1);
 
-            let netAssetValueAfterAttack = (await strategy.netAssetValue()).toString();
-            console.log("netAssetValueAfterAttack: " + netAssetValueAfterAttack);
+            log.push({
+                step: 'Attack to strategy',
+                amount: fromAsset(attackValue),
+                nav: fromAsset((await strategy.netAssetValue()).toString())
+            });
 
             await asset.transfer(strategy.address, assetValue);
             await strategy.connect(recipient).stake(asset.address, assetValue);
 
-            let netAssetValueAfterStake = (await strategy.netAssetValue()).toString();
-            console.log("netAssetValueAfterStake: " + netAssetValueAfterStake);
+            log.push({
+                step: 'Stake to strategy',
+                amount: fromAsset(assetValue),
+                nav: fromAsset((await strategy.netAssetValue()).toString())
+            });
 
             await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true);
 
-            let balanceAssetRecipient = (await asset.balanceOf(recipient.address)).toString();
-            console.log("balanceAssetRecipient: " + balanceAssetRecipient);
+            log.push({
+                step: 'Unstake full from strategy',
+                amount: fromAsset((await strategy.netAssetValue()).toString()),
+                nav: fromAsset((await asset.balanceOf(recipient.address)).toString())
+            });
+
+
+            console.table(log);
         });
 
         it(`Test`, async function () {
@@ -96,26 +117,32 @@ async function setUp(network, assetName) {
     // Get amount asset for test
     await getAssetAmount(mainAddress, assetName, account);
     const asset = await getERC20(assetName);
+
+    let decimals = await asset.decimals();
+
+    let toAsset;
+    let fromAsset;
+    if (decimals === 18) {
+        toAsset = toE18;
+        fromAsset = fromE18;
+    } else {
+        toAsset = toE6;
+        fromAsset = fromE6;
+    }
+
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
 
     await getAssetAmount(mainAddress, "usdc", account);
     const usdc = await getERC20("usdc");
     console.log(`Balance [usdc]: [${fromAsset(await usdc.balanceOf(mainAddress))}]`);
 
-    let decimals = await asset.decimals();
-
-    let toAsset;
-    if (decimals === 18) {
-        toAsset = toE18;
-    } else {
-        toAsset = toE6;
-    }
 
     return {
         recipient: recipient,
         asset: asset,
         strategy: strategy,
         toAsset: toAsset,
+        fromAsset: fromAsset,
         attackStrategy: attackStrategy,
     }
 }
