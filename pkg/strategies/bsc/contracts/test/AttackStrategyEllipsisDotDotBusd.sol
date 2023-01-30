@@ -10,7 +10,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "hardhat/console.sol";
 
-contract FlashStrategyEllipsisDotDotBusd {
+contract AttackStrategyEllipsisDotDotBusd {
 
     // --- structs
 
@@ -59,7 +59,6 @@ contract FlashStrategyEllipsisDotDotBusd {
 
     // ---  constructor
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {}
 
     // --- Setters
@@ -91,7 +90,7 @@ contract FlashStrategyEllipsisDotDotBusd {
 
     // --- logic
 
-    function flashAttack(
+    function attack(
         address _asset,
         uint256 amount,
         uint256 index

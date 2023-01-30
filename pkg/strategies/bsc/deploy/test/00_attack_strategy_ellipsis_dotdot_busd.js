@@ -10,13 +10,13 @@ module.exports = async ({deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    await deploy('FlashStrategyEllipsisDotDotBusd', {
+    await deploy('AttackStrategyEllipsisDotDotBusd', {
         from: deployer,
         args: [],
         log: true,
     });
 
-    const attackContract = await ethers.getContract("FlashStrategyEllipsisDotDotBusd");
+    const attackContract = await ethers.getContract("AttackStrategyEllipsisDotDotBusd");
 
     await (await attackContract.setParams(
         {
@@ -36,7 +36,7 @@ module.exports = async ({deployments}) => {
         }
     )).wait();
 
-    console.log("FlashStrategyEllipsisDotDotBusd deployed");
+    console.log("AttackStrategyEllipsisDotDotBusd deployed");
 };
 
-module.exports.tags = ['FlashStrategyEllipsisDotDotBusd'];
+module.exports.tags = ['AttackStrategyEllipsisDotDotBusd'];
