@@ -1,6 +1,6 @@
 const hre = require("hardhat");
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
+const {getContract, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 const {BSC} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let StrategyVenusBusd = await getContract('StrategyVenusBusd');
+    let strategyVenusBusd = await getContract('StrategyVenusBusd');
 
     let StrategyVenusBusdParams = {
         busdToken: BSC.busd,
@@ -20,15 +20,21 @@ async function main() {
         wbnbToken: BSC.wBnb,
     };
 
-    addresses.push(StrategyVenusBusd.address);
+    addresses.push(strategyVenusBusd.address);
     values.push(0);
-    abis.push(StrategyVenusBusd.interface.encodeFunctionData('upgradeTo', ['0x56fA2031F9df2AFac723e0a0b3D2b2800e4508cf']));
+    abis.push(strategyVenusBusd.interface.encodeFunctionData('upgradeTo', ['0x6aFC017203Cd13EA1B2aD8fc2a09E397507D6058']));
 
-    addresses.push(StrategyVenusBusd.address);
+    addresses.push(strategyVenusBusd.address);
     values.push(0);
-    abis.push(StrategyVenusBusd.interface.encodeFunctionData('setParams', [StrategyVenusBusdParams]));
+    abis.push(strategyVenusBusd.interface.encodeFunctionData('setParams', [StrategyVenusBusdParams]));
 
-    await testProposal(addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus();
+    // await testStrategy(strategyVenusBusd);
+    // await showM2M();
+
+    await createProposal(addresses, values, abis);
 }
 
 main()

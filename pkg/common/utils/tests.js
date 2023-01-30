@@ -8,7 +8,7 @@ const fs = require("fs-extra")
 
 const { node_url, blockNumber } = require("../utils/network");
 const {ethers} = require("hardhat");
-const {transferETH} = require("./script-utils");
+const {transferETH, getDevWallet, getERC20} = require("./script-utils");
 
 function greatLess(value, expected, delta) {
     let maxValue = expected.plus(delta);
@@ -58,9 +58,43 @@ async function createRandomWallet(){
     return  wallet;
 }
 
+
+async function getTestAssets(to){
+
+    let network = process.env.ETH_NETWORK;
+
+    if (network === "BSC"){
+        await getBusd(to);
+    }else {
+        throw new Error('Need implement function getTestAssets for network: ' + network);
+    }
+
+}
+
+async function getBusd(to){
+
+
+    let holder = '0x5a52e96bacdabb82fd05763e25335261b270efcb';
+
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [holder],
+    });
+
+    await transferETH(1, holder);
+
+    const signerWithAddress = await hre.ethers.getSigner(holder);
+    let busd = await getERC20("busd");
+
+    await busd.connect(signerWithAddress).transfer(to, await busd.balanceOf(signerWithAddress.address));
+}
+
+
 module.exports = {
     greatLess: greatLess,
     resetHardhat: resetHardhat,
     prepareArtifacts: prepareArtifacts,
-    createRandomWallet: createRandomWallet
+    createRandomWallet: createRandomWallet,
+    getTestAssets: getTestAssets
 }

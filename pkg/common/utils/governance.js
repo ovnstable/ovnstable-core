@@ -1,8 +1,9 @@
-const {fromE18, toE18, fromAsset} = require("./decimals");
+const {fromE18, toE18, fromAsset, fromE6, toAsset} = require("./decimals");
 const {expect} = require("chai");
 const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {createRandomWallet, getTestAssets} = require("./tests");
 
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
@@ -37,14 +38,16 @@ async function testUsdPlus(){
     let usdPlusToken = await getContract('UsdPlusToken');
     let m2m = await getContract('Mark2Market');
 
-    let amountAsset = await asset.balanceOf(await getWalletAddress());
-    let amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+    let walletAddress = await getWalletAddress();
+    let amountAsset = await asset.balanceOf(walletAddress);
+    let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
 
+    let fromUsdPlus = fromE6;
 
     tables.push({
         name: 'before: mint',
         asset: fromAsset(amountAsset),
-        usdPlus: fromAsset(amountUsdPlus)
+        usdPlus: fromUsdPlus(amountUsdPlus)
     })
 
     await (await asset.approve(exchange.address, amountAsset)).wait();
@@ -52,19 +55,19 @@ async function testUsdPlus(){
     await (await exchange.buy(asset.address, amountAsset)).wait();
     console.log('Exchange.buy done');
 
-    amountAsset = await asset.balanceOf(await getWalletAddress());
-    amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+    amountAsset = await asset.balanceOf(walletAddress);
+    amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
 
     tables.push({
         name: 'after: mint',
         asset: fromAsset(amountAsset),
-        usdPlus: fromAsset(amountUsdPlus)
+        usdPlus: fromUsdPlus(amountUsdPlus)
     })
 
     tables.push({
         name: 'before: redeem',
         asset: fromAsset(amountAsset),
-        usdPlus: fromAsset(amountUsdPlus)
+        usdPlus: fromUsdPlus(amountUsdPlus)
     })
 
     await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
@@ -72,13 +75,13 @@ async function testUsdPlus(){
     await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
     console.log('Exchange.redeem done');
 
-    amountAsset = await asset.balanceOf(await getWalletAddress());
-    amountUsdPlus = await usdPlusToken.balanceOf(await getWalletAddress());
+    amountAsset = await asset.balanceOf(walletAddress);
+    amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
 
     tables.push({
         name: 'after: redeem',
         asset: fromAsset(amountAsset),
-        usdPlus: fromAsset(amountUsdPlus)
+        usdPlus: fromUsdPlus(amountUsdPlus)
     })
 
     console.table(tables);
@@ -93,8 +96,42 @@ async function testUsdPlus(){
 
 
     console.log('strategyAssets: ' + await m2m.strategyAssets());
-    console.log('totalNetAssets: ' + await m2m.totalNetAssets());
-    console.log('totalLiquidationAssets: ' + await m2m.totalLiquidationAssets());
+    console.log('totalNetAssets: ' + fromAsset(await m2m.totalNetAssets()));
+    console.log('totalLiquidationAssets: ' + fromAsset(await m2m.totalLiquidationAssets()));
+
+}
+
+async function testStrategy(strategy){
+
+    let testWallet = await createRandomWallet();
+    let asset = await getCoreAsset();
+
+    let nav = await strategy.netAssetValue();
+
+    await execTimelock(async (timelock)=>{
+        await strategy.connect(timelock).setPortfolioManager(timelock.address);
+
+
+        await strategy.connect(timelock).claimRewards(testWallet.address);
+        console.log('ClaimRewards: ' + fromAsset(await asset.balanceOf(testWallet.address)));
+
+        await getTestAssets(testWallet.address);
+
+        let amount = toAsset(500_000);
+
+        await asset.connect(testWallet).transfer(strategy.address, amount);
+        await strategy.connect(timelock).stake(asset.address, amount);
+        console.log('stake nav: ' + fromAsset(await strategy.netAssetValue()));
+
+        await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
+        console.log('unstake nav: ' + fromAsset(await strategy.netAssetValue()));
+
+        await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
+        console.log('unstakefull nav: ' + fromAsset(await strategy.netAssetValue()));
+
+        await asset.connect(testWallet).transfer(strategy.address, nav);
+        await strategy.connect(timelock).stake(asset.address, nav);
+    });
 
 }
 
@@ -234,5 +271,6 @@ module.exports = {
     createProposal: createProposal,
     testProposal: testProposal,
     testUsdPlus: testUsdPlus,
-    testInsurance: testInsurance
+    testInsurance: testInsurance,
+    testStrategy: testStrategy,
 }
