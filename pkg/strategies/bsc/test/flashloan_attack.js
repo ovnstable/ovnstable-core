@@ -14,6 +14,15 @@ hre.ovn = {
     noDeploy: false
 }
 
+const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+
+    // These options are needed to round to whole numbers if that's what you want.
+    //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+    maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+});
+
 describe("FlashLoanAttackStrategy", function () {
 
     describe(`Stake`, function () {
@@ -24,6 +33,7 @@ describe("FlashLoanAttackStrategy", function () {
         let asset;
         let toAsset = function() {};
         let fromAsset = function() {};
+        let log = [];
 
         sharedBeforeEach("deploy", async () => {
 
@@ -40,52 +50,68 @@ describe("FlashLoanAttackStrategy", function () {
             let assetValue = toAsset(1_000_000);
 
 
-            let log = [];
-
-
             await asset.transfer(strategy.address, assetValue);
             await strategy.connect(recipient).stake(asset.address, assetValue);
-
-            log.push({
-                step: 'Stake to strategy',
-                amount: fromAsset(assetValue),
-                nav: fromAsset((await strategy.netAssetValue()).toString())
-            });
+            makeLog('Stake to strategy', assetValue, (await strategy.netAssetValue()).toString());
 
             let usdc = await getERC20("usdc");
             await usdc.transfer(attackStrategy.address, attackValue);
             await attackStrategy.connect(recipient).flashAttack(usdc.address, attackValue, 1);
+            makeLog('Attack to strategy', attackValue, (await strategy.netAssetValue()).toString());
 
-            log.push({
-                step: 'Attack to strategy',
-                amount: fromAsset(attackValue),
-                nav: fromAsset((await strategy.netAssetValue()).toString())
-            });
 
             await asset.transfer(strategy.address, assetValue);
             await strategy.connect(recipient).stake(asset.address, assetValue);
+            makeLog('Stake to strategy', assetValue, (await strategy.netAssetValue()).toString());
 
-            log.push({
-                step: 'Stake to strategy',
-                amount: fromAsset(assetValue),
-                nav: fromAsset((await strategy.netAssetValue()).toString())
-            });
 
             await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true);
+            makeLog('Unstake full from strategy', (await strategy.netAssetValue()).toString(), (await asset.balanceOf(recipient.address)).toString());
 
-            log.push({
-                step: 'Unstake full from strategy',
-                amount: fromAsset((await strategy.netAssetValue()).toString()),
-                nav: fromAsset((await asset.balanceOf(recipient.address)).toString())
-            });
-
-
-            console.table(log);
+            showLog();
         });
 
         it(`Test`, async function () {
             expect(1).to.greaterThan(0);
         });
+
+
+        function makeLog(step, amount, nav){
+
+            nav = new BigNumber(nav);
+            amount = new BigNumber(amount);
+
+            let diff;
+            if(log.length > 0){
+                diff = nav.minus(log[log.length-1].nav)
+            }else {
+                diff = new BigNumber("0");
+            }
+
+            log.push({
+                step: step,
+                amount: amount,
+                nav: nav,
+                diff: diff
+            });
+        }
+
+        function showLog(){
+
+            let tables = [];
+
+            log.forEach(value => {
+
+                tables.push({
+                    step: value.step,
+                    amount: formatter.format(fromAsset(value.amount.toString())),
+                    nav: formatter.format(fromAsset(value.nav.toString())),
+                    diff: formatter.format(fromAsset(value.diff.toString())),
+                })
+            })
+
+            console.table(tables);
+        }
 
     });
 
