@@ -30,6 +30,22 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await busd.connect(signerWithAddress).transfer(deployer, await busd.balanceOf(signerWithAddress.address));
 
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [holder],
+    });
+
+    let holder1 = '0x8894e0a0c962cb723c1976a4421c95949be2d4e3';
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [holder1],
+    });
+
+    const signerWithAddress1 = await hre.ethers.getSigner(holder1);
+    let usdc = await getERC20("usdc");
+
+    await usdc.connect(signerWithAddress1).transfer(deployer, await usdc.balanceOf(signerWithAddress1.address));
 };
 
 module.exports.tags = ['test'];
