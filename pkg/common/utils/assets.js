@@ -43,8 +43,6 @@ let BSC = {
     chainlinkUsdt: "0xB97Ad0E74fa7d920791E90258A6E2085088b4320",
     chainlinkTusd: "0xa3334A9762090E827413A7495AfeCE76F41dFc06",
     chainlinkWbnb: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
-    // corporative wallet
-    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
 let OPTIMISM = {
@@ -184,8 +182,6 @@ let POLYGON = {
     oracleChainlinkDai: "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d",
     oracleChainlinkTusd: "0x7c5d415b64312d38c56b54358449d0a4058339d2",
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
-    // corporative wallet
-    rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
 let DEFAULT = POLYGON;

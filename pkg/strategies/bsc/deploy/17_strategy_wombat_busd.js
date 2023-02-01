@@ -1,6 +1,6 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {BSC} = require("@overnight-contracts/common/utils/assets");
+const {BSC, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 let womToken = '0xAD6742A35fB341A9Cc6ad674738Dd8da98b94Fb1';
 let asset = '0xF319947eCe3823b790dd87b0A509396fE325745a';
@@ -24,7 +24,7 @@ module.exports = async ({deployments}) => {
                 pool: pool,
                 masterWombat: masterWombat,
                 pancakeRouter: BSC.pancakeRouter,
-                rewardWallet: BSC.rewardWallet,
+                rewardWallet: COMMON.rewardWallet,
                 rewardWalletPercent: rewardWalletPercent,
             }
         )).wait();

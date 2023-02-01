@@ -1,7 +1,7 @@
 const {toAsset} = require("@overnight-contracts/common/utils/decimals");
 
 const {getContract, showM2M, getCoreAsset, transferETH, initWallet, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
-const {DEFAULT} = require("@overnight-contracts/common/utils/assets");
+const {DEFAULT, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 async function main() {
@@ -17,8 +17,8 @@ async function main() {
         await (await exchange.connect(timelock).setInsurance(insurance.address)).wait();
         console.log('exchange.setInsurance: ' + insurance.address);
 
-        await (await exchange.connect(timelock).setProfitRecipient(DEFAULT.rewardWallet)).wait();
-        console.log('exchange.setProfitRecipient: ' + DEFAULT.rewardWallet);
+        await (await exchange.connect(timelock).setProfitRecipient(COMMON.rewardWallet)).wait();
+        console.log('exchange.setProfitRecipient: ' + COMMON.rewardWallet);
 
         await (await exchange.connect(timelock).grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), wallet.address));
 

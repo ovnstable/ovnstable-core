@@ -1,6 +1,6 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {BSC} = require("@overnight-contracts/common/utils/assets");
+const {BSC, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 let coneToken = '0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9';
 let coneRouter = '0xbf1fc29668e5f5Eaa819948599c9Ac1B1E03E75F';
@@ -32,7 +32,7 @@ module.exports = async ({deployments}) => {
                 synapseStableSwapPool: BSC.synapseStableSwapPool,
                 chainlinkBusd: BSC.chainlinkBusd,
                 chainlinkUsdc: BSC.chainlinkUsdc,
-                rewardWallet: BSC.rewardWallet,
+                rewardWallet: COMMON.rewardWallet,
                 rewardWalletPercent: rewardWalletPercent,
                 unkwnToken: unkwnToken,
                 unkwnUserProxy: unkwnUserProxy,

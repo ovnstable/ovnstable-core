@@ -1,6 +1,6 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {BSC} = require("@overnight-contracts/common/utils/assets");
+const {BSC, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 let aeqToken = '0x0dDef12012eD645f12AEb1B845Cb5ad61C7423F5';
 let lpToken = '0xb3A07a9CeF918b2ccEC4bC85C6F2A7975c5E83f9';
@@ -33,7 +33,7 @@ module.exports = async ({deployments}) => {
                 poolIdBusdUsdcUsdt: poolIdBusdUsdcUsdt,
                 poolIdAeqWBnb: poolIdAeqWBnb,
                 poolIdWBnbBusd: poolIdWBnbBusd,
-                rewardWallet: BSC.rewardWallet,
+                rewardWallet: COMMON.rewardWallet,
                 rewardWalletPercent: rewardWalletPercent,
                 balancerMinter: balancerMinter,
             }

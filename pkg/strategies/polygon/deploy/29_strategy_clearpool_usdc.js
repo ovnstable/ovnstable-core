@@ -1,6 +1,6 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {POLYGON, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 let cpoolToken = '0xb08b3603C5F2629eF83510E6049eDEeFdc3A2D91';
 let poolBase = '0x9F8e69786dE448e6805c0f75eadbC9323502b194';
@@ -23,7 +23,7 @@ module.exports = async ({deployments}) => {
                 poolMaster: poolMaster,
                 uniswapV3Router: POLYGON.uniswapV3Router,
                 poolFeeCpoolUsdc: poolFeeCpoolUsdc,
-                rewardWallet: POLYGON.rewardWallet
+                rewardWallet: COMMON.rewardWallet
             }
         )).wait();
     });

@@ -1,5 +1,5 @@
 const {ethers} = require("hardhat");
-const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {POLYGON, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -10,7 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pl.setExchanger(exchange.address)).wait();
     await (await pl.setTokens(usdPlus.address)).wait();
-    await (await pl.setCollector(POLYGON.rewardWallet)).wait();
+    await (await pl.setCollector(COMMON.rewardWallet)).wait();
 
 
     let velodromePools = [

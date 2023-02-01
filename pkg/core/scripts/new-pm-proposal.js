@@ -138,7 +138,7 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('setProfitRecipient', [DEFAULT.rewardWallet]));
+    abis.push(exchange.interface.encodeFunctionData('setProfitRecipient', [COMMON.rewardWallet]));
 
     addresses.push(exchange.address);
     values.push(0);
