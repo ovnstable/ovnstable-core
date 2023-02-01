@@ -1,5 +1,5 @@
 const {ethers} = require("hardhat");
-const {POLYGON, COMMON} = require("@overnight-contracts/common/utils/assets");
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -31,6 +31,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let velodromePoolsCollector = [
         '0x67124355cce2ad7a8ea283e990612ebe12730175', // sAMM-USD+/USDC
         '0xf2438edf9d5db2dbc6866ef01c9eb7ca1ca8ad13', // vAMM-USD+/USDC
+        '0xa99817d2d286C894F8f3888096A5616d06F20d46', // sAMM-USD+/DOLA
     ];
 
     await (await pl.setVelodromePoolsCollector(velodromePoolsCollector)).wait();
