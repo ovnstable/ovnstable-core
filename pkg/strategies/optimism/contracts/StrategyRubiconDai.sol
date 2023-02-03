@@ -3,12 +3,10 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-
 import "@overnight-contracts/connectors/contracts/stuff/Rubicon.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyRubiconDai is Strategy {
 
@@ -85,20 +83,20 @@ contract StrategyRubiconDai is Strategy {
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        usdcToken.approve(address(uniswapV3Router), _amount);
-
-        uint256 daiAmount = UniswapV3Library.singleSwap(
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(usdcToken),
             address(daiToken),
             poolUsdcDaiFee,
             address(this),
-            _amount,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), 20) // slippage 0.2%
+            usdcBalance,
+            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP)
         );
 
-        daiToken.approve(address(rubiconDai), daiAmount);
-        rubiconDai.deposit(daiAmount);
+        uint256 daiBalance = daiToken.balanceOf(address(this));
+        daiToken.approve(address(rubiconDai), daiBalance);
+        rubiconDai.deposit(daiBalance);
     }
 
     function _unstake(
@@ -109,30 +107,24 @@ contract StrategyRubiconDai is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-
         // Uniswap V3 swap fee (100 = 0.01%) => 1
         uint256 swapFee = poolUsdcDaiFee / 100;
         // rubicon withdraw fee - 0.03% in 3 bp
         uint256 withdrawFee = 3;
         uint256 basicPoints = swapFee + withdrawFee;
 
-        uint256 daiAmount = _oracleUsdcToDai(_amount);
-
-        uint256 _shares = rubiconDai.previewWithdraw(OvnMath.addBasisPoints(daiAmount, basicPoints));
+        uint256 _shares = rubiconDai.previewWithdraw(OvnMath.addBasisPoints(_oracleUsdcToDai(_amount + 10), basicPoints));
         rubiconDai.withdraw(_shares);
 
-        daiAmount = daiToken.balanceOf(address(this));
-
-        daiToken.approve(address(uniswapV3Router), daiAmount);
-
+        uint256 daiBalance = daiToken.balanceOf(address(this));
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(daiToken),
             address(usdcToken),
             poolUsdcDaiFee,
             address(this),
-            daiAmount,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 20) // slippage 0.2%
+            daiBalance,
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -152,18 +144,15 @@ contract StrategyRubiconDai is Strategy {
 
         rubiconDai.withdraw(shares);
 
-        uint256 daiAmount = daiToken.balanceOf(address(this));
-
-        daiToken.approve(address(uniswapV3Router), daiAmount);
-
+        uint256 daiBalance = daiToken.balanceOf(address(this));
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(daiToken),
             address(usdcToken),
             poolUsdcDaiFee,
             address(this),
-            daiAmount,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount), 20) // slippage 0.2%
+            daiBalance,
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -186,7 +175,7 @@ contract StrategyRubiconDai is Strategy {
 
         uint256 shares = rubiconDai.balanceOf(address(this));
         uint256 daiAmount = rubiconDai.previewRedeem(shares);
-        usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount + daiBalance), 4); // swap slippage 0.04%
+        usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiAmount + daiBalance), swapSlippageBP);
 
         return usdcBalance;
     }
@@ -226,20 +215,14 @@ contract StrategyRubiconDai is Strategy {
     }
 
     function _oracleDaiToUsdc(uint256 _daiAmount) internal view returns (uint256){
-
         uint256 priceDai = uint256(oracleDai.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-
-        uint256 amount = ChainlinkLibrary.convertTokenToToken(_daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
-
-        return amount;
+        return ChainlinkLibrary.convertTokenToToken(_daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
     }
 
     function _oracleUsdcToDai(uint256 _usdcAmount) internal view returns (uint256){
-
         uint256 priceDai = uint256(oracleDai.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-
         return ChainlinkLibrary.convertTokenToToken(_usdcAmount, usdcDm, daiDm, priceUsdc, priceDai);
     }
 }
