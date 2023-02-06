@@ -105,19 +105,22 @@ async function testStrategy(strategy){
 
     let testWallet = await createRandomWallet();
     let asset = await getCoreAsset();
+    let mainWallet = await initWallet();
 
     let nav = await strategy.netAssetValue();
 
     await execTimelock(async (timelock)=>{
+
+        console.log('Test strategy: ' + strategy.address);
+
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
-
-
         await strategy.connect(timelock).claimRewards(testWallet.address);
         console.log('ClaimRewards: ' + fromAsset(await asset.balanceOf(testWallet.address)));
 
-        await getTestAssets(testWallet.address);
+        await getTestAssets(mainWallet.address);
 
         let amount = toAsset(500_000);
+        await asset.connect(mainWallet).transfer(testWallet.address, amount);
 
         await asset.connect(testWallet).transfer(strategy.address, amount);
         await strategy.connect(timelock).stake(asset.address, amount);
@@ -131,6 +134,8 @@ async function testStrategy(strategy){
 
         await asset.connect(testWallet).transfer(strategy.address, nav);
         await strategy.connect(timelock).stake(asset.address, nav);
+
+        console.log('Test strategy done: ' + strategy.address);
     });
 
 }
