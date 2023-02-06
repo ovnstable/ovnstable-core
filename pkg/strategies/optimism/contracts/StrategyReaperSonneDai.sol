@@ -74,7 +74,6 @@ contract StrategyReaperSonneDai is Strategy {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        usdcToken.approve(address(uniswapV3Router), usdcBalance);
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(usdcToken),
@@ -82,7 +81,7 @@ contract StrategyReaperSonneDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             usdcBalance,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP)
         );
 
         uint256 daiBalance = daiToken.balanceOf(address(this));
@@ -114,7 +113,6 @@ contract StrategyReaperSonneDai is Strategy {
         }
 
         uint256 daiBalance = daiToken.balanceOf(address(this));
-        daiToken.approve(address(uniswapV3Router), daiBalance);
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(daiToken),
@@ -122,7 +120,7 @@ contract StrategyReaperSonneDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             daiBalance,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -143,7 +141,6 @@ contract StrategyReaperSonneDai is Strategy {
         soDai.withdrawAll();
 
         uint256 daiBalance = daiToken.balanceOf(address(this));
-        daiToken.approve(address(uniswapV3Router), daiBalance);
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(daiToken),
@@ -151,7 +148,7 @@ contract StrategyReaperSonneDai is Strategy {
             poolUsdcDaiFee,
             address(this),
             daiBalance,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -162,7 +159,7 @@ contract StrategyReaperSonneDai is Strategy {
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return OvnMath.subBasisPoints(_totalValue(), 4); // swap slippage 0.04%
+        return OvnMath.subBasisPoints(_totalValue(), swapSlippageBP);
     }
 
     function _totalValue() internal view returns (uint256) {

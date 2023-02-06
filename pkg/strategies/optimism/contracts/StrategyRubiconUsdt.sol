@@ -3,12 +3,11 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-
 import "@overnight-contracts/connectors/contracts/stuff/Rubicon.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
-import "hardhat/console.sol";
 
 contract StrategyRubiconUsdt is Strategy {
 
@@ -27,6 +26,7 @@ contract StrategyRubiconUsdt is Strategy {
     uint256 usdtDm;
     uint256 usdcDm;
 
+    address public curve3Pool;
 
 
     // --- events
@@ -45,6 +45,7 @@ contract StrategyRubiconUsdt is Strategy {
         uint24 poolUsdcUsdtFee;
         address oracleUsdt;
         address oracleUsdc;
+        address curve3Pool;
     }
 
 
@@ -72,6 +73,7 @@ contract StrategyRubiconUsdt is Strategy {
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         usdcDm = 10 ** IERC20Metadata(params.usdcToken).decimals();
         usdtDm = 10 ** IERC20Metadata(params.usdtToken).decimals();
+        curve3Pool = params.curve3Pool;
 
         emit StrategyUpdatedParams();
     }
@@ -85,20 +87,18 @@ contract StrategyRubiconUsdt is Strategy {
     ) internal override {
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        usdcToken.approve(address(uniswapV3Router), _amount);
-
-        uint256 usdtAmount = UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdcToken),
             address(usdtToken),
-            poolUsdcUsdtFee,
-            address(this),
-            _amount,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(_amount), 20) // slippage 0.2%
+            usdcBalance,
+            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdcBalance), swapSlippageBP)
         );
 
-        usdtToken.approve(address(rubiconUsdt), usdtAmount);
-        rubiconUsdt.deposit(usdtAmount);
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+        usdtToken.approve(address(rubiconUsdt), usdtBalance);
+        rubiconUsdt.deposit(usdtBalance);
     }
 
     function _unstake(
@@ -109,30 +109,22 @@ contract StrategyRubiconUsdt is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-
         // Uniswap V3 swap fee (100 = 0.01%) => 1
         uint256 swapFee = poolUsdcUsdtFee / 100;
         // rubicon withdraw fee - 0.03% in 3 bp
         uint256 withdrawFee = 3;
         uint256 basicPoints = swapFee + withdrawFee;
 
-        uint256 usdtAmount = _oracleUsdcToUsdt(_amount);
-
-        uint256 _shares = rubiconUsdt.previewWithdraw(OvnMath.addBasisPoints(usdtAmount, basicPoints));
+        uint256 _shares = rubiconUsdt.previewWithdraw(OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount + 10), basicPoints));
         rubiconUsdt.withdraw(_shares);
 
-        usdtAmount = usdtToken.balanceOf(address(this));
-
-        usdtToken.approve(address(uniswapV3Router), usdtAmount);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdtToken),
             address(usdcToken),
-            poolUsdcUsdtFee,
-            address(this),
-            usdtAmount,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 20) // slippage 0.2%
+            usdtBalance,
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -152,18 +144,13 @@ contract StrategyRubiconUsdt is Strategy {
 
         rubiconUsdt.withdraw(shares);
 
-        uint256 usdtAmount = usdtToken.balanceOf(address(this));
-
-        usdtToken.approve(address(uniswapV3Router), usdtAmount);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        uint256 usdtBalance = usdtToken.balanceOf(address(this));
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdtToken),
             address(usdcToken),
-            poolUsdcUsdtFee,
-            address(this),
-                usdtAmount,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount), 20) // slippage 0.2%
+            usdtBalance,
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -186,7 +173,7 @@ contract StrategyRubiconUsdt is Strategy {
 
         uint256 shares = rubiconUsdt.balanceOf(address(this));
         uint256 usdtAmount = rubiconUsdt.previewRedeem(shares);
-        usdcBalance += OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount + usdtBalance), 4); // swap slippage 0.04%
+        usdcBalance += OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtAmount + usdtBalance), swapSlippageBP);
 
         return usdcBalance;
     }
@@ -226,20 +213,14 @@ contract StrategyRubiconUsdt is Strategy {
     }
 
     function _oracleUsdtToUsdc(uint256 _usdtAmount) internal view returns (uint256){
-
         uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-
-        uint256 amount = ChainlinkLibrary.convertTokenToToken(_usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
-
-        return amount;
+        return ChainlinkLibrary.convertTokenToToken(_usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
     }
 
     function _oracleUsdcToUsdt(uint256 _usdcAmount) internal view returns (uint256){
-
         uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
-
         return ChainlinkLibrary.convertTokenToToken(_usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
     }
 }

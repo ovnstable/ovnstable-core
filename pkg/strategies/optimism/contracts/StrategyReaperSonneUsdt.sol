@@ -7,6 +7,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Reaper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 
 contract StrategyReaperSonneUsdt is Strategy {
@@ -21,6 +22,7 @@ contract StrategyReaperSonneUsdt is Strategy {
         address oracleUsdt;
         address uniswapV3Router;
         uint24 poolUsdcUsdtFee;
+        address curve3Pool;
     }
 
     // --- params
@@ -34,6 +36,7 @@ contract StrategyReaperSonneUsdt is Strategy {
     uint24 public poolUsdcUsdtFee;
     uint256 usdcDm;
     uint256 usdtDm;
+    address public curve3Pool;
 
     // --- events
 
@@ -60,6 +63,7 @@ contract StrategyReaperSonneUsdt is Strategy {
         poolUsdcUsdtFee = params.poolUsdcUsdtFee;
         usdcDm = 10 ** IERC20Metadata(params.usdcToken).decimals();
         usdtDm = 10 ** IERC20Metadata(params.usdtToken).decimals();
+        curve3Pool = params.curve3Pool;
 
         emit StrategyUpdatedParams();
     }
@@ -74,15 +78,12 @@ contract StrategyReaperSonneUsdt is Strategy {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        usdcToken.approve(address(uniswapV3Router), usdcBalance);
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdcToken),
             address(usdtToken),
-            poolUsdcUsdtFee,
-            address(this),
             usdcBalance,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdcBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdcBalance), swapSlippageBP)
         );
 
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
@@ -114,15 +115,12 @@ contract StrategyReaperSonneUsdt is Strategy {
         }
 
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        usdtToken.approve(address(uniswapV3Router), usdtBalance);
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdtToken),
             address(usdcToken),
-            poolUsdcUsdtFee,
-            address(this),
             usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -143,15 +141,12 @@ contract StrategyReaperSonneUsdt is Strategy {
         soUsdt.withdrawAll();
 
         uint256 usdtBalance = usdtToken.balanceOf(address(this));
-        usdtToken.approve(address(uniswapV3Router), usdtBalance);
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdtToken),
             address(usdcToken),
-            poolUsdcUsdtFee,
-            address(this),
             usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), 20) // slippage 0.2%
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
         );
 
         return usdcToken.balanceOf(address(this));
@@ -162,7 +157,7 @@ contract StrategyReaperSonneUsdt is Strategy {
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return OvnMath.subBasisPoints(_totalValue(), 4); // swap slippage 0.04%
+        return OvnMath.subBasisPoints(_totalValue(), swapSlippageBP);
     }
 
     function _totalValue() internal view returns (uint256) {

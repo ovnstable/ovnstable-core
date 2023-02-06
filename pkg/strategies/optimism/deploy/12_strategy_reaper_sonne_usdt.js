@@ -22,6 +22,7 @@ module.exports = async ({deployments}) => {
                 oracleUsdt: OPTIMISM.oracleUsdt,
                 uniswapV3Router: OPTIMISM.uniswapV3Router,
                 poolUsdcUsdtFee: poolUsdcUsdtFee,
+                curve3Pool: OPTIMISM.curve3Pool,
             }
         )).wait();
     });

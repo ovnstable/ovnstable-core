@@ -26,6 +26,7 @@ module.exports = async ({deployments}) => {
                 poolUsdcUsdtFee: poolUsdcUsdtFee,
                 oracleUsdt: OPTIMISM.oracleUsdt,
                 oracleUsdc: OPTIMISM.oracleUsdc,
+                curve3Pool: OPTIMISM.curve3Pool,
             }
         )).wait();
     });
