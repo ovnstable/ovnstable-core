@@ -322,8 +322,19 @@ async function getPrice(){
 
     let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
 
-    if (process.env.ETH_NETWORK === 'POLYGON')
+    if (process.env.ETH_NETWORK === 'POLYGON'){
         params.gasLimit = 15000000;
+
+        if (process.env.BLOCK_NATIVE_ENABLED === "true"){
+            let value = await gasPriceBlockNative();
+
+            if (value !== 0){
+                params.maxFeePerGas = value;
+                params.maxPriorityFeePerGas = value;
+            }
+
+        }
+    }
     else if(process.env.ETH_NETWORK === 'AVALANCHE')
         params.gasLimit = 8000000;
     else if (process.env.ETH_NETWORK === 'BSC'){
@@ -333,6 +344,33 @@ async function getPrice(){
     }
 
     return params;
+}
+
+async function gasPriceBlockNative() {
+
+    let API_KEY = process.env.BLOCK_NATIVE_API_KEY;
+
+    try {
+        let config = {
+            headers: {
+                Authorization: API_KEY
+            }
+        };
+
+        let response = await axios.get('https://api.blocknative.com/gasprices/blockprices?chainid=137', config);
+
+        // estimatedPrices[0] - confidence 99%
+        // estimatedPrices[1] - confidence 95%
+        let price = response.data.blockPrices[0].estimatedPrices[0].maxFeePerGas;
+        console.log('Get gasPrice from BlockNative: ' + price);
+        // convert to gwei
+        price = price * 1e9;
+        return price;
+    } catch (e) {
+        console.log('Error gasPrice from BlockNative: ' + e);
+        return 0;
+    }
+
 }
 
 
