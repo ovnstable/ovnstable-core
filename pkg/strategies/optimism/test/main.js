@@ -113,6 +113,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyEtsAlpha',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -235,12 +240,25 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
+    } else if (strategyName == 'StrategyEtsAlpha') {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xfDe73D45Cb60D14E1Deb3b1bb9b67D9B7E9cc873");
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
+        });
     }
 }
 
 describe("OPTIMISM", function () {
     arrays.forEach(value => {
-
         switch (process.env.STAND) {
             case 'optimism_dai':
                 strategyTest(value, 'OPTIMISM', 'dai', runStrategyLogic);
