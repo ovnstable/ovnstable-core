@@ -183,6 +183,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyEtsEta3',
+        enabledReward: false,
+        isRunStrategyLogic: true,
+    },
 ];
 
 
@@ -347,11 +352,24 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
+    } else if (strategyName == 'StrategyEtsEta3') {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await ethers.getSigner(ownerAddress);
+        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0x4813A4eEA886eca5619C3abD589105e822b99e97");
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
+        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
+        });
     }
 }
 
 describe("Polygon", function () {
-
     arrays.forEach(value => {
         strategyTest(value, 'POLYGON', 'usdc', runStrategyLogic);
     })

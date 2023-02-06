@@ -829,6 +829,11 @@
       "address": "0xfbD8c673bCbcCb982375A0b4b54b3538b6233C86",
       "txHash": "0xde967fe655cf78e9512ab208cdf0b30e1200f8c4bd7e033e207e516b2133a877",
       "kind": "uups"
+    },
+    {
+      "address": "0x3012BD6C3D9190ABAe840e48d981a35072871AD2",
+      "txHash": "0x7dfa479cf824613dbb3264f39c53c9e952e8d2af0510cd0f8f329d7cec96bf57",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -59281,7 +59286,7 @@
             "label": "asset",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IERC20)3311",
+            "type": "t_contract(IERC20)2662",
             "contract": "StrategyEts",
             "src": "contracts\\StrategyEts.sol:12"
           },
@@ -59289,7 +59294,7 @@
             "label": "rebaseToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)3311",
+            "type": "t_contract(IERC20)2662",
             "contract": "StrategyEts",
             "src": "contracts\\StrategyEts.sol:13"
           },
@@ -59297,7 +59302,7 @@
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)25237",
+            "type": "t_contract(IHedgeExchanger)3277",
             "contract": "StrategyEts",
             "src": "contracts\\StrategyEts.sol:14"
           }
@@ -59327,11 +59332,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)3311": {
+          "t_contract(IERC20)2662": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)25237": {
+          "t_contract(IHedgeExchanger)3277": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },
