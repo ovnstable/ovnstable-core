@@ -1,5 +1,5 @@
 const {getContract, showM2M} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, execProposal, testProposal, testUsdPlus} = require("@overnight-contracts/common/utils/governance");
+const {createProposal, execProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
@@ -40,21 +40,21 @@ async function main() {
 
     addresses.push(StrategyReaperSonneDai.address);
     values.push(0);
-    abis.push(StrategyReaperSonneDai.interface.encodeFunctionData('upgradeTo', ['0x09E1902AbcfB29f688049EF8D13e1B3Ba2966cba']));
+    abis.push(StrategyReaperSonneDai.interface.encodeFunctionData('upgradeTo', ['0x345Db956656Fe91cF65a47e33347BD05618b20cb']));
 
 
     let StrategyRubiconDai = await getContract('StrategyRubiconDai');
 
     addresses.push(StrategyRubiconDai.address);
     values.push(0);
-    abis.push(StrategyRubiconDai.interface.encodeFunctionData('upgradeTo', ['0x09E1902AbcfB29f688049EF8D13e1B3Ba2966cba']));
+    abis.push(StrategyRubiconDai.interface.encodeFunctionData('upgradeTo', ['0x314768Ad11925aAb3Fbd5755169086c6AFFF9e0C']));
 
 
     let StrategyReaperSonneUsdt = await getContract('StrategyReaperSonneUsdt');
 
     addresses.push(StrategyReaperSonneUsdt.address);
     values.push(0);
-    abis.push(StrategyReaperSonneUsdt.interface.encodeFunctionData('upgradeTo', ['0x09E1902AbcfB29f688049EF8D13e1B3Ba2966cba']));
+    abis.push(StrategyReaperSonneUsdt.interface.encodeFunctionData('upgradeTo', ['0xC40b106c9D7b4FDA8A13b018b8B57E3490294012']));
 
     addresses.push(StrategyReaperSonneUsdt.address);
     values.push(0);
@@ -65,13 +65,22 @@ async function main() {
 
     addresses.push(StrategyRubiconUsdt.address);
     values.push(0);
-    abis.push(StrategyRubiconUsdt.interface.encodeFunctionData('upgradeTo', ['0x09E1902AbcfB29f688049EF8D13e1B3Ba2966cba']));
+    abis.push(StrategyRubiconUsdt.interface.encodeFunctionData('upgradeTo', ['0xafBcb41c5D5A388440Eb11FA59D45D09a5d3c212']));
 
     addresses.push(StrategyRubiconUsdt.address);
     values.push(0);
     abis.push(StrategyRubiconUsdt.interface.encodeFunctionData('setParams', [StrategyRubiconUsdtParams]));
 
 
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus();
+    // await showM2M();
+
+    // await testStrategy(StrategyReaperSonneDai);
+    // await testStrategy(StrategyReaperSonneUsdt);
+    // await testStrategy(StrategyRubiconUsdt);
+    // await testStrategy(StrategyRubiconDai);
     await createProposal(addresses, values, abis);
 }
 
