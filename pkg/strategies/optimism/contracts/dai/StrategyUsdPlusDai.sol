@@ -7,7 +7,7 @@ import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 
 contract StrategyUsdPlusDai is Strategy {
@@ -23,6 +23,7 @@ contract StrategyUsdPlusDai is Strategy {
         address oracleUsdc;
         address uniswapV3Router;
         uint24 poolUsdcDaiFee;
+        address curve3Pool;
     }
 
     // --- params
@@ -38,6 +39,7 @@ contract StrategyUsdPlusDai is Strategy {
     uint256 public daiDm;
     uint256 public usdcDm;
     uint256 public swapSlippage;
+    address public curve3Pool;
 
     // --- events
 
@@ -65,6 +67,7 @@ contract StrategyUsdPlusDai is Strategy {
         poolUsdcDaiFee = params.poolUsdcDaiFee;
         daiDm = 10 ** IERC20Metadata(params.daiToken).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdcToken).decimals();
+        curve3Pool = params.curve3Pool;
 
         emit StrategyUpdatedParams();
     }
@@ -80,18 +83,12 @@ contract StrategyUsdPlusDai is Strategy {
 
         // swap dai to usdc
         uint256 daiBalance = daiToken.balanceOf(address(this));
-        daiToken.approve(address(uniswapV3Router), daiBalance);
-
-        uint256 minAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(daiToken),
             address(usdcToken),
-            poolUsdcDaiFee,
-            address(this),
             daiBalance,
-            minAmount
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
         );
 
         // mint usdPlus
@@ -129,18 +126,12 @@ contract StrategyUsdPlusDai is Strategy {
 
         // swap usdc to dai
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        usdcToken.approve(address(uniswapV3Router), usdcBalance);
-
-        uint256 minAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdcToken),
             address(daiToken),
-            poolUsdcDaiFee,
-            address(this),
             usdcBalance,
-            minAmount
+            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP)
         );
 
         return daiToken.balanceOf(address(this));
@@ -163,34 +154,25 @@ contract StrategyUsdPlusDai is Strategy {
 
         // swap usdc to dai
         uint256 usdcBalance = usdcToken.balanceOf(address(this));
-        usdcToken.approve(address(uniswapV3Router), usdcBalance);
-
-        uint256 minAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdcToken),
             address(daiToken),
-            poolUsdcDaiFee,
-            address(this),
             usdcBalance,
-            minAmount
+            OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP)
         );
 
         return daiToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
+        return daiToken.balanceOf(address(this)) + _oracleUsdcToDai(usdPlusBalance);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return OvnMath.subBasisPoints(_totalValue(), 4 + swapSlippageBP); // unstake 0.04% + swap slippage
-    }
-
-    function _totalValue() internal view returns (uint256) {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        return daiToken.balanceOf(address(this)) + _oracleUsdcToDai(usdPlusBalance);
+        return daiToken.balanceOf(address(this)) + OvnMath.subBasisPoints(_oracleUsdcToDai(usdPlusBalance), 4 + swapSlippageBP); // unstake 0.04% + swap slippage
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
