@@ -23,23 +23,23 @@ async function main() {
         curve3Pool: OPTIMISM.curve3Pool,
     };
 
-    let StrategyUsdPlusDai = await getContract('StrategyUsdPlusDai');
+    let StrategyUsdPlusDai = await getContract('StrategyUsdPlusDai' );
 
     addresses.push(StrategyUsdPlusDai.address);
     values.push(0);
-    abis.push(StrategyUsdPlusDai.interface.encodeFunctionData('upgradeTo', ['0xF73b0D870836B0914B7fA24D44231F5a7F54c304']));
+    abis.push(StrategyUsdPlusDai.interface.encodeFunctionData('upgradeTo', ['0x52fA472b1ceCD98CDAbE02181Fad811e4F9b675f']));
 
     addresses.push(StrategyUsdPlusDai.address);
     values.push(0);
     abis.push(StrategyUsdPlusDai.interface.encodeFunctionData('setParams', [StrategyUsdPlusDaiParams]));
 
 
-//     await showM2M();
-//     await testProposal(addresses, values, abis);
-//     await testUsdPlus();
-//     await showM2M();
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus();
+    // await testStrategy(StrategyUsdPlusDai);
+    // await showM2M();
 
-//     await testStrategy(StrategyUsdPlusDai);
     await createProposal(addresses, values, abis);
 }
 
