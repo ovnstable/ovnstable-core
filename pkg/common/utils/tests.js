@@ -63,23 +63,44 @@ async function createRandomWallet(){
 
 async function getTestAssets(to){
 
-    let network = process.env.ETH_NETWORK;
+    let stand = process.env.STAND.toUpperCase();
 
     if (isTestAssetsCompleted){
         return;
     }
 
-    if (network === "BSC") {
+    if (stand === "BSC") {
         await getBusd(to);
-    }else if (network === "OPTIMISM"){
+    }else if (stand === "OPTIMISM") {
         await getUsdcOptimism(to);
+
+    }else if (stand === "OPTIMISM_DAI"){
+        await getDaiOptimism(to);
     }else {
-        throw new Error('Need implement function getTestAssets for network: ' + network);
+        throw new Error('Need implement function getTestAssets for network: ' + stand);
     }
 
     isTestAssetsCompleted = true;
 
 }
+
+async function getDaiOptimism(to){
+
+    let holder = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [holder],
+    });
+
+    await transferETH(1, holder);
+
+    const signerWithAddress = await hre.ethers.getSigner(holder);
+    let dai = await getERC20("dai");
+
+    await dai.connect(signerWithAddress).transfer(to, await dai.balanceOf(signerWithAddress.address));
+}
+
 async function getUsdcOptimism(to){
 
     let holder = '0x489f866c0698c8d6879f5c0f527bc8281046042d';
