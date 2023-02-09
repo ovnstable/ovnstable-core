@@ -844,6 +844,11 @@
       "address": "0x9b9Ca33295FEd1d077926F35Ab460F92012Ed6A9",
       "txHash": "0x659c3c463f452e6d9cdb4ca7d858f6c9531b7d24d30c65d788c0b510e819a669",
       "kind": "uups"
+    },
+    {
+      "address": "0xdf69BFf59c489D2C4676Db1e028A2Fe76CD3B730",
+      "txHash": "0xee9910daf3b01f3cf271d6bb3f020f3aaf59bfd5f9a8cc9df909b5f317d330a2",
+      "kind": "uups"
     }
   ],
   "impls": {
