@@ -8,7 +8,7 @@ async function main() {
             "strategy": "0x2E80122B1A095C25Aa5717B2bE8DC1eaFE9C8850",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 3,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -17,7 +17,7 @@ async function main() {
             "strategy": "0x307418340F5991CD895CA0Fc4Eba04995e9BE861",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 90,
+            "targetWeight": 97,
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": true
@@ -36,15 +36,15 @@ async function setWeights(weights) {
     let pm = await getContract('PortfolioManager');
     let strategy = await getContract('StrategyUsdPlusDai');
 
-    await execTimelock(async (timelock)=>{
-      await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), '0x6D2AEd058bc4B24FAa3397c00f2Af6Bef4849fe6');
-      await strategy.connect(timelock).grantRole(await strategy.PORTFOLIO_AGENT_ROLE(), '0x5CB01385d3097b6a189d1ac8BA3364D900666445');
-        await (await pm.balance()).wait();
-
-    })
+    // await execTimelock(async (timelock)=>{
+    //   await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), '0x6D2AEd058bc4B24FAa3397c00f2Af6Bef4849fe6');
+    //   await strategy.connect(timelock).grantRole(await strategy.PORTFOLIO_AGENT_ROLE(), '0x5CB01385d3097b6a189d1ac8BA3364D900666445');
+    //     await (await pm.balance()).wait();
+    //
+    // })
 
     await showM2M();
-    // await (await pm.setStrategyWeights(weights)).wait();
+    await (await pm.setStrategyWeights(weights)).wait();
     await (await pm.balance()).wait();
     await showM2M();
 }
