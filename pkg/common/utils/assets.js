@@ -69,6 +69,7 @@ let OPTIMISM = {
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     velodromeRouter: '0x9c12939390052919af3155f41bf4160fd3666a6f',
     curve3Pool: "0x1337BedC9D22ecbe766dF105c9623922A27963EC",
+    inchRouter: "0x1111111254760F7ab3F16433eea9304126DCd199",
     // oracles
     oracleDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
     oracleUsdt: "0xecef79e109e997bca29c1c0897ec9d7b03647f5e",
@@ -156,6 +157,7 @@ let POLYGON = {
     quickSwapRouter: "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
     synapseSwapRouter: "0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5",
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
     // strategies params
     crvAavePool: "0x445FE580eF8d70FF569aB36e80c647af338db351",
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
