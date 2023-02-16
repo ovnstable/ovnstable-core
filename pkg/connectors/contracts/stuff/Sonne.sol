@@ -11,6 +11,8 @@ interface Unitroller {
 
 interface CToken {
     function balanceOf(address owner) external view returns (uint);
+    function comptroller() external view returns (address);
+    function getAccountSnapshot(address account) external view returns (uint, uint, uint,uint);
     function exchangeRateStored() external view returns (uint);
     function borrowBalanceStored(address account) external view returns (uint);
     function balanceOfUnderlying(address account) external view returns (uint);
