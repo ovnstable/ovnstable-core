@@ -17,6 +17,147 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
+interface ICurveExchange {
+
+    /**
+        @notice Perform an exchange using the pool that offers the best rate
+        @dev Prior to calling this function, the caller must approve
+        this contract to transfer `_amount` coins from `_from`
+        Does NOT check rates in factory-deployed pools
+        @param _from Address of coin being sent
+        @param _to Address of coin being received
+        @param _amount Quantity of `_from` being sent
+        @param _expected Minimum quantity of `_from` received
+        in order for the transaction to succeed
+        @param _receiver Address to transfer the received tokens to
+        @return uint256 Amount received
+    */
+    function exchange_with_best_rate(address _from, address _to, uint256 _amount, uint256 _expected, address _receiver) external returns (uint256);
+
+    function exchange_with_best_rate(address _from, address _to, uint256 _amount, uint256 _expected) external returns (uint256);
+
+    /**
+        @notice Perform an exchange using a specific pool
+        @dev Prior to calling this function, the caller must approve
+             this contract to transfer `_amount` coins from `_from`
+             Works for both regular and factory-deployed pools
+        @param _pool Address of the pool to use for the swap
+        @param _from Address of coin being sent
+        @param _to Address of coin being received
+        @param _amount Quantity of `_from` being sent
+        @param _expected Minimum quantity of `_from` received
+               in order for the transaction to succeed
+        @param _receiver Address to transfer the received tokens to
+        @return uint256 Amount received
+    */
+    function exchange(address _pool, address _from, address _to, uint256 _amount, uint256 _expected, address _receiver) external returns (uint256);
+
+    function exchange(address _pool, address _from, address _to, uint256 _amount, uint256 _expected) external returns (uint256);
+
+    /**
+        @notice Perform up to four swaps in a single transaction
+        @dev Routing and swap params must be determined off-chain. This
+             functionality is designed for gas efficiency over ease-of-use.
+        @param _route Array of [initial token, pool, token, pool, token, ...]
+                      The array is iterated until a pool address of 0x00, then the last
+                      given token is transferred to `_receiver`
+        @param _swap_params Multidimensional array of [i, j, swap type] where i and j are the correct
+                            values for the n'th pool in `_route`. The swap type should be
+                            1 for a stableswap `exchange`,
+                            2 for stableswap `exchange_underlying`,
+                            3 for a cryptoswap `exchange`,
+                            4 for a cryptoswap `exchange_underlying`,
+                            5 for factory metapools with lending base pool `exchange_underlying`,
+                            6 for factory crypto-meta pools underlying exchange (`exchange` method in zap),
+                            7-11 for wrapped coin (underlying for lending or fake pool) -> LP token "exchange" (actually `add_liquidity`),
+                            12-14 for LP token -> wrapped coin (underlying for lending pool) "exchange" (actually `remove_liquidity_one_coin`)
+                            15 for WETH -> ETH "exchange" (actually deposit/withdraw)
+        @param _amount The amount of `_route[0]` token being sent.
+        @param _expected The minimum amount received after the final swap.
+        @param _pools Array of pools for swaps via zap contracts. This parameter is only needed for
+                      Polygon meta-factories underlying swaps.
+        @param _receiver Address to transfer the final output token to.
+        @return Received amount of the final output token
+    */
+    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected, address[4] _pools, address _receiver) external returns (uint256);
+
+    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected, address[4] _pools) external returns (uint256);
+
+    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected) external returns (uint256);
+
+    /**
+        @notice Find the pool offering the best rate for a given swap.
+        @dev Checks rates for regular and factory pools
+        @param _from Address of coin being sent
+        @param _to Address of coin being received
+        @param _amount Quantity of `_from` being sent
+        @param _exclude_pools A list of up to 8 addresses which shouldn't be returned
+        @return Pool address, amount received
+    */
+    function get_best_rate(address _from, address _to, uint256 _amount, address[8] _exclude_pools) external returns (address, uint256);
+
+    function get_best_rate(address _from, address _to, uint256 _amount) external returns (address, uint256);
+
+    /**
+        @notice Get the current number of coins received in an exchange
+        @dev Works for both regular and factory-deployed pools
+        @param _pool Pool address
+        @param _from Address of coin to be sent
+        @param _to Address of coin to be received
+        @param _amount Quantity of `_from` to be sent
+        @return Quantity of `_to` to be received
+    */
+    function get_exchange_amount(address _pool, address _from, address _to, uint256 _amount) external returns (uint256);
+
+    /**
+        @notice Get the current number of coins required to receive the given amount in an exchange
+        @param _pool Pool address
+        @param _from Address of coin to be sent
+        @param _to Address of coin to be received
+        @param _amount Quantity of `_to` to be received
+        @return Quantity of `_from` to be sent
+    */
+    function get_input_amount(address _pool, address _from, address _to, uint256 _amount) external returns (uint256);
+
+    /**
+        @notice Get the current number of coins required to receive the given amount in an exchange
+        @param _pool Pool address
+        @param _from Address of coin to be sent
+        @param _to Address of coin to be received
+        @param _amounts Quantity of `_to` to be received
+        @return Quantity of `_from` to be sent
+    */
+    function get_exchange_amounts(address _pool, address _from, address _to, uint256[100] _amounts) external returns (uint256[100]);
+
+    /**
+        @notice Get the current number the final output tokens received in an exchange
+        @dev Routing and swap params must be determined off-chain. This
+             functionality is designed for gas efficiency over ease-of-use.
+        @param _route Array of [initial token, pool, token, pool, token, ...]
+                      The array is iterated until a pool address of 0x00, then the last
+                      given token is transferred to `_receiver`
+        @param _swap_params Multidimensional array of [i, j, swap type] where i and j are the correct
+                            values for the n'th pool in `_route`. The swap type should be
+                            1 for a stableswap `exchange`,
+                            2 for stableswap `exchange_underlying`,
+                            3 for a cryptoswap `exchange`,
+                            4 for a cryptoswap `exchange_underlying`,
+                            5 for factory metapools with lending base pool `exchange_underlying`,
+                            6 for factory crypto-meta pools underlying exchange (`exchange` method in zap),
+                            7-11 for wrapped coin (underlying for lending pool) -> LP token "exchange" (actually `add_liquidity`),
+                            12-14 for LP token -> wrapped coin (underlying for lending or fake pool) "exchange" (actually `remove_liquidity_one_coin`)
+                            15 for WETH -> ETH "exchange" (actually deposit/withdraw)
+        @param _amount The amount of `_route[0]` token to be sent.
+        @param _pools Array of pools for swaps via zap contracts. This parameter is only needed for
+                      Polygon meta-factories underlying swaps.
+        @return Expected amount of the final output token
+    */
+    function get_exchange_multiple_amount(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, address[4] _pools) external returns (uint256);
+
+    function get_exchange_multiple_amount(address[9] _route, uint256[3][4] _swap_params, uint256 _amount) external returns (uint256);
+
+}
+
 interface IStableSwapPool {
 
     function add_liquidity(uint256[3] memory _amounts, uint256 _min_mint_amount, bool _use_underlying) external returns (uint256);
@@ -160,6 +301,39 @@ library CurveMetaLibrary {
 }
 
 library CurveLibrary {
+
+    function singleSwap(
+        address curveExchange,
+        address token0,
+        address pool0,
+        address token1,
+        uint256 amount0,
+        uint256 amount1Out
+    ) internal returns (uint256) {
+        IERC20(token0).approve(curveExchange, amount0);
+        return ICurveExchange(curveExchange).exchange(pool0, token0, token1, amount0, amount1Out);
+    }
+
+    function multiSwap(
+        address curveExchange,
+        address token0,
+        address pool0,
+        address token1,
+        address pool1,
+        address token2,
+        uint256 amount0,
+        uint256 amount2Out
+    ) internal returns (uint256) {
+        IERC20(tokenIn).approve(curveExchange, amountIn);
+        address[9] route;
+        route[0] = token0;
+        route[1] = pool0;
+        route[2] = token1;
+        route[3] = pool1;
+        route[4] = token2;
+        uint256[3][4] swap_params;
+        return ICurveExchange(curveExchange).exchange_multiple(route, swap_params, amount0, amount2Out);
+    }
 
     function swap(
         address pool,

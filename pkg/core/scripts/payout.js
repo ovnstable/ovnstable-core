@@ -28,9 +28,15 @@ async function main() {
 
             let event = tx.events.find((e)=>e.event === 'PayoutEvent');
 
-            console.log('Profit:  ' + fromE6(await event.args[0].toString()));
-            console.log('Premium: ' + fromE6(await event.args[3].toString()));
-            console.log('Loss:    ' + fromE6(await event.args[4].toString()));
+            if (process.env.ETH_NETWORK === 'POLYGON') {
+                console.log('Profit:       ' + fromE6(await event.args[0].toString()));
+                console.log('ExcessProfit: ' + fromE6(await event.args[2].toString()));
+                console.log('Premium:      ' + fromE6(await event.args[3].toString()));
+                console.log('Loss:         ' + fromE6(await event.args[4].toString()));
+            } else {
+                console.log('Profit:       ' + fromE6(await event.args[0].toString()));
+                console.log('InsuranceFee: ' + fromE6(await event.args[2].toString()));
+            }
 
             break
         } catch (e) {
