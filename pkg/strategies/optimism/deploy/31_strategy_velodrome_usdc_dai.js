@@ -1,4 +1,4 @@
-const {deployProxyMulti, deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 

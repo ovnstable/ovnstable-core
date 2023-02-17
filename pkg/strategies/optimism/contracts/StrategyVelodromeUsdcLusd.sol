@@ -74,9 +74,6 @@ contract StrategyVelodromeUsdcLusd is Strategy {
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleLusd = IPriceFeed(params.oracleLusd);
 
-        stakeSlippageBP = 40;
-        swapSlippageBP = 40;
-
         emit StrategyUpdatedParams();
     }
 
