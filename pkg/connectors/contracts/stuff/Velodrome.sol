@@ -261,4 +261,59 @@ library VelodromeLibrary {
         return amounts[2];
     }
 
+    function getMultiAmount0(
+        IRouter velodromeRouter,
+        address token0,
+        address token1,
+        address token2,
+        uint256 amount0Total,
+        bool    isStable0,
+        bool    isStable1,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision
+    ) internal view returns (uint256 amount0) {
+        amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = getAmountsOut(velodromeRouter, token0, token1, token2,  isStable0, isStable1, amount0);
+            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
+        }
+    }
+
+
+    struct CalculateMultiParams {
+        IRouter velodromeRouter;
+        address token0;
+        address token1;
+        address token2;
+        uint256 amount0Total;
+        uint256 totalAmountLpTokens;
+        bool isStable0;
+        bool isStable1;
+        uint256 reserve0;
+        uint256 reserve1;
+        uint256 denominator0;
+        uint256 denominator1;
+        uint256 precision;
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountLpTokens(
+        CalculateMultiParams memory params
+    ) internal view returns (uint256 amountLpTokens) {
+        amountLpTokens = (params.totalAmountLpTokens * params.amount0Total * params.denominator1) / (params.reserve0 * params.denominator1 + params.reserve1 * params.denominator0);
+        for (uint i = 0; i < params.precision; i++) {
+            uint256 amount1 = params.reserve1 * amountLpTokens / params.totalAmountLpTokens;
+
+            uint256 amount0 = getAmountsOut(params.velodromeRouter, params.token2, params.token1, params.token0,  params.isStable1, params.isStable0, amount1);
+            amountLpTokens = (params.totalAmountLpTokens * params.amount0Total * amount1) / (params.reserve0 * amount1 + params.reserve1 * amount0);
+        }
+    }
+
 }

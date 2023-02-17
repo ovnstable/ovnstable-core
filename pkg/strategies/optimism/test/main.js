@@ -118,6 +118,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyVelodromeUsdcLusd',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+    },
 ];
 
 if (id !== undefined && id !== "") {
