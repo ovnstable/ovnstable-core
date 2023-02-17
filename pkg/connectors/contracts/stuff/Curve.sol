@@ -79,11 +79,11 @@ interface ICurveExchange {
         @param _receiver Address to transfer the final output token to.
         @return Received amount of the final output token
     */
-    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected, address[4] _pools, address _receiver) external returns (uint256);
+    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected, address[4] memory _pools, address _receiver) external returns (uint256);
 
-    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected, address[4] _pools) external returns (uint256);
+    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected, address[4] memory _pools) external returns (uint256);
 
-    function exchange_multiple(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, uint256 _expected) external returns (uint256);
+    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected) external returns (uint256);
 
     /**
         @notice Find the pool offering the best rate for a given swap.
@@ -94,7 +94,7 @@ interface ICurveExchange {
         @param _exclude_pools A list of up to 8 addresses which shouldn't be returned
         @return Pool address, amount received
     */
-    function get_best_rate(address _from, address _to, uint256 _amount, address[8] _exclude_pools) external returns (address, uint256);
+    function get_best_rate(address _from, address _to, uint256 _amount, address[8] memory _exclude_pools) external returns (address, uint256);
 
     function get_best_rate(address _from, address _to, uint256 _amount) external returns (address, uint256);
 
@@ -127,7 +127,7 @@ interface ICurveExchange {
         @param _amounts Quantity of `_to` to be received
         @return Quantity of `_from` to be sent
     */
-    function get_exchange_amounts(address _pool, address _from, address _to, uint256[100] _amounts) external returns (uint256[100]);
+    function get_exchange_amounts(address _pool, address _from, address _to, uint256[100] memory _amounts) external returns (uint256[100] memory);
 
     /**
         @notice Get the current number the final output tokens received in an exchange
@@ -152,9 +152,9 @@ interface ICurveExchange {
                       Polygon meta-factories underlying swaps.
         @return Expected amount of the final output token
     */
-    function get_exchange_multiple_amount(address[9] _route, uint256[3][4] _swap_params, uint256 _amount, address[4] _pools) external returns (uint256);
+    function get_exchange_multiple_amount(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, address[4] memory _pools) external returns (uint256);
 
-    function get_exchange_multiple_amount(address[9] _route, uint256[3][4] _swap_params, uint256 _amount) external returns (uint256);
+    function get_exchange_multiple_amount(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount) external returns (uint256);
 
 }
 
@@ -324,14 +324,14 @@ library CurveLibrary {
         uint256 amount0,
         uint256 amount2Out
     ) internal returns (uint256) {
-        IERC20(tokenIn).approve(curveExchange, amountIn);
-        address[9] route;
+        IERC20(token0).approve(curveExchange, amount0);
+        address[9] memory route;
         route[0] = token0;
         route[1] = pool0;
         route[2] = token1;
         route[3] = pool1;
         route[4] = token2;
-        uint256[3][4] swap_params;
+        uint256[3][4] memory swap_params;
         return ICurveExchange(curveExchange).exchange_multiple(route, swap_params, amount0, amount2Out);
     }
 
