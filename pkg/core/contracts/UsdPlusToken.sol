@@ -13,6 +13,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+
+
     // --- ERC20 fields
 
     mapping(address => uint256) private _balances;
@@ -255,8 +258,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function allowance(address owner, address spender) public view override returns (uint256) {
         uint256 allowanceRay = _allowance(owner, spender);
-        if (allowanceRay > (type(uint256).max / liquidityIndex)) {
-            return type(uint256).max;
+        if (allowanceRay > (MAX_UINT_VALUE / liquidityIndex)) {
+            return MAX_UINT_VALUE;
         }
         allowanceRay = allowanceRay.rayMul(liquidityIndex);
 
@@ -277,8 +280,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function approve(address spender, uint256 amount) external override returns (bool){
         uint256 scaledAmount;
-        if (amount > (type(uint256).max / liquidityIndex / 10 ** 9)) {
-            scaledAmount = type(uint256).max;
+
+        // We reduce the maximum allowable value and setup MAX_UINT_VALUE
+        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
+        if (amount > (MAX_UINT_VALUE / liquidityIndex / 10 ** 9)) {
+            scaledAmount = MAX_UINT_VALUE;
         } else {
             // up to ray
             scaledAmount = amount.wadToRay();
