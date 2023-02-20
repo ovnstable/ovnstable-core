@@ -309,8 +309,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 usdPlusAmount = _assetToRebase(_amount);
         require(usdPlusAmount > 0, "Amount of USD+ is zero");
 
-        IERC20(_asset).transferFrom(msg.sender, address(portfolioManager), _amount);
-        portfolioManager.deposit(IERC20(_asset), _amount);
+        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
+        usdc.transferFrom(msg.sender, address(portfolioManager), _amount);
+        portfolioManager.deposit();
+        require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
 
         uint256 buyFeeAmount;
         uint256 buyAmount;

@@ -191,8 +191,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(asset.balanceOf(msg.sender) >= _amount, "Not enough tokens to mint");
 
 
+        uint256 _targetBalance = asset.balanceOf(address(pm)) + _amount;
         asset.transferFrom(msg.sender, address(pm), _amount);
-        pm.deposit(asset, _amount);
+        pm.deposit();
+        require(asset.balanceOf(address(pm)) == _targetBalance, 'pm balance != target');
 
         uint256 rebaseAmount = _assetToRebaseAmount(_amount);
         uint256 fee;
