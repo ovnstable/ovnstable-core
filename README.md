@@ -11,7 +11,7 @@ This repository contains all contracts Overnight
 
 1. Install node 
 2. Install yarn
-3. Run `yarn install`
+3. Run `yarn install --frozen-lockfile`
 4. Create .env file from copy .env.example
 
 ### For local developing
