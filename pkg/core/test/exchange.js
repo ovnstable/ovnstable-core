@@ -347,7 +347,7 @@ describe("Exchange", function () {
                 it("revert: OracleLoss", async function () {
 
                     await mint(100);
-                    await pm.withdraw(asset.address, toAsset(1));
+                    await pm.withdraw(toAsset(1));
                     await exchange.setOracleLoss(5000, 100000); // 5%
 
                     await expectRevert(exchange.payout(), 'OracleLoss');
@@ -356,7 +356,7 @@ describe("Exchange", function () {
                 it("compensate", async function () {
 
                     await mint(100);
-                    await pm.withdraw(asset.address, toAsset(1));
+                    await pm.withdraw(toAsset(1));
 
                     await asset.mint(insurance.address, toAsset(10));
 

@@ -24,9 +24,9 @@ interface IPortfolioManager {
         bool enabledReward;
     }
 
-    function deposit(IERC20 _token, uint256 _amount) external;
+    function deposit() external;
 
-    function withdraw(IERC20 _token, uint256 _amount) external returns (uint256);
+    function withdraw(uint256 _amount) external returns (uint256);
 
     function getStrategyWeight(address strategy) external view returns (StrategyWeight memory);
 

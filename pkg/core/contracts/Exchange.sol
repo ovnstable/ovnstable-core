@@ -304,7 +304,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
         require(_asset == address(usdc), "Only asset available for buy");
 
-        uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
+        uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
         require(_amount > 0, "Amount of asset is zero");
@@ -346,7 +346,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         (redeemAmount, redeemFeeAmount) = _takeFee(assetAmount, false);
 
-        portfolioManager.withdraw(usdc, redeemAmount);
+        portfolioManager.withdraw(redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
@@ -445,7 +445,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
                 IInsuranceExchange(insurance).compensate(loss, address(portfolioManager));
-                portfolioManager.deposit(usdc, loss);
+                portfolioManager.deposit();
             }
 
         } else {
@@ -458,7 +458,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
             if(premium > 0){
-                portfolioManager.withdraw(usdc, premium);
+                portfolioManager.withdraw(premium);
                 usdc.transfer(insurance, premium);
                 IInsuranceExchange(insurance).premium(premium);
 

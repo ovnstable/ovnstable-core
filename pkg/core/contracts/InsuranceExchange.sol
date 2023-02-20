@@ -242,7 +242,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         uint256 assetAmount = _rebaseAmountToAsset(amountFee);
         require(assetAmount > 0, "Amount of asset is zero");
 
-        pm.withdraw(asset, assetAmount);
+        pm.withdraw(assetAmount);
 
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer");
 
@@ -309,7 +309,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        pm.withdraw(asset, _assetAmount);
+        pm.withdraw(_assetAmount);
         require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
         asset.transfer(_to, _assetAmount);
     }
