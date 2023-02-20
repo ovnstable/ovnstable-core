@@ -51,12 +51,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ---  modifiers
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
     }
 
     modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        require(hasRole(EXCHANGER, _msgSender()), "Caller is not the EXCHANGER");
         _;
     }
 
@@ -91,8 +91,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(UPGRADER_ROLE, _msgSender());
 
         // as Ray
         liquidityIndex = 10 ** 27;
