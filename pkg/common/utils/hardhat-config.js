@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 
-console.log('Procee:' + process.cwd());
+console.log('Process:' + process.cwd());
 dotenv.config({path:__dirname+ '/../../../.env'});
 
 const {node_url, accounts, blockNumber} = require("./network");
@@ -19,6 +19,13 @@ function getNetworkByName(network) {
     return {
 
         platform: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+        arbitrum: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
@@ -164,6 +171,9 @@ function getEtherScan(chain){
 
     let api;
     switch (chain) {
+        case 'ARBITRUM':
+            api = process.env.ETHERSCAN_API_ARBITRUM;
+            break;
         case 'AVALANCHE':
             api = process.env.ETHERSCAN_API_AVALANCHE;
             break;

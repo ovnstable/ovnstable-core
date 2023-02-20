@@ -5,6 +5,30 @@ let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
+let ARBITRUM = {
+    // tokens
+    usdc: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+    usdt: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+    dai: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+    wbtc: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    weth: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    // aave
+    aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
+    rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
+    aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+    // swaps
+    uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    inchRouter: "",
+    // oracles
+    oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
+    oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
+    oracleDai: "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB",
+    oracleWbtc: "0xd0C7101eACbB49F3deCcCc166d238410D6D46d57",
+    oracleWeth: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+    // other
+    balanceMath: "",
+}
+
 let AVALANCHE = {
     traderJoeRouter: "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",
     platypus: "0x66357dCaCe80431aee0A7507e2E361B7e2402370",
@@ -203,6 +227,9 @@ function setDefault(network) {
     console.log(`[Node] Assets: [${network}]`)
 
     switch (network) {
+        case 'ARBITRUM':
+            DEFAULT = ARBITRUM;
+            break;
         case 'AVALANCHE':
             DEFAULT = AVALANCHE;
             break;
@@ -224,6 +251,7 @@ function setDefault(network) {
 }
 
 module.exports = {
+    ARBITRUM: ARBITRUM,
     AVALANCHE: AVALANCHE,
     BSC: BSC,
     FANTOM: FANTOM,

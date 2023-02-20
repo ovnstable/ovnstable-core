@@ -317,30 +317,28 @@ async function showM2M(blocknumber) {
 }
 
 
-async function getPrice(){
+async function getPrice() {
     let value = process.env.GAS_PRICE.toString() + "000000000";
 
     let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
 
-    if (process.env.ETH_NETWORK === 'POLYGON'){
+    if (process.env.ETH_NETWORK === 'POLYGON') {
         params.gasLimit = 15000000;
-
-        if (process.env.BLOCK_NATIVE_ENABLED === "true"){
+        if (process.env.BLOCK_NATIVE_ENABLED === "true") {
             let value = await gasPriceBlockNative();
-
-            if (value !== 0){
+            if (value !== 0) {
                 params.maxFeePerGas = value;
                 params.maxPriorityFeePerGas = value;
             }
-
         }
-    }
-    else if(process.env.ETH_NETWORK === 'AVALANCHE')
+    } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
         params.gasLimit = 8000000;
-    else if (process.env.ETH_NETWORK === 'BSC'){
-        params = {gasPrice: "5000000000", gasLimit:  15000000}; // BSC gasPrice always 5 GWEI
-    }else if (process.env.ETH_NETWORK === "OPTIMISM"){
-        params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice 0.001
+    } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
+        params = {gasPrice: "10000000", gasLimit: 10000000}; // gasPrice always 0.1 GWEI
+    } else if (process.env.ETH_NETWORK === 'BSC') {
+        params = {gasPrice: "5000000000", gasLimit: 15000000}; // gasPrice always 5 GWEI
+    } else if (process.env.ETH_NETWORK === "OPTIMISM") {
+        params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
     }
 
     return params;
@@ -531,24 +529,23 @@ async function checkTimeLockBalance(){
 
 async function getChainId(){
 
-
     switch (process.env.ETH_NETWORK){
-        case "POLYGON":
-            return 137;
-        case "BSC":
-            return 56;
+        case "ARBITRUM":
+            return 42161;
         case "AVALANCHE":
             return 43114;
+        case "BSC":
+            return 56;
         case "FANTOM":
             return 250;
         case "OPTIMISM":
             return 10;
+        case "POLYGON":
+            return 137;
         default:
             throw new Error("Unknown chain");
     }
 }
-
-
 
 
 async function getDevWallet(){
@@ -586,6 +583,33 @@ async function transferUSDPlus(amount, to){
     });
 
     console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
+}
+
+async function transferAsset(assetName, amount, from, to) {
+    await transferETH(1, from);
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [from],
+    });
+
+    let account = await hre.ethers.getSigner(from);
+
+    let asset = await getERC20(assetName);
+
+    if (amount === '0') {
+        amount = await asset.balanceOf(from);
+    }
+    await asset.connect(account).transfer(to, amount);
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [from],
+    });
+
+    let balance = await asset.balanceOf(to);
+
+    console.log(`[Node] Transfer asset [${balance}] to [${to}]:`);
 }
 
 async function transferDAI(to) {
@@ -733,6 +757,7 @@ module.exports = {
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
     transferBUSD: transferBUSD,
+    transferAsset: transferAsset,
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
