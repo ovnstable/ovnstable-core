@@ -193,8 +193,9 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
         uint256 _targetBalance = asset.balanceOf(address(pm)) + _amount;
         asset.transferFrom(msg.sender, address(pm), _amount);
-        pm.deposit();
         require(asset.balanceOf(address(pm)) == _targetBalance, 'pm balance != target');
+
+        pm.deposit();
 
         uint256 rebaseAmount = _assetToRebaseAmount(_amount);
         uint256 fee;
