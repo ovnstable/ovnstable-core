@@ -315,7 +315,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
 
-    function payout() public whenNotPaused oncePerBlock onlyUnit {
+    function payout() external whenNotPaused oncePerBlock onlyUnit {
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;

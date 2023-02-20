@@ -405,7 +405,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
 
-    function payout() public whenNotPaused onlyUnit {
+    function payout() external whenNotPaused onlyUnit {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
