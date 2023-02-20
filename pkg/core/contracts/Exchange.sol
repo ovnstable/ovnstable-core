@@ -157,6 +157,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
+
+        oracleLossDenominator = 100000;
+        compensateLossDenominator = 100000;
     }
 
     function _authorizeUpgrade(address newImplementation)
