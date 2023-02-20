@@ -10,7 +10,6 @@ import "./interfaces/IPayoutListener.sol";
 
 
 abstract contract PayoutListener is IPayoutListener, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
     address public exchange;
@@ -21,12 +20,11 @@ abstract contract PayoutListener is IPayoutListener, Initializable, AccessContro
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 

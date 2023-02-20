@@ -12,7 +12,6 @@ import "./interfaces/IWrappedUsdPlusToken.sol";
 import "./interfaces/IExchange.sol";
 
 contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IERC20 public usdcToken;
     IUsdPlusToken public usdPlusToken;
@@ -54,12 +53,11 @@ contract Market is IMarket, Initializable, AccessControlUpgradeable, UUPSUpgrade
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 

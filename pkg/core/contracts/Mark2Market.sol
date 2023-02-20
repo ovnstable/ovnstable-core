@@ -12,7 +12,6 @@ import "./interfaces/IStrategy.sol";
 import "./interfaces/IPortfolioManager.sol";
 
 contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     // ---  fields
 
@@ -39,12 +38,11 @@ contract Mark2Market is IMark2Market, Initializable, AccessControlUpgradeable, U
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 

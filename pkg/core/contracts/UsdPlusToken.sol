@@ -30,7 +30,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ---  fields
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint256 private _totalMint;
     uint256 private _totalBurn;
@@ -95,7 +94,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _grantRole(UPGRADER_ROLE, _msgSender());
 
         // as Ray
         liquidityIndex = 10 ** 27;
@@ -107,7 +105,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
