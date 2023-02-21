@@ -18,15 +18,12 @@ let ARBITRUM = {
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
-    inchRouter: "",
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
     oracleDai: "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB",
     oracleWbtc: "0xd0C7101eACbB49F3deCcCc166d238410D6D46d57",
     oracleWeth: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
-    // other
-    balanceMath: "",
 }
 
 let AVALANCHE = {
@@ -109,8 +106,6 @@ let OPTIMISM = {
     oracleOp: '0x0D276FC14719f9292D5C1eA2198673d1f4269246',
     oracleSusd: '0x7f99817d87baD03ea21E05112Ca799d715730efe',
     oracleLusd: '0x9dfc79Aaeb5bb0f96C6e9402671981CdFc424052',
-    // other
-    balanceMath: '0x5cD76144E9C95C43e4D1A7f897889f60802a6295',
 }
 
 let FANTOM = {
