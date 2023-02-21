@@ -334,7 +334,7 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
         params.gasLimit = 8000000;
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
-        params = {gasPrice: "10000000", gasLimit: 10000000}; // gasPrice always 0.1 GWEI
+        params = {gasLimit: 10000000}; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
         params = {gasPrice: "5000000000", gasLimit: 15000000}; // gasPrice always 5 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
