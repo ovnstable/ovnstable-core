@@ -270,6 +270,20 @@ async function execProposal(id) {
     expect(state).to.eq('Executed');
 }
 
+async function getProposalState(proposalId){
+    let governor = await getContract('OvnGovernor');
+    let state = proposalStates[await governor.state(proposalId)];
+    console.log('Proposal state: ' + state);
+
+    let data = await governor.proposals(proposalId);
+
+    console.log('StartBlock:     ' + data.startBlock);
+    console.log('EndBlock:       ' + data.endBlock);
+    console.log('CurrentBlock:   ' + await ethers.provider.getBlockNumber());
+    console.log('ForVotes:       ' + fromE18(data.forVotes));
+
+    return state;
+}
 
 module.exports = {
     execProposal: execProposal,
@@ -278,4 +292,5 @@ module.exports = {
     testUsdPlus: testUsdPlus,
     testInsurance: testInsurance,
     testStrategy: testStrategy,
+    getProposalState: getProposalState,
 }
