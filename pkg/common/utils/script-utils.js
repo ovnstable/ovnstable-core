@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const {DEFAULT} = require("./assets");
+const {DEFAULT, ARBITRUM, BSC, OPTIMISM, POLYGON} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {core} = require("./core");
@@ -585,8 +585,38 @@ async function transferUSDPlus(amount, to){
     console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
 }
 
-async function transferAsset(assetName, amount, from, to) {
+async function transferAsset(assetAddress, to) {
+
+    let from;
+    switch (assetAddress) {
+        case ARBITRUM.usdc:
+            from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+            break;
+        case OPTIMISM.usdc:
+            from = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+            break;
+        case POLYGON.usdc:
+            from = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
+            break;
+        case OPTIMISM.dai:
+            from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+            break;
+        case POLYGON.dai:
+            from = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
+            break;
+        case BSC.busd:
+            from = '0xf977814e90da44bfa03b6295a0616a897441acec';
+            break;
+        case OPTIMISM.wbtc:
+            from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+            break;
+        default:
+            throw new Error('Unknown asset address');
+    }
+
     await transferETH(1, from);
+
+    let asset = await getERC20ByAddress(assetAddress);
 
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
@@ -595,12 +625,7 @@ async function transferAsset(assetName, amount, from, to) {
 
     let account = await hre.ethers.getSigner(from);
 
-    let asset = await getERC20(assetName);
-
-    if (amount === '0') {
-        amount = await asset.balanceOf(from);
-    }
-    await asset.connect(account).transfer(to, amount);
+    await asset.connect(account).transfer(to, await asset.balanceOf(from));
 
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
