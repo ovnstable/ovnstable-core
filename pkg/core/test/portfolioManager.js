@@ -129,12 +129,12 @@ describe("PortfolioManager not set cash strategy", function () {
 
     it("Deposit should fail", async function () {
         expect(await pm.cashStrategy()).eq(ZERO_ADDRESS);
-        await expectRevert(pm.deposit("0x0000000000000000000000000000000000000001", 1), "Cash strategy not set yet");
+        await expectRevert(pm.deposit(), "Cash strategy not set yet");
     });
 
     it("Withdraw should fail", async function () {
         expect(await pm.cashStrategy()).eq(ZERO_ADDRESS);
-        await expectRevert(pm.withdraw("0x0000000000000000000000000000000000000001", 1), "Cash strategy not set yet");
+        await expectRevert(pm.withdraw(1), "Cash strategy not set yet");
     });
 
 });
@@ -844,13 +844,13 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
     it("Deposit less then cash limit", async function () {
 
         await asset.transfer(pm.address, 100);
-        await pm.deposit(asset.address, 100);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
         await asset.transfer(pm.address, 5);
-        await pm.deposit(asset.address, 5);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(15);
@@ -860,13 +860,13 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
     it("Deposit more then cash limit", async function () {
 
         await asset.transfer(pm.address, 100);
-        await pm.deposit(asset.address, 100);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
         await asset.transfer(pm.address, 100);
-        await pm.deposit(asset.address, 100);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
@@ -876,12 +876,12 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
     it("Withdraw less then cash amount", async function () {
 
         await asset.transfer(pm.address, 100);
-        await pm.deposit(asset.address, 100);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
 
-        await pm.withdraw(asset.address, 5);
+        await pm.withdraw(5);
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(5);
@@ -891,12 +891,12 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
     it("Withdraw more then cash amount", async function () {
 
         await asset.transfer(pm.address, 200);
-        await pm.deposit(asset.address, 200);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
 
-        await pm.withdraw(asset.address, 100);
+        await pm.withdraw(100);
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(90);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(10);
@@ -906,13 +906,13 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
     it("Withdraw more then cash amount = revert: PM: NAV less than expected", async function () {
 
         await asset.transfer(pm.address, 200);
-        await pm.deposit(asset.address, 200);
+        await pm.deposit();
 
         expect(await asset.balanceOf(nonCashStrategy.address)).to.equal(180);
         expect(await asset.balanceOf(cashStrategy.address)).to.equal(20);
 
         await nonCashStrategy.setNavLess(true);
-        await expectRevert(pm.withdraw(asset.address, 100), "PM: NAV less than expected");
+        await expectRevert(pm.withdraw(100), "PM: NAV less than expected");
 
 
     });

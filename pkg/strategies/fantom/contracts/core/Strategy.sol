@@ -10,7 +10,6 @@ import "./IStrategy.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
 
     address public portfolioManager;
@@ -21,12 +20,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
@@ -133,7 +131,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     function _healthFactorBalance() internal virtual returns (uint256) {
-        
+
     }
 
     function _setHealthFactor(uint256 _healthFactor) internal virtual {

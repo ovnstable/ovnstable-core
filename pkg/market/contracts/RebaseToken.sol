@@ -14,7 +14,6 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
     using EnumerableSet for EnumerableSet.AddressSet;
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     // --- ERC20 fields
 
@@ -97,7 +96,6 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
 
         // as Ray
         liquidityIndex = 10 ** 27;
@@ -107,7 +105,7 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 

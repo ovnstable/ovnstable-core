@@ -13,7 +13,6 @@ import "./interfaces/IWrappedUsdPlusToken.sol";
 contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
 
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     IUsdPlusToken public asset;
     uint8 private _decimals;
@@ -27,7 +26,6 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
 
         asset = IUsdPlusToken(usdPlusTokenAddress);
 
@@ -36,7 +34,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 

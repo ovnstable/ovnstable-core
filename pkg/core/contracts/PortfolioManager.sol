@@ -19,7 +19,6 @@ import "hardhat/console.sol";
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
     // ---  fields
@@ -89,12 +88,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
     }
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
@@ -164,8 +162,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     // ---  logic
 
-    function deposit(IERC20 _token, uint256 _amount) external override onlyExchanger cashStrategySet {
-        require(address(_token) == address(asset), "PM: Only asset available to deposit");
+    function deposit() external override onlyExchanger cashStrategySet {
 
         // 1. get cashStrategy current asset amount
         // 2. get cashStrategy upper limit
@@ -208,14 +205,12 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     }
 
 
-    function withdraw(IERC20 _token, uint256 _amount)
+    function withdraw(uint256 _amount)
     external
     override
     onlyExchanger
     cashStrategySet
     returns (uint256) {
-
-        require(address(_token) == address(asset), "PM: Only asset available to withdraw");
 
         // if cash strategy has enough liquidity then prevent balancing
         uint256 liquidationValue = cashStrategy.liquidationValue();
@@ -228,10 +223,10 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             );
         } else {
             // balance to needed amount
-            _balance(_token, _amount);
+            _balance(asset, _amount);
         }
 
-        uint256 currentBalance = _token.balanceOf(address(this));
+        uint256 currentBalance = asset.balanceOf(address(this));
 
         // `if` is cheaper then `require` when need build complex message
         if (currentBalance < _amount) {
@@ -246,7 +241,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         }
 
         // transfer back tokens
-        _token.transfer(exchanger, _amount);
+        asset.transfer(exchanger, _amount);
 
         return _amount;
     }

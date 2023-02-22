@@ -157,6 +157,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
+
+        oracleLossDenominator = 100000;
+        compensateLossDenominator = 100000;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -301,7 +304,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
         require(_asset == address(usdc), "Only asset available for buy");
 
-        uint256 currentBalance = IERC20(_asset).balanceOf(msg.sender);
+        uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
         require(_amount > 0, "Amount of asset is zero");
@@ -309,8 +312,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 usdPlusAmount = _assetToRebase(_amount);
         require(usdPlusAmount > 0, "Amount of USD+ is zero");
 
-        IERC20(_asset).transferFrom(msg.sender, address(portfolioManager), _amount);
-        portfolioManager.deposit(IERC20(_asset), _amount);
+        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
+        usdc.transferFrom(msg.sender, address(portfolioManager), _amount);
+        require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
+
+        portfolioManager.deposit();
 
         uint256 buyFeeAmount;
         uint256 buyAmount;
@@ -341,7 +347,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         (redeemAmount, redeemFeeAmount) = _takeFee(assetAmount, false);
 
-        portfolioManager.withdraw(usdc, redeemAmount);
+        portfolioManager.withdraw(redeemAmount);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
@@ -400,7 +406,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
 
-    function payout() public whenNotPaused onlyUnit {
+    function payout() external whenNotPaused onlyUnit {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
@@ -440,7 +446,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
                 IInsuranceExchange(insurance).compensate(loss, address(portfolioManager));
-                portfolioManager.deposit(usdc, loss);
+                portfolioManager.deposit();
             }
 
         } else {
@@ -453,7 +459,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
             if(premium > 0){
-                portfolioManager.withdraw(usdc, premium);
+                portfolioManager.withdraw(premium);
                 usdc.transfer(insurance, premium);
                 IInsuranceExchange(insurance).premium(premium);
 
@@ -523,7 +529,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             loss
         );
 
-        // update next payout time. Cycle for preventing gaps
+        // Update next payout time. Cycle for preventing gaps
+        // Allow execute payout every day in one time (10:00)
+
+        // If we cannot execute payout (for any reason) in 10:00 and execute it in 15:00
+        // then this cycle make 1 iteration and next payout time will be same 10:00 in next day
+
+        // If we cannot execute payout more than 2 days and execute it in 15:00
+        // then this cycle make 3 iteration and next payout time will be same 10:00 in next day
+
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }

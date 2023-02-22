@@ -70,17 +70,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         emit PortfolioManagerUpdated(_value);
     }
 
-    function initSlippages(
-        uint256 _swapSlippageBP,
-        uint256 _navSlippageBP,
-        uint256 _stakeSlippageBP
-    ) public onlyAdmin {
-        swapSlippageBP = _swapSlippageBP;
-        navSlippageBP = _navSlippageBP;
-        stakeSlippageBP = _stakeSlippageBP;
-        emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
-    }
-
     function setSlippages(
         uint256 _swapSlippageBP,
         uint256 _navSlippageBP,

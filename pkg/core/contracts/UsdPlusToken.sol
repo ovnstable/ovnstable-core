@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.5.0 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -12,6 +12,9 @@ import "./libraries/WadRayMath.sol";
 contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+
 
     // --- ERC20 fields
 
@@ -27,7 +30,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ---  fields
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint256 private _totalMint;
     uint256 private _totalBurn;
@@ -51,12 +53,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ---  modifiers
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
     }
 
     modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        require(hasRole(EXCHANGER, _msgSender()), "Caller is not the EXCHANGER");
         _;
     }
 
@@ -91,8 +93,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         // as Ray
         liquidityIndex = 10 ** 27;
@@ -104,7 +105,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(UPGRADER_ROLE)
+    onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
 
@@ -255,8 +256,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function allowance(address owner, address spender) public view override returns (uint256) {
         uint256 allowanceRay = _allowance(owner, spender);
-        if (allowanceRay > (type(uint256).max / liquidityIndex)) {
-            return type(uint256).max;
+        if (allowanceRay > (MAX_UINT_VALUE / liquidityIndex)) {
+            return MAX_UINT_VALUE;
         }
         allowanceRay = allowanceRay.rayMul(liquidityIndex);
 
@@ -277,8 +278,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function approve(address spender, uint256 amount) external override returns (bool){
         uint256 scaledAmount;
-        if (amount > (type(uint256).max / liquidityIndex / 10 ** 9)) {
-            scaledAmount = type(uint256).max;
+
+        // We reduce the maximum allowable value and setup MAX_UINT_VALUE
+        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
+        if (amount > (MAX_UINT_VALUE / liquidityIndex / 10 ** 9)) {
+            scaledAmount = MAX_UINT_VALUE;
         } else {
             // up to ray
             scaledAmount = amount.wadToRay();

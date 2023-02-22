@@ -191,8 +191,11 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(asset.balanceOf(msg.sender) >= _amount, "Not enough tokens to mint");
 
 
+        uint256 _targetBalance = asset.balanceOf(address(pm)) + _amount;
         asset.transferFrom(msg.sender, address(pm), _amount);
-        pm.deposit(asset, _amount);
+        require(asset.balanceOf(address(pm)) == _targetBalance, 'pm balance != target');
+
+        pm.deposit();
 
         uint256 rebaseAmount = _assetToRebaseAmount(_amount);
         uint256 fee;
@@ -240,7 +243,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         uint256 assetAmount = _rebaseAmountToAsset(amountFee);
         require(assetAmount > 0, "Amount of asset is zero");
 
-        pm.withdraw(asset, assetAmount);
+        pm.withdraw(assetAmount);
 
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer");
 
@@ -307,13 +310,13 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     }
 
     function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        pm.withdraw(asset, _assetAmount);
+        pm.withdraw(_assetAmount);
         require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
         asset.transfer(_to, _assetAmount);
     }
 
 
-    function payout() public whenNotPaused oncePerBlock onlyUnit {
+    function payout() external whenNotPaused oncePerBlock onlyUnit {
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
