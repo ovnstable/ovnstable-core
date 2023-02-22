@@ -529,7 +529,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             loss
         );
 
-        // update next payout time. Cycle for preventing gaps
+        // Update next payout time. Cycle for preventing gaps
+        // Allow execute payout every day in one time (10:00)
+
+        // If we cannot execute payout (for any reason) in 10:00 and execute it in 15:00
+        // then this cycle make 1 iteration and next payout time will be same 10:00 in next day
+
+        // If we cannot execute payout more than 2 days and execute it in 15:00
+        // then this cycle make 3 iteration and next payout time will be same 10:00 in next day
+
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
