@@ -9,6 +9,8 @@ const fs = require("fs-extra")
 const { node_url, blockNumber } = require("../utils/network");
 const {ethers} = require("hardhat");
 const {transferETH, getDevWallet, getERC20} = require("./script-utils");
+const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
+const {Roles} = require("./roles");
 
 let isTestAssetsCompleted = false;
 
@@ -40,6 +42,24 @@ async function resetHardhat(network) {
     });
 
     console.log('execute: hardhat_reset');
+}
+
+
+async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress){
+
+    console.log('Execute: [impersonatingEtsGrantRole]');
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [ownerAddress],
+    });
+    const owner = await ethers.getSigner(ownerAddress);
+    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, hedgeExchangerAddress);
+    await hedgeExchanger.connect(owner).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
+    await hedgeExchanger.connect(owner).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ownerAddress],
+    });
 }
 
 async function prepareArtifacts(){
@@ -144,5 +164,6 @@ module.exports = {
     resetHardhat: resetHardhat,
     prepareArtifacts: prepareArtifacts,
     createRandomWallet: createRandomWallet,
-    getTestAssets: getTestAssets
+    getTestAssets: getTestAssets,
+    impersonatingEtsGrantRole: impersonatingEtsGrantRole
 }

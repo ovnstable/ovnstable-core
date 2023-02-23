@@ -197,6 +197,9 @@ async function getStrategyMapping(){
         case "avalanche":
             url = "https://avax.overnight.fi/api/dict/strategies";
             break;
+        case "arbitrum":
+            url = "https://arbitrum.overnight.fi/api/dict/strategies";
+            break;
         case "bsc":
             url = "https://bsc.overnight.fi/api/dict/strategies";
             fromAsset = fromE18;
