@@ -234,7 +234,7 @@ interface ILizardPair is IERC20 {
     );
 }
 
-interface IGauge {
+interface ILizardGauge {
 
     function depositAll(uint tokenId) external;
 
@@ -274,9 +274,10 @@ interface IGauge {
 
     function earned(address token, address account) external view returns (uint);
 
+    function tokenIds(address account) external view returns (uint);
 }
 
-library VelodromeLibrary {
+library SolidLizardLibrary {
 
     function getAmountsOut(
         ILizardRouter01 router,
