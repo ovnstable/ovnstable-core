@@ -79,6 +79,7 @@ let OPTIMISM = {
     susd: "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9",
     lusd: "0xc40F949F8a4e094D1b49a23ea9241D289B7b2819",
     velo: "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05",
+    wstEth: "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
@@ -92,12 +93,15 @@ let OPTIMISM = {
     soDai: "0x5569b83de187375d43FBd747598bfe64fC8f6436",
     soSusd: "0xd14451E0Fa44B18f08aeB1E4a4d092B823CaCa68",
     soLusd: "0xAFdf91f120DEC93c65fd63DBD5ec372e5dcA5f82",
+    // granary
+    granaryProvider: '0xdDE5dC81e40799750B92079723Da2acAF9e1C6D6',
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     velodromeRouter: '0x9c12939390052919af3155f41bf4160fd3666a6f',
     curveExchange: "0x22D710931F01c1681Ca1570Ff016eD42EB7b7c2a",
     curve3Pool: "0x1337BedC9D22ecbe766dF105c9623922A27963EC",
     inchRouter: "0x1111111254760F7ab3F16433eea9304126DCd199",
+    kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
     // oracles
     oracleDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
     oracleUsdt: "0xecef79e109e997bca29c1c0897ec9d7b03647f5e",

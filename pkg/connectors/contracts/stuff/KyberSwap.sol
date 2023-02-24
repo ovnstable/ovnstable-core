@@ -621,7 +621,7 @@ interface IRouter {
     returns (uint256 amountIn);
 }
 
-library KyberSwapLibrary {
+library KyberswapLibrary {
 
     function singleSwap(
         IRouter router,
@@ -636,14 +636,14 @@ library KyberSwapLibrary {
         IERC20(tokenIn).approve(address(router), amountIn);
 
         IRouter.ExactInputSingleParams memory params = IRouter.ExactInputSingleParams({
-        tokenIn: tokenIn,
-        tokenOut: tokenOut,
-        fee: fee,
-        recipient: recipient,
-        deadline: block.timestamp,
-        amountIn: amountIn,
-        minAmountOut: minAmountOut,
-        limitSqrtP: 0
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            fee: fee,
+            recipient: recipient,
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            minAmountOut: minAmountOut,
+            limitSqrtP: 0
         });
 
         amountOut = router.swapExactInputSingle(params);
@@ -664,11 +664,11 @@ library KyberSwapLibrary {
         IERC20(tokenIn).approve(address(router), amountIn);
 
         IRouter.ExactInputParams memory params = IRouter.ExactInputParams({
-        path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
-        recipient: recipient,
-        deadline: block.timestamp,
-        amountIn: amountIn,
-        minAmountOut: minAmountOut
+            path: abi.encodePacked(tokenIn, fee0, tokenMid, fee1, tokenOut),
+            recipient: recipient,
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            minAmountOut: minAmountOut
         });
 
         amountOut = router.swapExactInput(params);
