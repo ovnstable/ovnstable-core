@@ -10,6 +10,16 @@
       "address": "0x149Eb6E777aDa78D383bD93c57D45a9A71b171B1",
       "txHash": "0x8ca1e4eb9dd5178cf09a90459edf922a0f071661090893f0731c7ac00eb17bac",
       "kind": "uups"
+    },
+    {
+      "address": "0x1b224a294920C8c7C534115D3Dcb02dc9fB7C0A6",
+      "txHash": "0x1f5a2de5e478410b2e5dcd7cd71cea35128c4213e356d448a0555267669f6d59",
+      "kind": "uups"
+    },
+    {
+      "address": "0x579f00bFAf89a3dF06334B97C5f0d2b90AB667EA",
+      "txHash": "0x632f42cf75f4dd837d2ca3263aa174f458fc61ea30aa577c43576a50ded74886",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -310,7 +320,7 @@
             "label": "usdPlusToken",
             "offset": 0,
             "slot": "252",
-            "type": "t_contract(IUsdPlusToken)8419",
+            "type": "t_contract(IUsdPlusToken)8646",
             "contract": "Market",
             "src": "contracts/Market.sol:17"
           },
@@ -318,7 +328,7 @@
             "label": "wrappedUsdPlusToken",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(IWrappedUsdPlusToken)8439",
+            "type": "t_contract(IWrappedUsdPlusToken)8666",
             "contract": "Market",
             "src": "contracts/Market.sol:18"
           },
@@ -360,11 +370,11 @@
             "label": "contract IExchange",
             "numberOfBytes": "20"
           },
-          "t_contract(IUsdPlusToken)8419": {
+          "t_contract(IUsdPlusToken)8646": {
             "label": "contract IUsdPlusToken",
             "numberOfBytes": "20"
           },
-          "t_contract(IWrappedUsdPlusToken)8439": {
+          "t_contract(IWrappedUsdPlusToken)8666": {
             "label": "contract IWrappedUsdPlusToken",
             "numberOfBytes": "20"
           },

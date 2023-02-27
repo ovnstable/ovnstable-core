@@ -32,6 +32,13 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        arbitrum_dai: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
         avalanche: {
             url: forkingUrl,
             accounts: accountsNetwork,
