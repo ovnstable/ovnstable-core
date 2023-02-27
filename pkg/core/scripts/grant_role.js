@@ -1,19 +1,13 @@
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 async function main(){
 
     let exchange = await getContract('Exchange');
 
-    let addresses = [];
-    let values = [];
-    let abis = [];
+    await (await exchange.grantRole(Roles.FREE_RIDER_ROLE, "0xd05c15AA8D3E8AEb9833826AbC6C5C591C762D9d")).wait();
 
-    addresses.push(exchange.address);
-    values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('grantRole', [await exchange.FREE_RIDER_ROLE(), '0x307418340F5991CD895CA0Fc4Eba04995e9BE861']))
-
-    await createProposal(addresses, values, abis);
 }
 
 main()

@@ -155,6 +155,8 @@ async function getCoreAsset() {
         return await getERC20('usdt');
     }else if (process.env.STAND === 'optimism_dai') {
         return await getERC20('dai');
+    }else if (process.env.STAND === 'arbitrum_dai') {
+            return await getERC20('dai');
     } else {
         return await getERC20('usdc');
     }
@@ -297,22 +299,7 @@ async function showM2M(blocknumber) {
     console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString()));
 
     if (usdPlus){
-
-        let totalUsdPlus;
-        if (blocknumber){
-
-            if (process.env.STAND === 'optimism_dai'){
-                totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}));
-            }else {
-                totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
-            }
-        }else {
-            if (process.env.STAND === 'optimism_dai'){
-                totalUsdPlus = fromAsset(await usdPlus.totalSupply());
-            }else {
-                totalUsdPlus = fromE6(await usdPlus.totalSupply());
-            }
-        }
+        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}));
         console.log('Total USD+: ' + totalUsdPlus);
     }
 

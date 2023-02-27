@@ -19,6 +19,7 @@ let ARBITRUM = {
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    gmxRouter: "0xaBBc5F99639c9B6bCb58544ddf04EFA6802F4064",
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",

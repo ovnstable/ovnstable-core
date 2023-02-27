@@ -43,7 +43,7 @@ function toAsset(value) {
 }
 
 function fromAsset(value) {
-    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai') {
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
         return fromE18(value);
     } else {
         return fromE6(value);
