@@ -232,6 +232,11 @@ interface ILizardPair is IERC20 {
         address t0,
         address t1
     );
+
+    function skim(address to) external;
+
+    function sync() external;
+
 }
 
 interface ILizardGauge {
@@ -275,6 +280,18 @@ interface ILizardGauge {
     function earned(address token, address account) external view returns (uint);
 
     function tokenIds(address account) external view returns (uint);
+}
+
+interface ILizardBribe {
+
+    function notifyRewardAmount(address token, uint amount) external;
+
+    function _deposit(uint amount, uint tokenId) external;
+
+    function _withdraw(uint amount, uint tokenId) external;
+
+    function getRewardForOwner(uint tokenId, address[] memory tokens) external;
+
 }
 
 library SolidLizardLibrary {
