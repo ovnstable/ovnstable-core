@@ -24,6 +24,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true
     },
+    {
+        name: 'StrategyAaveDai',
+        enabledReward: false,
+        isRunStrategyLogic: false
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -46,6 +51,13 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
 describe("ARBITRUM", function () {
     arrays.forEach(value => {
-        strategyTest(value, 'ARBITRUM', 'usdc', runStrategyLogic);
+        switch (process.env.STAND) {
+            case 'arbitrum_dai':
+                strategyTest(value, 'ARBITRUM', 'dai', runStrategyLogic);
+                break;
+            default:
+                strategyTest(value, 'ARBITRUM', 'usdc', runStrategyLogic);
+                break;
+        }
     })
 });

@@ -569,13 +569,9 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
 }
 
 async function getAssetAmount(to, assetName, ganacheWallet) {
-    if (assetName === 'dai') {
-        await transferDAI(to);
-    } else {
-        let asset = await getERC20(assetName, ganacheWallet);
-        let amount = await asset.balanceOf(ganacheWallet.address);
-        await asset.transfer(to, amount);
-    }
+    let asset = await getERC20(assetName, ganacheWallet);
+    let amount = await asset.balanceOf(ganacheWallet.address);
+    await asset.transfer(to, amount);
 }
 
 function createCheck(type, name, assetValue, currentValue, minValue, maxValue, isGt, isLt) {
