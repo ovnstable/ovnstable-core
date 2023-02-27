@@ -13,6 +13,8 @@ module.exports = async ({deployments}) => {
         params = {args: ["tUSD+", "tUSD+", 6]}
     } else if (hre.network.name === "optimism_dai") {
         params = {args: ["DAI+", "DAI+", 18]}
+    } else if (hre.network.name === "arbitrum_dai") {
+        params = {args: ["DAI+", "DAI+", 18]}
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }
