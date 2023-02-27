@@ -82,9 +82,17 @@ library ChainlinkLibrary {
         IPriceFeed oracle0,
         IPriceFeed oracle1
     ) internal view returns (uint256 amount1) {
-        uint256 price0 = uint256(oracle0.latestAnswer());
-        uint256 price1 = uint256(oracle1.latestAnswer());
+        uint256 price0 = getPrice(oracle0);
+        uint256 price1 = getPrice(oracle1);
         amount1 = (amount0 * token1Denominator * price0) / (token0Denominator * price1);
+    }
+
+    function getPrice(IPriceFeed oracle) internal view returns (uint256){
+        (uint80 roundID, int256 price, , uint256 timeStamp, uint80 answeredInRound) = oracle.latestRoundData();
+        require(answeredInRound >= roundID, "Old data");
+        require(timeStamp > 0, "Round not complete");
+        return uint256(price);
+
     }
 
     function convertTokenToUsd(
@@ -92,8 +100,7 @@ library ChainlinkLibrary {
         uint256 tokenDenominator,
         IPriceFeed oracle
     ) internal view returns (uint256 amountUsd) {
-        uint256 price = uint256(oracle.latestAnswer());
-        amountUsd = amount * price / tokenDenominator;
+        amountUsd = amount * getPrice(oracle) / tokenDenominator;
     }
 
     function convertUsdToToken(
@@ -101,7 +108,6 @@ library ChainlinkLibrary {
         uint256 tokenDenominator,
         IPriceFeed oracle
     ) internal view returns (uint256 amount) {
-        uint256 price = uint256(oracle.latestAnswer());
-        amount = amountUsd * tokenDenominator / price;
+        amount = amountUsd * tokenDenominator / getPrice(oracle);
     }
 }
