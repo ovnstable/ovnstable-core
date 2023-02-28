@@ -200,6 +200,7 @@ async function getStrategyMapping(){
             url = "https://avax.overnight.fi/api/dict/strategies";
             break;
         case "arbitrum":
+        case "arbitrum_dai":
             url = "https://arbitrum.overnight.fi/api/dict/strategies";
             break;
         case "bsc":

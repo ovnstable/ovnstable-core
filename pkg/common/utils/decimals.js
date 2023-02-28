@@ -34,7 +34,7 @@ function fromE8(value) {
 
 function toAsset(value) {
 
-    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai') {
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
         return toE18(value);
     } else {
         return toE6(value);
