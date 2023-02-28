@@ -1,17 +1,37 @@
 [
-    {
+  {
+    "chain": "OPTIMISM",
+    "pools": [
+      {
         "name": "bb-USD+",
         "address": "0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024"
-    },
-
-    {
+      },
+      {
         "name": "bb-DAI+",
         "address": "0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809"
-    },
-
-    {
+      },
+      {
         "name": "bpt-USD+",
         "address": "0x7d6Bff131B359dA66d92f215FD4e186003BFAA42"
+      }
+    ]
+  },
+    {
+        "chain": "Arbitrum",
+        "pools": [
+            {
+                "name": "bb-USD+",
+                "address": "0x284EB68520C8fA83361C1A3a5910aEC7f873C18b"
+            },
+            {
+                "name": "bb-DAI+",
+                "address": "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85"
+            },
+            {
+                "name": "bpt-USD+",
+                "address": "-"
+            }
+        ]
     }
 ]
 
