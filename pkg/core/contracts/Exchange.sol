@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
+import "./interfaces/IBlockGetter.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 import "./PayoutListener.sol";
@@ -71,6 +72,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     address public profitRecipient;
 
+    address public blockGetter;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
@@ -81,6 +84,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
     event PayoutListenerUpdated(address payoutListener);
     event InsuranceUpdated(address insurance);
+    event BlockGetterUpdated(address blockGetter);
 
     event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
     event PayoutEvent(
@@ -113,10 +117,21 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     modifier oncePerBlock() {
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            require(lastBlockNumber < block.number, "Only once in block");
+
+        uint256 blockNumber;
+
+        // Arbitrum when call block.number return blockNumber from L1(mainnet)
+        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2
+        if(blockGetter != address(0)){
+            blockNumber = IBlockGetter(blockGetter).getNumber();
+        }else {
+            blockNumber = block.number;
         }
-        lastBlockNumber = block.number;
+
+        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+            require(lastBlockNumber < blockNumber, "Only once in block");
+        }
+        lastBlockNumber = blockNumber;
         _;
     }
 
@@ -207,6 +222,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_insurance != address(0), "Zero address not allowed");
         insurance = _insurance;
         emit InsuranceUpdated(_insurance);
+    }
+
+    function setBlockGetter(address _blockGetter) external onlyAdmin {
+        require(_blockGetter != address(0), "Zero address not allowed");
+        blockGetter = _blockGetter;
+        emit BlockGetterUpdated(_blockGetter);
     }
 
     function setProfitRecipient(address _profitRecipient) external onlyAdmin {
