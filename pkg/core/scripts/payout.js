@@ -6,6 +6,7 @@ const {fromE6} = require("@overnight-contracts/common/utils/decimals");
 async function main() {
 
     let exchange = await getContract('Exchange');
+//    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     while (true) {
         await showM2M();
