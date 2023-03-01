@@ -31,9 +31,31 @@ async function main() {
     let factory = await ethers.getContractAt(BalancerFactory, ERC4626LinearPoolAddress, wallet);
     let vault = await ethers.getContractAt(Vault, VaultAddress, wallet);
 
-    await createAndTestUsdc();
-    await createAndTestDai();
+    // await createAndTestUsdc();
+    // await createAndTestDai();
 
+    // await addLiquidityUsdc();
+    // await addLiquidityDai();
+
+    async function addLiquidityDai(){
+        let dai = await getERC20('dai');
+        let wDai = await getContract('WrappedUsdPlusToken', 'arbitrum_dai');
+
+        let pool = await ethers.getContractAt(Pool, "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85", wallet);
+
+        await swap(dai, pool, toE18(1), await pool.getPoolId(), toE18(1));
+        await swap(wDai, pool, toE18(1), await pool.getPoolId(), toE18(1));
+    }
+
+    async function addLiquidityUsdc(){
+        let usdc = await getERC20('usdc');
+        let wUsdPlus = await getContract('WrappedUsdPlusToken', 'arbitrum');
+
+        let pool = await ethers.getContractAt(Pool, "0x284EB68520C8fA83361C1A3a5910aEC7f873C18b", wallet);
+
+        await swap(usdc, pool, toAsset(1), await pool.getPoolId(), toE18(1));
+        await swap(wUsdPlus, pool, toAsset(1), await pool.getPoolId(), toE18(1));
+    }
 
     async function createAndTestUsdc(){
 
