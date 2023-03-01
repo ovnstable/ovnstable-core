@@ -121,7 +121,21 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 blockNumber;
 
         // Arbitrum when call block.number return blockNumber from L1(mainnet)
-        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2
+        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2(Arbitrum)
+
+        // What is it needed?
+        // 15 seconds ~ average time for a new block to appear on the mainnet
+
+        // User1 send transaction mint:
+        // - l1.blockNumber = 100
+        // - l2.blockNumber = 60000
+        // 5 seconds later
+        // User2 send transaction mint:
+        // - l1.blockNumber = 100
+        // - l2.blockNumber = 60001
+        // If blockNumber from L1 then tx be revert("Only once in block")
+        // If blockNumber from L2 then tx be success mint!
+
         if(blockGetter != address(0)){
             blockNumber = IBlockGetter(blockGetter).getNumber();
         }else {
@@ -225,7 +239,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     function setBlockGetter(address _blockGetter) external onlyAdmin {
-        require(_blockGetter != address(0), "Zero address not allowed");
+        // blockGetter can be empty
         blockGetter = _blockGetter;
         emit BlockGetterUpdated(_blockGetter);
     }
