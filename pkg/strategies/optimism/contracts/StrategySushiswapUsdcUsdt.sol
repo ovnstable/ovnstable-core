@@ -100,13 +100,6 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-        test_stake(_asset, _amount);
-    }
-
-    function test_stake(
-        address _asset,
-        uint256 _amount
-    ) public {
 
         // swap needed amount usdc to usdt
         uint256 totalLpBalance = lpToken.totalSupply();
@@ -146,7 +139,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         ITridentRouter.TokenInput memory usdtInput;
         usdtInput.token = address(usdt);
-        usdcInput.native = true;
+        usdtInput.native = true;
         usdtInput.amount = usdtBalance;
 
         ITridentRouter.TokenInput[] memory tokenInput = new ITridentRouter.TokenInput[](2);
@@ -175,14 +168,6 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        return test_unstake(_asset, _amount, _beneficiary);
-    }
-
-    function test_unstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) public returns (uint256) {
 
         // get lpToken amount to unstake
         uint256 totalLpBalance = lpToken.totalSupply();
@@ -191,7 +176,8 @@ contract StrategySushiswapUsdcUsdt is Strategy {
             curve3Pool,
             address(usdc),
             address(usdt),
-            OvnMath.addBasisPoints(_amount + 10, 1),
+            // add 1 basis point and 0.001 usdc to unstake more than required
+            OvnMath.addBasisPoints(_amount, 1) + 1000,
             totalLpBalance,
             reserveUsdc,
             reserveUsdt,
@@ -225,11 +211,11 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         minWithdrawals[1] = usdtAmount;
 
         // remove liquidity
-        lpToken.approve(address(tridentRouter), lpTokenBalance);
+        lpToken.approve(address(tridentRouter), amountLp);
         tridentRouter.burnLiquidity(
             address(lpToken),
-            lpTokenBalance,
-            abi.encode(address(this), false),
+            amountLp,
+            abi.encode(address(this), true),
             minWithdrawals
         );
 
@@ -283,7 +269,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         tridentRouter.burnLiquidity(
             address(lpToken),
             lpTokenBalance,
-            abi.encode(address(this), false),
+            abi.encode(address(this), true),
             minWithdrawals
         );
 
