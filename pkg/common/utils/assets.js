@@ -13,6 +13,7 @@ let ARBITRUM = {
     aDai: "0x82E64f49Ed5EC1bC6e43DAD4FC8Af9bb3A2312EE",
     wbtc: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
     weth: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    str: "0x5DB7b150c5F38c5F5db11dCBDB885028fcC51D68",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
@@ -20,6 +21,7 @@ let ARBITRUM = {
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     gmxRouter: "0xaBBc5F99639c9B6bCb58544ddf04EFA6802F4064",
+    sterlingRouter: "0x0cbd3aea90538a1cf3c60b05582b691f6d2b2b01",
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
