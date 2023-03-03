@@ -34,6 +34,11 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: false
     },
+    {
+        name: 'StrategySterlingUsdcUsdt',
+        enabledReward: true,
+        isRunStrategyLogic: false
+    }
 ];
 
 if (id !== undefined && id !== "") {
