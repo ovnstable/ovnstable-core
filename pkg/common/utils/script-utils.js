@@ -300,11 +300,10 @@ async function showM2M(blocknumber) {
     console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString()));
 
     if (usdPlus){
-        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}));
+        let totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
         console.log('Total USD+: ' + totalUsdPlus);
     }
 
-    console.log(`current LI: ${(await usdPlus.liquidityIndex()).toString()}`)
 }
 
 
