@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/common",
-  "version": "0.0.31",
+  "version": "0.0.33",
   "description": "Common contracts and scripts",
   "main": "hardhat.config",
   "directories": {
@@ -10,7 +10,10 @@
     "build": "hardhat compile",
     "test": "hardhat test"
   },
-  "dependencies": {
+  "devDependencies": {
+    "axios": "^0.27.2",
+    "chai-bn": "^0.3.1",
+    "chai-bignumber": "^3.0.0",
     "@openzeppelin/hardhat-upgrades": "^1.17.0",
     "@openzeppelin/upgrades-core": "^1.14.1",
     "app-root-path": "^3.0.0",
@@ -19,10 +22,5 @@
     "fs-extra": "^10.1.0",
     "hardhat": "^2.12.7",
     "web3": "^1.7.3"
-  },
-  "devDependencies": {
-    "axios": "^0.27.2",
-    "chai-bn": "^0.3.1",
-    "chai-bignumber": "^3.0.0"
   }
 }

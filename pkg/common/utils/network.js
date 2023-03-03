@@ -1,6 +1,4 @@
 const dotenv = require('dotenv');
-const web3 = require('web3');
-const BN = require("bn.js");
 dotenv.config({path:__dirname+ '/../../../.env'});
 
 function node_url(networkName) {

@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/connectors",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Connectors to protocols",
   "main": "hardhat.config",
   "directories": {
@@ -10,7 +10,10 @@
     "build": "hardhat compile",
     "test": "hardhat test"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
+    "ethers": "^5.6.4",
+    "hardhat-deploy": "^0.11.4",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@openzeppelin/contracts": "^4.5.0",
@@ -26,10 +29,5 @@
     "ethereum-waffle": "^3.4.4",
     "hardhat-gas-reporter": "^1.0.8",
     "mocha": "^9.2.2"
-  },
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
-    "ethers": "^5.6.4",
-    "hardhat-deploy": "^0.11.4"
   }
 }
