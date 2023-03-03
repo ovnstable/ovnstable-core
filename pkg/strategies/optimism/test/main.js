@@ -132,6 +132,10 @@ let arrays = [
         name: 'StrategyEtsMu',
         enabledReward: false,
         isRunStrategyLogic: true,
+    },
+    {
+        name: 'StrategySushiswapUsdcUsdt',
+        enabledReward: true,
     }
 ];
 
