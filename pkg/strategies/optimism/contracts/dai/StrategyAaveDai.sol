@@ -114,11 +114,11 @@ contract StrategyAaveDai is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return aDaiToken.balanceOf(address(this)) + dai.balanceOf(address(this));
+        return aDaiToken.balanceOf(address(this)) + daiToken.balanceOf(address(this));
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return aDaiToken.balanceOf(address(this)) + dai.balanceOf(address(this));
+        return aDaiToken.balanceOf(address(this)) + daiToken.balanceOf(address(this));
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
