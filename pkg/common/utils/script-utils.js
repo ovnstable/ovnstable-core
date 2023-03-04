@@ -65,7 +65,7 @@ async function settingSection(exec){
 
         let strategyName = hre.ovn.tags;
         try {
-            let strategy = await getContract(strategyName, process.env.STAND);
+            let strategy = await ethers.getContract(strategyName);
 
             let pm = await getContract('PortfolioManager', process.env.STAND);
             await (await strategy.setPortfolioManager(pm.address)).wait();
