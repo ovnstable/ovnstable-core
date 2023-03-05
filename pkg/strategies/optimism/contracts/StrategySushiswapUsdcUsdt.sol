@@ -103,7 +103,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         // swap needed amount usdc to usdt
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getReserves();
+        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getNativeReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdt > 10 ** 3, 'Liquidity lpToken reserves too low');
 
         uint256 usdcBalance = usdc.balanceOf(address(this));
@@ -171,7 +171,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         // get lpToken amount to unstake
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getReserves();
+        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getNativeReserves();
         uint256 amountLp = CurveLibrary.getAmountLpTokens(
             curve3Pool,
             address(usdc),
@@ -248,7 +248,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         // calculate min amounts
         uint256 totalLpBalance = lpToken.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getReserves();
+        (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getNativeReserves();
         uint256 amountUsdc = OvnMath.subBasisPoints(reserveUsdc * lpTokenBalance / totalLpBalance, stakeSlippageBP);
         uint256 amountUsdt = OvnMath.subBasisPoints(reserveUsdt * lpTokenBalance / totalLpBalance, stakeSlippageBP);
 
@@ -301,7 +301,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         (uint256 lpTokenBalance,) = miniChefV2.userInfo(pid, address(this));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = lpToken.totalSupply();
-            (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getReserves();
+            (uint256 reserveUsdc, uint256 reserveUsdt) = lpToken.getNativeReserves();
             usdcBalance += reserveUsdc * lpTokenBalance / totalLpBalance;
             usdtBalance += reserveUsdt * lpTokenBalance / totalLpBalance;
         }
