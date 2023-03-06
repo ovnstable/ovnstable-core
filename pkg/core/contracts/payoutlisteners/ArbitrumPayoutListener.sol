@@ -16,8 +16,23 @@ contract ArbitrumPayoutListener is PayoutListener {
     address[] public sterlingPools;
     address public sterlingWallet;
 
-    address[] public arbiswapPools;
-    address public arbiswapWallet;
+    address[] public arbiswapPools; // not using
+    address public arbiswapWallet; // not using
+
+    address public rewardWallet;
+
+    BribeAmount[] public solidLizardBribesAmounts;
+
+    uint256 public nextPayoutTime;
+    uint256 public payoutPeriod;
+    uint256 public payoutTimeRange;
+
+    // ---  structs
+
+    struct BribeAmount {
+        address bribe;
+        uint256 amount;
+    }
 
     // ---  events
 
@@ -25,14 +40,16 @@ contract ArbitrumPayoutListener is PayoutListener {
 
     event SolidLizardPoolsUpdated(address[] pools, address[] bribes);
     event SolidLizardSkimAndBribeReward(address pool, address bribe, uint256 amount);
+    event SolidLizardBribeReward(address bribe, uint256 amount);
 
     event SterlingPoolsUpdated(address[] pools);
     event SterlingWalletUpdated(address wallet);
     event SterlingSkimReward(address pool, address wallet, uint256 amount);
 
-    event ArbiswapPoolsUpdated(address[] pools);
-    event ArbiswapWalletUpdated(address wallet);
-    event ArbiswapSkimReward(address pool, address wallet, uint256 amount);
+    event RewardWalletUpdated(address wallet);
+
+    event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
+    event NextPayoutTime(uint256 nextPayoutTime);
 
     // --- setters
 
@@ -60,15 +77,24 @@ contract ArbitrumPayoutListener is PayoutListener {
         emit SterlingWalletUpdated(_wallet);
     }
 
-    function setArbiswapPools(address[] calldata _pools) external onlyAdmin {
-        arbiswapPools = _pools;
-        emit ArbiswapPoolsUpdated(_pools);
+    function setRewardWallet(address _wallet) external onlyAdmin {
+        require(_wallet != address(0), "Zero address not allowed");
+        rewardWallet = _wallet;
+        emit RewardWalletUpdated(_wallet);
     }
 
-    function setArbiswapWallet(address _wallet) external onlyAdmin {
-        require(_wallet != address(0), "Zero address not allowed");
-        arbiswapWallet = _wallet;
-        emit ArbiswapWalletUpdated(_wallet);
+    function setPayoutTimes(
+        uint256 _nextPayoutTime,
+        uint256 _payoutPeriod,
+        uint256 _payoutTimeRange
+    ) external onlyAdmin {
+        require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
+        require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
+        require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
+        nextPayoutTime = _nextPayoutTime;
+        payoutPeriod = _payoutPeriod;
+        payoutTimeRange = _payoutTimeRange;
+        emit PayoutTimesUpdated(nextPayoutTime, payoutPeriod, payoutTimeRange);
     }
 
     // ---  constructor
@@ -78,55 +104,95 @@ contract ArbitrumPayoutListener is PayoutListener {
 
     function initialize() initializer public {
         __PayoutListener_init();
+
+        nextPayoutTime = 1678233600; // GMT: Wednesday, 8 March 2023 y., 0:00:00
+        payoutPeriod = 7 * 24 * 60 * 60; // 7 days
+        payoutTimeRange = 15 * 60; // 15 min
     }
 
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
-        _solidLizardSkimAndBribe();
+        _solidLizardSkim();
         _sterlingSkim();
-        _arbiswapSkim();
+        _solidLizardBribe();
+        _sendToRewardWallet();
     }
 
-    function _solidLizardSkimAndBribe() internal {
+    function _solidLizardSkim() internal {
         for (uint256 i = 0; i < solidLizardPools.length; i++) {
             address pool = solidLizardPools[i];
-//            address bribe = solidLizardBribes[i];
-//            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
+            address bribe = solidLizardBribes[i];
+            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ILizardPair(pool).skim(address(this));
-//            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-//            if (amountUsdPlus > 0) {
-//                usdPlus.approve(bribe, amountUsdPlus);
-//                ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amountUsdPlus);
-//                emit SolidLizardSkimAndBribeReward(pool, bribe, amountUsdPlus);
-//            }
+            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
+            if (amountUsdPlus > 0) {
+                bool isFound;
+                for (uint256 j = 0; j < solidLizardBribesAmounts.length; j++) {
+                    if (solidLizardBribesAmounts[j].bribe == bribe) {
+                        solidLizardBribesAmounts[j].amount += amountUsdPlus;
+                        isFound = true;
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    solidLizardBribesAmounts[solidLizardBribesAmounts.length] = BribeAmount(bribe, amountUsdPlus);
+                }
+                emit SolidLizardSkimAndBribeReward(pool, bribe, amountUsdPlus);
+            }
         }
     }
 
     function _sterlingSkim() internal {
+        uint256 totalAmountUsdPlus;
         for (uint256 i = 0; i < sterlingPools.length; i++) {
             address pool = sterlingPools[i];
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ISterlingPair(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
             if (amountUsdPlus > 0) {
-                usdPlus.transfer(sterlingWallet, amountUsdPlus);
+                totalAmountUsdPlus += amountUsdPlus;
                 emit SterlingSkimReward(pool, sterlingWallet, amountUsdPlus);
             }
         }
-    }
 
-    function _arbiswapSkim() internal {
-        for (uint256 i = 0; i < arbiswapPools.length; i++) {
-            address pool = arbiswapPools[i];
-            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
-            IArbiswapPair(pool).skim(address(this));
-            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-            if (amountUsdPlus > 0) {
-                usdPlus.transfer(arbiswapWallet, amountUsdPlus);
-                emit ArbiswapSkimReward(pool, arbiswapWallet, amountUsdPlus);
-            }
+        if (totalAmountUsdPlus > 0) {
+            usdPlus.transfer(sterlingWallet, totalAmountUsdPlus);
         }
     }
 
+    function _solidLizardBribe() internal {
+        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
+            return;
+        }
+
+        for (uint256 i = 0; i < solidLizardBribesAmounts.length; i++) {
+            address bribe = solidLizardBribesAmounts[i].bribe;
+            uint256 amount = solidLizardBribesAmounts[i].amount;
+            if (amount > 0) {
+                usdPlus.approve(bribe, amount);
+                ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amount);
+                emit SolidLizardBribeReward(bribe, amount);
+            }
+        }
+
+        delete solidLizardBribesAmounts;
+
+        for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
+            nextPayoutTime = nextPayoutTime + payoutPeriod;
+        }
+        emit NextPayoutTime(nextPayoutTime);
+    }
+
+    function _sendToRewardWallet() internal {
+        uint256 totalBribeUsdPlus;
+        for (uint256 i = 0; i < solidLizardBribesAmounts.length; i++) {
+            totalBribeUsdPlus += solidLizardBribesAmounts[i].amount;
+        }
+
+        uint256 delta = usdPlus.balanceOf(address(this)) - totalBribeUsdPlus;
+        if (delta > 0) {
+            usdPlus.transfer(rewardWallet, delta);
+        }
+    }
 }

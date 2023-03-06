@@ -1,4 +1,5 @@
 const {ethers} = require("hardhat");
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
 
@@ -38,6 +39,10 @@ module.exports = async () => {
     await (await pl.setArbiswapPools(arbiswapPools)).wait();
 
     await (await pl.setArbiswapWallet("0x2d06724F4A3DD69B8C7458DcbFFCaC0De12068C9")).wait();
+
+    await (await pl.setRewardWallet(COMMON.rewardWallet)).wait();
+
+    await (await pl.setPayoutTimes(1678233600, 7 * 24 * 60 * 60, 15 * 60)).wait();
 
     console.log('ArbitrumPayoutListener setting done');
 };
