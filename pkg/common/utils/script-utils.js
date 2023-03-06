@@ -299,7 +299,7 @@ async function showM2M(blocknumber) {
     console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString()));
 
     if (usdPlus){
-        let totalUsdPlus = fromE6(await usdPlus.totalSupply({blockTag: blocknumber}));
+        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}));
         console.log('Total USD+: ' + totalUsdPlus);
     }
 
