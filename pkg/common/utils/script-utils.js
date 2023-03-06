@@ -6,9 +6,7 @@ const path = require('path'),
 const {DEFAULT, ARBITRUM, BSC, OPTIMISM, POLYGON} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
-const {core} = require("./core");
 const {fromAsset, toAsset } = require("./decimals");
-const ERC20 = require("./abi/IERC20.json");
 
 let ethers = require('hardhat').ethers;
 
@@ -148,10 +146,6 @@ async function getCoreAsset() {
 
     if (process.env.STAND === 'bsc') {
         return await getERC20('busd');
-    } else if (process.env.STAND === 'bsc_usdc') {
-        return await getERC20('usdc');
-    } else if (process.env.STAND === 'bsc_usdt') {
-        return await getERC20('usdt');
     }else if (process.env.STAND === 'optimism_dai') {
         return await getERC20('dai');
     }else if (process.env.STAND === 'arbitrum_dai') {
@@ -216,12 +210,6 @@ async function getStrategyMapping(){
         case "optimism":
         case "optimism_dai":
             url = "https://op.overnight.fi/api/dict/strategies";
-            break;
-        case "bsc_usdc":
-            url = "https://api.overnight.fi/bsc_usdc/dict/strategies";
-            break;
-        case "bsc_usdt":
-            url = "https://api.overnight.fi/bsc_usdt/dict/strategies";
             break;
         default:
             throw Error('Unknown STAND: ' + process.env.STAND);

@@ -12,10 +12,6 @@ module.exports = async () => {
     let asset;
     if (hre.network.name === 'bsc') {
         asset = BSC.busd;
-    } else if (hre.network.name === "bsc_usdc") {
-        asset = BSC.usdc;
-    } else if (hre.network.name === "bsc_usdt") {
-        asset = BSC.usdt;
     } else if (hre.network.name === "optimism_dai") {
         asset = OPTIMISM.dai;
     }else if (hre.network.name === "arbitrum_dai") {
