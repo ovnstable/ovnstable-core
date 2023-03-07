@@ -6,7 +6,7 @@ const HedgeExchanger = require("@overnight-contracts/common/utils/abi/HedgeExcha
 
 async function main() {
 
-    await execTimelock(async (timelock) => {
+//    await execTimelock(async (timelock) => {
     let exchange = await getContract('Exchange');
 //    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
@@ -69,7 +69,7 @@ async function main() {
     }
     await showM2M();
 
-    });
+//    });
 
 }
 

@@ -4,9 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../PayoutListener.sol";
 import "@overnight-contracts/connectors/contracts/stuff/SolidLizard.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Sterling.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Arbiswap.sol";
-
-import "hardhat/console.sol";
 
 contract ArbitrumPayoutListener is PayoutListener {
 
@@ -60,8 +57,6 @@ contract ArbitrumPayoutListener is PayoutListener {
         // delete useless bribes amounts
         for (uint256 i = 0; i < solidLizardBribes.length; i++) {
             address bribe = solidLizardBribes[i];
-            console.log("bribe: %s", bribe);
-            console.log("amount: %s", solidLizardBribesAmounts[bribe]);
 
             bool isFound;
             for (uint256 j = 0; j < _bribes.length; j++) {
@@ -72,10 +67,7 @@ contract ArbitrumPayoutListener is PayoutListener {
             }
 
             if (!isFound) {
-                console.log("bribe: %s", bribe);
-                console.log("amount before: %s", solidLizardBribesAmounts[bribe]);
                 delete solidLizardBribesAmounts[bribe];
-                console.log("amount after: %s", solidLizardBribesAmounts[bribe]);
             }
         }
 
@@ -131,28 +123,19 @@ contract ArbitrumPayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
-        console.log("usdPlus balance: %s", usdPlus.balanceOf(address(this)));
         _solidLizardSkim();
-        console.log("usdPlus _solidLizardSkim: %s", usdPlus.balanceOf(address(this)));
         _sterlingSkim();
-        console.log("usdPlus _sterlingSkim: %s", usdPlus.balanceOf(address(this)));
         _solidLizardBribe();
-        console.log("usdPlus _solidLizardBribe: %s", usdPlus.balanceOf(address(this)));
         _sendToRewardWallet();
-        console.log("usdPlus _sendToRewardWallet: %s", usdPlus.balanceOf(address(this)));
     }
 
     function _solidLizardSkim() internal {
-        console.log("_solidLizardSkim");
         for (uint256 i = 0; i < solidLizardPools.length; i++) {
             address pool = solidLizardPools[i];
-            console.log("pool: %s", pool);
             address bribe = solidLizardBribes[i];
-            console.log("bribe: %s", bribe);
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ILizardPair(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-            console.log("amountUsdPlus: %s", amountUsdPlus);
             if (amountUsdPlus > 0) {
                 solidLizardBribesAmounts[bribe] += amountUsdPlus;
                 emit SolidLizardSkimAndBribeReward(pool, bribe, amountUsdPlus);
@@ -161,40 +144,31 @@ contract ArbitrumPayoutListener is PayoutListener {
     }
 
     function _sterlingSkim() internal {
-        console.log("_sterlingSkim");
         uint256 totalAmountUsdPlus;
         for (uint256 i = 0; i < sterlingPools.length; i++) {
             address pool = sterlingPools[i];
-            console.log("pool: %s", pool);
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ISterlingPair(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-            console.log("amountUsdPlus: %s", amountUsdPlus);
             if (amountUsdPlus > 0) {
                 totalAmountUsdPlus += amountUsdPlus;
                 emit SterlingSkimReward(pool, sterlingWallet, amountUsdPlus);
             }
         }
 
-        console.log("totalAmountUsdPlus: %s", totalAmountUsdPlus);
         if (totalAmountUsdPlus > 0) {
             usdPlus.transfer(sterlingWallet, totalAmountUsdPlus);
         }
     }
 
     function _solidLizardBribe() internal {
-        console.log("_solidLizardBribe");
-        console.log("block.timestamp + payoutTimeRange: %s", block.timestamp + payoutTimeRange);
-        console.log("nextPayoutTime: %s", nextPayoutTime);
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
 
         for (uint256 i = 0; i < solidLizardBribes.length; i++) {
             address bribe = solidLizardBribes[i];
-            console.log("bribe: %s", bribe);
             uint256 amountUsdPlus = solidLizardBribesAmounts[bribe];
-            console.log("amountUsdPlus: %s", amountUsdPlus);
             if (amountUsdPlus > 0) {
                 usdPlus.approve(bribe, amountUsdPlus);
                 ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amountUsdPlus);
@@ -206,21 +180,17 @@ contract ArbitrumPayoutListener is PayoutListener {
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
-        console.log("nextPayoutTime: %s", nextPayoutTime);
         emit NextPayoutTime(nextPayoutTime);
     }
 
     function _sendToRewardWallet() internal {
-        console.log("_sendToRewardWallet");
         uint256 totalBribeUsdPlus;
         for (uint256 i = 0; i < solidLizardBribes.length; i++) {
             address bribe = solidLizardBribes[i];
             totalBribeUsdPlus += solidLizardBribesAmounts[bribe];
         }
-        console.log("totalBribeUsdPlus: %s", totalBribeUsdPlus);
 
         uint256 delta = usdPlus.balanceOf(address(this)) - totalBribeUsdPlus;
-        console.log("delta: %s", delta);
         if (delta > 0) {
             usdPlus.transfer(rewardWallet, delta);
         }
