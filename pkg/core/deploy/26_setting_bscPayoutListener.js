@@ -12,6 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await (await pl.setExchanger(exchange.address)).wait();
     await (await pl.setPancakeDepositWallet(COMMON.rewardWallet)).wait();
     await (await pl.setUsdPlus(BSC.usdPlus)).wait();
+    await (await pl.setRewardWallet(COMMON.rewardWallet)).wait();
 
     // Cone
     let qsSyncPools = [
@@ -45,6 +46,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         '0xE4F0E1E2A6ceAeF8b076d6321702EA0e38245813', // vAMM-USD+/THE
     ];
     await (await pl.setThenaSkimPools(thenaSkimPools, thenaSkimBribes)).wait();
+
+    await (await pl.setWombatSkimPools(["0xC1e0b4b217E4b15b09457d0cdD93179215BeD911"])).wait();
 
     console.log('BscPayoutListener setting done');
 };

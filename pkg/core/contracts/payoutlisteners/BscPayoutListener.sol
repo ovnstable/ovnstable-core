@@ -23,6 +23,10 @@ contract BscPayoutListener is PayoutListener {
     address[] public thenaSkimPools;
     address[] public thenaSkimBribes;
 
+    address[] public wombatSkimPools;
+
+    address public rewardWallet;
+
     // ---  events
 
     event QsSyncPoolsUpdated(uint256 index, address pool);
@@ -34,6 +38,9 @@ contract BscPayoutListener is PayoutListener {
     event TotalSkimReward(uint256 amount);
     event ThenaSkimUpdated(address[] pools, address[] bribes);
     event ThenaSkimReward(address pool, address bribe, uint256 amount);
+    event WombatSkimUpdated(address[] pools);
+    event RewardWalletUpdated(address wallet);
+    event RewardWalletSend(uint256 amount);
 
     // --- setters
 
@@ -70,6 +77,17 @@ contract BscPayoutListener is PayoutListener {
         require(_pancakeSkimPools.length != 0, "Zero pools not allowed");
         pancakeSkimPools = _pancakeSkimPools;
         emit PancakeSkimPoolsUpdated(_pancakeSkimPools);
+    }
+
+    function setWombatSkimPools(address[] calldata _wombatSkimPools) external onlyAdmin {
+        wombatSkimPools = _wombatSkimPools;
+        emit WombatSkimUpdated(_wombatSkimPools);
+    }
+
+    function setRewardWallet(address _wallet) external onlyAdmin {
+        require(_wallet != address(0), "Zero address not allowed");
+        rewardWallet = _wallet;
+        emit RewardWalletUpdated(_wallet);
     }
 
     function setPancakeDepositWallet(address _pancakeDepositWallet) external onlyAdmin {
@@ -112,6 +130,16 @@ contract BscPayoutListener is PayoutListener {
         _coneSync();
         _pancakeSkim();
         _thenaSkim();
+        _wombatSkim();
+        _sendToRewardWallet();
+    }
+
+    function _wombatSkim() internal {
+
+        for (uint256 i = 0; i < wombatSkimPools.length; i++) {
+            address pool = wombatSkimPools[i];
+            WombatPool(pool).skim(address(this));
+        }
     }
 
     function _coneSync() internal {
@@ -150,10 +178,23 @@ contract BscPayoutListener is PayoutListener {
             }
         }
     }
+
+    function _sendToRewardWallet() internal {
+        require(rewardWallet != address(0), "rewardWallet is zero");
+        uint256 balance = usdPlus.balanceOf(address(this));
+        if (balance > 0) {
+            usdPlus.transfer(rewardWallet, balance);
+            emit RewardWalletSend(balance);
+        }
+    }
 }
 
 
 interface QsSyncPool {
     function sync() external;
     function skim(address to) external;
+}
+
+interface WombatPool{
+    function skim(address _to) external returns (uint256 amount);
 }
