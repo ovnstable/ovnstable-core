@@ -104,6 +104,7 @@ function getNetworkByName(network) {
             forking: {
                 url: forkingUrl,
                 blockNumber: blockNumberValue,
+                ignoreUnknownTxType: true,
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
