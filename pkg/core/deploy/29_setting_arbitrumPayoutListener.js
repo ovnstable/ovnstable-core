@@ -1,5 +1,6 @@
 const {ethers} = require("hardhat");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const {getPrice} = require("@overnight-contracts/common/utils/script-utils");
 
 module.exports = async () => {
 
@@ -7,8 +8,12 @@ module.exports = async () => {
     const exchange = await ethers.getContract("Exchange");
     const usdPlus = await ethers.getContract("UsdPlusToken");
 
-    await (await pl.setExchanger(exchange.address)).wait();
-    await (await pl.setUsdPlus(usdPlus.address)).wait();
+    let price = await getPrice();
+
+    await (await pl.setExchanger(exchange.address, price)).wait();
+    await (await pl.setUsdPlus(usdPlus.address, price)).wait();
+    await (await pl.setRewardWallet(COMMON.rewardWallet, price)).wait();
+    await (await pl.setPayoutTimes(1678233600, 7 * 24 * 60 * 60, 15 * 60, price)).wait();
 
     let solidLizardPools = [
         '0x219fbc3ed20152a9501dDAA47F2a8C193E32D0C6', // sAMM-USD+/USDC
@@ -20,29 +25,16 @@ module.exports = async () => {
         '0xC0e8B4ee2009eE197349366F8816faC33e625CeF', // sAMM-ETS Gamma/USD+
     ];
 
-    await (await pl.setSolidLizardPools(solidLizardPools, solidLizardBribes)).wait();
+    await (await pl.setSolidLizardPools(solidLizardPools, solidLizardBribes, price)).wait();
 
     let sterlingPools = [
         '0xd36A246c848714E52eD810c3f9AE60CCabfccD6B', // sAMM-USD+/USDC
         '0xAc4eeD9Ca04B219935d5C4201167aA9257896443', // sAMM-ETS Gamma/USD+
     ];
 
-    await (await pl.setSterlingPools(sterlingPools)).wait();
+    await (await pl.setSterlingPools(sterlingPools, price)).wait();
 
-    await (await pl.setSterlingWallet("0x3Bb9372989c81d56db64e8aaD38401E677b91244")).wait();
-
-    let arbiswapPools = [
-        '0x879Ee181eF3F522898deB0a5d45BC80d0B9107C9', // USD+/USDC
-        '0x73a39f2c2BbBF3d18d82658f0cD67DA11970195a', // ETS Gamma/USD+
-    ];
-
-    await (await pl.setArbiswapPools(arbiswapPools)).wait();
-
-    await (await pl.setArbiswapWallet("0x2d06724F4A3DD69B8C7458DcbFFCaC0De12068C9")).wait();
-
-    await (await pl.setRewardWallet(COMMON.rewardWallet)).wait();
-
-    await (await pl.setPayoutTimes(1678233600, 7 * 24 * 60 * 60, 15 * 60)).wait();
+    await (await pl.setSterlingWallet("0x3Bb9372989c81d56db64e8aaD38401E677b91244", price)).wait();
 
     console.log('ArbitrumPayoutListener setting done');
 };

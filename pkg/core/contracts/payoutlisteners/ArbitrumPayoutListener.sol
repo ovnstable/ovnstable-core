@@ -6,6 +6,8 @@ import "@overnight-contracts/connectors/contracts/stuff/SolidLizard.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Sterling.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Arbiswap.sol";
 
+import "hardhat/console.sol";
+
 contract ArbitrumPayoutListener is PayoutListener {
 
     IERC20 public usdPlus;
@@ -21,18 +23,11 @@ contract ArbitrumPayoutListener is PayoutListener {
 
     address public rewardWallet;
 
-    BribeAmount[] public solidLizardBribesAmounts;
+    mapping(address => uint256) public solidLizardBribesAmounts;
 
     uint256 public nextPayoutTime;
     uint256 public payoutPeriod;
     uint256 public payoutTimeRange;
-
-    // ---  structs
-
-    struct BribeAmount {
-        address bribe;
-        uint256 amount;
-    }
 
     // ---  events
 
@@ -61,6 +56,29 @@ contract ArbitrumPayoutListener is PayoutListener {
 
     function setSolidLizardPools(address[] calldata _pools, address[] calldata _bribes) external onlyAdmin {
         require(_pools.length == _bribes.length, "Pools and bribes not equal");
+
+        // delete useless bribes amounts
+        for (uint256 i = 0; i < solidLizardBribes.length; i++) {
+            address bribe = solidLizardBribes[i];
+            console.log("bribe: %s", bribe);
+            console.log("amount: %s", solidLizardBribesAmounts[bribe]);
+
+            bool isFound;
+            for (uint256 j = 0; j < _bribes.length; j++) {
+                if (bribe == _bribes[j]) {
+                    isFound = true;
+                    break;
+                }
+            }
+
+            if (!isFound) {
+                console.log("bribe: %s", bribe);
+                console.log("amount before: %s", solidLizardBribesAmounts[bribe]);
+                delete solidLizardBribesAmounts[bribe];
+                console.log("amount after: %s", solidLizardBribesAmounts[bribe]);
+            }
+        }
+
         solidLizardPools = _pools;
         solidLizardBribes = _bribes;
         emit SolidLizardPoolsUpdated(_pools, _bribes);
@@ -113,84 +131,96 @@ contract ArbitrumPayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
+        console.log("usdPlus balance: %s", usdPlus.balanceOf(address(this)));
         _solidLizardSkim();
+        console.log("usdPlus _solidLizardSkim: %s", usdPlus.balanceOf(address(this)));
         _sterlingSkim();
+        console.log("usdPlus _sterlingSkim: %s", usdPlus.balanceOf(address(this)));
         _solidLizardBribe();
+        console.log("usdPlus _solidLizardBribe: %s", usdPlus.balanceOf(address(this)));
         _sendToRewardWallet();
+        console.log("usdPlus _sendToRewardWallet: %s", usdPlus.balanceOf(address(this)));
     }
 
     function _solidLizardSkim() internal {
+        console.log("_solidLizardSkim");
         for (uint256 i = 0; i < solidLizardPools.length; i++) {
             address pool = solidLizardPools[i];
+            console.log("pool: %s", pool);
             address bribe = solidLizardBribes[i];
+            console.log("bribe: %s", bribe);
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ILizardPair(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
+            console.log("amountUsdPlus: %s", amountUsdPlus);
             if (amountUsdPlus > 0) {
-                bool isFound;
-                for (uint256 j = 0; j < solidLizardBribesAmounts.length; j++) {
-                    if (solidLizardBribesAmounts[j].bribe == bribe) {
-                        solidLizardBribesAmounts[j].amount += amountUsdPlus;
-                        isFound = true;
-                        break;
-                    }
-                }
-                if (!isFound) {
-                    solidLizardBribesAmounts[solidLizardBribesAmounts.length] = BribeAmount(bribe, amountUsdPlus);
-                }
+                solidLizardBribesAmounts[bribe] += amountUsdPlus;
                 emit SolidLizardSkimAndBribeReward(pool, bribe, amountUsdPlus);
             }
         }
     }
 
     function _sterlingSkim() internal {
+        console.log("_sterlingSkim");
         uint256 totalAmountUsdPlus;
         for (uint256 i = 0; i < sterlingPools.length; i++) {
             address pool = sterlingPools[i];
+            console.log("pool: %s", pool);
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ISterlingPair(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
+            console.log("amountUsdPlus: %s", amountUsdPlus);
             if (amountUsdPlus > 0) {
                 totalAmountUsdPlus += amountUsdPlus;
                 emit SterlingSkimReward(pool, sterlingWallet, amountUsdPlus);
             }
         }
 
+        console.log("totalAmountUsdPlus: %s", totalAmountUsdPlus);
         if (totalAmountUsdPlus > 0) {
             usdPlus.transfer(sterlingWallet, totalAmountUsdPlus);
         }
     }
 
     function _solidLizardBribe() internal {
+        console.log("_solidLizardBribe");
+        console.log("block.timestamp + payoutTimeRange: %s", block.timestamp + payoutTimeRange);
+        console.log("nextPayoutTime: %s", nextPayoutTime);
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return;
         }
 
-        for (uint256 i = 0; i < solidLizardBribesAmounts.length; i++) {
-            address bribe = solidLizardBribesAmounts[i].bribe;
-            uint256 amount = solidLizardBribesAmounts[i].amount;
-            if (amount > 0) {
-                usdPlus.approve(bribe, amount);
-                ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amount);
-                emit SolidLizardBribeReward(bribe, amount);
+        for (uint256 i = 0; i < solidLizardBribes.length; i++) {
+            address bribe = solidLizardBribes[i];
+            console.log("bribe: %s", bribe);
+            uint256 amountUsdPlus = solidLizardBribesAmounts[bribe];
+            console.log("amountUsdPlus: %s", amountUsdPlus);
+            if (amountUsdPlus > 0) {
+                usdPlus.approve(bribe, amountUsdPlus);
+                ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amountUsdPlus);
+                delete solidLizardBribesAmounts[bribe];
+                emit SolidLizardBribeReward(bribe, amountUsdPlus);
             }
         }
-
-        delete solidLizardBribesAmounts;
 
         for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
+        console.log("nextPayoutTime: %s", nextPayoutTime);
         emit NextPayoutTime(nextPayoutTime);
     }
 
     function _sendToRewardWallet() internal {
+        console.log("_sendToRewardWallet");
         uint256 totalBribeUsdPlus;
-        for (uint256 i = 0; i < solidLizardBribesAmounts.length; i++) {
-            totalBribeUsdPlus += solidLizardBribesAmounts[i].amount;
+        for (uint256 i = 0; i < solidLizardBribes.length; i++) {
+            address bribe = solidLizardBribes[i];
+            totalBribeUsdPlus += solidLizardBribesAmounts[bribe];
         }
+        console.log("totalBribeUsdPlus: %s", totalBribeUsdPlus);
 
         uint256 delta = usdPlus.balanceOf(address(this)) - totalBribeUsdPlus;
+        console.log("delta: %s", delta);
         if (delta > 0) {
             usdPlus.transfer(rewardWallet, delta);
         }

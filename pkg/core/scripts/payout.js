@@ -2,16 +2,35 @@ const hre = require("hardhat");
 const fs = require("fs");
 const {getContract, getPrice, execTimelock, showM2M, getCoreAsset} = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6} = require("@overnight-contracts/common/utils/decimals");
+const HedgeExchanger = require("@overnight-contracts/common/utils/abi/HedgeExchanger.json");
 
 async function main() {
 
+    await execTimelock(async (timelock) => {
     let exchange = await getContract('Exchange');
 //    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+
+    let opts = await getPrice();
+
+    if (process.env.ETH_NETWORK === 'ARBITRUM') {
+        let hedgeExchangerAlpha = await ethers.getContractAt(HedgeExchanger, "0x21b3D1A8B09374a890E3Eb8139E60B21D01490Da");
+        let hedgeExchangerBeta = await ethers.getContractAt(HedgeExchanger, "0x92FC104f8b42c7dCe5Be9BE29Bfb82d2f9D96855");
+        let hedgeExchangerGamma = await ethers.getContractAt(HedgeExchanger, "0xc2c84ca763572c6aF596B703Df9232b4313AD4e3");
+
+        await (await exchange.connect(timelock).setBlockGetter("0x0000000000000000000000000000000000000000", opts)).wait();
+        console.log("Set exchange blockGetter to 0x");
+        await (await hedgeExchangerAlpha.connect(timelock).setBlockGetter("0x0000000000000000000000000000000000000000", opts)).wait();
+        console.log("Set hedgeExchangerAlpha blockGetter to 0x");
+        await (await hedgeExchangerBeta.connect(timelock).setBlockGetter("0x0000000000000000000000000000000000000000", opts)).wait();
+        console.log("Set hedgeExchangerBeta blockGetter to 0x");
+        await (await hedgeExchangerGamma.connect(timelock).setBlockGetter("0x0000000000000000000000000000000000000000", opts)).wait();
+        console.log("Set hedgeExchangerGamma blockGetter to 0x");
+    }
 
     while (true) {
         await showM2M();
         try {
-            let opts = await getPrice();
+            opts = await getPrice();
 
             try {
                 await exchange.estimateGas.payout(opts);
@@ -22,7 +41,6 @@ async function main() {
             }
 
             let tx = await exchange.payout(opts);
-            // let tx = await exchange.payout();
             console.log(`tx.hash: ${tx.hash}`);
             tx = await tx.wait();
 
@@ -51,6 +69,7 @@ async function main() {
     }
     await showM2M();
 
+    });
 
 }
 
