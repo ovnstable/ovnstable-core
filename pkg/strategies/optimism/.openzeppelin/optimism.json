@@ -195,6 +195,21 @@
       "address": "0xfe1dDD9b89E5Ec5Edf14cE2bba861774Cf70C53E",
       "txHash": "0x9233cb21039a1227b29c5349940949ad4ee4a4c49c604d932e1bb42ff36800c3",
       "kind": "uups"
+    },
+    {
+      "address": "0xBd61AfDe2C0d5C022A2088F3D6933DEcBd51d6af",
+      "txHash": "0x46ed56c6c9edba1ea9648f39d4a3495774811d3d98742200061fcbfedd9561d4",
+      "kind": "uups"
+    },
+    {
+      "address": "0x33227153345C71DC3552AF7Cba3AF07C7b7B762b",
+      "txHash": "0xf65cfd6f7cecd0810b7034909499924b77f29aa9d0d975d1d7ee5b197793c43e",
+      "kind": "uups"
+    },
+    {
+      "address": "0x832f18e921375d9Dc60ED0239698ccbb0f274248",
+      "txHash": "0xbb65ef9d572d2e6250cc2ea12f2d57c93e6a7d74f008dc3ba47e765592316fe9",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -18979,7 +18994,7 @@
             "slot": "0",
             "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
             "retypedFrom": "bool"
           },
           {
@@ -18988,7 +19003,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
           },
           {
             "label": "__gap",
@@ -18996,7 +19011,7 @@
             "slot": "1",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ContextUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
           },
           {
             "label": "__gap",
@@ -19004,7 +19019,7 @@
             "slot": "51",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
           },
           {
             "label": "_roles",
@@ -19012,7 +19027,7 @@
             "slot": "101",
             "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
           },
           {
             "label": "__gap",
@@ -19020,7 +19035,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
           },
           {
             "label": "__gap",
@@ -19028,7 +19043,7 @@
             "slot": "151",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC1967UpgradeUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
           },
           {
             "label": "__gap",
@@ -19036,7 +19051,7 @@
             "slot": "201",
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
           },
           {
             "label": "portfolioManager",
@@ -19044,7 +19059,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Strategy",
-            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
           },
           {
             "label": "swapSlippageBP",
@@ -19052,7 +19067,7 @@
             "slot": "252",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
           },
           {
             "label": "navSlippageBP",
@@ -19060,7 +19075,7 @@
             "slot": "253",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
           },
           {
             "label": "stakeSlippageBP",
@@ -19068,7 +19083,7 @@
             "slot": "254",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
           {
             "label": "__gap",
@@ -19076,7 +19091,7 @@
             "slot": "255",
             "type": "t_array(t_uint256)46_storage",
             "contract": "Strategy",
-            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:167"
           },
           {
             "label": "asset",
@@ -19084,7 +19099,7 @@
             "slot": "301",
             "type": "t_contract(IERC20)3249",
             "contract": "StrategyEts",
-            "src": "contracts\\StrategyEts.sol:12"
+            "src": "contracts/StrategyEts.sol:12"
           },
           {
             "label": "rebaseToken",
@@ -19092,7 +19107,7 @@
             "slot": "302",
             "type": "t_contract(IERC20)3249",
             "contract": "StrategyEts",
-            "src": "contracts\\StrategyEts.sol:13"
+            "src": "contracts/StrategyEts.sol:13"
           },
           {
             "label": "hedgeExchanger",
@@ -19100,7 +19115,7 @@
             "slot": "303",
             "type": "t_contract(IHedgeExchanger)15194",
             "contract": "StrategyEts",
-            "src": "contracts\\StrategyEts.sol:14"
+            "src": "contracts/StrategyEts.sol:14"
           }
         ],
         "types": {
