@@ -9,30 +9,29 @@ import "@overnight-contracts/connectors/contracts/stuff/Arbiswap.sol";
 contract ArbitrumPayoutListener is PayoutListener {
 
     IERC20 public usdPlus;
-    
+
     address[] public solidLizardPools;
-    address[] public solidLizardBribes;
+    address[] public solidLizardBribes; // not used
 
     address[] public sterlingPools;
     address public sterlingWallet;
 
-    address[] public arbiswapPools;
-    address public arbiswapWallet;
+    address[] public arbiswapPools; // not used
+    address public arbiswapWallet; // not used
+
+    address public rewardWallet;
 
     // ---  events
 
     event UsdPlusUpdated(address usdPlus);
+    event RewardWalletUpdated(address wallet);
+    event RewardWalletSend(uint256 amount);
 
-    event SolidLizardPoolsUpdated(address[] pools, address[] bribes);
-    event SolidLizardSkimAndBribeReward(address pool, address bribe, uint256 amount);
+    event SolidLizardPoolsUpdated(address[] pools);
 
     event SterlingPoolsUpdated(address[] pools);
     event SterlingWalletUpdated(address wallet);
     event SterlingSkimReward(address pool, address wallet, uint256 amount);
-
-    event ArbiswapPoolsUpdated(address[] pools);
-    event ArbiswapWalletUpdated(address wallet);
-    event ArbiswapSkimReward(address pool, address wallet, uint256 amount);
 
     // --- setters
 
@@ -42,11 +41,9 @@ contract ArbitrumPayoutListener is PayoutListener {
         emit UsdPlusUpdated(_usdPlus);
     }
 
-    function setSolidLizardPools(address[] calldata _pools, address[] calldata _bribes) external onlyAdmin {
-        require(_pools.length == _bribes.length, "Pools and bribes not equal");
+    function setSolidLizardPools(address[] calldata _pools) external onlyAdmin {
         solidLizardPools = _pools;
-        solidLizardBribes = _bribes;
-        emit SolidLizardPoolsUpdated(_pools, _bribes);
+        emit SolidLizardPoolsUpdated(_pools );
     }
 
     function setSterlingPools(address[] calldata _pools) external onlyAdmin {
@@ -60,16 +57,13 @@ contract ArbitrumPayoutListener is PayoutListener {
         emit SterlingWalletUpdated(_wallet);
     }
 
-    function setArbiswapPools(address[] calldata _pools) external onlyAdmin {
-        arbiswapPools = _pools;
-        emit ArbiswapPoolsUpdated(_pools);
+
+    function setRewardWallet(address _wallet) external onlyAdmin {
+        require(_wallet != address(0), "Zero address not allowed");
+        rewardWallet = _wallet;
+        emit RewardWalletUpdated(_wallet);
     }
 
-    function setArbiswapWallet(address _wallet) external onlyAdmin {
-        require(_wallet != address(0), "Zero address not allowed");
-        arbiswapWallet = _wallet;
-        emit ArbiswapWalletUpdated(_wallet);
-    }
 
     // ---  constructor
 
@@ -83,23 +77,18 @@ contract ArbitrumPayoutListener is PayoutListener {
     // ---  logic
 
     function payoutDone() external override onlyExchanger {
-        _solidLizardSkimAndBribe();
+        _solidLizardSkim();
         _sterlingSkim();
-        _arbiswapSkim();
+        _sendToRewardWallet();
     }
 
-    function _solidLizardSkimAndBribe() internal {
+
+    // Skim all USD+ tokens and transfer to SolidLizard staker for accumulation
+    function _solidLizardSkim() internal {
         for (uint256 i = 0; i < solidLizardPools.length; i++) {
             address pool = solidLizardPools[i];
-//            address bribe = solidLizardBribes[i];
-//            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
+            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
             ILizardPair(pool).skim(address(this));
-//            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-//            if (amountUsdPlus > 0) {
-//                usdPlus.approve(bribe, amountUsdPlus);
-//                ILizardBribe(bribe).notifyRewardAmount(address(usdPlus), amountUsdPlus);
-//                emit SolidLizardSkimAndBribeReward(pool, bribe, amountUsdPlus);
-//            }
         }
     }
 
@@ -116,16 +105,12 @@ contract ArbitrumPayoutListener is PayoutListener {
         }
     }
 
-    function _arbiswapSkim() internal {
-        for (uint256 i = 0; i < arbiswapPools.length; i++) {
-            address pool = arbiswapPools[i];
-            uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
-            IArbiswapPair(pool).skim(address(this));
-            uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
-            if (amountUsdPlus > 0) {
-                usdPlus.transfer(arbiswapWallet, amountUsdPlus);
-                emit ArbiswapSkimReward(pool, arbiswapWallet, amountUsdPlus);
-            }
+    function _sendToRewardWallet() internal {
+        require(rewardWallet != address(0), "rewardWallet is zero");
+        uint256 balance = usdPlus.balanceOf(address(this));
+        if (balance > 0) {
+            usdPlus.transfer(rewardWallet, balance);
+            emit RewardWalletSend(balance);
         }
     }
 
