@@ -24,7 +24,7 @@ module.exports = async () => {
     ];
 
     await (await pl.setSterlingPools(sterlingPools)).wait();
-    await (await pl.setSterlingWallet("0x3Bb9372989c81d56db64e8aaD38401E677b91244")).wait();
+    await (await pl.setSterlingWallet(COMMON.rewardWallet)).wait();
 
     console.log('ArbitrumPayoutListener setting done');
 };
