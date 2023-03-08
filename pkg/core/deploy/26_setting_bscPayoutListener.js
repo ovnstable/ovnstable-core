@@ -43,7 +43,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         '0x8FbF01a6D3Fef2847f2c35d9a05476eb859D6B2e', // sAMM-HAY/USD+
         '0x8828Bd1b7abc5296D3FcfEb15F58c23088410449', // sAMM-USD+/CUSD
         '0xe52917158c3C8e29Ae3B5458200cbF516E56F660', // sAMM-USDT/USD+
-        '0xE4F0E1E2A6ceAeF8b076d6321702EA0e38245813', // vAMM-USD+/THE
+        '0x39d46d0f49fab60002d2f359d1497ffbfc889ea6', // vAMM-USD+/THE
     ];
     await (await pl.setThenaSkimPools(thenaSkimPools, thenaSkimBribes)).wait();
 
