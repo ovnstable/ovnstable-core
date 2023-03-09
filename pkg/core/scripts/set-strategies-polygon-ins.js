@@ -8,7 +8,7 @@ async function main() {
             "strategy": "0x82d8F924b71459bAC871A9F0163d73B6a3FBbb10",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 1,
+            "targetWeight": 50.5,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -39,10 +39,10 @@ async function main() {
             "strategy": "0x6AEB3bCe61ecFa874a908C828821b86ed326122d",
             "name": "Eta3",
             "minWeight": 0,
-            "targetWeight": 49.5,
+            "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {
