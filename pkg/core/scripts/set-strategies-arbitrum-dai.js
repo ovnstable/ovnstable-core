@@ -40,7 +40,6 @@ async function main() {
     await showM2M();
 
     let pm = await getContract('PortfolioManager');
-    await (await pm.addStrategy('0xd05c15AA8D3E8AEb9833826AbC6C5C591C762D9d')).wait();
     await (await pm.setStrategyWeights(weights)).wait();
     await (await pm.balance()).wait();
 
