@@ -7,6 +7,7 @@ import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Gmx.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Zyberswap.sol";
 
 import "hardhat/console.sol";
 
@@ -22,6 +23,7 @@ contract StrategyUsdPlusDai is Strategy {
         address oracleDai;
         address oracleUsdc;
         address gmxRouter;
+        address zyberPool;
     }
 
     // --- params
@@ -35,7 +37,7 @@ contract StrategyUsdPlusDai is Strategy {
     IPriceFeed public oracleDai;
     IPriceFeed public oracleUsdc;
     IRouter public gmxRouter;
-
+    IZyberSwap public zyberPool;
 
     // --- events
 
@@ -60,6 +62,7 @@ contract StrategyUsdPlusDai is Strategy {
         oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         gmxRouter = IRouter(params.gmxRouter);
+        zyberPool = IZyberSwap(params.zyberPool);
 
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
@@ -75,15 +78,18 @@ contract StrategyUsdPlusDai is Strategy {
     ) internal override {
 
         // swap dai to usdc
-        address[] memory path = new address[](2);
-        path[0] = address(dai);
-        path[1] = address(usdc);
 
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
 
-        dai.approve(address(gmxRouter), daiBalance);
-        gmxRouter.swap(path, daiBalance, amountOutMin, address(this));
+        dai.approve(address(zyberPool), daiBalance);
+        zyberPool.swap(
+            2, // DAI
+            0, // USDC
+            daiBalance,
+            amountOutMin,
+            block.timestamp
+        );
 
         // mint usdPlus
         uint256 usdcBalance = usdc.balanceOf(address(this));
@@ -118,15 +124,17 @@ contract StrategyUsdPlusDai is Strategy {
         exchange.redeem(address(usdc), usdPlusAmount);
 
         // swap usdc to dai
-        address[] memory path = new address[](2);
-        path[0] = address(usdc);
-        path[1] = address(dai);
-
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
 
-        usdc.approve(address(gmxRouter), usdcBalance);
-        gmxRouter.swap(path, usdcBalance, amountOutMin, address(this));
+        usdc.approve(address(zyberPool), usdcBalance);
+        zyberPool.swap(
+            0, // USDC
+            2, // DAI
+            usdcBalance,
+            amountOutMin,
+            block.timestamp
+        );
 
         return dai.balanceOf(address(this));
     }
@@ -145,15 +153,17 @@ contract StrategyUsdPlusDai is Strategy {
         exchange.redeem(address(usdc), usdPlusBalance);
 
         // swap usdc to dai
-        address[] memory path = new address[](2);
-        path[0] = address(usdc);
-        path[1] = address(dai);
-
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
 
-        usdc.approve(address(gmxRouter), usdcBalance);
-        gmxRouter.swap(path, usdcBalance, amountOutMin, address(this));
+        usdc.approve(address(zyberPool), usdcBalance);
+        zyberPool.swap(
+            0, // USDC
+            2, // DAI
+            usdcBalance,
+            amountOutMin,
+            block.timestamp
+        );
 
         return dai.balanceOf(address(this));
     }
