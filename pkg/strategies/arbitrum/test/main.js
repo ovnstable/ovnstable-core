@@ -52,6 +52,8 @@ console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 async function runStrategyLogic(strategyName, strategyAddress) {
 
+    await prepareEnvironment();
+
     if (strategyName === 'StrategyEtsAlpha') {
         await impersonatingEtsGrantRole('0x21b3D1A8B09374a890E3Eb8139E60B21D01490Da', '0x5CB01385d3097b6a189d1ac8BA3364D900666445', strategyAddress)
     } else if (strategyName === 'StrategyEtsBeta') {
