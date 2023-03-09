@@ -29,6 +29,9 @@ let ARBITRUM = {
     oracleDai: "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB",
     oracleWbtc: "0xd0C7101eACbB49F3deCcCc166d238410D6D46d57",
     oracleWeth: "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+
+    // pools
+    zyber3Pool: '0x969f7699fbB9C79d8B61315630CDeED95977Cfb8'
 }
 
 let AVALANCHE = {

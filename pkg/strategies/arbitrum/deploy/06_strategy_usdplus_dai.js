@@ -26,6 +26,7 @@ module.exports = async ({deployments}) => {
                 oracleDai: ARBITRUM.oracleDai,
                 oracleUsdc: ARBITRUM.oracleUsdc,
                 gmxRouter: ARBITRUM.gmxRouter,
+                zyberPool: ARBITRUM.zyber3Pool,
             }
         )).wait();
     });

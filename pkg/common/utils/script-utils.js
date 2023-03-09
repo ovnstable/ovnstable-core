@@ -391,7 +391,10 @@ async function execTimelock(exec){
     let timelock = await getContract('OvnTimelockController' );
 
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    if (hre.network.name === 'localhost'){
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
+
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],

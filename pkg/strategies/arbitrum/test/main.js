@@ -1,5 +1,7 @@
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 const {impersonatingEtsGrantRole} = require("@overnight-contracts/common/utils/tests");
+const {execTimelock, getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 let id = process.env.TEST_STRATEGY;
 
@@ -32,7 +34,7 @@ let arrays = [
     {
         name: 'StrategyUsdPlusDai',
         enabledReward: false,
-        isRunStrategyLogic: false
+        isRunStrategyLogic: true
     },
     {
         name: 'StrategySterlingUsdcUsdt',
@@ -49,6 +51,15 @@ if (id !== undefined && id !== "") {
 console.log(`Run tests [${arrays.map(value => value.name)}]`);
 
 async function runStrategyLogic(strategyName, strategyAddress) {
+
+    if (process.env.STAND.includes('arbitrum')){
+
+        await execTimelock(async (timelock)=>{
+            let exchange = await getContract('Exchange', 'arbitrum');
+            await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
+            console.log('[Test] exchange.setBlockGetter(zero)');
+        });
+    }
 
     if (strategyName === 'StrategyEtsAlpha') {
         await impersonatingEtsGrantRole('0x21b3D1A8B09374a890E3Eb8139E60B21D01490Da', '0x5CB01385d3097b6a189d1ac8BA3364D900666445', strategyAddress)
