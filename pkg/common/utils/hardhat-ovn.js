@@ -10,6 +10,7 @@ const {
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 const {getNodeUrl, getBlockNumber} = require("./network");
+const {prepareEnvironment} = require("./tests");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -139,6 +140,7 @@ task(TASK_RUN, 'Run task')
         }
 
         if (hre.network.name === 'localhost'){
+            await prepareEnvironment();
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
 
@@ -175,7 +177,8 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost'){
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+            await prepareEnvironment();
         }
 
         await evmCheckpoint('task', hre.network.provider);

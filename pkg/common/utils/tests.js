@@ -1,16 +1,18 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { expect } = require('chai');
+const {expect} = require('chai');
 const hre = require("hardhat");
 
 const fs = require("fs-extra")
 
-const { node_url, blockNumber } = require("../utils/network");
+const {node_url, blockNumber} = require("../utils/network");
 const {ethers} = require("hardhat");
-const {transferETH, getDevWallet, getERC20} = require("./script-utils");
+const {transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract} = require("./script-utils");
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const {Roles} = require("./roles");
+const {ARBITRUM} = require("./assets");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 let isTestAssetsCompleted = false;
 
@@ -45,7 +47,7 @@ async function resetHardhat(network) {
 }
 
 
-async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress){
+async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress) {
 
     console.log('Execute: [impersonatingEtsGrantRole]');
     await hre.network.provider.request({
@@ -62,7 +64,7 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     });
 }
 
-async function prepareArtifacts(){
+async function prepareArtifacts() {
     const srcDir = `./artifacts-external`;
     const destDir = `./artifacts`;
 
@@ -74,28 +76,30 @@ async function prepareArtifacts(){
     });
 }
 
-async function createRandomWallet(){
+async function createRandomWallet() {
     let wallet = ethers.Wallet.createRandom().connect(ethers.provider);
     await transferETH(1, wallet.address);
-    return  wallet;
+    return wallet;
 }
 
 
-async function getTestAssets(to){
+async function getTestAssets(to) {
 
     let stand = process.env.STAND.toUpperCase();
 
-    if (isTestAssetsCompleted){
+    if (isTestAssetsCompleted) {
         return;
     }
 
     if (stand === "BSC") {
         await getBusd(to);
-    }else if (stand === "OPTIMISM") {
+    } else if (stand === "OPTIMISM") {
         await getUsdcOptimism(to);
 
-    }else if (stand === "OPTIMISM_DAI"){
+    } else if (stand === "OPTIMISM_DAI") {
         await getDaiOptimism(to);
+    } else if (stand === "ARBITRUM_DAI") {
+        await transferAsset(ARBITRUM.dai, to);
     }else {
         throw new Error('Need implement function getTestAssets for network: ' + stand);
     }
@@ -104,7 +108,7 @@ async function getTestAssets(to){
 
 }
 
-async function getDaiOptimism(to){
+async function getDaiOptimism(to) {
 
     let holder = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
 
@@ -121,7 +125,20 @@ async function getDaiOptimism(to){
     await dai.connect(signerWithAddress).transfer(to, await dai.balanceOf(signerWithAddress.address));
 }
 
-async function getUsdcOptimism(to){
+async function prepareEnvironment(){
+
+    if (process.env.STAND.includes('arbitrum')){
+
+        await execTimelock(async (timelock)=>{
+            let exchange = await getContract('Exchange', 'arbitrum');
+            await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
+            console.log('[Test] exchange.setBlockGetter(zero)');
+        });
+    }
+
+}
+
+async function getUsdcOptimism(to) {
 
     let holder = '0x489f866c0698c8d6879f5c0f527bc8281046042d';
 
@@ -139,7 +156,7 @@ async function getUsdcOptimism(to){
     await busd.connect(signerWithAddress).transfer(to, await busd.balanceOf(signerWithAddress.address));
 }
 
-async function getBusd(to){
+async function getBusd(to) {
 
 
     let holder = '0x5a52e96bacdabb82fd05763e25335261b270efcb';
@@ -162,6 +179,7 @@ async function getBusd(to){
 module.exports = {
     greatLess: greatLess,
     resetHardhat: resetHardhat,
+    prepareEnvironment: prepareEnvironment,
     prepareArtifacts: prepareArtifacts,
     createRandomWallet: createRandomWallet,
     getTestAssets: getTestAssets,
