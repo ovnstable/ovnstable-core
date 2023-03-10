@@ -35,7 +35,7 @@ async function main() {
 
 
     let names = [
-        'StrategyEtsOmicron',
+        'StrategyEtsDelta',
     ]
 
     await showRules(names);
