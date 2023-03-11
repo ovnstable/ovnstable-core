@@ -16,22 +16,31 @@
       }
     ]
   },
-    {
-        "chain": "Arbitrum",
-        "pools": [
-            {
-                "name": "bb-USD+",
-                "address": "0x284EB68520C8fA83361C1A3a5910aEC7f873C18b"
-            },
-            {
-                "name": "bb-DAI+",
-                "address": "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85"
-            },
-            {
-                "name": "bpt-USD+",
-                "address": "0x519cCe718FCD11AC09194CFf4517F12D263BE067"
-            }
-        ]
-    }
+  {
+    "chain": "Arbitrum",
+    "pools": [
+      {
+        "name": "bb-USD+",
+        "address": "0x284EB68520C8fA83361C1A3a5910aEC7f873C18b"
+      },
+      {
+        "name": "bb-DAI+",
+        "address": "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85"
+      },
+      {
+        "name": "bpt-USD+",
+        "address": "0x519cCe718FCD11AC09194CFf4517F12D263BE067"
+      }
+    ]
+  },
+  {
+    "chain": "Polygon",
+    "pools": [
+      {
+        "name": "bb-USD+",
+        "address": "0x9E34631547aDcF2F8cefa0f5f223955C7B137571"
+      }
+    ]
+  }
 ]
 

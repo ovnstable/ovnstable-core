@@ -2,7 +2,7 @@ const hre = require("hardhat");
 const ethers = hre.ethers;
 const BN = require('bn.js');
 const {
-    initWallet, getContract, getERC20,
+    initWallet, getContract, getERC20, getERC20ByAddress, getPrice,
 
 } = require("@overnight-contracts/common/utils/script-utils");
 
@@ -19,21 +19,26 @@ let VaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 
 const owner = "0xba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1b"; // Owner DAO Balancer
 
-const usdPlusLinearPool = "0x284EB68520C8fA83361C1A3a5910aEC7f873C18b";
-const daiPlusLinearPool = "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85";
+const usdPlusLinearPool = "0x9E34631547aDcF2F8cefa0f5f223955C7B137571";
+
+const DAVOS_ADDRESS = "0xec38621e72d86775a89c7422746de1f52bba5320";
+// DAVOS matic - 0x08ABFd7DEd42CC33900d3457118eAB7fC40b71c8
+
+const POOL_NAME = "Boosted Davos-USD+";
+const TOKEN_NAME = "BPT-Davos-USD+";
 
 async function main() {
 
     let wallet = await initWallet(ethers);
 
     let usdPool = await ethers.getContractAt(Pool, usdPlusLinearPool, wallet);
-    let daiPool = await ethers.getContractAt(Pool, daiPlusLinearPool, wallet);
+    let davos = await getERC20ByAddress(DAVOS_ADDRESS, wallet);
 
     let poolAddress = await createStablePool(wallet);
 
     console.log('PoolAddress: ' + poolAddress);
 
-    await initPool(poolAddress, wallet);
+    // await initPool(poolAddress, wallet);
     // await test(wallet);
 
 
@@ -44,27 +49,25 @@ async function main() {
         let stablePool = await ethers.getContractAt(Pool, poolAddress, wallet);
         let vault = await ethers.getContractAt(Vault, VaultAddress, wallet);
 
-
-
         let usdPoolBalanceBefore = fromE18(await usdPool.balanceOf(wallet.address));
-        let daiPoolBalanceBefore = fromE18(await daiPool.balanceOf(wallet.address));
+        let davosBalanceBefore = fromE18(await davos.balanceOf(wallet.address));
         let stableBalanceBefore = fromE18(await stablePool.balanceOf(wallet.address));
 
         await swap(stablePool, usdPool, toE18(0.5));
-        await swap(stablePool, daiPool, toE18(0.5));
+        await swap(stablePool, davos, toE18(0.5));
 
-        await swap(usdPool, daiPool, toE18(0.5));
-        await swap(daiPool, usdPool, toE18(0.5));
+        await swap(usdPool, davos, toE18(0.5));
+        await swap(davos, usdPool, toE18(0.5));
 
         await swap(usdPool, stablePool, toE18(0.5));
-        await swap(daiPool, stablePool, toE18(0.5));
+        await swap(davos, stablePool, toE18(0.5));
 
         await showBalances();
 
 
         // After all swaps balance must be equals
         expect(usdPoolBalanceBefore).to.equal(fromE18(await usdPool.balanceOf(wallet.address)));
-        expect(daiPoolBalanceBefore).to.equal(fromE18(await daiPool.balanceOf(wallet.address)));
+        expect(davosBalanceBefore).to.equal(fromE18(await davos.balanceOf(wallet.address)));
         expect(stableBalanceBefore).to.equal(fromE18(await stablePool.balanceOf(wallet.address)));
 
         async function swap(tokenIn, tokenOut, amount) {
@@ -112,8 +115,8 @@ async function main() {
         let userData = ethers.utils.defaultAbiCoder.encode(['uint256', 'uint256[]'], [0, initAmountsIn]);
         console.log(`userData: ${userData}`);
 
-        await (await usdPool.approve(vault.address, toE18(1))).wait();
-        await (await daiPool.approve(vault.address, toE18(1))).wait();
+        await (await usdPool.approve(vault.address, toE18(2), await getPrice())).wait();
+        await (await davos.approve(vault.address, toE18(2), await getPrice())).wait();
         console.log("Vault approved");
 
         let uint256Max = new BN(2).pow(new BN(256)).subn(1).toString(); // type(uint256).max
@@ -125,10 +128,11 @@ async function main() {
             wallet.address,
             {
                 assets: tokens,
-                maxAmountsIn: [uint256Max, uint256Max, uint256Max ],
+                maxAmountsIn: [uint256Max, uint256Max],
                 userData: userData,
                 fromInternalBalance: false
             },
+            await getPrice()
         )).wait();
         console.log("joinPool done")
 
@@ -152,8 +156,8 @@ async function main() {
                     name = "bb-USD+";
                     initAmountsIn[i] = toE18(2);
                     break
-                case daiPlusLinearPool.toLowerCase():
-                    name = "bb-DAI+";
+                case davos.toLowerCase():
+                    name = "DAVOS";
                     initAmountsIn[i] = toE18(2);
                     break
                 default:
@@ -179,7 +183,7 @@ async function main() {
 
         let factory = await ethers.getContractAt(BalancerFactory, Factory, wallet);
 
-        let tokens = [usdPlusLinearPool, daiPlusLinearPool];
+        let tokens = [usdPlusLinearPool, DAVOS_ADDRESS];
 
         tokens.sort((tokenA, tokenB) => (tokenA.toLowerCase() > tokenB.toLowerCase() ? 1 : -1));
 
@@ -194,9 +198,10 @@ async function main() {
         let amplificationParameter = "570";
         let swapFee = "100000000000000"; // 0.01%
 
+        console.log('factory.create() ...');
         let promise = await factory.create(
-            'Overnight Pulse',
-            'BPT-USD+',
+            POOL_NAME,
+            TOKEN_NAME,
             tokens,
             amplificationParameter.toString(),
             rateProviders,
@@ -204,8 +209,9 @@ async function main() {
             [false, false],
             swapFee,
             owner,
+            await getPrice()
         );
-
+        console.log('factory.create() wait ...');
 
         let tx = await promise.wait();
         const poolAddress = tx.events.find((e) => e.event == 'PoolCreated').args[0];
@@ -220,55 +226,37 @@ async function main() {
 
         let wallet = await initWallet();
 
-        let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
-        let daiPus = await getContract('UsdPlusToken', 'arbitrum_dai');
-
-        let wUsdPlus = await getContract('WrappedUsdPlusToken', 'arbitrum');
-        let wDai = await getContract('WrappedUsdPlusToken', 'arbitrum_dai');
+        let usdPlus = await getContract('UsdPlusToken', 'polygon');
+        let wUsdPlus = await getContract('WrappedUsdPlusToken', 'polygon');
 
         let usdPool = await ethers.getContractAt(Pool, usdPlusLinearPool, wallet);
-        let daiPool = await ethers.getContractAt(Pool, daiPlusLinearPool, wallet);
         let stablePool = await ethers.getContractAt(Pool, poolAddress, wallet);
 
         let usdc = await getERC20('usdc');
-        let dai = await getERC20('dai');
 
         let arrays = [
             {
                 name: 'USDC',
                 amount: fromE6(await usdc.balanceOf(wallet.address))
             },
-
             {
                 name: 'USD+',
                 amount: fromE6(await usdPlus.balanceOf(wallet.address))
             },
             {
-                name: 'DAI',
-                amount: fromE18(await dai.balanceOf(wallet.address))
-            },
-            {
-                name: 'DAI+',
-                amount: fromE18(await daiPus.balanceOf(wallet.address))
+                name: 'DAVOS',
+                amount: fromE18(await davos.balanceOf(wallet.address))
             },
             {
                 name: 'wUSD+',
                 amount: fromE6(await wUsdPlus.balanceOf(wallet.address))
             },
             {
-                name: 'wDAI+',
-                amount: fromE18(await wDai.balanceOf(wallet.address))
-            },
-            {
-                name: 'bb-DAI+',
-                amount: fromE18(await daiPool.balanceOf(wallet.address))
-            },
-            {
                 name: 'bb-USD+',
                 amount: fromE18(await usdPool.balanceOf(wallet.address))
             },
             {
-                name: 'BPT-USD+',
+                name: 'BPT',
                 amount: fromE18(await stablePool.balanceOf(wallet.address))
             }
         ]
