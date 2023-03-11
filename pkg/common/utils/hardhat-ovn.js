@@ -47,8 +47,10 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         let fileName;
         if (Number.parseInt(chainId) === 137){
             fileName = 'polygon.json';
-        }else if (Number.parseInt(chainId) === 10){
+        }else if (Number.parseInt(chainId) === 10) {
             fileName = 'optimism.json';
+        }else if (Number.parseInt(chainId) === 56){
+            fileName = 'bsc.json';
         } else {
             fileName = `unknown-${chainId}.json`;
         }
