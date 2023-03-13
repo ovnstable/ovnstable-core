@@ -24,8 +24,8 @@ const usdPlusLinearPool = "0x9E34631547aDcF2F8cefa0f5f223955C7B137571";
 const DAVOS_ADDRESS = "0xec38621e72d86775a89c7422746de1f52bba5320";
 // DAVOS matic - 0x08ABFd7DEd42CC33900d3457118eAB7fC40b71c8
 
-const POOL_NAME = "Boosted Davos-USD+";
-const TOKEN_NAME = "BPT-Davos-USD+";
+const POOL_NAME = "Overnight to Davos";
+const TOKEN_NAME = "Davos-USD+";
 
 async function main() {
 
@@ -38,7 +38,7 @@ async function main() {
 
     console.log('PoolAddress: ' + poolAddress);
 
-    // await initPool(poolAddress, wallet);
+    await initPool(poolAddress, wallet);
     // await test(wallet);
 
 
@@ -115,8 +115,8 @@ async function main() {
         let userData = ethers.utils.defaultAbiCoder.encode(['uint256', 'uint256[]'], [0, initAmountsIn]);
         console.log(`userData: ${userData}`);
 
-        await (await usdPool.approve(vault.address, toE18(2), await getPrice())).wait();
-        await (await davos.approve(vault.address, toE18(2), await getPrice())).wait();
+        await (await usdPool.approve(vault.address, toE18(4), await getPrice())).wait();
+        await (await davos.approve(vault.address, toE18(4), await getPrice())).wait();
         console.log("Vault approved");
 
         let uint256Max = new BN(2).pow(new BN(256)).subn(1).toString(); // type(uint256).max
@@ -128,7 +128,7 @@ async function main() {
             wallet.address,
             {
                 assets: tokens,
-                maxAmountsIn: [uint256Max, uint256Max],
+                maxAmountsIn: [uint256Max, uint256Max, uint256Max],
                 userData: userData,
                 fromInternalBalance: false
             },
@@ -154,11 +154,11 @@ async function main() {
             switch (token.toLowerCase()) {
                 case usdPlusLinearPool.toLowerCase():
                     name = "bb-USD+";
-                    initAmountsIn[i] = toE18(2);
+                    initAmountsIn[i] = toE18(4);
                     break
-                case davos.toLowerCase():
+                case davos.address.toLowerCase():
                     name = "DAVOS";
-                    initAmountsIn[i] = toE18(2);
+                    initAmountsIn[i] = toE18(4);
                     break
                 default:
                     name = "Stable LP  ";
@@ -187,7 +187,8 @@ async function main() {
 
         tokens.sort((tokenA, tokenB) => (tokenA.toLowerCase() > tokenB.toLowerCase() ? 1 : -1));
 
-        let rateProviders = tokens;
+        // If token not lp then use zero_address
+        let rateProviders = [usdPlusLinearPool, '0x0000000000000000000000000000000000000000'];
 
         let tokenRateCacheDurations = [1800, 1800];
 

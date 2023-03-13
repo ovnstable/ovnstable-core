@@ -39,6 +39,10 @@
       {
         "name": "bb-USD+",
         "address": "0x9E34631547aDcF2F8cefa0f5f223955C7B137571"
+      },
+      {
+        "name": "Overnight to Davos",
+        "address": "0x9A020BDC2FAFF5bd24c6AcC2020d01Ff9f2c627a"
       }
     ]
   }
