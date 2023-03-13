@@ -30,7 +30,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     IStrategy public cashStrategy;
     IMark2Market public m2m;
     uint256 public totalRiskFactor;
-
+    uint256 public swapSlippageBP;
 
     // ---  events
 
@@ -114,6 +114,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         m2m = IMark2Market(_m2m);
         emit Mark2MarketUpdated(_m2m);
     }
+
+    function setSwapSlippageBp(uint256 _swapSlippageBP) public onlyPortfolioAgent {
+        swapSlippageBP = _swapSlippageBP;
+    }
+
 
 
     function setAsset(address _asset) public onlyAdmin {
