@@ -73,7 +73,7 @@ contract OptimismPayoutListener is PayoutListener {
 
         for (uint256 i = 0; i < velodromePoolsCollector.length; i++) {
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(collector);
-            VelodromePool(velodromePoolsCollector[i]).sync();
+            VelodromePool(velodromePoolsCollector[i]).skim(collector);
             uint256 amount = usdPlus.balanceOf(collector) - usdPlusBalanceBeforeSkim;
             emit VelodromeSkimReward(velodromePoolsCollector[i], amount);
         }
@@ -85,7 +85,7 @@ contract OptimismPayoutListener is PayoutListener {
             address pool = velodromePools[i];
             address bribe = velodromeBribes[i];
             uint256 usdPlusBalanceBeforeSkim = usdPlus.balanceOf(address(this));
-            VelodromePool(pool).sync();
+            VelodromePool(pool).skim(address(this));
             uint256 amountUsdPlus = usdPlus.balanceOf(address(this)) - usdPlusBalanceBeforeSkim;
             if (amountUsdPlus > 0) {
                 usdPlus.approve(bribe, amountUsdPlus);
