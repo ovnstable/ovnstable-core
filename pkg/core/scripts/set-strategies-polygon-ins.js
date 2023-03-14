@@ -8,7 +8,7 @@ async function main() {
             "strategy": "0x82d8F924b71459bAC871A9F0163d73B6a3FBbb10",
             "name": "Aave",
             "minWeight": 0,
-            "targetWeight": 50.5,
+            "targetWeight": 100,
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
@@ -19,10 +19,10 @@ async function main() {
             "strategy": "0x446e79Fd6793c2c3a4C69F112374edB86fe4F82a",
             "name": "GammaPlus",
             "minWeight": 0,
-            "targetWeight": 49.5,
+            "targetWeight": 0,
             "maxWeight": 100,
             "riskFactor": 0,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {

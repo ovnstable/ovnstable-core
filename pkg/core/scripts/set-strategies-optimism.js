@@ -1,4 +1,10 @@
-const {getContract, changeWeightsAndBalance, execTimelock, convertWeights, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {
+    getContract,
+    changeWeightsAndBalance,
+    execTimelock,
+    convertWeights,
+    showM2M
+} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 const {ethers} = require("hardhat");
 
@@ -8,7 +14,7 @@ async function main() {
         "strategy": "0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76",
         "name": "Aave",
         "minWeight": 0,
-        "targetWeight": 2.49,
+        "targetWeight": 3.2,
         "riskFactor": null,
         "maxWeight": 100,
         "enabled": true,
@@ -17,125 +23,114 @@ async function main() {
         "strategy": "0x9520aEF41161f09Dce78a8e79482b654d4FFe641",
         "name": "Pika USDC",
         "minWeight": 0,
-        "targetWeight": 27,
+        "targetWeight": 30.9,
         "riskFactor": null,
         "maxWeight": 100,
         "enabled": false,
         "enabledReward": true
     }, {
-        "strategy": "0x6C93A2A9eBC61ce664eE3D44531B76365150BFd8",
-        "name": "Rubicon USDC",
-        "minWeight": 0,
-        "targetWeight": 7,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0x2c80d9ee6f42a9AF2f681fE569AB409Df3aa46f7",
-        "name": "Rubicon USDT",
-        "minWeight": 0,
-        "targetWeight": 7,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0xfa5328a029575f460d9fb499B1cDCE25b69B1038",
-        "name": "Rubicon DAI",
-        "minWeight": 0,
-        "targetWeight": 9,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0x2B65fb73A3fB0E738BBE0726754801BB422fad6d",
-        "name": "Beethovenx USDC",
-        "minWeight": 0,
-        "targetWeight": 4.5,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": true,
-        "enabledReward": true
-    }, {
-        "strategy": "0xd27a3640CDF245f97b739F20605e66a79160361B",
-        "name": "Reaper-Sonne DAI",
-        "minWeight": 0,
-        "targetWeight": 10,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0xF3a75b6dD1A60526755A370afaB48fF3501e0D15",
-        "name": "Reaper-Sonne USDC",
-        "minWeight": 0,
-        "targetWeight": 10.5,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0x8855e27ABE0C121c5B9e1D1572B40cab184daf21",
-        "name": "Reaper-Sonne USDT",
+        "strategy": "0x39A6CA4bbe0906E7ad4eBFC2D264A57420D54312",
+        "name": "ETS Epsilon",
         "minWeight": 0,
         "targetWeight": 11,
         "riskFactor": null,
         "maxWeight": 100,
         "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0x1B797450434e0DEdA4D2c3198eEe1d677d3dCe4C",
-        "name": "Not found",
-        "minWeight": 0,
-        "targetWeight": 0,
-        "riskFactor": null,
-        "maxWeight": 0,
-        "enabled": false,
         "enabledReward": false
     }, {
-        "strategy": "0x24f06E7B44426235ff097CB098f0E78E90F12A09",
-        "name": "ETS BETA+",
+        "strategy": "0x4395ab761ebaA01ec22940F32568845C2a8bAf3e",
+        "name": "ETS Zeta",
         "minWeight": 0,
-        "targetWeight": 0.5,
+        "targetWeight": 15,
         "riskFactor": null,
         "maxWeight": 100,
         "enabled": false,
         "enabledReward": false
     }, {
-        "strategy": "0xBED45d30B6A20d77621965E42C855E1060b4A7AF",
-        "name": "Not found",
+        "strategy": "0xcf8EC04D6b69Cee2eA39695E475bd73253395938",
+        "name": "ETS IOTA",
         "minWeight": 0,
-        "targetWeight": 0,
-        "riskFactor": null,
-        "maxWeight": 0,
-        "enabled": false,
-        "enabledReward": false
-    }, {
-        "strategy": "0xDCbf5A96452638488edbDa18449b6245B065Ebea",
-        "name": "Beethovenx Sonne",
-        "minWeight": 0,
-        "targetWeight": 10.4,
-        "riskFactor": null,
-        "maxWeight": 100,
-        "enabled": false,
-        "enabledReward": true
-    }, {
-        "strategy": "0xcAAf507138cA294473018cD0182A3a534284AaA3",
-        "name": "ETS ALPHA+",
-        "minWeight": 0,
-        "targetWeight": 0.61,
+        "targetWeight": 12.39,
         "riskFactor": null,
         "maxWeight": 100,
         "enabled": true,
         "enabledReward": false
+    }, {
+        "strategy": "0x3bD1792BC3F8a6727285Fe12DB510e4cbDEeA7E6",
+        "name": "ETS LAMBDA",
+        "minWeight": 0,
+        "targetWeight": 14.15,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0x9fD56B853C73888B0B3d1B41e6695C4eeE12a344",
+        "name": "ETS THETA",
+        "minWeight": 0,
+        "targetWeight": 0,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0xf967addBB57143d92Dc08D72660Bf00DFBc70Eae",
+        "name": "Velodrome USDC/DAI",
+        "minWeight": 0,
+        "targetWeight": 0,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0xf71121B4d0692A1F9d90eb1Bc44B4AE917D4f2F1",
+        "name": "ETS MU",
+        "minWeight": 0,
+        "targetWeight": 0.8,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0x0B287606f1867Be9D0435089CB08FAa16109d31D",
+        "name": "Sushiswap USDC/USDT",
+        "minWeight": 0,
+        "targetWeight": 0,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0xB090aFe2AAC35778706Bf447A52aD5C69604180F",
+        "name": "ETS Nu",
+        "minWeight": 0,
+        "targetWeight": 5,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0xaB386160E7047d048a83aF419b7E0c2431d7F5fe",
+        "name": "ETS XI",
+        "minWeight": 0,
+        "targetWeight": 6.2,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
+    }, {
+        "strategy": "0xfe1dDD9b89E5Ec5Edf14cE2bba861774Cf70C53E",
+        "name": "ETS OMICRON",
+        "minWeight": 0,
+        "targetWeight": 1.36,
+        "riskFactor": null,
+        "maxWeight": 100,
+        "enabled": false,
+        "enabledReward": false
     }]
 
 
-
-
-    await execTimelock(async (timelock)=>{
+    await execTimelock(async (timelock) => {
         let pm = await getContract('PortfolioManager');
 
         await showM2M();
@@ -150,7 +145,6 @@ async function main() {
 
     })
 }
-
 
 
 main()
