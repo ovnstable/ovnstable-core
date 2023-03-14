@@ -30,7 +30,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     IStrategy public cashStrategy;
     IMark2Market public m2m;
     uint256 public totalRiskFactor;
-    uint256 public swapSlippageBP;
+    uint256 public navSlippageBp;
 
     // ---  events
 
@@ -88,6 +88,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        navSlippageBp = 4; // 0.04%
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -115,10 +117,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         emit Mark2MarketUpdated(_m2m);
     }
 
-    function setSwapSlippageBp(uint256 _swapSlippageBP) public onlyPortfolioAgent {
-        swapSlippageBP = _swapSlippageBP;
+    function setNavSlippageBp(uint256 _navSlippageBp) public onlyPortfolioAgent {
+        navSlippageBp = _navSlippageBp;
     }
-
 
 
     function setAsset(address _asset) public onlyAdmin {
@@ -285,7 +286,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 2) when execute stake/unstake
 
         // allowable losses 0.04% = USD+ mint/redeem fee
-        uint256 minNavExpected = OvnMath.subBasisPoints(m2m.totalNetAssets(), 4); //0.04%
+        uint256 minNavExpected = OvnMath.subBasisPoints(m2m.totalNetAssets(), navSlippageBp);
         minNavExpected = minNavExpected - withdrawAmount; // subscribe withdraw amount
 
         StrategyWeight[] memory strategies = getAllStrategyWeights();
