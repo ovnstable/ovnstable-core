@@ -6,7 +6,7 @@ const {
     testUsdPlus,
     testStrategy
 } = require("@overnight-contracts/common/utils/governance");
-const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const {COMMON, OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 
 const STRATEGY_ABI = require("@overnight-contracts/core/artifacts/contracts/Strategy.sol/Strategy.json").abi;
@@ -130,7 +130,7 @@ async function main() {
         }
 
 
-        let cashStrategy = '0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76';
+        let cashStrategy = '';
 
         addresses.push(pm.address);
         values.push(0);
@@ -153,23 +153,31 @@ async function main() {
         return strategies;
     }
 
+    async function test(strategies){
+
+        await showM2M();
+        await testProposal(addresses, values, abis);
+        await showM2M();
+
+        await testUsdPlus();
+        await showM2M();
+
+        for (const strategy of strategies) {
+
+            expect(pm.address).to.equal(await strategy.portfolioManager(), `${strategy.address} `);
+        }
+
+        expect(true).to.equal(await pm.hasRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D'), '1: hasRole is false');
+        expect(true).to.equal(await pm.hasRole(Roles.PORTFOLIO_AGENT_ROLE, '0xe497285e466227F4E8648209E34B465dAA1F90a0', '2: hasRole is false'));
+
+    }
+
     prepareExchange();
     prepareM2M();
     let strategies = await prepareStrategies();
+    await test(strategies);
 
-
-    // await showM2M();
-    // await testProposal(addresses, values, abis);
-    // await showM2M();
-
-    // await testUsdPlus();
-
-    // for (const strategy of strategies) {
-    //
-    //     expect(pm.address).to.equal(await strategy.portfolioManager(), `${strategy.address} `);
-    // }
-
-    await createProposal(addresses, values, abis)
+    // await createProposal(addresses, values, abis)
 
 }
 
