@@ -22,7 +22,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
             await buyonSwap.buy(DEFAULT.usdc, DEFAULT.traderJoeRouter, {value: value});
             break;
         case 'bsc':
-            await buyonSwap.buy(DEFAULT.busd, DEFAULT.pancakeRouter, {value: value});
+            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.pancakeRouter, {value: value});
             break;
         case 'fantom':
             await buyonSwap.buy(DEFAULT.usdc, DEFAULT.spookySwapRouter, {value: value});

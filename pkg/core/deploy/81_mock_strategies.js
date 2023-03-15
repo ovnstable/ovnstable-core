@@ -9,12 +9,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const pm = await ethers.getContract("PortfolioManager");
     const exchange = await ethers.getContract("Exchange");
 
-    let asset;
-    if (process.env.STAND === 'bsc') {
-        asset = DEFAULT.busd;
-    } else {
-        asset = DEFAULT.usdc;
-    }
+    let asset = DEFAULT.usdc;
 
     let mockStrategy1 = await deploy("MockStrategy", {
         from: deployer,

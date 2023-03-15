@@ -144,12 +144,10 @@ async function getERC20ByAddress(address, wallet){
 async function getCoreAsset() {
 
 
-    if (process.env.STAND === 'bsc') {
-        return await getERC20('busd');
-    }else if (process.env.STAND === 'optimism_dai') {
+    if (process.env.STAND === 'optimism_dai') {
         return await getERC20('dai');
-    }else if (process.env.STAND === 'arbitrum_dai') {
-            return await getERC20('dai');
+    } else if (process.env.STAND === 'arbitrum_dai') {
+        return await getERC20('dai');
     } else {
         return await getERC20('usdc');
     }
@@ -596,7 +594,7 @@ async function transferAsset(assetAddress, to) {
         case POLYGON.dai:
             from = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
             break;
-        case BSC.busd:
+        case BSC.usdc:
             from = '0xf977814e90da44bfa03b6295a0616a897441acec';
             break;
         case OPTIMISM.wbtc:
@@ -736,31 +734,6 @@ async function transferUSDC(amount, to) {
     console.log(`[Node] Transfer USDC [${fromE6(await usdc.balanceOf(to))}] to [${to}]:`);
 }
 
-async function transferBUSD(to) {
-
-    let address = '0xf977814e90da44bfa03b6295a0616a897441acec';
-
-    await transferETH(1, address);
-
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [address],
-    });
-
-    const account = await hre.ethers.getSigner(address);
-
-    let token = await getERC20('busd');
-
-    await token.connect(account).transfer(to, await token.balanceOf(account.address));
-
-    await hre.network.provider.request({
-        method: "hardhat_stopImpersonatingAccount",
-        params: [account.address],
-    });
-
-    console.log(`[Node] Transfer BUSD [${fromE18(await token.balanceOf(to))}] to [${to}]:`);
-}
-
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
@@ -773,7 +746,6 @@ module.exports = {
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,
     transferUSDC: transferUSDC,
-    transferBUSD: transferBUSD,
     transferAsset: transferAsset,
     showM2M: showM2M,
     getPrice: getPrice,

@@ -11,9 +11,7 @@ module.exports = async () => {
     const pm = await ethers.getContract("PortfolioManager");
 
     let asset;
-    if (hre.network.name === 'bsc') {
-        asset = BSC.busd;
-    }else if (hre.network.name === "optimism_dai") {
+    if (hre.network.name === "optimism_dai") {
         asset = OPTIMISM.dai;
     }else if (hre.network.name === "arbitrum_dai") {
         asset = ARBITRUM.dai;

@@ -19,26 +19,6 @@ let arrays = [
         enabledReward: true,
     },
     {
-        name: 'StrategyVenusUsdc',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategySynapseUsdc',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyVenusUsdt',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategyStargateUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategySynapseUsdt',
-        enabledReward: true,
-    },
-    {
         name: 'StrategyConeBusdUsdc',
         enabledReward: true,
     },
@@ -108,6 +88,10 @@ let arrays = [
         name: 'StrategyEllipsisDotDotBusd',
         enabledReward: true,
     },
+    {
+        name: 'StrategyVenusUsdc',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -139,7 +123,7 @@ describe("BSC", function () {
     arrays.forEach(value => {
         switch (process.env.STAND) {
             default:
-                strategyTest(value, 'BSC', 'busd', runStrategyLogic);
+                strategyTest(value, 'BSC', 'usdc', runStrategyLogic);
                 break;
         }
     })

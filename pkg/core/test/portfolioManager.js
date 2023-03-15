@@ -18,12 +18,7 @@ const {waffle} = require("hardhat");
 const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {provider} = waffle;
 
-let assetAddress;
-if (process.env.STAND === 'bsc') {
-    assetAddress = DEFAULT.busd;
-} else {
-    assetAddress = DEFAULT.usdc;
-}
+let assetAddress = DEFAULT.usdc;
 
 describe("PortfolioManager set new cash strategy", function () {
 
