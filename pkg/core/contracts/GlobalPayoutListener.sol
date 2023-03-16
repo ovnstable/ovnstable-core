@@ -70,7 +70,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
      *
      */
 
-    function addItem(Item memory item) external onlyAdmin {
+    function addItem(Item memory item) public onlyAdmin {
         require(item.token != address(0), 'token is zero');
         require(item.pool != address(0), 'pool is zero');
 
@@ -97,7 +97,14 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         emit AddItem(item.token, item.pool);
     }
 
-    function removeItem(address token, address pool) external onlyAdmin {
+    function addItems(Item[] memory items) external onlyAdmin {
+        for (uint256 x = 0; x < items.length; x++) {
+            Item memory item = items[x];
+            addItem(item);
+        }
+    }
+
+    function removeItem(address token, address pool) public onlyAdmin {
         require(token != address(0), 'token is zero');
         require(pool != address(0), 'pool is zero');
 

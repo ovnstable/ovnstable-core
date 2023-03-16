@@ -111,6 +111,19 @@ describe("GlobalPayoutListener", function () {
         });
 
 
+        it("Add items", async function () {
+
+            let secondItem = item;
+            secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
+
+            let tx = await (await pl.addItems([item, secondItem])).wait();
+
+            let events = tx.events.filter((e) => e.event == 'AddItem');
+            expect(2).to.equal(events.length);
+
+        });
+
+
         it("Add a 2 new item", async function () {
 
             let secondItem = item;
