@@ -70,30 +70,30 @@ describe("GlobalPayoutListener", function () {
                 dexName: 'Ramses',
             }
 
-            await pl.setItem(item);
+            await pl.addItem(item);
 
         });
 
-        it("[SetItem:Error] token is zero", async function () {
+        it("[AddItem:Error] token is zero", async function () {
             item.token = ZERO_ADDRESS;
-            await expectRevert(pl.setItem(item),'token is zero');
+            await expectRevert(pl.addItem(item),'token is zero');
         });
 
-        it("[SetItem:Error] pool is zero", async function () {
+        it("[AddItem:Error] pool is zero", async function () {
             item.pool = ZERO_ADDRESS;
-            await expectRevert(pl.setItem(item),'pool is zero');
+            await expectRevert(pl.addItem(item),'pool is zero');
         });
 
-        it("[SetItem:Error] to is zero", async function () {
+        it("[AddItem:Error] to is zero", async function () {
             item.operation = OPERATIONS.SKIM;
             item.to = ZERO_ADDRESS;
-            await expectRevert(pl.setItem(item),'to is zero');
+            await expectRevert(pl.addItem(item),'to is zero');
         });
 
-        it("[SetItem:Error] bribe is zero", async function () {
+        it("[AddItem:Error] bribe is zero", async function () {
             item.operation = OPERATIONS.BRIBE;
             item.bribe = ZERO_ADDRESS;
-            await expectRevert(pl.setItem(item),'bribe is zero');
+            await expectRevert(pl.addItem(item),'bribe is zero');
         });
 
 
@@ -116,9 +116,9 @@ describe("GlobalPayoutListener", function () {
             let secondItem = item;
             secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
 
-            let tx = await (await pl.setItem(secondItem)).wait();
+            let tx = await (await pl.addItem(secondItem)).wait();
 
-            let event = tx.events.find((e) => e.event == 'SetItem');
+            let event = tx.events.find((e) => e.event == 'AddItem');
 
             expect(secondItem.token).to.equal(event.args[0]);
             expect(secondItem.pool).to.equal(event.args[1]);
@@ -137,7 +137,7 @@ describe("GlobalPayoutListener", function () {
         it("Replace an exist item", async function () {
 
             item.dexName = 'Test';
-            await pl.setItem(item);
+            await pl.addItem(item);
 
             let chainItem = await pl.items(0);
 
@@ -183,8 +183,8 @@ describe("GlobalPayoutListener", function () {
 
         describe('permissions', ()=>{
 
-            it("[SetItem] Restricted to admins", async function () {
-                await expectRevert(pl.connect(testAccount).setItem(item),'Restricted to admins');
+            it("[AddItem] Restricted to admins", async function () {
+                await expectRevert(pl.connect(testAccount).addItem(item),'Restricted to admins');
             });
 
             it("[RemoveItem] Restricted to admins", async function () {
@@ -216,7 +216,7 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                 }
 
-                await pl.setItem(item);
+                await pl.addItem(item);
 
             });
 
@@ -263,7 +263,7 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                 }
 
-                await pl.setItem(item);
+                await pl.addItem(item);
 
             });
 
@@ -298,7 +298,7 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                 }
 
-                await pl.setItem(item);
+                await pl.addItem(item);
 
             });
 
@@ -325,7 +325,7 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                 }
 
-                await pl.setItem(item);
+                await pl.addItem(item);
 
             });
 
