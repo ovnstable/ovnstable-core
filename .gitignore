@@ -20,6 +20,7 @@ cache/
 deployments/localhost
 .env
 deployments/ganache
+pkg/core/deployments/hardhat
 recreate-ganache.sh
 hardhat-ganache.sh
 hardhat-node.sh
