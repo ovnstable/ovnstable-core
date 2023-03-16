@@ -11,9 +11,9 @@ import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
+import "./interfaces/IGlobalPayoutListener.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
-import "./PayoutListener.sol";
 
 import "hardhat/console.sol";
 
@@ -54,7 +54,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange;
 
-    IPayoutListener public payoutListener;
+    IGlobalPayoutListener public payoutListener;
 
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
@@ -228,7 +228,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     function setPayoutListener(address _payoutListener) external onlyAdmin {
-        payoutListener = IPayoutListener(_payoutListener);
+        payoutListener = IGlobalPayoutListener(_payoutListener);
         emit PayoutListenerUpdated(_payoutListener);
     }
 
@@ -553,7 +553,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // notify listener about payout done
         if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone();
+            payoutListener.payoutDone(address(usdPlus));
         }
 
         emit PayoutEvent(
