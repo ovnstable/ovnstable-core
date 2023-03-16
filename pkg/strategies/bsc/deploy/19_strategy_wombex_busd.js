@@ -20,6 +20,7 @@ module.exports = async ({deployments}) => {
         await (await strategy.setParams(
             {
                 busd: BSC.busd,
+                usdc: BSC.usdc,
                 wom: wom,
                 wmx: wmx,
                 lpBusd: lpBusd,
@@ -27,6 +28,9 @@ module.exports = async ({deployments}) => {
                 poolDepositor: poolDepositor,
                 pool: pool,
                 pancakeRouter: BSC.pancakeRouter,
+                wombatRouter: BSC.wombatRouter,
+                oracleBusd: BSC.chainlinkBusd,
+                oracleUsdc: BSC.chainlinkUsdc,
             }
         )).wait();
     });
