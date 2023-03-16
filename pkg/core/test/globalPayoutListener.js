@@ -322,6 +322,42 @@ describe("GlobalPayoutListener", function () {
 
         });
 
+        describe('[disabled -> true]', ()=>{
+
+            beforeEach(async ()=>{
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: mockBribe.address,
+                    operation: OPERATIONS.BRIBE,
+                    to: ZERO_ADDRESS,
+                    dexName: 'Test Dex',
+                }
+                await pl.addItem(item);
+                await pl.setDisabled(true);
+
+            });
+
+            it('event exist: PayoutDoneDisabled', async ()=> {
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let event = tx.events.find((e) => e.event == 'PayoutDoneDisabled');
+                expect(event).to.not.null;
+
+            });
+
+            it('operations event is empty', async ()=> {
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let event = tx.events.find((e) => e.event == 'PoolOperation');
+                expect(event).to.undefined;
+
+            });
+
+        });
+
 
 
         describe('[bribe]', ()=>{

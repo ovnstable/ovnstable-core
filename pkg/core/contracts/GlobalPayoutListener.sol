@@ -31,12 +31,15 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     Item[] public items;
+    bool public disabled; // Admin can disable to executing PayoutDone
 
     function __PayoutListener_init() internal initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        disabled = false;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -48,6 +51,8 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     // ---  events
 
     event AddItem(address token, address pool);
+    event DisabledUpdated(bool value);
+    event PayoutDoneDisabled();
     event RemoveItem(address token, address pool);
     event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
 
@@ -64,6 +69,11 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     // --- setters
+
+    function setDisabled(bool _value) external onlyAdmin {
+        disabled = _value;
+        emit DisabledUpdated(disabled);
+    }
 
     /**
      * Add new item to list or update exist item
@@ -186,6 +196,10 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
 
     function payoutDone(address token) external override onlyExchanger {
 
+        if(disabled){
+            emit PayoutDoneDisabled();
+            return;
+        }
 
         for (uint256 x = 0; x < items.length; x++) {
 
