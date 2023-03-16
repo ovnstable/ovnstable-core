@@ -22,58 +22,36 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
     let values = [
         {
             value: 0.02,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 0.2,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 2,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 20,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 200,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 2000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 20000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 100000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 200000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 1000000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
         {
             value: 2000000,
-            navPercent: 0.2,
-            liqPercent: 0.4,
         },
     ]
 
@@ -114,8 +92,9 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
         values.forEach(item => {
 
             let stakeValue = item.value;
-            let navPercent = item.navPercent;
-            let liqPercent = item.liqPercent;
+            let navPercent = item.navPercent ? item.navPercent : 0.2;
+            let liqPercent = item.liqPercent ? item.liqPercent : 0.4;
+            let freeAssetPercent = item.freeAssetPercent ? item.freeAssetPercent : 0.01;
 
             let unstakePercent = strategyParams.unstakePercent ? strategyParams.unstakePercent : 50;
             let unstakeValue = stakeValue * unstakePercent / 100;
@@ -127,9 +106,11 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                 let VALUE;
                 let NAV_DELTA;
                 let LIQ_DELTA;
+                let FREE_ASSET_DELTA;
 
                 let netAssetValue;
                 let liquidationValue;
+                let freeAsset;
 
                 sharedBeforeEach(`Stake ${stakeValue}`, async () => {
 
@@ -137,6 +118,7 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     VALUE = new BigNumber(assetValue);
                     NAV_DELTA = VALUE.times(new BigNumber(navPercent)).div(100);
                     LIQ_DELTA = VALUE.times(new BigNumber(liqPercent)).div(100);
+                    FREE_ASSET_DELTA = VALUE.times(new BigNumber(freeAssetPercent)).div(100);
 
                     await asset.transfer(recipient.address, assetValue);
 
@@ -152,15 +134,15 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                     balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
-
                     netAssetValue = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValue = new BigNumber((await strategy.liquidationValue()).toString());
-
+                    freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                     let items = [
                         ...createCheck('stake', 'balance', assetValue, balanceAsset, VALUE, VALUE),
                         ...createCheck('stake', 'netAssetValue', assetValue, netAssetValue, VALUE.minus(NAV_DELTA), VALUE.plus(NAV_DELTA)),
                         ...createCheck('stake', 'liquidationValue', assetValue, liquidationValue, VALUE.minus(LIQ_DELTA), VALUE.plus(LIQ_DELTA)),
+                        ...createCheck('stake', 'freeAsset', assetValue, freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
                     ]
 
                     console.table(items);
@@ -179,6 +161,10 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     greatLess(liquidationValue, VALUE, LIQ_DELTA);
                 });
 
+                it(`Free asset is in range`, async function () {
+                    greatLess(freeAsset, FREE_ASSET_DELTA, FREE_ASSET_DELTA);
+                });
+
 
                 describe(`UnStake ${unstakeValue}`, function () {
 
@@ -191,6 +177,7 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     let netAssetValue;
                     let liquidationValue;
+                    let freeAsset;
 
                     sharedBeforeEach(`Unstake ${unstakeValue}`, async () => {
 
@@ -215,12 +202,13 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                         UNSTAKE_DELTA = balanceAsset.minus(VALUE);
                         netAssetValue = new BigNumber((await strategy.netAssetValue()).toString());
                         liquidationValue = new BigNumber((await strategy.liquidationValue()).toString());
-
+                        freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                         let items = [
                             ...createCheck('unstake', 'balance', assetValue, balanceAsset, VALUE, new BigNumber(-1)),
                             ...createCheck('unstake', 'netAssetValue', assetValue, netAssetValue, VALUE.minus(UNSTAKE_DELTA).minus(NAV_DELTA), VALUE.minus(UNSTAKE_DELTA).plus(NAV_DELTA)),
                             ...createCheck('unstake', 'liquidationValue', assetValue, liquidationValue, VALUE.minus(UNSTAKE_DELTA).minus(LIQ_DELTA), VALUE.minus(UNSTAKE_DELTA).plus(LIQ_DELTA)),
+                            ...createCheck('unstake', 'freeAsset', assetValue, freeAsset, new BigNumber(0), new BigNumber(0)),
                         ]
 
                         console.table(items);
@@ -236,6 +224,10 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     it(`LiquidationValue asset is in range`, async function () {
                         greatLess(liquidationValue, VALUE.minus(UNSTAKE_DELTA), LIQ_DELTA);
+                    });
+
+                    it(`Free asset is 0`, async function () {
+                        expect(freeAsset.toFixed()).to.equal('0');
                     });
 
                 });
@@ -271,14 +263,12 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
         values.forEach(item => {
 
             let stakeValue = item.value;
-            let navPercent = item.navPercent;
-            let liqPercent = item.liqPercent;
+            let navPercent = item.navPercent ? item.navPercent : 0.2;
+            let liqPercent = item.liqPercent ? item.liqPercent : 0.4;
 
             describe(`Stake ${stakeValue} => UnstakeFull`, function () {
 
                 let balanceAsset;
-
-                let liquidationValueAfterStake;
 
                 let netAssetValue;
                 let liquidationValue;
@@ -286,6 +276,8 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                 let VALUE;
                 let NAV_DELTA;
                 let LIQ_DELTA;
+
+                let freeAsset;
 
                 sharedBeforeEach(`Unstake ${stakeValue}`, async () => {
 
@@ -305,9 +297,6 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                         await ethers.provider.send('evm_mine');
                     }
 
-
-                    liquidationValueAfterStake = new BigNumber((await strategy.liquidationValue()).toString());
-
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
                     let rewardEvent = tx.events.find((e)=>e.event === 'Reward');
                     let rewardAmount = new BigNumber('0');
@@ -320,12 +309,13 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
 
                     netAssetValue = new BigNumber((await strategy.netAssetValue()).toString());
                     liquidationValue = new BigNumber((await strategy.liquidationValue()).toString());
+                    freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                     let items = [
                         ...createCheck('unstakeFull', 'balance', assetValue, balanceAsset, VALUE.times(9996).div(10000), new BigNumber(-1)),
-                        ...createCheck('unstakeFull', 'balance', assetValue, balanceAsset, liquidationValueAfterStake, new BigNumber(-1)),
                         ...createCheck('unstakeFull', 'netAssetValue', assetValue, netAssetValue, new BigNumber(0), new BigNumber(0)),
                         ...createCheck('unstakeFull', 'liquidationValue', assetValue, liquidationValue, new BigNumber(0), new BigNumber(0)),
+                        ...createCheck('unstakeFull', 'freeAsset', assetValue, freeAsset, new BigNumber(0), new BigNumber(0)),
                     ]
 
                     console.table(items);
@@ -336,17 +326,16 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                     expect(balanceAsset.gte(VALUE.times(9996).div(10000))).to.equal(true);
                 });
 
-                it(`Balance asset > liquidation value`, async function () {
-                    expect(balanceAsset.gte(liquidationValueAfterStake)).to.equal(true);
-                });
-
                 it(`NetAssetValue asset is 0`, async function () {
                     expect(netAssetValue.toFixed()).to.equal('0');
                 });
 
                 it(`LiquidationValue asset is 0`, async function () {
                     expect(liquidationValue.toFixed()).to.equal('0');
+                });
 
+                it(`Free asset is 0`, async function () {
+                    expect(freeAsset.toFixed()).to.equal('0');
                 });
 
             });
@@ -387,6 +376,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
             describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
                 let balanceAsset;
+                let freeAsset;
 
                 sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
@@ -415,9 +405,11 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                     balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                     balances.push(balanceAsset.toString());
+                    freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                     let items = [
                         ...createCheck('claimRewards', 'rewards', new BigNumber(0), balanceAsset, new BigNumber(0), new BigNumber(-1), true),
+                        ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), new BigNumber(0)),
                     ]
 
                     console.table(items);
@@ -425,6 +417,10 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                 it(`Rewards > 0`, async function () {
                     expect(balanceAsset.toNumber()).to.greaterThan(0);
+                });
+
+                it(`Free asset is 0`, async function () {
+                    expect(freeAsset.toFixed()).to.equal('0');
                 });
 
             });
@@ -463,6 +459,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                     let balanceAsset;
                     let balanceAssetDoubleFarm;
+                    let freeAsset;
 
                     sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
@@ -498,9 +495,11 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                         balanceAssetDoubleFarm = new BigNumber((await asset.balanceOf(recipient.address)).toString());
                         balanceAsset = new BigNumber(balances[i]);
                         i++;
+                        freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                         let items = [
                             ...createCheck('claimRewards', 'double rewards', new BigNumber(0), balanceAssetDoubleFarm, balanceAsset.times(new BigNumber(1.2)), new BigNumber(-1), true),
+                            ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), new BigNumber(0)),
                         ]
 
                         console.table(items);
@@ -510,6 +509,10 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                         if (balanceAssetDoubleFarm > 0) {
                             expect(balanceAssetDoubleFarm.toNumber()).to.greaterThan(balanceAsset.times(new BigNumber(1.2)).toNumber());
                         }
+                    });
+
+                    it(`Free asset is 0`, async function () {
+                        expect(freeAsset.toFixed()).to.equal('0');
                     });
 
                 });

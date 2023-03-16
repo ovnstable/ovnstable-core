@@ -108,29 +108,29 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(busd), "Some token not compatible");
+        require(_asset == address(usdc), "Some token not compatible");
 
         // calculate amount to stake
         WombatLibrary.CalculateParams memory params;
         params.wombatRouter = wombatRouter;
-        params.token0 = address(busd);
-        params.token1 = address(usdc);
+        params.token0 = address(usdc);
+        params.token1 = address(busd);
         params.token2 = address(usdt);
         params.pool0 = wombatPool;
-        params.amount0Total = busd.balanceOf(address(this));
+        params.amount0Total = usdc.balanceOf(address(this));
         params.totalAmountLpTokens = 0;
-        params.reserve0 = pool.balances(0);
-        params.reserve1 = pool.balances(1);
+        params.reserve0 = pool.balances(1);
+        params.reserve1 = pool.balances(0);
         params.reserve2 = pool.balances(2);
         params.denominator0 = dm18;
         params.denominator1 = dm18;
         params.denominator2 = dm18;
         params.precision = 0;
-        (uint256 amountUsdcToSwap, uint256 amountUsdtToSwap) = WombatLibrary.getAmountToSwap(params);
+        (uint256 amountBusdToSwap, uint256 amountUsdtToSwap) = WombatLibrary.getAmountToSwap(params);
 
         // swap
-        _swapInWombat(address(busd), address(usdc), oracleBusd, oracleUsdc, amountUsdcToSwap);
-        _swapInWombat(address(busd), address(usdt), oracleBusd, oracleUsdt, amountUsdtToSwap);
+        _swapInWombat(address(usdc), address(busd), oracleUsdc, oracleBusd, amountBusdToSwap);
+        _swapInWombat(address(usdc), address(usdt), oracleUsdc, oracleUsdt, amountUsdtToSwap);
 
         // calculate min amount to mint
         uint256[3] memory amounts;
@@ -157,7 +157,7 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some token not compatible");
+        require(_asset == address(usdc), "Some token not compatible");
 
         // calculate amount to unstake
         uint256 totalAmountLpTokens = val3EPS.totalSupply();
@@ -167,14 +167,14 @@ contract StrategyEllipsisDotDotBusd is Strategy {
 
         WombatLibrary.CalculateParams memory params;
         params.wombatRouter = wombatRouter;
-        params.token0 = address(busd);
-        params.token1 = address(usdc);
+        params.token0 = address(usdc);
+        params.token1 = address(busd);
         params.token2 = address(usdt);
         params.pool0 = wombatPool;
         params.amount0Total = OvnMath.addBasisPoints(_amount, stakeSlippageBP) + 10;
         params.totalAmountLpTokens = totalAmountLpTokens;
-        params.reserve0 = reserve0;
-        params.reserve1 = reserve1;
+        params.reserve0 = reserve1;
+        params.reserve1 = reserve0;
         params.reserve2 = reserve2;
         params.denominator0 = dm18;
         params.denominator1 = dm18;
@@ -201,10 +201,10 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         pool.remove_liquidity(val3EPSAmount, minAmounts);
 
         // swap
-        _swapInWombat(address(usdc), address(busd), oracleUsdc, oracleBusd, usdc.balanceOf(address(this)));
-        _swapInWombat(address(usdt), address(busd), oracleUsdt, oracleBusd, usdt.balanceOf(address(this)));
+        _swapInWombat(address(busd), address(usdc), oracleBusd, oracleUsdc, busd.balanceOf(address(this)));
+        _swapInWombat(address(usdt), address(usdc), oracleUsdt, oracleUsdc, usdt.balanceOf(address(this)));
 
-        return busd.balanceOf(address(this));
+        return usdc.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -212,7 +212,7 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busd), "Some token not compatible");
+        require(_asset == address(usdc), "Some token not compatible");
 
         // calculate amount to unstake
         uint256 val3EPSBalance = lpDepositor.userBalances(address(this), address(val3EPS));
@@ -232,10 +232,10 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         pool.remove_liquidity(val3EPSBalance, minAmounts);
 
         // swap
-        _swapInWombat(address(usdc), address(busd), oracleUsdc, oracleBusd, usdc.balanceOf(address(this)));
-        _swapInWombat(address(usdt), address(busd), oracleUsdt, oracleBusd, usdt.balanceOf(address(this)));
+        _swapInWombat(address(busd), address(usdc), oracleBusd, oracleUsdc, busd.balanceOf(address(this)));
+        _swapInWombat(address(usdt), address(usdc), oracleUsdt, oracleUsdc, usdt.balanceOf(address(this)));
 
-        return busd.balanceOf(address(this));
+        return usdc.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -267,46 +267,46 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         }
 
         if (nav) {
-            if (usdcBalance > 0) {
-                busdBalance += ChainlinkLibrary.convertTokenToToken(
-                    usdcBalance,
+            if (busdBalance > 0) {
+                usdcBalance += ChainlinkLibrary.convertTokenToToken(
+                    busdBalance,
                     dm18,
                     dm18,
-                    oracleUsdc,
-                    oracleBusd
+                    oracleBusd,
+                    oracleUsdc
                 );
             }
             if (usdtBalance > 0) {
-                busdBalance += ChainlinkLibrary.convertTokenToToken(
+                usdcBalance += ChainlinkLibrary.convertTokenToToken(
                     usdtBalance,
                     dm18,
                     dm18,
                     oracleUsdt,
-                    oracleBusd
+                    oracleUsdc
                 );
             }
         } else {
-            if (usdcBalance > 0) {
-                busdBalance += WombatLibrary.getAmountOut(
+            if (busdBalance > 0) {
+                usdcBalance += WombatLibrary.getAmountOut(
                     wombatRouter,
-                    address(usdc),
                     address(busd),
+                    address(usdc),
                     address(wombatPool),
-                    usdcBalance
+                    busdBalance
                 );
             }
             if (usdtBalance > 0) {
-                busdBalance += WombatLibrary.getAmountOut(
+                usdcBalance += WombatLibrary.getAmountOut(
                     wombatRouter,
                     address(usdt),
-                    address(busd),
+                    address(usdc),
                     address(wombatPool),
                     usdtBalance
                 );
             }
         }
 
-        return busdBalance;
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -321,15 +321,15 @@ contract StrategyEllipsisDotDotBusd is Strategy {
         }
 
         // sell rewards
-        uint256 totalBusd = _swapInPancakeSwap(address(ddd), address(wBnb), address(busd));
-        totalBusd += _swapInPancakeSwap(address(epx), address(wBnb), address(busd));
-        totalBusd += _swapInPancakeSwap(address(valas), address(wBnb), address(busd));
+        uint256 totalUsdc = _swapInPancakeSwap(address(ddd), address(wBnb), address(usdc));
+        totalUsdc += _swapInPancakeSwap(address(epx), address(wBnb), address(usdc));
+        totalUsdc += _swapInPancakeSwap(address(valas), address(wBnb), address(usdc));
 
-        if (totalBusd > 0) {
-            busd.transfer(_to, totalBusd);
+        if (totalUsdc > 0) {
+            usdc.transfer(_to, totalUsdc);
         }
 
-        return totalBusd;
+        return totalUsdc;
     }
 
     function _swapInWombat(
