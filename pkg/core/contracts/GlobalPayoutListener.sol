@@ -84,13 +84,13 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         for (uint256 x = 0; x < items.length; x++) {
             Item memory exitItem = items[x];
 
-            if(exitItem.token == item.token && exitItem.pool == item.pool){
+            if (exitItem.token == item.token && exitItem.pool == item.pool) {
                 items[x] = item;
                 isNew = false;
             }
         }
 
-        if(isNew){
+        if (isNew) {
             items.push(item);
         }
 
@@ -104,6 +104,10 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         }
     }
 
+    /**
+      * Remove item from items
+      */
+
     function removeItem(address token, address pool) public onlyAdmin {
         require(token != address(0), 'token is zero');
         require(pool != address(0), 'pool is zero');
@@ -111,7 +115,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         for (uint256 x = 0; x < items.length; x++) {
             Item memory exitItem = items[x];
 
-            if(exitItem.token == token && exitItem.pool == pool){
+            if (exitItem.token == token && exitItem.pool == pool) {
                 delete items[x];
                 emit RemoveItem(token, pool);
                 return;
@@ -122,6 +126,10 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     // --- logic
+
+    /**
+      * Skim tokens from pool and transfer profit to address (to)
+      */
 
     function _skim(Item memory item) internal {
 
@@ -134,6 +142,10 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         }
         emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
     }
+
+    /**
+      * Skim tokens from pool and transfer profit as bribes
+      */
 
     function _bribe(Item memory item) internal {
 
@@ -148,14 +160,29 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
     }
 
+    /**
+     * Override this method for unique behavior smart-contracts.
+     * If standard skim/sync/bribe not allow use.
+     */
+
     function _custom(Item memory item) internal virtual {
         revert("Custom not implemented");
     }
+
+    /**
+      * After execute sync on pool:
+      * - balance LP tokens == balance USD+ tokens
+      */
 
     function _sync(Item memory item) internal {
         IPool(item.pool).sync();
         emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0));
     }
+
+    /**
+      * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
+      * see details: Exchange.sol | HedgeExchanger.sol
+      */
 
     function payoutDone(address token) external override onlyExchanger {
 
@@ -165,7 +192,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
             Item memory item = items[x];
 
             // Items contains all tokens then need filter by token
-            if(item.token != token){
+            if (item.token != token) {
                 continue;
             }
 
