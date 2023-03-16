@@ -14,4 +14,7 @@ contract MockGlobalPayoutListener is GlobalPayoutListener {
     }
 
 
+    function _custom(Item memory item) internal override {
+        super._custom(item);
+    }
 }
