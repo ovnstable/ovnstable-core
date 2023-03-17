@@ -23,8 +23,10 @@ let ARBITRUM = {
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+    xcaliburRouter: "0x81c7ebbc66b5f9e1db29c4c427fe6339cc32d4ea",
     gmxRouter: "0xaBBc5F99639c9B6bCb58544ddf04EFA6802F4064",
     gmxVault: "0x489ee077994B6658eAfA855C308275EAd8097C4A",
+    gmxReader: "0x22199a49A999c351eF7927602CFB187ec3cae489",
     sterlingRouter: "0x0cbd3aea90538a1cf3c60b05582b691f6d2b2b01",
     solidLizardRouter: "0xF26515D5482e2C2FD237149bF6A653dA4794b3D0",
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",

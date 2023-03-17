@@ -2,12 +2,20 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+
 interface IRouter {
     function addPlugin(address _plugin) external;
     function pluginTransfer(address _token, address _account, address _receiver, uint256 _amount) external;
     function pluginIncreasePosition(address _account, address _collateralToken, address _indexToken, uint256 _sizeDelta, bool _isLong) external;
     function pluginDecreasePosition(address _account, address _collateralToken, address _indexToken, uint256 _collateralDelta, uint256 _sizeDelta, bool _isLong, address _receiver) external returns (uint256);
     function swap(address[] memory _path, uint256 _amountIn, uint256 _minOut, address _receiver) external;
+}
+
+interface GmxReader {
+
+    function getAmountOut(IVault _vault, address _tokenIn, address _tokenOut, uint256 _amountIn) external view returns (uint256 amountOutAfterFees, uint256 feeAmount);
 }
 
 interface IVault {
@@ -118,4 +126,87 @@ interface IVault {
 
     function getDelta(address _indexToken, uint256 _size, uint256 _averagePrice, bool _isLong, uint256 _lastIncreasedTime) external view returns (bool, uint256);
     function getPosition(address _account, address _collateralToken, address _indexToken, bool _isLong) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, bool, uint256);
+}
+
+
+library GmxLibrary {
+
+    function singleSwap(
+        IRouter gmxRouter,
+        address token0,
+        address token1,
+        uint256 amount0,
+        uint256 amountOutMin
+    ) internal {
+
+        IERC20(token0).approve(address(gmxRouter), amount0);
+
+        address[] memory path = new address[](2);
+        path[0] = address(token0);
+        path[1] = address(token1);
+
+        gmxRouter.swap(path, amount0, amountOutMin, address(this));
+
+    }
+
+    function getAmountOut(
+        IVault vault,
+        GmxReader reader,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
+    ) internal view returns (uint256) {
+        (uint256 amountOut, uint256 feeAmount ) = reader.getAmountOut(vault, tokenIn, tokenOut, amountIn);
+        return amountOut;
+    }
+
+    /**
+     * Get amount of token1 nominated in token0 where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountToSwap(
+        IVault vault,
+        GmxReader reader,
+        address token0,
+        address token1,
+        uint256 amount0Total,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision
+    ) internal view returns (uint256 amount0) {
+        amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = getAmountOut(vault, reader, token0, token1, amount0);
+            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
+        }
+    }
+
+    /**
+     * Get amount of lp tokens where amount0Total is total getting amount nominated in token0
+     *
+     * precision: 0 - no correction, 1 - one correction (recommended value), 2 or more - several corrections
+     */
+    function getAmountLpTokens(
+        IVault vault,
+        GmxReader reader,
+        address token0,
+        address token1,
+        uint256 amount0Total,
+        uint256 totalAmountLpTokens,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1,
+        uint256 precision
+    ) internal view returns (uint256 amountLpTokens) {
+        amountLpTokens = (totalAmountLpTokens * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        for (uint i = 0; i < precision; i++) {
+            uint256 amount1 = reserve1 * amountLpTokens / totalAmountLpTokens;
+            amountLpTokens = (totalAmountLpTokens * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * getAmountOut(vault, reader, token1, token0, amount1));
+        }
+    }
+
 }

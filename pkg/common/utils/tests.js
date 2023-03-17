@@ -10,6 +10,7 @@ const {node_url, blockNumber} = require("../utils/network");
 const {ethers} = require("hardhat");
 const {transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract} = require("./script-utils");
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
+const StakerABI = require("./abi/Staker.json");
 const {Roles} = require("./roles");
 const {ARBITRUM} = require("./assets");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
@@ -58,6 +59,25 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, hedgeExchangerAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ownerAddress],
+    });
+}
+
+async function impersonatingStaker(stakerAddress, ownerAddress, strategyAddress, pair, gauge) {
+
+    console.log('Execute: [impersonatingStaker]');
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [ownerAddress],
+    });
+
+    await transferETH(1, ownerAddress);
+    const owner = await ethers.getSigner(ownerAddress);
+    let staker = await ethers.getContractAt(StakerABI, stakerAddress);
+    await staker.connect(owner).whitelistStrategy(strategyAddress, pair, gauge);
+
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [ownerAddress],
@@ -183,5 +203,6 @@ module.exports = {
     prepareArtifacts: prepareArtifacts,
     createRandomWallet: createRandomWallet,
     getTestAssets: getTestAssets,
-    impersonatingEtsGrantRole: impersonatingEtsGrantRole
+    impersonatingEtsGrantRole: impersonatingEtsGrantRole,
+    impersonatingStaker: impersonatingStaker
 }
