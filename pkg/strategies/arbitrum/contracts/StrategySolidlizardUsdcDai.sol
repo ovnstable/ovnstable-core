@@ -8,8 +8,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Gmx.sol";
 import "@overnight-contracts/connectors/contracts/stuff/SolidLizard.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
-import "hardhat/console.sol";
-
 contract StrategySolidlizardUsdcDai is Strategy {
 
     // --- structs
@@ -203,6 +201,10 @@ contract StrategySolidlizardUsdcDai is Strategy {
 
         uint256 lpTokenBalance = gauge.balanceOf(address(this));
 
+        if (lpTokenBalance == 0) {
+            return usdc.balanceOf(address(this));
+        }
+
         gauge.withdraw(lpTokenBalance);
 
         uint256 totalLpBalance = pair.totalSupply();
@@ -229,7 +231,6 @@ contract StrategySolidlizardUsdcDai is Strategy {
         _swap(address(dai), address(usdc), daiBalance, amountOutMin);
 
         return usdc.balanceOf(address(this));
-        return dai.balanceOf(address(this));
     }
 
 
@@ -239,7 +240,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
         // If after swap vault of balance more capacity then transaction revert
         // We check capacity and if it not enough then use other swap route (UniswapV3)
 
-        if (false) {
+        if (gmxVault.maxUsdgAmounts(address(tokenIn)) > amountIn + gmxVault.poolAmounts(address(tokenIn))) {
 
             GmxLibrary.singleSwap(
                 gmxRouter,
