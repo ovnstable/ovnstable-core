@@ -27,6 +27,9 @@ module.exports = async ({deployments}) => {
                 oracleUsdc: ARBITRUM.oracleUsdc,
                 gmxRouter: ARBITRUM.gmxRouter,
                 zyberPool: ARBITRUM.zyber3Pool,
+                uniswapV3Router: ARBITRUM.uniswapV3Router,
+                poolFee: 500, //0.05%
+                gmxVault: ARBITRUM.gmxVault
             }
         )).wait();
     });

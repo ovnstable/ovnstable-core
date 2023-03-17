@@ -8,6 +8,7 @@ import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Gmx.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Zyberswap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 import "hardhat/console.sol";
 
@@ -24,6 +25,9 @@ contract StrategyUsdPlusDai is Strategy {
         address oracleUsdc;
         address gmxRouter;
         address zyberPool;
+        address uniswapV3Router;
+        uint24 poolFee;
+        address gmxVault;
     }
 
     // --- params
@@ -38,6 +42,9 @@ contract StrategyUsdPlusDai is Strategy {
     IPriceFeed public oracleUsdc;
     IRouter public gmxRouter;
     IZyberSwap public zyberPool;
+    ISwapRouter public uniswapV3Router;
+    uint24 public poolFee;
+    IVault public gmxVault;
 
     // --- events
 
@@ -63,6 +70,9 @@ contract StrategyUsdPlusDai is Strategy {
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         gmxRouter = IRouter(params.gmxRouter);
         zyberPool = IZyberSwap(params.zyberPool);
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        gmxVault = IVault(params.gmxVault);
+        poolFee = params.poolFee;
 
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
@@ -82,22 +92,40 @@ contract StrategyUsdPlusDai is Strategy {
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
 
-        dai.approve(address(zyberPool), daiBalance);
-        zyberPool.swap(
-            2, // DAI
-            0, // USDC
-            daiBalance,
-            amountOutMin,
-            block.timestamp
-        );
+        // Gmx Vault has max limit for accepting tokens, for example DAI max capacity: 35kk$
+        // If after swap vault of balance more capacity then transaction revert
+        // We check capacity and if it not enough then use other swap route (UniswapV3)
+
+        if (gmxVault.maxUsdgAmounts(address(dai)) > daiBalance + gmxVault.poolAmounts(address(dai))) {
+            dai.approve(address(gmxRouter), daiBalance);
+
+            address[] memory path = new address[](2);
+            path[0] = address(dai);
+            path[1] = address(usdc);
+
+            gmxRouter.swap(path, daiBalance, amountOutMin, address(this));
+        } else {
+            dai.approve(address(uniswapV3Router), daiBalance);
+
+            UniswapV3Library.singleSwap(
+                uniswapV3Router,
+                address(dai),
+                address(usdc),
+                poolFee,
+                address(this),
+                daiBalance,
+                amountOutMin
+            );
+        }
+
 
         // mint usdPlus
         uint256 usdcBalance = usdc.balanceOf(address(this));
         usdc.approve(address(exchange), usdcBalance);
         IExchange.MintParams memory params = IExchange.MintParams({
-            asset: address(usdc),
-            amount: usdcBalance,
-            referral: ""
+        asset : address(usdc),
+        amount : usdcBalance,
+        referral : ""
         });
 
         exchange.mint(params);
@@ -122,19 +150,32 @@ contract StrategyUsdPlusDai is Strategy {
 
         // redeem usdPlus
         exchange.redeem(address(usdc), usdPlusAmount);
-
-        // swap usdc to dai
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
 
-        usdc.approve(address(zyberPool), usdcBalance);
-        zyberPool.swap(
-            0, // USDC
-            2, // DAI
-            usdcBalance,
-            amountOutMin,
-            block.timestamp
-        );
+        // Why this is done -> see comments in method: stake
+        if (gmxVault.maxUsdgAmounts(address(usdc)) > usdcBalance + gmxVault.poolAmounts(address(usdc))) {
+            // swap usdc to dai
+            address[] memory path = new address[](2);
+            path[0] = address(usdc);
+            path[1] = address(dai);
+
+            usdc.approve(address(gmxRouter), usdcBalance);
+            gmxRouter.swap(path, usdcBalance, amountOutMin, address(this));
+        } else {
+            usdc.approve(address(uniswapV3Router), usdcBalance);
+
+            UniswapV3Library.singleSwap(
+                uniswapV3Router,
+                address(usdc),
+                address(dai),
+                poolFee,
+                address(this),
+                usdcBalance,
+                amountOutMin
+            );
+        }
+
 
         return dai.balanceOf(address(this));
     }
@@ -152,19 +193,31 @@ contract StrategyUsdPlusDai is Strategy {
         // redeem usdPlus
         exchange.redeem(address(usdc), usdPlusBalance);
 
-        // swap usdc to dai
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP);
 
-        usdc.approve(address(zyberPool), usdcBalance);
-        zyberPool.swap(
-            0, // USDC
-            2, // DAI
-            usdcBalance,
-            amountOutMin,
-            block.timestamp
-        );
+        // Why this is done -> see comments in method: stake
+        if (gmxVault.maxUsdgAmounts(address(usdc)) > usdcBalance + gmxVault.poolAmounts(address(usdc))) {
+            // swap usdc to dai
+            address[] memory path = new address[](2);
+            path[0] = address(usdc);
+            path[1] = address(dai);
 
+            usdc.approve(address(gmxRouter), usdcBalance);
+            gmxRouter.swap(path, usdcBalance, amountOutMin, address(this));
+        } else {
+            usdc.approve(address(uniswapV3Router), usdcBalance);
+
+            UniswapV3Library.singleSwap(
+                uniswapV3Router,
+                address(usdc),
+                address(dai),
+                poolFee,
+                address(this),
+                usdcBalance,
+                amountOutMin
+            );
+        }
         return dai.balanceOf(address(this));
     }
 
@@ -175,7 +228,7 @@ contract StrategyUsdPlusDai is Strategy {
 
     function liquidationValue() external view override returns (uint256) {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        return dai.balanceOf(address(this)) + OvnMath.subBasisPoints(_oracleUsdcToDai(usdPlusBalance), 4 + swapSlippageBP); // unstake 0.04% + swap slippage
+        return dai.balanceOf(address(this)) + OvnMath.subBasisPoints(_oracleUsdcToDai(usdPlusBalance), 4); // unstake 0.04%
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
