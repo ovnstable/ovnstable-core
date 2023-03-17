@@ -21,6 +21,7 @@ module.exports = async ({deployments}) => {
                 pair: '0x07d7F291e731A41D3F0EA4F1AE5b6d920ffb3Fe0', // DAI/USDC
                 router: ARBITRUM.solidLizardRouter,
                 gauge: '0x884c28296b6ec728ac27bfe7579419709514d154',
+                staker: '0x8c851D48D9CE7c8A78cF633ED2b153960282B49D',
                 oracleDai: ARBITRUM.oracleDai,
                 oracleUsdc: ARBITRUM.oracleUsdc,
                 gmxRouter: ARBITRUM.gmxRouter,

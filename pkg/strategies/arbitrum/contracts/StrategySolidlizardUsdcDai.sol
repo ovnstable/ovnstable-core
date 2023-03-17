@@ -3,6 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/core/contracts/interfaces/IStaker.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Gmx.sol";
 import "@overnight-contracts/connectors/contracts/stuff/SolidLizard.sol";
@@ -19,6 +20,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
         address pair;
         address router;
         address gauge;
+        address staker;
         address oracleDai;
         address oracleUsdc;
         address gmxRouter;
@@ -42,6 +44,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
     ILizardGauge public gauge;
     ILizardPair public pair;
     ILizardRouter01 public router;
+    IStaker public staker;
 
     // Swap
     IRouter public gmxRouter;
@@ -79,6 +82,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
         gauge = ILizardGauge(params.gauge);
         pair = ILizardPair(params.pair);
         router = ILizardRouter01(params.router);
+        staker = IStaker(params.staker);
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee = params.poolFee;
 
@@ -136,8 +140,8 @@ contract StrategySolidlizardUsdcDai is Strategy {
         );
 
         uint256 lpTokenBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), lpTokenBalance);
-        gauge.deposit(lpTokenBalance, 0);
+        pair.approve(address(staker), lpTokenBalance);
+        staker.deposit(address(gauge), lpTokenBalance, address(pair));
     }
 
     function _unstake(
@@ -163,7 +167,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
             1
         );
 
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        uint256 lpTokenBalance = gauge.balanceOf(address(staker));
 
         if (amountLp > lpTokenBalance) {
             amountLp = lpTokenBalance;
@@ -172,7 +176,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
         uint256 amountUsdc = reserveUsdc * amountLp / totalLpBalance;
         uint256 amountDai = reserveDai * amountLp / totalLpBalance;
 
-        gauge.withdraw(amountLp);
+        staker.withdraw(address(gauge), amountLp, address(pair));
 
         pair.approve(address(router), amountLp);
         router.removeLiquidity(
@@ -199,13 +203,13 @@ contract StrategySolidlizardUsdcDai is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        uint256 lpTokenBalance = gauge.balanceOf(address(staker));
 
         if (lpTokenBalance == 0) {
             return usdc.balanceOf(address(this));
         }
 
-        gauge.withdraw(lpTokenBalance);
+        staker.withdraw(address(gauge), lpTokenBalance, address(pair));
 
         uint256 totalLpBalance = pair.totalSupply();
         (uint256 reserveDai, uint256 reserveUsdc,) = pair.getReserves();
@@ -275,7 +279,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 daiBalance = dai.balanceOf(address(this));
 
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        uint256 lpTokenBalance = gauge.balanceOf(address(staker));
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = pair.totalSupply();
             (uint256 reserveDai, uint256 reserveUsdc,) = pair.getReserves();
@@ -297,14 +301,15 @@ contract StrategySolidlizardUsdcDai is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        if (gauge.balanceOf(address(this)) == 0) {
+        if (gauge.balanceOf(address(staker)) == 0) {
             return 0;
         }
+
 
         // claim rewards
         address[] memory tokens = new address[](1);
         tokens[0] = address(sliz);
-        gauge.getReward(address(this), tokens);
+        staker.harvestRewards(address(gauge), tokens);
 
         // sell rewards
         uint256 totalUsdc;
