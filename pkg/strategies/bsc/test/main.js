@@ -1,5 +1,7 @@
 const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
+const hre = require('hardhat');
+const ethers = hre.ethers;
 
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
 
