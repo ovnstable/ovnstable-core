@@ -4,6 +4,7 @@ const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, 
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets} = require("./tests");
+const {Roles} = require("./roles");
 
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
@@ -90,7 +91,7 @@ async function testUsdPlus(){
     console.log('Execute pm.balance()');
     await execTimelock(async (timelock)=>{
         let pm = await getContract('PortfolioManager');
-        await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);
+        await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
         await pm.connect(timelock).balance();
     });
 
@@ -98,6 +99,14 @@ async function testUsdPlus(){
     console.log('strategyAssets: ' + await m2m.strategyAssets());
     console.log('totalNetAssets: ' + fromAsset(await m2m.totalNetAssets()));
     console.log('totalLiquidationAssets: ' + fromAsset(await m2m.totalLiquidationAssets()));
+
+    console.log('Execute exchange.payout()');
+    await execTimelock(async (timelock)=>{
+        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+        await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address);
+        await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60);
+        await exchange.connect(timelock).payout();
+    });
 
 }
 
@@ -119,7 +128,7 @@ async function testStrategy(strategy){
 
         await getTestAssets(mainWallet.address);
 
-        let amount = toAsset(500_000);
+        let amount = toAsset(50_000);
         await asset.connect(mainWallet).transfer(testWallet.address, amount);
 
         await asset.connect(testWallet).transfer(strategy.address, amount);
@@ -179,6 +188,8 @@ async function testInsurance(){
 
 
 async function testProposal(addresses, values, abis){
+
+    console.log('Count transactions: ' + addresses.length);
 
     await execTimelock(async (timelock)=>{
 

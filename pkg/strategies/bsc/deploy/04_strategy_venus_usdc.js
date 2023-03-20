@@ -12,8 +12,12 @@ module.exports = async ({deployments}) => {
     await settingSection(async (strategy) => {
         await (await strategy.setParams(
             {
-                usdcToken: BSC.usdc,
-                vUsdcToken: BSC.vUsdc
+                usdc: BSC.usdc,
+                vUsdc: BSC.vUsdc,
+                unitroller: BSC.unitroller,
+                pancakeRouter: BSC.pancakeRouter,
+                xvs: BSC.xvs,
+                wbnb: BSC.wBnb,
             }
         )).wait();
     });

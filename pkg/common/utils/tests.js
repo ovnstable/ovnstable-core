@@ -12,7 +12,7 @@ const {transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getCont
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const StakerABI = require("./abi/Staker.json");
 const {Roles} = require("./roles");
-const {ARBITRUM} = require("./assets");
+const {ARBITRUM, OPTIMISM, DEFAULT} = require("./assets");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 let isTestAssetsCompleted = false;
@@ -111,38 +111,16 @@ async function getTestAssets(to) {
         return;
     }
 
-    if (stand === "BSC") {
-        await getBusd(to);
-    } else if (stand === "OPTIMISM") {
-        await getUsdcOptimism(to);
-
-    } else if (stand === "OPTIMISM_DAI") {
-        await getDaiOptimism(to);
+    if (stand === "OPTIMISM_DAI") {
+        await transferAsset(OPTIMISM.dai, to);
     } else if (stand === "ARBITRUM_DAI") {
         await transferAsset(ARBITRUM.dai, to);
-    }else {
-        throw new Error('Need implement function getTestAssets for network: ' + stand);
+    } else {
+        await transferAsset(DEFAULT.usdc, to);
     }
 
     isTestAssetsCompleted = true;
 
-}
-
-async function getDaiOptimism(to) {
-
-    let holder = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
-
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [holder],
-    });
-
-    await transferETH(1, holder);
-
-    const signerWithAddress = await hre.ethers.getSigner(holder);
-    let dai = await getERC20("dai");
-
-    await dai.connect(signerWithAddress).transfer(to, await dai.balanceOf(signerWithAddress.address));
 }
 
 async function prepareEnvironment(){
@@ -157,44 +135,6 @@ async function prepareEnvironment(){
     }
 
 }
-
-async function getUsdcOptimism(to) {
-
-    let holder = '0x489f866c0698c8d6879f5c0f527bc8281046042d';
-
-
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [holder],
-    });
-
-    await transferETH(1, holder);
-
-    const signerWithAddress = await hre.ethers.getSigner(holder);
-    let busd = await getERC20("usdc");
-
-    await busd.connect(signerWithAddress).transfer(to, await busd.balanceOf(signerWithAddress.address));
-}
-
-async function getBusd(to) {
-
-
-    let holder = '0x5a52e96bacdabb82fd05763e25335261b270efcb';
-
-
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [holder],
-    });
-
-    await transferETH(1, holder);
-
-    const signerWithAddress = await hre.ethers.getSigner(holder);
-    let busd = await getERC20("busd");
-
-    await busd.connect(signerWithAddress).transfer(to, await busd.balanceOf(signerWithAddress.address));
-}
-
 
 module.exports = {
     greatLess: greatLess,

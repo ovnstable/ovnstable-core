@@ -1,5 +1,7 @@
 const {BSC} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
+const hre = require('hardhat');
+const ethers = hre.ethers;
 
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
 
@@ -8,7 +10,7 @@ let id = process.env.TEST_STRATEGY;
 let arrays = [
     {
         name: 'StrategyVenusBusd',
-        enabledReward: true,
+        enabledReward: false,
     },
     {
         name: 'StrategyStargateBusd',
@@ -16,26 +18,6 @@ let arrays = [
     },
     {
         name: 'StrategySynapseBusd',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyVenusUsdc',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategySynapseUsdc',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyVenusUsdt',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategyStargateUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategySynapseUsdt',
         enabledReward: true,
     },
     {
@@ -108,6 +90,10 @@ let arrays = [
         name: 'StrategyEllipsisDotDotBusd',
         enabledReward: true,
     },
+    {
+        name: 'StrategyVenusUsdc',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -139,7 +125,7 @@ describe("BSC", function () {
     arrays.forEach(value => {
         switch (process.env.STAND) {
             default:
-                strategyTest(value, 'BSC', 'busd', runStrategyLogic);
+                strategyTest(value, 'BSC', 'usdc', runStrategyLogic);
                 break;
         }
     })
