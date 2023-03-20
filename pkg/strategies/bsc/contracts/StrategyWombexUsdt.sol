@@ -133,7 +133,7 @@ contract StrategyWombexUsdt is Strategy {
         uint256 usdtBalance = usdt.balanceOf(address(this));
         (uint256 lpUsdtAmount,) = poolDepositor.getDepositAmountOut(address(lpUsdt), usdtBalance);
         // deposit
-        poolDepositor.deposit(address(lpUsdt), usdtBalance, OvnMath.subBasisPoints(lpUsdtAmount, 1), true);
+        poolDepositor.deposit(address(lpUsdt), usdtBalance, OvnMath.subBasisPoints(lpUsdtAmount, stakeSlippageBP), true);
     }
 
     function _unstake(
@@ -157,7 +157,7 @@ contract StrategyWombexUsdt is Strategy {
         // get withdraw amount for 1 LP
         (uint256 usdtAmountOneAsset,) = poolDepositor.getWithdrawAmountOut(address(lpUsdt), lpUsdtDm);
         // add 1bp for smooth withdraw
-        uint256 lpUsdtAmount = OvnMath.addBasisPoints(usdtAmount, 1) * lpUsdtDm / usdtAmountOneAsset;
+        uint256 lpUsdtAmount = OvnMath.addBasisPoints(usdtAmount, stakeSlippageBP) * lpUsdtDm / usdtAmountOneAsset;
 
         // withdraw
         poolDepositor.withdraw(address(lpUsdt), lpUsdtAmount, usdtAmount, address(this));
@@ -205,7 +205,7 @@ contract StrategyWombexUsdt is Strategy {
             // get withdraw amount
             (uint256 usdtAmount,) = poolDepositor.getWithdrawAmountOut(address(lpUsdt), lpUsdtBalance);
             // withdraw
-            poolDepositor.withdraw(address(lpUsdt), lpUsdtBalance, OvnMath.subBasisPoints(usdtAmount, 1), address(this));
+            poolDepositor.withdraw(address(lpUsdt), lpUsdtBalance, OvnMath.subBasisPoints(usdtAmount, stakeSlippageBP), address(this));
         }
 
         // swap usdt to busd

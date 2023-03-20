@@ -124,7 +124,7 @@ contract StrategyWombexBusd is Strategy {
         // get LP amount min
         uint256 busdBalance = busd.balanceOf(address(this));
         (uint256 lpBusdAmount,) = poolDepositor.getDepositAmountOut(address(lpBusd), busdBalance);
-        uint256 lpBusdAmountMin = OvnMath.subBasisPoints(lpBusdAmount, 1);
+        uint256 lpBusdAmountMin = OvnMath.subBasisPoints(lpBusdAmount, stakeSlippageBP);
 
         // deposit
         busd.approve(address(poolDepositor), busdBalance);
@@ -155,7 +155,7 @@ contract StrategyWombexBusd is Strategy {
         (uint256 busdAmountOneAsset,) = poolDepositor.getWithdrawAmountOut(address(lpBusd), lpBusdDm);
 
         // get LP amount
-        uint256 lpBusdAmount = OvnMath.addBasisPoints(busdAmount, 1) * lpBusdDm / busdAmountOneAsset;
+        uint256 lpBusdAmount = OvnMath.addBasisPoints(busdAmount, stakeSlippageBP) * lpBusdDm / busdAmountOneAsset;
 
         // withdraw
         wmxLpBusd.approve(address(poolDepositor), lpBusdAmount);
@@ -198,7 +198,7 @@ contract StrategyWombexBusd is Strategy {
             return usdc.balanceOf(address(this));
         }
         (uint256 busdAmount,) = poolDepositor.getWithdrawAmountOut(address(lpBusd), lpBusdBalance);
-        uint256 busdAmountMin = OvnMath.subBasisPoints(busdAmount, 1);
+        uint256 busdAmountMin = OvnMath.subBasisPoints(busdAmount, stakeSlippageBP);
 
         // withdraw
         wmxLpBusd.approve(address(poolDepositor), lpBusdBalance);

@@ -1,7 +1,7 @@
 const {ethers} = require("hardhat");
 const {getERC20, getDevWallet, transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {BSC} = require('@overnight-contracts/common/utils/assets');
-
+const hre= require('hardhat');
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
@@ -17,7 +17,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const signerWithAddress = await hre.ethers.getSigner(holder);
 
     await usdc.connect(signerWithAddress).transfer(deployer, await usdc.balanceOf(signerWithAddress.address));
-    
+
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [holder],
