@@ -18,6 +18,11 @@ module.exports = async ({deployments}) => {
                 pancakeRouter: BSC.pancakeRouter,
                 xvsToken: BSC.xvs,
                 wbnbToken: BSC.wBnb,
+                wombatRouter: BSC.wombatRouter,
+                wombatPool: BSC.wombatPool,
+                usdcToken: BSC.usdc,
+                oracleUsdc: BSC.chainlinkUsdc,
+                oracleBusd: BSC.chainlinkBusd,
             }
         )).wait();
     });

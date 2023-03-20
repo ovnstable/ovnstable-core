@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Venus.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 
 contract StrategyVenusBusd is Strategy {
 
@@ -16,6 +18,11 @@ contract StrategyVenusBusd is Strategy {
         address pancakeRouter;
         address xvsToken;
         address wbnbToken;
+        address wombatRouter;
+        address wombatPool;
+        address usdcToken;
+        address oracleUsdc;
+        address oracleBusd;
     }
 
 
@@ -27,7 +34,15 @@ contract StrategyVenusBusd is Strategy {
     IPancakeRouter02 public pancakeRouter;
     IERC20 public xvsToken;
     IERC20 public wbnbToken;
+    IWombatRouter public wombatRouter;
+    address public wombatPool;
+    IERC20 public usdcToken;
 
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleBusd;
+
+    uint256 public usdcDm;
+    uint256 public busdDm;
 
     // --- events
 
@@ -53,6 +68,15 @@ contract StrategyVenusBusd is Strategy {
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);
         xvsToken = IERC20(params.xvsToken);
         wbnbToken = IERC20(params.wbnbToken);
+        wombatRouter = IWombatRouter(params.wombatRouter);
+        wombatPool = params.wombatPool;
+        usdcToken = IERC20(params.usdcToken);
+
+        oracleUsdc = IPriceFeed(params.oracleUsdc);
+        oracleBusd = IPriceFeed(params.oracleBusd);
+
+        busdDm = 10 ** IERC20Metadata(params.busdToken).decimals();
+        usdcDm = 10 ** IERC20Metadata(params.usdcToken).decimals();
 
         emit StrategyUpdatedParams();
     }
@@ -64,11 +88,32 @@ contract StrategyVenusBusd is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
 
-        busdToken.approve(address(vBusdToken), _amount);
-        vBusdToken.mint(_amount);
+        uint256 busdBalanceOut = WombatLibrary.getAmountOut(
+            wombatRouter,
+            address(usdcToken),
+            address(busdToken),
+            wombatPool,
+            usdcBalance
+        );
+        if (busdBalanceOut > 0) {
+            WombatLibrary.swapExactTokensForTokens(
+                wombatRouter,
+                address(usdcToken),
+                address(busdToken),
+                wombatPool,
+                usdcBalance,
+                OvnMath.subBasisPoints(_oracleUsdcToBusd(usdcBalance), swapSlippageBP),
+                address(this)
+            );
+        }
+
+        uint256 busdBalance = busdToken.balanceOf(address(this));
+        busdToken.approve(address(vBusdToken), busdBalance);
+        vBusdToken.mint(busdBalance);
     }
 
     function _unstake(
@@ -77,11 +122,42 @@ contract StrategyVenusBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
-        vBusdToken.redeemUnderlying(_amount);
+        uint256 usdcAmountForBusdAmount = WombatLibrary.getAmountOut(
+            wombatRouter,
+            address(busdToken),
+            address(usdcToken),
+            wombatPool,
+            _amount
+        );
 
-        return busdToken.balanceOf(address(this));
+        usdcAmountForBusdAmount = OvnMath.addBasisPoints(usdcAmountForBusdAmount, stakeSlippageBP);
+        vBusdToken.redeemUnderlying(usdcAmountForBusdAmount);
+
+        // swap busdToken to usdcToken
+        uint256 busdBalance = busdToken.balanceOf(address(this));
+        uint256 usdcBalanceOut = WombatLibrary.getAmountOut(
+            wombatRouter,
+            address(busdToken),
+            address(usdcToken),
+            wombatPool,
+            busdBalance
+        );
+        if (usdcBalanceOut > 0) {
+            WombatLibrary.swapExactTokensForTokens(
+                wombatRouter,
+                address(busdToken),
+                address(usdcToken),
+                wombatPool,
+                busdBalance,
+                OvnMath.subBasisPoints(_oracleBusdToUsdc(busdBalance), swapSlippageBP),
+                address(this)
+            );
+        }
+
+
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -89,65 +165,78 @@ contract StrategyVenusBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(busdToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");
 
         vBusdToken.redeem(vBusdToken.balanceOf(address(this)));
 
-        return busdToken.balanceOf(address(this));
+        // swap busdToken to usdcToken
+        uint256 busdBalance = busdToken.balanceOf(address(this));
+        uint256 usdcBalanceOut = WombatLibrary.getAmountOut(
+            wombatRouter,
+            address(busdToken),
+            address(usdcToken),
+            wombatPool,
+            busdBalance
+        );
+        if (usdcBalanceOut > 0) {
+            WombatLibrary.swapExactTokensForTokens(
+                wombatRouter,
+                address(busdToken),
+                address(usdcToken),
+                wombatPool,
+                busdBalance,
+                OvnMath.subBasisPoints(_oracleBusdToUsdc(busdBalance), swapSlippageBP),
+                address(this)
+            );
+        }
+
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return _totalValue(false);
     }
 
-    function _totalValue() internal view returns (uint256) {
-        return (vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18) + busdToken.balanceOf(address(this));
-    }
+    function _totalValue(bool nav) internal view returns (uint256) {
+        uint256 usdcBalance = usdcToken.balanceOf(address(this));
+        uint256 busdBalance = (vBusdToken.balanceOf(address(this)) * vBusdToken.exchangeRateStored() / 1e18) + busdToken.balanceOf(address(this));
 
-    function _claimRewards(address _to) internal override returns (uint256) {
-
-        // claim rewards
-        if (vBusdToken.balanceOf(address(this)) > 0) {
-            address[] memory tokens = new address[](1);
-            tokens[0] = address(vBusdToken);
-            unitroller.claimVenus(address(this), tokens);
-        }
-
-        // sell rewards
-        uint256 totalBusd;
-
-        uint256 xvsBalance = xvsToken.balanceOf(address(this));
-        if (xvsBalance > 0) {
-            uint256 xvsAmountOut = PancakeSwapLibrary.getAmountsOut(
-                pancakeRouter,
-                address(xvsToken),
-                address(wbnbToken),
-                address(busdToken),
-                xvsBalance
-            );
-
-            if (xvsAmountOut > 0) {
-                totalBusd += PancakeSwapLibrary.swapExactTokensForTokens(
-                    pancakeRouter,
-                    address(xvsToken),
-                    address(wbnbToken),
+        if (busdBalance > 0) {
+            if (nav) {
+                usdcBalance += _oracleBusdToUsdc(busdBalance);
+            } else {
+                usdcBalance += WombatLibrary.getAmountOut(
+                    wombatRouter,
                     address(busdToken),
-                    xvsBalance,
-                    xvsAmountOut * 99 / 100,
-                    address(this)
+                    address(usdcToken),
+                    wombatPool,
+                    busdBalance
                 );
             }
         }
 
-        if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd);
-        }
-
-        return totalBusd;
+        return usdcBalance;
     }
+
+    function _claimRewards(address _to) internal override returns (uint256) {
+        return 0;
+    }
+
+    function _oracleBusdToUsdc(uint256 busdAmount) internal view returns (uint256) {
+        uint256 priceBusd = uint256(oracleBusd.latestAnswer());
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(busdAmount, busdDm, usdcDm, priceBusd, priceUsdc);
+    }
+
+    function _oracleUsdcToBusd(uint256 usdcAmount) internal view returns (uint256) {
+        uint256 priceBusd = uint256(oracleBusd.latestAnswer());
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, busdDm, priceUsdc, priceBusd);
+    }
+
 
 }
