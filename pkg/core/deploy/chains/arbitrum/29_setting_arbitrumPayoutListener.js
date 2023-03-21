@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 
@@ -17,8 +17,9 @@ module.exports = async () => {
     items.push(...solidlizard());
     items.push(...sterling());
     items.push(...ramses());
+    items.push(...arbidex());
 
-    // await (await pl.addItems(items)).wait();
+    await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
@@ -40,7 +41,7 @@ module.exports = async () => {
         return items;
     }
 
-    function sterling(){
+    function sterling() {
 
         let dex = 'Sterling';
 
@@ -57,7 +58,7 @@ module.exports = async () => {
 
     }
 
-    function ramses(){
+    function ramses() {
 
         let dex = 'Ramses';
 
@@ -66,6 +67,20 @@ module.exports = async () => {
         items.push(createSkim('0xeb9153afBAa3A6cFbd4fcE39988Cea786d3F62bb', usdPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0xeb9153afBAa3A6cFbd4fcE39988Cea786d3F62bb', daiPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0x5DcE83503B114e89F180e59c444dFe814525Ae10', usdPlus.address, 'sAMM-USD+/USDC', dex));
+
+        return items;
+    }
+
+    function arbidex() {
+
+        let dex = 'Arbidex';
+        let to = '0xE8FFE751deA181025a9ACf3D6Bde8cdA5380F53F';
+
+        let items = [];
+
+        items.push(createSkimTo('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', usdPlus.address, 'USD+/DAI+', dex, to));
+        items.push(createSkimTo('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', daiPlus.address, 'USD+/DAI+', dex, to));
+        items.push(createSkimTo('0xECe52B1fc32D2B4f22eb45238210b470a64bfDd5', usdPlus.address, 'USD+/USDC', dex, to));
 
         return items;
     }

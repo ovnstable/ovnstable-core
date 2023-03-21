@@ -28,6 +28,19 @@ function createSkim(pool, token, poolName, dexName){
     };
 }
 
+function createSkimTo(pool, token, poolName, dexName, to){
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: ZERO_ADDRESS,
+        operation: OPERATIONS.SKIM,
+        to: to,
+        dexName: dexName
+    };
+}
+
 function createBribe(pool, token, poolName, dexName, bribe){
 
     return {
@@ -73,5 +86,6 @@ function showPoolOperations(receipt){
 
 module.exports.PayoutListenerOperations = OPERATIONS;
 module.exports.createSkim = createSkim;
+module.exports.createSkimTo = createSkimTo;
 module.exports.createBribe = createBribe;
 module.exports.showPoolOperations = showPoolOperations;
