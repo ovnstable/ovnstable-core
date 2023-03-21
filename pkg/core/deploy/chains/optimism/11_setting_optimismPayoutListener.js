@@ -38,7 +38,7 @@ module.exports = async () => {
 
         items.push(createBribe('0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a', usdPlus.address, ' sAMM-USD+/WETH/USDC', dex, '0x35F4Ea9Fa8a081C8Fad8033cb93877bc621c8Ee0'));
 
-        items.push(createBribe('0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f', usdPlus.address, ' sAMM-USD+/WETH/USDC', dex, '0xAd6d543C3015fF9833aC057312e4562b791334b2'));
+        items.push(createBribe('0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f', usdPlus.address, ' vAMM-wstWETH/USD+', dex, '0xAd6d543C3015fF9833aC057312e4562b791334b2'));
 
         return items;
     }
