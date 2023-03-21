@@ -573,35 +573,58 @@ async function transferUSDPlus(amount, to){
 
 async function transferAsset(assetAddress, to) {
 
-    console.log(`[TransferAsset] from: ${assetAddress} to: ${to}`);
     let from;
-    switch (assetAddress) {
-        case ARBITRUM.dai:
-            from = "0xea8a734db4c7ea50c32b5db8a0cb811707e8ace3";
+    switch (process.env.ETH_NETWORK) {
+        case "ARBITRUM":
+            switch (assetAddress) {
+                case ARBITRUM.dai:
+                    from = "0xea8a734db4c7ea50c32b5db8a0cb811707e8ace3";
+                    break;
+                case ARBITRUM.usdc:
+                    from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
             break;
-        case ARBITRUM.usdc:
-            from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+        case "BSC":
+            switch (assetAddress) {
+                case BSC.usdc:
+                    from = '0xf977814e90da44bfa03b6295a0616a897441acec';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
             break;
-        case OPTIMISM.usdc:
-            from = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+        case "OPTIMISM":
+            switch (assetAddress) {
+                case OPTIMISM.usdc:
+                    from = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+                    break;
+                case OPTIMISM.dai:
+                    from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+                    break;
+                case OPTIMISM.wbtc:
+                    from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
             break;
-        case POLYGON.usdc:
-            from = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
-            break;
-        case OPTIMISM.dai:
-            from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
-            break;
-        case POLYGON.dai:
-            from = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
-            break;
-        case BSC.usdc:
-            from = '0xf977814e90da44bfa03b6295a0616a897441acec';
-            break;
-        case OPTIMISM.wbtc:
-            from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+        case "POLYGON":
+            switch (assetAddress) {
+                case POLYGON.usdc:
+                    from = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
+                    break;
+                case POLYGON.dai:
+                    from = '0xdfD74E3752c187c4BA899756238C76cbEEfa954B';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
             break;
         default:
-            throw new Error('Unknown asset address');
+            throw new Error('Unknown mapping ETH_NETWORK');
     }
 
     await transferETH(1, from);
@@ -624,7 +647,7 @@ async function transferAsset(assetAddress, to) {
 
     let balance = await asset.balanceOf(to);
 
-    console.log(`[Node] Transfer asset [${balance}] to [${to}]:`);
+    console.log(`[Node] Transfer asset: [${assetAddress}] balance: [${balance}] from: [${from}] to: [${to}]`);
 }
 
 async function transferDAI(to) {
