@@ -592,6 +592,9 @@ async function transferAsset(assetAddress, to) {
                 case BSC.usdc:
                     from = '0xf977814e90da44bfa03b6295a0616a897441acec';
                     break;
+                case BSC.usdt:
+                    from = '0xee5b5b923ffce93a870b3104b7ca09c3db80047a';
+                    break;
                 default:
                     throw new Error('Unknown asset address');
             }
@@ -647,7 +650,9 @@ async function transferAsset(assetAddress, to) {
 
     let balance = await asset.balanceOf(to);
 
-    console.log(`[Node] Transfer asset: [${assetAddress}] balance: [${balance}] from: [${from}] to: [${to}]`);
+    let symbol = await asset.symbol();
+    let fromAsset = (await asset.decimals()) === 18 ? fromE18: fromE6;
+    console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
 async function transferDAI(to) {
