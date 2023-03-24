@@ -10,20 +10,20 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEtsUsdcBusd', deployments, save, null);
+        await deployProxyMulti(name, 'StrategyEtsUsdcUsdt', deployments, save, null);
     });
 
     await settingSection(async (strategy) => {
         await (await strategy.setParams(
             {
                 asset: BSC.usdc,
-                busd: BSC.busd,
+                usdt: BSC.usdt,
                 rebaseToken: rebaseToken,
                 hedgeExchanger: hedgeExchanger,
                 wombatRouter: BSC.wombatRouter,
                 wombatPool: wombatPool,
                 oracleAsset: BSC.chainlinkUsdc,
-                oracleBusd: BSC.chainlinkBusd,
+                oracleUsdt: BSC.chainlinkUsdt,
             }
         )).wait();
     });

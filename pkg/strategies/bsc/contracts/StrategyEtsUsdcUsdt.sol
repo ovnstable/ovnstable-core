@@ -7,7 +7,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import '@overnight-contracts/connectors/contracts/stuff/Wombat.sol';
 
 
-contract StrategyEtsUsdcBusd is Strategy {
+contract StrategyEtsUsdcUsdt is Strategy {
 
     // --- params
 
@@ -15,16 +15,20 @@ contract StrategyEtsUsdcBusd is Strategy {
     IERC20 public rebaseToken;
     IHedgeExchanger public hedgeExchanger;
 
-    IERC20 public busd;
+    IERC20 public busd; // not used
 
     IWombatRouter public wombatRouter;
     address public wombatPool;
 
     IPriceFeed public oracleAsset;
-    IPriceFeed public oracleBusd;
+    IPriceFeed public oracleBusd; // not used
 
     uint256 public assetDm;
-    uint256 public busdDm;
+    uint256 public busdDm; // not used
+
+    IERC20 public usdt;
+    uint256 public usdtDm;
+    IPriceFeed public oracleUsdt;
 
 
     // --- events
@@ -36,13 +40,13 @@ contract StrategyEtsUsdcBusd is Strategy {
 
     struct StrategyParams {
         address asset;
-        address busd;
+        address usdt;
         address rebaseToken;
         address hedgeExchanger;
         address wombatRouter;
         address wombatPool;
         address oracleAsset;
-        address oracleBusd;
+        address oracleUsdt;
     }
 
 
@@ -60,7 +64,7 @@ contract StrategyEtsUsdcBusd is Strategy {
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
         asset = IERC20(params.asset);
-        busd = IERC20(params.busd);
+        usdt = IERC20(params.usdt);
 
         rebaseToken = IERC20(params.rebaseToken);
         hedgeExchanger = IHedgeExchanger(params.hedgeExchanger);
@@ -69,10 +73,10 @@ contract StrategyEtsUsdcBusd is Strategy {
         wombatPool = params.wombatPool;
 
         oracleAsset = IPriceFeed(params.oracleAsset);
-        oracleBusd = IPriceFeed(params.oracleBusd);
+        oracleUsdt = IPriceFeed(params.oracleUsdt);
 
         assetDm = 10 ** IERC20Metadata(params.asset).decimals();
-        busdDm = 10 ** IERC20Metadata(params.busd).decimals();
+        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
 
         emit StrategyUpdatedParams();
     }
@@ -85,33 +89,31 @@ contract StrategyEtsUsdcBusd is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(asset), "Some token not compatible");
-
-        // swap asset to busd
+        // swap asset to usdt
         uint256 assetBalance = asset.balanceOf(address(this));
-        uint256 busdBalanceOut = WombatLibrary.getAmountOut(
+        uint256 usdtBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
             address(asset),
-            address(busd),
+            address(usdt),
             wombatPool,
             assetBalance
         );
-        if (busdBalanceOut > 0) {
+        if (usdtBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
                 address(asset),
-                address(busd),
+                address(usdt),
                 wombatPool,
                 assetBalance,
-                OvnMath.subBasisPoints(_oracleAssetToBusd(assetBalance), swapSlippageBP),
+                OvnMath.subBasisPoints(_oracleAssetToUsdt(assetBalance), swapSlippageBP),
                 address(this)
             );
         }
 
         // buy
-        uint256 busdBalance = busd.balanceOf(address(this));
-        busd.approve(address(hedgeExchanger), busdBalance);
-        hedgeExchanger.buy(busdBalance, "");
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        usdt.approve(address(hedgeExchanger), usdtBalance);
+        hedgeExchanger.buy(usdtBalance, "");
     }
 
     function _unstake(
@@ -120,10 +122,8 @@ contract StrategyEtsUsdcBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(asset), "Some token not compatible");
-
         // add for unstake more than requested
-        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleAssetToBusd(_amount), swapSlippageBP) + 1e13;
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleAssetToUsdt(_amount), swapSlippageBP) + 1e13;
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         if (rebaseTokenAmount > rebaseTokenBalance) {
             rebaseTokenAmount = rebaseTokenBalance;
@@ -133,23 +133,23 @@ contract StrategyEtsUsdcBusd is Strategy {
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
         hedgeExchanger.redeem(rebaseTokenAmount);
 
-        // swap busd to asset
-        uint256 busdBalance = busd.balanceOf(address(this));
+        // swap usdt to asset
+        uint256 usdtBalance = usdt.balanceOf(address(this));
         uint256 assetBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(busd),
+            address(usdt),
             address(asset),
             wombatPool,
-            busdBalance
+            usdtBalance
         );
         if (assetBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
-                address(busd),
+                address(usdt),
                 address(asset),
                 wombatPool,
-                busdBalance,
-                OvnMath.subBasisPoints(_oracleBusdToAsset(busdBalance), swapSlippageBP),
+                usdtBalance,
+                OvnMath.subBasisPoints(_oracleUsdtToAsset(usdtBalance), swapSlippageBP),
                 address(this)
             );
         }
@@ -162,30 +162,28 @@ contract StrategyEtsUsdcBusd is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(asset), "Some token not compatible");
-
         // redeem
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenBalance);
         hedgeExchanger.redeem(rebaseTokenBalance);
 
-        // swap busd to asset
-        uint256 busdBalance = busd.balanceOf(address(this));
+        // swap usdt to asset
+        uint256 usdtBalance = usdt.balanceOf(address(this));
         uint256 assetBalanceOut = WombatLibrary.getAmountOut(
             wombatRouter,
-            address(busd),
+            address(usdt),
             address(asset),
             wombatPool,
-            busdBalance
+            usdtBalance
         );
         if (assetBalanceOut > 0) {
             WombatLibrary.swapExactTokensForTokens(
                 wombatRouter,
-                address(busd),
+                address(usdt),
                 address(asset),
                 wombatPool,
-                busdBalance,
-                OvnMath.subBasisPoints(_oracleBusdToAsset(busdBalance), swapSlippageBP),
+                usdtBalance,
+                OvnMath.subBasisPoints(_oracleUsdtToAsset(usdtBalance), swapSlippageBP),
                 address(this)
             );
         }
@@ -203,13 +201,13 @@ contract StrategyEtsUsdcBusd is Strategy {
 
     function _totalValue(bool nav) internal view returns (uint256) {
         uint256 assetBalance = asset.balanceOf(address(this));
-        uint256 busdBalance = busd.balanceOf(address(this)) + rebaseToken.balanceOf(address(this));
+        uint256 usdtBalance = usdt.balanceOf(address(this)) + rebaseToken.balanceOf(address(this));
 
-        if (busdBalance > 0) {
+        if (usdtBalance > 0) {
             if (nav) {
-                assetBalance += _oracleBusdToAsset(busdBalance);
+                assetBalance += _oracleUsdtToAsset(usdtBalance);
             } else {
-                assetBalance += OvnMath.subBasisPoints(_oracleBusdToAsset(busdBalance), swapSlippageBP);
+                assetBalance += OvnMath.subBasisPoints(_oracleUsdtToAsset(usdtBalance), swapSlippageBP);
             }
         }
 
@@ -220,16 +218,16 @@ contract StrategyEtsUsdcBusd is Strategy {
         return 0;
     }
 
-    function _oracleBusdToAsset(uint256 busdAmount) internal view returns (uint256) {
-        uint256 priceBusd = uint256(oracleBusd.latestAnswer());
+    function _oracleUsdtToAsset(uint256 usdtAmount) internal view returns (uint256) {
+        uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceAsset = uint256(oracleAsset.latestAnswer());
-        return ChainlinkLibrary.convertTokenToToken(busdAmount, busdDm, assetDm, priceBusd, priceAsset);
+        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, assetDm, priceUsdt, priceAsset);
     }
 
-    function _oracleAssetToBusd(uint256 assetAmount) internal view returns (uint256) {
-        uint256 priceBusd = uint256(oracleBusd.latestAnswer());
+    function _oracleAssetToUsdt(uint256 assetAmount) internal view returns (uint256) {
+        uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceAsset = uint256(oracleAsset.latestAnswer());
-        return ChainlinkLibrary.convertTokenToToken(assetAmount, assetDm, busdDm, priceAsset, priceBusd);
+        return ChainlinkLibrary.convertTokenToToken(assetAmount, assetDm, usdtDm, priceAsset, priceUsdt);
     }
 
 }
