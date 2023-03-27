@@ -97,6 +97,20 @@ interface IHypervisor {
 /// @notice Proxy contract for hypervisor positions management
 interface IUniProxy {
 
+    struct Position {
+        uint8 version; // 1->3 proxy 3 transfers, 2-> proxy two transfers, 3-> proxy no transfers
+        bool twapOverride; // force twap check for hypervisor instance
+        uint32 twapInterval; // override global twap
+        uint256 priceThreshold; // custom price threshold
+        bool depositOverride; // force custom deposit constraints
+        uint256 deposit0Max;
+        uint256 deposit1Max;
+        uint256 maxTotalSupply;
+        bool freeDeposit; // override global freeDepsoit
+    }
+
+    function positions(address pos) external returns (Position calldata position);
+
     /// @notice Deposit into the given position
     /// @param deposit0 Amount of token0 to deposit
     /// @param deposit1 Amount of token1 to deposit
