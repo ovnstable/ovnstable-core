@@ -69,10 +69,12 @@ let arrays = [
     {
         name: 'StrategyArrakisUsdcDai',
         enabledReward: true,
+        delay: 60 * 1000,
     },
     {
         name: 'StrategyArrakisDaiUsdc',
         enabledReward: true,
+        delay: 60 * 1000,
     },
     {
         name: 'StrategyReaperSonneDaiDai',

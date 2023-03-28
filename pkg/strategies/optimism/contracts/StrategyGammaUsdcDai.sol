@@ -2,12 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Beethovenx.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Gamma.sol";
-import "@overnight-contracts/connectors/contracts/stuff/KyberSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 
@@ -24,13 +21,6 @@ contract StrategyGammaUsdcDai is Strategy {
     IMasterChef public masterChef;
     uint256 public pid;
 
-    IVault public beethovenxVault;
-    bytes32 public beethovenxPoolIdUsdc;
-    bytes32 public beethovenxPoolIdDaiUsdtUsdc;
-    bytes32 public beethovenxPoolIdDai;
-    IERC20 public bbRfAUsdc;
-    IERC20 public bbRfADai;
-
     ISwapRouter public uniswapV3Router;
     uint24 public poolFeeOpUsdc;
 
@@ -39,9 +29,6 @@ contract StrategyGammaUsdcDai is Strategy {
 
     uint256 public usdcDm;
     uint256 public daiDm;
-
-    IRouter public kyberSwapRouter;
-    uint24 public poolUsdcDaiFee;
 
     address public curve3Pool;
 
@@ -55,18 +42,10 @@ contract StrategyGammaUsdcDai is Strategy {
         address uniProxy;
         address masterChef;
         uint64 pid;
-        address beethovenxVault;
-        bytes32 beethovenxPoolIdUsdc;
-        bytes32 beethovenxPoolIdDaiUsdtUsdc;
-        bytes32 beethovenxPoolIdDai;
-        address bbRfAUsdc;
-        address bbRfADai;
         address uniswapV3Router;
         uint24 poolFeeOpUsdc;
         address oracleUsdc;
         address oracleDai;
-        address kyberSwapRouter;
-        uint24 poolUsdcDaiFee;
         address curve3Pool;
     }
 
@@ -95,13 +74,6 @@ contract StrategyGammaUsdcDai is Strategy {
         masterChef = IMasterChef(params.masterChef);
         pid = params.pid;
 
-        beethovenxVault = IVault(params.beethovenxVault);
-        beethovenxPoolIdUsdc = params.beethovenxPoolIdUsdc;
-        beethovenxPoolIdDaiUsdtUsdc = params.beethovenxPoolIdDaiUsdtUsdc;
-        beethovenxPoolIdDai = params.beethovenxPoolIdDai;
-        bbRfAUsdc = IERC20(params.bbRfAUsdc);
-        bbRfADai = IERC20(params.bbRfADai);
-
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeOpUsdc = params.poolFeeOpUsdc;
 
@@ -110,9 +82,6 @@ contract StrategyGammaUsdcDai is Strategy {
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
-
-        kyberSwapRouter = IRouter(params.kyberSwapRouter);
-        poolUsdcDaiFee = params.poolUsdcDaiFee;
 
         curve3Pool = params.curve3Pool;
 
@@ -153,16 +122,71 @@ contract StrategyGammaUsdcDai is Strategy {
             daiMinAmount
         );
 
-        // add liquidity
+        // approve deposit balances
         usdcBalance = usdc.balanceOf(address(this));
         uint256 daiBalance = dai.balanceOf(address(this));
         usdc.approve(address(lpToken), usdcBalance);
         dai.approve(address(lpToken), daiBalance);
-        uint256 lpTokenAmount = uniProxy.deposit(usdcBalance, daiBalance, address(this), address(lpToken), [uint256(0), uint256(0), uint256(0), uint256(0)]);
+
+        // get token0Amount and token1Amount
+        IUniProxy.Position memory position = uniProxy.positions(address(lpToken));
+        uint256 token0Amount = usdcBalance;
+        uint256 token1Amount = daiBalance;
+
+        // deposit in cycle
+        while (token0Amount > 0 && token1Amount > 0) {
+            (uint256 delta0, uint256 delta1) = _getDepositDeltas(position, token0Amount, token1Amount);
+            token0Amount -= delta0;
+            token1Amount -= delta1;
+            uniProxy.deposit(
+                delta0,
+                delta1,
+                address(this),
+                address(lpToken),
+                [uint256(0), uint256(0), uint256(0), uint256(0)]
+            );
+        }
 
         // stake
+        uint256 lpTokenAmount = lpToken.balanceOf(address(this));
         lpToken.approve(address(masterChef), lpTokenAmount);
         masterChef.deposit(pid, lpTokenAmount, address(this));
+    }
+
+    function _getDepositDeltas(
+        IUniProxy.Position memory position,
+        uint256 token0Amount,
+        uint256 token1Amount
+    ) internal returns (uint256 delta0, uint256 delta1) {
+
+        if (token0Amount <= position.deposit0Max && token1Amount <= position.deposit1Max) {
+            return (token0Amount, token1Amount);
+        }
+
+        // get reserves
+        (uint256 reserve0, uint256 reserve1) = lpToken.getTotalAmounts();
+
+        // set delta0
+        if (token0Amount > position.deposit0Max) {
+            delta0 = position.deposit0Max;
+        } else {
+            delta0 = token0Amount;
+        }
+
+        // calculate delta1 by delta0
+        delta1 = delta0 * reserve1 / reserve0;
+
+        // if delta1 > token1Amount or delta1 > position.deposit1Max
+        // set new delta1 and recalculate delta0 by delta1
+        // if delta1 <= token1Amount and delta1 <= position.deposit1Max
+        // do nothing
+        if (delta1 > token1Amount && position.deposit1Max >= token1Amount) {
+            delta1 = token1Amount;
+            delta0 = delta1 * reserve0 / reserve1;
+        } else if (delta1 > position.deposit1Max && token1Amount >= position.deposit1Max) {
+            delta1 = position.deposit1Max;
+            delta0 = delta1 * reserve0 / reserve1;
+        }
     }
 
     function _unstake(
@@ -197,7 +221,12 @@ contract StrategyGammaUsdcDai is Strategy {
 
         // remove liquidity
         lpToken.approve(address(uniProxy), amountLp);
-        lpToken.withdraw(amountLp, address(this), address(this), [uint256(0), uint256(0), uint256(0), uint256(0)]);
+        lpToken.withdraw(
+            amountLp,
+            address(this),
+            address(this),
+            [uint256(0), uint256(0), uint256(0), uint256(0)]
+        );
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
@@ -231,7 +260,12 @@ contract StrategyGammaUsdcDai is Strategy {
 
         // remove liquidity
         lpToken.approve(address(uniProxy), amountLp);
-        lpToken.withdraw(amountLp, address(this), address(this), [uint256(0), uint256(0), uint256(0), uint256(0)]);
+        lpToken.withdraw(
+            amountLp,
+            address(this),
+            address(this),
+            [uint256(0), uint256(0), uint256(0), uint256(0)]
+        );
 
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
@@ -295,7 +329,7 @@ contract StrategyGammaUsdcDai is Strategy {
 
         uint256 opBalance = op.balanceOf(address(this));
         if (opBalance > 0) {
-            uint256 opUsdc = UniswapV3Library.singleSwap(
+            totalUsdc += UniswapV3Library.singleSwap(
                 uniswapV3Router,
                 address(op),
                 address(usdc),
@@ -304,7 +338,6 @@ contract StrategyGammaUsdcDai is Strategy {
                 opBalance,
                 0
             );
-            totalUsdc += opUsdc;
         }
 
         if (totalUsdc > 0) {

@@ -2,12 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Beethovenx.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Arrakis.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/connectors/contracts/stuff/KyberSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 
@@ -23,13 +20,6 @@ contract StrategyArrakisUsdcDai is Strategy {
     IArrakisRewards public arrakisRewards;
     IArrakisVault public arrakisVault;
 
-    IVault public beethovenxVault;
-    bytes32 public beethovenxPoolIdUsdc;
-    bytes32 public beethovenxPoolIdDaiUsdtUsdc;
-    bytes32 public beethovenxPoolIdDai;
-    IERC20 public bbRfAUsdc;
-    IERC20 public bbRfADai;
-
     ISwapRouter public uniswapV3Router;
     uint24 public poolUsdcOpFee;
 
@@ -38,9 +28,6 @@ contract StrategyArrakisUsdcDai is Strategy {
 
     uint256 public usdcDm;
     uint256 public daiDm;
-
-    IRouter public kyberSwapRouter;
-    uint24 public poolUsdcDaiFee;
 
     address public curve3Pool;
 
@@ -53,18 +40,10 @@ contract StrategyArrakisUsdcDai is Strategy {
         address arrakisRouter;
         address arrakisRewards;
         address arrakisVault;
-        address beethovenxVault;
-        bytes32 beethovenxPoolIdUsdc;
-        bytes32 beethovenxPoolIdDaiUsdtUsdc;
-        bytes32 beethovenxPoolIdDai;
-        address bbRfAUsdc;
-        address bbRfADai;
         address uniswapV3Router;
         uint24 poolUsdcOpFee;
         address oracleUsdc;
         address oracleDai;
-        address kyberSwapRouter;
-        uint24 poolUsdcDaiFee;
         address curve3Pool;
     }
 
@@ -92,13 +71,6 @@ contract StrategyArrakisUsdcDai is Strategy {
         arrakisRewards = IArrakisRewards(params.arrakisRewards);
         arrakisVault = IArrakisVault(params.arrakisVault);
 
-        beethovenxVault = IVault(params.beethovenxVault);
-        beethovenxPoolIdUsdc = params.beethovenxPoolIdUsdc;
-        beethovenxPoolIdDaiUsdtUsdc = params.beethovenxPoolIdDaiUsdtUsdc;
-        beethovenxPoolIdDai = params.beethovenxPoolIdDai;
-        bbRfAUsdc = IERC20(params.bbRfAUsdc);
-        bbRfADai = IERC20(params.bbRfADai);
-
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolUsdcOpFee = params.poolUsdcOpFee;
 
@@ -107,9 +79,6 @@ contract StrategyArrakisUsdcDai is Strategy {
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
-
-        kyberSwapRouter = IRouter(params.kyberSwapRouter);
-        poolUsdcDaiFee = params.poolUsdcDaiFee;
 
         curve3Pool = params.curve3Pool;
 
@@ -159,8 +128,8 @@ contract StrategyArrakisUsdcDai is Strategy {
             address(arrakisRewards),
             usdcAmount,
             daiAmount,
-            OvnMath.subBasisPoints(usdcAmount, swapSlippageBP),
-            OvnMath.subBasisPoints(daiAmount, swapSlippageBP),
+            OvnMath.subBasisPoints(usdcAmount, stakeSlippageBP),
+            OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
             address(this)
         );
     }
@@ -199,8 +168,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         arrakisRouter.removeLiquidityAndUnstake(
             address(arrakisRewards),
             amountLp,
-            OvnMath.subBasisPoints(amountUsdc, swapSlippageBP),
-            OvnMath.subBasisPoints(amountDai, swapSlippageBP),
+            OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
+            OvnMath.subBasisPoints(amountDai, stakeSlippageBP),
             address(this)
         );
 
@@ -241,8 +210,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         arrakisRouter.removeLiquidityAndUnstake(
             address(arrakisRewards),
             amountLp,
-            OvnMath.subBasisPoints(amountUsdc, swapSlippageBP),
-            OvnMath.subBasisPoints(amountDai, swapSlippageBP),
+            OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
+            OvnMath.subBasisPoints(amountDai, stakeSlippageBP),
             address(this)
         );
 
@@ -308,7 +277,7 @@ contract StrategyArrakisUsdcDai is Strategy {
 
         uint256 opBalance = op.balanceOf(address(this));
         if (opBalance > 0) {
-            uint256 opUsdc = UniswapV3Library.singleSwap(
+            totalUsdc += UniswapV3Library.singleSwap(
                 uniswapV3Router,
                 address(op),
                 address(usdc),
@@ -317,8 +286,6 @@ contract StrategyArrakisUsdcDai is Strategy {
                 opBalance,
                 0
             );
-
-            totalUsdc += opUsdc;
         }
 
         if (totalUsdc > 0) {
