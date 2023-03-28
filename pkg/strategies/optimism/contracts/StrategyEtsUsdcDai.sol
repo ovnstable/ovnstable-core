@@ -6,6 +6,7 @@ import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 
 contract StrategyEtsUsdcDai is Strategy {
@@ -30,6 +31,8 @@ contract StrategyEtsUsdcDai is Strategy {
     uint256 public usdcDm;
     uint256 public daiDm;
 
+    address public curve3Pool;
+
 
     // --- events
     event StrategyUpdatedParams();
@@ -46,6 +49,7 @@ contract StrategyEtsUsdcDai is Strategy {
         uint24 poolUsdcDaiFee;
         address oracleUsdc;
         address oracleDai;
+        address curve3Pool;
     }
 
 
@@ -77,6 +81,8 @@ contract StrategyEtsUsdcDai is Strategy {
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
+        curve3Pool = params.curve3Pool;
+
         emit StrategyUpdatedParams();
     }
 
@@ -90,15 +96,12 @@ contract StrategyEtsUsdcDai is Strategy {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        // sub for stake
-        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBP) - 1e13;
         // swap usdc to dai
-        uint256 daiAmount = UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(_amount), swapSlippageBP) - 1e13;
+        CurveLibrary.swap(
+            curve3Pool,
             address(usdc),
             address(dai),
-            poolUsdcDaiFee,
-            address(this),
             _amount,
             daiMinAmount
         );
@@ -131,12 +134,10 @@ contract StrategyEtsUsdcDai is Strategy {
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
-        uint256 usdcAmount = UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(dai),
             address(usdc),
-            poolUsdcDaiFee,
-            address(this),
             daiBalance,
             usdcMinAmount
         );
@@ -159,12 +160,10 @@ contract StrategyEtsUsdcDai is Strategy {
         // swap dai to usdc
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
-        uint256 usdcAmount = UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        CurveLibrary.swap(
+            curve3Pool,
             address(dai),
             address(usdc),
-            poolUsdcDaiFee,
-            address(this),
             daiBalance,
             usdcMinAmount
         );
