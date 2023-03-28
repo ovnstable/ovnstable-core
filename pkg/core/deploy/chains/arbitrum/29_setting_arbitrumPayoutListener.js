@@ -37,6 +37,7 @@ module.exports = async () => {
         items.push(createSkim('0x2423d642C53939a463F84e14C6a9fFC6fd8f4334', daiPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0x97e5f60fA17816011039B908C19Fa4B43DE73731', usdPlus.address, 'sAMM-ETS Gamma/USD+', dex));
         items.push(createSkim('0x97e5f60fA17816011039B908C19Fa4B43DE73731', etsGamma, 'sAMM-ETS Gamma/USD+', dex));
+        items.push(createSkim('0xff12e9b0d765d66eb950b2f8c11a356c1e09f0a1', usdPlus.address, 'sAMM-LUSD/USD+', dex));
 
         return items;
     }
