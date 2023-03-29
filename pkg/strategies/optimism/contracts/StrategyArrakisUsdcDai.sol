@@ -17,8 +17,8 @@ contract StrategyArrakisUsdcDai is Strategy {
     IERC20 public op;
 
     IArrakisV1RouterStaking public arrakisRouter;
-    IArrakisRewards public arrakisRewards;
-    IArrakisVault public arrakisVault;
+    IGauge public arrakisRewards;
+    IArrakisVaultV1 public arrakisVault;
 
     ISwapRouter public uniswapV3Router;
     uint24 public poolUsdcOpFee;
@@ -68,8 +68,8 @@ contract StrategyArrakisUsdcDai is Strategy {
         op = IERC20(params.op);
 
         arrakisRouter = IArrakisV1RouterStaking(params.arrakisRouter);
-        arrakisRewards = IArrakisRewards(params.arrakisRewards);
-        arrakisVault = IArrakisVault(params.arrakisVault);
+        arrakisRewards = IGauge(params.arrakisRewards);
+        arrakisVault = IArrakisVaultV1(params.arrakisVault);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolUsdcOpFee = params.poolUsdcOpFee;
@@ -125,11 +125,12 @@ contract StrategyArrakisUsdcDai is Strategy {
         usdc.approve(address(arrakisRouter), usdcAmount);
         dai.approve(address(arrakisRouter), daiAmount);
         arrakisRouter.addLiquidityAndStake(
-            address(arrakisRewards),
+            arrakisRewards,
             usdcAmount,
             daiAmount,
             OvnMath.subBasisPoints(usdcAmount, stakeSlippageBP),
             OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
+            0,
             address(this)
         );
     }
@@ -166,7 +167,7 @@ contract StrategyArrakisUsdcDai is Strategy {
         // 2. Get USDC/DAI from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
         arrakisRouter.removeLiquidityAndUnstake(
-            address(arrakisRewards),
+            arrakisRewards,
             amountLp,
             OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
             OvnMath.subBasisPoints(amountDai, stakeSlippageBP),
@@ -208,7 +209,7 @@ contract StrategyArrakisUsdcDai is Strategy {
         // 3. Get usdc/dai from Arrakis
         arrakisRewards.approve(address(arrakisRouter), amountLp);
         arrakisRouter.removeLiquidityAndUnstake(
-            address(arrakisRewards),
+            arrakisRewards,
             amountLp,
             OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
             OvnMath.subBasisPoints(amountDai, stakeSlippageBP),

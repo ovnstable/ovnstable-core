@@ -1,24 +1,30 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity >=0.8.0 <0.9.0;
 
-interface IArrakisRewards {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-    function claim_rewards(address to) external;
+interface IGauge is IERC20 {
 
-    function balanceOf(address account) external view returns (uint256);
+    function deposit(uint256 amount, address account) external;
 
-    function approve(address spender, uint256 amount) external returns (bool);
+    function withdraw(uint256 amount) external;
+
+    // solhint-disable-next-line func-name-mixedcase
+    function claim_rewards(address account) external;
+
+    // solhint-disable-next-line func-name-mixedcase
+    function staking_token() external returns (address);
 }
-
 
 interface IArrakisV1RouterStaking {
 
-    function addLiquidityAndStake(
-        address gauge,
+    function addLiquidity(
+        IArrakisVaultV1 pool,
         uint256 amount0Max,
         uint256 amount1Max,
         uint256 amount0Min,
         uint256 amount1Min,
+        uint256 amountSharesMin,
         address receiver
     )
     external
@@ -28,9 +34,58 @@ interface IArrakisV1RouterStaking {
         uint256 mintAmount
     );
 
+    function addLiquidityETH(
+        IArrakisVaultV1 pool,
+        uint256 amount0Max,
+        uint256 amount1Max,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 amountSharesMin,
+        address receiver
+    )
+    external
+    payable
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint256 mintAmount
+    );
 
-    function removeLiquidityAndUnstake(
-        address gauge,
+    function addLiquidityAndStake(
+        IGauge gauge,
+        uint256 amount0Max,
+        uint256 amount1Max,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 amountSharesMin,
+        address receiver
+    )
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint256 mintAmount
+    );
+
+    function addLiquidityETHAndStake(
+        IGauge gauge,
+        uint256 amount0Max,
+        uint256 amount1Max,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 amountSharesMin,
+        address receiver
+    )
+    external
+    payable
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint256 mintAmount
+    );
+
+    function removeLiquidity(
+        IArrakisVaultV1 pool,
         uint256 burnAmount,
         uint256 amount0Min,
         uint256 amount1Min,
@@ -43,35 +98,66 @@ interface IArrakisV1RouterStaking {
         uint128 liquidityBurned
     );
 
+    function removeLiquidityETH(
+        IArrakisVaultV1 pool,
+        uint256 burnAmount,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address payable receiver
+    )
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint128 liquidityBurned
+    );
 
+    function removeLiquidityAndUnstake(
+        IGauge gauge,
+        uint256 burnAmount,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address receiver
+    )
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint128 liquidityBurned
+    );
+
+    function removeLiquidityETHAndUnstake(
+        IGauge gauge,
+        uint256 burnAmount,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address payable receiver
+    )
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint128 liquidityBurned
+    );
 }
 
-interface IArrakisVault {
+interface IArrakisVaultV1 {
 
-    /// @notice compute total underlying holdings of the G-UNI token supply
-    /// includes current liquidity invested in uniswap position, current fees earned
-    /// and any uninvested leftover (but does not include manager or gelato fees accrued)
-    /// @return amount0Current current total underlying balance of token0
-    /// @return amount1Current current total underlying balance of token1
-    function getUnderlyingBalances() external view returns (uint256 amount0Current, uint256 amount1Current);
+    function mint(uint256 mintAmount, address receiver)
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint128 liquidityMinted
+    );
 
-    function getUnderlyingBalancesAtPrice(uint160 sqrtRatioX96) external view returns (uint256 amount0Current, uint256 amount1Current);
-
-    function getPositionID() external view returns (bytes32 positionID);
-
-    function token0() external view returns (address token);
-
-    function token1() external view returns (address token);
-
-    function upperTick() external view returns (int24);
-
-    function lowerTick() external view returns (int24);
-
-    function pool() external view returns (address pool);
-
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address account) external view returns (uint256);
+    function burn(uint256 burnAmount, address receiver)
+    external
+    returns (
+        uint256 amount0,
+        uint256 amount1,
+        uint128 liquidityBurned
+    );
 
     function getMintAmounts(uint256 amount0Max, uint256 amount1Max)
     external
@@ -82,4 +168,24 @@ interface IArrakisVault {
         uint256 mintAmount
     );
 
+    function getUnderlyingBalances()
+    external
+    view
+    returns (uint256 amount0, uint256 amount1);
+
+    function getPositionID() external view returns (bytes32 positionID);
+
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    function upperTick() external view returns (int24);
+
+    function lowerTick() external view returns (int24);
+
+    function pool() external view returns (address);
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
 }

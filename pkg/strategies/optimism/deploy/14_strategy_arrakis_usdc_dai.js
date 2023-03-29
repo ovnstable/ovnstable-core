@@ -2,7 +2,7 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
-let arrakisRouter = "0x86D62A8AD19998E315e6242b63eB73F391D4674B";
+let arrakisRouter = "0x9ce88a56d120300061593eF7AD074A1B710094d5";
 let arrakisRewards = "0x87c7c885365700D157cd0f39a7803320fe86f0f5";
 let arrakisVault = "0x632336474f5Bf11aEbECd63B84A0a2800B99a490";
 let poolUsdcOpFee = 500; // 0.05%
