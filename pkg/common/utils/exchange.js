@@ -1,5 +1,6 @@
 const {execTimelock, getWalletAddress} = require("./script-utils");
 const {Roles} = require("./roles");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 
 async function disableOracleLoss(exchange){
@@ -14,4 +15,14 @@ async function disableOracleLoss(exchange){
 
 }
 
+async function disablePayoutListener(exchange){
+
+    await execTimelock(async (timelock)=>{
+        await (await exchange.connect(timelock).setPayoutListener(ZERO_ADDRESS)).wait();
+    });
+
+}
+
+
 module.exports.disableOracleLoss = disableOracleLoss;
+module.exports.disablePayoutListener = disablePayoutListener;
