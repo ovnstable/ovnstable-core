@@ -2,8 +2,8 @@ const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProx
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '';
-let hedgeExchanger = '';
+let rebaseToken = '0xeA1B7153Af7D63e0574cB6B63ccf52428fB33f83';
+let hedgeExchanger = '0x7DA99ba6DF2972fDb988c9fC007D0FC6068094d5';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
