@@ -44,15 +44,15 @@ async function main() {
 
     addresses.push(PortfolioManager.address);
     values.push(0);
-    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x4a1c89c30DA16F0B298FfE3697390Cd39BFC9ba0']));
+    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x33227153345C71DC3552AF7Cba3AF07C7b7B762b']));
 
     addresses.push(PortfolioManager.address);
     values.push(0);
-    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x4a1c89c30DA16F0B298FfE3697390Cd39BFC9ba0']));
+    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x832f18e921375d9Dc60ED0239698ccbb0f274248']));
 
     addresses.push(PortfolioManager.address);
     values.push(0);
-    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x4a1c89c30DA16F0B298FfE3697390Cd39BFC9ba0']));
+    abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', ['0x9d9DF2740627F422D8b33aFD0CCaeb6407c64aE6']));
 
 
     await createProposal(addresses, values, abis);
