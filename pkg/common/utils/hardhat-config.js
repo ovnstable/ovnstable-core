@@ -39,6 +39,13 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
+        zksync: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
         avalanche: {
             url: forkingUrl,
             accounts: accountsNetwork,
@@ -170,26 +177,13 @@ function getEtherScan(chain){
 
     let object = {};
 
-    let api;
-    switch (chain) {
-        case 'ARBITRUM':
-            api = process.env.ETHERSCAN_API_ARBITRUM;
-            break;
-        case 'AVALANCHE':
-            api = process.env.ETHERSCAN_API_AVALANCHE;
-            break;
-        case 'BSC':
-            api = process.env.ETHERSCAN_API_BSC;
-            break;
-        case 'POLYGON':
-            api = process.env.ETHERSCAN_API_POLYGON;
-            break;
-        case 'OPTIMISM':
-            api = process.env.ETHERSCAN_API_OPTIMISM;
-            break;
-    }
+    let api = process.env[`ETHERSCAN_API_${chain.toUpperCase()}`];
 
-    object.apiKey = api;
+    if (api){
+        object.apiKey = api;
+    }else {
+        throw new Error('Not defined env: ' + `ETHERSCAN_API_${chain.toUpperCase()}`);
+    }
 
     return object;
 }
