@@ -1,7 +1,8 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async () => {
@@ -79,9 +80,9 @@ module.exports = async () => {
 
         let items = [];
 
-        items.push(createSkimTo('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', usdPlus.address, 'USD+/DAI+', dex, to));
-        items.push(createSkimTo('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', daiPlus.address, 'USD+/DAI+', dex, to));
-        items.push(createSkimTo('0xECe52B1fc32D2B4f22eb45238210b470a64bfDd5', usdPlus.address, 'USD+/USDC', dex, to));
+        items.push(createSkimToWithFee('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', usdPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', daiPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xECe52B1fc32D2B4f22eb45238210b470a64bfDd5', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }

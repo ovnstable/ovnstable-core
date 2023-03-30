@@ -12,15 +12,17 @@ import "./interfaces/IGlobalPayoutListener.sol";
 abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
-
     struct Item {
-        address pool; // Unique ID = pool + token
+        // Unique ID = pool + token
+        address pool;
         address token;
         string poolName;
         address bribe;
         Operation operation;
         address to;
         string dexName;
+        uint24 feePercent;
+        address feeReceiver;
     }
 
     enum Operation {
@@ -54,7 +56,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     event DisabledUpdated(bool value);
     event PayoutDoneDisabled();
     event RemoveItem(address token, address pool);
-    event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
+    event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to, uint256 feeAmount, address feeReceiver);
 
     // ---  modifiers
 
@@ -135,6 +137,15 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         revert('item not found');
     }
 
+    /**
+      * Remove items
+      */
+    function removeItems() public onlyAdmin {
+        for (uint256 x = 0; x < items.length; x++) {
+            delete items[x];
+        }
+    }
+
     // --- logic
 
     /**
@@ -147,10 +158,16 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
         IPool(item.pool).skim(address(this));
         uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
+        uint256 feeAmount;
         if (amountToken > 0) {
+            if (item.feePercent > 0) {
+                feeAmount = amountToken * item.feePercent / 100;
+                token.transfer(item.feeReceiver, feeAmount);
+                amountToken -= feeAmount;
+            }
             token.transfer(item.to, amountToken);
         }
-        emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
+        emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to, feeAmount, item.feeReceiver);
     }
 
     /**
@@ -167,7 +184,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
             token.approve(item.bribe, amountToken);
             IBribe(item.bribe).notifyRewardAmount(item.token, amountToken);
         }
-        emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
+        emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe, 0, address(0));
     }
 
     /**
@@ -186,7 +203,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
 
     function _sync(Item memory item) internal {
         IPool(item.pool).sync();
-        emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0));
+        emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0), 0, address(0));
     }
 
     /**
