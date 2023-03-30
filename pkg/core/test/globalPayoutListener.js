@@ -68,6 +68,9 @@ describe("GlobalPayoutListener", function () {
                 operation: OPERATIONS.SKIM,
                 to: testAccount.address,
                 dexName: 'Ramses',
+                feePercent: 0,
+                feeReceiver: ZERO_ADDRESS,
+                __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             }
 
             await pl.addItem(item);
@@ -227,6 +230,9 @@ describe("GlobalPayoutListener", function () {
                     operation: OPERATIONS.SKIM,
                     to: testAccount.address,
                     dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -274,6 +280,9 @@ describe("GlobalPayoutListener", function () {
                     operation: OPERATIONS.SYNC,
                     to: testAccount.address,
                     dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -309,6 +318,9 @@ describe("GlobalPayoutListener", function () {
                     operation: OPERATIONS.CUSTOM,
                     to: testAccount.address,
                     dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -334,6 +346,9 @@ describe("GlobalPayoutListener", function () {
                     operation: OPERATIONS.BRIBE,
                     to: ZERO_ADDRESS,
                     dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
                 await pl.addItem(item);
                 await pl.setDisabled(true);
@@ -372,6 +387,9 @@ describe("GlobalPayoutListener", function () {
                     operation: OPERATIONS.BRIBE,
                     to: ZERO_ADDRESS,
                     dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);

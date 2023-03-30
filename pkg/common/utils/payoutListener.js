@@ -26,7 +26,8 @@ function createSkim(pool, token, poolName, dexName){
         to: COMMON.rewardWallet,
         dexName: dexName,
         feePercent: 0,
-        feeReceiver: ZERO_ADDRESS
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -41,7 +42,8 @@ function createSkimTo(pool, token, poolName, dexName, to){
         to: to,
         dexName: dexName,
         feePercent: 0,
-        feeReceiver: ZERO_ADDRESS
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -56,7 +58,8 @@ function createSkimToWithFee(pool, token, poolName, dexName, to, feePercent, fee
         to: to,
         dexName: dexName,
         feePercent: feePercent,
-        feeReceiver: feeReceiver
+        feeReceiver: feeReceiver,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -71,7 +74,8 @@ function createBribe(pool, token, poolName, dexName, bribe){
         to: COMMON.rewardWallet,
         dexName: dexName,
         feePercent: 0,
-        feeReceiver: ZERO_ADDRESS
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
