@@ -20,7 +20,7 @@ async function initWallet() {
     let provider = ethers.provider;
 
 
-    if(hre.network.name === 'zksync'){
+    if(process.env.STAND === 'zksync'){
         wallet = new Wallet(process.env.PK_POLYGON);
     }else {
         wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);

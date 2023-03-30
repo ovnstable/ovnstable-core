@@ -16,20 +16,35 @@ function getNetworkByName(network) {
     let blockNumberValue = blockNumber(network);
     console.log(`[Node] Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
+    let isZkSync = process.env.STAND.toLowerCase() === 'zksync';
+
+    let localhost;
+    if (isZkSync){
+        localhost = {
+            // Use local node zkSync for testing
+            url: 'http://localhost:3050',
+            timeout: timeout,
+            accounts: accountsNetwork,
+            zksync: true,
+            ethNetwork: "mainnet",
+        }
+    }else {
+        localhost = {
+            timeout: timeout,
+            accounts: accountsNetwork,
+            zksync: false,
+        }
+    }
+
     return {
 
-        platform: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
 
         arbitrum: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         arbitrum_dai: {
@@ -37,6 +52,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         zksync: {
@@ -45,14 +61,7 @@ function getNetworkByName(network) {
             timeout: timeout,
             gasPrice: gasPrice,
             ethNetwork: "mainnet",
-            zksync: true
-        },
-
-        avalanche: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
+            zksync: true,
         },
 
         optimism: {
@@ -60,6 +69,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         optimism_dai: {
@@ -67,6 +77,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         bsc: {
@@ -74,20 +85,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
-        },
-
-        bsc_usdt: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
-
-        fantom: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
+            zksync: false,
         },
 
         polygon: {
@@ -95,6 +93,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         polygon_ins: {
@@ -102,19 +101,10 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
-        polygon_dev: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
-
-        localhost: {
-            timeout: timeout,
-            accounts: accountsNetwork,
-        },
+        localhost: localhost,
 
         hardhat: {
             forking: {
