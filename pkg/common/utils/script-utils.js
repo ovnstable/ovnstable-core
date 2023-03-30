@@ -7,6 +7,7 @@ const {DEFAULT, ARBITRUM, BSC, OPTIMISM, POLYGON} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
+const {Wallet} = require("zksync-web3");
 
 let ethers = require('hardhat').ethers;
 
@@ -17,10 +18,18 @@ async function initWallet() {
         return wallet;
 
     let provider = ethers.provider;
-    wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+
+
+    if(hre.network.name === 'zksync'){
+        wallet = new Wallet(process.env.PK_POLYGON);
+    }else {
+        wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+    }
+
     console.log('[User] Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('[User] Balance wallet: ' + fromE18(balance.toString()));
+
 
     return wallet;
 }

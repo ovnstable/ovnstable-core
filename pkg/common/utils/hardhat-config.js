@@ -44,6 +44,8 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            ethNetwork: "mainnet",
+            zksync: true
         },
 
         avalanche: {
@@ -149,6 +151,11 @@ let namedAccounts = {
     }
 }
 
+let zksolc = {
+    version: "1.3.5",
+    compilerSource: "binary",
+    settings: {},
+}
 
 let solidity = {
     version: "0.8.6",
@@ -192,6 +199,7 @@ module.exports = {
     getNetwork: getNetwork,
     namedAccounts: namedAccounts,
     solidity: solidity,
+    zksolc: zksolc,
     mocha: mocha,
     gasReport: gasReport,
     etherscan: getEtherScan
