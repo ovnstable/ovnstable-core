@@ -158,7 +158,7 @@ contract StrategySolidlizardUsdcDai is Strategy {
             gmxReader,
             address(usdc),
             address(dai),
-            OvnMath.addBasisPoints(_amount + 10, 1),
+            OvnMath.addBasisPoints(_amount + 10, swapSlippageBP),
             totalLpBalance,
             reserveUsdc,
             reserveDai,
