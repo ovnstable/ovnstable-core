@@ -94,6 +94,10 @@ let arrays = [
         name: 'StrategyVenusUsdc',
         enabledReward: true,
     },
+    {
+        name: 'StrategyVenusUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -124,7 +128,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 describe("BSC", function () {
     arrays.forEach(value => {
         switch (process.env.STAND) {
-            "bsc_usdt":
+            case "bsc_usdt":
                 strategyTest(value, 'BSC', 'usdt', runStrategyLogic);
                 break;
             default:

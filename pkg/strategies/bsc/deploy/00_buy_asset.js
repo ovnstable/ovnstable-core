@@ -1,5 +1,6 @@
 const {ethers} = require("hardhat");
 const {BSC} = require('@overnight-contracts/common/utils/assets');
+const {transferAsset} = require("@overnight-contracts/common/utils/script-utils");
 const hre = require('hardhat');
 
 module.exports = async ({getNamedAccounts, deployments}) => {

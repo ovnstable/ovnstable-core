@@ -32,6 +32,7 @@ async function main() {
     await (await exchange.setOracleLoss(100, 100000)).wait();
     await (await exchange.setCompensateLoss(10, 100000)).wait();
 
+    console.log("Base setting done")
 }
 
 
