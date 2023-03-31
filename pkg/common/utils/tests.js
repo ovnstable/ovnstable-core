@@ -12,7 +12,7 @@ const {transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getCont
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const StakerABI = require("./abi/Staker.json");
 const {Roles} = require("./roles");
-const {ARBITRUM, OPTIMISM, DEFAULT} = require("./assets");
+const {ARBITRUM, OPTIMISM, BSC, DEFAULT} = require("./assets");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 let isTestAssetsCompleted = false;
@@ -105,16 +105,18 @@ async function createRandomWallet() {
 
 async function getTestAssets(to) {
 
-    let stand = process.env.STAND.toUpperCase();
+    let stand = process.env.STAND;
 
     if (isTestAssetsCompleted) {
         return;
     }
 
-    if (stand === "OPTIMISM_DAI") {
+    if (stand === "optimism_dai") {
         await transferAsset(OPTIMISM.dai, to);
-    } else if (stand === "ARBITRUM_DAI") {
+    } else if (stand === "arbitrum_dai") {
         await transferAsset(ARBITRUM.dai, to);
+    } else if (stand === "bsc_usdt") {
+        await transferAsset(BSC.usdt, to);
     } else {
         await transferAsset(DEFAULT.usdc, to);
     }

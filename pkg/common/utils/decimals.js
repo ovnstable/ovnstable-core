@@ -3,7 +3,6 @@ const BigNumber = require('bignumber.js');
 
 function toE18(value) {
     return new BigNumber(value.toString()).times(new BigNumber(10).pow(18)).toFixed(0)
-
 }
 
 /**
@@ -11,7 +10,6 @@ function toE18(value) {
  * @param value BigNumber or String or Number
  * @returns {number} Must be NUMBER not STRING
  */
-
 function fromE18(value) {
     return Number.parseFloat(new BigNumber(value.toString()).div(new BigNumber(10).pow(18)).toFixed(3).toString());
 }
@@ -33,17 +31,15 @@ function fromE8(value) {
 }
 
 function toAsset(value) {
-
-    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'bsc_usdt' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
         return toE18(value);
     } else {
         return toE6(value);
     }
-
 }
 
 function fromAsset(value) {
-    if (process.env.STAND === 'bsc' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
+    if (process.env.STAND === 'bsc' || process.env.STAND === 'bsc_usdt' || process.env.STAND === 'optimism_dai' || process.env.STAND === "arbitrum_dai") {
         return fromE18(value);
     } else {
         return fromE6(value);

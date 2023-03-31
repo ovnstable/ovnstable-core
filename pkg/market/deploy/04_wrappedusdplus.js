@@ -10,11 +10,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let params;
 
-     if (hre.network.name === "optimism_dai") {
+    if (hre.network.name === "optimism_dai") {
         params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]}
-    }else if(hre.network.name === "arbitrum_dai") {
+    } else if (hre.network.name === "arbitrum_dai") {
         params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]}
-    } else {
+    } else if (hre.network.name === "bsc_usdt") {
+        params = {args: [usdPlusToken.address, "Wrapped USDT+", "wUSDT+", 18]};
+    } else
         params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+", 6]};
     }
 
