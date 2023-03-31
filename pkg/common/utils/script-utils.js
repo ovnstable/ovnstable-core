@@ -94,7 +94,7 @@ async function getContract(name, network){
         network = process.env.STAND;
 
     let ethers = hre.ethers;
-    let wallet = await initWallet(ethers);
+    let wallet = await initWallet();
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
@@ -117,7 +117,7 @@ async function getAbi(name){
 async function getStrategy(address){
 
     let ethers = hre.ethers;
-    let wallet = await initWallet(ethers);
+    let wallet = await initWallet();
 
     const StrategyJson = require("./abi/Strategy.json");
     return await ethers.getContractAt(StrategyJson.abi, address, wallet);
@@ -129,7 +129,7 @@ async function getERC20(name, wallet){
     let ethers = hre.ethers;
 
     if (!wallet){
-        wallet = await initWallet(ethers);
+        wallet = await initWallet();
     }
 
     const ERC20 = require("./abi/IERC20.json");
@@ -143,7 +143,7 @@ async function getERC20ByAddress(address, wallet){
     let ethers = hre.ethers;
 
     if (!wallet){
-        wallet = await initWallet(ethers);
+        wallet = await initWallet();
     }
 
     const ERC20 = require("./abi/IERC20.json");
