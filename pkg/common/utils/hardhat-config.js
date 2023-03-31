@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 console.log('Process:' + process.cwd());
 dotenv.config({path:__dirname+ '/../../../.env'});
 
-const {node_url, accounts, blockNumber} = require("./network");
+const {node_url, accounts, blockNumber, isZkSync} = require("./network");
 const {getGasPrice} = require("./network");
 let gasPrice = getGasPrice();
 
@@ -16,10 +16,10 @@ function getNetworkByName(network) {
     let blockNumberValue = blockNumber(network);
     console.log(`[Node] Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
-    let isZkSync = process.env.STAND.toLowerCase() === 'zksync';
+    let zkSync = isZkSync();
 
     let localhost;
-    if (isZkSync){
+    if (zkSync){
         localhost = {
             // Use local node zkSync for testing
             url: 'http://localhost:3050',
@@ -107,6 +107,7 @@ function getNetworkByName(network) {
         localhost: localhost,
 
         hardhat: {
+            zksync: zkSync,
             forking: {
                 url: forkingUrl,
                 blockNumber: blockNumberValue,

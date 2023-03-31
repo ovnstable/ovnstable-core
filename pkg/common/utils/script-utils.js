@@ -8,6 +8,7 @@ const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/s
 const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
 const {Wallet} = require("zksync-web3");
+const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 
 let ethers = require('hardhat').ethers;
 
@@ -22,6 +23,7 @@ async function initWallet() {
 
     if(process.env.STAND === 'zksync'){
         wallet = new Wallet(process.env.PK_POLYGON);
+        wallet = (new Deployer(hre, wallet)).zkWallet;
     }else {
         wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     }

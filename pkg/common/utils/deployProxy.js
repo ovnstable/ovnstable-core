@@ -2,12 +2,52 @@ const {ethers, upgrades} = require("hardhat");
 const hre = require("hardhat");
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
-const fs = require('fs');
-const {getContract, checkTimeLockBalance} = require("./script-utils");
+const {getContract, checkTimeLockBalance, initWallet} = require("./script-utils");
+const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
+const {isZkSync} = require("./network");
 
 
 async function deployProxy(contractName, deployments, save, params) {
-    return deployProxyMulti(contractName, contractName, deployments, save, params);
+
+    if (isZkSync()) {
+
+        params = params ? params : {};
+
+        return deployProxyZkSync(contractName, deployments, save, params);
+    }else {
+        return deployProxyMulti(contractName, contractName, deployments, save, params);
+    }
+}
+
+
+async function deployProxyZkSync(contractName, deployments, save, params){
+
+    const deployer = new Deployer(hre, await initWallet());
+
+    let implArtifact = await deployer.loadArtifact(contractName);
+
+    const implContract = await deployer.deploy(implArtifact, []);
+    console.log(`${contractName} deployed at ${implContract.address}`);
+
+    let proxyArtifact = await deployer.loadArtifact('ERC1967Proxy');
+
+    let initializeData = implContract.interface.getFunction('initialize');
+    let implAddress = implContract.address;
+
+    let args = params.args ? params.args : [];
+    let implData = implContract.interface.encodeFunctionData(initializeData, args);
+
+    const proxy = await deployer.deploy(proxyArtifact, [implAddress,implData] );
+
+    console.log(`Proxy ${contractName} deployed at ${proxy.address}`);
+
+    await save(implArtifact.contractName, {
+        address: proxy.address,
+        implementation: implAddress,
+        ...implArtifact
+    });
+
+    console.log(`Save ${implArtifact.contractName} to deployments`);
 }
 
 async function deployProxyMulti(contractName, factoryName, deployments, save, params) {
