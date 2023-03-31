@@ -24,7 +24,10 @@ function createSkim(pool, token, poolName, dexName){
         bribe: ZERO_ADDRESS,
         operation: OPERATIONS.SKIM,
         to: COMMON.rewardWallet,
-        dexName: dexName
+        dexName: dexName,
+        feePercent: 0,
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -37,7 +40,26 @@ function createSkimTo(pool, token, poolName, dexName, to){
         bribe: ZERO_ADDRESS,
         operation: OPERATIONS.SKIM,
         to: to,
-        dexName: dexName
+        dexName: dexName,
+        feePercent: 0,
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+}
+
+function createSkimToWithFee(pool, token, poolName, dexName, to, feePercent, feeReceiver) {
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: ZERO_ADDRESS,
+        operation: OPERATIONS.SKIM,
+        to: to,
+        dexName: dexName,
+        feePercent: feePercent,
+        feeReceiver: feeReceiver,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -50,7 +72,10 @@ function createBribe(pool, token, poolName, dexName, bribe){
         bribe: bribe,
         operation: OPERATIONS.BRIBE,
         to: COMMON.rewardWallet,
-        dexName: dexName
+        dexName: dexName,
+        feePercent: 0,
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -72,7 +97,9 @@ function showPoolOperations(receipt){
                     pool: result.args[3],
                     token: result.args[4],
                     amount: result.args[5].toString(),
-                    to: result.args[6]
+                    to: result.args[6],
+                    feeAmount: result.args[7].toString(),
+                    feeReceiver: result.args[8]
                 })
 
             }
@@ -84,8 +111,11 @@ function showPoolOperations(receipt){
 }
 
 
-module.exports.PayoutListenerOperations = OPERATIONS;
-module.exports.createSkim = createSkim;
-module.exports.createSkimTo = createSkimTo;
-module.exports.createBribe = createBribe;
-module.exports.showPoolOperations = showPoolOperations;
+module.exports = {
+    PayoutListenerOperations: OPERATIONS,
+    createSkim: createSkim,
+    createSkimTo: createSkimTo,
+    createSkimToWithFee: createSkimToWithFee,
+    createBribe: createBribe,
+    showPoolOperations: showPoolOperations,
+};

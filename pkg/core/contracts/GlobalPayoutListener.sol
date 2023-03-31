@@ -12,15 +12,18 @@ import "./interfaces/IGlobalPayoutListener.sol";
 abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
-
     struct Item {
-        address pool; // Unique ID = pool + token
+        // Unique ID = pool + token
+        address pool;
         address token;
         string poolName;
         address bribe;
         Operation operation;
         address to;
         string dexName;
+        uint24 feePercent;
+        address feeReceiver;
+        uint256[10] __gap;
     }
 
     enum Operation {
@@ -135,6 +138,15 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         revert('item not found');
     }
 
+    /**
+      * Remove items
+      */
+    function removeItems() public onlyAdmin {
+        for (uint256 x = 0; x < items.length; x++) {
+            delete items[x];
+        }
+    }
+
     // --- logic
 
     /**
@@ -147,10 +159,21 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
         IPool(item.pool).skim(address(this));
         uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
+        uint256 feeAmount;
         if (amountToken > 0) {
-            token.transfer(item.to, amountToken);
+            if (item.feePercent > 0) {
+                feeAmount = amountToken * item.feePercent / 100;
+                amountToken -= feeAmount;
+                if (feeAmount > 0) {
+                    token.transfer(item.feeReceiver, feeAmount);
+                    emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, feeAmount, item.feeReceiver);
+                }
+            }
+            if (amountToken > 0) {
+                token.transfer(item.to, amountToken);
+                emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
+            }
         }
-        emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
     }
 
     /**
@@ -166,8 +189,8 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         if (amountToken > 0) {
             token.approve(item.bribe, amountToken);
             IBribe(item.bribe).notifyRewardAmount(item.token, amountToken);
+            emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
         }
-        emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
     }
 
     /**
