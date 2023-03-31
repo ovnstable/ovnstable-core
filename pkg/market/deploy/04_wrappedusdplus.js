@@ -3,7 +3,7 @@ const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 
-module.exports = async ({getNamedAccounts, deployments}) => {
+module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     const usdPlusToken = await getContract("UsdPlusToken");
@@ -11,12 +11,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let params;
 
     if (hre.network.name === "optimism_dai") {
-        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]}
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
     } else if (hre.network.name === "arbitrum_dai") {
-        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]}
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
     } else if (hre.network.name === "bsc_usdt") {
         params = {args: [usdPlusToken.address, "Wrapped USDT+", "wUSDT+", 18]};
-    } else
+    } else {
         params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+", 6]};
     }
 

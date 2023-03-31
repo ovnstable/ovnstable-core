@@ -65,7 +65,7 @@ This repository contains is next modules:
    npx hardhat deploy --tags StrategyVenusUsdt --setting --network bsc_usdt
 8. Verify cash strategy in pkg/strategies/bsc and verify it on scan service.
    npx hardhat run scripts/verify.js --network bsc_usdt
-9. Set PM by cash strategy.
+9. Set PM by cash strategy in pkg/core
    npx hardhat run scripts/set-strategies-bsc-usdt.js --network bsc_usdt
 10. Add cash strategy in dict.strategies and core contracts in dict.contracts.
 11. Set percentage in anal.collateral after adding liquidity in cash strategy.

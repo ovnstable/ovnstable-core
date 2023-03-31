@@ -10,10 +10,9 @@ async function main() {
 
     await showM2M();
 
-    let amount = await asset.balanceOf(await getWalletAddress());
-    await (await asset.approve(exchange.address, amount)).wait();
+    await (await asset.approve(exchange.address, toAsset(2))).wait();
     console.log('Asset approve done');
-    await (await exchange.buy(asset.address, amount)).wait();
+    await (await exchange.buy(asset.address, toAsset(2))).wait();
     console.log('Exchange.buy done');
 
     await showM2M();
