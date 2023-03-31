@@ -111,6 +111,8 @@ describe("GlobalPayoutListener", function () {
             expect(item.operation).to.equal(chainItem.operation);
             expect(item.to).to.equal(chainItem.to);
             expect(item.dexName).to.equal(chainItem.dexName);
+            expect(item.feePercent).to.equal(chainItem.feePercent);
+            expect(item.feeReceiver).to.equal(chainItem.feeReceiver);
         });
 
 
@@ -148,6 +150,8 @@ describe("GlobalPayoutListener", function () {
             expect(secondItem.operation).to.equal(chainItem.operation);
             expect(secondItem.to).to.equal(chainItem.to);
             expect(secondItem.dexName).to.equal(chainItem.dexName);
+            expect(secondItem.feePercent).to.equal(chainItem.feePercent);
+            expect(secondItem.feeReceiver).to.equal(chainItem.feeReceiver);
         });
 
         it("Replace an exist item", async function () {
@@ -164,6 +168,8 @@ describe("GlobalPayoutListener", function () {
             expect(item.operation).to.equal(chainItem.operation);
             expect(item.to).to.equal(chainItem.to);
             expect(item.dexName).to.equal(chainItem.dexName);
+            expect(item.feePercent).to.equal(chainItem.feePercent);
+            expect(item.feeReceiver).to.equal(chainItem.feeReceiver);
         });
 
         it("Remove an exist item", async function () {
@@ -264,6 +270,69 @@ describe("GlobalPayoutListener", function () {
                 expect(10).to.equal(fromE6(event.args[5].toString()));
                 expect(item.to).to.equal(event.args[6]);
 
+            });
+
+        });
+
+        describe('[skim with fee]', ()=>{
+
+            let feeReceiver;
+
+            beforeEach(async ()=>{
+
+                feeReceiver = await createRandomWallet();
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: ZERO_ADDRESS,
+                    operation: OPERATIONS.SKIM,
+                    to: testAccount.address,
+                    dexName: 'Test Dex',
+                    feePercent: 20,
+                    feeReceiver: feeReceiver.address,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+
+                await pl.addItem(item);
+
+            });
+
+            it('[success] -> balance', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(testAccount.address)));
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+                await pl.payoutDone(mockToken.address);
+                expect(8).to.equal(fromE6(await mockToken.balanceOf(testAccount.address)));
+                expect(2).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+
+            });
+
+            it('[success] -> event', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let events = tx.events.filter((e) => e.event == 'PoolOperation');
+
+                expect(item.dexName).to.equal(events[0].args[0]);
+                expect('Skim').to.equal(events[0].args[1]);
+                expect(item.poolName).to.equal(events[0].args[2]);
+                expect(item.pool).to.equal(events[0].args[3]);
+                expect(item.token).to.equal(events[0].args[4]);
+                expect(2).to.equal(fromE6(events[0].args[5].toString()));
+                expect(item.feeReceiver).to.equal(events[0].args[6]);
+
+                expect(item.dexName).to.equal(events[1].args[0]);
+                expect('Skim').to.equal(events[1].args[1]);
+                expect(item.poolName).to.equal(events[1].args[2]);
+                expect(item.pool).to.equal(events[1].args[3]);
+                expect(item.token).to.equal(events[1].args[4]);
+                expect(8).to.equal(fromE6(events[1].args[5].toString()));
+                expect(item.to).to.equal(events[1].args[6]);
             });
 
         });
