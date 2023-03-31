@@ -148,6 +148,8 @@ async function getCoreAsset() {
         return await getERC20('dai');
     } else if (process.env.STAND === 'arbitrum_dai') {
         return await getERC20('dai');
+    } else if (process.env.STAND === 'bsc_usdt') {
+        return await getERC20('usdt');
     } else {
         return await getERC20('usdc');
     }
@@ -195,6 +197,7 @@ async function getStrategyMapping(){
             url = "https://arbitrum.overnight.fi/api/dict/strategies";
             break;
         case "bsc":
+        case "bsc_usdt":
             url = "https://bsc.overnight.fi/api/dict/strategies";
             fromAsset = fromE18;
             break;

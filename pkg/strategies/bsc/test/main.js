@@ -124,6 +124,9 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 describe("BSC", function () {
     arrays.forEach(value => {
         switch (process.env.STAND) {
+            "bsc_usdt":
+                strategyTest(value, 'BSC', 'usdt', runStrategyLogic);
+                break;
             default:
                 strategyTest(value, 'BSC', 'usdc', runStrategyLogic);
                 break;

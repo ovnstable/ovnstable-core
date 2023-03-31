@@ -12,8 +12,10 @@ module.exports = async () => {
     let asset;
     if (hre.network.name === "optimism_dai") {
         asset = OPTIMISM.dai;
-    }else if (hre.network.name === "arbitrum_dai") {
+    } else if (hre.network.name === "arbitrum_dai") {
         asset = ARBITRUM.dai;
+    } else if (hre.network.name === "bsc_usdt") {
+        asset = BSC.usdt;
     } else {
         asset = DEFAULT.usdc;
     }
