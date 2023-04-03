@@ -13,18 +13,29 @@ async function deployProxy(contractName, deployments, save, params) {
 
         params = params ? params : {};
 
-        return deployProxyZkSync(contractName, deployments, save, params);
+        return deployProxyZkSync(contractName, contractName, deployments, save, params);
     }else {
-        return deployProxyMulti(contractName, contractName, deployments, save, params);
+        return deployProxyEth(contractName, contractName, deployments, save, params);
     }
 }
 
+async function deployProxyMulti(contractName, factoryName, deployments, save, params) {
 
-async function deployProxyZkSync(contractName, deployments, save, params){
+    if (isZkSync()) {
+
+        params = params ? params : {};
+
+        return deployProxyZkSync(contractName, factoryName, deployments, save, params);
+    }else {
+        return deployProxyEth(contractName, factoryName, deployments, save, params);
+    }
+}
+
+async function deployProxyZkSync(contractName, factoryName, deployments, save, params){
 
     const deployer = new Deployer(hre, await initWallet());
 
-    let implArtifact = await deployer.loadArtifact(contractName);
+    let implArtifact = await deployer.loadArtifact(factoryName);
 
     const implContract = await deployer.deploy(implArtifact, []);
     console.log(`${contractName} deployed at ${implContract.address}`);
@@ -41,7 +52,7 @@ async function deployProxyZkSync(contractName, deployments, save, params){
 
     console.log(`Proxy ${contractName} deployed at ${proxy.address}`);
 
-    await save(implArtifact.contractName, {
+    await save(contractName, {
         address: proxy.address,
         implementation: implAddress,
         ...implArtifact
@@ -50,7 +61,7 @@ async function deployProxyZkSync(contractName, deployments, save, params){
     console.log(`Save ${implArtifact.contractName} to deployments`);
 }
 
-async function deployProxyMulti(contractName, factoryName, deployments, save, params) {
+async function deployProxyEth(contractName, factoryName, deployments, save, params) {
 
     if (hre.ovn === undefined)
         hre.ovn = {};

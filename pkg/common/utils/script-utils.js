@@ -224,7 +224,7 @@ async function getStrategyMapping(){
             url = "https://op.overnight.fi/api/dict/strategies";
             break;
         default:
-            throw Error('Unknown STAND: ' + process.env.STAND);
+            console.error('Unknown STAND: ' + process.env.STAND);
     }
 
     let strategiesMapping = [];
