@@ -109,6 +109,10 @@ let arrays = [
         name: 'StrategyWombexUsdt',
         enabledReward: true,
     },
+    {
+        name: 'StrategyEllipsisDotDotUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
