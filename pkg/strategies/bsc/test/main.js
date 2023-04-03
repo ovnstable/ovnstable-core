@@ -71,10 +71,6 @@ let arrays = [
         enabledReward: true,
     },
     {
-        name: 'StrategyWombexUsdt',
-        enabledReward: true,
-    },
-    {
         name: 'StrategyThenaBusdUsdt',
         enabledReward: true,
     },
@@ -109,6 +105,10 @@ let arrays = [
         enabledReward: false,
         isRunStrategyLogic: true,
     },
+    {
+        name: 'StrategyWombexUsdt',
+        enabledReward: true,
+    },
 ];
 
 if (id !== undefined && id !== "") {
@@ -136,7 +136,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         });
 
     } else if (strategyName == 'StrategyUsdPlusUsdt') {
-        let ownerAddress = (await getContract("OvnTimelockController", "bsc")).address;
+        let ownerAddress = "0xe497285e466227F4E8648209E34B465dAA1F90a0";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [ownerAddress],
@@ -144,7 +144,6 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         await transferETH(1, ownerAddress);
         const owner = await ethers.getSigner(ownerAddress);
         let exchange = await getContract("Exchange", "bsc");
-        await exchange.connect(owner).grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), ownerAddress);
         await exchange.connect(owner).grantRole(await exchange.FREE_RIDER_ROLE(), strategyAddress);
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",
