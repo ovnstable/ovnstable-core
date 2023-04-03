@@ -7,6 +7,7 @@ let COMMON = {
 
 let ZKSYNC = {
     usdc: "0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4",
+    nexonUsdc: "0x1181D7BE04D80A8aE096641Ee1A87f7D557c6aeb",
 }
 
 let ARBITRUM = {
