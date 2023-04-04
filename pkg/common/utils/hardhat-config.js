@@ -88,6 +88,14 @@ function getNetworkByName(network) {
             zksync: false,
         },
 
+        bsc_usdt: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+        },
+
+
         polygon: {
             url: forkingUrl,
             accounts: accountsNetwork,
