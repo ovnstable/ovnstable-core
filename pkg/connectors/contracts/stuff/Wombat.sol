@@ -345,15 +345,12 @@ library WombatLibrary {
      *
      */
     function getAmountToSwap(CalculateParams memory params) internal view returns (uint256 amount1InToken0, uint256 amount2InToken0) {
-        uint256 amount10 = getAmountOut(params.wombatRouter, params.token1, params.token0, params.pool0, params.denominator1);
-        uint256 amount12 = getAmountOut(params.wombatRouter, params.token1, params.token2, params.pool0, params.denominator1);
-        amount1InToken0 = (params.amount0Total * params.reserve1) / (params.reserve0 * params.denominator1 / amount10
-                + params.reserve1 + params.reserve2 * params.denominator1 / amount12);
-
-        uint256 amount20 = getAmountOut(params.wombatRouter, params.token2, params.token0, params.pool0, params.denominator2);
-        uint256 amount21 = getAmountOut(params.wombatRouter, params.token2, params.token1, params.pool0, params.denominator2);
-        amount2InToken0 = (params.amount0Total * params.reserve2) / (params.reserve0 * params.denominator2 / amount20
-                + params.reserve1 * params.denominator2 / amount21 + params.reserve2);
+        uint256 amount01 = getAmountOut(params.wombatRouter, params.token0, params.token1, params.pool0, params.denominator0);
+        uint256 amount02 = getAmountOut(params.wombatRouter, params.token0, params.token2, params.pool0, params.denominator0);
+        amount1InToken0 = (params.amount0Total * params.reserve1) / (params.reserve0 * amount01 / params.denominator0
+                + params.reserve1 + params.reserve2 * amount01 / amount02);
+        amount2InToken0 = (params.amount0Total * params.reserve2) / (params.reserve0 * amount02 / params.denominator0
+                + params.reserve1 * amount02 / amount01 + params.reserve2);
     }
 
     /**
@@ -361,10 +358,10 @@ library WombatLibrary {
      *
      */
     function getAmountLpTokens(CalculateParams memory params) internal view returns (uint256 amountLpTokens) {
-        uint256 amount1 = getAmountOut(params.wombatRouter, params.token0, params.token1, params.pool0, params.denominator0);
-        uint256 amount2 = getAmountOut(params.wombatRouter, params.token0, params.token2, params.pool0, params.denominator0);
+        uint256 amount10 = getAmountOut(params.wombatRouter, params.token1, params.token0, params.pool0, params.denominator1);
+        uint256 amount20 = getAmountOut(params.wombatRouter, params.token2, params.token0, params.pool0, params.denominator2);
         amountLpTokens = (params.totalAmountLpTokens * params.amount0Total) / (params.reserve0
-                + params.reserve1 * params.denominator0 / amount1 + params.reserve2 * params.denominator0 / amount2);
+                + params.reserve1 * amount10 / params.denominator1 + params.reserve2 * amount20 / params.denominator2);
     }
 
 }
