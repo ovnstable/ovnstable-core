@@ -7,6 +7,8 @@ const {DEFAULT, ARBITRUM, BSC, OPTIMISM, POLYGON} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
+const {Wallet} = require("zksync-web3");
+const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 
 let ethers = require('hardhat').ethers;
 
@@ -17,10 +19,19 @@ async function initWallet() {
         return wallet;
 
     let provider = ethers.provider;
-    wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+
+
+    if(process.env.STAND === 'zksync'){
+        wallet = new Wallet(process.env.PK_POLYGON);
+        wallet = (new Deployer(hre, wallet)).zkWallet;
+    }else {
+        wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+    }
+
     console.log('[User] Wallet: ' + wallet.address);
     const balance = await provider.getBalance(wallet.address);
     console.log('[User] Balance wallet: ' + fromE18(balance.toString()));
+
 
     return wallet;
 }
@@ -83,7 +94,7 @@ async function getContract(name, network){
         network = process.env.STAND;
 
     let ethers = hre.ethers;
-    let wallet = await initWallet(ethers);
+    let wallet = await initWallet();
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
@@ -106,7 +117,7 @@ async function getAbi(name){
 async function getStrategy(address){
 
     let ethers = hre.ethers;
-    let wallet = await initWallet(ethers);
+    let wallet = await initWallet();
 
     const StrategyJson = require("./abi/Strategy.json");
     return await ethers.getContractAt(StrategyJson.abi, address, wallet);
@@ -118,7 +129,7 @@ async function getERC20(name, wallet){
     let ethers = hre.ethers;
 
     if (!wallet){
-        wallet = await initWallet(ethers);
+        wallet = await initWallet();
     }
 
     const ERC20 = require("./abi/IERC20.json");
@@ -132,7 +143,7 @@ async function getERC20ByAddress(address, wallet){
     let ethers = hre.ethers;
 
     if (!wallet){
-        wallet = await initWallet(ethers);
+        wallet = await initWallet();
     }
 
     const ERC20 = require("./abi/IERC20.json");
@@ -213,7 +224,7 @@ async function getStrategyMapping(){
             url = "https://op.overnight.fi/api/dict/strategies";
             break;
         default:
-            throw Error('Unknown STAND: ' + process.env.STAND);
+            console.error('Unknown STAND: ' + process.env.STAND);
     }
 
     let strategiesMapping = [];

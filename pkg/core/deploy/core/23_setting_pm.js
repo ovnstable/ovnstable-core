@@ -2,12 +2,15 @@ const {ethers} = require("hardhat");
 
 let {DEFAULT, BSC, OPTIMISM, ARBITRUM} = require('@overnight-contracts/common/utils/assets');
 const hre = require("hardhat");
+const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 module.exports = async () => {
 
-    const pm = await ethers.getContract("PortfolioManager");
-    const exchange = await ethers.getContract("Exchange");
-    const m2m = await ethers.getContract("Mark2Market");
+    let wallet = await initWallet();
+
+    const pm = await ethers.getContract("PortfolioManager", wallet);
+    const exchange = await ethers.getContract("Exchange", wallet);
+    const m2m = await ethers.getContract("Mark2Market", wallet);
 
     let asset;
     if (hre.network.name === "optimism_dai") {

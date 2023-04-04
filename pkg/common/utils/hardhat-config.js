@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 console.log('Process:' + process.cwd());
 dotenv.config({path:__dirname+ '/../../../.env'});
 
-const {node_url, accounts, blockNumber} = require("./network");
+const {node_url, accounts, blockNumber, isZkSync} = require("./network");
 const {getGasPrice} = require("./network");
 let gasPrice = getGasPrice();
 
@@ -16,20 +16,35 @@ function getNetworkByName(network) {
     let blockNumberValue = blockNumber(network);
     console.log(`[Node] Forking url: [${forkingUrl}:${blockNumberValue}]`);
 
+    let zkSync = isZkSync();
+
+    let localhost;
+    if (zkSync){
+        localhost = {
+            // Use local node zkSync for testing
+            url: 'http://localhost:3050',
+            timeout: timeout,
+            accounts: accountsNetwork,
+            zksync: true,
+            ethNetwork: "mainnet",
+        }
+    }else {
+        localhost = {
+            timeout: timeout,
+            accounts: accountsNetwork,
+            zksync: false,
+        }
+    }
+
     return {
 
-        platform: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
 
         arbitrum: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         arbitrum_dai: {
@@ -37,13 +52,16 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
-        avalanche: {
+        zksync: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            ethNetwork: "mainnet",
+            zksync: true,
         },
 
         optimism: {
@@ -51,6 +69,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         optimism_dai: {
@@ -58,6 +77,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         bsc: {
@@ -65,6 +85,7 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         bsc_usdt: {
@@ -74,18 +95,13 @@ function getNetworkByName(network) {
             gasPrice: gasPrice,
         },
 
-        fantom: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
 
         polygon: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
         polygon_ins: {
@@ -93,21 +109,13 @@ function getNetworkByName(network) {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
+            zksync: false,
         },
 
-        polygon_dev: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-        },
-
-        localhost: {
-            timeout: timeout,
-            accounts: accountsNetwork,
-        },
+        localhost: localhost,
 
         hardhat: {
+            zksync: zkSync,
             forking: {
                 url: forkingUrl,
                 blockNumber: blockNumberValue,
@@ -142,6 +150,11 @@ let namedAccounts = {
     }
 }
 
+let zksolc = {
+    version: "1.3.5",
+    compilerSource: "binary",
+    settings: {},
+}
 
 let solidity = {
     version: "0.8.6",
@@ -170,26 +183,13 @@ function getEtherScan(chain){
 
     let object = {};
 
-    let api;
-    switch (chain) {
-        case 'ARBITRUM':
-            api = process.env.ETHERSCAN_API_ARBITRUM;
-            break;
-        case 'AVALANCHE':
-            api = process.env.ETHERSCAN_API_AVALANCHE;
-            break;
-        case 'BSC':
-            api = process.env.ETHERSCAN_API_BSC;
-            break;
-        case 'POLYGON':
-            api = process.env.ETHERSCAN_API_POLYGON;
-            break;
-        case 'OPTIMISM':
-            api = process.env.ETHERSCAN_API_OPTIMISM;
-            break;
-    }
+    let api = process.env[`ETHERSCAN_API_${chain.toUpperCase()}`];
 
-    object.apiKey = api;
+    if (api){
+        object.apiKey = api;
+    }else {
+        throw new Error('Not defined env: ' + `ETHERSCAN_API_${chain.toUpperCase()}`);
+    }
 
     return object;
 }
@@ -198,6 +198,7 @@ module.exports = {
     getNetwork: getNetwork,
     namedAccounts: namedAccounts,
     solidity: solidity,
+    zksolc: zksolc,
     mocha: mocha,
     gasReport: gasReport,
     etherscan: getEtherScan
