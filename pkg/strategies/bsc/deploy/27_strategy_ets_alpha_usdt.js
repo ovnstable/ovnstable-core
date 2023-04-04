@@ -9,7 +9,7 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEtsUsdt', deployments, save, null);
+        await deployProxyMulti(name, 'StrategyEts', deployments, save, null);
     });
 
     await settingSection(async (strategy) => {
