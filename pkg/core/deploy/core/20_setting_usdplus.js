@@ -1,11 +1,16 @@
 const { ethers } = require("hardhat");
+const {getContract, initWallet} = require("@overnight-contracts/common/utils/script-utils");
+const {Wallet} = require("zksync-web3");
 
+const hre = require('hardhat');
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    const usdPlus = await ethers.getContract("UsdPlusToken");
-    const exchange = await ethers.getContract("Exchange");
+    const wallet = await initWallet();
+
+    const usdPlus = await ethers.getContract("UsdPlusToken", wallet);
+    const exchange = await ethers.getContract("Exchange", wallet);
 
     console.log('usdPlus.setExchanger: ' + exchange.address)
     let tx = await usdPlus.setExchanger(exchange.address);

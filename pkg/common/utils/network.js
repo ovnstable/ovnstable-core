@@ -46,6 +46,10 @@ function accounts(networkName) {
     return [getPrivateKey(networkName)];
 }
 
+function isZkSync(){
+    return process.env.STAND.toLowerCase() === 'zksync';
+}
+
 function getGasPrice() {
 
 
@@ -84,6 +88,7 @@ function getBlockNumber(){
 module.exports = {
     getNodeUrl: getNodeUrl,
     node_url: node_url,
+    isZkSync: isZkSync,
     accounts: accounts,
     getGasPrice: getGasPrice,
     blockNumber: blockNumber,
