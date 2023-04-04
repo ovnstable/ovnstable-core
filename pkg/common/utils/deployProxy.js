@@ -77,10 +77,11 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
 
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
-    //await upgrades.forceImport('0x5AfF5fF3b0190EC73a956b3aAFE57C3b85d35b37', contractFactory, args, {
-    //    kind: 'uups',
-    //    unsafeAllow: unsafeAllow
-    //});
+    // uncomment for force import
+//    let proxyAddress = '';
+//    await upgrades.forceImport(proxyAddress, contractFactory, {
+//        kind: 'uups',
+//    });
 
     let proxy;
     try {
