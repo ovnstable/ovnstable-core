@@ -19,14 +19,29 @@ module.exports = async () => {
     items.push(...sterling());
     items.push(...ramses());
     items.push(...arbidex());
+    items.push(...wombat());
 
     await (await pl.addItems(items)).wait();
 
-    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
-    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
-    await (await pl.grantRole(Roles.EXCHANGER, '0xc2c84ca763572c6aF596B703Df9232b4313AD4e3')); // ETS Gamma
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
+    // await (await pl.grantRole(Roles.EXCHANGER, '0xc2c84ca763572c6aF596B703Df9232b4313AD4e3')); // ETS Gamma
 
     console.log('ArbitrumPayoutListener setting done');
+
+    function wombat(){
+
+        let dex = 'Wombat';
+
+        let items = [];
+        items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/USD+', dex));
+        items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex));
+        items.push(createSkim('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'LP-DAI+', dex));
+
+        return items;
+
+    }
+
 
     function solidlizard() {
 

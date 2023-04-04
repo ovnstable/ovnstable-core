@@ -21,8 +21,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pl.addItems(items)).wait();
 
-    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc')).address)).wait();
-    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc_usdt')).address)).wait();
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc')).address)).wait();
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc_usdt')).address)).wait();
 
     console.log('BscPayoutListener setting done');
 
@@ -56,8 +56,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         let dex = 'Wombat';
 
         let items = [];
-        items.push(createSkimTo('0x88bEb144352BD3109c79076202Fac2bcEAb87117', usdPlus.address, 'LP-USD+', dex, '0xdAa33667A9aB2791Fb0F3c0261C74c4A3d0A7eFA'));
-        items.push(createSkimTo('0xbd459E33307A4ae92fFFCb45C6893084CFC273B1', usdtPlus.address, 'LP-USDT+', dex, '0x51AbD2A24d225C80108252fb73AEd819f1Ef52Bd'));
+        items.push(createSkim('0x88bEb144352BD3109c79076202Fac2bcEAb87117', usdPlus.address, 'LP-USD+', dex));
+        items.push(createSkim('0xbd459E33307A4ae92fFFCb45C6893084CFC273B1', usdtPlus.address, 'LP-USDT+', dex));
 
         return items;
 
