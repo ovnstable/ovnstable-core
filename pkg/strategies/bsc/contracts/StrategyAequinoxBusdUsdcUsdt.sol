@@ -53,9 +53,13 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
     IBalancerMinter public balancerMinter;
 
+
+    IERC20 public aequenoxLPTokenReceipt;
+
     // --- events
 
-    event StrategyUpdatedParams();
+    event WithdrawLp(address to, uint256 amount);
+    event AequenoxLPTokenReceiptUpdated(address token);
 
     // ---  constructor
 
@@ -66,78 +70,30 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         __Strategy_init();
     }
 
-    // --- Setters
-
-    function setParams(StrategyParams calldata params) external onlyAdmin {
-
-        busdToken = IERC20(params.busdToken);
-        usdcToken = IERC20(params.usdcToken);
-        usdtToken = IERC20(params.usdtToken);
-        wBnbToken = IERC20(params.wBnbToken);
-        aeqToken = IERC20(params.aeqToken);
-        lpToken = IERC20(params.lpToken);
-
-        vault = IVault(params.vault);
-        gauge = IGauge(params.gauge);
-
-        poolIdBusdUsdcUsdt = params.poolIdBusdUsdcUsdt;
-        poolIdAeqWBnb = params.poolIdAeqWBnb;
-        poolIdWBnbBusd = params.poolIdWBnbBusd;
-
-        rewardWallet = params.rewardWallet;
-        rewardWalletPercent = params.rewardWalletPercent;
-
-        busdTokenDenominator = 10 ** IERC20Metadata(params.busdToken).decimals();
-        usdcTokenDenominator = 10 ** IERC20Metadata(params.usdcToken).decimals();
-        usdtTokenDenominator = 10 ** IERC20Metadata(params.usdtToken).decimals();
-        lpTokenDenominator = 10 ** IERC20Metadata(params.lpToken).decimals();
-
-        balancerMinter = IBalancerMinter(params.balancerMinter);
-
-        emit StrategyUpdatedParams();
+    function setAequenoxLPTokenReceipt(address _token) external onlyAdmin {
+        require('aequenoxLPTokenReceipt is not zero', address(aequenoxLPTokenReceipt) != address(0));
+        aequenoxLPTokenReceipt = IERC20(_token);
+        emit AequenoxLPTokenReceiptUpdated(_token);
     }
 
-    // --- logic
+
+    function withdraw(uint256 _amount) external {
+        require('amount not enough', aequenoxLPTokenReceipt.balanceOf(msg.sender) >= _amount);
+
+        aequenoxLPTokenReceipt.transferFrom(msg.sender, address(this), _amount);
+        gauge.withdraw(_amount);
+        gauge.transfer(msg.sender, _amount);
+        emit WithdrawLp(msg.sender, _amount);
+    }
+
+
+    // --- old logic
 
     function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
-
-        require(_asset == address(busdToken), "Some token not compatible");
-
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
-
-        IAsset[] memory assets = new IAsset[](3);
-        uint256[] memory maxAmountsIn = new uint256[](3);
-        uint256[] memory amountsIn = new uint256[](3);
-        for (uint256 i; i < 3; i++) {
-            assets[i] = IAsset(address(tokens[i]));
-            if (tokens[i] == busdToken) {
-                maxAmountsIn[i] = _amount;
-                amountsIn[i] = _amount;
-            } else {
-                maxAmountsIn[i] = 0;
-                amountsIn[i] = 0;
-            }
-        }
-
-        // Exact Tokens Join (EXACT_TOKENS_IN_FOR_BPT_OUT) spend all _amount
-        uint256 joinKind = 1;
-        // minimum LP tokens to receive
-        uint256 minimumBPT = 0;
-        bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
-
-        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
-
-        // join pool
-        busdToken.approve(address(vault), _amount);
-        vault.joinPool(poolIdBusdUsdcUsdt, address(this), address(this), request);
-
-        // stake lp
-        uint256 lpBalance = lpToken.balanceOf(address(this));
-        lpToken.approve(address(gauge), lpBalance);
-        gauge.deposit(lpBalance);
+        return 0;
     }
 
     function _unstake(
@@ -145,176 +101,33 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        return 0;
 
-        require(_asset == address(busdToken), "Some token not compatible");
-
-        // get amount lp to unstake
-        uint256 amountLp = OvnMath.addBasisPoints(_amount, 4) * lpTokenDenominator / _getBusdByLp(lpTokenDenominator);
-
-        // unstake lp
-        gauge.withdraw(amountLp);
-
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
-
-        IAsset[] memory assets = new IAsset[](3);
-        uint256[] memory minAmountsOut = new uint256[](3);
-        for (uint256 i; i < 3; i++) {
-            assets[i] = IAsset(address(tokens[i]));
-            if (tokens[i] == busdToken) {
-                minAmountsOut[i] = _amount;
-            } else {
-                minAmountsOut[i] = 0;
-            }
-        }
-
-        // Custom Exit (BPT_IN_FOR_EXACT_TOKENS_OUT) spend all _amount
-        uint256 exitKind = 2;
-        // maximum LP tokens to spend
-        uint256 maxBPTAmountIn = amountLp;
-        bytes memory userData = abi.encode(exitKind, minAmountsOut, maxBPTAmountIn);
-
-        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
-
-        // exit pool
-        vault.exitPool(poolIdBusdUsdcUsdt, address(this), payable(address(this)), request);
-
-        // stake unused lp back
-        uint256 lpBalance = lpToken.balanceOf(address(this));
-        lpToken.approve(address(gauge), lpBalance);
-        gauge.deposit(lpBalance);
-
-        return busdToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
-        require(_asset == address(busdToken), "Some token not compatible");
-
-        // get amount lp to unstake
-        uint256 amountLp = gauge.balanceOf(address(this));
-
-        // unstake lp
-        gauge.withdraw(amountLp);
-
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
-
-        IAsset[] memory assets = new IAsset[](3);
-        uint256[] memory minAmountsOut = new uint256[](3);
-        for (uint256 i; i < 3; i++) {
-            assets[i] = IAsset(address(tokens[i]));
-            if (tokens[i] == busdToken) {
-                minAmountsOut[i] = OvnMath.subBasisPoints(_getBusdByLp(amountLp), 4);
-            } else {
-                minAmountsOut[i] = 0;
-            }
-        }
-
-        // Single Asset Exit (EXACT_BPT_IN_FOR_ONE_TOKEN_OUT) spend all LP tokens
-        uint256 exitKind = 0;
-        // BUSD index in pool
-        uint256 exitTokenIndex = 2;
-        bytes memory userData = abi.encode(exitKind, amountLp, exitTokenIndex);
-
-        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
-
-        // exit pool
-        vault.exitPool(poolIdBusdUsdcUsdt, address(this), payable(address(this)), request);
-
-        return busdToken.balanceOf(address(this));
+        return 0;
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return 0;
+
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
-    }
-
-    function _totalValue() internal view returns (uint256) {
         return 0;
+
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        uint256 lpBalance = gauge.balanceOf(address(this));
-        if (lpBalance > 0) {
-            balancerMinter.mint(address(gauge));
-        }
-
-        // sell rewards
-        uint256 totalBusd;
-
-        uint256 aeqBalance = aeqToken.balanceOf(address(this));
-        if (aeqBalance > 0) {
-            // transfer to rewardWallet
-            uint256 rewardBalance = aeqBalance * rewardWalletPercent / 1e4;
-            aeqToken.transfer(rewardWallet, rewardBalance);
-
-            // sell rest tokens
-            uint256 toBalance = aeqBalance - rewardBalance;
-            uint256 aeqBusd = AequinoxLibrary.batchSwap(
-                vault,
-                IVault.SwapKind.GIVEN_IN,
-                aeqToken,
-                wBnbToken,
-                busdToken,
-                poolIdAeqWBnb,
-                poolIdWBnbBusd,
-                toBalance,
-                address(this),
-                address(this)
-            );
-
-            totalBusd += aeqBusd;
-        }
-
-        if (totalBusd > 0) {
-            busdToken.transfer(_to, totalBusd);
-        }
-
-        return totalBusd;
+        return 0;
     }
 
-    function _getBusdByLp(uint256 lpBalance) internal returns (uint256) {
-        uint256 lpTotalSupply = lpToken.totalSupply();
-        (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock) = vault.getPoolTokens(poolIdBusdUsdcUsdt);
 
-        uint256 totalBalanceBusd;
-        for (uint256 i; i < 3; i++) {
-            uint256 tokenBalance = balances[i] * lpBalance / lpTotalSupply;
-            if (tokens[i] == usdtToken) {
-                totalBalanceBusd += AequinoxLibrary.queryBatchSwap(
-                    vault,
-                    IVault.SwapKind.GIVEN_IN,
-                    tokens[i],
-                    busdToken,
-                    poolIdBusdUsdcUsdt,
-                    tokenBalance,
-                    address(this),
-                    address(this)
-                );
-            } else if (tokens[i] == usdcToken) {
-                totalBalanceBusd += AequinoxLibrary.queryBatchSwap(
-                    vault,
-                    IVault.SwapKind.GIVEN_IN,
-                    tokens[i],
-                    busdToken,
-                    poolIdBusdUsdcUsdt,
-                    tokenBalance,
-                    address(this),
-                    address(this)
-                );
-            } else if (tokens[i] == busdToken) {
-                totalBalanceBusd += tokenBalance;
-            }
-        }
-
-        return totalBalanceBusd;
-    }
 
 }

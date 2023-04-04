@@ -598,6 +598,8 @@ interface IVault {
 
 interface IGauge {
 
+    function transfer(address to, uint256 amount) external returns (bool);
+
     function balanceOf(address account) view external returns (uint256);
 
     function deposit(uint256 _amount) external;
