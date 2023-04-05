@@ -135,7 +135,6 @@ contract StrategyWombatUsdc is Strategy {
         }
 
         // unstake
-
         wombexVault.withdrawAndUnwrap(assetAmount, false);
 
         // remove liquidity

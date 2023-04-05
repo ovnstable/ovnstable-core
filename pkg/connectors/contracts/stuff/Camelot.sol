@@ -60,6 +60,15 @@ library CamelotLibrary {
 
     function getAmountsOut(
         ICamelotRouter router,
+        address[] memory path,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+        return router.getAmountsOut(amountInput, path)[1];
+    }
+
+
+    function getAmountsOut(
+        ICamelotRouter router,
         address inputToken,
         address middleToken,
         address outputToken,
@@ -115,6 +124,26 @@ library CamelotLibrary {
         path[0] = inputToken;
         path[1] = middleToken;
         path[2] = outputToken;
+
+        router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            recipient,
+            address(0),
+            block.timestamp
+        );
+    }
+
+    function pathSwap(
+        ICamelotRouter router,
+        address[] memory path,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal  {
+
+        IERC20(path[0]).approve(address(router), amountInput);
 
         router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             amountInput,
