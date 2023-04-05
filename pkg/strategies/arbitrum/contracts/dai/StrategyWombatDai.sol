@@ -8,8 +8,6 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyWombatDai is Strategy {
 
     // --- structs
