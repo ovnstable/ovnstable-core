@@ -5,7 +5,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-interface IPool {
+interface IWombatPool {
     function getTokens() external view returns (address[] memory);
 
     function addressOfAsset(address token) external view returns (address);
@@ -69,7 +69,7 @@ interface IPool {
 }
 
 
-interface IAsset is IERC20 {
+interface IWombatAsset is IERC20 {
     function underlyingToken() external view returns (address);
 
     function pool() external view returns (address);
@@ -200,7 +200,7 @@ interface IWombatRouter {
     ) external returns (uint256 amountOut);
 
     function addLiquidityNative(
-        IPool pool,
+        IWombatPool pool,
         uint256 minimumLiquidity,
         address to,
         uint256 deadline,
@@ -208,7 +208,7 @@ interface IWombatRouter {
     ) external payable returns (uint256 liquidity);
 
     function removeLiquidityNative(
-        IPool pool,
+        IWombatPool pool,
         uint256 liquidity,
         uint256 minimumAmount,
         address to,
@@ -216,7 +216,7 @@ interface IWombatRouter {
     ) external returns (uint256 amount);
 
     function removeLiquidityFromOtherAssetAsNative(
-        IPool pool,
+        IWombatPool pool,
         address fromToken,
         uint256 liquidity,
         uint256 minimumAmount,
