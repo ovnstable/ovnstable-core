@@ -149,17 +149,17 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         try {
             await hre.run("verify:verify", {
                 address: proxy.address,
-                constructorArguments: [args],
+                constructorArguments: args,
             });
         } catch (e) {
             console.log(e);
         }
 
 
-        console.log(`Verify impl [${impl.impl}] ....`);
+        console.log(`Verify impl [${implAddress}] ....`);
 
         await hre.run("verify:verify", {
-            address: impl.impl,
+            address: implAddress,
             constructorArguments: [],
         });
     }
