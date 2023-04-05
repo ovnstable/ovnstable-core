@@ -45,6 +45,11 @@ let arrays = [
         name: 'StrategySolidlizardUsdcDai',
         enabledReward: true,
         isRunStrategyLogic: true
+    },
+    {
+        name: 'StrategyWombatUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false
     }
 ];
 
