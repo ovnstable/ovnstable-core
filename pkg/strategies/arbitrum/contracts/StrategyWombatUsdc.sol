@@ -173,13 +173,8 @@ contract StrategyWombatUsdc is Strategy {
         uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
         if (assetBalance > 0) {
-            if (nav) {
-                (uint256 usdcAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdc), assetWombatDm);
-                usdcBalance += assetBalance * usdcAmountOneAsset / assetWombatDm;
-            } else {
-                (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
-                usdcBalance += usdcAmount;
-            }
+            (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
+            usdcBalance += usdcAmount;
         }
 
         return usdcBalance;

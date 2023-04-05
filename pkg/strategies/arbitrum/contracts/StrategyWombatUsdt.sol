@@ -224,12 +224,10 @@ contract StrategyWombatUsdt is Strategy {
         uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
         if (assetBalance > 0) {
+            (uint256 usdtAmount,) = poolWombat.quotePotentialWithdraw(address(usdt), assetBalance);
             if (nav) {
-                (uint256 usdtAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdt), assetWombatDm);
-                uint256 usdtAmount = assetBalance * usdtAmountOneAsset / assetWombatDm;
                 usdcBalance += _oracleUsdtToUsdc(usdtAmount);
             } else {
-                (uint256 usdtAmount,) = poolWombat.quotePotentialWithdraw(address(usdt), assetBalance);
                 usdcBalance += CurveLibrary.getAmountOut(curvePool, address(usdt), address(usdc), usdtAmount);
             }
         }

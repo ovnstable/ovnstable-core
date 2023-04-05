@@ -174,13 +174,8 @@ contract StrategyWombatDai is Strategy {
         uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
         if (assetBalance > 0) {
-            if (nav) {
-                (uint256 daiAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(dai), assetWombatDm);
-                daiBalance += assetBalance * daiAmountOneAsset / assetWombatDm;
-            } else {
-                (uint256 daiAmount,) = poolWombat.quotePotentialWithdraw(address(dai), assetBalance);
-                daiBalance += daiAmount;
-            }
+            (uint256 daiAmount,) = poolWombat.quotePotentialWithdraw(address(dai), assetBalance);
+            daiBalance += daiAmount;
         }
 
         return daiBalance;

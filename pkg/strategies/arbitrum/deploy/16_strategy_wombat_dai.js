@@ -21,7 +21,7 @@ module.exports = async ({deployments}) => {
                 masterWombat: '0x62a83c6791a3d7950d823bb71a38e47252b6b6f4',
                 uniswapV3Router: ARBITRUM.uniswapV3Router,
                 poolFee0: 3000, //0.3% WOM->USDT
-                poolFee1: 100   //0.01% USDT->USDC
+                poolFee1: 100   //0.01% USDT->DAI
             }
         )).wait();
     });
