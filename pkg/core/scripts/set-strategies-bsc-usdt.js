@@ -21,7 +21,7 @@ async function main() {
             "targetWeight": 25,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {
@@ -31,7 +31,7 @@ async function main() {
             "targetWeight": 25,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {
@@ -51,7 +51,7 @@ async function main() {
             "targetWeight": 20,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         }
     ]
@@ -63,8 +63,8 @@ async function main() {
     await showM2M();
 
     let pm = await getContract('PortfolioManager');
-    await pm.setStrategyWeights(weights, price);
-    await pm.balance(price);
+    await (await pm.balance(price)).wait();
+    await (await pm.setStrategyWeights(weights, price)).wait();
 
     await showM2M();
 }
