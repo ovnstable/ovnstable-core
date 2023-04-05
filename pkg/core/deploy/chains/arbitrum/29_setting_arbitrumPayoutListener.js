@@ -20,6 +20,7 @@ module.exports = async () => {
     items.push(...ramses());
     items.push(...arbidex());
     items.push(...wombat());
+    items.push(...auragi());
 
     await (await pl.addItems(items)).wait();
 
@@ -28,6 +29,19 @@ module.exports = async () => {
     // await (await pl.grantRole(Roles.EXCHANGER, '0xc2c84ca763572c6aF596B703Df9232b4313AD4e3')); // ETS Gamma
 
     console.log('ArbitrumPayoutListener setting done');
+
+    function auragi(){
+
+        let dex = 'Auragi';
+
+        let items = [];
+        items.push(createSkim('0x60a3bbec81a92e8894ed112a148dfcc98f577ba1', usdPlus.address, 'USD+/DAI+', dex));
+        items.push(createSkim('0x60a3bbec81a92e8894ed112a148dfcc98f577ba1', daiPlus.address, 'USD+/DAI+', dex));
+        items.push(createSkim('0x700fd177226b12bda94568940c2bc6cf4c8bfd51', usdPlus.address, 'USD+/USDC', dex));
+
+        return items;
+
+    }
 
     function wombat(){
 
