@@ -7,8 +7,9 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 
-import "hardhat/console.sol";
 contract StrategyWombatUsdt is Strategy {
 
     // --- structs
@@ -17,6 +18,7 @@ contract StrategyWombatUsdt is Strategy {
         address usdc;
         address usdt;
         address wom;
+        address wmx;
         address assetWombat;
         address poolWombat;
         address masterWombat;
@@ -26,6 +28,11 @@ contract StrategyWombatUsdt is Strategy {
         address curvePool;
         address oracleUsdc;
         address oracleUsdt;
+
+        address wombexBooster;
+        uint256 wombexBoosterPid;
+        address wombexVault;
+        address camelorRouter;
     }
 
     // --- params
@@ -37,9 +44,9 @@ contract StrategyWombatUsdt is Strategy {
     uint256 public usdcDm;
     uint256 public usdtDm;
 
-    IAsset public assetWombat;
+    IWombatAsset public assetWombat;
     uint256 public assetWombatDm;
-    IPool public poolWombat;
+    IWombatPool public poolWombat;
     IMasterWombatV2 public masterWombat;
     ISwapRouter public uniswapV3Router;
 
@@ -50,6 +57,13 @@ contract StrategyWombatUsdt is Strategy {
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleUsdt;
+
+    IWombexBooster public wombexBooster;
+    uint256 public wombexBoosterPid;
+    IWombexVault public wombexVault;
+    IERC20 public wmx;
+
+    ICamelotRouter public camelorRouter;
 
     // --- events
 
@@ -70,9 +84,10 @@ contract StrategyWombatUsdt is Strategy {
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
         wom = IERC20(params.wom);
+        wmx = IERC20(params.wmx);
 
-        assetWombat = IAsset(params.assetWombat);
-        poolWombat = IPool(params.poolWombat);
+        assetWombat = IWombatAsset(params.assetWombat);
+        poolWombat = IWombatPool(params.poolWombat);
         masterWombat = IMasterWombatV2(params.masterWombat);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
@@ -87,6 +102,12 @@ contract StrategyWombatUsdt is Strategy {
         oracleUsdt = IPriceFeed(params.oracleUsdt);
 
         curvePool = params.curvePool;
+
+        wombexBooster = IWombexBooster(params.wombexBooster);
+        wombexBoosterPid = params.wombexBoosterPid;
+        wombexVault = IWombexVault(params.wombexVault);
+
+        camelorRouter = ICamelotRouter(params.camelorRouter);
 
         emit StrategyUpdatedParams();
     }
@@ -124,10 +145,9 @@ contract StrategyWombatUsdt is Strategy {
         );
 
         // stake
-        uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         uint256 assetBalance = assetWombat.balanceOf(address(this));
-        assetWombat.approve(address(masterWombat), assetBalance);
-        masterWombat.deposit(pid, assetBalance);
+        assetWombat.approve(address(wombexBooster), assetBalance);
+        wombexBooster.deposit(wombexBoosterPid, assetBalance, true);
     }
 
     function _unstake(
@@ -143,14 +163,13 @@ contract StrategyWombatUsdt is Strategy {
         // add 1bp for smooth withdraw
         uint256 assetAmount = OvnMath.addBasisPoints(usdtAmountForUsdcAmount, swapSlippageBP) * assetWombatDm / usdcAmountOneAsset;
 
-        uint256 pid = masterWombat.getAssetPid(address(assetWombat));
-        (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
+        uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetAmount > assetBalance) {
             assetAmount = assetBalance;
         }
 
         // unstake
-        masterWombat.withdraw(pid, assetAmount);
+        wombexVault.withdrawAndUnwrap(assetAmount, false);
 
         // remove liquidity
         assetWombat.approve(address(poolWombat), assetAmount);
@@ -180,11 +199,10 @@ contract StrategyWombatUsdt is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        uint256 pid = masterWombat.getAssetPid(address(assetWombat));
-        (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
+        uint256 assetBalance = wombexVault.balanceOf(address(this));
 
         // unstake
-        masterWombat.withdraw(pid, assetBalance);
+        wombexVault.withdrawAndUnwrap(assetBalance, false);
 
         // remove liquidity
         (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
@@ -222,8 +240,7 @@ contract StrategyWombatUsdt is Strategy {
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 usdtBalance = usdt.balanceOf(address(this));
 
-        uint256 pid = masterWombat.getAssetPid(address(assetWombat));
-        (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
+        uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetBalance > 0) {
             (uint256 usdtAmountFromPool,) = poolWombat.quotePotentialWithdraw(address(usdt), assetBalance);
             usdtBalance += usdtAmountFromPool;
@@ -240,14 +257,27 @@ contract StrategyWombatUsdt is Strategy {
         return usdcBalance;
     }
 
-    function _claimRewards(address _to) internal override returns (uint256) {
+    function stakeAssetsToWombex() external onlyAdmin {
 
-        // claim rewards
+        // claim rewards from Wombat
         uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
         if (assetBalance > 0) {
             masterWombat.deposit(pid, 0);
         }
+
+        // withdraw assets from Wombat
+        masterWombat.withdraw(pid, assetBalance);
+
+        // deposit assets to Wombex
+        assetWombat.approve(address(wombexBooster), assetBalance);
+        wombexBooster.deposit(wombexBoosterPid, assetBalance, true);
+    }
+
+    function _claimRewards(address _to) internal override returns (uint256) {
+
+        // claim rewards
+        wombexVault.getReward(address(this), false);
 
         // sell rewards
         uint256 totalUsdc;
@@ -268,6 +298,33 @@ contract StrategyWombatUsdt is Strategy {
             );
 
             totalUsdc += amountOut;
+        }
+
+        uint256 wmxBalance = wmx.balanceOf(address(this));
+        if (wmxBalance > 0) {
+
+            uint256 amountOut = CamelotLibrary.getAmountsOut(
+                camelorRouter,
+                address(wmx),
+                address(usdt),
+                address(usdc),
+                wmxBalance
+            );
+
+            if (amountOut > 0) {
+                uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
+                CamelotLibrary.multiSwap(
+                    camelorRouter,
+                    address(wmx),
+                    address(usdt),
+                    address(usdc),
+                    wmxBalance,
+                    amountOut * 99 / 100,
+                    address(this)
+                );
+                totalUsdc += (usdc.balanceOf(address(this)) - balanceUsdcBefore);
+            }
+
         }
 
         if (totalUsdc > 0) {

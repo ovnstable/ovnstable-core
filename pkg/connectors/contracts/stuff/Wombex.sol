@@ -5,40 +5,20 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-interface IAsset is IERC20 {
-    function underlyingToken() external view returns (address);
+interface IWombexBooster {
 
-    function pool() external view returns (address);
+    function deposit(uint256 _pid, uint256 _amount, bool _stake) external returns(bool);
 
-    function cash() external view returns (uint120);
-
-    function liability() external view returns (uint120);
-
-    function decimals() external view returns (uint8);
-
-    function underlyingTokenDecimals() external view returns (uint8);
-
-    function setPool(address pool_) external;
-
-    function underlyingTokenBalance() external view returns (uint256);
-
-    function transferUnderlyingToken(address to, uint256 amount) external;
-
-    function mint(address to, uint256 amount) external;
-
-    function burn(address to, uint256 amount) external;
-
-    function addCash(uint256 amount) external;
-
-    function removeCash(uint256 amount) external;
-
-    function addLiability(uint256 amount) external;
-
-    function removeLiability(uint256 amount) external;
 }
 
+interface IWombexVault is IERC20 {
 
-interface IBaseRewardPool is IERC20 {
+    function withdrawAndUnwrap(uint256 amount, bool claim) external;
+
+    function getReward(address to, bool lockCvx) external;
+}
+
+interface IWombexBaseRewardPool is IERC20 {
 
     /**
      * @notice Total amount of the underlying asset that is "managed" by Vault.
@@ -205,7 +185,7 @@ interface IBaseRewardPool is IERC20 {
 }
 
 
-interface IPoolDepositor {
+interface IWombexPoolDepositor {
 
     function deposit(address _lptoken, uint256 _amount, uint256 _minLiquidity, bool _stake) external;
 
@@ -216,66 +196,3 @@ interface IPoolDepositor {
     function getWithdrawAmountOut(address _lptoken, uint256 _amount) external view returns (uint256 amount, uint256 fee);
 }
 
-
-interface IPool {
-    function getTokens() external view returns (address[] memory);
-
-    function addressOfAsset(address token) external view returns (address);
-
-    function deposit(
-        address token,
-        uint256 amount,
-        uint256 minimumLiquidity,
-        address to,
-        uint256 deadline,
-        bool shouldStake
-    ) external returns (uint256 liquidity);
-
-    function withdraw(
-        address token,
-        uint256 liquidity,
-        uint256 minimumAmount,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amount);
-
-    function withdrawFromOtherAsset(
-        address fromToken,
-        address toToken,
-        uint256 liquidity,
-        uint256 minimumAmount,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amount);
-
-    function swap(
-        address fromToken,
-        address toToken,
-        uint256 fromAmount,
-        uint256 minimumToAmount,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 actualToAmount, uint256 haircut);
-
-    function quotePotentialDeposit(address token, uint256 amount)
-    external
-    view
-    returns (uint256 liquidity, uint256 reward);
-
-    function quotePotentialSwap(
-        address fromToken,
-        address toToken,
-        int256 fromAmount
-    ) external view returns (uint256 potentialOutcome, uint256 haircut);
-
-    function quotePotentialWithdraw(address token, uint256 liquidity)
-    external
-    view
-    returns (uint256 amount, uint256 fee);
-
-    function quoteAmountIn(
-        address fromToken,
-        address toToken,
-        int256 toAmount
-    ) external view returns (uint256 amountIn, uint256 haircut);
-}

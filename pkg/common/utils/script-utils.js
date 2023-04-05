@@ -107,6 +107,28 @@ async function getContract(name, network){
 
 }
 
+async function getImplementation(name, network){
+
+    if (!network)
+        network = process.env.STAND;
+
+    let contractJson;
+    try {
+        let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        contractJson = JSON.parse(fs.readFileSync(searchPath));
+    } catch (e) {
+        console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
+        throw new Error(e);
+    }
+
+    if (contractJson.implementation) {
+        console.log(`Found implementation: ${contractJson.implementation} for contract: ${name} in network: ${network}`);
+        return contractJson.implementation;
+    }else {
+        throw new Error(`Error: Could not find a implementation for contract [${name}] in network: [${network}]`);
+    }
+}
+
 async function getAbi(name){
 
     let searchPath = fromDir(require('app-root-path').path, path.join("/" + name + ".json"));
@@ -792,6 +814,7 @@ module.exports = {
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
+    getImplementation: getImplementation,
     getERC20: getERC20,
     getERC20ByAddress: getERC20ByAddress,
     getCoreAsset: getCoreAsset,
