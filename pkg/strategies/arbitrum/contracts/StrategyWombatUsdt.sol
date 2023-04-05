@@ -220,15 +220,20 @@ contract StrategyWombatUsdt is Strategy {
 
     function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdc.balanceOf(address(this));
+        uint256 usdtBalance = usdt.balanceOf(address(this));
 
         uint256 pid = masterWombat.getAssetPid(address(assetWombat));
         (uint128 assetBalance,,,) = masterWombat.userInfo(pid, address(this));
         if (assetBalance > 0) {
-            (uint256 usdtAmount,) = poolWombat.quotePotentialWithdraw(address(usdt), assetBalance);
+            (uint256 usdtAmountFromPool,) = poolWombat.quotePotentialWithdraw(address(usdt), assetBalance);
+            usdtBalance += usdtAmountFromPool;
+        }
+
+        if(usdtBalance > 0){
             if (nav) {
-                usdcBalance += _oracleUsdtToUsdc(usdtAmount);
+                usdcBalance += _oracleUsdtToUsdc(usdtBalance);
             } else {
-                usdcBalance += CurveLibrary.getAmountOut(curvePool, address(usdt), address(usdc), usdtAmount);
+                usdcBalance += CurveLibrary.getAmountOut(curvePool, address(usdt), address(usdc), usdtBalance);
             }
         }
 
