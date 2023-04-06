@@ -179,7 +179,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         payoutPeriod = 24 * 60 * 60;
 
-        payoutTimeRange = 15 * 60;
+        payoutTimeRange = 8 * 60 * 60; // 8 hours
 
         abroadMin = 1000100;
         abroadMax = 1000350;

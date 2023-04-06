@@ -87,7 +87,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         // 1637193600 = 2021-11-18T00:00:00Z
         nextPayoutTime = 1637193600;
         payoutPeriod = 24 * 60 * 60;
-        payoutTimeRange = 15 * 60;
+        payoutTimeRange = 8 * 60 * 60; // 8 hours
 
         // 3 day in seconds
         requestWaitPeriod = 259200;
