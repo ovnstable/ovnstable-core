@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aequinox.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
+import "hardhat/console.sol";
 
 contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
@@ -71,7 +72,7 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     }
 
     function setAeqDelayRecovery(address _token) external onlyAdmin {
-        require(address(aeqDelayRecovery) != address(0), 'aeqDelayRecovery is not zero');
+        require(address(aeqDelayRecovery) == address(0), 'aeqDelayRecovery is not zero');
         aeqDelayRecovery = IERC20(_token);
         emit AeqDelayRecoveryUpdated(_token);
     }
