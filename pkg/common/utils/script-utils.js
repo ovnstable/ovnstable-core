@@ -88,6 +88,22 @@ async function settingSection(exec){
     }
 }
 
+/**
+ * Allow check address is contract or not
+ * @returns bool true/false is contract
+ *
+ */
+
+async function isContract(address){
+
+    try {
+        const code = await ethers.provider.getCode(address);
+        if (code !== '0x') return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 async function getContract(name, network){
 
     if (!network)
@@ -814,6 +830,7 @@ module.exports = {
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
+    isContract: isContract,
     getImplementation: getImplementation,
     getERC20: getERC20,
     getERC20ByAddress: getERC20ByAddress,
