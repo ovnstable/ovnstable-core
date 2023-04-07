@@ -8,12 +8,12 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
-contract StrategyMagpieUsdc is Strategy {
+contract StrategyMagpieDai is Strategy {
 
     // --- structs
 
     struct StrategyParams {
-        address usdc;
+        address dai;
         address usdt;
         address weth;
         address wom;
@@ -31,7 +31,7 @@ contract StrategyMagpieUsdc is Strategy {
 
     // --- params
 
-    IERC20 public usdc;
+    IERC20 public dai;
     IERC20 public usdt;
     IERC20 public weth;
     IERC20 public wom;
@@ -68,7 +68,7 @@ contract StrategyMagpieUsdc is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        usdc = IERC20(params.usdc);
+        dai = IERC20(params.dai);
         usdt = IERC20(params.usdt);
         weth = IERC20(params.weth);
         wom = IERC20(params.wom);
@@ -99,9 +99,9 @@ contract StrategyMagpieUsdc is Strategy {
     ) internal override {
 
         // add liquidity
-        (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(usdc), _amount);
+        (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(dai), _amount);
 
-        usdc.approve(address(stakingWombat), _amount);
+        dai.approve(address(stakingWombat), _amount);
         poolHelperMgp.deposit(_amount, OvnMath.subBasisPoints(assetAmount, 1));
     }
 
@@ -112,9 +112,9 @@ contract StrategyMagpieUsdc is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        (uint256 usdcAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdc), assetWombatDm);
+        (uint256 daiAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(dai), assetWombatDm);
         // add 1bp for smooth withdraw
-        uint256 assetAmount = OvnMath.addBasisPoints(_amount, 1) * assetWombatDm / usdcAmountOneAsset;
+        uint256 assetAmount = OvnMath.addBasisPoints(_amount, 1) * assetWombatDm / daiAmountOneAsset;
         uint256 assetBalance = poolHelperMgp.balance(address(this));
         if (assetAmount > assetBalance) {
             assetAmount = assetBalance;
@@ -123,7 +123,7 @@ contract StrategyMagpieUsdc is Strategy {
         // unstake
         poolHelperMgp.withdraw(assetAmount, _amount);
 
-        return usdc.balanceOf(address(this));
+        return dai.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -134,7 +134,7 @@ contract StrategyMagpieUsdc is Strategy {
         uint256 assetBalance = poolHelperMgp.balance(address(this));
         poolHelperMgp.withdraw(assetBalance, _totalValue(false));
 
-        return usdc.balanceOf(address(this));
+        return dai.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -146,15 +146,15 @@ contract StrategyMagpieUsdc is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        uint256 usdcBalance = usdc.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
 
         uint256 assetBalance = poolHelperMgp.balance(address(this));
         if (assetBalance > 0) {
-            (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
-            usdcBalance += usdcAmount;
+            (uint256 daiAmount,) = poolWombat.quotePotentialWithdraw(address(dai), assetBalance);
+            daiBalance += daiAmount;
         }
 
-        return usdcBalance;
+        return daiBalance;
     }
 
 
@@ -178,7 +178,7 @@ contract StrategyMagpieUsdc is Strategy {
         masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         // sell rewards
-        uint256 totalUsdc;
+        uint256 totalDai;
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
@@ -187,7 +187,7 @@ contract StrategyMagpieUsdc is Strategy {
                 uniswapV3Router,
                 address(wom),
                 address(usdt),
-                address(usdc),
+                address(dai),
                 poolFee0,
                 poolFee1,
                 address(this),
@@ -195,7 +195,7 @@ contract StrategyMagpieUsdc is Strategy {
                 0
             );
 
-            totalUsdc += amountOut;
+            totalDai += amountOut;
         }
 
         uint256 mgpBalance = mgp.balanceOf(address(this));
@@ -204,7 +204,7 @@ contract StrategyMagpieUsdc is Strategy {
             IERC20[] memory tokenPath = new IERC20[](3);
             tokenPath[0] = mgp;
             tokenPath[1] = weth;
-            tokenPath[2] = usdc;
+            tokenPath[2] = dai;
 
             uint256[] memory pairBinSteps = new uint256[](2);
             pairBinSteps[0] = 0;
@@ -221,7 +221,7 @@ contract StrategyMagpieUsdc is Strategy {
 
             mgp.approve(address(traderJoeRouter), mgpBalance);
 
-            uint256 mgpUsdc = traderJoeRouter.swapExactTokensForTokens(
+            uint256 mgpDai = traderJoeRouter.swapExactTokensForTokens(
                 mgpBalance,
                 0,
                 path,
@@ -229,15 +229,15 @@ contract StrategyMagpieUsdc is Strategy {
                 block.timestamp
             );
 
-            totalUsdc += mgpUsdc;
+            totalDai += mgpDai;
         }
 
 
-        if (totalUsdc > 0) {
-            usdc.transfer(_to, totalUsdc);
+        if (totalDai > 0) {
+            dai.transfer(_to, totalDai);
         }
 
-        return totalUsdc;
+        return totalDai;
     }
 
 }

@@ -66,6 +66,12 @@ let arrays = [
         enabledReward: true,
         isRunStrategyLogic: false,
         doubleStakeReward: true,
+    },
+    {
+        name: 'StrategyMagpieDai',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+        doubleStakeReward: true,
     }
 ];
 
