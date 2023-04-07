@@ -32,7 +32,7 @@ async function getParams() {
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
         poolFee1: 100,   //0,.01% USDT->USDC
-        traderJoeRouter: ARBITRUM.traiderJoeRouter
+        traderJoeRouter: ARBITRUM.traderJoeRouter
     }
 }
 
