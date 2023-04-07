@@ -78,11 +78,9 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
     }
 
 
-    function withdraw(uint256 _amount) external {
-        require(aeqDelayRecovery.balanceOf(msg.sender) >= _amount, 'amount not enough');
-
+    function withdraw() external {
+        uint256 _amount = aeqDelayRecovery.balanceOf(msg.sender);
         aeqDelayRecovery.transferFrom(msg.sender, address(this), _amount);
-        gauge.withdraw(_amount);
         gauge.transfer(msg.sender, _amount);
         emit WithdrawLp(msg.sender, _amount);
     }
