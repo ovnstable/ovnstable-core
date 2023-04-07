@@ -44,6 +44,8 @@ let ARBITRUM = {
     ramsesRouter: "0xAAA87963EFeB6f7E0a2711F397663105Acb1805e",
     camelorRouter: "0xc873fecbd354f5a56e00e710b90ef4201db2448d",
     traderJoeV3Router: "0x7BFd7192E76D950832c77BB412aaE841049D8D9B",
+    traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
+
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",

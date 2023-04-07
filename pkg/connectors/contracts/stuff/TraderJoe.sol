@@ -162,8 +162,31 @@ interface IJoeRouter01 {
     returns (uint256[] memory amounts);
 }
 
+    enum Version {
+        V1,
+        V2,
+        V2_1
+    }
+
+    struct Path {
+        uint256[] pairBinSteps;
+        Version[] versions;
+        IERC20[] tokenPath;
+    }
 
 
+interface JoeRouterV3 {
+
+
+    function swapExactTokensForTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        Path memory path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256 amountOut);
+
+}
 
 interface IJoeRouter02 is IJoeRouter01 {
     function removeLiquidityAVAXSupportingFeeOnTransferTokens(
