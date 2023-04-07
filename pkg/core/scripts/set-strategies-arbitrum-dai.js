@@ -26,10 +26,10 @@ async function main() {
             "strategy": "0xd05c15AA8D3E8AEb9833826AbC6C5C591C762D9d",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 55,
+            "targetWeight": 52.5,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": false
         },
         {
@@ -40,6 +40,16 @@ async function main() {
             "riskFactor": 0,
             "maxWeight": 100,
             "enabled": true,
+            "enabledReward": true
+        },
+        {
+            "strategy": "0x11f7df23d4eA6Ce39Dc6DEB08A3D39B226EA73dB",
+            "name": "Magpie DAI",
+            "minWeight": 0,
+            "targetWeight": 2.5,
+            "riskFactor": 0,
+            "maxWeight": 100,
+            "enabled": false,
             "enabledReward": true
         },
     ]
