@@ -60,6 +60,18 @@ let arrays = [
         name: 'StrategyWombatUsdt',
         enabledReward: true,
         isRunStrategyLogic: false
+    },
+    {
+        name: 'StrategyMagpieUsdc',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+        doubleStakeReward: true,
+    },
+    {
+        name: 'StrategyMagpieDai',
+        enabledReward: true,
+        isRunStrategyLogic: false,
+        doubleStakeReward: true,
     }
 ];
 
