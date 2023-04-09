@@ -26,7 +26,7 @@ async function main() {
             "strategy": "0xd05c15AA8D3E8AEb9833826AbC6C5C591C762D9d",
             "name": "USD+",
             "minWeight": 0,
-            "targetWeight": 45,
+            "targetWeight": 37.5,
             "riskFactor": 0,
             "maxWeight": 100,
             "enabled": false,
@@ -36,20 +36,20 @@ async function main() {
             "strategy": "0xC267Db15A7d92a417c2eF3e8129A8A40cEb542a6",
             "name": "Wombat DAI",
             "minWeight": 0,
-            "targetWeight": 42.5,
+            "targetWeight": 5,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
+            "enabled": false,
             "enabledReward": true
         },
         {
             "strategy": "0x11f7df23d4eA6Ce39Dc6DEB08A3D39B226EA73dB",
             "name": "Magpie DAI",
             "minWeight": 0,
-            "targetWeight": 10,
+            "targetWeight": 55,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": false,
+            "enabled": true,
             "enabledReward": true
         },
     ]
