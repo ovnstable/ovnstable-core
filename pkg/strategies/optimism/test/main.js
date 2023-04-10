@@ -138,6 +138,10 @@ let arrays = [
     {
         name: 'StrategySushiswapUsdcUsdt',
         enabledReward: true,
+    },
+    {
+        name: 'StrategyVelodromeUsdcUsdPlus',
+        enabledReward: true,
     }
 ];
 
