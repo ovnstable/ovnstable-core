@@ -127,7 +127,8 @@ contract StrategyVelodromeUsdcUsdPlus is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-        usdp.transfer(address(router), usdp.balanceOf(address(this)));
+        // only for tests
+        // usdp.transfer(address(router), usdp.balanceOf(address(this)));
         
         (uint256 reserveUsdp, uint256 reserveUsdc,) = pair.getReserves();
         require(reserveUsdc > 10 ** 3 && reserveUsdp > 10 ** 3, 'Liquidity lpToken reserves too low');
