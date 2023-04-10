@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aequinox.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "./Strategy.sol";
 
 import "hardhat/console.sol";
 
@@ -54,13 +54,25 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
     IBalancerMinter public balancerMinter;
 
-
+    // - Airdrop Aequinox
     IERC20 public aeqDelayRecovery;
+    address public kama;
+    address public kamaUpgradeImplementation;
 
     // --- events
 
     event WithdrawLp(address to, uint256 amount);
     event AeqDelayRecoveryUpdated(address token);
+    event KamaInitialUpdated(address kama);
+    event KamaUpdated(address kama);
+    event KamaUpgradeImplementationUpdated(address implementation);
+
+
+    modifier onlyKama() {
+        require(msg.sender == kama, "Only Kama allowed to call!");
+        _;
+    }
+
 
     // ---  constructor
 
@@ -69,6 +81,35 @@ contract StrategyAequinoxBusdUsdcUsdt is Strategy {
 
     function initialize() initializer public {
         __Strategy_init();
+    }
+
+    // Update this function in Strategy.sol
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyAdmin
+    override
+    {
+        require(
+            newImplementation == kamaUpgradeImplementation,
+            "Upgrade not approved by Kama!"
+        );
+    }
+
+
+    function setKamaInitial(address kamaAddr) external onlyAdmin {
+        require(kama == address(0), "Address not zero!");
+        kama = kamaAddr;
+        emit KamaInitialUpdated(kamaAddr);
+    }
+
+    function setKama(address kamaAddr) external onlyKama {
+        kama = kamaAddr;
+        emit KamaUpdated(kamaAddr);
+    }
+
+    function setKamaUpgradeImplementation(address implementation) external onlyKama {
+        kamaUpgradeImplementation = implementation;
+        emit KamaUpgradeImplementationUpdated(implementation);
     }
 
     function setAeqDelayRecovery(address _token) external onlyAdmin {
