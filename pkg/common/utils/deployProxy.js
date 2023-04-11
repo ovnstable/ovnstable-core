@@ -2,7 +2,7 @@ const {ethers, upgrades} = require("hardhat");
 const hre = require("hardhat");
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
-const {getContract, checkTimeLockBalance, initWallet} = require("./script-utils");
+const {getContract, checkTimeLockBalance, initWallet, sleep} = require("./script-utils");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {isZkSync} = require("./network");
 
@@ -35,30 +35,68 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
 
     const deployer = new Deployer(hre, await initWallet());
 
-    let implArtifact = await deployer.loadArtifact(factoryName);
 
-    const implContract = await deployer.deploy(implArtifact, []);
-    console.log(`${contractName} deployed at ${implContract.address}`);
+    let proxyExist = true;
 
-    let proxyArtifact = await deployer.loadArtifact('ERC1967Proxy');
+    let proxy;
+    try {
+        proxy = await ethers.getContract(contractName);
+    } catch (e) {
+        console.log(`${contractName}: Proxy not found: ` + e);
+        proxyExist = false;
+    }
 
-    let initializeData = implContract.interface.getFunction('initialize');
-    let implAddress = implContract.address;
+    if (proxyExist){
 
-    let args = params.args ? params.args : [];
-    let implData = implContract.interface.encodeFunctionData(initializeData, args);
+        console.log(`${contractName}: Proxy found at` + proxy.address);
 
-    const proxy = await deployer.deploy(proxyArtifact, [implAddress,implData] );
+        let implArtifact = await deployer.loadArtifact(factoryName);
 
-    console.log(`Proxy ${contractName} deployed at ${proxy.address}`);
+        const implContract = await deployer.deploy(implArtifact, []);
+        console.log(`${contractName}: New implementation deployed at ${implContract.address}`);
 
-    await save(contractName, {
-        address: proxy.address,
-        implementation: implAddress,
-        ...implArtifact
-    });
+        // Execute this method can be not working when test it on local node
+        await (await proxy.upgradeTo(implContract.address)).wait();
 
-    console.log(`Save ${implArtifact.contractName} to deployments`);
+        console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
+
+        await save(contractName, {
+            address: proxy.address,
+            implementation: implContract.address,
+            ...implArtifact
+        });
+
+        console.log(`${contractName }: Update deployments`);
+
+    }else {
+        let implArtifact = await deployer.loadArtifact(factoryName);
+
+        const implContract = await deployer.deploy(implArtifact, []);
+        console.log(`${contractName} deployed at ${implContract.address}`);
+
+        let proxyArtifact = await deployer.loadArtifact('ERC1967Proxy');
+
+        let initializeData = implContract.interface.getFunction('initialize');
+        let implAddress = implContract.address;
+
+        let args = params.args ? params.args : [];
+        let implData = implContract.interface.encodeFunctionData(initializeData, args);
+
+        const proxy = await deployer.deploy(proxyArtifact, [implAddress,implData] );
+
+        console.log(`Proxy ${contractName} deployed at ${proxy.address}`);
+
+        await save(contractName, {
+            address: proxy.address,
+            implementation: implAddress,
+            ...implArtifact
+        });
+
+        console.log(`Save ${implArtifact.contractName} to deployments`);
+    }
+
+
+
 }
 
 async function deployProxyEth(contractName, factoryName, deployments, save, params) {

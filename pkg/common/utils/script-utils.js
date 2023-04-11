@@ -817,6 +817,10 @@ async function transferUSDC(amount, to) {
     console.log(`[Node] Transfer USDC [${fromE6(await usdc.balanceOf(to))}] to [${to}]:`);
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
@@ -825,6 +829,7 @@ module.exports = {
     getWalletAddress: getWalletAddress,
     getDevWallet: getDevWallet,
     transferETH: transferETH,
+    sleep: sleep,
     transferDAI: transferDAI,
     transferUSDPlus: transferUSDPlus,
     transferWBTC: transferWBTC,

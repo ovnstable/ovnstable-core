@@ -6,12 +6,12 @@ const {Roles} = require("@overnight-contracts/common/utils/roles");
 async function main() {
 
     let strategy = await getContract('StrategyVelocoreUsdcUsdPlus');
-    let pm = await getContract('PortfolioManager');
+    // let pm = await getContract('PortfolioManager');
 
-    await (await strategy.setPortfolioManager(pm.address)).wait();
-    console.log('setPortfolioManager done()');
+    // await (await strategy.setPortfolioManager(pm.address)).wait();
+    // console.log('setPortfolioManager done()');
 
-
+    await (await strategy.setSlippages(20, 20, 10000)).wait();
 }
 
 main()
