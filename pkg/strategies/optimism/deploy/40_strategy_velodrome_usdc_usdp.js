@@ -21,7 +21,6 @@ module.exports = async ({deployments}) => {
                 router: OPTIMISM.velodromeRouter,
                 gauge: gauge,
                 pair: pair,
-                curvePool: OPTIMISM.curve3Pool
             }
         )).wait();
     });

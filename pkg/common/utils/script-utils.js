@@ -74,7 +74,7 @@ async function settingSection(exec){
 
         let strategyName = hre.ovn.tags;
         try {
-            let strategy = await ethers.getContract(strategyName);
+            let strategy = await getContract(strategyName);
 
             let pm = await getContract('PortfolioManager', process.env.STAND);
             await (await strategy.setPortfolioManager(pm.address)).wait();
@@ -260,6 +260,9 @@ async function getStrategyMapping(){
         case "optimism":
         case "optimism_dai":
             url = "https://op.overnight.fi/api/dict/strategies";
+            break;
+        case "zksync":
+            url = "https://zksync.overnight.fi/api/dict/strategies";
             break;
         default:
             console.error('Unknown STAND: ' + process.env.STAND);
