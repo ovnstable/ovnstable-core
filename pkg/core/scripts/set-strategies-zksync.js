@@ -16,7 +16,7 @@ async function main() {
             "strategy": "0x6fdaF7CEF6518Bf99eE130d651b8625748746176",
             "name": "USDC",
             "minWeight": 0,
-            "targetWeight": 94.9,
+            "targetWeight": 34.9,
             "riskFactor": 0,
             "maxWeight": 100,
             "enabled": true,
@@ -32,16 +32,15 @@ async function main() {
             "enabled": true,
             "enabledReward": false
         },
-
         {
             "strategy": "0xD0251f1013f916d40144E45878Ac52f6d12cB067",
             "name": "Velodrome USDC/USD+",
             "minWeight": 0,
-            "targetWeight": 0.1,
+            "targetWeight": 60.1,
             "riskFactor": 0,
             "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": false
+            "enabled": false,
+            "enabledReward": true
         },
 
 
@@ -54,7 +53,7 @@ async function main() {
 
     let pm = await getContract('PortfolioManager');
     await (await pm.setStrategyWeights(weights)).wait();
-    await (await pm.balance()).wait();
+    // await (await pm.balance()).wait();
 
     await showM2M();
 
