@@ -42,11 +42,17 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         let dex = 'Thena';
 
         let items = [];
-        items.push(createBribe('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex, '0x90ab86ddd5fdae0207367c2d09e10ef1fb3cb651'));
-        items.push(createBribe('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex, '0x8FbF01a6D3Fef2847f2c35d9a05476eb859D6B2e'));
-        items.push(createBribe('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex, '0x8828Bd1b7abc5296D3FcfEb15F58c23088410449'));
-        items.push(createBribe('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex, '0xe52917158c3C8e29Ae3B5458200cbF516E56F660'));
-        items.push(createBribe('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex, '0x39d46d0f49fab60002d2f359d1497ffbfc889ea6'));
+        // items.push(createBribe('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex, '0x90ab86ddd5fdae0207367c2d09e10ef1fb3cb651'));
+        // items.push(createBribe('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex, '0x8FbF01a6D3Fef2847f2c35d9a05476eb859D6B2e'));
+        // items.push(createBribe('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex, '0x8828Bd1b7abc5296D3FcfEb15F58c23088410449'));
+        // items.push(createBribe('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex, '0xe52917158c3C8e29Ae3B5458200cbF516E56F660'));
+        // items.push(createBribe('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex, '0x39d46d0f49fab60002d2f359d1497ffbfc889ea6'));
+
+        items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex));
+        items.push(createSkim('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex));
+        items.push(createSkim('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex));
+        items.push(createSkim('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex));
+        items.push(createSkim('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex));
 
         return items;
     }
