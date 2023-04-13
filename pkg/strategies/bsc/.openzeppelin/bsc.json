@@ -144,6 +144,26 @@
     {
       "address": "0x2688B2ACb0C8A8714ACF35b65C882fecF8eeDE0b",
       "kind": "uups"
+    },
+    {
+      "address": "0xC7998aCE498eb987D1Ff625Af7Fb7a0449C1C6EE",
+      "txHash": "0x0d44aabe75e5297b28e37b71a73baf3f2f391642dd0825ca0911e3d7d4b04c82",
+      "kind": "uups"
+    },
+    {
+      "address": "0x049915356d236a93ff235098042fb27301a9BDf4",
+      "txHash": "0xb72be285c7d863f9b311b7c5fe0c4fe07dcc3498f1183d34883d8a0c89330738",
+      "kind": "uups"
+    },
+    {
+      "address": "0x549e68a9dfC9aCeBE13CC7339f223713AF32363C",
+      "txHash": "0x85dc18e2e87cb3fcbd66bee3d98a192b7c9fe04811344045501aad655690a4da",
+      "kind": "uups"
+    },
+    {
+      "address": "0x96713895c0c2E2ab5F9D8142C3718898118Cd6aD",
+      "txHash": "0xd1c5ea556813e198cfb188fd5b1cb9857adc14db6a8a73e181c77da75f41a810",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -14499,7 +14519,7 @@
             "slot": "0",
             "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
             "retypedFrom": "bool"
           },
           {
@@ -14508,7 +14528,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
           },
           {
             "label": "__gap",
@@ -14516,7 +14536,7 @@
             "slot": "1",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
           },
           {
             "label": "__gap",
@@ -14524,7 +14544,7 @@
             "slot": "51",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
           },
           {
             "label": "_roles",
@@ -14532,7 +14552,7 @@
             "slot": "101",
             "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
           },
           {
             "label": "__gap",
@@ -14540,7 +14560,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
           },
           {
             "label": "__gap",
@@ -14548,7 +14568,7 @@
             "slot": "151",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC1967UpgradeUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
           },
           {
             "label": "__gap",
@@ -14556,7 +14576,7 @@
             "slot": "201",
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
           },
           {
             "label": "portfolioManager",
@@ -14564,7 +14584,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
           },
           {
             "label": "swapSlippageBP",
@@ -14572,7 +14592,7 @@
             "slot": "252",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
           },
           {
             "label": "navSlippageBP",
@@ -14580,7 +14600,7 @@
             "slot": "253",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
           },
           {
             "label": "stakeSlippageBP",
@@ -14588,7 +14608,7 @@
             "slot": "254",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
           },
           {
             "label": "__gap",
@@ -14596,47 +14616,47 @@
             "slot": "255",
             "type": "t_array(t_uint256)46_storage",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:167"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
           },
           {
             "label": "asset",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:14"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:14"
           },
           {
             "label": "rebaseToken",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:15"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:15"
           },
           {
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)4645",
+            "type": "t_contract(IHedgeExchanger)13881",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:16"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:16"
           },
           {
             "label": "busd",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:18"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:18"
           },
           {
             "label": "wombatRouter",
             "offset": 0,
             "slot": "305",
-            "type": "t_contract(IWombatRouter)3560",
+            "type": "t_contract(IWombatRouter)12527",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:20"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:20"
           },
           {
             "label": "wombatPool",
@@ -14644,23 +14664,23 @@
             "slot": "306",
             "type": "t_address",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:21"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:21"
           },
           {
             "label": "oracleAsset",
             "offset": 0,
             "slot": "307",
-            "type": "t_contract(IPriceFeed)2870",
+            "type": "t_contract(IPriceFeed)5819",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:23"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:23"
           },
           {
             "label": "oracleBusd",
             "offset": 0,
             "slot": "308",
-            "type": "t_contract(IPriceFeed)2870",
+            "type": "t_contract(IPriceFeed)5819",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:24"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:24"
           },
           {
             "label": "assetDm",
@@ -14668,7 +14688,7 @@
             "slot": "309",
             "type": "t_uint256",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:26"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:26"
           },
           {
             "label": "busdDm",
@@ -14676,15 +14696,15 @@
             "slot": "310",
             "type": "t_uint256",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:27"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:27"
           },
           {
             "label": "usdt",
             "offset": 0,
             "slot": "311",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:29"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:29"
           },
           {
             "label": "usdtDm",
@@ -14692,15 +14712,15 @@
             "slot": "312",
             "type": "t_uint256",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:30"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:30"
           },
           {
             "label": "oracleUsdt",
             "offset": 0,
             "slot": "313",
-            "type": "t_contract(IPriceFeed)2870",
+            "type": "t_contract(IPriceFeed)5819",
             "contract": "StrategyEtsUsdcUsdt",
-            "src": "contracts/StrategyEtsUsdcUsdt.sol:31"
+            "src": "contracts\\StrategyEtsUsdcUsdt.sol:31"
           }
         ],
         "types": {
@@ -14728,19 +14748,19 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)2662": {
+          "t_contract(IERC20)3249": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)4645": {
+          "t_contract(IHedgeExchanger)13881": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },
-          "t_contract(IPriceFeed)2870": {
+          "t_contract(IPriceFeed)5819": {
             "label": "contract IPriceFeed",
             "numberOfBytes": "20"
           },
-          "t_contract(IWombatRouter)3560": {
+          "t_contract(IWombatRouter)12527": {
             "label": "contract IWombatRouter",
             "numberOfBytes": "20"
           },
@@ -15150,7 +15170,7 @@
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)14057",
+            "type": "t_contract(IHedgeExchanger)13881",
             "contract": "StrategyEts",
             "src": "contracts\\StrategyEts.sol:14"
           }
@@ -15184,7 +15204,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)14057": {
+          "t_contract(IHedgeExchanger)13881": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },

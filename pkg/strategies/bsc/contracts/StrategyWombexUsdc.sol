@@ -5,7 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
-import {IWombatRouter, WombatLibrary} from '@overnight-contracts/connectors/contracts/stuff/Wombat.sol';
+import {IWombatAsset, IWombatRouter, WombatLibrary} from '@overnight-contracts/connectors/contracts/stuff/Wombat.sol';
 
 
 contract StrategyWombexUsdc is Strategy {
@@ -34,9 +34,9 @@ contract StrategyWombexUsdc is Strategy {
     IERC20 public wom;
     IERC20 public wmx;
 
-    IAsset public lpUsdc;
-    IBaseRewardPool public wmxLpUsdc;
-    IPoolDepositor public poolDepositor;
+    IWombatAsset public lpUsdc;
+    IWombexBaseRewardPool public wmxLpUsdc;
+    IWombexPoolDepositor public poolDepositor;
     address public pool;
 
     IPancakeRouter02 public pancakeRouter;
@@ -70,9 +70,9 @@ contract StrategyWombexUsdc is Strategy {
         wom = IERC20(params.wom);
         wmx = IERC20(params.wmx);
 
-        lpUsdc = IAsset(params.lpUsdc);
-        wmxLpUsdc = IBaseRewardPool(params.wmxLpUsdc);
-        poolDepositor = IPoolDepositor(params.poolDepositor);
+        lpUsdc = IWombatAsset(params.lpUsdc);
+        wmxLpUsdc = IWombexBaseRewardPool(params.wmxLpUsdc);
+        poolDepositor = IWombexPoolDepositor(params.poolDepositor);
         pool = params.pool;
 
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);

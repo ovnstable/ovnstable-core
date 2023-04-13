@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import {IWombatAsset} from "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV2.sol";
 
@@ -29,9 +30,9 @@ contract StrategyWombexUsdt is Strategy {
     IERC20 public wom;
     IERC20 public wmx;
 
-    IAsset public lpUsdt;
-    IBaseRewardPool public wmxLpUsdt;
-    IPoolDepositor public poolDepositor;
+    IWombatAsset public lpUsdt;
+    IWombexBaseRewardPool public wmxLpUsdt;
+    IWombexPoolDepositor public poolDepositor;
     address public pool;
 
     IPancakeRouter02 public pancakeRouter;
@@ -59,9 +60,9 @@ contract StrategyWombexUsdt is Strategy {
         wom = IERC20(params.wom);
         wmx = IERC20(params.wmx);
 
-        lpUsdt = IAsset(params.lpUsdt);
-        wmxLpUsdt = IBaseRewardPool(params.wmxLpUsdt);
-        poolDepositor = IPoolDepositor(params.poolDepositor);
+        lpUsdt = IWombatAsset(params.lpUsdt);
+        wmxLpUsdt = IWombexBaseRewardPool(params.wmxLpUsdt);
+        poolDepositor = IWombexPoolDepositor(params.poolDepositor);
         pool = params.pool;
 
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);

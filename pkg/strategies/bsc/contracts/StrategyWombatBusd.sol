@@ -27,8 +27,8 @@ contract StrategyWombatBusd is Strategy {
     IERC20 public busdToken;
     IERC20 public womToken;
 
-    IAsset public asset;
-    IPool public pool;
+    IWombatAsset public asset;
+    IWombatPool public pool;
     IMasterWombatV2 public masterWombat;
 
     IPancakeRouter02 public pancakeRouter;
@@ -58,8 +58,8 @@ contract StrategyWombatBusd is Strategy {
         busdToken = IERC20(params.busdToken);
         womToken = IERC20(params.womToken);
 
-        asset = IAsset(params.asset);
-        pool = IPool(params.pool);
+        asset = IWombatAsset(params.asset);
+        pool = IWombatPool(params.pool);
         masterWombat = IMasterWombatV2(params.masterWombat);
 
         pancakeRouter = IPancakeRouter02(params.pancakeRouter);

@@ -34,7 +34,7 @@ contract StrategyThenaBusdUsdc is Strategy {
     IPair public pair;
     IRouter public router;
     IGaugeV2 public gauge;
-    IPool public wombatPool;
+    IWombatPool public wombatPool;
 
     IWombatRouter public wombatRouter;
 
@@ -67,7 +67,7 @@ contract StrategyThenaBusdUsdc is Strategy {
         pair = IPair(params.pair);
         router = IRouter(params.router);
         gauge = IGaugeV2(params.gauge);
-        wombatPool = IPool(params.wombatPool);
+        wombatPool = IWombatPool(params.wombatPool);
 
         wombatRouter = IWombatRouter(params.wombatRouter);
 

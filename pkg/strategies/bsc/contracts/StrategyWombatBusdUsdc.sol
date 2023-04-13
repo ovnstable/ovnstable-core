@@ -31,8 +31,8 @@ contract StrategyWombatBusdUsdc is Strategy {
     IERC20 public usdcToken;
     IERC20 public womToken;
 
-    IAsset public asset;
-    IPool public pool;
+    IWombatAsset public asset;
+    IWombatPool public pool;
     IMasterWombatV2 public masterWombat;
 
     ISwap public synapseStableSwapPool;
@@ -65,8 +65,8 @@ contract StrategyWombatBusdUsdc is Strategy {
         usdcToken = IERC20(params.usdcToken);
         womToken = IERC20(params.womToken);
 
-        asset = IAsset(params.asset);
-        pool = IPool(params.pool);
+        asset = IWombatAsset(params.asset);
+        pool = IWombatPool(params.pool);
         masterWombat = IMasterWombatV2(params.masterWombat);
 
         synapseStableSwapPool = ISwap(params.synapseStableSwapPool);
