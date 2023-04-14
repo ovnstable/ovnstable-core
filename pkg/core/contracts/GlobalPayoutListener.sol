@@ -156,6 +156,13 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     function _skim(Item memory item) internal {
 
         IERC20 token = IERC20(item.token);
+        uint256 reserve0 = IPool(item.pool).reserve0();
+        uint256 reserve1 = IPool(item.pool).reserve1();
+        uint256 token0Balance = IERC20(IPool(item.pool).token0()).balanceOf(item.pool);
+        uint256 token1Balance = IERC20(IPool(item.pool).token1()).balanceOf(item.pool);
+        if (token0Balance < reserve0 || token1Balance < reserve1) {
+            return;
+        }
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
         IPool(item.pool).skim(address(this));
         uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
@@ -255,6 +262,14 @@ interface IPool {
     function skim(address to) external;
 
     function sync() external;
+
+    function reserve0() view external returns (uint256);
+
+    function reserve1() view external returns (uint256);
+
+    function token0() view external returns (address);
+
+    function token1() view external returns (address);
 
 }
 
