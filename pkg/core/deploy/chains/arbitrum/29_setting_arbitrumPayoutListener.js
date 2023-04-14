@@ -22,6 +22,8 @@ module.exports = async () => {
     items.push(...wombat());
     items.push(...auragi());
 
+    await (await pl.addItems(items)).wait();
+
 //    await (await pl.removeItem(usdPlus.address, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0xAc4eeD9Ca04B219935d5C4201167aA9257896443')).wait();
 //    await (await pl.removeItem(etsGamma, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
