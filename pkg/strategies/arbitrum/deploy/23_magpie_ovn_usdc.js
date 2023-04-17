@@ -1,5 +1,5 @@
 const {deployProxyMulti, deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {deploySection, settingSection, getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 
 
@@ -15,27 +15,27 @@ module.exports = async ({deployments}) => {
     });
 };
 
+
 async function getParams() {
 
     return {
         usdc: ARBITRUM.usdc,
         usdt: ARBITRUM.usdt,
-        usdp: ARBITRUM.usdPlus,
+        weth: ARBITRUM.weth,
         wom: ARBITRUM.wom,
-        wmx: ARBITRUM.wmx,
-        assetWombat: '0xBd7568d25338940ba212e3F299D2cCC138fA35F0', // USD+
+        mgp: ARBITRUM.mgp,
+        mgpLp: '0x3F629aC8ce165DEfAd238C53aE5dB4D9abA38451',
+        stakingWombat: '0x3CbFC97f87f534b42bb58276B7b5dCaD29E57EAc',
         poolWombat: ARBITRUM.wombatOvnPool,
-        wombatRouter: ARBITRUM.wombatRouter,
+        masterMgp: '0x664cc2bcae1e057eb1ec379598c5b743ad9db6e7',
+        poolHelperMgp: '0xa2bbe73bd596d1914142196162b2ae9830e57f66',
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
-        poolFee1: 100,   //0.01% USDT->USDC
-        wombexBooster: '0x4181E561b42fDaD14c68b0794c215DeB9Bc80c8F',
-        wombexBoosterPid: 9,
-        wombexVault: '0xEE8e44Ac5cD5D22704e09c1cFB11A601a5d020d6',
-        camelorRouter: ARBITRUM.camelorRouter
+        poolFee1: 100,   //0,.01% USDT->USDC
+        traderJoeRouter: ARBITRUM.traderJoeRouter
     }
 }
 
-module.exports.tags = ['StrategyWombatOvnUsdp'];
+module.exports.tags = ['StrategyMagpieOvnUsdc'];
 module.exports.getParams = getParams
-module.exports.strategyWombatOvnUsdpParams = getParams
+module.exports.strategyMagpieOvnUsdcParams = getParams

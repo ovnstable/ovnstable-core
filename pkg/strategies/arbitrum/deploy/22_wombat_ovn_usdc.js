@@ -23,7 +23,7 @@ async function getParams() {
         wom: ARBITRUM.wom,
         wmx: ARBITRUM.wmx,
         assetWombat: '0x6ADd078996308547C57B052549a19c5f66BF42C8',
-        poolWombat: '0xCF20fDA54e37f3fB456930f02fb07FccF49e4849', // Overnight pool
+        poolWombat: ARBITRUM.wombatOvnPool,
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
         poolFee1: 100,   //0.01% USDT->USDC
