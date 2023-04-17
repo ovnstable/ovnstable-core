@@ -32,7 +32,7 @@ async function getParams() {
         wombexBooster: '0x4181E561b42fDaD14c68b0794c215DeB9Bc80c8F',
         wombexBoosterPid: 2,
         wombexVault: '0xceb079acf18fef334a7c094a8c2ed945df516183',
-        camelorRouter: ARBITRUM.camelorRouter
+        camelorRouter: ARBITRUM.camelotRouter
     }
 }
 

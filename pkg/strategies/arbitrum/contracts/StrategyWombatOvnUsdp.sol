@@ -64,7 +64,7 @@ contract StrategyWombatOvnUsdp is Strategy {
     IWombexVault public wombexVault;
     IERC20 public wmx;
 
-    ICamelotRouter public camelorRouter;
+    ICamelotRouter public camelotRouter;
 
     // --- events
 
@@ -102,7 +102,7 @@ contract StrategyWombatOvnUsdp is Strategy {
         wombexBoosterPid = params.wombexBoosterPid;
         wombexVault = IWombexVault(params.wombexVault);
 
-        camelorRouter = ICamelotRouter(params.camelorRouter);
+        camelotRouter = ICamelotRouter(params.camelotRouter);
 
         emit StrategyUpdatedParams();
     }
@@ -280,7 +280,7 @@ contract StrategyWombatOvnUsdp is Strategy {
         if (wmxBalance > 0) {
 
             uint256 amountOut = CamelotLibrary.getAmountsOut(
-                camelorRouter,
+                camelotRouter,
                 address(wmx),
                 address(usdt),
                 address(usdc),
@@ -290,7 +290,7 @@ contract StrategyWombatOvnUsdp is Strategy {
             if (amountOut > 0) {
                 uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
                 CamelotLibrary.multiSwap(
-                    camelorRouter,
+                    camelotRouter,
                     address(wmx),
                     address(usdt),
                     address(usdc),
