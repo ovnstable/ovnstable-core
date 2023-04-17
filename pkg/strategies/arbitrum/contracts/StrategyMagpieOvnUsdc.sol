@@ -187,7 +187,7 @@ contract StrategyMagpieOvnUsdc is Strategy {
         masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         // sell rewards
-        uint256 totalUsdc;
+        uint256 usdcBefore = usdc.balanceOf(address(this));
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
@@ -204,7 +204,6 @@ contract StrategyMagpieOvnUsdc is Strategy {
                 0
             );
 
-            totalUsdc += amountOut;
         }
 
         uint256 mgpBalance = mgp.balanceOf(address(this));
@@ -230,7 +229,7 @@ contract StrategyMagpieOvnUsdc is Strategy {
 
             mgp.approve(address(traderJoeRouter), mgpBalance);
 
-            uint256 mgpUsdc = traderJoeRouter.swapExactTokensForTokens(
+            traderJoeRouter.swapExactTokensForTokens(
                 mgpBalance,
                 0,
                 path,
@@ -238,9 +237,9 @@ contract StrategyMagpieOvnUsdc is Strategy {
                 block.timestamp
             );
 
-            totalUsdc += mgpUsdc;
         }
 
+        uint256 totalUsdc = usdc.balanceOf(address(this)) - usdcBefore;
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);

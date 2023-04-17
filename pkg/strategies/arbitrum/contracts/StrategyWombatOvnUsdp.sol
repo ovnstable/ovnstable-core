@@ -40,7 +40,7 @@ contract StrategyWombatOvnUsdp is Strategy {
         address wombexBooster;
         uint256 wombexBoosterPid;
         address wombexVault;
-        address camelorRouter;
+        address camelotRouter;
     }
 
     // --- params
@@ -255,8 +255,7 @@ contract StrategyWombatOvnUsdp is Strategy {
 
         wombexVault.getReward(address(this), false);
 
-        // sell rewards
-        uint256 totalUsdc;
+        uint256 usdcBefore = usdc.balanceOf(address(this));
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
@@ -273,7 +272,6 @@ contract StrategyWombatOvnUsdp is Strategy {
                 0
             );
 
-            totalUsdc += amountOut;
         }
 
         uint256 wmxBalance = wmx.balanceOf(address(this));
@@ -288,7 +286,6 @@ contract StrategyWombatOvnUsdp is Strategy {
             );
 
             if (amountOut > 0) {
-                uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
                 CamelotLibrary.multiSwap(
                     camelotRouter,
                     address(wmx),
@@ -298,10 +295,11 @@ contract StrategyWombatOvnUsdp is Strategy {
                     amountOut * 99 / 100,
                     address(this)
                 );
-                totalUsdc += (usdc.balanceOf(address(this)) - balanceUsdcBefore);
             }
 
         }
+
+        uint256 totalUsdc = usdc.balanceOf(address(this)) - usdcBefore;
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
