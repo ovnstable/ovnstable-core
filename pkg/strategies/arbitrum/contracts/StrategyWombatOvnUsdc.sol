@@ -8,32 +8,27 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
-
 /**
- * @dev Self-investment strategy
- * 1) sell all USDC -> buy USD+ on self-investment pool (Overnight)
- * 2) invest USD+ to Overnight pool on Wombat
+ * @dev Invest strategy
+ * 1) invest USDC to Overnight pool on Wombat
  * 3) Stake lp tokens in Wombex
  *
  * Sell rewards:
  * - WOM on UniswapV3
  * - WMX on Camelot
- *
  */
 
-contract StrategyWombatOvnUsdp is Strategy {
+contract StrategyWombatOvnUsdc is Strategy {
 
     // --- structs
 
     struct StrategyParams {
         address usdc;
         address usdt;
-        address usdp;
         address wom;
         address wmx;
         address assetWombat;
         address poolWombat;
-        address wombatRouter;
         address uniswapV3Router;
         uint24 poolFee0;
         uint24 poolFee1;
@@ -46,7 +41,6 @@ contract StrategyWombatOvnUsdp is Strategy {
     // --- params
 
     IERC20 public usdc;
-    IERC20 public usdp;
     IERC20 public usdt;
     IERC20 public wom;
 
@@ -54,7 +48,6 @@ contract StrategyWombatOvnUsdp is Strategy {
     uint256 public assetWombatDm;
     IWombatPool public poolWombat;
     ISwapRouter public uniswapV3Router;
-    IWombatRouter public router;
 
     uint24 public poolFee0;
     uint24 public poolFee1;
@@ -84,13 +77,11 @@ contract StrategyWombatOvnUsdp is Strategy {
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
-        usdp = IERC20(params.usdp);
         wom = IERC20(params.wom);
         wmx = IERC20(params.wmx);
 
         assetWombat = IWombatAsset(params.assetWombat);
         poolWombat = IWombatPool(params.poolWombat);
-        router = IWombatRouter(params.wombatRouter);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee0 = params.poolFee0;
@@ -107,33 +98,6 @@ contract StrategyWombatOvnUsdp is Strategy {
         emit StrategyUpdatedParams();
     }
 
-
-    function _swapAllToken0ToToken1(IERC20 token0, IERC20 token1) internal {
-
-        uint256 amountToSwap = token0.balanceOf(address(this));
-
-        uint256 amountOut = WombatLibrary.getAmountOut(
-            router,
-            address(token0),
-            address(token1),
-            address(poolWombat),
-            amountToSwap
-        );
-
-        if (amountOut > 0) {
-            WombatLibrary.swapExactTokensForTokens(
-                router,
-                address(token0),
-                address(token1),
-                address(poolWombat),
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
-    }
-
-
     // --- logic
 
     function _stake(
@@ -141,20 +105,14 @@ contract StrategyWombatOvnUsdp is Strategy {
         uint256 _amount
     ) internal override {
 
-
-        // Swap all USDC to USD+
-        _swapAllToken0ToToken1(usdc, usdp);
-
-        uint256 usdpAmount = usdp.balanceOf(address(this));
-
         // add liquidity
-        (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(usdp), usdpAmount);
-        usdp.approve(address(poolWombat), usdpAmount);
+        (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(usdc), _amount);
+        usdc.approve(address(poolWombat), _amount);
         poolWombat.deposit(
-            address(usdp),
-            usdpAmount,
-            // 1bp slippage
-            OvnMath.subBasisPoints(assetAmount, stakeSlippageBP),
+            address(usdc),
+            _amount,
+        // 1bp slippage
+            OvnMath.subBasisPoints(assetAmount, 1),
             address(this),
             block.timestamp,
             false
@@ -173,9 +131,9 @@ contract StrategyWombatOvnUsdp is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        (uint256 usdpAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdp), assetWombatDm);
-
-        uint256 assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / usdpAmountOneAsset;
+        (uint256 usdcAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdc), assetWombatDm);
+        // add 1bp for smooth withdraw
+        uint256 assetAmount = OvnMath.addBasisPoints(_amount, 1) * assetWombatDm / usdcAmountOneAsset;
         uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetAmount > assetBalance) {
             assetAmount = assetBalance;
@@ -187,15 +145,12 @@ contract StrategyWombatOvnUsdp is Strategy {
         // remove liquidity
         assetWombat.approve(address(poolWombat), assetAmount);
         poolWombat.withdraw(
-            address(usdp),
+            address(usdc),
             assetAmount,
             _amount,
             address(this),
             block.timestamp
         );
-
-        // Swap All USD+ to USDC
-        _swapAllToken0ToToken1(usdp, usdc);
 
         return usdc.balanceOf(address(this));
     }
@@ -212,18 +167,16 @@ contract StrategyWombatOvnUsdp is Strategy {
         wombexVault.withdrawAndUnwrap(assetBalance, false);
 
         // remove liquidity
-        (uint256 usdpAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
+        (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
         assetWombat.approve(address(poolWombat), assetBalance);
         poolWombat.withdraw(
-            address(usdp),
+            address(usdc),
             assetBalance,
-            OvnMath.subBasisPoints(usdpAmount, 1),
+        // 1bp slippage
+            OvnMath.subBasisPoints(usdcAmount, 1),
             address(this),
             block.timestamp
         );
-
-        // Swap All USD+ to USDC
-        _swapAllToken0ToToken1(usdp, usdc);
 
         return usdc.balanceOf(address(this));
     }
@@ -238,17 +191,15 @@ contract StrategyWombatOvnUsdp is Strategy {
 
     function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        usdcBalance += usdp.balanceOf(address(this));
 
         uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetBalance > 0) {
-            (uint256 usdpAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
-            usdcBalance += usdpAmount;
+            (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdc), assetBalance);
+            usdcBalance += usdcAmount;
         }
 
         return usdcBalance;
     }
-
 
 
     function _claimRewards(address _to) internal override returns (uint256) {
