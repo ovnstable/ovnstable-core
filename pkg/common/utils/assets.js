@@ -50,6 +50,7 @@ let ARBITRUM = {
     camelorRouter: "0xc873fecbd354f5a56e00e710b90ef4201db2448d",
     traderJoeV3Router: "0x7BFd7192E76D950832c77BB412aaE841049D8D9B",
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
+    wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
 
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
