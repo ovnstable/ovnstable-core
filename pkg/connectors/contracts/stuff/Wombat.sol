@@ -269,6 +269,43 @@ library WombatLibrary {
         return amountOut;
     }
 
+    function getMultiAmountOut(
+        IWombatRouter wombatRouter,
+        address[] memory tokens,
+        address[] memory paths,
+        uint256 amountIn
+    ) internal view returns (uint256) {
+
+        (uint256 amountOut,) = wombatRouter.getAmountOut(
+            tokens,
+            paths,
+            int256(amountIn)
+        );
+
+        return amountOut;
+    }
+
+    function multiSwap(
+        IWombatRouter wombatRouter,
+        address[] memory tokens,
+        address[] memory paths,
+        uint256 fromAmount,
+        uint256 minimumToAmount,
+        address to
+    ) internal returns (uint256) {
+
+        IERC20(tokens[0]).approve(address(wombatRouter), fromAmount);
+
+        return wombatRouter.swapExactTokensForTokens(
+            tokens,
+            paths,
+            fromAmount,
+            minimumToAmount,
+            to,
+            block.timestamp
+        );
+    }
+
     function swapExactTokensForTokens(
         IWombatRouter wombatRouter,
         address token0,

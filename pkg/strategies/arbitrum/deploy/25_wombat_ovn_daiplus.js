@@ -18,22 +18,26 @@ module.exports = async ({deployments}) => {
 async function getParams() {
 
     return {
-        usdc: ARBITRUM.usdc,
+        dai: ARBITRUM.dai,
+        daiPlus: ARBITRUM.daiPlus,
         usdt: ARBITRUM.usdt,
+        usdc: ARBITRUM.usdc,
         wom: ARBITRUM.wom,
         wmx: ARBITRUM.wmx,
-        assetWombat: '0x6ADd078996308547C57B052549a19c5f66BF42C8',
+        assetWombat: '0x51E073D92b0c226F7B0065909440b18A85769606', // Asset DAI+
         poolWombat: ARBITRUM.wombatOvnPool,
+        basePoolWombat: ARBITRUM.wombatBasePool,
+        wombatRouter: ARBITRUM.wombatRouter,
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
-        poolFee1: 100,   //0.01% USDT->USDC
+        poolFee1: 100,   //0.01% USDT->DAI
         wombexBooster: ARBITRUM.wombexBooster,
-        wombexBoosterPid: 11,
-        wombexVault: '0x28df708bc28bd29c41fb9e0002453c333086ffc1',
+        wombexBoosterPid: 10,
+        wombexVault: '0x7febe9b6b1f48b4e8c7e7c2f2b0923111533158b', // Wombex DAI+
         camelotRouter: ARBITRUM.camelotRouter
     }
 }
 
-module.exports.tags = ['StrategyWombatOvnUsdc'];
+module.exports.tags = ['StrategyWombatOvnDaiPlus'];
 module.exports.getParams = getParams
-module.exports.strategyWombatOvnUsdcParams = getParams
+module.exports.strategyWombatOvnDaiPlusParams = getParams
