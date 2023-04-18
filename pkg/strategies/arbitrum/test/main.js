@@ -1,86 +1,9 @@
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
-const {impersonatingEtsGrantRole, prepareEnvironment, impersonatingStaker} = require("@overnight-contracts/common/utils/tests");
-const {execTimelock, getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
-
-let id = process.env.TEST_STRATEGY;
-
-let arrays = [
-    {
-        name: 'StrategyAave',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategyEtsAlpha',
-        enabledReward: false,
-        isRunStrategyLogic: true
-
-    },
-    {
-        name: 'StrategyEtsBeta',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyEtsGamma',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyAaveDai',
-        enabledReward: false,
-        isRunStrategyLogic: false
-    },
-    {
-        name: 'StrategyUsdPlusDai',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategySterlingUsdcUsdt',
-        enabledReward: true,
-        isRunStrategyLogic: false
-    },
-    {
-        name: 'StrategySolidlizardUsdcDai',
-        enabledReward: true,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyWombatUsdc',
-        enabledReward: true,
-        isRunStrategyLogic: false
-    },
-    {
-        name: 'StrategyWombatDai',
-        enabledReward: true,
-        isRunStrategyLogic: false
-    },
-    {
-        name: 'StrategyWombatUsdt',
-        enabledReward: true,
-        isRunStrategyLogic: false
-    },
-    {
-        name: 'StrategyMagpieUsdc',
-        enabledReward: true,
-        isRunStrategyLogic: false,
-        doubleStakeReward: true,
-    },
-    {
-        name: 'StrategyMagpieDai',
-        enabledReward: true,
-        isRunStrategyLogic: false,
-        doubleStakeReward: true,
-    }
-];
-
-if (id !== undefined && id !== "") {
-    console.log(`Strategy ID ${id}`);
-    arrays = arrays.filter(value => value.name === id);
-}
-
-console.log(`Run tests [${arrays.map(value => value.name)}]`);
+const {
+    impersonatingEtsGrantRole,
+    prepareEnvironment,
+    impersonatingStaker
+} = require("@overnight-contracts/common/utils/tests");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
 
@@ -93,7 +16,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         await impersonatingEtsGrantRole('0x92FC104f8b42c7dCe5Be9BE29Bfb82d2f9D96855', ownerAddress, strategyAddress)
     } else if (strategyName === 'StrategyEtsGamma') {
         await impersonatingEtsGrantRole('0xc2c84ca763572c6aF596B703Df9232b4313AD4e3', ownerAddress, strategyAddress)
-    }else if (strategyName === 'StrategySolidlizardUsdcDai'){
+    } else if (strategyName === 'StrategySolidlizardUsdcDai') {
 
         let gauge = '0x884c28296b6ec728ac27bfe7579419709514d154';
         let pair = '0x07d7F291e731A41D3F0EA4F1AE5b6d920ffb3Fe0';
@@ -102,14 +25,22 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 }
 
 describe("ARBITRUM", function () {
-    arrays.forEach(value => {
-        switch (process.env.STAND) {
-            case 'arbitrum_dai':
-                strategyTest(value, 'ARBITRUM', 'dai', runStrategyLogic);
-                break;
-            default:
-                strategyTest(value, 'ARBITRUM', 'usdc', runStrategyLogic);
-                break;
-        }
-    })
+
+    let params = {
+        name: process.env.TEST_STRATEGY,
+        enabledReward: true,
+        isRunStrategyLogic: true
+    }
+
+    console.log(`Strategy ID ${params.name}`);
+
+
+    switch (process.env.STAND) {
+        case 'arbitrum_dai':
+            strategyTest(params, 'ARBITRUM', 'dai', runStrategyLogic);
+            break;
+        default:
+            strategyTest(params, 'ARBITRUM', 'usdc', runStrategyLogic);
+            break;
+    }
 });
