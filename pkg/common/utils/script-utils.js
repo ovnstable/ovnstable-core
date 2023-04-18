@@ -9,6 +9,7 @@ const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
 const {Wallet} = require("zksync-web3");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
+const {BigNumber} = require("ethers");
 
 let ethers = require('hardhat').ethers;
 
@@ -377,6 +378,12 @@ async function getPrice() {
         params = {gasPrice: "5000000000", gasLimit: 15000000}; // gasPrice always 5 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
+    }else if (process.env.ETH_NETWORK === 'ZKSYNC'){
+        // provider.getGasprice + 5%
+        let gasPrice = await ethers.provider.getGasPrice();
+        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        gasPrice = gasPrice.add(percentage);
+        return {gasPrice: gasPrice}
     }
 
     return params;

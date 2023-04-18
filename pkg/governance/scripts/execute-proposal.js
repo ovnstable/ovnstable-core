@@ -11,15 +11,17 @@ async function main() {
     let ovn = await getContract('OvnToken');
 
 
-    let proposalId = '109290826049792558952157309030642825444869058500985177636477120700363691372071'
+    let proposalId = '3095485306836588715112934588436174991332600067843977704327778626578799607266'
 
     await getProposalState(proposalId);
 
     // Delegate ovn tokens
     // await (await ovn.delegate(await getWalletAddress())).wait();
+    // console.log('Delegate done');
 
     // Voting to Accept
-    await (await governor.castVote(proposalId, 1)).wait();
+    // await (await governor.castVote(proposalId, 1)).wait();
+    // console.log('Cast Vote done');
 
     // Wait
 
