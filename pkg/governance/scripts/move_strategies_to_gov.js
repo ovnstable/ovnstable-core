@@ -35,8 +35,8 @@ async function main() {
 
 
     let names = [
-        'StrategyEtsGammaxyzBeta',
-        'StrategyEtsGammaxyzGamma'
+        'StrategyEtsBeta',
+        'StrategyEtsGamma'
     ]
 
     await showRules(names);

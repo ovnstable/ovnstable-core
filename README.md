@@ -67,8 +67,11 @@ This repository contains is next modules:
    npx hardhat run scripts/verify.js --network bsc_usdt
 9. Set PM by cash strategy in pkg/core
    npx hardhat run scripts/set-strategies-bsc-usdt.js --network bsc_usdt
-10. Add cash strategy in dict.strategies and core contracts in dict.contracts.
-11. Set percentage in anal.collateral after adding liquidity in cash strategy.
+10. Deploy new governance if new chain. Copy governance files if same chain
+11. Move rules of core contracts to governance in pkg/governance
+    npx hardhat run scripts/move_core_to_gov.js --network bsc_usdt
+12. Add cash strategy in dict.strategies and core contracts in dict.contracts.
+13. Set percentage in anal.collateral after adding liquidity in cash strategy.
 
 ## How to deploy new strategy:
 
