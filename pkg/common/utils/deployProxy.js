@@ -31,6 +31,24 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
     }
 }
 
+
+/**
+ * Chain ZkSync not support by OpenZeppelin plugin for deploy proxy contracts.
+ * That's why it must deploy by self.
+ * How to deploy?
+ * - Deploy ERC1967Proxy contract
+ * - Deploy Implementation contract
+ * - Execute on ERC1967Proxy function: upgradeTo(pass Implementation contract address)
+ *
+ * This is the implementation support next cases:
+ * 1) primary deploy (proxy not exist)
+ * 2) update existed proxy
+ *
+ * !!!! Important
+ * This method not make verify storage current implementation and deploying implementation
+ * YOU MUST BE SURE OF CORRECTNESS STORAGE_LAYOUT
+ */
+
 async function deployProxyZkSync(contractName, factoryName, deployments, save, params){
 
     const deployer = new Deployer(hre, await initWallet());

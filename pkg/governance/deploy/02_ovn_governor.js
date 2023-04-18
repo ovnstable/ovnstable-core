@@ -9,8 +9,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy, save} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    // await deployProxy('OvnTimelockController', deployments, save);
-    // console.log("Deploy OvnTimelockController done");
+    await deployProxy('OvnTimelockController', deployments, save);
+    console.log("Deploy OvnTimelockController done");
 
     const token = await ethers.getContract("OvnToken");
     const controller = await ethers.getContract("OvnTimelockController");
