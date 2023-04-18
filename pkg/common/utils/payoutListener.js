@@ -31,6 +31,23 @@ function createSkim(pool, token, poolName, dexName){
     };
 }
 
+function createCustom(pool, token, poolName, dexName){
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: ZERO_ADDRESS,
+        operation: OPERATIONS.CUSTOM,
+        to: COMMON.rewardWallet,
+        dexName: dexName,
+        feePercent: 0,
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+}
+
+
 function createSkimTo(pool, token, poolName, dexName, to){
 
     return {
@@ -117,5 +134,6 @@ module.exports = {
     createSkimTo: createSkimTo,
     createSkimToWithFee: createSkimToWithFee,
     createBribe: createBribe,
+    createCustom: createCustom,
     showPoolOperations: showPoolOperations,
 };
