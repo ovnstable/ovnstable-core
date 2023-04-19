@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee, createBribe} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
@@ -43,7 +43,8 @@ module.exports = async () => {
         items.push(createSkim('0x60a3bbec81a92e8894ed112a148dfcc98f577ba1', usdPlus.address, 'USD+/DAI+', dex));
         items.push(createSkim('0x60a3bbec81a92e8894ed112a148dfcc98f577ba1', daiPlus.address, 'USD+/DAI+', dex));
         items.push(createSkim('0x700fd177226b12bda94568940c2bc6cf4c8bfd51', usdPlus.address, 'USD+/USDC', dex));
-        items.push(createSkim('0x46FbEA37893B069E6341F3BDD961D13abC754dBB', usdPlus.address, 'USD+/LUSD', dex));
+        items.push(createBribe('0x46FbEA37893B069E6341F3BDD961D13abC754dBB', usdPlus.address, 'USD+/LUSD', dex, '0xb330a4507e1a71ed20a754e2e7bc9087e421a0a0'));
+        items.push(createSkim('0xcecc1ab2bd09b0b81f27a42ad86db5c8b721f584', usdPlus.address, 'FRAX/USD+', dex));
 
         return items;
 
