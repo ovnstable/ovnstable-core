@@ -124,6 +124,23 @@ async function getContract(name, network){
 
 }
 
+async function getBytecode(name, network) {
+
+    if (!network)
+        network = process.env.STAND;
+
+    try {
+        let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        let contractJson = JSON.parse(fs.readFileSync(searchPath));
+        return contractJson.bytecode;
+    } catch (e) {
+        console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
+        throw new Error(e);
+    }
+
+}
+
+
 async function getImplementation(name, network){
 
     if (!network)
@@ -845,6 +862,7 @@ module.exports = {
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
+    getBytecode: getBytecode,
     isContract: isContract,
     getImplementation: getImplementation,
     getERC20: getERC20,
