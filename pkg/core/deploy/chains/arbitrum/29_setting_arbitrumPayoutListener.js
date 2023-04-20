@@ -119,6 +119,8 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', usdPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e', daiPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0xECe52B1fc32D2B4f22eb45238210b470a64bfDd5', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xEa5f97aab76E397E4089137345c38b5c4e7939B3', usdPlus.address, 'USD+/WETH', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xeE5e74Dc56594d070E0827ec270F974A68EBAF22', daiPlus.address, 'DAI/DAI+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
