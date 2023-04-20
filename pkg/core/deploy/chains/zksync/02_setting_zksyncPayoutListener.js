@@ -16,7 +16,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let items = [];
 
     items.push(...velocore());
-    // items.push(...syncSwap());
+    items.push(...syncSwap());
 
     await (await pl.addItems(items)).wait();
 
