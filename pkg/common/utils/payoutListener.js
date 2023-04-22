@@ -31,6 +31,23 @@ function createSkim(pool, token, poolName, dexName){
     };
 }
 
+function createSync(pool, token, poolName, dexName){
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: ZERO_ADDRESS,
+        operation: OPERATIONS.SYNC,
+        to: ZERO_ADDRESS,
+        dexName: dexName,
+        feePercent: 0,
+        feeReceiver: ZERO_ADDRESS,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+}
+
+
 function createCustom(pool, token, poolName, dexName){
 
     return {
@@ -131,6 +148,7 @@ function showPoolOperations(receipt){
 module.exports = {
     PayoutListenerOperations: OPERATIONS,
     createSkim: createSkim,
+    createSync: createSync,
     createSkimTo: createSkimTo,
     createSkimToWithFee: createSkimToWithFee,
     createBribe: createBribe,

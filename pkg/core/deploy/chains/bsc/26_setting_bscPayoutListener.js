@@ -2,7 +2,7 @@ const {ethers} = require("hardhat");
 
 let {BSC, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe, createSkimTo} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createBribe, createSkimTo, createSync} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
