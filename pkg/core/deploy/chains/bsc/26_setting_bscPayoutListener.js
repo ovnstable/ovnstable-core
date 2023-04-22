@@ -55,8 +55,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         items.push(createSkim('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex));
         items.push(createSkim('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex));
 
-        items.push(createBribe('0x92573046BD4abA37d875eb45a0A1182ac63d5580', etsAlpha, 'sAMM-ETS Alpha/USD+', dex, '0xa5f7c96b4c92f0143d8617778f8592d54252dd4b'));
-        items.push(createBribe('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex, '0xa5f7c96b4c92f0143d8617778f8592d54252dd4b'));
+        items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', etsAlpha, 'sAMM-ETS Alpha/USD+', dex));
+        items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex));
 
 
         return items;
