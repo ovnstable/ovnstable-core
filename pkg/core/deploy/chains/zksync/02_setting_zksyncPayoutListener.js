@@ -17,6 +17,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     items.push(...velocore());
     items.push(...syncSwap());
+    items.push(...merlin());
 
     await (await pl.addItems(items)).wait();
 
@@ -30,6 +31,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
         let items = [];
         items.push(createBribe('0x4b9f00860d7f42870addeb687fa4e47062df71d9', usdPlus.address, 'USDC/USD+', dex, '0x691e8644Efc7FDad4e502c9370eF5F43af34C647'));
+
+        return items;
+    }
+
+    function merlin(){
+
+        let dex = 'Merlin';
+
+        let items = [];
+        items.push(createSkim('0xa37125136121fb2bea2a68549aaf76fe6526758c', usdPlus.address, 'USDC/USD+', dex));
 
         return items;
     }
