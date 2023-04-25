@@ -17,8 +17,8 @@ module.exports = async () => {
 
     await (await pl.addItems(items)).wait();
 
-    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
-    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism_dai')).address)).wait();
+//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
+//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism_dai')).address)).wait();
 
     console.log('OptimismPayoutListener setting done');
 
