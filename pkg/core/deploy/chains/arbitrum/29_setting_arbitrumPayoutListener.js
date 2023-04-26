@@ -22,6 +22,7 @@ module.exports = async () => {
     items.push(...wombat());
     items.push(...auragi());
 
+    await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
 //    await (await pl.removeItem(usdPlus.address, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
@@ -44,6 +45,7 @@ module.exports = async () => {
         items.push(createSkim('0x60a3bbec81a92e8894ed112a148dfcc98f577ba1', daiPlus.address, 'USD+/DAI+', dex));
         items.push(createSkim('0x700fd177226b12bda94568940c2bc6cf4c8bfd51', usdPlus.address, 'USD+/USDC', dex));
         items.push(createBribe('0x46FbEA37893B069E6341F3BDD961D13abC754dBB', usdPlus.address, 'USD+/LUSD', dex, '0xb330a4507e1a71ed20a754e2e7bc9087e421a0a0'));
+        items.push(createBribe('0x84b8497556acd53ff2c5885e5e714afe1cef4ab6', usdPlus.address, 'USD+/MAI', dex, '0x185f984cb79a9f2a9d907dfcd72967233aedb997'));
         items.push(createSkim('0xcecc1ab2bd09b0b81f27a42ad86db5c8b721f584', usdPlus.address, 'FRAX/USD+', dex));
 
         return items;

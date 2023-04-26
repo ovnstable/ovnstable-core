@@ -20,6 +20,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     items.push(...thena());
     items.push(...pacnake());
 
+
+    await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc')).address)).wait();
@@ -57,6 +59,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
         items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', etsAlpha, 'sAMM-ETS Alpha/USD+', dex));
         items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex));
+
+        items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdPlus.address, 'sAMM-USDT+/USD+', dex));
+        items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdtPlus.address, 'sAMM-USDT+/USD+', dex));
 
 
         return items;
