@@ -12,9 +12,15 @@ const VeloGaugePool = require('@overnight-contracts/pools/abi/VelodromeGauge.jso
 const VeloPair = require('@overnight-contracts/pools/abi/VelodromePair.json');
 const wrappedHolders = require("./wrappedHolders.json")
 const beetsAddresses = require("./beetsAddresses.json")
+const beefyVault = require("@overnight-contracts/pools/abi/BeefyVault.json")
+const reaperVault = require("@overnight-contracts/pools/abi/ReaperVault.json")
 const velodrome1 = require('./velodrome_0x67124355cCE2Ad7A8eA283E990612eBe12730175_0xd2d95775d35a6d492ced7c7e26817aacb7d264f2.json')
 const velodrome2 = require('./velodrome_0x8a9Cd3dce710e90177B4332C108E159a15736A0F_0x1032950b49fc23316655e5d0cc066bcd85b28ec7.json')
 const velodrome3 = require('./velodrome_0xa99817d2d286C894F8f3888096A5616d06F20d46_0x05d74f34ff651e80b0a1a4bd96d8867626ac2ddd.json')
+const mooVelodrome1 = require('./moo_velodrome_USD+-DOLA_0x60bBDf88bd2DbAA645D6CF8Ae67d2F4aDA2658F1_0x9aEf6FaeD9FfaFbb8947d1Aa410fd9A0a79F16B8.json')
+const mooVelodrome2 = require('./moo_velodrome_USD+-LUSD_0x3b6eD6A53a9a357a397fbc7A04C96BA8B4AEBed2_0x6E2DCebF8C14c72329f224A26EdfD547d3c3E09c.json')
+const mooVelodrome3 = require('./moo_velodrome_USD+-USDC_0xE7a6563073244044936734536c9fdfAa0B8583Cd_0x59b2E7F6F5f745Fd33DaC83153EAe8E42440A981.json')
+const reaperVelodrome = require('./reaperVelodrome_sAMM-USD+-USDC_0x01EAFb9d744a652e71f554cd8946bFbCd38f5b96_0xDC233910a2f71D2734A8Cad1Ca2d936df805bb62.json')
 const fs = require('fs');
 const { ethers } = require("hardhat");
 const { fromE18, fromE6 } = require("@overnight-contracts/common/utils/decimals");
@@ -49,7 +55,7 @@ async function main() {
 
     // 100 usdc -> Хочу положить в овернайт пул ->
     // await getBeetsBalances(80668149, 80735354)
-    await getBalancesVelodromeGauges()
+    // await getBalancesVelodromeGauges()
     // await getBalanceVelodromeGauge(wallet, 92686688)
     // const gaugePool = await ethers.getContractAt(BeetsGaugePool, "0xa066243Ba7DAd6C779caA1f9417910a4AE83cf4D");
     // await getHolders(gaugePool, 80668149)
@@ -62,6 +68,9 @@ async function main() {
 
     // const usdpToken = await ethers.getContractAt(UsdPlusToken.abi, "0x73cb180bf0521828d8849bc8CF2B920918e23032");
     // const res = await getHoldersWithBalancesNonZero(usdpToken, 80668149)
+    // await checkForContracts()
+    // await getBalancesMooVelodrome()
+    await getBalancesReaperVelodrome()
     // await balanceAndConvertWrapped()
 }
 
@@ -285,6 +294,164 @@ async function getBalancesVelodromeGauges() {
 
 }
 
+async function getBalancesMooVelodrome() {
+    const mooVelodromeList = []
+    // const mooVelodrome1BalanceBefore = 509703300000;
+    // const mooVelodrome1BalanceAfter = 498079600000;
+    for (const address of mooVelodrome1) {
+        // USD+-DOLA 0x60bBDf88bd2DbAA645D6CF8Ae67d2F4aDA2658F1 0x9aEf6FaeD9FfaFbb8947d1Aa410fd9A0a79F16B8
+        const resultBefore = await getBalanceMooVelodrome(address, 80668149, "0x60bBDf88bd2DbAA645D6CF8Ae67d2F4aDA2658F1")
+        const resultAfter = await getBalanceMooVelodrome(address, 80668150, "0x60bBDf88bd2DbAA645D6CF8Ae67d2F4aDA2658F1")
+        if (resultBefore.velodromeLp != 0) {
+            mooVelodromeList.push({
+                "address": address,
+                "pair": "Moo Velodrome USD+-DOLA",
+                "shares": resultAfter.shares,
+                "lpTokenBalance": resultBefore.velodromeLp,
+                "usdpBalanceBefore": resultBefore.usdpBalance,
+                "usdpBalanceAfter": resultAfter.usdpBalance,
+                "difference": resultBefore.usdpBalance - resultAfter.usdpBalance,
+            })
+            console.log(resultBefore.usdpBalance - resultAfter.usdpBalance)
+        }
+    }
+    for (const address of mooVelodrome2) {
+        // USD+-LUSD 0x3b6eD6A53a9a357a397fbc7A04C96BA8B4AEBed2 0x6E2DCebF8C14c72329f224A26EdfD547d3c3E09c
+        const resultBefore = await getBalanceMooVelodrome(address, 80668149, "0x3b6eD6A53a9a357a397fbc7A04C96BA8B4AEBed2")
+        const resultAfter = await getBalanceMooVelodrome(address, 80668150, "0x3b6eD6A53a9a357a397fbc7A04C96BA8B4AEBed2")
+        if (resultBefore.velodromeLp != 0) {
+            mooVelodromeList.push({
+                "address": address,
+                "pair": "Moo Velodrome USD+-LUSD",
+                "shares": resultAfter.shares,
+                "lpTokenBalance": resultBefore.velodromeLp,
+                "usdpBalanceBefore": resultBefore.usdpBalance,
+                "usdpBalanceAfter": resultAfter.usdpBalance,
+                "difference": resultBefore.usdpBalance - resultAfter.usdpBalance,
+            })
+            console.log(resultBefore.usdpBalance - resultAfter.usdpBalance)
+        }
+    }
+    for (const address of mooVelodrome3) {
+        // USD+-USDC 0xE7a6563073244044936734536c9fdfAa0B8583Cd 0x59b2E7F6F5f745Fd33DaC83153EAe8E42440A981
+        const resultBefore = await getBalanceMooVelodrome(address, 80668149, "0xE7a6563073244044936734536c9fdfAa0B8583Cd", "0x59b2E7F6F5f745Fd33DaC83153EAe8E42440A981")
+        const resultAfter = await getBalanceMooVelodrome(address, 80668150, "0xE7a6563073244044936734536c9fdfAa0B8583Cd", "0x59b2E7F6F5f745Fd33DaC83153EAe8E42440A981")
+        if (resultBefore.velodromeLp != 0) {
+            mooVelodromeList.push({
+                "address": address,
+                "pair": "Moo Velodrome USD+-USDC",
+                "shares": resultAfter.shares,
+                "lpTokenBalance": resultBefore.velodromeLp,
+                "usdpBalanceBefore": resultBefore.usdpBalance,
+                "usdpBalanceAfter": resultAfter.usdpBalance,
+                "difference": resultBefore.usdpBalance - resultAfter.usdpBalance,
+            })
+            console.log(resultBefore.usdpBalance - resultAfter.usdpBalance)
+        }
+    }
+    fs.writeFileSync("mooVelodromeUsdp.json", JSON.stringify(mooVelodromeList, null, 4));
+
+}
+
+async function getBalancesReaperVelodrome() {
+    const reaperVelodromeList = []
+    // const mooVelodrome1BalanceBefore = 509703300000;
+    // const mooVelodrome1BalanceAfter = 498079600000;
+    for (const address of reaperVelodrome) {
+        // USD+-USDC 0x01EAFb9d744a652e71f554cd8946bFbCd38f5b96 0xDC233910a2f71D2734A8Cad1Ca2d936df805bb62
+        const resultBefore = await getBalanceReaperVelodrome(address, 80668149, "0x01EAFb9d744a652e71f554cd8946bFbCd38f5b96")
+        const resultAfter = await getBalanceReaperVelodrome(address, 80668150, "0x01EAFb9d744a652e71f554cd8946bFbCd38f5b96")
+        if (resultBefore.velodromeLp != 0) {
+            reaperVelodromeList.push({
+                "address": address,
+                "pair": "Reaper Velodrome USD+-USDC",
+                "shares": resultAfter.shares,
+                "lpTokenBalance": resultBefore.velodromeLp,
+                "usdpBalanceBefore": resultBefore.usdpBalance,
+                "usdpBalanceAfter": resultAfter.usdpBalance,
+                "difference": resultBefore.usdpBalance - resultAfter.usdpBalance,
+            })
+            console.log(resultBefore.usdpBalance - resultAfter.usdpBalance)
+        }
+    }
+    fs.writeFileSync("reaperVelodromeUsdp.json", JSON.stringify(reaperVelodromeList, null, 4));
+
+}
+
+async function getBalanceReaperVelodrome(wallet, blockNumber, vaultAddress) {
+    // balance * shares / totalSupply
+    const vault = await ethers.getContractAt(reaperVault, vaultAddress)
+    const balance = await vault.balance({ blockTag: blockNumber });
+    const shares = await vault.balanceOf(wallet, { blockTag: blockNumber });
+    const totalSupply = await vault.totalSupply({ blockTag: blockNumber });
+    const res = balance * shares / totalSupply;
+    // console.log(fromE6(res)) м
+    const velodromeRes = await getBalanceVelodromeGaugeAfterMoo(blockNumber, await vault.token(), res)
+    return {
+        "shares": fromE6(shares),
+        "velodromeLp": fromE6(res),
+        "usdpBalance": velodromeRes.usdpBalance,
+    }
+
+}
+
+
+
+async function getBalanceMooVelodrome(wallet, blockNumber, vaultAddress) {
+    // balance * shares / totalSupply
+    const vault = await ethers.getContractAt(beefyVault, vaultAddress)
+    // const strategy = await ethers.getContractAt(beefyVault, strategyAddress)
+    const balance = await vault.balance({ blockTag: blockNumber });
+    const shares = await vault.balanceOf(wallet, { blockTag: blockNumber });
+    const totalSupply = await vault.totalSupply({ blockTag: blockNumber });
+    const res = balance * shares / totalSupply;
+    // console.log(fromE6(res)) м
+    const velodromeRes = await getBalanceVelodromeGaugeAfterMoo(blockNumber, await vault.want(), res)
+    return {
+        "shares": fromE6(shares),
+        "velodromeLp": fromE6(res),
+        "usdpBalance": velodromeRes.usdpBalance,
+    }
+
+}
+
+async function getBalanceVelodromeGaugeAfterMoo(blockNumber, pairAddress, lpTokenBalance) {
+    const pair = await ethers.getContractAt(VeloPair, pairAddress);
+    // const gauge = await ethers.getContractAt(VeloGaugePool, gaugeAddress);
+    // 0x67124355cce2ad7a8ea283e990612ebe12730175
+    // const lpTokenBalance = await gauge.balanceOf(wallet, { blockTag: blockNumber });
+    const totalLpBalance = await pair.totalSupply({ blockTag: blockNumber });
+    const reserves = await pair.getReserves({ blockTag: blockNumber });
+    const token0 = await pair.token0({})
+    const reserveBalance = token0 === "0x73cb180bf0521828d8849bc8CF2B920918e23032" ? reserves._reserve0 : reserves._reserve1;
+
+    const token1 = await pair.token1({})
+    if (token1 !== "0x73cb180bf0521828d8849bc8CF2B920918e23032" && token0 !== "0x73cb180bf0521828d8849bc8CF2B920918e23032") {
+        console.log("strange", pairAddress)
+    }
+    const usdpBalance = reserveBalance * lpTokenBalance / totalLpBalance;
+    console.table([
+        {
+            name: 'reserveBalance',
+            amount: fromE6(reserveBalance)
+        },
+        {
+            name: 'lpTokenBalance',
+            amount: fromE6(lpTokenBalance)
+        },
+        {
+            name: 'totalLpBalance',
+            amount: fromE6(totalLpBalance)
+        },
+        {
+            name: 'usdpBalance',
+            amount: fromE6(usdpBalance)
+        }
+    ])
+    return { usdpBalance: fromE6(usdpBalance) };
+
+}
+
 async function getBalanceVelodromeGauge(wallet, blockNumber, pairAddress, gaugeAddress) {
     const pair = await ethers.getContractAt(VeloPair, pairAddress);
     const gauge = await ethers.getContractAt(VeloGaugePool, gaugeAddress);
@@ -322,11 +489,16 @@ async function getBalanceVelodromeGauge(wallet, blockNumber, pairAddress, gaugeA
 
 }
 
-async function getContractSize(contractAddress) {
-    const bytecode = await ethers.provider.getCode(contractAddress);
-    const size = bytecode.length / 2;
-    console.log(`Contract size: ${size} bytes`);
-    // console.log(bytecode)
+async function checkForContracts() {
+    const addresses = [...velodrome1, ...velodrome2, ...velodrome3, ...beetsAddresses]
+    console.log(addresses.length)
+    const contracts = []
+    for (const address of addresses) {
+        if (await isContract(address)) {
+            contracts.push(address)
+        }
+    }
+    console.log(contracts)
 }
 
 
