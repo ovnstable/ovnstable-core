@@ -54,7 +54,7 @@ describe("GlobalPayoutListener", function () {
     });
 
 
-    describe('[Add/Remove] ', ()=>{
+    describe('[Add/Remove]', ()=>{
 
         let item;
 
@@ -99,7 +99,6 @@ describe("GlobalPayoutListener", function () {
             await expectRevert(pl.addItem(item),'bribe is zero');
         });
 
-
         it("Add a new item", async function () {
 
             let chainItem = await pl.items(0);
@@ -113,12 +112,26 @@ describe("GlobalPayoutListener", function () {
             expect(item.dexName).to.equal(chainItem.dexName);
             expect(item.feePercent).to.equal(chainItem.feePercent);
             expect(item.feeReceiver).to.equal(chainItem.feeReceiver);
-        });
 
+            let items = await pl.getItems();
+
+            expect(item.pool).to.equal(items[0].pool);
+            expect(item.token).to.equal(items[0].token);
+            expect(item.poolName).to.equal(items[0].poolName);
+            expect(item.bribe).to.equal(items[0].bribe);
+            expect(item.operation).to.equal(items[0].operation);
+            expect(item.to).to.equal(items[0].to);
+            expect(item.dexName).to.equal(items[0].dexName);
+            expect(item.feePercent).to.equal(items[0].feePercent);
+            expect(item.feeReceiver).to.equal(items[0].feeReceiver);
+        });
 
         it("Add items", async function () {
 
-            let secondItem = item;
+            let length = await pl.getItemsLength();
+            expect(1).to.equal(length);
+
+            let secondItem = JSON.parse(JSON.stringify(item));
             secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
 
             let tx = await (await pl.addItems([item, secondItem])).wait();
@@ -126,12 +139,13 @@ describe("GlobalPayoutListener", function () {
             let events = tx.events.filter((e) => e.event == 'AddItem');
             expect(2).to.equal(events.length);
 
+            length = await pl.getItemsLength();
+            expect(2).to.equal(length);
         });
-
 
         it("Add a 2 new item", async function () {
 
-            let secondItem = item;
+            let secondItem = JSON.parse(JSON.stringify(item));
             secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
 
             let tx = await (await pl.addItem(secondItem)).wait();
@@ -152,6 +166,18 @@ describe("GlobalPayoutListener", function () {
             expect(secondItem.dexName).to.equal(chainItem.dexName);
             expect(secondItem.feePercent).to.equal(chainItem.feePercent);
             expect(secondItem.feeReceiver).to.equal(chainItem.feeReceiver);
+
+            let items = await pl.getItems();
+
+            expect(secondItem.pool).to.equal(items[1].pool);
+            expect(secondItem.token).to.equal(items[1].token);
+            expect(secondItem.poolName).to.equal(items[1].poolName);
+            expect(secondItem.bribe).to.equal(items[1].bribe);
+            expect(secondItem.operation).to.equal(items[1].operation);
+            expect(secondItem.to).to.equal(items[1].to);
+            expect(secondItem.dexName).to.equal(items[1].dexName);
+            expect(secondItem.feePercent).to.equal(items[1].feePercent);
+            expect(secondItem.feeReceiver).to.equal(items[1].feeReceiver);
         });
 
         it("Replace an exist item", async function () {
@@ -174,18 +200,23 @@ describe("GlobalPayoutListener", function () {
 
         it("Remove an exist item", async function () {
 
+            let length = await pl.getItemsLength();
+            expect(1).to.equal(length);
+
             let tx = await (await pl.removeItem(item.token, item.pool)).wait();
-            let chainItem = await pl.items(0);
-            expect(chainItem.pool).to.equal(ZERO_ADDRESS);
-
             let event = tx.events.find((e) => e.event == 'RemoveItem');
-
             expect(item.token).to.equal(event.args[0]);
             expect(item.pool).to.equal(event.args[1]);
+
+            length = await pl.getItemsLength();
+            expect(0).to.equal(length);
+
+            let items = await pl.getItems();
+            expect(0).to.equal(items.length);
+
+            let foundItems = await pl.findItemsByPool(item.pool);
+            expect(0).to.equal(foundItems.length);
         });
-
-
-
 
         it("[RemoveItem:Error] token is zero", async function () {
             await expectRevert(pl.removeItem(ZERO_ADDRESS, item.pool), 'token is zero');
@@ -199,18 +230,106 @@ describe("GlobalPayoutListener", function () {
             await expectRevert(pl.removeItem(item.pool, item.pool), 'item not found');
         });
 
+        it("Add new items and remove first item", async function () {
 
+            let length = await pl.getItemsLength();
+            expect(1).to.equal(length);
 
+            let secondItem = JSON.parse(JSON.stringify(item));
+            secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
+
+            let thirdItem = JSON.parse(JSON.stringify(item));
+            thirdItem.pool = '0xBd7568d25338940ba212e3F299D2cCC138fA35F0';
+
+            await (await pl.addItems([secondItem, thirdItem])).wait();
+
+            length = await pl.getItemsLength();
+            expect(3).to.equal(length);
+
+            await (await pl.removeItem(secondItem.token, secondItem.pool)).wait();
+
+            length = await pl.getItemsLength();
+            expect(2).to.equal(length);
+
+            let chainItem = await pl.items(0);
+            expect(item.pool).to.equal(chainItem.pool);
+
+            chainItem = await pl.items(1);
+            expect(thirdItem.pool).to.equal(chainItem.pool);
+        });
+
+        it("Add new items and remove all", async function () {
+
+            let length = await pl.getItemsLength();
+            expect(1).to.equal(length);
+
+            let secondItem = JSON.parse(JSON.stringify(item));
+            secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
+
+            let thirdItem = JSON.parse(JSON.stringify(item));
+            thirdItem.pool = '0xBd7568d25338940ba212e3F299D2cCC138fA35F0';
+
+            await (await pl.addItems([secondItem, thirdItem])).wait();
+
+            length = await pl.getItemsLength();
+            expect(3).to.equal(length);
+
+            await (await pl.removeItems()).wait();
+
+            length = await pl.getItemsLength();
+            expect(0).to.equal(length);
+        });
+
+        it("Add new items and find items by pool", async function () {
+
+            let length = await pl.getItemsLength();
+            expect(1).to.equal(length);
+
+            let secondItem = JSON.parse(JSON.stringify(item));
+            secondItem.pool = '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8';
+
+            let thirdItem = JSON.parse(JSON.stringify(item));
+            thirdItem.pool = '0xBd7568d25338940ba212e3F299D2cCC138fA35F0';
+
+            let fourthItem = JSON.parse(JSON.stringify(item));
+            fourthItem.token = '0x51E073D92b0c226F7B0065909440b18A85769606';
+
+            await (await pl.addItems([secondItem, thirdItem, fourthItem])).wait();
+
+            length = await pl.getItemsLength();
+            expect(4).to.equal(length);
+
+            let items = await pl.findItemsByPool(item.pool);
+            expect(2).to.equal(items.length);
+            expect(item.pool).to.equal(items[0].pool);
+            expect(fourthItem.pool).to.equal(items[1].pool);
+
+            items = await pl.findItemsByPool(secondItem.pool);
+            expect(1).to.equal(items.length);
+            expect(secondItem.pool).to.equal(items[0].pool);
+        });
 
 
         describe('permissions', ()=>{
 
-            it("[AddItem] Restricted to admins", async function () {
+            it("[setDisabled] Restricted to admins", async function () {
+                await expectRevert(pl.connect(testAccount).setDisabled(true),'Restricted to admins');
+            });
+
+            it("[addItem] Restricted to admins", async function () {
                 await expectRevert(pl.connect(testAccount).addItem(item),'Restricted to admins');
             });
 
-            it("[RemoveItem] Restricted to admins", async function () {
+            it("[removeItem] Restricted to admins", async function () {
                 await expectRevert(pl.connect(testAccount).removeItem(item.pool, item.pool),'Restricted to admins');
+            });
+
+            it("[addItems] Restricted to admins", async function () {
+                await expectRevert(pl.connect(testAccount).addItems([item]),'Restricted to admins');
+            });
+
+            it("[removeItems] Restricted to admins", async function () {
+                await expectRevert(pl.connect(testAccount).removeItems(),'Restricted to admins');
             });
 
         })

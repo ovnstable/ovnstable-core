@@ -5,7 +5,6 @@ import "../GlobalPayoutListener.sol";
 
 contract ArbitrumPayoutListener is GlobalPayoutListener {
 
-
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -15,6 +14,7 @@ contract ArbitrumPayoutListener is GlobalPayoutListener {
         __PayoutListener_init();
     }
 
-
+    function arbitrum() external {
+    }
 
 }

@@ -72,8 +72,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         let dex = 'Wombat';
 
         let items = [];
-        items.push(createSkim('0x88bEb144352BD3109c79076202Fac2bcEAb87117', usdPlus.address, 'LP-USD+', dex));
-        items.push(createSkim('0xbd459E33307A4ae92fFFCb45C6893084CFC273B1', usdtPlus.address, 'LP-USDT+', dex));
+        items.push(createSkim('0x88bEb144352BD3109c79076202Fac2bcEAb87117', usdPlus.address, 'USD+/USDT+/USDC', dex));
+        items.push(createSkim('0xbd459E33307A4ae92fFFCb45C6893084CFC273B1', usdtPlus.address, 'USD+/USDT+/USDC', dex));
 
         return items;
 
