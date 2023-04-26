@@ -17,7 +17,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     items.push(...velocore());
     items.push(...syncSwap());
-    items.push(...merlin());
 
     await (await pl.addItems(items)).wait();
 
@@ -35,15 +34,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-    function merlin(){
-
-        let dex = 'Merlin';
-
-        let items = [];
-        items.push(createSkim('0xa37125136121fb2bea2a68549aaf76fe6526758c', usdPlus.address, 'USDC/USD+', dex));
-
-        return items;
-    }
 
     function syncSwap(){
 
