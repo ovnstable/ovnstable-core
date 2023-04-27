@@ -15,6 +15,7 @@ module.exports = async () => {
 
     items.push(...velodrome());
 
+    await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
 //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
@@ -36,9 +37,9 @@ module.exports = async () => {
 
         items.push(createBribe('0x8a9Cd3dce710e90177B4332C108E159a15736A0F', usdPlus.address, 'vAMM-USD+/LUSD', dex, '0x41a7540ec8cb3afafe16a834abe0863f22016ec0'));
 
-        items.push(createBribe('0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a', usdPlus.address, 'sAMM-USD+/WETH/USDC', dex, '0x35F4Ea9Fa8a081C8Fad8033cb93877bc621c8Ee0'));
+        items.push(createBribe('0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a', usdPlus.address, ' sAMM-USD+/WETH/USDC', dex, '0x35F4Ea9Fa8a081C8Fad8033cb93877bc621c8Ee0'));
 
-        items.push(createBribe('0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f', usdPlus.address, 'vAMM-wstWETH/USD+', dex, '0xAd6d543C3015fF9833aC057312e4562b791334b2'));
+        items.push(createBribe('0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f', usdPlus.address, ' vAMM-wstWETH/USD+', dex, '0xAd6d543C3015fF9833aC057312e4562b791334b2'));
 
         return items;
     }
