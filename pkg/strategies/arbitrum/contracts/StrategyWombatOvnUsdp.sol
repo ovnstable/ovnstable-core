@@ -11,7 +11,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 /**
  * @dev Self-investment strategy
- * 1) sell all USDC -> buy USD+ on self-investment pool (Overnight)
+ * 1) sell all USDC -> buy USD+ on UniswapV3 (0.01%)
  * 2) invest USD+ to Overnight pool on Wombat
  * 3) Stake lp tokens in Wombex
  *
@@ -112,25 +112,18 @@ contract StrategyWombatOvnUsdp is Strategy {
 
         uint256 amountToSwap = token0.balanceOf(address(this));
 
-        uint256 amountOut = WombatLibrary.getAmountOut(
-            router,
+        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
+
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
             address(token0),
             address(token1),
-            address(poolWombat),
-            amountToSwap
+            100, // 0.01%
+            address(this),
+            amountToSwap,
+            amountOutMin
         );
 
-        if (amountOut > 0) {
-            WombatLibrary.swapExactTokensForTokens(
-                router,
-                address(token0),
-                address(token1),
-                address(poolWombat),
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
     }
 
 

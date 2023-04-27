@@ -10,7 +10,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Wombex.sol";
 
 /**
  * @dev Self-investment strategy
- * 1) Buy DAI+ by next routing: (DAI->USDC->DAI+) (base pool wombat->ovn pool wombat)
+ * 1) Buy DAI+ by next routing: (DAI->DAI+) in Uniswap v3 (0.01%)
  * 2) invest DAI+ to Overnight pool on Wombat
  * 3) Stake lp tokens in Wombex
  *
@@ -98,7 +98,7 @@ contract StrategyWombatOvnDaiPlus is Strategy {
         basePoolWombat = IWombatPool(params.basePoolWombat);
         router = IWombatRouter(params.wombatRouter);
 
-        uniswapV3Router  = ISwapRouter(params.uniswapV3Router);
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee0 = params.poolFee0;
         poolFee1 = params.poolFee1;
 
@@ -118,67 +118,35 @@ contract StrategyWombatOvnDaiPlus is Strategy {
     function _swapDaiToDaiPlus() internal {
 
         uint256 amountToSwap = dai.balanceOf(address(this));
+        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
 
-        address[] memory tokenPath = new address[](3);
-        tokenPath[0] = address(dai);
-        tokenPath[1] = address(usdc);
-        tokenPath[2] = address(daiPlus);
-
-        address[] memory poolPath = new address[](2);
-        poolPath[0] = address(basePoolWombat);
-        poolPath[1] = address(poolWombat);
-
-        uint256 amountOut = WombatLibrary.getMultiAmountOut(
-            router,
-            tokenPath,
-            poolPath,
-            amountToSwap
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
+            address(dai),
+            address(daiPlus),
+            100, // 0.01%
+            address(this),
+            amountToSwap,
+            amountOutMin
         );
 
-        if (amountOut > 0) {
-            WombatLibrary.multiSwap(
-                router,
-                tokenPath,
-                poolPath,
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
     }
 
     function _swapDaiPlusToDai() internal {
 
         uint256 amountToSwap = daiPlus.balanceOf(address(this));
+        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
 
-        address[] memory tokenPath = new address[](3);
-        tokenPath[0] = address(daiPlus);
-        tokenPath[1] = address(usdc);
-        tokenPath[2] = address(dai);
-
-        address[] memory poolPath = new address[](2);
-        poolPath[0] = address(poolWombat);
-        poolPath[1] = address(basePoolWombat);
-
-        uint256 amountOut = WombatLibrary.getMultiAmountOut(
-            router,
-            tokenPath,
-            poolPath,
-            amountToSwap
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
+            address(daiPlus),
+            address(dai),
+            100, // 0.01%
+            address(this),
+            amountToSwap,
+            amountOutMin
         );
-
-        if (amountOut > 0) {
-            WombatLibrary.multiSwap(
-                router,
-                tokenPath,
-                poolPath,
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
     }
-
 
 
     function _stake(
