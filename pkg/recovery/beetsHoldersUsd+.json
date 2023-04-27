@@ -3,1728 +3,2180 @@
         "address": "0x0877141f8ad7b366ceb3c3b72c5ee55797979e0e",
         "gaugeBalance": 0,
         "bptBalance": 0.381,
-        "beforeUsd+": 0.196635422734176,
-        "afterUsd+": 0.1922741742068028,
-        "differenceUsd+": 0.004361248527373213
+        "amountLinearPoolUsdPlusBefore+": 0.1965154311080821,
+        "amountLinearPoolUsdPlusAfter+": 0.19218738730318055,
+        "usd+before": 0.196746,
+        "usd+after": 0.188025,
+        "differenceUsd+": 0.008721000000000007
     },
     {
         "address": "0xdc12853504d6df6b68eec453042347c0ceaf2413",
         "gaugeBalance": 0.099,
         "bptBalance": 0,
-        "beforeUsd+": 0.051094243702581164,
-        "afterUsd+": 0.04996100589625584,
-        "differenceUsd+": 0.0011332378063253212
+        "amountLinearPoolUsdPlusBefore+": 0.05128407349115931,
+        "amountLinearPoolUsdPlusAfter+": 0.05015459620119804,
+        "usd+before": 0.051343,
+        "usd+after": 0.049068,
+        "differenceUsd+": 0.0022749999999999992
     },
     {
         "address": "0xb420afe3215f27a89ec8046b62a54a60db2c02b6",
         "gaugeBalance": 0,
         "bptBalance": 0.153,
-        "beforeUsd+": 0.07896383117671636,
-        "afterUsd+": 0.07721246365784995,
-        "differenceUsd+": 0.0017513675188664118
+        "amountLinearPoolUsdPlusBefore+": 0.07872906676993204,
+        "amountLinearPoolUsdPlusAfter+": 0.07699514263085576,
+        "usd+before": 0.07882,
+        "usd+after": 0.075327,
+        "differenceUsd+": 0.003492999999999996
     },
     {
         "address": "0xfb7f5f4c31c524ab6beccfc93de9484d3ad1ebcc",
         "gaugeBalance": 2015.354,
         "bptBalance": 0,
-        "beforeUsd+": 1040.131196191634,
-        "afterUsd+": 1017.0617482529576,
-        "differenceUsd+": 23.069447938676376
+        "amountLinearPoolUsdPlusBefore+": 1039.8005966665507,
+        "amountLinearPoolUsdPlusAfter+": 1016.9000920834759,
+        "usd+before": 1041.023249,
+        "usd+after": 994.878397,
+        "differenceUsd+": 46.14485200000013
     },
     {
         "address": "0xb4dc4c7460c58e7652cd615675a1f707ebb67e9a",
         "gaugeBalance": 39.815,
         "bptBalance": 0,
-        "beforeUsd+": 20.548659727457263,
-        "afterUsd+": 20.092903532923497,
-        "differenceUsd+": 0.45575619453376603
+        "amountLinearPoolUsdPlusBefore+": 20.54210928113601,
+        "amountLinearPoolUsdPlusAfter+": 20.089691125917792,
+        "usd+before": 20.566263,
+        "usd+after": 19.654633,
+        "differenceUsd+": 0.9116299999999988
     },
     {
         "address": "0x22258a725287f2f3b727bf3e5e57bb9f1fc04520",
         "gaugeBalance": 0,
         "bptBalance": 0.499,
-        "beforeUsd+": 0.2575356323998788,
-        "afterUsd+": 0.251823655982138,
-        "differenceUsd+": 0.005711976417740794
+        "amountLinearPoolUsdPlusBefore+": 0.2576152514118995,
+        "amountLinearPoolUsdPlusAfter+": 0.2519415489111112,
+        "usd+before": 0.257917,
+        "usd+after": 0.246485,
+        "differenceUsd+": 0.011431999999999998
     },
     {
         "address": "0x9d591c38f52b3064a4c150f1a2443b057c8d7580",
         "gaugeBalance": 1878.815,
         "bptBalance": 0,
-        "beforeUsd+": 969.6629442632833,
-        "afterUsd+": 948.1564373027669,
-        "differenceUsd+": 21.50650696051639
+        "amountLinearPoolUsdPlusBefore+": 969.354411959464,
+        "amountLinearPoolUsdPlusAfter+": 948.0054098287983,
+        "usd+before": 970.49423,
+        "usd+after": 927.475679,
+        "differenceUsd+": 43.018551
     },
     {
         "address": "0xbd3087f59def87ffcad5a320bb7655c1071be8ea",
         "gaugeBalance": 4940.502,
         "bptBalance": 0,
-        "beforeUsd+": 2549.8102343544415,
-        "afterUsd+": 2493.257066186503,
-        "differenceUsd+": 56.553168167938566
+        "amountLinearPoolUsdPlusBefore+": 2548.9994202803764,
+        "amountLinearPoolUsdPlusAfter+": 2492.860413346237,
+        "usd+before": 2551.996669,
+        "usd+after": 2438.87575,
+        "differenceUsd+": 113.12091899999996
     },
     {
         "address": "0x1d1008e70f295e995cf6111280b669c72d8d843c",
         "gaugeBalance": 0,
         "bptBalance": 0.498,
-        "beforeUsd+": 0.25701952892813557,
-        "afterUsd+": 0.2513189993569233,
-        "differenceUsd+": 0.005700529571212254
+        "amountLinearPoolUsdPlusBefore+": 0.2568625499585233,
+        "amountLinearPoolUsdPlusAfter+": 0.25120542490839043,
+        "usd+before": 0.257163,
+        "usd+after": 0.245764,
+        "differenceUsd+": 0.011398999999999965
     },
     {
         "address": "0xdc67af6b6ee64eec179135103b62fb68360af860",
         "gaugeBalance": 0.198,
         "bptBalance": 0,
-        "beforeUsd+": 0.10218848740516233,
-        "afterUsd+": 0.09992201179251169,
-        "differenceUsd+": 0.0022664756126506425
+        "amountLinearPoolUsdPlusBefore+": 0.10223165393524376,
+        "amountLinearPoolUsdPlusAfter+": 0.0999801102575571,
+        "usd+before": 0.102351,
+        "usd+after": 0.097814,
+        "differenceUsd+": 0.004536999999999999
     },
     {
         "address": "0xf3457ea2da4297f1d3f224ae4dbfeb6d08bf66e4",
         "gaugeBalance": 2.345,
         "bptBalance": 0,
-        "beforeUsd+": 1.2102626412379076,
-        "afterUsd+": 1.1834197861284845,
-        "differenceUsd+": 0.02684285510942308
+        "amountLinearPoolUsdPlusBefore+": 1.2098323892088843,
+        "amountLinearPoolUsdPlusAfter+": 1.1831871148527708,
+        "usd+before": 1.211254,
+        "usd+after": 1.157564,
+        "differenceUsd+": 0.053690000000000015
     },
     {
         "address": "0xaf75a6806495060cb4ce03b04ab0a3a4668f2867",
         "gaugeBalance": 0,
         "bptBalance": 0.025,
-        "beforeUsd+": 0.012902586793581102,
-        "afterUsd+": 0.012616415630367637,
-        "differenceUsd+": 0.0002861711632134653
+        "amountLinearPoolUsdPlusBefore+": 0.012898551830596875,
+        "amountLinearPoolUsdPlusAfter+": 0.01261447491598597,
+        "usd+before": 0.012912,
+        "usd+after": 0.01234,
+        "differenceUsd+": 0.0005719999999999996
     },
     {
         "address": "0x8a666be48ee621557da08ce9cf21ed4decb1e27f",
         "gaugeBalance": 0.059,
         "bptBalance": 0,
-        "beforeUsd+": 0.030450104832851405,
-        "afterUsd+": 0.029774740887667624,
-        "differenceUsd+": 0.0006753639451837802
+        "amountLinearPoolUsdPlusBefore+": 0.030697854946177702,
+        "amountLinearPoolUsdPlusAfter+": 0.03002176727115692,
+        "usd+before": 0.030733,
+        "usd+after": 0.02937,
+        "differenceUsd+": 0.0013629999999999996
     },
     {
         "address": "0xc61be0eb2ec1f6264603982421d1008ec46b3f96",
         "gaugeBalance": 0,
         "bptBalance": 0.487,
-        "beforeUsd+": 0.25134239073895986,
-        "afterUsd+": 0.24576777647956155,
-        "differenceUsd+": 0.005574614259398314
+        "amountLinearPoolUsdPlusBefore+": 0.25147665847704265,
+        "amountLinearPoolUsdPlusAfter+": 0.24593815197064878,
+        "usd+before": 0.251771,
+        "usd+after": 0.240611,
+        "differenceUsd+": 0.011160000000000031
     },
     {
         "address": "0xd0dd348f653c9f3d7992c05409eca509f9c027ff",
         "gaugeBalance": 81.933,
         "bptBalance": 0,
-        "beforeUsd+": 42.285905750339225,
-        "afterUsd+": 41.34803127371647,
-        "differenceUsd+": 0.9378744766227527
+        "amountLinearPoolUsdPlusBefore+": 42.2726514595357,
+        "amountLinearPoolUsdPlusAfter+": 41.341641175841595,
+        "usd+before": 42.322356,
+        "usd+after": 40.446358,
+        "differenceUsd+": 1.8759980000000027
     },
     {
         "address": "0xbd40c1eebdaebc9983816647ef78be3715c6206d",
         "gaugeBalance": 0,
         "bptBalance": 0.253,
-        "beforeUsd+": 0.13057417835104076,
-        "afterUsd+": 0.1276781261793205,
-        "differenceUsd+": 0.002896052171720259
+        "amountLinearPoolUsdPlusBefore+": 0.13029816870562508,
+        "amountLinearPoolUsdPlusAfter+": 0.12742848982760233,
+        "usd+before": 0.130451,
+        "usd+after": 0.124668,
+        "differenceUsd+": 0.00578300000000001
     },
     {
         "address": "0x5796f85dde9abfc2bbb28d086dee994d970a4561",
         "gaugeBalance": 0,
         "bptBalance": 23.728,
-        "beforeUsd+": 12.246103177523697,
-        "afterUsd+": 11.974492403094533,
-        "differenceUsd+": 0.27161077442916337
+        "amountLinearPoolUsdPlusBefore+": 12.242359142344641,
+        "amountLinearPoolUsdPlusAfter+": 11.972734175263746,
+        "usd+before": 12.256753,
+        "usd+after": 11.713455,
+        "differenceUsd+": 0.5432980000000001
     },
     {
         "address": "0xd61015823b60a7c6e156c887a72467a8170259d2",
         "gaugeBalance": 0,
         "bptBalance": 9.078,
-        "beforeUsd+": 4.6851873164851705,
-        "afterUsd+": 4.581272843699097,
-        "differenceUsd+": 0.10391447278607391
+        "amountLinearPoolUsdPlusBefore+": 4.683829146545624,
+        "amountLinearPoolUsdPlusAfter+": 4.580672780622509,
+        "usd+before": 4.689336,
+        "usd+after": 4.481474,
+        "differenceUsd+": 0.20786199999999955
     },
     {
         "address": "0xd1d8d0bdc381c46c698767b26dc4727fb32e72d8",
         "gaugeBalance": 0,
         "bptBalance": 387.375,
-        "beforeUsd+": 199.9255823665392,
-        "afterUsd+": 195.49136019254652,
-        "differenceUsd+": 4.43422217399268
+        "amountLinearPoolUsdPlusBefore+": 199.8620477455993,
+        "amountLinearPoolUsdPlusAfter+": 195.46029826107903,
+        "usd+before": 200.097055,
+        "usd+after": 191.227466,
+        "differenceUsd+": 8.869589000000019
     },
     {
         "address": "0xb888f9f40f6007c06681306bba976f5e25691e1b",
         "gaugeBalance": 5328.838,
         "bptBalance": 0,
-        "beforeUsd+": 2750.231792157326,
-        "afterUsd+": 2689.233401395881,
-        "differenceUsd+": 60.998390761444625
+        "amountLinearPoolUsdPlusBefore+": 2749.3571906262982,
+        "amountLinearPoolUsdPlusAfter+": 2688.805516443485,
+        "usd+before": 2752.590031,
+        "usd+after": 2630.577523,
+        "differenceUsd+": 122.01250800000025
     },
     {
         "address": "0xa60292606d3a4a439c62ecf6d08df55d6bfc5d14",
         "gaugeBalance": 0,
         "bptBalance": 0.277,
-        "beforeUsd+": 0.14296066167287863,
-        "afterUsd+": 0.13978988518447344,
-        "differenceUsd+": 0.0031707764884051914
+        "amountLinearPoolUsdPlusBefore+": 0.14299731859225848,
+        "amountLinearPoolUsdPlusAfter+": 0.13984795441581188,
+        "usd+before": 0.143164,
+        "usd+after": 0.136818,
+        "differenceUsd+": 0.006346000000000018
     },
     {
         "address": "0xd946b3a3694864358dca0cd641d72263e032a0c8",
         "gaugeBalance": 932.604,
         "bptBalance": 0,
-        "beforeUsd+": 481.3201621616365,
-        "afterUsd+": 470.6447873017353,
-        "differenceUsd+": 10.67537485990124
+        "amountLinearPoolUsdPlusBefore+": 481.16699866395936,
+        "amountLinearPoolUsdPlusAfter+": 470.56980618931215,
+        "usd+before": 481.73278,
+        "usd+after": 460.379282,
+        "differenceUsd+": 21.353498000000002
     },
     {
         "address": "0xdc2cefa3a38a2fd903e16e8913dbebfe7468bfa4",
         "gaugeBalance": 55.128,
         "bptBalance": 0,
-        "beforeUsd+": 28.451752190261562,
-        "afterUsd+": 27.820710434836283,
-        "differenceUsd+": 0.6310417554252794
+        "amountLinearPoolUsdPlusBefore+": 28.442793648830357,
+        "amountLinearPoolUsdPlusAfter+": 27.81637130554777,
+        "usd+before": 28.476237,
+        "usd+after": 27.213987,
+        "differenceUsd+": 1.2622500000000016
     },
     {
         "address": "0xce1f76ea807d282861ef802d06355c9a19bc82f5",
         "gaugeBalance": 0,
         "bptBalance": 49.945,
-        "beforeUsd+": 25.776787896216327,
-        "afterUsd+": 25.205075146348463,
-        "differenceUsd+": 0.5717127498678636
+        "amountLinearPoolUsdPlusBefore+": 25.76856604043158,
+        "amountLinearPoolUsdPlusAfter+": 25.201040722019577,
+        "usd+before": 25.798865,
+        "usd+after": 24.655293,
+        "differenceUsd+": 1.143571999999999
     },
     {
         "address": "0x8097a5fb9f5ca095d537db9fd946171d3092df26",
         "gaugeBalance": 0,
         "bptBalance": 0.418,
-        "beforeUsd+": 0.21573125118867606,
-        "afterUsd+": 0.2109464693397469,
-        "differenceUsd+": 0.004784781848929165
+        "amountLinearPoolUsdPlusBefore+": 0.21572908471243604,
+        "amountLinearPoolUsdPlusAfter+": 0.21097788057868422,
+        "usd+before": 0.215982,
+        "usd+after": 0.206408,
+        "differenceUsd+": 0.009574
     },
     {
         "address": "0xcdc93f039805bc5920c55ca31b5f785de40c52c5",
         "gaugeBalance": 1882.702,
         "bptBalance": 0,
-        "beforeUsd+": 971.6690384579491,
-        "afterUsd+": 950.1180376049764,
-        "differenceUsd+": 21.55100085297272
+        "amountLinearPoolUsdPlusBefore+": 971.3601558710598,
+        "amountLinearPoolUsdPlusAfter+": 949.9669793594721,
+        "usd+before": 972.502332,
+        "usd+after": 929.394769,
+        "differenceUsd+": 43.10756300000003
     },
     {
         "address": "0xf2d462b62e8314d578570dba45f05f9c7ada41ff",
         "gaugeBalance": 1259.667,
         "bptBalance": 0,
-        "beforeUsd+": 650.1185119403971,
-        "afterUsd+": 635.6992971143324,
-        "differenceUsd+": 14.419214826064717
+        "amountLinearPoolUsdPlusBefore+": 649.9116872971134,
+        "amountLinearPoolUsdPlusAfter+": 635.5980721470016,
+        "usd+before": 650.675887,
+        "usd+after": 621.833744,
+        "differenceUsd+": 28.842142999999965
     },
     {
         "address": "0x1c8bf1d0c78653ec49d621a83716d11deff355ba",
         "gaugeBalance": 995.493,
         "bptBalance": 0,
-        "beforeUsd+": 513.7773933960974,
-        "afterUsd+": 502.38213780486285,
-        "differenceUsd+": 11.395255591234559
+        "amountLinearPoolUsdPlusBefore+": 513.6142824278998,
+        "amountLinearPoolUsdPlusAfter+": 502.3024729652198,
+        "usd+before": 514.218216,
+        "usd+after": 491.424755,
+        "differenceUsd+": 22.79346099999998
     },
     {
         "address": "0x0314897962ed3e25af5dc731eb488a53f4624bca",
         "gaugeBalance": 50.214,
         "bptBalance": 0,
-        "beforeUsd+": 25.91561973011526,
-        "afterUsd+": 25.34082777853122,
-        "differenceUsd+": 0.5747919515840394
+        "amountLinearPoolUsdPlusBefore+": 25.907322106169122,
+        "amountLinearPoolUsdPlusAfter+": 25.336740832673485,
+        "usd+before": 25.937784,
+        "usd+after": 24.788055,
+        "differenceUsd+": 1.1497290000000007
     },
     {
         "address": "0x062890e9c5382eddc6ad403f5aea5d36b1db1f16",
         "gaugeBalance": 0,
         "bptBalance": 0.02,
-        "beforeUsd+": 0.010322069434864883,
-        "afterUsd+": 0.010093132504294111,
-        "differenceUsd+": 0.00022893693057077225
+        "amountLinearPoolUsdPlusBefore+": 0.010309868390730337,
+        "amountLinearPoolUsdPlusAfter+": 0.010082804481467615,
+        "usd+before": 0.010321,
+        "usd+after": 0.009864,
+        "differenceUsd+": 0.0004570000000000008
     },
     {
         "address": "0xe3a6377c58f8c488752f32a52db7348cd623dc0b",
         "gaugeBalance": 0,
         "bptBalance": 3.492,
-        "beforeUsd+": 1.8022333233274086,
-        "afterUsd+": 1.7622609352497516,
-        "differenceUsd+": 0.03997238807765702
+        "amountLinearPoolUsdPlusBefore+": 1.8017778143505283,
+        "amountLinearPoolUsdPlusAfter+": 1.7620955702476726,
+        "usd+before": 1.803895,
+        "usd+after": 1.723935,
+        "differenceUsd+": 0.07996000000000003
     },
     {
         "address": "0x5508e66ff29be9b95c4ff0b74b104a16ba7436e1",
         "gaugeBalance": 99.616,
         "bptBalance": 0,
-        "beforeUsd+": 51.412163441175004,
-        "afterUsd+": 50.271874377388095,
-        "differenceUsd+": 1.1402890637869092
+        "amountLinearPoolUsdPlusBefore+": 51.395751526027546,
+        "amountLinearPoolUsdPlusAfter+": 50.26381464587415,
+        "usd+before": 51.456184,
+        "usd+after": 49.175315,
+        "differenceUsd+": 2.2808690000000027
     },
     {
         "address": "0xe7f9cc13a1096df8b6bb6481323ef6fed3caa9ed",
         "gaugeBalance": 196.859,
         "bptBalance": 0,
-        "beforeUsd+": 101.59961334390331,
-        "afterUsd+": 99.34619858314173,
-        "differenceUsd+": 2.2534147607615864
+        "amountLinearPoolUsdPlusBefore+": 101.56747748181122,
+        "amountLinearPoolUsdPlusAfter+": 99.33056158560937,
+        "usd+before": 101.686905,
+        "usd+after": 97.179486,
+        "differenceUsd+": 4.507418999999999
     },
     {
         "address": "0xc1316bea58136ffdf89b63a8ac195ce0748c517c",
         "gaugeBalance": 0,
         "bptBalance": 0.003,
-        "beforeUsd+": 0.0015483104152297323,
-        "afterUsd+": 0.0015139698756441165,
-        "differenceUsd+": 0.00003434053958561588
+        "amountLinearPoolUsdPlusBefore+": 0.0013314384810028028,
+        "amountLinearPoolUsdPlusAfter+": 0.0013021149615375942,
+        "usd+before": 0.001332,
+        "usd+after": 0.001273,
+        "differenceUsd+": 0.000059000000000000025
     },
     {
         "address": "0xf5a93410e7e32bbf28a8eaafbd7f241cf0b290fb",
         "gaugeBalance": 0,
         "bptBalance": 0.233,
-        "beforeUsd+": 0.12025210891617588,
-        "afterUsd+": 0.11758499367502638,
-        "differenceUsd+": 0.002667115241149501
+        "amountLinearPoolUsdPlusBefore+": 0.12003860312962603,
+        "amountLinearPoolUsdPlusAfter+": 0.11739488029475882,
+        "usd+before": 0.120178,
+        "usd+after": 0.114852,
+        "differenceUsd+": 0.005325999999999997
     },
     {
         "address": "0x5c64a40d89ab2cfb08e3c4f54542c0b9372431ef",
         "gaugeBalance": 99.286,
         "bptBalance": 0,
-        "beforeUsd+": 51.24184929549973,
-        "afterUsd+": 50.10533769106724,
-        "differenceUsd+": 1.136511604432492
+        "amountLinearPoolUsdPlusBefore+": 51.225514448935584,
+        "amountLinearPoolUsdPlusAfter+": 50.09732685972955,
+        "usd+before": 51.285747,
+        "usd+after": 49.012433,
+        "differenceUsd+": 2.273313999999999
     },
     {
         "address": "0x71ca967fb1a95e1db1eb999fb61dbb2efd2e0854",
         "gaugeBalance": 0,
         "bptBalance": 0.348,
-        "beforeUsd+": 0.17960400816664895,
-        "afterUsd+": 0.1756205055747175,
-        "differenceUsd+": 0.003983502591931448
+        "amountLinearPoolUsdPlusBefore+": 0.17980441519841397,
+        "amountLinearPoolUsdPlusAfter+": 0.17584441378323026,
+        "usd+before": 0.180015,
+        "usd+after": 0.172035,
+        "differenceUsd+": 0.007980000000000015
     },
     {
         "address": "0x7e4b1ab51426a26c011498d9da5bf86bad2c083c",
         "gaugeBalance": 179.865,
         "bptBalance": 0,
-        "beforeUsd+": 92.82895094509861,
-        "afterUsd+": 90.77006389424301,
-        "differenceUsd+": 2.0588870508556028
+        "amountLinearPoolUsdPlusBefore+": 92.79960476327715,
+        "amountLinearPoolUsdPlusAfter+": 90.7557919582048,
+        "usd+before": 92.908722,
+        "usd+after": 88.79041,
+        "differenceUsd+": 4.118312000000003
     },
     {
         "address": "0xb1ad64854136d039c16bbf7411a4396a1ddc8c28",
         "gaugeBalance": 6078.891,
         "bptBalance": 0,
-        "beforeUsd+": 3137.3367494487607,
-        "afterUsd+": 3067.752617108046,
-        "differenceUsd+": 69.58413234071486
+        "amountLinearPoolUsdPlusBefore+": 3136.339317859093,
+        "amountLinearPoolUsdPlusAfter+": 3067.2647730348576,
+        "usd+before": 3140.027192,
+        "usd+after": 3000.840976,
+        "differenceUsd+": 139.18621600000006
     },
     {
         "address": "0xd670a99b9ad6b9fe256294f51cfe5f38e51d54aa",
         "gaugeBalance": 0,
         "bptBalance": 0.136,
-        "beforeUsd+": 0.0701900721570812,
-        "afterUsd+": 0.06863330102919996,
-        "differenceUsd+": 0.0015567711278812457
+        "amountLinearPoolUsdPlusBefore+": 0.0703362534984754,
+        "amountLinearPoolUsdPlusAfter+": 0.06878717216426387,
+        "usd+before": 0.070418,
+        "usd+after": 0.067296,
+        "differenceUsd+": 0.0031219999999999998
     },
     {
         "address": "0x044e120e686da52e857bef1c1dd8c9d4b81d3a57",
         "gaugeBalance": 97.926,
         "bptBalance": 0,
-        "beforeUsd+": 50.53994857392893,
-        "afterUsd+": 49.41900468077525,
-        "differenceUsd+": 1.1209438931536795
+        "amountLinearPoolUsdPlusBefore+": 50.5240000089694,
+        "amountLinearPoolUsdPlusAfter+": 49.411262530774124,
+        "usd+before": 50.583408,
+        "usd+after": 48.341225,
+        "differenceUsd+": 2.242182999999997
     },
     {
         "address": "0xba12222222228d8ba445958a75a0704d566bf2c8",
         "gaugeBalance": 0,
         "bptBalance": 2596148432661805.5,
-        "beforeUsd+": 1339881219257539.8,
-        "afterUsd+": 1310163506583553.8,
-        "differenceUsd+": 29717712673986
+        "amountLinearPoolUsdPlusBefore+": 1339455235860767.8,
+        "amountLinearPoolUsdPlusAfter+": 1309955155878134.5,
+        "usd+before": 1341030238846301.5,
+        "usd+after": 1281587146964429.8,
+        "differenceUsd+": 59443091881871.75
     },
     {
         "address": "0x23c043a293b302e146aa9fcf9a9ca937b895dd56",
         "gaugeBalance": 0,
         "bptBalance": 0.01,
-        "beforeUsd+": 0.005161034717432442,
-        "afterUsd+": 0.0050465662521470556,
-        "differenceUsd+": 0.00011446846528538612
+        "amountLinearPoolUsdPlusBefore+": 0.004963496013635073,
+        "amountLinearPoolUsdPlusAfter+": 0.004854180281779636,
+        "usd+before": 0.004968,
+        "usd+after": 0.004748,
+        "differenceUsd+": 0.00022000000000000058
     },
     {
         "address": "0x8a8201ae68bdec80ea891755cf5c25d32d81fb71",
         "gaugeBalance": 0,
         "bptBalance": 0.35,
-        "beforeUsd+": 0.18063621511013542,
-        "afterUsd+": 0.1766298188251469,
-        "differenceUsd+": 0.004006396284988528
+        "amountLinearPoolUsdPlusBefore+": 0.1804313722853029,
+        "amountLinearPoolUsdPlusAfter+": 0.17645756280568098,
+        "usd+before": 0.180643,
+        "usd+after": 0.172635,
+        "differenceUsd+": 0.008007999999999987
     },
     {
         "address": "0x529ccfdad6db41038fb67ce178e7d8ca6a9c1800",
         "gaugeBalance": 49.793,
         "bptBalance": 0,
-        "beforeUsd+": 25.698340168511354,
-        "afterUsd+": 25.12836733931583,
-        "differenceUsd+": 0.5699728291955246
+        "amountLinearPoolUsdPlusBefore+": 25.690359867544814,
+        "amountLinearPoolUsdPlusAfter+": 25.124556957089066,
+        "usd+before": 25.720567,
+        "usd+after": 24.580465,
+        "differenceUsd+": 1.1401019999999988
     },
     {
         "address": "0x2d70414e3edd50bb335bb1507bf5322cb7d6b1a6",
         "gaugeBalance": 0,
         "bptBalance": 0.011,
-        "beforeUsd+": 0.005677138189175685,
-        "afterUsd+": 0.005551222877361759,
-        "differenceUsd+": 0.00012591531181392526
+        "amountLinearPoolUsdPlusBefore+": 0.005579981350894309,
+        "amountLinearPoolUsdPlusAfter+": 0.005457088183772376,
+        "usd+before": 0.005585,
+        "usd+after": 0.005337,
+        "differenceUsd+": 0.00024799999999999996
     },
     {
         "address": "0x539460bd8d7d6130ce6c4a65c0b59da3b3d2da42",
         "gaugeBalance": 29735.54,
         "bptBalance": 0,
-        "beforeUsd+": 15346.615428160107,
-        "afterUsd+": 15006.237265336884,
-        "differenceUsd+": 340.37816282322274
+        "amountLinearPoolUsdPlusBefore+": 15341.736236587307,
+        "amountLinearPoolUsdPlusAfter+": 15003.850778428676,
+        "usd+before": 15359.775868,
+        "usd+after": 14678.931737,
+        "differenceUsd+": 680.8441309999998
     },
     {
         "address": "0xd1cbf265fcdcafba2e406a17ddd3d178bc7b6803",
         "gaugeBalance": 0,
         "bptBalance": 1.494,
-        "beforeUsd+": 0.7710585867844066,
-        "afterUsd+": 0.75395699807077,
-        "differenceUsd+": 0.01710158871363665
+        "amountLinearPoolUsdPlusBefore+": 0.7709907524754613,
+        "amountLinearPoolUsdPlusAfter+": 0.7540104994181198,
+        "usd+before": 0.771896,
+        "usd+after": 0.737681,
+        "differenceUsd+": 0.034214999999999995
     },
     {
         "address": "0x119b2be32ae0c5c594df2ceada9af7a3ded3f758",
         "gaugeBalance": 0.164,
         "bptBalance": 0,
-        "beforeUsd+": 0.08464096936589204,
-        "afterUsd+": 0.0827636865352117,
-        "differenceUsd+": 0.001877282830680338
+        "amountLinearPoolUsdPlusBefore+": 0.08454196215651592,
+        "amountLinearPoolUsdPlusAfter+": 0.08268001516587738,
+        "usd+before": 0.08464,
+        "usd+after": 0.080889,
+        "differenceUsd+": 0.0037510000000000043
     },
     {
         "address": "0x0030b9f1925408d79be83c7cecfffdbacb638e9b",
         "gaugeBalance": 539.224,
         "bptBalance": 0,
-        "beforeUsd+": 278.2953784472791,
-        "afterUsd+": 272.1229640747744,
-        "differenceUsd+": 6.172414372504704
+        "amountLinearPoolUsdPlusBefore+": 278.20673806125563,
+        "amountLinearPoolUsdPlusAfter+": 272.0795299211191,
+        "usd+before": 278.533868,
+        "usd+after": 266.187454,
+        "differenceUsd+": 12.346413999999982
     },
     {
         "address": "0x1341ceec4b59a5a004de508ddb0e9cb2a90c8078",
         "gaugeBalance": 872.994,
         "bptBalance": 0,
-        "beforeUsd+": 450.5552342110216,
-        "afterUsd+": 440.5622058726866,
-        "differenceUsd+": 9.993028338335023
+        "amountLinearPoolUsdPlusBefore+": 450.41204519400196,
+        "amountLinearPoolUsdPlusAfter+": 440.49219792876215,
+        "usd+before": 450.941663,
+        "usd+after": 430.953025,
+        "differenceUsd+": 19.98863799999998
     },
     {
         "address": "0xfd562886e23b572ba7bbeee4b23570759e1aa8fd",
         "gaugeBalance": 1603.722,
         "bptBalance": 0,
-        "beforeUsd+": 827.686491911019,
-        "afterUsd+": 809.328932302578,
-        "differenceUsd+": 18.357559608440965
+        "amountLinearPoolUsdPlusBefore+": 827.4235820778015,
+        "amountLinearPoolUsdPlusAfter+": 809.2004558416145,
+        "usd+before": 828.396509,
+        "usd+after": 791.676645,
+        "differenceUsd+": 36.71986400000003
     },
     {
         "address": "0xe6778518460078dd601b2539e1746d1dcfcb8047",
         "gaugeBalance": 0,
         "bptBalance": 0.5,
-        "beforeUsd+": 0.25805173587162206,
-        "afterUsd+": 0.2523283126073528,
-        "differenceUsd+": 0.005723423264269278
+        "amountLinearPoolUsdPlusBefore+": 0.25790179023915905,
+        "amountLinearPoolUsdPlusAfter+": 0.25222177702480897,
+        "usd+before": 0.258204,
+        "usd+after": 0.246759,
+        "differenceUsd+": 0.011444999999999983
     },
     {
         "address": "0xf658305d26c8df03e9ed3ff7c7287f7233de472d",
         "gaugeBalance": 0,
         "bptBalance": 90.296,
-        "beforeUsd+": 46.60207908452798,
-        "afterUsd+": 45.56847463038705,
-        "differenceUsd+": 1.033604454140928
+        "amountLinearPoolUsdPlusBefore+": 46.587489966102595,
+        "amountLinearPoolUsdPlusAfter+": 45.5614499437147,
+        "usd+before": 46.642269,
+        "usd+after": 44.574784,
+        "differenceUsd+": 2.067484999999998
     },
     {
         "address": "0x12b581d51c95ad0bb8824e31ce588df0429a5c0c",
         "gaugeBalance": 0.069,
         "bptBalance": 0,
-        "beforeUsd+": 0.03561113955028385,
-        "afterUsd+": 0.03482130713981468,
-        "differenceUsd+": 0.0007898324104691698
+        "amountLinearPoolUsdPlusBefore+": 0.03540359073752702,
+        "amountLinearPoolUsdPlusAfter+": 0.03462386422598122,
+        "usd+before": 0.035444,
+        "usd+after": 0.033873,
+        "differenceUsd+": 0.001571000000000003
     },
     {
         "address": "0xa09e729b79872b29f5b532c48131ff80750efd35",
         "gaugeBalance": 15294.221,
         "bptBalance": 0,
-        "beforeUsd+": 7893.400555708431,
-        "afterUsd+": 7718.3299551478785,
-        "differenceUsd+": 175.07060056055252
+        "amountLinearPoolUsdPlusBefore+": 7890.890844440297,
+        "amountLinearPoolUsdPlusAfter+": 7717.102348331558,
+        "usd+before": 7900.169374,
+        "usd+after": 7549.983017,
+        "differenceUsd+": 350.1863570000005
     },
     {
         "address": "0xcaddf492e266efa0507d3632f2c604e942ac1f80",
         "gaugeBalance": 0.946,
         "bptBalance": 0,
-        "beforeUsd+": 0.4882338842691089,
-        "afterUsd+": 0.47740516745311135,
-        "differenceUsd+": 0.010828716815997563
+        "amountLinearPoolUsdPlusBefore+": 0.4881559485083325,
+        "amountLinearPoolUsdPlusAfter+": 0.47740483183085736,
+        "usd+before": 0.488729,
+        "usd+after": 0.467065,
+        "differenceUsd+": 0.021664000000000017
     },
     {
         "address": "0x65e28117885528496e7024e93d5eb9c3780e6c3e",
         "gaugeBalance": 138.166,
         "bptBalance": 0,
-        "beforeUsd+": 71.30795227687706,
-        "afterUsd+": 69.726387279415,
-        "differenceUsd+": 1.581564997462067
+        "amountLinearPoolUsdPlusBefore+": 71.285222232851,
+        "amountLinearPoolUsdPlusAfter+": 69.71524086942192,
+        "usd+before": 71.369043,
+        "usd+after": 68.205507,
+        "differenceUsd+": 3.1635360000000077
     },
     {
         "address": "0xbbf15e008535cb93a7e2168038dc316c56faf791",
         "gaugeBalance": 37344.98,
         "bptBalance": 0,
-        "beforeUsd+": 19273.87383018202,
-        "afterUsd+": 18846.391575510672,
-        "differenceUsd+": 427.4822546713476
+        "amountLinearPoolUsdPlusBefore+": 19267.745987094833,
+        "amountLinearPoolUsdPlusAfter+": 18843.394330923886,
+        "usd+before": 19290.40203,
+        "usd+after": 18435.327248,
+        "differenceUsd+": 855.0747819999997
     },
     {
         "address": "0xab36dddb80468f84c179776cbf61f4903b2b4cab",
         "gaugeBalance": 2951.922,
         "bptBalance": 0,
-        "beforeUsd+": 1523.4971925152608,
-        "afterUsd+": 1489.706994417044,
-        "differenceUsd+": 33.79019809821693
+        "amountLinearPoolUsdPlusBefore+": 1523.012753608021,
+        "amountLinearPoolUsdPlusAfter+": 1489.470014109799,
+        "usd+before": 1524.803593,
+        "usd+after": 1457.214482,
+        "differenceUsd+": 67.589111
     },
     {
         "address": "0x6f8064293713ff7c93dd7a500147c3d175104453",
         "gaugeBalance": 2.292,
         "bptBalance": 0,
-        "beforeUsd+": 1.1829091572355155,
-        "afterUsd+": 1.156672984992105,
-        "differenceUsd+": 0.02623617224341057
+        "amountLinearPoolUsdPlusBefore+": 1.182684119584253,
+        "amountLinearPoolUsdPlusAfter+": 1.1566367570536902,
+        "usd+before": 1.184073,
+        "usd+after": 1.131588,
+        "differenceUsd+": 0.05248499999999989
     },
     {
         "address": "0xe14a13b8eb93b6569a748ea57a1a97025fc82be9",
         "gaugeBalance": 1968.039,
         "bptBalance": 0,
-        "beforeUsd+": 1015.7117604261024,
-        "afterUsd+": 993.1839200309237,
-        "differenceUsd+": 22.527840395178714
+        "amountLinearPoolUsdPlusBefore+": 1015.3890352086642,
+        "amountLinearPoolUsdPlusAfter+": 993.0261693582831,
+        "usd+before": 1016.582983,
+        "usd+after": 971.521482,
+        "differenceUsd+": 45.06150100000002
     },
     {
         "address": "0x8f25be0cdc646f3ce0f10c24802751af9b7a7ee2",
         "gaugeBalance": 30279.73,
         "bptBalance": 0,
-        "beforeUsd+": 15627.473776448061,
-        "afterUsd+": 15280.866354212474,
-        "differenceUsd+": 346.60742223558736
+        "amountLinearPoolUsdPlusBefore+": 15622.50562506059,
+        "amountLinearPoolUsdPlusAfter+": 15278.436519106283,
+        "usd+before": 15640.875401,
+        "usd+after": 14947.571128,
+        "differenceUsd+": 693.3042729999997
     },
     {
         "address": "0xb7a27855274b6b11b5029fc6cf6c7ea98cfe9848",
         "gaugeBalance": 2013.147,
         "bptBalance": 0,
-        "beforeUsd+": 1038.9921558294966,
-        "afterUsd+": 1015.9479710811086,
-        "differenceUsd+": 23.044184748388034
+        "amountLinearPoolUsdPlusBefore+": 1038.6616824528353,
+        "amountLinearPoolUsdPlusAfter+": 1015.7862612465677,
+        "usd+before": 1039.882995,
+        "usd+after": 993.788688,
+        "differenceUsd+": 46.09430699999996
     },
     {
         "address": "0x7617452156f474836604c1a79c79c0627be5fe74",
         "gaugeBalance": 0,
         "bptBalance": 2.497,
-        "beforeUsd+": 1.2887103689428805,
-        "afterUsd+": 1.2601275931611196,
-        "differenceUsd+": 0.02858277578176094
+        "amountLinearPoolUsdPlusBefore+": 1.2884410027452953,
+        "amountLinearPoolUsdPlusAfter+": 1.260064457104735,
+        "usd+before": 1.289955,
+        "usd+after": 1.232775,
+        "differenceUsd+": 0.05718000000000001
     },
     {
         "address": "0x27a333a11a8cc8545a76ba1d36a23742c2f4b97c",
         "gaugeBalance": 0,
         "bptBalance": 14.984,
-        "beforeUsd+": 7.73329442060077,
-        "afterUsd+": 7.561774872217147,
-        "differenceUsd+": 0.17151954838362293
+        "amountLinearPoolUsdPlusBefore+": 7.730601782870517,
+        "amountLinearPoolUsdPlusAfter+": 7.560343483225275,
+        "usd+before": 7.739691,
+        "usd+after": 7.396618,
+        "differenceUsd+": 0.3430729999999995
     },
     {
         "address": "0xbbb07414f5156c2e169dc6bbf0c953916a9fe1d2",
         "gaugeBalance": 890.109,
         "bptBalance": 0,
-        "beforeUsd+": 459.38834512990735,
-        "afterUsd+": 449.19940401323635,
-        "differenceUsd+": 10.188941116671003
+        "amountLinearPoolUsdPlusBefore+": 459.2424732166464,
+        "amountLinearPoolUsdPlusAfter+": 449.12814514609505,
+        "usd+before": 459.782474,
+        "usd+after": 439.401955,
+        "differenceUsd+": 20.380518999999993
     },
     {
         "address": "0x416af050bdd31eb3cf2dec83b0399b84783038b9",
         "gaugeBalance": 2966.394,
         "bptBalance": 0,
-        "beforeUsd+": 1530.9662419583287,
-        "afterUsd+": 1497.010385097151,
-        "differenceUsd+": 33.955856861177836
+        "amountLinearPoolUsdPlusBefore+": 1530.4796181533713,
+        "amountLinearPoolUsdPlusAfter+": 1496.7724288882516,
+        "usd+before": 1532.279237,
+        "usd+after": 1464.358758,
+        "differenceUsd+": 67.92047899999989
     },
     {
         "address": "0x800557569ffd43618298a784486a8757342aea80",
         "gaugeBalance": 245.348,
         "bptBalance": 0,
-        "beforeUsd+": 126.62495458526146,
-        "afterUsd+": 123.81649368317757,
-        "differenceUsd+": 2.808460902083894
+        "amountLinearPoolUsdPlusBefore+": 126.58475728730964,
+        "amountLinearPoolUsdPlusAfter+": 123.79686235466701,
+        "usd+before": 126.733601,
+        "usd+after": 121.115953,
+        "differenceUsd+": 5.617647999999988
     },
     {
         "address": "0xe7b499c30bb44c8ea5379a550ba6ea550e751470",
         "gaugeBalance": 0,
         "bptBalance": 0.432,
-        "beforeUsd+": 0.22295669979308147,
-        "afterUsd+": 0.2180116620927528,
-        "differenceUsd+": 0.004945037700328669
+        "amountLinearPoolUsdPlusBefore+": 0.22278569292395406,
+        "amountLinearPoolUsdPlusAfter+": 0.21787907448364494,
+        "usd+before": 0.223046,
+        "usd+after": 0.21316,
+        "differenceUsd+": 0.009886000000000006
     },
     {
         "address": "0xbe5643c94c9a4d74072e95e35c3a08a6c7392c2a",
         "gaugeBalance": 0,
         "bptBalance": 7.735,
-        "beforeUsd+": 3.992060353933993,
-        "afterUsd+": 3.903518996035747,
-        "differenceUsd+": 0.08854135789824635
+        "amountLinearPoolUsdPlusBefore+": 3.990664121162114,
+        "amountLinearPoolUsdPlusAfter+": 3.9027739792549414,
+        "usd+before": 3.995356,
+        "usd+after": 3.818256,
+        "differenceUsd+": 0.17710000000000026
     },
     {
         "address": "0x214267b8e1ca77ba218c1b8aa3b3f283907e903d",
         "gaugeBalance": 20.149,
         "bptBalance": 0,
-        "beforeUsd+": 10.398968852154626,
-        "afterUsd+": 10.1683263414511,
-        "differenceUsd+": 0.23064251070352526
+        "amountLinearPoolUsdPlusBefore+": 10.395788089358028,
+        "amountLinearPoolUsdPlusAfter+": 10.166831889921106,
+        "usd+before": 10.408011,
+        "usd+after": 9.946661,
+        "differenceUsd+": 0.4613499999999995
     },
     {
         "address": "0x875bde4c417e22035c03bac45bb953d8000aba70",
         "gaugeBalance": 1.96,
         "bptBalance": 0,
-        "beforeUsd+": 1.0115628046167584,
-        "afterUsd+": 0.9891269854208227,
-        "differenceUsd+": 0.022435819195935736
+        "amountLinearPoolUsdPlusBefore+": 1.0114796293070207,
+        "amountLinearPoolUsdPlusAfter+": 0.9892028639725029,
+        "usd+before": 1.012668,
+        "usd+after": 0.96778,
+        "differenceUsd+": 0.04488799999999993
     },
     {
         "address": "0xc36ec658b93af505e2b7c43335539c016b79ee38",
         "gaugeBalance": 0,
         "bptBalance": 0.175,
-        "beforeUsd+": 0.09031810755506771,
-        "afterUsd+": 0.08831490941257344,
-        "differenceUsd+": 0.002003198142494264
+        "amountLinearPoolUsdPlusBefore+": 0.09051846689706189,
+        "amountLinearPoolUsdPlusAfter+": 0.08852489373248154,
+        "usd+before": 0.090624,
+        "usd+after": 0.086607,
+        "differenceUsd+": 0.004016999999999993
     },
     {
         "address": "0xb620c9b27eb6af2a88593a1c4bd08cd4f7c31f27",
         "gaugeBalance": 1.118,
         "bptBalance": 0,
-        "beforeUsd+": 0.577003681408947,
-        "afterUsd+": 0.5642061069900408,
-        "differenceUsd+": 0.012797574418906166
+        "amountLinearPoolUsdPlusBefore+": 0.576725613291774,
+        "amountLinearPoolUsdPlusAfter+": 0.5640238437479733,
+        "usd+before": 0.577403,
+        "usd+after": 0.551809,
+        "differenceUsd+": 0.025594000000000006
     },
     {
         "address": "0x16f8d1f8a485bed3672b98aec5d4cbd0f706ac75",
         "gaugeBalance": 0,
         "bptBalance": 0.035,
-        "beforeUsd+": 0.018063621511013546,
-        "afterUsd+": 0.01766298188251469,
-        "differenceUsd+": 0.0004006396284988549
+        "amountLinearPoolUsdPlusBefore+": 0.01798856218024159,
+        "amountLinearPoolUsdPlusAfter+": 0.017592383189796505,
+        "usd+before": 0.018009,
+        "usd+after": 0.01721,
+        "differenceUsd+": 0.0007990000000000011
     },
     {
         "address": "0x3cb07d1f0620090bb667df1a5c90b4b80f8ede73",
         "gaugeBalance": 0,
         "bptBalance": 24.791,
-        "beforeUsd+": 12.794721167986765,
-        "afterUsd+": 12.510942395697763,
-        "differenceUsd+": 0.2837787722890024
+        "amountLinearPoolUsdPlusBefore+": 12.790469919090256,
+        "amountLinearPoolUsdPlusAfter+": 12.508773393871063,
+        "usd+before": 12.805508,
+        "usd+after": 12.237886,
+        "differenceUsd+": 0.5676220000000001
     },
     {
         "address": "0xead8aa856fac469e54642151437c4e69743eee6e",
         "gaugeBalance": 7.978,
         "bptBalance": 0,
-        "beforeUsd+": 4.117473497567602,
-        "afterUsd+": 4.02615055596292,
-        "differenceUsd+": 0.09132294160468213
+        "amountLinearPoolUsdPlusBefore+": 4.116344322932247,
+        "amountLinearPoolUsdPlusAfter+": 4.025686207967676,
+        "usd+before": 4.121184,
+        "usd+after": 3.938506,
+        "differenceUsd+": 0.18267800000000056
     },
     {
         "address": "0xcfca2216c1bbb2604fd224b5ea05fb9584e962bf",
         "gaugeBalance": 0,
         "bptBalance": 0.495,
-        "beforeUsd+": 0.25547121851290583,
-        "afterUsd+": 0.24980502948127922,
-        "differenceUsd+": 0.005666189031626606
+        "amountLinearPoolUsdPlusBefore+": 0.2552263719711713,
+        "amountLinearPoolUsdPlusAfter+": 0.2496052820047056,
+        "usd+before": 0.255525,
+        "usd+after": 0.244198,
+        "differenceUsd+": 0.011327000000000004
     },
     {
         "address": "0xdbf47b0e9db63702d2e696de19ef954f411b513c",
         "gaugeBalance": 4.949,
         "bptBalance": 0,
-        "beforeUsd+": 2.554196081657315,
-        "afterUsd+": 2.497545638187577,
-        "differenceUsd+": 0.05665044346973769
+        "amountLinearPoolUsdPlusBefore+": 2.5535171130597942,
+        "amountLinearPoolUsdPlusAfter+": 2.497278608736894,
+        "usd+before": 2.556519,
+        "usd+after": 2.443197,
+        "differenceUsd+": 0.11332200000000014
     },
     {
         "address": "0x03107e09ed634c214fbbe2c062cbd4d6429ce8cf",
         "gaugeBalance": 0,
         "bptBalance": 0.002,
-        "beforeUsd+": 0.0010322069434864883,
-        "afterUsd+": 0.001009313250429411,
-        "differenceUsd+": 0.000022893693057077398
+        "amountLinearPoolUsdPlusBefore+": 0.001162514837109655,
+        "amountLinearPoolUsdPlusAfter+": 0.001136911681619584,
+        "usd+before": 0.001163,
+        "usd+after": 0.001111,
+        "differenceUsd+": 0.00005199999999999996
     },
     {
         "address": "0x0f5333983d4b59aa5fe692fac8475dab924ec7ac",
         "gaugeBalance": 312.358,
         "bptBalance": 0,
-        "beforeUsd+": 161.20904822677622,
-        "afterUsd+": 157.63353413881495,
-        "differenceUsd+": 3.575514087961267
+        "amountLinearPoolUsdPlusBefore+": 161.1578931476664,
+        "amountLinearPoolUsdPlusAfter+": 157.60856159077142,
+        "usd+before": 161.34739,
+        "usd+after": 154.195435,
+        "differenceUsd+": 7.151954999999987
     },
     {
         "address": "0x8204e752c60d6994dea7ef562b3ebb39ec181632",
         "gaugeBalance": 0,
         "bptBalance": 0.033,
-        "beforeUsd+": 0.017031414567527055,
-        "afterUsd+": 0.01665366863208528,
-        "differenceUsd+": 0.0003777459354417749
+        "amountLinearPoolUsdPlusBefore+": 0.01683430367133841,
+        "amountLinearPoolUsdPlusAfter+": 0.016463545999517232,
+        "usd+before": 0.016853,
+        "usd+after": 0.016106,
+        "differenceUsd+": 0.0007470000000000011
     },
     {
         "address": "0x98a513e3caf92d9a402caed7b470f58e3e061c84",
         "gaugeBalance": 97262.148,
         "bptBalance": 0,
-        "beforeUsd+": 50197.33225200523,
-        "afterUsd+": 49083.98737081322,
-        "differenceUsd+": 1113.3448811920098
+        "amountLinearPoolUsdPlusBefore+": 50181.373283197536,
+        "amountLinearPoolUsdPlusAfter+": 49076.181795001656,
+        "usd+before": 50240.37922,
+        "usd+after": 48013.402236,
+        "differenceUsd+": 2226.976984000001
     },
     {
         "address": "0xf922393931d2ed1160bc995e40fdac8c60fb7845",
         "gaugeBalance": 2236.878,
         "bptBalance": 0,
-        "beforeUsd+": 1154.4605016660846,
-        "afterUsd+": 1128.8553024970201,
-        "differenceUsd+": 25.605199169064463
+        "amountLinearPoolUsdPlusBefore+": 1154.0936350693842,
+        "amountLinearPoolUsdPlusAfter+": 1128.6759476166815,
+        "usd+before": 1155.450679,
+        "usd+after": 1104.233668,
+        "differenceUsd+": 51.21701099999996
     },
     {
         "address": "0x226210768fa36ddc0bb2b45475ef7a8cc6d9e454",
         "gaugeBalance": 98007.187,
         "bptBalance": 0,
-        "beforeUsd+": 50581.84946648935,
-        "afterUsd+": 49459.97623820657,
-        "differenceUsd+": 1121.873228282784
+        "amountLinearPoolUsdPlusBefore+": 50565.76791482871,
+        "amountLinearPoolUsdPlusAfter+": 49452.110542835886,
+        "usd+before": 50625.225844,
+        "usd+after": 48381.189979,
+        "differenceUsd+": 2244.035864999998
     },
     {
         "address": "0xba6410391707a003ac120f3a0a60a4236645fd1e",
         "gaugeBalance": 0,
         "bptBalance": 0.599,
-        "beforeUsd+": 0.30914597957420326,
-        "afterUsd+": 0.30228931850360863,
-        "differenceUsd+": 0.006856661070594627
+        "amountLinearPoolUsdPlusBefore+": 0.3088987307070107,
+        "amountLinearPoolUsdPlusAfter+": 0.3020955640027984,
+        "usd+before": 0.30926,
+        "usd+after": 0.295552,
+        "differenceUsd+": 0.013707999999999998
     },
     {
         "address": "0xccc8530c0f21f8a3eeb247d183a2f6c23cd96218",
         "gaugeBalance": 10851.706,
         "bptBalance": 0,
-        "beforeUsd+": 5600.6031409369925,
-        "afterUsd+": 5476.38532778217,
-        "differenceUsd+": 124.21781315482258
+        "amountLinearPoolUsdPlusBefore+": 5598.822471259965,
+        "amountLinearPoolUsdPlusAfter+": 5475.514348458389,
+        "usd+before": 5605.405865,
+        "usd+after": 5356.938197,
+        "differenceUsd+": 248.46766799999932
     },
     {
         "address": "0x6f67465306b6e409fb37bec4dd4c8ea0ebd9dfe6",
         "gaugeBalance": 0.696,
         "bptBalance": 0,
-        "beforeUsd+": 0.3592080163332979,
-        "afterUsd+": 0.351241011149435,
-        "differenceUsd+": 0.007967005183862896
+        "amountLinearPoolUsdPlusBefore+": 0.35924862759898146,
+        "amountLinearPoolUsdPlusAfter+": 0.35133655785294715,
+        "usd+before": 0.35967,
+        "usd+after": 0.343727,
+        "differenceUsd+": 0.015942999999999985
     },
     {
         "address": "0x0dd16908663523e03c11c0dc14fa4276c1010a6b",
         "gaugeBalance": 20258.991,
         "bptBalance": 0,
-        "beforeUsd+": 10455.735589115138,
-        "afterUsd+": 10223.834028315094,
-        "differenceUsd+": 231.90156080004454
+        "amountLinearPoolUsdPlusBefore+": 10452.411258337223,
+        "amountLinearPoolUsdPlusAfter+": 10222.207993698687,
+        "usd+before": 10464.70176,
+        "usd+after": 10000.838821,
+        "differenceUsd+": 463.86293900000055
     },
     {
         "address": "0xa182dd254f6d72294d650c57d9b035660fb13a1e",
         "gaugeBalance": 2984.069,
         "bptBalance": 0,
-        "beforeUsd+": 1540.0883708213905,
-        "afterUsd+": 1505.9301909478208,
-        "differenceUsd+": 34.15817987356968
+        "amountLinearPoolUsdPlusBefore+": 1539.598503879412,
+        "amountLinearPoolUsdPlusAfter+": 1505.6904808342085,
+        "usd+before": 1541.408845,
+        "usd+after": 1473.083684,
+        "differenceUsd+": 68.32516099999998
     },
     {
         "address": "0x7f4a20cc79ae1803fa78384f1dbdafe9b61685e5",
         "gaugeBalance": 0,
         "bptBalance": 0.065,
-        "beforeUsd+": 0.03354672566331087,
-        "afterUsd+": 0.03280268063895586,
-        "differenceUsd+": 0.0007440450243550098
+        "amountLinearPoolUsdPlusBefore+": 0.0333472789075372,
+        "amountLinearPoolUsdPlusAfter+": 0.03261284048164732,
+        "usd+before": 0.033385,
+        "usd+after": 0.031906,
+        "differenceUsd+": 0.0014790000000000011
     },
     {
         "address": "0x72505cbeff2055f802c7c9aa9ddb6cdf6c71fab5",
         "gaugeBalance": 19.888,
         "bptBalance": 0,
-        "beforeUsd+": 10.264265846029641,
-        "afterUsd+": 10.036610962270064,
-        "differenceUsd+": 0.22765488375957688
+        "amountLinearPoolUsdPlusBefore+": 10.260987296465537,
+        "amountLinearPoolUsdPlusAfter+": 10.034999941425637,
+        "usd+before": 10.273051,
+        "usd+after": 9.817684,
+        "differenceUsd+": 0.45536700000000074
     },
     {
         "address": "0xcd516fe68da17895c3f352d83b1b877c5ee6e89b",
         "gaugeBalance": 0,
         "bptBalance": 0.099,
-        "beforeUsd+": 0.051094243702581164,
-        "afterUsd+": 0.04996100589625584,
-        "differenceUsd+": 0.0011332378063253212
+        "amountLinearPoolUsdPlusBefore+": 0.05107589684607686,
+        "amountLinearPoolUsdPlusAfter+": 0.04995100442578202,
+        "usd+before": 0.051135,
+        "usd+after": 0.048869,
+        "differenceUsd+": 0.002265999999999997
     },
     {
         "address": "0xece1477d3c350a42486d2dc802f6243e99409a41",
         "gaugeBalance": 398.808,
         "bptBalance": 0,
-        "beforeUsd+": 205.82619335897974,
-        "afterUsd+": 201.2610993886263,
-        "differenceUsd+": 4.565093970353445
+        "amountLinearPoolUsdPlusBefore+": 205.7608085287628,
+        "amountLinearPoolUsdPlusAfter+": 201.22914509845106,
+        "usd+before": 206.002752,
+        "usd+after": 196.871385,
+        "differenceUsd+": 9.131366999999983
     },
     {
         "address": "0xe10f521a84bd7e949a012b812d060fe5fb2c3dc8",
         "gaugeBalance": 0,
         "bptBalance": 0.002,
-        "beforeUsd+": 0.0010322069434864883,
-        "afterUsd+": 0.001009313250429411,
-        "differenceUsd+": 0.000022893693057077398
+        "amountLinearPoolUsdPlusBefore+": 0.0010655289906150596,
+        "amountLinearPoolUsdPlusAfter+": 0.001042061845461262,
+        "usd+before": 0.001065,
+        "usd+after": 0.001018,
+        "differenceUsd+": 0.00004699999999999995
     },
     {
         "address": "0x70a6da5b4e4caa303ced298ac3a213c396c04195",
         "gaugeBalance": 570.367,
         "bptBalance": 0,
-        "beforeUsd+": 294.3683888677789,
-        "afterUsd+": 287.8394853538359,
-        "differenceUsd+": 6.528903513942964
+        "amountLinearPoolUsdPlusBefore+": 294.2747073461664,
+        "amountLinearPoolUsdPlusAfter+": 287.7936192357457,
+        "usd+before": 294.62073,
+        "usd+after": 281.561243,
+        "differenceUsd+": 13.05948699999999
     },
     {
         "address": "0x9ffaa816a11a5e36ba911f157cc8d0734cc4ca2d",
         "gaugeBalance": 495.627,
         "bptBalance": 0,
-        "beforeUsd+": 255.79481538968886,
-        "afterUsd+": 250.12144918528887,
-        "differenceUsd+": 5.673366204399997
+        "amountLinearPoolUsdPlusBefore+": 255.7134406057389,
+        "amountLinearPoolUsdPlusAfter+": 250.08162346953128,
+        "usd+before": 256.014121,
+        "usd+after": 244.665927,
+        "differenceUsd+": 11.348193999999978
     },
     {
         "address": "0x02f86a8783152f5f048afc57b5a2afb5529ee745",
         "gaugeBalance": 0,
         "bptBalance": 5.929,
-        "beforeUsd+": 3.0599774839656946,
-        "afterUsd+": 2.992109130897989,
-        "differenceUsd+": 0.06786835306770556
+        "amountLinearPoolUsdPlusBefore+": 3.059242955840818,
+        "amountLinearPoolUsdPlusAfter+": 2.991866376566321,
+        "usd+before": 3.062839,
+        "usd+after": 2.927075,
+        "differenceUsd+": 0.135764
     },
     {
         "address": "0xa066243ba7dad6c779caa1f9417910a4ae83cf4d",
         "gaugeBalance": 0,
         "bptBalance": 7541890.684,
-        "beforeUsd+": 3892395.965520431,
-        "afterUsd+": 3806065.1003256673,
-        "differenceUsd+": 86330.86519476352
+        "amountLinearPoolUsdPlusBefore+": 3891158.4708968415,
+        "amountLinearPoolUsdPlusAfter+": 3805459.8353296793,
+        "usd+before": 3895733.902791,
+        "usd+after": 3723049.900878,
+        "differenceUsd+": 172684.0019129999
     },
     {
         "address": "0x87a78919adc0a79303940418a9c35ad7a5f31561",
         "gaugeBalance": 4.93,
         "bptBalance": 0,
-        "beforeUsd+": 2.5443901156941937,
-        "afterUsd+": 2.487957162308498,
-        "differenceUsd+": 0.05643295338569576
+        "amountLinearPoolUsdPlusBefore+": 2.5438358902604845,
+        "amountLinearPoolUsdPlusAfter+": 2.487810604594889,
+        "usd+before": 2.546826,
+        "usd+after": 2.433934,
+        "differenceUsd+": 0.11289199999999999
     },
     {
         "address": "0xd8c11ec4d3db80db6a210984c1f908b70cb03b8f",
         "gaugeBalance": 0,
         "bptBalance": 4.94,
-        "beforeUsd+": 2.549551150411626,
-        "afterUsd+": 2.4930037285606454,
-        "differenceUsd+": 0.056547421850980495
+        "amountLinearPoolUsdPlusBefore+": 2.548730509464943,
+        "amountLinearPoolUsdPlusAfter+": 2.4925974250061134,
+        "usd+before": 2.551726,
+        "usd+after": 2.438617,
+        "differenceUsd+": 0.11310900000000013
     },
     {
         "address": "0x9dee43c4478ab27fec03468a011c8ab97edc4a80",
         "gaugeBalance": 0,
         "bptBalance": 0.025,
-        "beforeUsd+": 0.012902586793581102,
-        "afterUsd+": 0.012616415630367637,
-        "differenceUsd+": 0.0002861711632134653
+        "amountLinearPoolUsdPlusBefore+": 0.012853687105851047,
+        "amountLinearPoolUsdPlusAfter+": 0.012570598289186953,
+        "usd+before": 0.012867,
+        "usd+after": 0.012297,
+        "differenceUsd+": 0.0005699999999999993
     },
     {
         "address": "0x8c11e3af9c1d8718c40c51d4ff0958afcf77fd71",
         "gaugeBalance": 4233.414,
         "bptBalance": 0,
-        "beforeUsd+": 2184.8796627264537,
-        "afterUsd+": 2136.420422376687,
-        "differenceUsd+": 48.45924034976679
+        "amountLinearPoolUsdPlusBefore+": 2184.1850318765073,
+        "amountLinearPoolUsdPlusAfter+": 2136.0806746630906,
+        "usd+before": 2186.753312,
+        "usd+after": 2089.82233,
+        "differenceUsd+": 96.93098199999986
     },
     {
         "address": "0xc2bc9a2a5caffd839610e3765fe227c2c79e5100",
         "gaugeBalance": 6.86,
         "bptBalance": 0,
-        "beforeUsd+": 3.5404698161586543,
-        "afterUsd+": 3.4619444489728792,
-        "differenceUsd+": 0.07852536718577507
+        "amountLinearPoolUsdPlusBefore+": 3.539219028730195,
+        "amountLinearPoolUsdPlusAfter+": 3.461271485857286,
+        "usd+before": 3.543379,
+        "usd+after": 3.386314,
+        "differenceUsd+": 0.1570649999999998
     },
     {
         "address": "0x5cb01385d3097b6a189d1ac8ba3364d900666445",
         "gaugeBalance": 0,
         "bptBalance": 0.06,
-        "beforeUsd+": 0.030966208304594647,
-        "afterUsd+": 0.030279397512882326,
-        "differenceUsd+": 0.0006868107917123202
+        "amountLinearPoolUsdPlusBefore+": 0.03110979214326533,
+        "amountLinearPoolUsdPlusAfter+": 0.030424631988674823,
+        "usd+before": 0.031145,
+        "usd+after": 0.029765,
+        "differenceUsd+": 0.0013799999999999993
     },
     {
         "address": "0x1b1c3d075b740fb433efdd202aba80b4663c5f4b",
         "gaugeBalance": 0,
         "bptBalance": 0.499,
-        "beforeUsd+": 0.2575356323998788,
-        "afterUsd+": 0.251823655982138,
-        "differenceUsd+": 0.005711976417740794
+        "amountLinearPoolUsdPlusBefore+": 0.2575554420236453,
+        "amountLinearPoolUsdPlusAfter+": 0.25188305676115647,
+        "usd+before": 0.257858,
+        "usd+after": 0.246427,
+        "differenceUsd+": 0.011430999999999969
     },
     {
         "address": "0x965c34a4e327d0f92f2a1fc962f45bee68d986a8",
         "gaugeBalance": 0,
         "bptBalance": 0.1,
-        "beforeUsd+": 0.05161034717432441,
-        "afterUsd+": 0.05046566252147055,
-        "differenceUsd+": 0.0011446846528538612
+        "amountLinearPoolUsdPlusBefore+": 0.05138068917181081,
+        "amountLinearPoolUsdPlusAfter+": 0.050249084024023095,
+        "usd+before": 0.05144,
+        "usd+after": 0.04916,
+        "differenceUsd+": 0.0022799999999999973
     },
     {
         "address": "0x11fd88a92e2a727c7fafe518dd581a77ccb99ae7",
         "gaugeBalance": 0,
         "bptBalance": 0.331,
-        "beforeUsd+": 0.17083024914701384,
-        "afterUsd+": 0.16704134294606754,
-        "differenceUsd+": 0.003788906200946296
+        "amountLinearPoolUsdPlusBefore+": 0.1705805314354985,
+        "amountLinearPoolUsdPlusAfter+": 0.1668236762707243,
+        "usd+before": 0.17078,
+        "usd+after": 0.16321,
+        "differenceUsd+": 0.007569999999999993
     },
     {
         "address": "0x85df0debb5758a2f282a1aace604ea0cd6337665",
         "gaugeBalance": 0,
         "bptBalance": 0.03,
-        "beforeUsd+": 0.015483104152297323,
-        "afterUsd+": 0.015139698756441163,
-        "differenceUsd+": 0.0003434053958561601
+        "amountLinearPoolUsdPlusBefore+": 0.015416150947015402,
+        "amountLinearPoolUsdPlusAfter+": 0.015076626583837224,
+        "usd+before": 0.015433,
+        "usd+after": 0.014749,
+        "differenceUsd+": 0.0006840000000000006
     },
     {
         "address": "0x116af3836fe209ead36afa3eb114ad4d801f4ab1",
         "gaugeBalance": 0,
         "bptBalance": 0.499,
-        "beforeUsd+": 0.2575356323998788,
-        "afterUsd+": 0.251823655982138,
-        "differenceUsd+": 0.005711976417740794
+        "amountLinearPoolUsdPlusBefore+": 0.25770437299076626,
+        "amountLinearPoolUsdPlusAfter+": 0.2520287076817897,
+        "usd+before": 0.258007,
+        "usd+after": 0.24657,
+        "differenceUsd+": 0.011436999999999975
     },
     {
         "address": "0xb54255ccc92f371a69537871e3166f34e0729d5b",
         "gaugeBalance": 0,
         "bptBalance": 0.1,
-        "beforeUsd+": 0.05161034717432441,
-        "afterUsd+": 0.05046566252147055,
-        "differenceUsd+": 0.0011446846528538612
+        "amountLinearPoolUsdPlusBefore+": 0.05149382232598227,
+        "amountLinearPoolUsdPlusAfter+": 0.05035972554054412,
+        "usd+before": 0.051554,
+        "usd+after": 0.049268,
+        "differenceUsd+": 0.0022860000000000033
     },
     {
         "address": "0x147bf5bec1a52509cfbbee35bf7d775951de6138",
         "gaugeBalance": 6.953,
         "bptBalance": 0,
-        "beforeUsd+": 3.5884674390307763,
-        "afterUsd+": 3.508877515117847,
-        "differenceUsd+": 0.07958992391292918
+        "amountLinearPoolUsdPlusBefore+": 3.5871578418890837,
+        "amountLinearPoolUsdPlusAfter+": 3.508154497534649,
+        "usd+before": 3.591375,
+        "usd+after": 3.432182,
+        "differenceUsd+": 0.15919300000000014
     },
     {
         "address": "0xca0b60b9ce318bcc9e387abfeb22d98a9127c352",
         "gaugeBalance": 0,
         "bptBalance": 17.572,
-        "beforeUsd+": 9.068970205472285,
-        "afterUsd+": 8.867826218272805,
-        "differenceUsd+": 0.20114398719947957
+        "amountLinearPoolUsdPlusBefore+": 9.066280397468722,
+        "amountLinearPoolUsdPlusAfter+": 8.86660519391596,
+        "usd+before": 9.076939,
+        "usd+after": 8.674591,
+        "differenceUsd+": 0.40234799999999993
     },
     {
         "address": "0x62fa348c4bf5c1ca166cc64dccdab0db0e35753e",
         "gaugeBalance": 346.896,
         "bptBalance": 0,
-        "beforeUsd+": 179.03422993384441,
-        "afterUsd+": 175.0633646604805,
-        "differenceUsd+": 3.970865273363927
+        "amountLinearPoolUsdPlusBefore+": 178.97755840477052,
+        "amountLinearPoolUsdPlusAfter+": 175.0357676329093,
+        "usd+before": 179.188008,
+        "usd+after": 171.245243,
+        "differenceUsd+": 7.9427650000000085
     },
     {
         "address": "0xda1d9534bef3344fa5be3b644b767b349e7415c7",
         "gaugeBalance": 0,
         "bptBalance": 2.404,
-        "beforeUsd+": 1.240712746070759,
-        "afterUsd+": 1.213194527016152,
-        "differenceUsd+": 0.02751821905460705
+        "amountLinearPoolUsdPlusBefore+": 1.2402556782028027,
+        "amountLinearPoolUsdPlusAfter+": 1.2129403631953655,
+        "usd+before": 1.241713,
+        "usd+after": 1.186672,
+        "differenceUsd+": 0.05504100000000012
     },
     {
         "address": "0x77aee779a64cf7c4556ffcdbbdfb29af70fe87bc",
         "gaugeBalance": 0,
         "bptBalance": 0.013,
-        "beforeUsd+": 0.006709345132662174,
-        "afterUsd+": 0.006560536127791171,
-        "differenceUsd+": 0.00014880900487100265
+        "amountLinearPoolUsdPlusBefore+": 0.006907232037714533,
+        "amountLinearPoolUsdPlusAfter+": 0.006755107582849684,
+        "usd+before": 0.006914,
+        "usd+after": 0.006608,
+        "differenceUsd+": 0.00030599999999999985
     },
     {
         "address": "0x6ca81ba804430c82a7be978e57c550a0b701d776",
         "gaugeBalance": 0,
         "bptBalance": 42.405,
-        "beforeUsd+": 21.88536771927227,
-        "afterUsd+": 21.39996419222959,
-        "differenceUsd+": 0.4854035270426813
+        "amountLinearPoolUsdPlusBefore+": 21.878551586746635,
+        "amountLinearPoolUsdPlusAfter+": 21.396699708136868,
+        "usd+before": 21.904277,
+        "usd+after": 20.933338,
+        "differenceUsd+": 0.9709390000000013
     },
     {
         "address": "0xa8f5f683d7c5cff64b030a8303a32e0fcacee18f",
         "gaugeBalance": 1.96,
         "bptBalance": 0,
-        "beforeUsd+": 1.0115628046167584,
-        "afterUsd+": 0.9891269854208227,
-        "differenceUsd+": 0.022435819195935736
+        "amountLinearPoolUsdPlusBefore+": 1.0114796293083106,
+        "amountLinearPoolUsdPlusAfter+": 0.9892028639737642,
+        "usd+before": 1.012668,
+        "usd+after": 0.96778,
+        "differenceUsd+": 0.04488799999999993
     },
     {
         "address": "0x50150daccc1b89a67ff41027406de727d9aa2f8b",
         "gaugeBalance": 4.943,
         "bptBalance": 0,
-        "beforeUsd+": 2.5510994608268556,
-        "afterUsd+": 2.4945176984362893,
-        "differenceUsd+": 0.056581762390566226
+        "amountLinearPoolUsdPlusBefore+": 2.5501357893261947,
+        "amountLinearPoolUsdPlusAfter+": 2.4939717550698686,
+        "usd+before": 2.553133,
+        "usd+after": 2.439962,
+        "differenceUsd+": 0.11317099999999991
     },
     {
         "address": "0xa03f98b6deeeada1beeca737cc777989c42c1f71",
         "gaugeBalance": 999.328,
         "bptBalance": 0,
-        "beforeUsd+": 515.7566502102327,
-        "afterUsd+": 504.3174959625612,
-        "differenceUsd+": 11.439154247671468
+        "amountLinearPoolUsdPlusBefore+": 515.592595625267,
+        "amountLinearPoolUsdPlusAfter+": 504.2372159140334,
+        "usd+before": 516.198855,
+        "usd+after": 493.3176,
+        "differenceUsd+": 22.881254999999953
     },
     {
         "address": "0xa87702d428f35b7beda44233afbd370da72ab94a",
         "gaugeBalance": 3417.178,
         "bptBalance": 0,
-        "beforeUsd+": 1763.6174293646354,
-        "afterUsd+": 1724.5015172379367,
-        "differenceUsd+": 39.11591212669873
+        "amountLinearPoolUsdPlusBefore+": 1763.0568148941786,
+        "amountLinearPoolUsdPlusAfter+": 1724.2273597090768,
+        "usd+before": 1765.12991,
+        "usd+after": 1686.887991,
+        "differenceUsd+": 78.24191900000005
     },
     {
         "address": "0xa253830b32abc65df439f5c5412dc1d942afd094",
         "gaugeBalance": 1004.905,
         "bptBalance": 0,
-        "beforeUsd+": 518.6349592721447,
-        "afterUsd+": 507.13196596138357,
-        "differenceUsd+": 11.502993310761099
+        "amountLinearPoolUsdPlusBefore+": 518.4702089339515,
+        "amountLinearPoolUsdPlusAfter+": 507.0514528436553,
+        "usd+before": 519.079853,
+        "usd+after": 496.070893,
+        "differenceUsd+": 23.008959999999945
     },
     {
         "address": "0xe77b9bfb0130b86e7822ae3bd4365035e3a1edea",
         "gaugeBalance": 3032.054,
         "bptBalance": 0,
-        "beforeUsd+": 1564.8535959129904,
-        "afterUsd+": 1530.1461391087487,
-        "differenceUsd+": 34.7074568042417
+        "amountLinearPoolUsdPlusBefore+": 1564.3561038137218,
+        "amountLinearPoolUsdPlusAfter+": 1529.9028209056376,
+        "usd+before": 1566.195556,
+        "usd+after": 1496.771688,
+        "differenceUsd+": 69.42386799999986
+    },
+    {
+        "address": "0x0000000000000000000000000000000000000000",
+        "gaugeBalance": 0,
+        "bptBalance": 0,
+        "amountLinearPoolUsdPlusBefore+": 5.159383730000001e-13,
+        "amountLinearPoolUsdPlusAfter+": 5.04575378e-13,
+        "usd+before": 0,
+        "usd+after": 0,
+        "differenceUsd+": 0
     },
     {
         "address": "0x368955efb1bf001683cb5f7ab223380caf0b86e5",
         "gaugeBalance": 7236.982,
         "bptBalance": 0,
-        "beforeUsd+": 3735.0315351433665,
-        "afterUsd+": 3652.19091285957,
-        "differenceUsd+": 82.84062228379662
+        "amountLinearPoolUsdPlusBefore+": 3733.8438603835584,
+        "amountLinearPoolUsdPlusAfter+": 3651.6099121522116,
+        "usd+before": 3738.234313,
+        "usd+after": 3572.531706,
+        "differenceUsd+": 165.70260699999972
     },
     {
         "address": "0xab12253171a0d73df64b115cd43fe0a32feb9daa",
         "gaugeBalance": 1639.67,
         "bptBalance": 0,
-        "beforeUsd+": 846.2393795132452,
-        "afterUsd+": 827.4703286657963,
-        "differenceUsd+": 18.769050847448966
+        "amountLinearPoolUsdPlusBefore+": 845.9705522724247,
+        "amountLinearPoolUsdPlusAfter+": 827.3389487019241,
+        "usd+before": 846.965289,
+        "usd+after": 809.422336,
+        "differenceUsd+": 37.54295300000001
     },
     {
         "address": "0x2e65aeff6eea45123dd1345c3af3a29771df57c7",
         "gaugeBalance": 7.267,
         "bptBalance": 0,
-        "beforeUsd+": 3.750523929158155,
-        "afterUsd+": 3.667339695435265,
-        "differenceUsd+": 0.08318423372289008
+        "amountLinearPoolUsdPlusBefore+": 3.749530204968456,
+        "amountLinearPoolUsdPlusAfter+": 3.6669507816458182,
+        "usd+before": 3.753938,
+        "usd+after": 3.587539,
+        "differenceUsd+": 0.16639900000000019
     },
     {
         "address": "0x62d51fa08b15411d9429133ae5f224abf3867729",
         "gaugeBalance": 0.499,
         "bptBalance": 0,
-        "beforeUsd+": 0.2575356323998788,
-        "afterUsd+": 0.251823655982138,
-        "differenceUsd+": 0.005711976417740794
+        "amountLinearPoolUsdPlusBefore+": 0.25769099431519016,
+        "amountLinearPoolUsdPlusAfter+": 0.2520156236573441,
+        "usd+before": 0.257993,
+        "usd+after": 0.246557,
+        "differenceUsd+": 0.011435999999999974
     },
     {
         "address": "0x0884f7d0efa5da231855e84a1ed4730dc71b6625",
         "gaugeBalance": 0,
         "bptBalance": 0.013,
-        "beforeUsd+": 0.006709345132662174,
-        "afterUsd+": 0.006560536127791171,
-        "differenceUsd+": 0.00014880900487100265
+        "amountLinearPoolUsdPlusBefore+": 0.006455516525058226,
+        "amountLinearPoolUsdPlusAfter+": 0.006313340624946081,
+        "usd+before": 0.006462,
+        "usd+after": 0.006176,
+        "differenceUsd+": 0.0002859999999999998
     },
     {
         "address": "0x188b2d6ac1a8752ea4ef4adb582646f074096aee",
         "gaugeBalance": 3341.8,
         "bptBalance": 0,
-        "beforeUsd+": 1724.7145818715733,
-        "afterUsd+": 1686.461510142503,
-        "differenceUsd+": 38.25307172907037
+        "amountLinearPoolUsdPlusBefore+": 1724.1660213517423,
+        "amountLinearPoolUsdPlusAfter+": 1686.1930946189354,
+        "usd+before": 1726.193387,
+        "usd+after": 1649.677385,
+        "differenceUsd+": 76.51600200000007
     },
     {
         "address": "0x989b3c9f5bc4189dfaee8efac99f9638d39fc45d",
         "gaugeBalance": 0,
         "bptBalance": 0.003,
-        "beforeUsd+": 0.0015483104152297323,
-        "afterUsd+": 0.0015139698756441165,
-        "differenceUsd+": 0.00003434053958561588
+        "amountLinearPoolUsdPlusBefore+": 0.0015846849141554974,
+        "amountLinearPoolUsdPlusAfter+": 0.0015497839107749566,
+        "usd+before": 0.001586,
+        "usd+after": 0.001515,
+        "differenceUsd+": 0.00007099999999999988
     },
     {
         "address": "0x4f58d8112a0bcacdaab5531319aca88b61305c20",
         "gaugeBalance": 1477.203,
         "bptBalance": 0,
-        "beforeUsd+": 762.3895967695355,
-        "afterUsd+": 745.4802807370386,
-        "differenceUsd+": 16.909316032496918
+        "amountLinearPoolUsdPlusBefore+": 762.1470809509052,
+        "amountLinearPoolUsdPlusAfter+": 745.3616003729493,
+        "usd+before": 763.043253,
+        "usd+after": 729.220264,
+        "differenceUsd+": 33.82298900000001
     },
     {
         "address": "0xcf9f070a30fc81154cd0ad42dc31308b2a470abc",
         "gaugeBalance": 0,
         "bptBalance": 0.325,
-        "beforeUsd+": 0.16773362831655436,
-        "afterUsd+": 0.1640134031947793,
-        "differenceUsd+": 0.003720225121775056
+        "amountLinearPoolUsdPlusBefore+": 0.1677548597198684,
+        "amountLinearPoolUsdPlusAfter+": 0.1640602369756963,
+        "usd+before": 0.167951,
+        "usd+after": 0.160506,
+        "differenceUsd+": 0.007444999999999979
     },
     {
         "address": "0x6d1d4a061eca735e742b2e11e31723b16cc2c088",
         "gaugeBalance": 0,
         "bptBalance": 0.701,
-        "beforeUsd+": 0.3617885336920141,
-        "afterUsd+": 0.3537642942755085,
-        "differenceUsd+": 0.008024239416505596
+        "amountLinearPoolUsdPlusBefore+": 0.3616128488300093,
+        "amountLinearPoolUsdPlusAfter+": 0.35364870962055084,
+        "usd+before": 0.362037,
+        "usd+after": 0.345989,
+        "differenceUsd+": 0.016048000000000007
     },
     {
         "address": "0x41e41b40856d31ffcc36b0e8313945f3c4d2b014",
         "gaugeBalance": 332.962,
         "bptBalance": 0,
-        "beforeUsd+": 171.84284415857405,
-        "afterUsd+": 168.03147924473876,
-        "differenceUsd+": 3.811364913835291
+        "amountLinearPoolUsdPlusBefore+": 171.7881829030251,
+        "amountLinearPoolUsdPlusAfter+": 168.00473049638023,
+        "usd+before": 171.990179,
+        "usd+after": 164.366468,
+        "differenceUsd+": 7.623711000000014
     },
     {
         "address": "0xf0948619744155b09bcbc7cc720b55cd8472e14d",
         "gaugeBalance": 0,
         "bptBalance": 0.325,
-        "beforeUsd+": 0.16773362831655436,
-        "afterUsd+": 0.1640134031947793,
-        "differenceUsd+": 0.003720225121775056
+        "amountLinearPoolUsdPlusBefore+": 0.16789128015340846,
+        "amountLinearPoolUsdPlusAfter+": 0.16419365289397303,
+        "usd+before": 0.168087,
+        "usd+after": 0.160637,
+        "differenceUsd+": 0.007449999999999984
     },
     {
         "address": "0x310321c3e8c64c01768e8f9915e8ef0841b023b5",
         "gaugeBalance": 20876.617,
         "bptBalance": 0,
-        "beforeUsd+": 10774.49451195403,
-        "afterUsd+": 10535.523081119949,
-        "differenceUsd+": 238.97143083408082
+        "amountLinearPoolUsdPlusBefore+": 10771.068865030084,
+        "amountLinearPoolUsdPlusAfter+": 10533.847504801015,
+        "usd+before": 10783.734061,
+        "usd+after": 10305.729558,
+        "differenceUsd+": 478.0045029999983
     },
     {
         "address": "0xfc2e9174012740cea8f377e8c30fe96d82781baf",
         "gaugeBalance": 51.027,
         "bptBalance": 0,
-        "beforeUsd+": 26.335211852642516,
-        "afterUsd+": 25.751113614830775,
-        "differenceUsd+": 0.584098237811741
+        "amountLinearPoolUsdPlusBefore+": 26.327033604013995,
+        "amountLinearPoolUsdPlusAfter+": 25.747208630225455,
+        "usd+before": 26.357989,
+        "usd+after": 25.189634,
+        "differenceUsd+": 1.1683549999999983
     },
     {
         "address": "0xba49e7424d1a68e8aa38085f2bc651e1cc3a5090",
         "gaugeBalance": 1507.366,
         "bptBalance": 0,
-        "beforeUsd+": 777.9568257877269,
-        "afterUsd+": 760.7022385233896,
-        "differenceUsd+": 17.25458726433726
+        "amountLinearPoolUsdPlusBefore+": 777.7094758209496,
+        "amountLinearPoolUsdPlusAfter+": 760.5812500126219,
+        "usd+before": 778.623947,
+        "usd+after": 744.110322,
+        "differenceUsd+": 34.51362500000005
     },
     {
         "address": "0x06ff56da1bb2fe0dbf3c30e362f7ea05d5168620",
         "gaugeBalance": 10522.932,
         "bptBalance": 0,
-        "beforeUsd+": 5430.92173811808,
-        "afterUsd+": 5310.467350483832,
-        "differenceUsd+": 120.45438763424772
+        "amountLinearPoolUsdPlusBefore+": 5429.195318302117,
+        "amountLinearPoolUsdPlusAfter+": 5309.623053516181,
+        "usd+before": 5435.579255,
+        "usd+after": 5194.639396,
+        "differenceUsd+": 240.93985900000007
     },
     {
         "address": "0xa4ef5f159312acd5bedd2ded98646f46317946fe",
         "gaugeBalance": 984.963,
         "bptBalance": 0,
-        "beforeUsd+": 508.3428238386409,
-        "afterUsd+": 497.06810354135195,
-        "differenceUsd+": 11.27472029728898
+        "amountLinearPoolUsdPlusBefore+": 508.1814178538221,
+        "amountLinearPoolUsdPlusAfter+": 496.98926146739234,
+        "usd+before": 508.778964,
+        "usd+after": 486.226605,
+        "differenceUsd+": 22.552358999999967
     },
     {
         "address": "0x462120b0e848d5199ad6b50515f2349cdb0aca3d",
         "gaugeBalance": 0,
         "bptBalance": 0.051,
-        "beforeUsd+": 0.02632127705890545,
-        "afterUsd+": 0.02573748788594998,
-        "differenceUsd+": 0.0005837891729554706
+        "amountLinearPoolUsdPlusBefore+": 0.02622413852307327,
+        "amountLinearPoolUsdPlusAfter+": 0.025646579704238105,
+        "usd+before": 0.026254,
+        "usd+after": 0.02509,
+        "differenceUsd+": 0.0011639999999999984
     },
     {
         "address": "0x8c2b7a12e0a0b40f9c11e3bb80fd2e3e011076ba",
         "gaugeBalance": 1224.978,
         "bptBalance": 0,
-        "beforeUsd+": 632.2153986090957,
-        "afterUsd+": 618.1932634422595,
-        "differenceUsd+": 14.022135166836165
+        "amountLinearPoolUsdPlusBefore+": 632.0144788998957,
+        "amountLinearPoolUsdPlusAfter+": 618.0950307701133,
+        "usd+before": 632.757634,
+        "usd+after": 604.709743,
+        "differenceUsd+": 28.04789100000005
+    },
+    {
+        "address": "0x86ab1098945c2501da6219ff55ce2b181159eea2",
+        "gaugeBalance": 0,
+        "bptBalance": 0,
+        "amountLinearPoolUsdPlusBefore+": 0.000004430064465292093,
+        "amountLinearPoolUsdPlusAfter+": 0.000004332496997148706,
+        "usd+before": 0.000004,
+        "usd+after": 0.000004,
+        "differenceUsd+": 0
     },
     {
         "address": "0x95b929941e5581a7d65dba4d319279c5c693bd15",
         "gaugeBalance": 50.1,
         "bptBalance": 0,
-        "beforeUsd+": 25.856783934336534,
-        "afterUsd+": 25.283296923256746,
-        "differenceUsd+": 0.5734870110797878
+        "amountLinearPoolUsdPlusBefore+": 25.848461376190873,
+        "amountLinearPoolUsdPlusAfter+": 25.279176447803085,
+        "usd+before": 25.878854,
+        "usd+after": 24.731736,
+        "differenceUsd+": 1.147117999999999
     },
     {
         "address": "0x3a5d01b7376c44c26ab8cf5935b22a4eeb948e93",
         "gaugeBalance": 2262.813,
         "bptBalance": 0,
-        "beforeUsd+": 1167.8456452057453,
-        "afterUsd+": 1141.9435720719632,
-        "differenceUsd+": 25.902073133782096
+        "amountLinearPoolUsdPlusBefore+": 1167.4743069427223,
+        "amountLinearPoolUsdPlusAfter+": 1141.7619243931497,
+        "usd+before": 1168.847084,
+        "usd+after": 1117.036259,
+        "differenceUsd+": 51.81082500000002
     },
     {
         "address": "0x58c07fe473cc94a7ed9001bedbe7fb09ff59e93e",
         "gaugeBalance": 118.232,
         "bptBalance": 0,
-        "beforeUsd+": 61.01994567114725,
-        "afterUsd+": 59.666562112385066,
-        "differenceUsd+": 1.3533835587621823
+        "amountLinearPoolUsdPlusBefore+": 61.00057661870091,
+        "amountLinearPoolUsdPlusAfter+": 59.65710365964974,
+        "usd+before": 61.072303,
+        "usd+after": 58.365186,
+        "differenceUsd+": 2.7071169999999967
     },
     {
         "address": "0xe268196460b6433bd0138002a116b979f32cc23d",
         "gaugeBalance": 0,
         "bptBalance": 0.5,
-        "beforeUsd+": 0.25805173587162206,
-        "afterUsd+": 0.2523283126073528,
-        "differenceUsd+": 0.005723423264269278
+        "amountLinearPoolUsdPlusBefore+": 0.25790343035325675,
+        "amountLinearPoolUsdPlusAfter+": 0.2522233810171343,
+        "usd+before": 0.258205,
+        "usd+after": 0.24676,
+        "differenceUsd+": 0.01144500000000001
     },
     {
         "address": "0xfda9a805ffc6d0125a97fcbbac77dfdf1ab055af",
         "gaugeBalance": 0,
         "bptBalance": 19.734,
-        "beforeUsd+": 10.18478591138118,
-        "afterUsd+": 9.958893841986999,
-        "differenceUsd+": 0.22589206939418105
+        "amountLinearPoolUsdPlusBefore+": 10.181414763245435,
+        "amountLinearPoolUsdPlusAfter+": 9.957179908797992,
+        "usd+before": 10.193386,
+        "usd+after": 9.741549,
+        "differenceUsd+": 0.45183700000000115
     },
     {
         "address": "0x94003c45a74dbe132d45d15a0993caebf55aeb61",
         "gaugeBalance": 745.719,
         "bptBalance": 0,
-        "beforeUsd+": 384.8681648449003,
-        "afterUsd+": 376.332033898485,
-        "differenceUsd+": 8.536130946415312
+        "amountLinearPoolUsdPlusBefore+": 384.74594800493617,
+        "amountLinearPoolUsdPlusAfter+": 376.2723268377115,
+        "usd+before": 385.198351,
+        "usd+after": 368.123881,
+        "differenceUsd+": 17.07447000000002
     },
     {
         "address": "0xdaaa47a43da559ad7ad950b23a0f6250f3400f62",
         "gaugeBalance": 0,
         "bptBalance": 251.176,
-        "beforeUsd+": 129.63280561858107,
-        "afterUsd+": 126.75763249492887,
-        "differenceUsd+": 2.8751731236522033
+        "amountLinearPoolUsdPlusBefore+": 129.59147092742634,
+        "amountLinearPoolUsdPlusAfter+": 126.73735631793775,
+        "usd+before": 129.743851,
+        "usd+after": 123.992768,
+        "differenceUsd+": 5.751083000000008
     },
     {
         "address": "0xea8b83fab533057b8baf956a3bbbd531189d163e",
         "gaugeBalance": 1849.307,
         "bptBalance": 0,
-        "beforeUsd+": 954.4337630190835,
-        "afterUsd+": 933.2650296059313,
-        "differenceUsd+": 21.168733413152154
+        "amountLinearPoolUsdPlusBefore+": 954.1304404589254,
+        "amountLinearPoolUsdPlusAfter+": 933.1167301430926,
+        "usd+before": 955.252357,
+        "usd+after": 912.909423,
+        "differenceUsd+": 42.342934000000014
     },
     {
         "address": "0xade2369ea30113152ba8c9aaab2d8a7949a33c9c",
         "gaugeBalance": 622.15,
         "bptBalance": 0,
-        "beforeUsd+": 321.09377494505935,
-        "afterUsd+": 313.972119377329,
-        "differenceUsd+": 7.121655567730329
+        "amountLinearPoolUsdPlusBefore+": 320.99159784898853,
+        "amountLinearPoolUsdPlusAfter+": 313.922098580345,
+        "usd+before": 321.369036,
+        "usd+after": 307.123891,
+        "differenceUsd+": 14.24514499999998
     },
     {
         "address": "0xef9f7b9a494faf74ddd8ef3c428c065594bca99a",
         "gaugeBalance": 0.197,
         "bptBalance": 0,
-        "beforeUsd+": 0.10167238393341908,
-        "afterUsd+": 0.09941735516729698,
-        "differenceUsd+": 0.0022550287661221025
+        "amountLinearPoolUsdPlusBefore+": 0.10183672628302773,
+        "amountLinearPoolUsdPlusAfter+": 0.09959388046773754,
+        "usd+before": 0.101955,
+        "usd+after": 0.097436,
+        "differenceUsd+": 0.004519000000000009
     },
     {
         "address": "0xe3145648c5a39072f9982ae5294a4ad79ed85f0c",
         "gaugeBalance": 2007.272,
         "bptBalance": 0,
-        "beforeUsd+": 1035.9600479330052,
-        "afterUsd+": 1012.9831134079724,
-        "differenceUsd+": 22.97693452503279
+        "amountLinearPoolUsdPlusBefore+": 1035.630890346426,
+        "amountLinearPoolUsdPlusAfter+": 1012.8222191196696,
+        "usd+before": 1036.848639,
+        "usd+after": 990.888834,
+        "differenceUsd+": 45.959805000000074
     },
     {
         "address": "0x8bde2372200e80d22212dc27b036080e929b779c",
         "gaugeBalance": 0,
         "bptBalance": 261.332,
-        "beforeUsd+": 134.87435247760547,
-        "afterUsd+": 131.88292518060942,
-        "differenceUsd+": 2.9914272969960507
+        "amountLinearPoolUsdPlusBefore+": 134.83155799775813,
+        "amountLinearPoolUsdPlusAfter+": 131.86203603194127,
+        "usd+before": 134.990099,
+        "usd+after": 129.006469,
+        "differenceUsd+": 5.983629999999977
     },
     {
         "address": "0x37680d9a1b147b2280eba720d44e74afa6bdc292",
         "gaugeBalance": 0.641,
         "bptBalance": 0,
-        "beforeUsd+": 0.3308223253874195,
-        "afterUsd+": 0.32348489676262626,
-        "differenceUsd+": 0.007337428624793252
+        "amountLinearPoolUsdPlusBefore+": 0.3306661585554831,
+        "amountLinearPoolUsdPlusAfter+": 0.32338358735505895,
+        "usd+before": 0.331054,
+        "usd+after": 0.31638,
+        "differenceUsd+": 0.01467400000000002
     },
     {
         "address": "0x401c0f82117b3262b79a7697bf98bbd7c0d4e36c",
         "gaugeBalance": 813.832,
         "bptBalance": 0,
-        "beforeUsd+": 420.0215206157478,
-        "afterUsd+": 410.70571061173416,
-        "differenceUsd+": 9.315810004013656
+        "amountLinearPoolUsdPlusBefore+": 419.88783467859463,
+        "amountLinearPoolUsdPlusAfter+": 410.6402507540797,
+        "usd+before": 420.381561,
+        "usd+after": 401.747544,
+        "differenceUsd+": 18.63401699999997
     },
     {
         "address": "0x95b69b68dfb1c7f7143074aa9eed24c332a7856f",
         "gaugeBalance": 99.276,
         "bptBalance": 0,
-        "beforeUsd+": 51.2366882607823,
-        "afterUsd+": 50.1002911248151,
-        "differenceUsd+": 1.1363971359672007
+        "amountLinearPoolUsdPlusBefore+": 51.2204138538539,
+        "amountLinearPoolUsdPlusAfter+": 50.09233859984119,
+        "usd+before": 51.280641,
+        "usd+after": 49.007552,
+        "differenceUsd+": 2.273089000000006
     },
     {
         "address": "0x65fcb5b7ee4f1064b08fc57791a8bfeaac8ef1dd",
         "gaugeBalance": 0,
         "bptBalance": 1.289,
-        "beforeUsd+": 0.6652573750770416,
-        "afterUsd+": 0.6505023899017552,
-        "differenceUsd+": 0.014754985175286395
+        "amountLinearPoolUsdPlusBefore+": 0.6650216477871154,
+        "amountLinearPoolUsdPlusAfter+": 0.650375251793676,
+        "usd+before": 0.665802,
+        "usd+after": 0.63629,
+        "differenceUsd+": 0.029511999999999983
     },
     {
         "address": "0xea99d544a53abf60f58fe858ae6b2ee8a9e5a624",
         "gaugeBalance": 363.687,
         "bptBalance": 0.513,
-        "beforeUsd+": 187.9648844088895,
-        "afterUsd+": 183.79594290319574,
-        "differenceUsd+": 4.168941505693766
+        "amountLinearPoolUsdPlusBefore+": 187.9053123207725,
+        "amountLinearPoolUsdPlusAfter+": 183.76689724409223,
+        "usd+before": 188.12626,
+        "usd+after": 179.787293,
+        "differenceUsd+": 8.338966999999997
     },
     {
         "address": "0x7f0759cb20de8c7a996db6f6c12b33314d0379c3",
         "gaugeBalance": 198.325,
         "bptBalance": 0,
-        "beforeUsd+": 102.3562210334789,
-        "afterUsd+": 100.08602519570647,
-        "differenceUsd+": 2.270195837772434
+        "amountLinearPoolUsdPlusBefore+": 102.32354707073205,
+        "amountLinearPoolUsdPlusAfter+": 100.06997954426403,
+        "usd+before": 102.443863,
+        "usd+after": 97.902892,
+        "differenceUsd+": 4.540970999999999
     },
     {
         "address": "0x1cb4ee0d5cd6d3f5209a9a0edba042b05321a331",
         "gaugeBalance": 0.001,
         "bptBalance": 0,
-        "beforeUsd+": 0.0005161034717432441,
-        "afterUsd+": 0.0005046566252147054,
-        "differenceUsd+": 0.000011446846528538699
+        "amountLinearPoolUsdPlusBefore+": 0.0006334893894978342,
+        "amountLinearPoolUsdPlusAfter+": 0.0006195374580274805,
+        "usd+before": 0.000633,
+        "usd+after": 0.000605,
+        "differenceUsd+": 0.00002800000000000003
     },
     {
         "address": "0x44c840908efd0444f93fe8a6042585179f9b4190",
         "gaugeBalance": 0,
         "bptBalance": 0.445,
-        "beforeUsd+": 0.22966604492574363,
-        "afterUsd+": 0.22457219822054394,
-        "differenceUsd+": 0.005093846705199689
+        "amountLinearPoolUsdPlusBefore+": 0.22981917621101247,
+        "amountLinearPoolUsdPlusAfter+": 0.22475765276606435,
+        "usd+before": 0.230089,
+        "usd+after": 0.21989,
+        "differenceUsd+": 0.010198999999999986
     },
     {
         "address": "0x15188dbaab1d1e378352e3fbafeab3c981ff213b",
         "gaugeBalance": 0,
         "bptBalance": 0.381,
-        "beforeUsd+": 0.196635422734176,
-        "afterUsd+": 0.1922741742068028,
-        "differenceUsd+": 0.004361248527373213
+        "amountLinearPoolUsdPlusBefore+": 0.1966832820171559,
+        "amountLinearPoolUsdPlusAfter+": 0.19235154147412512,
+        "usd+before": 0.196913,
+        "usd+after": 0.188185,
+        "differenceUsd+": 0.008728000000000014
     },
     {
         "address": "0x2cb97dfdcb93ea3d4534739ff34fdb2665cc98a7",
         "gaugeBalance": 4974.478,
         "bptBalance": 0,
-        "beforeUsd+": 2567.34536591039,
-        "afterUsd+": 2510.4032796847982,
-        "differenceUsd+": 56.94208622559154
+        "amountLinearPoolUsdPlusBefore+": 2566.529075931141,
+        "amountLinearPoolUsdPlusAfter+": 2510.003996935822,
+        "usd+before": 2569.546937,
+        "usd+after": 2455.648077,
+        "differenceUsd+": 113.89886000000024
     },
     {
         "address": "0xd9b49a81ee72af3c026a2c144c9ffd678a78c8b1",
         "gaugeBalance": 183.423,
         "bptBalance": 0,
-        "beforeUsd+": 94.66524709756106,
-        "afterUsd+": 92.56563216675693,
-        "differenceUsd+": 2.0996149308041367
+        "amountLinearPoolUsdPlusBefore+": 94.6349294974,
+        "amountLinearPoolUsdPlusAfter+": 92.55069561292072,
+        "usd+before": 94.746205,
+        "usd+after": 90.546444,
+        "differenceUsd+": 4.199761000000009
     },
     {
         "address": "0x870aa098d943382d13b491b50c6b93876eba1eea",
         "gaugeBalance": 5180.013,
         "bptBalance": 0,
-        "beforeUsd+": 2673.422692975137,
-        "afterUsd+": 2614.1278791483023,
-        "differenceUsd+": 59.2948138268348
+        "amountLinearPoolUsdPlusBefore+": 2672.572962798675,
+        "amountLinearPoolUsdPlusAfter+": 2613.712379741325,
+        "usd+before": 2675.715515,
+        "usd+after": 2557.110582,
+        "differenceUsd+": 118.60493300000007
     },
     {
         "address": "0x32376dc87e212f482c6461e3b10dda7f977542dc",
         "gaugeBalance": 0,
         "bptBalance": 3.566,
-        "beforeUsd+": 1.8404249802364085,
-        "afterUsd+": 1.7996055255156398,
-        "differenceUsd+": 0.040819454720768755
+        "amountLinearPoolUsdPlusBefore+": 1.8396607603513324,
+        "amountLinearPoolUsdPlusAfter+": 1.7991441845686402,
+        "usd+before": 1.841822,
+        "usd+after": 1.760182,
+        "differenceUsd+": 0.08164000000000016
     },
     {
         "address": "0x3f6174865fcc7de603a7468a0bf477a3af494513",
         "gaugeBalance": 0,
         "bptBalance": 0.011,
-        "beforeUsd+": 0.005677138189175685,
-        "afterUsd+": 0.005551222877361759,
-        "differenceUsd+": 0.00012591531181392526
+        "amountLinearPoolUsdPlusBefore+": 0.005622729620966476,
+        "amountLinearPoolUsdPlusAfter+": 0.005498894968565688,
+        "usd+before": 0.005628,
+        "usd+after": 0.005378,
+        "differenceUsd+": 0.0002500000000000002
     },
     {
         "address": "0x3edb7d5b494ccb9bb84d11ca25f320af2bb15f40",
         "gaugeBalance": 137.64,
         "bptBalance": 0,
-        "beforeUsd+": 71.03648185074013,
-        "afterUsd+": 69.46093789455206,
-        "differenceUsd+": 1.5755439561880706
+        "amountLinearPoolUsdPlusBefore+": 71.01374139048545,
+        "amountLinearPoolUsdPlusAfter+": 69.44973910448212,
+        "usd+before": 71.097242,
+        "usd+after": 67.945754,
+        "differenceUsd+": 3.1514880000000005
     },
     {
         "address": "0x1f452f2beea8c1105cd5363b18a0995367a87d97",
         "gaugeBalance": 4.044,
         "bptBalance": 0,
-        "beforeUsd+": 2.0871224397296793,
-        "afterUsd+": 2.040831392368269,
-        "differenceUsd+": 0.04629104736141043
+        "amountLinearPoolUsdPlusBefore+": 2.0864902675086827,
+        "amountLinearPoolUsdPlusAfter+": 2.04053753379531,
+        "usd+before": 2.088942,
+        "usd+after": 1.996347,
+        "differenceUsd+": 0.09259499999999976
     },
     {
         "address": "0x31dddf4e2ac81403fa9b993cfbe4ca535a1656b5",
         "gaugeBalance": 358.38,
         "bptBalance": 0,
-        "beforeUsd+": 184.96116220334383,
-        "afterUsd+": 180.85884134444615,
-        "differenceUsd+": 4.102320858897684
+        "amountLinearPoolUsdPlusBefore+": 184.90226231317166,
+        "amountLinearPoolUsdPlusAfter+": 180.82998622571947,
+        "usd+before": 185.119679,
+        "usd+after": 176.913983,
+        "differenceUsd+": 8.205695999999989
     },
     {
         "address": "0x78eeaff0e960649ff2e727d10131157d142c04ad",
         "gaugeBalance": 0,
         "bptBalance": 0.466,
-        "beforeUsd+": 0.24050421783235176,
-        "afterUsd+": 0.23516998735005276,
-        "differenceUsd+": 0.005334230482299002
+        "amountLinearPoolUsdPlusBefore+": 0.24028964041445142,
+        "amountLinearPoolUsdPlusAfter+": 0.2349975161079088,
+        "usd+before": 0.240572,
+        "usd+after": 0.229908,
+        "differenceUsd+": 0.010664000000000007
     },
     {
         "address": "0x98dbb153a69cb91e0e0c8a5753377a3dff05fa40",
         "gaugeBalance": 991.012,
         "bptBalance": 0,
-        "beforeUsd+": 511.46473373921583,
-        "afterUsd+": 500.1207714672757,
-        "differenceUsd+": 11.343962271940143
+        "amountLinearPoolUsdPlusBefore+": 511.30221849438976,
+        "amountLinearPoolUsdPlusAfter+": 500.0413297860117,
+        "usd+before": 511.903434,
+        "usd+after": 489.212579,
+        "differenceUsd+": 22.690855
     },
     {
         "address": "0xfab117cd28e9e4cf4a5f952bf7a67c767e30e7b2",
         "gaugeBalance": 0.102,
         "bptBalance": 0,
-        "beforeUsd+": 0.0526425541178109,
-        "afterUsd+": 0.05147497577189996,
-        "differenceUsd+": 0.0011675783459109412
+        "amountLinearPoolUsdPlusBefore+": 0.0526679504279462,
+        "amountLinearPoolUsdPlusAfter+": 0.05150799471718493,
+        "usd+before": 0.052729,
+        "usd+after": 0.050392,
+        "differenceUsd+": 0.002336999999999999
     },
     {
         "address": "0x22ab945b234ab07784044d291d7faf7a15219db2",
         "gaugeBalance": 0,
         "bptBalance": 0.05,
-        "beforeUsd+": 0.025805173587162205,
-        "afterUsd+": 0.025232831260735274,
-        "differenceUsd+": 0.0005723423264269306
+        "amountLinearPoolUsdPlusBefore+": 0.025569039548717608,
+        "amountLinearPoolUsdPlusAfter+": 0.025005908589524665,
+        "usd+before": 0.025598,
+        "usd+after": 0.024463,
+        "differenceUsd+": 0.0011350000000000006
     },
     {
         "address": "0x87afaa198117496bce792b6a5de3b33ba7cac73f",
         "gaugeBalance": 4349.831,
         "bptBalance": 0,
-        "beforeUsd+": 2244.9628805963875,
-        "afterUsd+": 2195.171032714308,
-        "differenceUsd+": 49.791847882079765
+        "amountLinearPoolUsdPlusBefore+": 2244.2493703792,
+        "amountLinearPoolUsdPlusAfter+": 2194.8221598575915,
+        "usd+before": 2246.888277,
+        "usd+after": 2147.291726,
+        "differenceUsd+": 99.59655100000009
     },
     {
         "address": "0x5912e6c2a1d9fb496a80e77a7c6926f8aa919cb4",
         "gaugeBalance": 16.341,
         "bptBalance": 0,
-        "beforeUsd+": 8.433646831756352,
-        "afterUsd+": 8.246593912633504,
-        "differenceUsd+": 0.1870529191228485
+        "amountLinearPoolUsdPlusBefore+": 8.431066652830648,
+        "amountLinearPoolUsdPlusAfter+": 8.245381357840115,
+        "usd+before": 8.440979,
+        "usd+after": 8.06682,
+        "differenceUsd+": 0.3741590000000006
     },
     {
         "address": "0x32cf8e7884b904e93961e046564bfd90dd7bc7e8",
         "gaugeBalance": 700.06,
         "bptBalance": 0,
-        "beforeUsd+": 361.30339642857547,
-        "afterUsd+": 353.2899170478067,
-        "differenceUsd+": 8.013479380768786
+        "amountLinearPoolUsdPlusBefore+": 361.1887665097819,
+        "amountLinearPoolUsdPlusAfter+": 353.23396726334045,
+        "usd+before": 361.61347,
+        "usd+after": 345.584434,
+        "differenceUsd+": 16.02903600000002
     },
     {
         "address": "0xe2a855d4ae2267641fa716a6b2a65d2662562885",
         "gaugeBalance": 0,
         "bptBalance": 5.053,
-        "beforeUsd+": 2.607870842718613,
-        "afterUsd+": 2.550029927209907,
-        "differenceUsd+": 0.05784091550870585
+        "amountLinearPoolUsdPlusBefore+": 2.6068137672612046,
+        "amountLinearPoolUsdPlusAfter+": 2.5494014606941864,
+        "usd+before": 2.609878,
+        "usd+after": 2.494191,
+        "differenceUsd+": 0.11568700000000032
     },
     {
         "address": "0x96f5676d79fe3be5072c7cd2fffa154a18e8f3b5",
         "gaugeBalance": 0,
         "bptBalance": 1.998,
-        "beforeUsd+": 1.0311747365430017,
-        "afterUsd+": 1.0083039371789815,
-        "differenceUsd+": 0.022870799364020256
+        "amountLinearPoolUsdPlusBefore+": 1.0309204945220243,
+        "amountLinearPoolUsdPlusAfter+": 1.0082155647640751,
+        "usd+before": 1.032132,
+        "usd+after": 0.986381,
+        "differenceUsd+": 0.0457510000000001
     },
     {
         "address": "0xe51c4a096d583688baa500350b46fa498b4c3f92",
         "gaugeBalance": 89.263,
         "bptBalance": 0,
-        "beforeUsd+": 46.06894419821721,
-        "afterUsd+": 45.04716433654026,
-        "differenceUsd+": 1.0217798616769471
+        "amountLinearPoolUsdPlusBefore+": 46.054204188005684,
+        "amountLinearPoolUsdPlusAfter+": 45.039909218894884,
+        "usd+before": 46.108356,
+        "usd+after": 44.064537,
+        "differenceUsd+": 2.043818999999999
     },
     {
         "address": "0x097790d228a564cbc7012f082cbcbc28288397bd",
         "gaugeBalance": 39850.103,
         "bptBalance": 0,
-        "beforeUsd+": 20566.77650762587,
-        "afterUsd+": 20110.61849443841,
-        "differenceUsd+": 456.158013187458
+        "amountLinearPoolUsdPlusBefore+": 20560.23763318977,
+        "amountLinearPoolUsdPlusAfter+": 20107.420220257503,
+        "usd+before": 20584.413457,
+        "usd+after": 19671.979759,
+        "differenceUsd+": 912.4336979999971
     },
     {
         "address": "0xb4fa663bef568753c86aa63d6aa3bcc6a5df4237",
         "gaugeBalance": 2970.976,
         "bptBalance": 0,
-        "beforeUsd+": 1533.3310280658566,
-        "afterUsd+": 1499.3227217538852,
-        "differenceUsd+": 34.00830631197141
+        "amountLinearPoolUsdPlusBefore+": 1532.8433945884344,
+        "amountLinearPoolUsdPlusAfter+": 1499.0841456560493,
+        "usd+before": 1534.645792,
+        "usd+after": 1466.620413,
+        "differenceUsd+": 68.02537899999993
     },
     {
         "address": "0xec4d3bc45c22a4b86ae30b736440bd0276c13560",
         "gaugeBalance": 262.19,
         "bptBalance": 0,
-        "beforeUsd+": 135.31716925636118,
-        "afterUsd+": 132.31592056504365,
-        "differenceUsd+": 3.001248691317528
+        "amountLinearPoolUsdPlusBefore+": 135.2740846094795,
+        "amountLinearPoolUsdPlusAfter+": 132.2948164647007,
+        "usd+before": 135.433146,
+        "usd+after": 129.429877,
+        "differenceUsd+": 6.003268999999989
     },
     {
         "address": "0x4e23d9bb84359e2a20d3abc6985d6c55c37062d6",
         "gaugeBalance": 30.054,
         "bptBalance": 0,
-        "beforeUsd+": 15.510973739771458,
-        "afterUsd+": 15.166950214202759,
-        "differenceUsd+": 0.34402352556869964
+        "amountLinearPoolUsdPlusBefore+": 15.506150135447191,
+        "amountLinearPoolUsdPlusAfter+": 15.164643635661509,
+        "usd+before": 15.524382,
+        "usd+after": 14.836241,
+        "differenceUsd+": 0.6881409999999999
     },
     {
         "address": "0xd1a2db15a41e882b64983ecb74b3954bf5ef6f47",
         "gaugeBalance": 510.244,
         "bptBalance": 0,
-        "beforeUsd+": 263.3386998361599,
-        "afterUsd+": 257.49801507605224,
-        "differenceUsd+": 5.840684760107649
+        "amountLinearPoolUsdPlusBefore+": 263.254795097324,
+        "amountLinearPoolUsdPlusAfter+": 257.4568876322103,
+        "usd+before": 263.564343,
+        "usd+after": 251.881475,
+        "differenceUsd+": 11.682868000000013
     },
     {
         "address": "0x83771c4d62f6b1d3cd30ee42f6d1cd5c77f2215a",
         "gaugeBalance": 10236.333,
         "bptBalance": 0,
-        "beforeUsd+": 5283.006999219937,
-        "afterUsd+": 5165.833266353921,
-        "differenceUsd+": 117.1737328660156
+        "amountLinearPoolUsdPlusBefore+": 5281.327139484737,
+        "amountLinearPoolUsdPlusAfter+": 5165.0115144021765,
+        "usd+before": 5287.537205,
+        "usd+after": 5053.159522,
+        "differenceUsd+": 234.3776829999997
     },
     {
         "address": "0x20b92b34214a643aa620e80fdfaae25138612af8",
         "gaugeBalance": 23.581,
         "bptBalance": 0,
-        "beforeUsd+": 12.17023596717744,
-        "afterUsd+": 11.90030787918797,
-        "differenceUsd+": 0.2699280879894701
+        "amountLinearPoolUsdPlusBefore+": 12.166155591879784,
+        "amountLinearPoolUsdPlusAfter+": 11.898208927121722,
+        "usd+before": 12.18046,
+        "usd+after": 11.640544,
+        "differenceUsd+": 0.5399159999999998
     },
     {
         "address": "0x3f0d6c57d76cd806ba98ed17e9bbba946ef28628",
         "gaugeBalance": 0,
         "bptBalance": 0.198,
-        "beforeUsd+": 0.10218848740516233,
-        "afterUsd+": 0.09992201179251169,
-        "differenceUsd+": 0.0022664756126506425
+        "amountLinearPoolUsdPlusBefore+": 0.10203280592277983,
+        "amountLinearPoolUsdPlusAfter+": 0.09978564166152683,
+        "usd+before": 0.102152,
+        "usd+after": 0.097623,
+        "differenceUsd+": 0.004529000000000005
     },
     {
         "address": "0xc45972a217e93fb3c8bea13e89149b291eb94eb2",
         "gaugeBalance": 1963.913,
         "bptBalance": 0,
-        "beforeUsd+": 1013.5823175016898,
-        "afterUsd+": 991.1017067952878,
-        "differenceUsd+": 22.48061070640199
+        "amountLinearPoolUsdPlusBefore+": 1013.2600283418042,
+        "amountLinearPoolUsdPlusAfter+": 990.9440516081138,
+        "usd+before": 1014.451473,
+        "usd+after": 969.484454,
+        "differenceUsd+": 44.96701899999994
     },
     {
         "address": "0x66d5eeafbb36b976967b9c2f0fceaa18b339a64c",
         "gaugeBalance": 0.993,
         "bptBalance": 0,
-        "beforeUsd+": 0.5124907474410414,
-        "afterUsd+": 0.5011240288382026,
-        "differenceUsd+": 0.011366718602838777
+        "amountLinearPoolUsdPlusBefore+": 0.5121692004534913,
+        "amountLinearPoolUsdPlusAfter+": 0.500889217387607,
+        "usd+before": 0.51277,
+        "usd+after": 0.490041,
+        "differenceUsd+": 0.022728999999999944
     },
     {
         "address": "0xda13ffd2f3c286620d8c705fed1e9aedac7b7256",
         "gaugeBalance": 659.212,
         "bptBalance": 0,
-        "beforeUsd+": 340.22160181480746,
-        "afterUsd+": 332.67570322103643,
-        "differenceUsd+": 7.545898593771028
+        "amountLinearPoolUsdPlusBefore+": 340.1135871640852,
+        "amountLinearPoolUsdPlusAfter+": 332.6229463752773,
+        "usd+before": 340.51351,
+        "usd+after": 325.41976,
+        "differenceUsd+": 15.09375
     },
     {
         "address": "0x611e481dc31bbc327bca7f4c979c35e8eae6dd4d",
         "gaugeBalance": 0,
         "bptBalance": 16.452,
-        "beforeUsd+": 8.490934317119853,
-        "afterUsd+": 8.302610798032335,
-        "differenceUsd+": 0.18832351908751832
+        "amountLinearPoolUsdPlusBefore+": 8.48817867890192,
+        "amountLinearPoolUsdPlusAfter+": 8.301235552151157,
+        "usd+before": 8.498158,
+        "usd+after": 8.121466,
+        "differenceUsd+": 0.37669200000000025
     },
     {
         "address": "0x193f0ee42a199a0cecd479a9f09ba293eb1ca357",
         "gaugeBalance": 0,
         "bptBalance": 28.117,
-        "beforeUsd+": 14.511281315004794,
-        "afterUsd+": 14.189430331161873,
-        "differenceUsd+": 0.3218509838429213
+        "amountLinearPoolUsdPlusBefore+": 14.506422101997583,
+        "amountLinearPoolUsdPlusAfter+": 14.18693355111983,
+        "usd+before": 14.523478,
+        "usd+after": 13.879704,
+        "differenceUsd+": 0.6437740000000005
     },
     {
         "address": "0xfa01c614b923a3a6574719574ca4311e8a1ae08c",
         "gaugeBalance": 0,
         "bptBalance": 0.091,
-        "beforeUsd+": 0.046965415928635214,
-        "afterUsd+": 0.0459237528945382,
-        "differenceUsd+": 0.001041663034097015
+        "amountLinearPoolUsdPlusBefore+": 0.046800443223630944,
+        "amountLinearPoolUsdPlusAfter+": 0.04576971313175699,
+        "usd+before": 0.046854,
+        "usd+after": 0.044778,
+        "differenceUsd+": 0.0020760000000000015
     },
     {
         "address": "0x10452b381e74763589fbb4d298efc044a3c9ea4d",
         "gaugeBalance": 698.348,
         "bptBalance": 0,
-        "beforeUsd+": 360.41982728495105,
-        "afterUsd+": 352.4259449054391,
-        "differenceUsd+": 7.993882379511945
+        "amountLinearPoolUsdPlusBefore+": 360.3050246754457,
+        "amountLinearPoolUsdPlusAfter+": 352.36968890497485,
+        "usd+before": 360.72869,
+        "usd+after": 344.738873,
+        "differenceUsd+": 15.98981699999996
     },
     {
         "address": "0x6fe797a05359c9d91b1f85d418e2ed4ea6c65a8f",
         "gaugeBalance": 0,
         "bptBalance": 0.052,
-        "beforeUsd+": 0.026837380530648696,
-        "afterUsd+": 0.026242144511164685,
-        "differenceUsd+": 0.0005952360194840106
+        "amountLinearPoolUsdPlusBefore+": 0.02695073666268215,
+        "amountLinearPoolUsdPlusAfter+": 0.02635717529097338,
+        "usd+before": 0.026982,
+        "usd+after": 0.025785,
+        "differenceUsd+": 0.0011970000000000001
     },
     {
         "address": "0xd007058e9b58e74c33c6bf6fbcd38baab813cbb6",
         "gaugeBalance": 7000000,
         "bptBalance": 0,
-        "beforeUsd+": 3612724.302202709,
-        "afterUsd+": 3532596.3765029386,
-        "differenceUsd+": 80127.92569977045
+        "amountLinearPoolUsdPlusBefore+": 3611575.7223526943,
+        "amountLinearPoolUsdPlusAfter+": 3532034.600096171,
+        "usd+before": 3615822.405923,
+        "usd+after": 3455545.883234,
+        "differenceUsd+": 160276.52268900024
     },
     {
         "address": "0x30498959647c71fa915c9beb17300ca58c68b1cc",
         "gaugeBalance": 31.062,
         "bptBalance": 0,
-        "beforeUsd+": 16.03120603928865,
-        "afterUsd+": 15.675644092419184,
-        "differenceUsd+": 0.35556194686946796
+        "amountLinearPoolUsdPlusBefore+": 16.02627191576021,
+        "amountLinearPoolUsdPlusAfter+": 15.673310285777447,
+        "usd+before": 16.045115,
+        "usd+after": 15.333893,
+        "differenceUsd+": 0.7112219999999994
     },
     {
         "address": "0x6533b5fcb6c16e0753bfd50a0114df72499944a4",
         "gaugeBalance": 7941.375,
         "bptBalance": 0,
-        "beforeUsd+": 4098.571207915005,
-        "afterUsd+": 4007.667507064432,
-        "differenceUsd+": 90.90370085057339
+        "amountLinearPoolUsdPlusBefore+": 4097.268181734726,
+        "amountLinearPoolUsdPlusAfter+": 4007.03019853419,
+        "usd+before": 4102.085968,
+        "usd+after": 3920.255113,
+        "differenceUsd+": 181.83085500000016
     },
     {
         "address": "0x72cb40a11781ff0149abb55a1adebe2407575030",
         "gaugeBalance": 406.543,
         "bptBalance": 0,
-        "beforeUsd+": 209.8182537129137,
-        "afterUsd+": 205.16461838466202,
-        "differenceUsd+": 4.653635328251681
+        "amountLinearPoolUsdPlusBefore+": 209.7513635711616,
+        "amountLinearPoolUsdPlusAfter+": 205.13181240128668,
+        "usd+before": 209.997999,
+        "usd+after": 200.689537,
+        "differenceUsd+": 9.308461999999992
     },
     {
         "address": "0x51c73059a4bccd2db3e17303295809dadf040bfd",
         "gaugeBalance": 111.637,
         "bptBalance": 0,
-        "beforeUsd+": 57.61624327500054,
-        "afterUsd+": 56.338351669094074,
-        "differenceUsd+": 1.2778916059064684
+        "amountLinearPoolUsdPlusBefore+": 57.59767095587203,
+        "amountLinearPoolUsdPlusAfter+": 56.32914338248156,
+        "usd+before": 57.665396,
+        "usd+after": 55.109295,
+        "differenceUsd+": 2.556100999999998
     },
     {
         "address": "0x86bbf45d008f28ab444a8107b0f51c851815327a",
         "gaugeBalance": 0,
         "bptBalance": 0.436,
-        "beforeUsd+": 0.22502111368005445,
-        "afterUsd+": 0.2200302885936116,
-        "differenceUsd+": 0.004990825086442857
+        "amountLinearPoolUsdPlusBefore+": 0.224709077189208,
+        "amountLinearPoolUsdPlusAfter+": 0.21976009825177792,
+        "usd+before": 0.224972,
+        "usd+after": 0.215,
+        "differenceUsd+": 0.009972000000000009
     },
     {
         "address": "0xf1d271bc259349f9b47eedf7066decd72424bd19",
         "gaugeBalance": 1.987,
         "bptBalance": 0,
-        "beforeUsd+": 1.0254975983538261,
-        "afterUsd+": 1.00275271430162,
-        "differenceUsd+": 0.022744884052206205
+        "amountLinearPoolUsdPlusBefore+": 1.0250107610933792,
+        "amountLinearPoolUsdPlusAfter+": 1.002435986942093,
+        "usd+before": 1.026215,
+        "usd+after": 0.980726,
+        "differenceUsd+": 0.04548900000000011
     },
     {
         "address": "0x048bf2f5908e95976cead0e47d805b3803e286e2",
         "gaugeBalance": 0,
         "bptBalance": 2.48,
-        "beforeUsd+": 1.2799366099232456,
-        "afterUsd+": 1.2515484305324698,
-        "differenceUsd+": 0.02838817939077587
+        "amountLinearPoolUsdPlusBefore+": 1.2795985107983376,
+        "amountLinearPoolUsdPlusAfter+": 1.251416711658218,
+        "usd+before": 1.281102,
+        "usd+after": 1.224315,
+        "differenceUsd+": 0.05678699999999992
     },
     {
         "address": "0x3adb88931fb41292d4eb49fc9fbc400e8ac20fac",
         "gaugeBalance": 0,
         "bptBalance": 24.239,
-        "beforeUsd+": 12.509832051584494,
-        "afterUsd+": 12.232371938579247,
-        "differenceUsd+": 0.2774601130052474
+        "amountLinearPoolUsdPlusBefore+": 12.505668604770026,
+        "amountLinearPoolUsdPlusAfter+": 12.230244526234136,
+        "usd+before": 12.520372,
+        "usd+after": 11.965389,
+        "differenceUsd+": 0.554983
     },
     {
         "address": "0xfec8e6e95aca68df76f45176c3e39e530308d6f0",
         "gaugeBalance": 496.855,
         "bptBalance": 0,
-        "beforeUsd+": 256.42859045298957,
-        "afterUsd+": 250.74116752105252,
-        "differenceUsd+": 5.68742293193705
+        "amountLinearPoolUsdPlusBefore+": 256.34723882841473,
+        "amountLinearPoolUsdPlusAfter+": 250.70146295901378,
+        "usd+before": 256.648665,
+        "usd+after": 245.272344,
+        "differenceUsd+": 11.37632099999999
     },
     {
         "address": "0x9233a6d253446408ab738a66baa57f580c70c9aa",
         "gaugeBalance": 39.935,
         "bptBalance": 0,
-        "beforeUsd+": 20.610592144066455,
-        "afterUsd+": 20.153462327949264,
-        "differenceUsd+": 0.4571298161171917
+        "amountLinearPoolUsdPlusBefore+": 20.6042374560429,
+        "amountLinearPoolUsdPlusAfter+": 20.150450993710074,
+        "usd+before": 20.628464,
+        "usd+after": 19.714078,
+        "differenceUsd+": 0.9143860000000004
     },
     {
         "address": "0x0900686ebe858823f03dce4b9b2d410b416d2509",
         "gaugeBalance": 97.323,
         "bptBalance": 0,
-        "beforeUsd+": 50.228738180467744,
-        "afterUsd+": 49.11469673577078,
-        "differenceUsd+": 1.1140414446969658
+        "amountLinearPoolUsdPlusBefore+": 50.21259600069534,
+        "amountLinearPoolUsdPlusAfter+": 49.10671686528379,
+        "usd+before": 50.271637,
+        "usd+after": 48.043275,
+        "differenceUsd+": 2.228361999999997
     },
     {
         "address": "0x5cbe42f155ecd0edb432f974c4fdd6a9ff18213a",
         "gaugeBalance": 99.787,
         "bptBalance": 0,
-        "beforeUsd+": 51.500417134843104,
-        "afterUsd+": 50.35817066029982,
-        "differenceUsd+": 1.1422464745432848
+        "amountLinearPoolUsdPlusBefore+": 51.48382136191903,
+        "amountLinearPoolUsdPlusAfter+": 50.34994483710017,
+        "usd+before": 51.544358,
+        "usd+after": 49.25958,
+        "differenceUsd+": 2.284778000000003
     },
     {
         "address": "0x73c7eac9e322adc945a35da3649e221cb4c9e27d",
         "gaugeBalance": 494.411,
         "bptBalance": 0,
-        "beforeUsd+": 255.16723356804906,
-        "afterUsd+": 249.50778672902774,
-        "differenceUsd+": 5.659446839021314
+        "amountLinearPoolUsdPlusBefore+": 255.08586342952432,
+        "amountLinearPoolUsdPlusAfter+": 249.4678680145642,
+        "usd+before": 255.385806,
+        "usd+after": 244.065463,
+        "differenceUsd+": 11.320343000000008
     },
     {
         "address": "0xbf970e507672b30abce90bde4520e3939d423adb",
         "gaugeBalance": 4.964,
         "bptBalance": 0,
-        "beforeUsd+": 2.5619376337334643,
-        "afterUsd+": 2.5051154875657984,
-        "differenceUsd+": 0.0568221461676659
+        "amountLinearPoolUsdPlusBefore+": 2.5611798862599384,
+        "amountLinearPoolUsdPlusAfter+": 2.5047726174899396,
+        "usd+before": 2.56419,
+        "usd+after": 2.450529,
+        "differenceUsd+": 0.11366100000000001
     },
     {
         "address": "0xad48cca48b5b9e0bffbad0bdffdbcab08f286aa9",
         "gaugeBalance": 0,
         "bptBalance": 0.201,
-        "beforeUsd+": 0.10373679782039207,
-        "afterUsd+": 0.1014359816681558,
-        "differenceUsd+": 0.0023008161522362625
+        "amountLinearPoolUsdPlusBefore+": 0.10376466417864866,
+        "amountLinearPoolUsdPlusAfter+": 0.10147935757736153,
+        "usd+before": 0.103886,
+        "usd+after": 0.099281,
+        "differenceUsd+": 0.004605000000000012
     },
     {
         "address": "0x4ffd0a59a26cb2aa76d403215e4cc2845c053994",
         "gaugeBalance": 31.144,
         "bptBalance": 0,
-        "beforeUsd+": 16.073526523971594,
-        "afterUsd+": 15.717025935686786,
-        "differenceUsd+": 0.356500588284808
+        "amountLinearPoolUsdPlusBefore+": 16.068609680977495,
+        "amountLinearPoolUsdPlusAfter+": 15.71471560664963,
+        "usd+before": 16.087503,
+        "usd+after": 15.374401,
+        "differenceUsd+": 0.713102000000001
     },
     {
         "address": "0xdcf71d47403cd810509c4167bd0f1138658bfc36",
         "gaugeBalance": 0,
         "bptBalance": 0.524,
-        "beforeUsd+": 0.27043821919345995,
-        "afterUsd+": 0.2644400716125057,
-        "differenceUsd+": 0.005998147580954238
+        "amountLinearPoolUsdPlusBefore+": 0.2701639959964199,
+        "amountLinearPoolUsdPlusAfter+": 0.26421392071435895,
+        "usd+before": 0.270481,
+        "usd+after": 0.258491,
+        "differenceUsd+": 0.01199
     }
 ]

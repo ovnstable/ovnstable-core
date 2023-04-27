@@ -3,6 +3,7 @@ const { getContract, initWallet, getERC20ByAddress, impersonateAccount, isContra
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 
 const Pool = require('@overnight-contracts/pools/abi/ComposableStablePool.json');
+const LinearPool = require('@overnight-contracts/pools/abi/ERC4626LinearPool.json')
 const Vault = require('@overnight-contracts/pools/abi/VaultBalancer.json');
 const BeetsGaugePool = require('@overnight-contracts/pools/abi/BeetsGaugeStablePool.json');
 const UsdPlusToken = require('@overnight-contracts/core/deployments/optimism/UsdPlusToken.json')
@@ -55,6 +56,30 @@ async function main() {
 
     // 100 usdc -> Хочу положить в овернайт пул ->
     // await getBeetsBalances(80668149, 80735354)
+
+    const vault = await ethers.getContractAt(Vault, "0xBA12222222228d8Ba445958a75a0704d566BF2C8");
+    let pool = await ethers.getContractAt(Pool, '0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024');
+    // const poolTokens = await vault.getPoolTokens(await pool.getPoolId(), { blockTag: blockNumber });
+    // const totalActualSupply = await pool.getActualSupply({ blockTag: blockNumber });
+    const usdPool = await ethers.getContractAt(LinearPool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253');
+    const daiPool = await ethers.getContractAt(LinearPool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809');
+    // const usdPoolRate = await usdPool.getRate({ blockTag: blockNumber });
+    // const daiPoolRate = await daiPool.getRate({ blockTag: blockNumber });
+
+    // const usdAmountBeforeRate = amountBpt.beetsBalance.mul(poolTokens[1][0]).div(totalActualSupply);
+    // const daiAmountBeforeRate = amountBpt.beetsBalance.mul(poolTokens[1][2]).div(totalActualSupply);
+
+    // const amountLinearPoolUsdPlus = usdAmountBeforeRate.mul(usdPoolRate);
+    // const amountLinearPoolDaiPlus = daiAmountBeforeRate.mul(daiPoolRate);
+
+    const poolTokensUsdPlus = await vault.getPoolTokens(await usdPool.getPoolId(), { blockTag: 80668149 });
+    const poolTokensDaiPlus = await vault.getPoolTokens(await daiPool.getPoolId(), { blockTag: 80668149 });
+    const usdtotalActualSupply = await usdPool.getVirtualSupply({ blockTag: 80668149 });
+    console.log(fromE6(poolTokensUsdPlus[1][0]), fromE18(poolTokensUsdPlus[1][1]), fromE6(poolTokensUsdPlus[1][2]))
+    console.log(fromE18(poolTokensDaiPlus[1][0]), fromE18(poolTokensDaiPlus[1][1]), fromE18(poolTokensDaiPlus[1][2]))
+    // const daitotalActualSupply = await daiPool.getVirtualSupply({ blockTag: 80668149 });
+    // const wUsdAmount = amountLinearPoolUsdPlus.mul(poolTokensUsdPlus[1][2]).div(usdtotalActualSupply).div(1e9).div(1e9);
+    // const wDaiAmount = amountLinearPoolDaiPlus.mul(poolTokensDaiPlus[1][0]).div(daitotalActualSupply).div(1e9).div(1e9);
     // await getBalancesVelodromeGauges()
     // await getBalanceVelodromeGauge(wallet, 92686688)
     // const gaugePool = await ethers.getContractAt(BeetsGaugePool, "0xa066243Ba7DAd6C779caA1f9417910a4AE83cf4D");
@@ -70,7 +95,7 @@ async function main() {
     // const res = await getHoldersWithBalancesNonZero(usdpToken, 80668149)
     // await checkForContracts()
     // await getBalancesMooVelodrome()
-    await getBalancesReaperVelodrome()
+    // await getBalancesReaperVelodrome()
     // await balanceAndConvertWrapped()
 }
 
@@ -83,14 +108,16 @@ async function getBeetsBalances(blockNumber1, blockNumber2) {
     for (const address of beetsAddresses) {
         const before = await getBalance(address, blockNumber1);
         const after = await getBalance(address, blockNumber1 + 1);
-        if (before.amountLinearPoolDaiPlus != 0) {
+        if (before.amountLinearPoolUsdPlus != 0) {
             map1.push({
                 "address": address,
                 "gaugeBalance": before.gaugeBalance,
                 "bptBalance": before.bptBalance,
-                "beforeUsd+": before.amountLinearPoolUsdPlus,
-                "afterUsd+": after.amountLinearPoolUsdPlus,
-                "differenceUsd+": before.amountLinearPoolUsdPlus - after.amountLinearPoolUsdPlus,
+                "amountLinearPoolUsdPlusBefore+": before.amountLinearPoolUsdPlus,
+                "amountLinearPoolUsdPlusAfter+": after.amountLinearPoolUsdPlus,
+                "usd+before": before.usdAmount,
+                "usd+after": after.usdAmount,
+                "differenceUsd+": before.usdAmount - after.usdAmount,
                 // "beforeDai+": before.amountLinearPoolDaiPlus,
                 // "afterDai+": after.amountLinearPoolDaiPlus,
                 // "differenceDai+": before.amountLinearPoolDaiPlus - after.amountLinearPoolDaiPlus,
@@ -107,12 +134,11 @@ async function getBeetsBalances(blockNumber1, blockNumber2) {
                 "address": address,
                 "gaugeBalance": before.gaugeBalance,
                 "bptBalance": before.bptBalance,
-                // "beforeUsd+": before.amountLinearPoolUsdPlus,
-                // "afterUsd+": after.amountLinearPoolUsdPlus,
-                // "differenceUsd+": before.amountLinearPoolUsdPlus - after.amountLinearPoolUsdPlus,
-                "beforeDai+": before.amountLinearPoolDaiPlus,
-                "afterDai+": after.amountLinearPoolDaiPlus,
-                "differenceDai+": before.amountLinearPoolDaiPlus - after.amountLinearPoolDaiPlus,
+                "amountLinearPoolDai+Before": before.amountLinearPoolDaiPlus,
+                "amountLinearPoolDai+fter": after.amountLinearPoolDaiPlus,
+                "dai+before": before.daiAmount,
+                "dai+after": after.daiAmount,
+                "differenceDai+": before.daiAmount - after.daiAmount,
             })
         }
     }
@@ -142,16 +168,16 @@ async function getBalance(wallet, blockNumber) {
 async function getBalanceBeets(wallet, blockNumber) {
     const gaugeBalance = await getBalanceBeetsGauge(wallet, blockNumber);
     const bptBalance = await getBptBalance(wallet, blockNumber);
-    const beetsBalance = gaugeBalance + bptBalance;
+    const beetsBalance = gaugeBalance.add(bptBalance);
 
     // console.table([
     //     {
     //         name: 'Gauge',
-    //         amount: gaugeBalance
+    //         amount: fromE18(gaugeBalance)
     //     },
     //     {
     //         name: 'BPT',
-    //         amount: bptBalance
+    //         amount: fromE18(bptBalance)
     //     }
     // ])
 
@@ -163,30 +189,55 @@ async function convertBptToLinearPoolsBeets(amountBpt, blockNumber) {
     const vault = await ethers.getContractAt(Vault, "0xBA12222222228d8Ba445958a75a0704d566BF2C8");
     let pool = await ethers.getContractAt(Pool, '0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024');
     const poolTokens = await vault.getPoolTokens(await pool.getPoolId(), { blockTag: blockNumber });
-    const bptPool = await ethers.getContractAt(Pool, "0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024");
-    const totalActualSupply = await bptPool.getActualSupply({ blockTag: blockNumber });
-    const usdPool = await ethers.getContractAt(Pool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253');
-    const daiPool = await ethers.getContractAt(Pool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809');
-    const usdPoolRate = fromE18(await usdPool.getRate({ blockTag: blockNumber }));
-    const daiPoolRate = fromE18(await daiPool.getRate({ blockTag: blockNumber }));
+    const totalActualSupply = await pool.getActualSupply({ blockTag: blockNumber });
+    const usdPool = await ethers.getContractAt(LinearPool, '0x88D07558470484c03d3bb44c3ECc36CAfCF43253');
+    const daiPool = await ethers.getContractAt(LinearPool, '0xb5ad7d6d6F92a77F47f98C28C84893FBccc94809');
+    const usdPoolRate = await usdPool.getRate({ blockTag: blockNumber });
+    const daiPoolRate = await daiPool.getRate({ blockTag: blockNumber });
 
-    const usdAmountBeforeRate = amountBpt.beetsBalance * poolTokens[1][0] / totalActualSupply;
-    const daiAmountBeforeRate = amountBpt.beetsBalance * poolTokens[1][2] / totalActualSupply;
+    const usdAmountBeforeRate = amountBpt.beetsBalance.mul(poolTokens[1][0]).div(totalActualSupply);
+    const daiAmountBeforeRate = amountBpt.beetsBalance.mul(poolTokens[1][2]).div(totalActualSupply);
 
-    const amountLinearPoolUsdPlus = usdAmountBeforeRate * usdPoolRate;
-    const amountLinearPoolDaiPlus = daiAmountBeforeRate * daiPoolRate;
+    const amountLinearPoolUsdPlus = usdAmountBeforeRate.mul(usdPoolRate);
+    const amountLinearPoolDaiPlus = daiAmountBeforeRate.mul(daiPoolRate);
+
+    const poolTokensUsdPlus = await vault.getPoolTokens(await usdPool.getPoolId(), { blockTag: blockNumber });
+
+    const poolTokensDaiPlus = await vault.getPoolTokens(await daiPool.getPoolId(), { blockTag: blockNumber });
+    const usdtotalActualSupply = await usdPool.getVirtualSupply({ blockTag: blockNumber });
+    const daitotalActualSupply = await daiPool.getVirtualSupply({ blockTag: blockNumber });
+    const wUsdAmount = amountLinearPoolUsdPlus.mul(poolTokensUsdPlus[1][2]).div(usdtotalActualSupply).div(1e9).div(1e9);
+    const wDaiAmount = amountLinearPoolDaiPlus.mul(poolTokensDaiPlus[1][0]).div(daitotalActualSupply).div(1e9).div(1e9);
+
+    const wUsdwrappedContract = await ethers.getContractAt(WrappedUsdPlusToken.abi, "0xA348700745D249c3b49D2c2AcAC9A5AE8155F826");
+    const wDaiwrappedContract = await ethers.getContractAt(WrappedDaiPlusToken.abi, "0x0b8f31480249cc717081928b8af733f45f6915bb");
+    const usdAmount = await convertWrapped(wUsdAmount, blockNumber, wUsdwrappedContract)
+    const daiAmount = await convertWrapped(wDaiAmount, blockNumber, wDaiwrappedContract)
+
+
+
+
     console.table([
         {
             name: 'amountLinearPoolUsdPlus',
-            amount: amountLinearPoolUsdPlus
+            amount: fromE18(amountLinearPoolUsdPlus) / 1e18
         },
         {
             name: 'amountLinearPoolDaiPlus',
-            amount: amountLinearPoolDaiPlus
-        }
+            amount: fromE18(amountLinearPoolDaiPlus) / 1e18
+        },
+        {
+            name: "usdAmount",
+            amount: fromE6(usdAmount)
+        },
+        {
+            name: "daiAmount",
+            amount: fromE18(daiAmount)
+        },
+
     ])
 
-    return { amountLinearPoolUsdPlus, amountLinearPoolDaiPlus, gaugeBalance: amountBpt.gaugeBalance, bptBalance: amountBpt.bptBalance };
+    return { amountLinearPoolUsdPlus: fromE18(amountLinearPoolUsdPlus) / 1e18, amountLinearPoolDaiPlus: fromE18(amountLinearPoolDaiPlus) / 1e18, gaugeBalance: fromE18(amountBpt.gaugeBalance), bptBalance: fromE18(amountBpt.bptBalance), usdAmount: fromE6(usdAmount), daiAmount: fromE18(daiAmount) };
 
 
     // uint256 totalActualSupply = bpt.getActualSupply();
@@ -221,14 +272,14 @@ async function convertBptToLinearPoolsBeets(amountBpt, blockNumber) {
 
 async function getBalanceBeetsGauge(wallet, blockNumber) {
     const gaugePool = await ethers.getContractAt(BeetsGaugePool, "0xa066243Ba7DAd6C779caA1f9417910a4AE83cf4D");
-    const gaugeBalance = fromE18(await gaugePool.balanceOf(wallet, { blockTag: blockNumber }))
+    const gaugeBalance = await gaugePool.balanceOf(wallet, { blockTag: blockNumber });
     return gaugeBalance;
 }
 
 
 async function getBptBalance(wallet, blockNumber) {
     const bptPool = await ethers.getContractAt(Pool, "0xb1C9aC57594e9B1EC0f3787D9f6744EF4CB0A024");
-    const bptBalance = fromE18(await bptPool.balanceOf(wallet, { blockTag: blockNumber }))
+    const bptBalance = await bptPool.balanceOf(wallet, { blockTag: blockNumber });
     return bptBalance;
 }
 
