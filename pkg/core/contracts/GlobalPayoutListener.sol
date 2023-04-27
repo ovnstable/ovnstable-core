@@ -98,18 +98,19 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
      */
     function findItemsByPool(address pool) external view returns (Item[] memory) {
         uint256 j;
-        for (uint256 i = 0; i < items.length; i++) {
-            if (items[i].pool == pool) {
+        for (uint256 x = 0; x < items.length; x++) {
+            if (items[x].pool == pool) {
                 j++;
             }
         }
 
         Item[] memory foundItems = new Item[](j);
-        j = 0;
+        uint256 p = 0;
         for (uint256 i = 0; i < items.length; i++) {
             if (items[i].pool == pool) {
-                foundItems[j] = items[i];
-                j++;
+                Item memory item = items[i];
+                foundItems[p] = item;
+                p++;
             }
         }
 
