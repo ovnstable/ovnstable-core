@@ -57,9 +57,9 @@ module.exports = async () => {
         let dex = 'Wombat';
 
         let items = [];
-        items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/USD+', dex));
-        items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex));
-        items.push(createSkim('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'LP-DAI+', dex));
+        items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/MAI/USD+/USDC', dex));
+        items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'USD+/DAI+/USDC', dex));
+        items.push(createSkim('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'USD+/DAI+/USDC', dex));
 
         return items;
 

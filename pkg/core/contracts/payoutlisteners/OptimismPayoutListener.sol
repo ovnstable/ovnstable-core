@@ -14,6 +14,7 @@ contract OptimismPayoutListener is GlobalPayoutListener {
         __PayoutListener_init();
     }
 
-
+    function optimism() external {
+    }
 
 }

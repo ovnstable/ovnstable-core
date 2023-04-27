@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import "./interfaces/IGlobalPayoutListener.sol";
+
 
 abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -78,11 +77,48 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         emit DisabledUpdated(disabled);
     }
 
+    // --- logic
+
+    /**
+     * Get items
+     */
+    function getItems() external view returns (Item[] memory) {
+        return items;
+    }
+
+    /**
+     * Get items length
+     */
+    function getItemsLength() external view returns (uint256) {
+        return items.length;
+    }
+
+    /**
+     * Find items by pool address
+     */
+    function findItemsByPool(address pool) external view returns (Item[] memory) {
+        uint256 j;
+        for (uint256 i = 0; i < items.length; i++) {
+            if (items[i].pool == pool) {
+                j++;
+            }
+        }
+
+        Item[] memory foundItems = new Item[](j);
+        j = 0;
+        for (uint256 i = 0; i < items.length; i++) {
+            if (items[i].pool == pool) {
+                foundItems[j] = items[i];
+                j++;
+            }
+        }
+
+        return foundItems;
+    }
+
     /**
      * Add new item to list or update exist item
-     *
      */
-
     function addItem(Item memory item) public onlyAdmin {
         require(item.token != address(0), 'token is zero');
         require(item.pool != address(0), 'pool is zero');
@@ -110,6 +146,9 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         emit AddItem(item.token, item.pool);
     }
 
+    /**
+     * Add new items to list or update exist items
+     */
     function addItems(Item[] memory items) external onlyAdmin {
         for (uint256 x = 0; x < items.length; x++) {
             Item memory item = items[x];
@@ -118,10 +157,9 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     /**
-      * Remove item from items
-      */
-
-    function removeItem(address token, address pool) public onlyAdmin {
+     * Remove item from items
+     */
+    function removeItem(address token, address pool) external onlyAdmin {
         require(token != address(0), 'token is zero');
         require(pool != address(0), 'pool is zero');
 
@@ -129,7 +167,11 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
             Item memory exitItem = items[x];
 
             if (exitItem.token == token && exitItem.pool == pool) {
-                delete items[x];
+                for (uint i = x; i < items.length - 1; i++) {
+                    Item memory tempItem = items[i + 1];
+                    items[i] = tempItem;
+                }
+                items.pop();
                 emit RemoveItem(token, pool);
                 return;
             }
@@ -139,20 +181,18 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     /**
-      * Remove items
-      */
-    function removeItems() public onlyAdmin {
-        for (uint256 x = 0; x < items.length; x++) {
-            delete items[x];
+     * Remove items
+     */
+    function removeItems() external onlyAdmin {
+        uint256 length = items.length;
+        for (uint256 x = 0; x < length; x++) {
+            items.pop();
         }
     }
 
-    // --- logic
-
     /**
-      * Skim tokens from pool and transfer profit to address (to)
-      */
-
+     * Skim tokens from pool and transfer profit to address (to)
+     */
     function _skim(Item memory item) internal {
         IERC20 token = IERC20(item.token);
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
@@ -176,9 +216,8 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     /**
-      * Skim tokens from pool and transfer profit as bribes
-      */
-
+     * Skim tokens from pool and transfer profit as bribes
+     */
     function _bribe(Item memory item) internal {
         IERC20 token = IERC20(item.token);
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
@@ -195,29 +234,26 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
      * Override this method for unique behavior smart-contracts.
      * If standard skim/sync/bribe not allow use.
      */
-
     function _custom(Item memory item) internal virtual {
         revert("Custom not implemented");
     }
 
     /**
-      * After execute sync on pool:
-      * - balance LP tokens == balance USD+ tokens
-      */
-
+     * After execute sync on pool:
+     * - balance LP tokens == balance USD+ tokens
+     */
     function _sync(Item memory item) internal {
         IPool(item.pool).sync();
         emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0));
     }
 
     /**
-      * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
-      * see details: Exchange.sol | HedgeExchanger.sol
-      */
-
+     * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
+     * see details: Exchange.sol | HedgeExchanger.sol
+     */
     function payoutDone(address token) external override onlyExchanger {
 
-        if(disabled){
+        if (disabled) {
             emit PayoutDoneDisabled();
             return;
         }
