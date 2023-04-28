@@ -672,7 +672,7 @@ async function transferAsset(assetAddress, to) {
                     from = '0xf977814e90da44bfa03b6295a0616a897441acec';
                     break;
                 case BSC.usdt:
-                    from = '0xf977814e90da44bfa03b6295a0616a897441acec';
+                    from = '0x4b16c5de96eb2117bbe5fd171e4d203624b014aa';
                     break;
                 default:
                     throw new Error('Unknown asset address');

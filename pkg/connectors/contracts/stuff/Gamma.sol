@@ -91,6 +91,13 @@ interface IHypervisor {
 
     function transferOwnership(address newOwner) external;
 
+    function baseLower() external view returns (int24);
+
+    function baseUpper() external view returns (int24);
+
+    function limitLower() external view returns (int24);
+
+    function limitUpper() external view returns (int24);
 }
 
 /// @title UniProxy
