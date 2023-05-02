@@ -3,8 +3,8 @@ const { deploySection, settingSection } = require("@overnight-contracts/common/u
 const { OPTIMISM } = require("@overnight-contracts/common/utils/assets");
 
 let arrakisRouter = "0x9ce88a56d120300061593eF7AD074A1B710094d5";
-let arrakisRewards = "0x87c7c885365700D157cd0f39a7803320fe86f0f5";
-let arrakisVault = "0x632336474f5Bf11aEbECd63B84A0a2800B99a490";
+let arrakisRewards = "0x1B6a53991f257Ac9dD1D0C061c37E1BE36e0A8e6";
+let arrakisVault = "0x3f46cb62fc047273adf302670c7db569a02107eb";
 let poolUsdcOpFee = 100; // 0.01%
 
 module.exports = async ({ deployments }) => {

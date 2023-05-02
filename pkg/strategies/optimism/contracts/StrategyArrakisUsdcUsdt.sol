@@ -108,7 +108,7 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         uint256 usdtMinAmount = OvnMath.subBasisPoints(
             _oracleUsdcToUsdt(amountUsdcToSwap),
             swapSlippageBP
-        ) - 1e13;
+        ) - 10;
         CurveLibrary.swap(
             curve3Pool,
             address(usdc),

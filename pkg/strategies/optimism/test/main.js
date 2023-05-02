@@ -49,6 +49,26 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
+    } else if (strategyName == 'StrategyArrakisDaiUsdc') {
+        let ownerAddress = "0x8f0671330750c67620D3a430FE078Faa50bB1Ede";
+        let provider = ethers.provider;
+        const wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        const owner = await hre.ethers.getSigner(ownerAddress);
+
+        let token = await getERC20('dai');
+
+        await token.connect(owner).transfer(to, await token.balanceOf(owner.address));
+
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [owner.address],
+        });
+
+        console.log(`[Node] Transfer DAI [${fromE18(await token.balanceOf(to))}] to [${to}]:`);
     }
 }
 
