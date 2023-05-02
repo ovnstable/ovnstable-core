@@ -16,9 +16,7 @@ pragma solidity >=0.8.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 interface ICurveExchange {
-
     /**
         @notice Perform an exchange using the pool that offers the best rate
         @dev Prior to calling this function, the caller must approve
@@ -32,9 +30,20 @@ interface ICurveExchange {
         @param _receiver Address to transfer the received tokens to
         @return uint256 Amount received
     */
-    function exchange_with_best_rate(address _from, address _to, uint256 _amount, uint256 _expected, address _receiver) external returns (uint256);
+    function exchange_with_best_rate(
+        address _from,
+        address _to,
+        uint256 _amount,
+        uint256 _expected,
+        address _receiver
+    ) external returns (uint256);
 
-    function exchange_with_best_rate(address _from, address _to, uint256 _amount, uint256 _expected) external returns (uint256);
+    function exchange_with_best_rate(
+        address _from,
+        address _to,
+        uint256 _amount,
+        uint256 _expected
+    ) external returns (uint256);
 
     /**
         @notice Perform an exchange using a specific pool
@@ -50,9 +59,22 @@ interface ICurveExchange {
         @param _receiver Address to transfer the received tokens to
         @return uint256 Amount received
     */
-    function exchange(address _pool, address _from, address _to, uint256 _amount, uint256 _expected, address _receiver) external returns (uint256);
+    function exchange(
+        address _pool,
+        address _from,
+        address _to,
+        uint256 _amount,
+        uint256 _expected,
+        address _receiver
+    ) external returns (uint256);
 
-    function exchange(address _pool, address _from, address _to, uint256 _amount, uint256 _expected) external returns (uint256);
+    function exchange(
+        address _pool,
+        address _from,
+        address _to,
+        uint256 _amount,
+        uint256 _expected
+    ) external returns (uint256);
 
     /**
         @notice Perform up to four swaps in a single transaction
@@ -79,11 +101,29 @@ interface ICurveExchange {
         @param _receiver Address to transfer the final output token to.
         @return Received amount of the final output token
     */
-    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected, address[4] memory _pools, address _receiver) external returns (uint256);
+    function exchange_multiple(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount,
+        uint256 _expected,
+        address[4] memory _pools,
+        address _receiver
+    ) external returns (uint256);
 
-    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected, address[4] memory _pools) external returns (uint256);
+    function exchange_multiple(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount,
+        uint256 _expected,
+        address[4] memory _pools
+    ) external returns (uint256);
 
-    function exchange_multiple(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, uint256 _expected) external returns (uint256);
+    function exchange_multiple(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount,
+        uint256 _expected
+    ) external returns (uint256);
 
     /**
         @notice Find the pool offering the best rate for a given swap.
@@ -94,9 +134,18 @@ interface ICurveExchange {
         @param _exclude_pools A list of up to 8 addresses which shouldn't be returned
         @return Pool address, amount received
     */
-    function get_best_rate(address _from, address _to, uint256 _amount, address[8] memory _exclude_pools) external returns (address, uint256);
+    function get_best_rate(
+        address _from,
+        address _to,
+        uint256 _amount,
+        address[8] memory _exclude_pools
+    ) external returns (address, uint256);
 
-    function get_best_rate(address _from, address _to, uint256 _amount) external returns (address, uint256);
+    function get_best_rate(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) external returns (address, uint256);
 
     /**
         @notice Get the current number of coins received in an exchange
@@ -107,7 +156,12 @@ interface ICurveExchange {
         @param _amount Quantity of `_from` to be sent
         @return Quantity of `_to` to be received
     */
-    function get_exchange_amount(address _pool, address _from, address _to, uint256 _amount) external returns (uint256);
+    function get_exchange_amount(
+        address _pool,
+        address _from,
+        address _to,
+        uint256 _amount
+    ) external returns (uint256);
 
     /**
         @notice Get the current number of coins required to receive the given amount in an exchange
@@ -117,7 +171,12 @@ interface ICurveExchange {
         @param _amount Quantity of `_to` to be received
         @return Quantity of `_from` to be sent
     */
-    function get_input_amount(address _pool, address _from, address _to, uint256 _amount) external returns (uint256);
+    function get_input_amount(
+        address _pool,
+        address _from,
+        address _to,
+        uint256 _amount
+    ) external returns (uint256);
 
     /**
         @notice Get the current number of coins required to receive the given amount in an exchange
@@ -127,7 +186,12 @@ interface ICurveExchange {
         @param _amounts Quantity of `_to` to be received
         @return Quantity of `_from` to be sent
     */
-    function get_exchange_amounts(address _pool, address _from, address _to, uint256[100] memory _amounts) external returns (uint256[100] memory);
+    function get_exchange_amounts(
+        address _pool,
+        address _from,
+        address _to,
+        uint256[100] memory _amounts
+    ) external returns (uint256[100] memory);
 
     /**
         @notice Get the current number the final output tokens received in an exchange
@@ -152,38 +216,73 @@ interface ICurveExchange {
                       Polygon meta-factories underlying swaps.
         @return Expected amount of the final output token
     */
-    function get_exchange_multiple_amount(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount, address[4] memory _pools) external returns (uint256);
+    function get_exchange_multiple_amount(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount,
+        address[4] memory _pools
+    ) external returns (uint256);
 
-    function get_exchange_multiple_amount(address[9] memory _route, uint256[3][4] memory _swap_params, uint256 _amount) external returns (uint256);
-
+    function get_exchange_multiple_amount(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount
+    ) external returns (uint256);
 }
 
 interface IStableSwapPool {
+    function add_liquidity(
+        uint256[3] memory _amounts,
+        uint256 _min_mint_amount,
+        bool _use_underlying
+    ) external returns (uint256);
 
-    function add_liquidity(uint256[3] memory _amounts, uint256 _min_mint_amount, bool _use_underlying) external returns (uint256);
+    function add_liquidity(
+        uint256[2] memory _amounts,
+        uint256 _min_mint_amount
+    ) external returns (uint256);
 
-    function add_liquidity(uint256[2] memory _amounts, uint256 _min_mint_amount) external returns (uint256);
+    function remove_liquidity(
+        uint256 _amount,
+        uint256[3] memory _min_amounts,
+        bool _use_underlying
+    ) external returns (uint256[3] memory);
 
-    function remove_liquidity(uint256 _amount, uint256[3] memory _min_amounts, bool _use_underlying) external returns (uint256[3] memory);
-
-    function remove_liquidity(uint256 _amount, uint256[2] memory _min_amounts) external returns (uint256[2] memory);
+    function remove_liquidity(
+        uint256 _amount,
+        uint256[2] memory _min_amounts
+    ) external returns (uint256[2] memory);
 
     function underlying_coins(uint256 i) external view returns (address);
 
     function lp_token() external view returns (address);
 
-    function calc_token_amount(uint256[3] memory _amounts, bool _is_deposit) external view returns (uint256);
+    function calc_token_amount(
+        uint256[3] memory _amounts,
+        bool _is_deposit
+    ) external view returns (uint256);
 
-    function calc_token_amount(uint256[2] memory _amounts, bool _is_deposit) external view returns (uint256);
+    function calc_token_amount(
+        uint256[2] memory _amounts,
+        bool _is_deposit
+    ) external view returns (uint256);
 
     function coins(uint256 i) external view returns (address);
 
     function get_virtual_price() external view returns (uint256);
 
     // Get the amount of coin j(received) one would receive for swapping _dx of coin i(send).
-    function get_dy(int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
+    function get_dy(
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx
+    ) external view returns (uint256);
 
-    function get_dy_underlying(int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
+    function get_dy_underlying(
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx
+    ) external view returns (uint256);
 
     //Perform an exchange between two coins.
     // i: Index value for the coin to send
@@ -191,24 +290,54 @@ interface IStableSwapPool {
     // _dx: Amount of i being exchanged
     // _min_dy: Minimum amount of j to receive
     // Returns the actual amount of coin j received. Index values can be found via the coins public getter method.
-    function exchange(int128 sendToken, int128 receivedToken, uint256 _dx, uint256 _min_dy) external returns (uint256);
+    function exchange(
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx,
+        uint256 _min_dy
+    ) external returns (uint256);
 
-    function exchange_underlying(int128 sendToken, int128 receivedToken, uint256 _dx, uint256 _min_dy) external returns (uint256);
+    function exchange_underlying(
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx,
+        uint256 _min_dy
+    ) external returns (uint256);
 
-    function calc_withdraw_one_coin(uint256 _token_amount, int128 i) external view returns (uint256);
+    function calc_withdraw_one_coin(
+        uint256 _token_amount,
+        int128 i
+    ) external view returns (uint256);
 
-    function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount) external returns (uint256);
+    function remove_liquidity_one_coin(
+        uint256 _token_amount,
+        int128 i,
+        uint256 _min_amount
+    ) external returns (uint256);
 
-    function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount, bool _use_underlying) external returns (uint256);
-
+    function remove_liquidity_one_coin(
+        uint256 _token_amount,
+        int128 i,
+        uint256 _min_amount,
+        bool _use_underlying
+    ) external returns (uint256);
 }
 
 interface IMetaSwapPool {
-
     // Get the amount of coin j(received) one would receive for swapping _dx of coin i(send).
-    function get_dy(address _pool, int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
+    function get_dy(
+        address _pool,
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx
+    ) external view returns (uint256);
 
-    function get_dy_underlying(address _pool, int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
+    function get_dy_underlying(
+        address _pool,
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx
+    ) external view returns (uint256);
 
     //Perform an exchange between two coins.
     // i: Index value for the coin to send
@@ -216,13 +345,24 @@ interface IMetaSwapPool {
     // _dx: Amount of i being exchanged
     // _min_dy: Minimum amount of j to receive
     // Returns the actual amount of coin j received. Index values can be found via the coins public getter method.
-    function exchange(address _pool, int128 sendToken, int128 receivedToken, uint256 _dx, uint256 _min_dy) external returns (uint256);
+    function exchange(
+        address _pool,
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx,
+        uint256 _min_dy
+    ) external returns (uint256);
 
-    function exchange_underlying(address _pool, int128 sendToken, int128 receivedToken, uint256 _dx, uint256 _min_dy) external returns (uint256);
+    function exchange_underlying(
+        address _pool,
+        int128 sendToken,
+        int128 receivedToken,
+        uint256 _dx,
+        uint256 _min_dy
+    ) external returns (uint256);
 }
 
 interface IRewardsOnlyGauge is IERC20 {
-
     function deposit(uint256 _value, address _addr, bool _claim_rewards) external;
 
     function deposit(uint256 _value, address _addr) external;
@@ -251,17 +391,15 @@ interface IRewardsOnlyGauge is IERC20 {
 }
 
 library CurveMetaLibrary {
-
     function swapByIndex(
-        int128  indexIn,
-        int128  indexOut,
+        int128 indexIn,
+        int128 indexOut,
         bool isUnderlying,
         uint256 amountIn,
         uint256 amountMinOut,
         address meta,
         address pool
     ) internal returns (uint256) {
-
         uint256 backAmount;
         if (isUnderlying) {
             backAmount = IMetaSwapPool(meta).exchange_underlying(
@@ -293,15 +431,14 @@ library CurveMetaLibrary {
         address pool
     ) internal view returns (uint256) {
         if (isUnderlying) {
-            return IMetaSwapPool(meta).get_dy_underlying(pool,indexIn, indexOut, amountIn);
+            return IMetaSwapPool(meta).get_dy_underlying(pool, indexIn, indexOut, amountIn);
         } else {
-            return IMetaSwapPool(meta).get_dy(pool,indexIn, indexOut, amountIn);
+            return IMetaSwapPool(meta).get_dy(pool, indexIn, indexOut, amountIn);
         }
     }
 }
 
 library CurveLibrary {
-
     function singleSwap(
         address curveExchange,
         address token0,
@@ -332,7 +469,13 @@ library CurveLibrary {
         route[3] = pool1;
         route[4] = token2;
         uint256[3][4] memory swap_params;
-        return ICurveExchange(curveExchange).exchange_multiple(route, swap_params, amount0, amount2Out);
+        return
+            ICurveExchange(curveExchange).exchange_multiple(
+                route,
+                swap_params,
+                amount0,
+                amount2Out
+            );
     }
 
     function swap(
@@ -354,12 +497,7 @@ library CurveLibrary {
                 amountMinOut
             );
         } else {
-            backAmount = IStableSwapPool(pool).exchange(
-                indexIn,
-                indexOut,
-                amountIn,
-                amountMinOut
-            );
+            backAmount = IStableSwapPool(pool).exchange(indexIn, indexOut, amountIn, amountMinOut);
         }
 
         return backAmount;
@@ -466,10 +604,10 @@ library CurveLibrary {
         uint256 denominator1,
         uint256 precision
     ) internal view returns (uint256 amount0) {
-        amount0 = (amount0Total * reserve1) / (reserve0 * denominator1 / denominator0 + reserve1);
+        amount0 = (amount0Total * reserve1) / ((reserve0 * denominator1) / denominator0 + reserve1);
         for (uint i = 0; i < precision; i++) {
             uint256 amount1 = getAmountOut(pool, token0, token1, amount0);
-            amount0 = (amount0Total * reserve1) / (reserve0 * amount1 / amount0 + reserve1);
+            amount0 = (amount0Total * reserve1) / ((reserve0 * amount1) / amount0 + reserve1);
         }
     }
 
@@ -490,12 +628,15 @@ library CurveLibrary {
         uint256 denominator1,
         uint256 precision
     ) internal view returns (uint256 amountLpTokens) {
-        amountLpTokens = (totalAmountLpTokens * amount0Total * denominator1) / (reserve0 * denominator1 + reserve1 * denominator0);
+        amountLpTokens =
+            (totalAmountLpTokens * amount0Total * denominator1) /
+            (reserve0 * denominator1 + reserve1 * denominator0);
         for (uint i = 0; i < precision; i++) {
-            uint256 amount1 = reserve1 * amountLpTokens / totalAmountLpTokens;
+            uint256 amount1 = (reserve1 * amountLpTokens) / totalAmountLpTokens;
             uint256 amount0 = getAmountOut(pool, token1, token0, amount1);
-            amountLpTokens = (totalAmountLpTokens * amount0Total * amount1) / (reserve0 * amount1 + reserve1 * amount0);
+            amountLpTokens =
+                (totalAmountLpTokens * amount0Total * amount1) /
+                (reserve0 * amount1 + reserve1 * amount0);
         }
     }
-
 }
