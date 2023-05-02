@@ -34,6 +34,8 @@ let ARBITRUM = {
     wmx: "0x5190F06EaceFA2C552dc6BD5e763b81C73293293",
     silo: "0x0341C0C0ec423328621788d4854119B97f44E391",
     mgp: '0xa61F74247455A40b01b0559ff6274441FAfa22A3',
+    chr: "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851",
+
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
@@ -53,6 +55,7 @@ let ARBITRUM = {
     traderJoeV3Router: "0x7BFd7192E76D950832c77BB412aaE841049D8D9B",
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
+    chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
 
 
     // oracles
