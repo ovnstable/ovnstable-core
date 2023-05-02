@@ -97,10 +97,10 @@ contract StrategyArrakisDaiUsdc is Strategy {
             address(dai),
             address(usdc),
             daiBalance,
-            amountUsdcCurrent,
             amountDaiCurrent,
-            usdcDm,
+            amountUsdcCurrent,
             daiDm,
+            usdcDm,
             1
         );
 
@@ -146,8 +146,8 @@ contract StrategyArrakisDaiUsdc is Strategy {
             totalLpBalance,
             amountDaiCurrent,
             amountUsdcCurrent,
-            usdcDm,
             daiDm,
+            usdcDm,
             1
         );
         if (amountLp > totalLpBalance) {
