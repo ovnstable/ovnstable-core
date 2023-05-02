@@ -3,9 +3,11 @@ const { deploySection, settingSection } = require("@overnight-contracts/common/u
 const { OPTIMISM } = require("@overnight-contracts/common/utils/assets");
 
 let arrakisRouter = "0x9ce88a56d120300061593eF7AD074A1B710094d5";
-let arrakisRewards = "0x87c7c885365700D157cd0f39a7803320fe86f0f5";
-let arrakisVault = "0x632336474f5Bf11aEbECd63B84A0a2800B99a490";
+let arrakisRewards = "0xF78daF7A425098D255bD142D71bBdD8dCf43Ee6c";
+let arrakisVault = "0x4c677F67b0D4b55DA85D5b927259A700BA3Da708";
 let poolUsdcOpFee = 100; // 0.01%
+// 0xF78daF7A425098D255bD142D71bBdD8dCf43Ee6c
+// 0x4c677F67b0D4b55DA85D5b927259A700BA3Da708
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
@@ -18,7 +20,7 @@ module.exports = async ({ deployments }) => {
         await (await strategy.setParams(
             {
                 usdc: OPTIMISM.usdc,
-                dai: OPTIMISM.dai,
+                usdt: OPTIMISM.usdt,
                 op: OPTIMISM.op,
                 arrakisRouter: arrakisRouter,
                 arrakisRewards: arrakisRewards,
@@ -26,11 +28,11 @@ module.exports = async ({ deployments }) => {
                 uniswapV3Router: OPTIMISM.uniswapV3Router,
                 poolUsdcOpFee: poolUsdcOpFee,
                 oracleUsdc: OPTIMISM.oracleUsdc,
-                oracleDai: OPTIMISM.oracleDai,
+                oracleUsdt: OPTIMISM.oracleUsdt,
                 curve3Pool: OPTIMISM.curve3Pool,
             }
         )).wait();
     });
 };
 
-module.exports.tags = ['StrategyArrakisUsdcDai'];
+module.exports.tags = ['StrategyArrakisUsdcUsdt'];
