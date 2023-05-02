@@ -108,7 +108,7 @@ contract StrategyEtsDaiUsdt is Strategy {
         require(_asset == address(dai), "Some token not compatible");
 
         // add for unstake more than requested
-        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleDaiToUsdt(_amount), 10) + 1e13;
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleDaiToUsdt(_amount), swapSlippageBP) + 1e13;
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         if (rebaseTokenAmount > rebaseTokenBalance) {
             rebaseTokenAmount = rebaseTokenBalance;
