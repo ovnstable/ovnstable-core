@@ -81,10 +81,8 @@ contract StrategyEtsDaiUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
-        require(_asset == address(dai), "Some token not compatible");
-
         // swap dai to usdt
-        uint256 usdtMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdt(_amount), swapSlippageBP) - 1e13;
+        uint256 usdtMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdt(_amount), swapSlippageBP) - 10;
         CurveLibrary.swap(
             curve3Pool,
             address(dai),
@@ -105,10 +103,8 @@ contract StrategyEtsDaiUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(dai), "Some token not compatible");
-
         // add for unstake more than requested
-        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleDaiToUsdt(_amount), swapSlippageBP) + 1e13;
+        uint256 rebaseTokenAmount = OvnMath.addBasisPoints(_oracleDaiToUsdt(_amount), swapSlippageBP) + 10;
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));
         if (rebaseTokenAmount > rebaseTokenBalance) {
             rebaseTokenAmount = rebaseTokenBalance;
@@ -136,8 +132,6 @@ contract StrategyEtsDaiUsdt is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
-        require(_asset == address(dai), "Some token not compatible");
 
         // redeem
         uint256 rebaseTokenBalance = rebaseToken.balanceOf(address(this));

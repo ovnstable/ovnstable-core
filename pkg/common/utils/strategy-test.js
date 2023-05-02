@@ -8,7 +8,7 @@ const {expect} = require("chai");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
 const BigNumber = require('bignumber.js');
 const chai = require("chai");
-const {transferDAI, getERC20, transferETH, initWallet} = require("./script-utils");
+const {transferAsset, getERC20, transferETH, initWallet} = require("./script-utils");
 chai.use(require('chai-bignumber')());
 
 
@@ -546,12 +546,12 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
     }
 
     let mainAddress = (await initWallet()).address;
-    // Get amount asset for test
-    await getAssetAmount(mainAddress, assetName, account);
 
     await transferETH(100, mainAddress);
 
     const asset = await getERC20(assetName);
+
+    await transferAsset(asset.address, mainAddress);
 
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
 
@@ -570,12 +570,6 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
         strategy: strategy,
         toAsset: toAsset,
     }
-}
-
-async function getAssetAmount(to, assetName, ganacheWallet) {
-    let asset = await getERC20(assetName, ganacheWallet);
-    let amount = await asset.balanceOf(ganacheWallet.address);
-    await asset.transfer(to, amount);
 }
 
 function createCheck(type, name, assetValue, currentValue, minValue, maxValue, isGt, isLt) {
