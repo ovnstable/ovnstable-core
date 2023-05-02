@@ -89,8 +89,8 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // 1. Calculate needed USDC to swap to Usdt
-        (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault
-            .getUnderlyingBalances();
+        (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault.getUnderlyingBalances();
+
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 amountUsdcToSwap = CurveLibrary.getAmountToSwap(
             curve3Pool,
@@ -105,10 +105,7 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         );
 
         // 2. Swap USDC to needed Usdt amount
-        uint256 usdtMinAmount = OvnMath.subBasisPoints(
-            _oracleUsdcToUsdt(amountUsdcToSwap),
-            swapSlippageBP
-        ) - 10;
+        uint256 usdtMinAmount = OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdcToSwap), swapSlippageBP) - 10;
         CurveLibrary.swap(
             curve3Pool,
             address(usdc),
@@ -141,8 +138,8 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         require(_asset == address(usdc), "Some token not compatible");
 
         // 1. Calculating need amount lp - depends on amount USDC/Usdt
-        (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault
-            .getUnderlyingBalances();
+        (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault.getUnderlyingBalances();
+
         uint256 totalLpBalance = arrakisVault.totalSupply();
         uint256 amountLp = CurveLibrary.getAmountLpTokens(
             curve3Pool,
@@ -174,10 +171,8 @@ contract StrategyArrakisUsdcUsdt is Strategy {
 
         // 3. Swap Usdt to USDC
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(
-            _oracleUsdtToUsdc(usdtBalance),
-            swapSlippageBP
-        ) - 10;
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP) - 10;
+
         CurveLibrary.swap(curve3Pool, address(usdt), address(usdc), usdtBalance, usdcMinAmount);
 
         return usdc.balanceOf(address(this));
@@ -197,7 +192,7 @@ contract StrategyArrakisUsdcUsdt is Strategy {
 
         // 2. Calculating amount usdc/usdt under lp
         (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault
-            .getUnderlyingBalances();
+        .getUnderlyingBalances();
         uint256 amountUsdc = (amountUsdcCurrent * amountLp) / arrakisVault.totalSupply();
         uint256 amountUsdt = (amountUsdtCurrent * amountLp) / arrakisVault.totalSupply();
 
@@ -213,10 +208,7 @@ contract StrategyArrakisUsdcUsdt is Strategy {
 
         // 4. Swap Usdt to USDC
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(
-            _oracleUsdtToUsdc(usdtBalance),
-            swapSlippageBP
-        ) - 10;
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP) - 10;
         CurveLibrary.swap(curve3Pool, address(usdt), address(usdc), usdtBalance, usdcMinAmount);
 
         return usdc.balanceOf(address(this));
@@ -237,7 +229,7 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         uint256 amountLp = arrakisRewards.balanceOf(address(this));
         if (amountLp > 0) {
             (uint256 amountUsdcCurrent, uint256 amountUsdtCurrent) = arrakisVault
-                .getUnderlyingBalances();
+            .getUnderlyingBalances();
             usdcBalance += (amountUsdcCurrent * amountLp) / arrakisVault.totalSupply();
             usdtBalance += (amountUsdtCurrent * amountLp) / arrakisVault.totalSupply();
         }
@@ -291,13 +283,13 @@ contract StrategyArrakisUsdcUsdt is Strategy {
         uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
         return
-            ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
+        ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
     }
 
     function _oracleUsdcToUsdt(uint256 usdcAmount) internal view returns (uint256) {
         uint256 priceUsdt = uint256(oracleUsdt.latestAnswer());
         uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
         return
-            ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+        ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
     }
 }

@@ -89,8 +89,8 @@ contract StrategyArrakisDaiUsdc is Strategy {
         require(_asset == address(dai), "Some token not compatible");
 
         // 1. Calculate needed USDC to swap to DAI
-        (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault
-            .getUnderlyingBalances();
+        (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
+
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 amountDaiToSwap = CurveLibrary.getAmountToSwap(
             curve3Pool,
@@ -105,10 +105,7 @@ contract StrategyArrakisDaiUsdc is Strategy {
         );
 
         // 2. Swap dai to needed usdc amount
-        uint256 usdcMinAmount = OvnMath.subBasisPoints(
-            _oracleDaiToUsdc(amountDaiToSwap),
-            swapSlippageBP
-        ) - 10;
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(amountDaiToSwap), swapSlippageBP) - 10;
         CurveLibrary.swap(curve3Pool, address(dai), address(usdc), amountDaiToSwap, usdcMinAmount);
 
         // 3. Stake USDC/DAI to Arrakis
@@ -135,8 +132,8 @@ contract StrategyArrakisDaiUsdc is Strategy {
         require(_asset == address(dai), "Some token not compatible");
 
         // 1. Calculating need amount lp - depends on amount USDC/DAI
-        (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault
-            .getUnderlyingBalances();
+        (uint256 amountUsdcCurrent, uint256 amountDaiCurrent) = arrakisVault.getUnderlyingBalances();
+
         uint256 totalLpBalance = arrakisVault.totalSupply();
         uint256 amountLp = CurveLibrary.getAmountLpTokens(
             curve3Pool,
@@ -168,10 +165,7 @@ contract StrategyArrakisDaiUsdc is Strategy {
 
         // 3. Swap USDc to DAI
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 daiMinAmount = OvnMath.subBasisPoints(
-            _oracleUsdcToDai(usdcBalance),
-            swapSlippageBP
-        ) - 1e13;
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP) - 1e13;
         CurveLibrary.swap(curve3Pool, address(usdc), address(dai), usdcBalance, daiMinAmount);
 
         return dai.balanceOf(address(this));
@@ -207,10 +201,7 @@ contract StrategyArrakisDaiUsdc is Strategy {
 
         // 4. Swap USDC to DAI
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 daiMinAmount = OvnMath.subBasisPoints(
-            _oracleUsdcToDai(usdcBalance),
-            swapSlippageBP
-        ) - 10;
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(usdcBalance), swapSlippageBP) - 10;
         CurveLibrary.swap(curve3Pool, address(usdc), address(dai), usdcBalance, daiMinAmount);
 
         return dai.balanceOf(address(this));
