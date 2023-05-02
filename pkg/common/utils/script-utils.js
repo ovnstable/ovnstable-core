@@ -681,10 +681,13 @@ async function transferAsset(assetAddress, to) {
         case "OPTIMISM":
             switch (assetAddress) {
                 case OPTIMISM.usdc:
-                    from = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
+                    from = '0xebe80f029b1c02862b9e8a70a7e5317c06f62cae';
                     break;
                 case OPTIMISM.dai:
                     from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+                    break;
+                case OPTIMISM.usdt:
+                    from = '0x0d0707963952f2fba59dd06f2b425ace40b492fe';
                     break;
                 case OPTIMISM.wbtc:
                     from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
