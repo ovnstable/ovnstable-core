@@ -1,4 +1,4 @@
-const {OPTIMISM, BSC} = require('@overnight-contracts/common/utils/assets');
+const {OPTIMISM} = require('@overnight-contracts/common/utils/assets');
 const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
 const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -7,153 +7,8 @@ const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
 const ReaperSonneUsdt = require("./abi/reaper/ReaperSonneUsdt.json");
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
 
-let id = process.env.TEST_STRATEGY;
-
-let arrays = [
-    {
-        name: 'StrategyAave',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategySynapseUsdc',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyVelodromeUsdcWeth',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyRubiconUsdc',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyPikaUsdc',
-        enabledReward: true,
-        unstakeDelay:  60 * 60 * 1000
-    },
-    {
-        name: 'StrategyRubiconDai',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyRubiconUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyAaveDai',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyBeethovenxUsdc',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyReaperSonneUsdc',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyReaperSonneDai',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyReaperSonneUsdt',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyUsdPlusDai',
-        enabledReward: false,
-    },
-    {
-        name: 'StrategyArrakisUsdcDai',
-        enabledReward: true,
-        delay: 60 * 1000,
-    },
-    {
-        name: 'StrategyArrakisDaiUsdc',
-        enabledReward: true,
-        delay: 60 * 1000,
-    },
-    {
-        name: 'StrategyReaperSonneDaiDai',
-        enabledReward: false,
-        isRunStrategyLogic: true
-    },
-    {
-        name: 'StrategyGammaUsdcDai',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyEtsBetaPlus',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyBeethovenxSonne',
-        enabledReward: true,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyEtsAlphaPlus',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyEtsDelta',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyEtsGamma',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyEtsEta',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyEtsAlpha',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategyVelodromeUsdcLusd',
-        enabledReward: true,
-        isRunStrategyLogic: false,
-    },
-    {
-        name: 'StrategyVelodromeUsdcDai',
-        enabledReward: true,
-        isRunStrategyLogic: false,
-    },
-    {
-        name: 'StrategyEtsMu',
-        enabledReward: false,
-        isRunStrategyLogic: true,
-    },
-    {
-        name: 'StrategySushiswapUsdcUsdt',
-        enabledReward: true,
-    },
-    {
-        name: 'StrategyVelodromeUsdcUsdPlus',
-        enabledReward: true,
-    }
-];
-
-if (id !== undefined && id !== "") {
-    console.log(`Strategy ID ${id}`);
-    arrays = arrays.filter(value => value.name === id);
-}
-
-console.log(`Run tests [${arrays.map(value => value.name)}]`);
-
 async function runStrategyLogic(strategyName, strategyAddress) {
-    if (strategyName == 'StrategyReaperSonneUsdc') {
+    if (strategyName.indexOf('StrategyReaperSonne') > 0) {
         let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
         await transferETH(1, governanceAddress);
         await hre.network.provider.request({
@@ -161,41 +16,20 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             params: [governanceAddress],
         });
         const governance = await ethers.getSigner(governanceAddress);
-        let reaperSonneUsdc = await ethers.getContractAt(ReaperSonneUsdc, "0x566c68Cd2f1e8b6D780c342B207B60c9c4f32767");
-        await reaperSonneUsdc.connect(governance).updateSecurityFee(0);
+        let reaperSonne;
+        if (strategyName == 'StrategyReaperSonneUsdc') {
+            reaperSonne = await ethers.getContractAt(ReaperSonneUsdc, "0x566c68Cd2f1e8b6D780c342B207B60c9c4f32767");
+        } else if (strategyName == 'StrategyReaperSonneDai' || strategyName == 'StrategyReaperSonneDaiDai') {
+            reaperSonne = await ethers.getContractAt(ReaperSonneDai, "0x071A922d81d604617AD5276479146bF9d7105EFC");
+        } else if (strategyName == 'StrategyReaperSonneUsdt') {
+            reaperSonne = await ethers.getContractAt(ReaperSonneUsdt, "0xcF14ef7C69166847c71913dc449c3958F55998d7");
+        }
+        await reaperSonne.connect(governance).updateSecurityFee(0);
         await hre.network.provider.request({
             method: "hardhat_stopImpersonatingAccount",
             params: [governanceAddress],
         });
-    } else if (strategyName == 'StrategyReaperSonneDai' || strategyName == 'StrategyReaperSonneDaiDai') {
-        let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
-        await transferETH(1, governanceAddress);
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [governanceAddress],
-        });
-        const governance = await ethers.getSigner(governanceAddress);
-        let reaperSonneDai = await ethers.getContractAt(ReaperSonneDai, "0x071A922d81d604617AD5276479146bF9d7105EFC");
-        await reaperSonneDai.connect(governance).updateSecurityFee(0);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [governanceAddress],
-        });
-    } else if (strategyName == 'StrategyReaperSonneUsdt') {
-        let governanceAddress = "0x9BC776dBb134Ef9D7014dB1823Cd755Ac5015203";
-        await transferETH(1, governanceAddress);
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [governanceAddress],
-        });
-        const governance = await ethers.getSigner(governanceAddress);
-        let reaperSonneUsdt = await ethers.getContractAt(ReaperSonneUsdt, "0xcF14ef7C69166847c71913dc449c3958F55998d7");
-        await reaperSonneUsdt.connect(governance).updateSecurityFee(0);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [governanceAddress],
-        });
-    } else if (strategyName == 'StrategyEtsBetaPlus') {
+    } else if (strategyName.indexOf('StrategyEts') > 0) {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -209,102 +43,24 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
-    } else if (strategyName == 'StrategyEtsAlphaPlus') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0x7f947D141FED32595916E150740a5e60d479E95F");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
-    } else if (strategyName == 'StrategyEtsDelta') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xb9a141545295c26d78E3C87E804befE69D029De5");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
-    } else if (strategyName == 'StrategyEtsGamma') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xB7FF28a21b9daf2f9F0136601098E66c49D32510");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
-    } else if (strategyName == 'StrategyEtsEta') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0x1A5448b01aA119C976476140e8715eEbaCC71cA4");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
-    } else if (strategyName == 'StrategyEtsAlpha') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xfDe73D45Cb60D14E1Deb3b1bb9b67D9B7E9cc873");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
-    } else if (strategyName == 'StrategyEtsMu') {
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [ownerAddress],
-        });
-        const owner = await ethers.getSigner(ownerAddress);
-        let hedgeExchanger = await ethers.getContractAt(HedgeExchanger, "0xA3936ecf31F6583D0e4D36ad10d10112b77468Ec");
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.FREE_RIDER_ROLE(), strategyAddress);
-        await hedgeExchanger.connect(owner).grantRole(await hedgeExchanger.WHITELIST_ROLE(), strategyAddress);
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [ownerAddress],
-        });
     }
 }
 
 describe("OPTIMISM", function () {
-    arrays.forEach(value => {
-        switch (process.env.STAND) {
-            case 'optimism_dai':
-                strategyTest(value, 'OPTIMISM', 'dai', runStrategyLogic);
-                break;
-            default:
-                strategyTest(value, 'OPTIMISM', 'usdc', runStrategyLogic);
-                break;
-        }
-    })
+    let params = {
+        name: process.env.TEST_STRATEGY,
+        enabledReward: true,
+        isRunStrategyLogic: true
+    }
+
+    console.log(`Strategy ID ${params.name}`);
+
+    switch (process.env.STAND) {
+        case 'optimism_dai':
+            strategyTest(value, 'OPTIMISM', 'dai', runStrategyLogic);
+            break;
+        default:
+            strategyTest(value, 'OPTIMISM', 'usdc', runStrategyLogic);
+            break;
+    }
 });

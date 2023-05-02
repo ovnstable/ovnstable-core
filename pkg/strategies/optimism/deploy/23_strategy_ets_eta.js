@@ -2,22 +2,26 @@ const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProx
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '0x5b41b3B03F5aF12F64c88b19DdCddCb7dCAc958f';
-let hedgeExchanger = '0x1A5448b01aA119C976476140e8715eEbaCC71cA4';
+let rebaseToken = '';
+let hedgeExchanger = '';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEts', deployments, save, null);
+        await deployProxyMulti(name, 'StrategyEtsDaiUsdt', deployments, save, null);
     });
 
     await settingSection(async (strategy) => {
         await (await strategy.setParams(
             {
-                asset: OPTIMISM.usdc,
+                dai: OPTIMISM.dai,
+                usdt: OPTIMISM.usdt,
                 rebaseToken: rebaseToken,
                 hedgeExchanger: hedgeExchanger,
+                oracleDai: OPTIMISM.oracleDai,
+                oracleUsdt: OPTIMISM.oracleUsdt,
+                curve3Pool: OPTIMISM.curve3Pool,
             }
         )).wait();
     });
