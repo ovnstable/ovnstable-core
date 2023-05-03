@@ -657,7 +657,7 @@ async function transferAsset(assetAddress, to) {
         case "ARBITRUM":
             switch (assetAddress) {
                 case ARBITRUM.dai:
-                    from = "0xea8a734db4c7ea50c32b5db8a0cb811707e8ace3";
+                    from = "0x7b7b957c284c2c227c980d6e2f804311947b84d0";
                     break;
                 case ARBITRUM.usdc:
                     from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
