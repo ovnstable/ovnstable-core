@@ -20,10 +20,10 @@ module.exports = async () => {
     // items.push(...ramses());
     // items.push(...arbidex());
     // items.push(...wombat());
-    items.push(...chronos());
+    // items.push(...chronos());
 
     // await (await pl.removeItems()).wait();
-    await (await pl.addItems(items)).wait();
+    // await (await pl.addItems(items)).wait();
 
 //    await (await pl.removeItem(usdPlus.address, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0xAc4eeD9Ca04B219935d5C4201167aA9257896443')).wait();
@@ -70,8 +70,12 @@ module.exports = async () => {
         let dex = 'Chronos';
 
         let items = [];
-        items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex));
-        items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex));
+        items.push(createSkim('0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66', usdPlus.address, 'DOLA/USD+', dex));
+        items.push(createSkim('0xcd78e225E36E724c9FB4Bd8287296557D728cda7', usdPlus.address, 'LUSD/USD+', dex));
+        items.push(createSkim('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex));
+
+        // items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex));
+        // items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex));
 
         return items;
 
