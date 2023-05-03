@@ -8,9 +8,9 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Gmx.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyChronosUsdcDai is Strategy {
+
+    uint256 constant public WEEK = 7 * 86400;
 
     IERC20 public usdc;
     IERC20 public dai;
@@ -33,7 +33,11 @@ contract StrategyChronosUsdcDai is Strategy {
 
     ISwapRouter public uniswapV3Router;
 
-    uint256 public tokenId;
+
+    // Store IDs NFT for each epoch
+    // How is it working?
+    // LIFO - last in, first out
+    uint256[] public tokensEpoch;
 
     // --- events
 
@@ -122,7 +126,7 @@ contract StrategyChronosUsdcDai is Strategy {
             1
         );
 
-        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleDaiToUsdc(amountUsdcIn), swapSlippageBP);
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(amountUsdcIn), swapSlippageBP);
 
         _swap(address(usdc), address(dai), amountUsdcIn, amountOutMin);
 
@@ -144,20 +148,8 @@ contract StrategyChronosUsdcDai is Strategy {
             block.timestamp
         );
 
-        _stakeToGauge();
-    }
-
-    function _stakeToGauge() internal {
-
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), pairBalance);
-
-        if(tokenId != 0){
-            uint256 tokenIdNew = gauge.deposit(pairBalance);
-            gauge.harvestAndMerge(tokenIdNew, tokenId);
-        }else {
-            tokenId = gauge.deposit(pairBalance);
-        }
+        _stakeToGauge(pairBalance);
     }
 
     function _unstake(
@@ -251,21 +243,94 @@ contract StrategyChronosUsdcDai is Strategy {
         return usdc.balanceOf(address(this));
     }
 
+
+    // How to stake?
+    // - if not exist any tokens
+    //   then create NFT and add ID to array
+    // - if existed token in current epoch
+    //   then create NFT and merge with last NFT from current epoch (position in array is last)
+    // - if not existed token for current epoch
+    //   then create NFT and push to last position
+
+    function _stakeToGauge(uint256 pairBalance) internal {
+
+        pair.approve(address(gauge), pairBalance);
+
+        if(tokensEpoch.length == 0){
+            tokensEpoch.push(gauge.deposit(pairBalance));
+        }else {
+            uint256 currentEpoch = block.timestamp/WEEK;
+
+            uint256 lastToken = tokensEpoch[tokensEpoch.length - 1];
+            uint256 lastEpoch = gauge._depositEpoch(lastToken);
+
+            if(lastEpoch == currentEpoch){
+                // Current epoch -> merge with last position
+                uint256 tokenIdNew = gauge.deposit(pairBalance);
+                gauge.harvestAndMerge(tokenIdNew, lastToken);
+            }else {
+                // New epoch -> push to last position
+                uint256 tokenId = gauge.deposit(pairBalance);
+                tokensEpoch.push(tokenId);
+            }
+        }
+    }
+
+
     function _unstakeFromGauge(uint256 pairBalance) internal {
 
         if(gauge.balanceOf(address(this)) == pairBalance){
-            gauge.withdrawAndHarvest(tokenId);
+            gauge.withdrawAndHarvestAll();
         }else {
-            uint[] memory amounts = new uint256[](2);
-            amounts[0] = pairBalance;
-            amounts[1] = gauge.balanceOf(address(this)) - pairBalance;
-            gauge.harvestAndSplit(amounts, tokenId);
-
-            // Index 1 - contains token with needed pair amounts
-            uint256[] memory splitTokenIds = nft.maGaugeTokensOfOwner(address(this), address(gauge));
-            gauge.withdrawAndHarvest(splitTokenIds[1]);
+            _unstakeTokensByRecursion(pairBalance);
         }
     }
+
+    // How to unstake?
+    // Using recursion for unstaking enought pair amounts
+    //
+    // Step 0:
+    // - targetPairBalance - 100
+    // - currentPairBalance - 0
+    // - tokensEpoch = [1,2,3]
+    // then
+    // - Burn token 3
+    // - Recursion call
+
+    // Step 1:
+    // - targetPairBalance - 100
+    // - currentPairBalance - 50
+    // - tokensEpoch = [1,2]
+    // then
+    // - Burn token 2
+    // - Recursion call
+
+    // Step 2:
+    // - targetPairBalance - 100
+    // - currentPairBalance - 150
+    // - tokensEpoch = [1]
+    // then
+    // - stake pair balance to gauge - 50
+    // - return 100 pair
+
+    function _unstakeTokensByRecursion(uint256 targetPairBalance) internal {
+
+        uint256 currentPairBalance = pair.balanceOf(address(this));
+        if (targetPairBalance > currentPairBalance) {
+
+            uint256 lastToken = tokensEpoch[tokensEpoch.length - 1];
+            gauge.withdrawAndHarvest(lastToken);
+            tokensEpoch.pop();
+
+            return _unstakeTokensByRecursion(targetPairBalance);
+        } else {
+            uint256 stakePairBalance = currentPairBalance - targetPairBalance;
+            if (stakePairBalance > 0) {
+                _stakeToGauge(stakePairBalance);
+            }
+        }
+    }
+
 
     function netAssetValue() external view override returns (uint256) {
         return _totalValue(true);
@@ -308,7 +373,7 @@ contract StrategyChronosUsdcDai is Strategy {
         uint256 usdcBefore = usdc.balanceOf(address(this));
 
         // claim rewards
-        gauge.getReward(tokenId);
+        gauge.getAllReward();
 
         // sell rewards
         uint256 chrBalance = chr.balanceOf(address(this));
@@ -365,17 +430,9 @@ contract StrategyChronosUsdcDai is Strategy {
         // AmountIn expand to 18 decimal because gmx store all amounts in 18 decimals
         // USDC - 6 decimals => +12 decimals
         // DAI - 18 decimals => +0 decimals
-        uint256 capacityAfterSwap = gmxVault.poolAmounts(address(tokenIn));
-        console.log('Capacity       %s', capacityAfterSwap);
-
+        uint256 capacityAfterSwap = gmxVault.usdgAmounts(address(tokenIn));
         capacityAfterSwap += amountIn * (10 ** (18 - IERC20Metadata(tokenIn).decimals()));
-
-        console.log('AmountIn       %s', amountIn);
-        console.log('AmountIn       %s', amountIn * (10 ** (18 - IERC20Metadata(tokenIn).decimals())));
-        console.log('CapacityAmount %s', capacityAfterSwap);
-
         uint256 maxCapacity = gmxVault.maxUsdgAmounts(address(tokenIn));
-        console.log('MaxCapacity    %s', maxCapacity);
 
 
         if (maxCapacity > capacityAfterSwap) {

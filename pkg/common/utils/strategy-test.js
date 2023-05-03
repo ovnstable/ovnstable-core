@@ -20,39 +20,39 @@ hre.ovn = {
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        // },
-        // {
-        //     value: 0.2,
-        // },
-        // {
-        //     value: 2,
-        // },
-        // {
-        //     value: 20,
-        // },
-        // {
-        //     value: 200,
-        // },
+        {
+            value: 0.02,
+        },
+        {
+            value: 0.2,
+        },
+        {
+            value: 2,
+        },
+        {
+            value: 20,
+        },
+        {
+            value: 200,
+        },
         {
             value: 2000,
         },
-        // {
-        //     value: 20000,
-        // },
-        // {
-        //     value: 100000,
-        // },
-        // {
-        //     value: 200000,
-        // },
-        // {
-        //     value: 1000000,
-        // },
-        // {
-        //     value: 2000000,
-        // },
+        {
+            value: 20000,
+        },
+        {
+            value: 100000,
+        },
+        {
+            value: 200000,
+        },
+        {
+            value: 1000000,
+        },
+        {
+            value: 2000000,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -125,12 +125,19 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                    let amount = toAsset(stakeValue / 2);
+                    let amount = toAsset(stakeValue / 4);
                     await asset.connect(recipient).transfer(strategy.address, amount);
                     await strategy.connect(recipient).stake(asset.address, amount);
 
                     await asset.connect(recipient).transfer(strategy.address, amount);
                     await strategy.connect(recipient).stake(asset.address, amount);
+
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    await strategy.connect(recipient).stake(asset.address, amount);
+
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    await strategy.connect(recipient).stake(asset.address, amount);
+
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 

@@ -151,6 +151,12 @@ interface IChronosGauge {
 
     function harvestAndMerge(uint _from, uint _to) external;
 
+    function _depositEpoch(uint _tokenId) external view returns (uint256);
+
+    function withdrawAndHarvestAll() external;
+
+    function getAllReward() external;
+
     function weightOfToken(uint _tokenId) external view returns (uint256);
 
     function balanceOfToken(uint tokenId)  external view returns (uint256);
