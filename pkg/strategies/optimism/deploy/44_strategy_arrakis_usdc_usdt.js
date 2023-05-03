@@ -5,7 +5,7 @@ const { OPTIMISM } = require("@overnight-contracts/common/utils/assets");
 let arrakisRouter = "0x9ce88a56d120300061593eF7AD074A1B710094d5";
 let arrakisRewards = "0xF78daF7A425098D255bD142D71bBdD8dCf43Ee6c";
 let arrakisVault = "0x4c677F67b0D4b55DA85D5b927259A700BA3Da708";
-let poolUsdcOpFee = 100; // 0.01%
+let poolUsdcOpFee = 500; // 0.05%
 // 0xF78daF7A425098D255bD142D71bBdD8dCf43Ee6c
 // 0x4c677F67b0D4b55DA85D5b927259A700BA3Da708
 

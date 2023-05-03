@@ -7,6 +7,8 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyArrakisDaiUsdc is Strategy {
     // --- params
 
@@ -250,21 +252,24 @@ contract StrategyArrakisDaiUsdc is Strategy {
         }
 
         // sell rewards
-        uint256 totalDai;
+        uint256 daiBalanceBefore = dai.balanceOf(address(this));
 
         uint256 opBalance = op.balanceOf(address(this));
         if (opBalance > 0) {
-            totalDai += UniswapV3Library.singleSwap(
+            UniswapV3Library.multiSwap(
                 uniswapV3Router,
                 address(op),
+                address(usdc),
                 address(dai),
-                poolUsdcOpFee,
+                500, // 0.05%
+                100, // 0.01%
                 address(this),
                 opBalance,
                 0
             );
         }
 
+        uint256 totalDai = dai.balanceOf(address(this)) - daiBalanceBefore;
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
