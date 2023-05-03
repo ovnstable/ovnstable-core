@@ -125,19 +125,12 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
-                    let amount = toAsset(stakeValue / 4);
+                    let amount = toAsset(stakeValue / 2);
                     await asset.connect(recipient).transfer(strategy.address, amount);
                     await strategy.connect(recipient).stake(asset.address, amount);
 
                     await asset.connect(recipient).transfer(strategy.address, amount);
                     await strategy.connect(recipient).stake(asset.address, amount);
-
-                    await asset.connect(recipient).transfer(strategy.address, amount);
-                    await strategy.connect(recipient).stake(asset.address, amount);
-
-                    await asset.connect(recipient).transfer(strategy.address, amount);
-                    await strategy.connect(recipient).stake(asset.address, amount);
-
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
