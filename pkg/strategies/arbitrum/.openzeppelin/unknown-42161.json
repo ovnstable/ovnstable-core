@@ -150,6 +150,11 @@
       "address": "0xacc03BFf8E3dc8762012c0c76220171eD15B6Bf1",
       "txHash": "0x5efd536e0562a76b18a5eab04edeb2c7c80d13766050015982f94aed6a88ca8e",
       "kind": "uups"
+    },
+    {
+      "address": "0x2590712b9a4fD877D0d0be24f8C418049a011221",
+      "txHash": "0x7eabae1de360c4fb24265d21247e5797e060578d24de1a68af3f4b89bf1a9743",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -8681,6 +8686,352 @@
             "type": "t_array(t_uint256)dyn_storage",
             "contract": "StrategyChronosUsdcDai",
             "src": "contracts/StrategyChronosUsdcDai.sol:40"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]",
+            "numberOfBytes": "1472"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(GmxReader)4293": {
+            "label": "contract GmxReader",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IChronosGauge)3633": {
+            "label": "contract IChronosGauge",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IChronosNFT)3646": {
+            "label": "contract IChronosNFT",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IChronosPair)3559": {
+            "label": "contract IChronosPair",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IChronosRouter)3509": {
+            "label": "contract IChronosRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC20)2662": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPriceFeed)2998": {
+            "label": "contract IPriceFeed",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRouter)4276": {
+            "label": "contract IRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISwapRouter)5393": {
+            "label": "contract ISwapRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVault)4830": {
+            "label": "contract IVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "962ff54fff963950a7f184dd6d7f4a2ff588c6f87fd9207af24df1a011295233": {
+      "address": "0xCc00d62E414498526bFf0B056F4C03f4171612f6",
+      "txHash": "0x3721667f19b7f7ff44903cb9d0ee5884bd68462dedfeedbe6207ad778c4f1796",
+      "layout": {
+        "solcVersion": "0.8.6",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "portfolioManager",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_address",
+            "contract": "Strategy",
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
+          },
+          {
+            "label": "swapSlippageBP",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
+          },
+          {
+            "label": "navSlippageBP",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
+          },
+          {
+            "label": "stakeSlippageBP",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_array(t_uint256)46_storage",
+            "contract": "Strategy",
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:167"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:15"
+          },
+          {
+            "label": "usdt",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:16"
+          },
+          {
+            "label": "chr",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:17"
+          },
+          {
+            "label": "usdcDm",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_uint256",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:19"
+          },
+          {
+            "label": "usdtDm",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_uint256",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:20"
+          },
+          {
+            "label": "router",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_contract(IChronosRouter)3509",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:22"
+          },
+          {
+            "label": "gauge",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IChronosGauge)3633",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:23"
+          },
+          {
+            "label": "pair",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_contract(IChronosPair)3559",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:24"
+          },
+          {
+            "label": "nft",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_contract(IChronosNFT)3646",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:25"
+          },
+          {
+            "label": "oracleUsdc",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_contract(IPriceFeed)2998",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:27"
+          },
+          {
+            "label": "oracleUsdt",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_contract(IPriceFeed)2998",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:28"
+          },
+          {
+            "label": "gmxRouter",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_contract(IRouter)4276",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:30"
+          },
+          {
+            "label": "gmxVault",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_contract(IVault)4830",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:31"
+          },
+          {
+            "label": "gmxReader",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_contract(GmxReader)4293",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:32"
+          },
+          {
+            "label": "uniswapV3Router",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_contract(ISwapRouter)5393",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:34"
+          },
+          {
+            "label": "tokensEpoch",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_array(t_uint256)dyn_storage",
+            "contract": "StrategyChronosUsdcUsdt",
+            "src": "contracts/StrategyChronosUsdcUsdt.sol:40"
           }
         ],
         "types": {
