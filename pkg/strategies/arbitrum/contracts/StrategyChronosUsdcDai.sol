@@ -281,6 +281,7 @@ contract StrategyChronosUsdcDai is Strategy {
 
         if(gauge.balanceOf(address(this)) == pairBalance){
             gauge.withdrawAndHarvestAll();
+            delete tokensEpoch;
         }else {
             _unstakeTokensByRecursion(pairBalance);
         }
