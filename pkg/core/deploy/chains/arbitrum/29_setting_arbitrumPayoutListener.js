@@ -15,14 +15,14 @@ module.exports = async () => {
 
     let items = [];
 
-    items.push(...solidlizard());
-    items.push(...sterling());
-    items.push(...ramses());
-    items.push(...arbidex());
-    items.push(...wombat());
-    items.push(...auragi());
+    // items.push(...solidlizard());
+    // items.push(...sterling());
+    // items.push(...ramses());
+    // items.push(...arbidex());
+    // items.push(...wombat());
+    items.push(...chronos());
 
-    await (await pl.removeItems()).wait();
+    // await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
 //    await (await pl.removeItem(usdPlus.address, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
@@ -60,6 +60,18 @@ module.exports = async () => {
         items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/USD+', dex));
         items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex));
         items.push(createSkim('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'LP-DAI+', dex));
+
+        return items;
+
+    }
+
+    function chronos(){
+
+        let dex = 'Chronos';
+
+        let items = [];
+        items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex));
+        items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex));
 
         return items;
 
