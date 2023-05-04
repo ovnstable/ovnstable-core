@@ -192,6 +192,47 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     /**
+     * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
+     * see details: Exchange.sol | HedgeExchanger.sol
+     */
+    function payoutDone(address token) external override onlyExchanger {
+
+        if (disabled) {
+            emit PayoutDoneDisabled();
+            return;
+        }
+
+        for (uint256 x = 0; x < items.length; x++) {
+
+            Item memory item = items[x];
+
+            // Items contains all tokens then need filter by token
+            if (item.token != token) {
+                continue;
+            }
+
+            if (item.operation == Operation.SYNC) {
+                _sync(item);
+            } else if (item.operation == Operation.SKIM) {
+                _skim(item);
+            } else if (item.operation == Operation.BRIBE) {
+                _bribe(item);
+            } else {
+                _custom(item);
+            }
+        }
+    }
+
+    /**
+     * After execute sync on pool:
+     * - balance LP tokens == balance USD+ tokens
+     */
+    function _sync(Item memory item) internal {
+        IPool(item.pool).sync();
+        emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0));
+    }
+
+    /**
      * Skim tokens from pool and transfer profit to address (to)
      */
     function _skim(Item memory item) internal {
@@ -199,10 +240,9 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
         IPool(item.pool).skim(address(this));
         uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
-        uint256 feeAmount;
         if (amountToken > 0) {
             if (item.feePercent > 0) {
-                feeAmount = amountToken * item.feePercent / 100;
+                uint256 feeAmount = amountToken * item.feePercent / 100;
                 amountToken -= feeAmount;
                 if (feeAmount > 0) {
                     token.transfer(item.feeReceiver, feeAmount);
@@ -225,9 +265,19 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         IPool(item.pool).skim(address(this));
         uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
         if (amountToken > 0) {
-            token.approve(item.bribe, amountToken);
-            IBribe(item.bribe).notifyRewardAmount(item.token, amountToken);
-            emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
+            if (item.feePercent > 0) {
+                uint256 feeAmount = amountToken * item.feePercent / 100;
+                amountToken -= feeAmount;
+                if (feeAmount > 0) {
+                    token.transfer(item.feeReceiver, feeAmount);
+                    emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, feeAmount, item.feeReceiver);
+                }
+            }
+            if (amountToken > 0) {
+                token.approve(item.bribe, amountToken);
+                IBribe(item.bribe).notifyRewardAmount(item.token, amountToken);
+                emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
+            }
         }
     }
 
@@ -237,47 +287,6 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
      */
     function _custom(Item memory item) internal virtual {
         revert("Custom not implemented");
-    }
-
-    /**
-     * After execute sync on pool:
-     * - balance LP tokens == balance USD+ tokens
-     */
-    function _sync(Item memory item) internal {
-        IPool(item.pool).sync();
-        emit PoolOperation(item.dexName, 'Sync', item.poolName, item.pool, item.token, 0, address(0));
-    }
-
-    /**
-     * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
-     * see details: Exchange.sol | HedgeExchanger.sol
-     */
-    function payoutDone(address token) external override onlyExchanger {
-
-        if (disabled) {
-            emit PayoutDoneDisabled();
-            return;
-        }
-
-        for (uint256 x = 0; x < items.length; x++) {
-
-            Item memory item = items[x];
-
-            // Items contains all tokens then need filter by token
-            if (item.token != token) {
-                continue;
-            }
-
-            if (item.operation == Operation.SKIM) {
-                _skim(item);
-            } else if (item.operation == Operation.SYNC) {
-                _sync(item);
-            } else if (item.operation == Operation.BRIBE) {
-                _bribe(item);
-            } else {
-                _custom(item);
-            }
-        }
     }
 
 

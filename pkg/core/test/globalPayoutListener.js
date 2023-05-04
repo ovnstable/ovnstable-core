@@ -456,6 +456,237 @@ describe("GlobalPayoutListener", function () {
 
         });
 
+
+        describe('[skim with 100% fee]', ()=>{
+
+            let feeReceiver;
+
+            beforeEach(async ()=>{
+
+                feeReceiver = await createRandomWallet();
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: ZERO_ADDRESS,
+                    operation: OPERATIONS.SKIM,
+                    to: testAccount.address,
+                    dexName: 'Test Dex',
+                    feePercent: 100,
+                    feeReceiver: feeReceiver.address,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+
+                await pl.addItem(item);
+
+            });
+
+            it('[success] -> balance', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(testAccount.address)));
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+                await pl.payoutDone(mockToken.address);
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(testAccount.address)));
+                expect(10).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+
+            });
+
+            it('[success] -> event', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let events = tx.events.filter((e) => e.event == 'PoolOperation');
+
+                expect(item.dexName).to.equal(events[0].args[0]);
+                expect('Skim').to.equal(events[0].args[1]);
+                expect(item.poolName).to.equal(events[0].args[2]);
+                expect(item.pool).to.equal(events[0].args[3]);
+                expect(item.token).to.equal(events[0].args[4]);
+                expect(10).to.equal(fromE6(events[0].args[5].toString()));
+                expect(item.feeReceiver).to.equal(events[0].args[6]);
+
+            });
+
+        });
+
+
+        describe('[bribe]', ()=>{
+
+            beforeEach(async ()=>{
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: mockBribe.address,
+                    operation: OPERATIONS.BRIBE,
+                    to: ZERO_ADDRESS,
+                    dexName: 'Test Dex',
+                    feePercent: 0,
+                    feeReceiver: ZERO_ADDRESS,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+
+                await pl.addItem(item);
+
+            });
+
+            it('[success] -> balance', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(10).to.equal(fromE6(await mockToken.balanceOf(mockPool.address)));
+                await pl.payoutDone(mockToken.address);
+                expect(10).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockPool.address)));
+            })
+
+            it('[success] -> event', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let events = tx.events.filter((e) => e.event == 'PoolOperation');
+
+                expect(item.dexName).to.equal(events[0].args[0]);
+                expect('Bribe').to.equal(events[0].args[1]);
+                expect(item.poolName).to.equal(events[0].args[2]);
+                expect(item.pool).to.equal(events[0].args[3]);
+                expect(item.token).to.equal(events[0].args[4]);
+                expect(10).to.equal(fromE6(events[0].args[5].toString()));
+                expect(mockBribe.address).to.equal(events[0].args[6]);
+
+            });
+
+        });
+
+        describe('[bribe with fee]', ()=>{
+
+            let feeReceiver;
+
+            beforeEach(async ()=>{
+
+                feeReceiver = await createRandomWallet();
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: mockBribe.address,
+                    operation: OPERATIONS.BRIBE,
+                    to: ZERO_ADDRESS,
+                    dexName: 'Test Dex',
+                    feePercent: 20,
+                    feeReceiver: feeReceiver.address,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+
+                await pl.addItem(item);
+
+            });
+
+            it('[success] -> balance', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+                await pl.payoutDone(mockToken.address);
+                expect(8).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(2).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+
+            });
+
+            it('[success] -> event', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let events = tx.events.filter((e) => e.event == 'PoolOperation');
+
+                expect(item.dexName).to.equal(events[0].args[0]);
+                expect('Bribe').to.equal(events[0].args[1]);
+                expect(item.poolName).to.equal(events[0].args[2]);
+                expect(item.pool).to.equal(events[0].args[3]);
+                expect(item.token).to.equal(events[0].args[4]);
+                expect(2).to.equal(fromE6(events[0].args[5].toString()));
+                expect(item.feeReceiver).to.equal(events[0].args[6]);
+
+                expect(item.dexName).to.equal(events[1].args[0]);
+                expect('Bribe').to.equal(events[1].args[1]);
+                expect(item.poolName).to.equal(events[1].args[2]);
+                expect(item.pool).to.equal(events[1].args[3]);
+                expect(item.token).to.equal(events[1].args[4]);
+                expect(8).to.equal(fromE6(events[1].args[5].toString()));
+                expect(mockBribe.address).to.equal(events[1].args[6]);
+
+            });
+
+        });
+
+
+        describe('[bribe with 100% fee]', ()=>{
+
+            let feeReceiver;
+
+            beforeEach(async ()=>{
+
+                feeReceiver = await createRandomWallet();
+
+                item = {
+                    pool: mockPool.address,
+                    token: mockToken.address,
+                    poolName: 'Test Pool',
+                    bribe: mockBribe.address,
+                    operation: OPERATIONS.BRIBE,
+                    to: ZERO_ADDRESS,
+                    dexName: 'Test Dex',
+                    feePercent: 100,
+                    feeReceiver: feeReceiver.address,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+
+                await pl.addItem(item);
+
+            });
+
+            it('[success] -> balance', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+                await pl.payoutDone(mockToken.address);
+                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
+                expect(10).to.equal(fromE6(await mockToken.balanceOf(feeReceiver.address)));
+
+            });
+
+            it('[success] -> event', async ()=> {
+
+                await mockToken.mint(mockPool.address, toE6(10));
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let events = tx.events.filter((e) => e.event == 'PoolOperation');
+
+                expect(item.dexName).to.equal(events[0].args[0]);
+                expect('Bribe').to.equal(events[0].args[1]);
+                expect(item.poolName).to.equal(events[0].args[2]);
+                expect(item.pool).to.equal(events[0].args[3]);
+                expect(item.token).to.equal(events[0].args[4]);
+                expect(10).to.equal(fromE6(events[0].args[5].toString()));
+                expect(item.feeReceiver).to.equal(events[0].args[6]);
+
+            });
+
+        });
+
+
         describe('[sync]', ()=>{
 
             beforeEach(async ()=>{
@@ -556,59 +787,6 @@ describe("GlobalPayoutListener", function () {
                 let tx = await (await pl.payoutDone(mockToken.address)).wait();
                 let event = tx.events.find((e) => e.event == 'PoolOperation');
                 expect(event).to.undefined;
-
-            });
-
-        });
-
-
-
-        describe('[bribe]', ()=>{
-
-            beforeEach(async ()=>{
-
-                item = {
-                    pool: mockPool.address,
-                    token: mockToken.address,
-                    poolName: 'Test Pool',
-                    bribe: mockBribe.address,
-                    operation: OPERATIONS.BRIBE,
-                    to: ZERO_ADDRESS,
-                    dexName: 'Test Dex',
-                    feePercent: 0,
-                    feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                }
-
-                await pl.addItem(item);
-
-            });
-
-            it('[success] -> balance', async ()=> {
-
-                await mockToken.mint(mockPool.address, toE6(10));
-
-                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
-                expect(10).to.equal(fromE6(await mockToken.balanceOf(mockPool.address)));
-                await pl.payoutDone(mockToken.address);
-                expect(10).to.equal(fromE6(await mockToken.balanceOf(mockBribe.address)));
-                expect(0).to.equal(fromE6(await mockToken.balanceOf(mockPool.address)));
-            })
-
-            it('[success] -> event', async ()=> {
-
-                await mockToken.mint(mockPool.address, toE6(10));
-
-                let tx = await (await pl.payoutDone(mockToken.address)).wait();
-                let event = tx.events.find((e) => e.event == 'PoolOperation');
-
-                expect(item.dexName).to.equal(event.args[0]);
-                expect('Bribe').to.equal(event.args[1]);
-                expect(item.poolName).to.equal(event.args[2]);
-                expect(item.pool).to.equal(event.args[3]);
-                expect(item.token).to.equal(event.args[4]);
-                expect(10).to.equal(fromE6(event.args[5].toString()));
-                expect(mockBribe.address).to.equal(event.args[6]);
 
             });
 
