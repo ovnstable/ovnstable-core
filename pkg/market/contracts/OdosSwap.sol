@@ -90,7 +90,6 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
         OdosRouter odosRouter = OdosRouter(swapData.router);
         // when pools added, update outputs to specific proportions, mb recreate from scratch
-
         (uint256[] memory amountsOut, uint256 gasLeft) = odosRouter.swap(
             swapData.inputs,
             swapData.outputs,
@@ -99,6 +98,7 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             msg.sender,
             swapData.data
         );
+        console.log("blop");
         // amountsOut to put where?
     }
 }
