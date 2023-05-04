@@ -20,15 +20,16 @@ module.exports = async () => {
     // items.push(...ramses());
     // items.push(...arbidex());
     // items.push(...wombat());
-    // items.push(...chronos());
+    items.push(...chronos());
+
+    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
+    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
+    await (await pl.removeItem(usdPlus.address, '0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33')).wait();
+    await (await pl.removeItem(usdPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
+    await (await pl.removeItem(daiPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
 
     // await (await pl.removeItems()).wait();
-    // await (await pl.addItems(items)).wait();
-
-//    await (await pl.removeItem(usdPlus.address, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
-//    await (await pl.removeItem(usdPlus.address, '0xAc4eeD9Ca04B219935d5C4201167aA9257896443')).wait();
-//    await (await pl.removeItem(etsGamma, '0x97e5f60fA17816011039B908C19Fa4B43DE73731')).wait();
-//    await (await pl.removeItem(etsGamma, '0xAc4eeD9Ca04B219935d5C4201167aA9257896443')).wait();
+    await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
@@ -70,12 +71,11 @@ module.exports = async () => {
         let dex = 'Chronos';
 
         let items = [];
-        items.push(createSkim('0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66', usdPlus.address, 'DOLA/USD+', dex));
-        items.push(createSkim('0xcd78e225E36E724c9FB4Bd8287296557D728cda7', usdPlus.address, 'LUSD/USD+', dex));
-        items.push(createSkim('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex));
-
-        // items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex));
-        // items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex));
+        items.push(createBribe('0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66', usdPlus.address, 'DOLA/USD+', dex, '0x180d5B46dA03393F966BC8c0778B4dcC141B0e76'));
+        items.push(createBribe('0xcd78e225E36E724c9FB4Bd8287296557D728cda7', usdPlus.address, 'LUSD/USD+', dex, '0x4A9D9CF5104aCfd7dbF843e2dd483C70f4F71c30'));
+        items.push(createBribe('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex, '0x4a0f9C433B33173937011dc57e6856D366a6B94E'));
+        items.push(createBribe('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18'));
+        items.push(createBribe('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18'));
 
         return items;
 
