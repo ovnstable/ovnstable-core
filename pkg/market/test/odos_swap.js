@@ -1,8 +1,10 @@
 const { expect } = require("chai");
 const { deployments, ethers, getNamedAccounts } = require("hardhat");
+const { transferAsset, getERC20, transferETH, initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const { resetHardhat, greatLess } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { OPTIMISM } = require('@overnight-contracts/common/utils/assets');
+let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 
@@ -11,36 +13,101 @@ describe("OdosSwap", function () {
     let account;
     let userAccount;
     let usdPlus;
-    let usdc;
+    let daiPlus;
     let odosSwap;
 
 
     sharedBeforeEach('deploy and setup', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
+        await deployments.fixture(['OdosSwap']);
 
-        await deployments.fixture(['test', 'test_setting']);
+        // const signers = await ethers.getSigners();
+        // account = signers[0];
+        // userAccount = signers[1];
 
-        const signers = await ethers.getSigners();
-        account = signers[0];
-        userAccount = signers[1];
+        account = await setUp("OPTIMISM", "usdc");
         odosSwap = await ethers.getContract("OdosSwap");
-        usdPlus = await ethers.getContract("MockUsdPlusToken");
-        usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
+        // usdPlus = await ethers.getContract('UsdPlusToken', 'optimism');
+        // daiPlus = await ethers.getContract('UsdPlusToken', 'optimism_dai');
     });
 
 
     it("swap usdc to usd+", async function () {
-        // transfer usdc
-        await usdc.transfer(userAccount.address, 10000);
-        expect(await usdc.balanceOf(userAccount.address)).to.equals(10000);
+        // await usdPlus.transfer(userAccount.address, 10000);
+        // expect(await usdPlus.balanceOf(userAccount.address)).to.equals(10000);
+        //         {'blockNumber': 96324939,
+        //  'gasEstimate': 311028,
+        //  'gasEstimateValue': 37.010715100811375,
+        //  'inputTokens': [{'tokenAddress': '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+        //    'amount': '183000000'}],
+        //  'outputTokens': [{'tokenAddress': '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+        //    'amount': '183038934508451266560'}],
+        //  'netOutValue': 146.08305435052344,
+        //  'outValues': ['183.09376945133482'],
+        //  'transaction': {'gas': 622056,
+        //   'gasPrice': 60000000000,
+        //   'value': '0',
+        //   'to': '0x69Dd38645f7457be13571a847FfD905f9acbaF6d',
+        //   'data': '0xf17a454600000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000003b292960491cea47695c000000000000000000000000000000000000000000003afbb9e459471200000000000000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c31607000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000da10009cbd5d07dd0cecc66161fc93d7c9000da10000000000000000000000000000000000000000000000000000000005f65606000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000011c070204000e010001023b87eed5a8f40b81ebd8a01ac1891f04cb59fd6600000000000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000000ae7ccc8000000006453953c00000187e67e598a0567616e64616c6674686562726f776e67786d786e6900188817718a922f00000bc8541ebba568a7a776102913aa300c6b021e4e075039c44da20d649373debb3b64e4e3a98fe8ba4db4133f61f241c94f11179df3ba788ccb7dca7e8a6f0c371b020c0001030201ff000000000000000000000000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c3160794b008aa00579c1307b0ef2c499ad98a8ce58e588323d063b1d12acce4742f1e3ed9bc46d71f422200000000',
+        //   'nonce': 34},
+        //  'simulation': None}
 
-        await odosSwap.connect(userAccount).swap()// ??
-        // не совсем понял как нормально потестить, и связать blockNumber даннные с последними используемыеми (Кроме как делать реквест и потом этот блок подставлять)
-
+        await odosSwap.connect(account).swap({
+            router: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
+            inputs: [{
+                tokenAddress: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+                amountIn: 183000000,
+                receiver: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                permit: []
+            }],
+            outputs: [{
+                tokenAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                relativeValue: 1,
+                receiver: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            }],
+            executor: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            valueOutQuote: 18309376945133482,
+            valueOutMin: 14608305435052344,
+            data: "0xf17a454600000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000003b292960491cea47695c000000000000000000000000000000000000000000003afbb9e459471200000000000000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c31607000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000da10009cbd5d07dd0cecc66161fc93d7c9000da10000000000000000000000000000000000000000000000000000000005f65606000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000011c070204000e010001023b87eed5a8f40b81ebd8a01ac1891f04cb59fd6600000000000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000000ae7ccc8000000006453953c00000187e67e598a0567616e64616c6674686562726f776e67786d786e6900188817718a922f00000bc8541ebba568a7a776102913aa300c6b021e4e075039c44da20d649373debb3b64e4e3a98fe8ba4db4133f61f241c94f11179df3ba788ccb7dca7e8a6f0c371b020c0001030201ff000000000000000000000000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c3160794b008aa00579c1307b0ef2c499ad98a8ce58e588323d063b1d12acce4742f1e3ed9bc46d71f422200000000"
+        })
     });
 });
 
 
 
 
+
+async function setUp(network, assetName) {
+
+    await hre.run("compile");
+    await resetHardhat(network);
+
+    hre.ovn.setting = true;
+
+
+    const signers = await ethers.getSigners();
+    const account = signers[0];
+    const recipient = signers[1];
+
+    let mainAddress = (await initWallet()).address;
+
+    await transferETH(100, mainAddress);
+
+    const asset = await getERC20(assetName);
+
+    await transferAsset(asset.address, mainAddress);
+
+    // console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
+
+    // let decimals = await asset.decimals();
+
+    // let toAsset;
+    // if (decimals === 18) {
+    //     toAsset = toE18;
+    // } else {
+    //     toAsset = toE6;
+    // }
+    return account;
+
+}
