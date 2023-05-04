@@ -58,6 +58,7 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
     function swap(SwapData memory swapData) public {
+        console.log("sex");
         // different outputs
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             for (uint256 j = 0; j < i; j++) {
@@ -90,7 +91,7 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
         OdosRouter odosRouter = OdosRouter(swapData.router);
         // when pools added, update outputs to specific proportions, mb recreate from scratch
-        (uint256[] memory amountsOut, uint256 gasLeft) = odosRouter.swap(
+        (uint256[] memory tokensAmountsOut, uint256 gasLeft) = odosRouter.swap(
             swapData.inputs,
             swapData.outputs,
             swapData.valueOutQuote,
@@ -98,7 +99,35 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             msg.sender,
             swapData.data
         );
-        console.log("blop");
+
+        // Emit events
+        address[] memory tokensIn = new address[](swapData.inputs.length);
+        uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
+        for (uint256 i = 0; i < swapData.inputs.length; i++) {
+            tokensIn[i] = swapData.inputs[i].tokenAddress;
+            amountsIn[i] = swapData.inputs[i].amountIn;
+        }
+        emit InputTokens(amountsIn, tokensIn);
+
+        address[] memory tokensOut = new address[](swapData.outputs.length);
+        uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
+        for (uint256 i = 0; i < swapData.outputs.length; i++) {
+            tokensOut[i] = swapData.outputs[i].tokenAddress;
+            amountsOut[i] = amountsOut[i];
+        }
+        emit OutputTokens(amountsOut, tokensOut);
+
         // amountsOut to put where?
+        address[] memory tokensPut = new address[](0);
+        uint256[] memory amountsPut = new uint256[](0);
+        emit PutIntoPool(swapData.router, amountsPut, tokensPut);
+
+        address[] memory tokensReturned = new address[](swapData.inputs.length);
+        uint256[] memory amountsReturned = new uint256[](swapData.inputs.length);
+        for (uint256 i = 0; i < swapData.inputs.length; i++) {
+            tokensReturned[i] = swapData.inputs[i].tokenAddress;
+            amountsReturned[i] = amountsOut[i];
+        }
+        emit ReturnedToUser(amountsReturned, tokensReturned);
     }
 }
