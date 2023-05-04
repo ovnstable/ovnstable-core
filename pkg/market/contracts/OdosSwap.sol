@@ -58,7 +58,6 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
     function swap(SwapData memory swapData) public {
-        console.log("sex");
         // different outputs
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             for (uint256 j = 0; j < i; j++) {
