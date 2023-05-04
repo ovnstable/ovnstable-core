@@ -113,6 +113,22 @@ function createBribe(pool, token, poolName, dexName, bribe){
     };
 }
 
+function createBribeWithFee(pool, token, poolName, dexName, bribe, feePercent, feeReceiver){
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: bribe,
+        operation: OPERATIONS.BRIBE,
+        to: COMMON.rewardWallet,
+        dexName: dexName,
+        feePercent: feePercent,
+        feeReceiver: feeReceiver,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+}
+
 function showPoolOperations(receipt){
 
     let pl = new Interface(PayoutListenerABI);
@@ -152,6 +168,7 @@ module.exports = {
     createSkimTo: createSkimTo,
     createSkimToWithFee: createSkimToWithFee,
     createBribe: createBribe,
+    createBribeWithFee: createBribeWithFee,
     createCustom: createCustom,
     showPoolOperations: showPoolOperations,
 };

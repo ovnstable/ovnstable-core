@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee, createBribe} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
@@ -71,11 +71,11 @@ module.exports = async () => {
         let dex = 'Chronos';
 
         let items = [];
-        items.push(createBribe('0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66', usdPlus.address, 'DOLA/USD+', dex, '0x180d5B46dA03393F966BC8c0778B4dcC141B0e76'));
-        items.push(createBribe('0xcd78e225E36E724c9FB4Bd8287296557D728cda7', usdPlus.address, 'LUSD/USD+', dex, '0x4A9D9CF5104aCfd7dbF843e2dd483C70f4F71c30'));
-        items.push(createBribe('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex, '0x4a0f9C433B33173937011dc57e6856D366a6B94E'));
-        items.push(createBribe('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18'));
-        items.push(createBribe('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18'));
+        items.push(createBribeWithFee('0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66', usdPlus.address, 'DOLA/USD+', dex, '0x180d5B46dA03393F966BC8c0778B4dcC141B0e76', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xcd78e225E36E724c9FB4Bd8287296557D728cda7', usdPlus.address, 'LUSD/USD+', dex, '0x4A9D9CF5104aCfd7dbF843e2dd483C70f4F71c30', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex, '0x4a0f9C433B33173937011dc57e6856D366a6B94E', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xB260163158311596Ea88a700C5a30f101D072326', usdPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex, '0xbCbfB90786BC1472e80C5f5a9D4059E79082eE18', 20, COMMON.rewardWallet));
 
         return items;
 
