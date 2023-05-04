@@ -35,11 +35,12 @@ let ARBITRUM = {
     silo: "0x0341C0C0ec423328621788d4854119B97f44E391",
     mgp: '0xa61F74247455A40b01b0559ff6274441FAfa22A3',
     chr: "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851",
-
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+    // radiant
+    radiantProvider: "0xe21B295ED46528eFD5F3EF66E18BC6ad1c87f003",
     // swaps
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     xcaliburRouter: "0x81c7ebbc66b5f9e1db29c4c427fe6339cc32d4ea",
@@ -56,8 +57,6 @@ let ARBITRUM = {
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
-
-
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
@@ -70,7 +69,6 @@ let ARBITRUM = {
     zyber3Pool: "0x969f7699fbB9C79d8B61315630CDeED95977Cfb8",
     wombatBasePool: "0xc6bc781E20f9323012F6e422bdf552Ff06bA6CD1",
     wombatOvnPool: "0xCF20fDA54e37f3fB456930f02fb07FccF49e4849",
-
     // connectors
     wombexBooster: "0x4181E561b42fDaD14c68b0794c215DeB9Bc80c8F",
 }
