@@ -124,6 +124,25 @@ async function getContract(name, network){
 
 }
 
+async function getContractByAddress(name, address, network){
+
+    if (!network)
+        network = process.env.STAND;
+
+    let ethers = hre.ethers;
+    let wallet = await initWallet();
+
+    try {
+        let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        let contractJson = JSON.parse(fs.readFileSync(searchPath));
+        return await ethers.getContractAt(contractJson.abi, address, wallet);
+    } catch (e) {
+        console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
+        throw new Error(e);
+    }
+
+}
+
 async function getBytecode(name, network) {
 
     if (!network)
@@ -390,9 +409,9 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
         params.gasLimit = 8000000;
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
-        params = {gasLimit: 10000000}; // gasPrice always 0.1 GWEI
+        params = {gasLimit: 15000000}; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
-        params = {gasPrice: "5000000000", gasLimit: 15000000}; // gasPrice always 5 GWEI
+        params = {gasPrice: "3000000000", gasLimit: 15000000}; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
     }else if (process.env.ETH_NETWORK === 'ZKSYNC'){
@@ -865,6 +884,7 @@ module.exports = {
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
+    getContractByAddress: getContractByAddress,
     getBytecode: getBytecode,
     isContract: isContract,
     getImplementation: getImplementation,
