@@ -75,6 +75,7 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                     swapData.inputs[i].tokenAddress != swapData.inputs[j].tokenAddress,
                     "Duplicate input tokens"
                 );
+
             }
             // no identical inputs and outputs
             for (uint256 j = 0; j < swapData.outputs.length; j++) {
@@ -84,9 +85,9 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                 );
             }
 
-            // IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
-            // bool success = asset.approve(swapData.router, MAX_UINT_VALUE); //MAX_UINT_VALUE
-            // require(success, "no success");
+            IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
+            asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
+            asset.approve(swapData.router, swapData.inputs[i].amountIn);
         }
 
         IOdosRouter odosRouter = IOdosRouter(swapData.router);
