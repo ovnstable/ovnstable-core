@@ -36,7 +36,7 @@ describe("Airdrop", function () {
         await showBalances();
 
         await (await usdPlus.approve(airdrop.address, await usdPlus.balanceOf(account.address))).wait();
-
+        const mapper = [];
         const csvFile = fs.readFileSync('OVNUSDPAirdrop.csv', 'utf-8');
         const lines = csvFile.split('\n');
         const airdropInfo = [];
@@ -56,20 +56,39 @@ describe("Airdrop", function () {
             const currentInfos = airdropInfo.slice(i * addressesPerTxn, (i * addressesPerTxn) + addressesPerTxn);
             const addressesList = currentInfos.map(info => ethers.utils.getAddress(info.address));
             const amountsList = currentInfos.map(info => info.amount);
+            const premapping = [];
+            for (let i = 0; i < addressesList.length; i++) {
+                premapping.push({
+                    "address": addressesList[i],
+                    "balanceBefore": fromE6(await usdPlus.balanceOf(addressesList[i])),
+                    "amount": fromE6(amountsList[i])
+                })
+            }
 
             const tx = await airdrop.connect(account).airdrop(
                 usdPlus.address,
                 addressesList,
                 amountsList
             );
-            // console.log(`Transaction hash: ${tx.hash}`);
-
+            console.log(`Transaction hash: ${tx.hash}`);
+            await new Promise((f) => setTimeout(f, 2000));
             const receipt = await tx.wait();
+            for (let i = 0; i < premapping.length; i++) {
+                mapper.push({
+                    "address": premapping[i].address,
+                    "balanceBefore": premapping[i].balanceBefore,
+                    "amount": premapping[i].amount,
+                    "balanceAfter": fromE6(await usdPlus.balanceOf(premapping[i].address)),
+                    "txHash": tx.hash,
+                    "blockNumber": receipt.blockNumber,
+                })
+            }
             // console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
             const events = receipt.events;
-            console.log(events)
+            // console.log(events)
         }
+        fs.writeFileSync("OVNAirdropResult.json", JSON.stringify(mapper, null, 2))
 
 
         await showBalances();

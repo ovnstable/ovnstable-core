@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 
 contract Airdrop {
     bool entered = false;
@@ -19,7 +18,6 @@ contract Airdrop {
         address[] calldata addresses,
         uint256[] calldata amounts
     ) external nonReentrant {
-        console.log("blop");
         require(
             addresses.length == amounts.length,
             "Airdrop::airdrop: lengths of addresses and amounts not equal"
