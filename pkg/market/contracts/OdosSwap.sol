@@ -15,8 +15,8 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     struct SwapData {
         address router;
-        OdosRouter.inputToken[] inputs;
-        OdosRouter.outputToken[] outputs;
+        IOdosRouter.inputToken[] inputs;
+        IOdosRouter.outputToken[] outputs;
         uint256 valueOutQuote;
         uint256 valueOutMin;
         address executor;
@@ -84,18 +84,25 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                 );
             }
 
-            IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
-            asset.approve(swapData.router, swapData.inputs[i].amountIn); //MAX_UINT_VALUE
+            // IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
+            // bool success = asset.approve(swapData.router, MAX_UINT_VALUE); //MAX_UINT_VALUE
+            // require(success, "no success");
         }
 
-        OdosRouter odosRouter = OdosRouter(swapData.router);
+        IOdosRouter odosRouter = IOdosRouter(swapData.router);
         // when pools added, update outputs to specific proportions, mb recreate from scratch
+        console.log(
+            "%s",
+            IERC20(swapData.inputs[0].tokenAddress).allowance(msg.sender, swapData.router)
+        );
+        // console.log("%s %s", swapData.valueOutQuote, swapData.valueOutMin);
+        // console.log("%s %s", swapData.inputs, swapData.outputs);
         (uint256[] memory tokensAmountsOut, uint256 gasLeft) = odosRouter.swap(
             swapData.inputs,
             swapData.outputs,
             swapData.valueOutQuote,
             swapData.valueOutMin,
-            msg.sender,
+            swapData.executor,
             swapData.data
         );
 

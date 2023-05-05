@@ -1,12 +1,12 @@
 const { expect } = require("chai");
 const { deployments, ethers, getNamedAccounts } = require("hardhat");
-const { transferAsset, getERC20, transferETH, initWallet, execTimelock, getContract} = require("@overnight-contracts/common/utils/script-utils");
+const { transferAsset, getERC20, transferETH, initWallet, execTimelock, getContract } = require("@overnight-contracts/common/utils/script-utils");
 const { resetHardhat, greatLess } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
 let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const {fromE6, fromE18, toAsset, toE6, toE18} = require("@overnight-contracts/common/utils/decimals");
+const { fromE6, fromE18, toAsset, toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
 
 
 describe("OdosSwap", function () {
@@ -17,6 +17,7 @@ describe("OdosSwap", function () {
     let odosSwap;
     let usdc;
     let dai;
+    let odos;
 
 
     sharedBeforeEach('deploy and setup', async () => {
@@ -28,6 +29,7 @@ describe("OdosSwap", function () {
 
         account = await setUp();
         odosSwap = await ethers.getContract("OdosSwap");
+        // odos = await ethers.getContract("Odos");
 
         usdPlus = await getContract('UsdPlusToken', 'optimism');
         daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
@@ -41,23 +43,36 @@ describe("OdosSwap", function () {
 
         await showBalances();
 
+
+        let approveTx = await usdc.approve("0x4bdE8Be121D80349662CB98BE900D5d03A78CACf", 1300000000);
+        console.log(`Transaction hash: ${approveTx.hash}`);
+
+        let approveReceipt = await approveTx.wait();
+        console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
+
+        approveTx = await usdc.approve("0x69Dd38645f7457be13571a847FfD905f9acbaF6d", 1300000000);
+        console.log(`Transaction hash: ${approveTx.hash}`);
+
+        approveReceipt = await approveTx.wait();
+        console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
+
         const tx = await odosSwap.connect(account).swap({
             router: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
             inputs: [{
                 tokenAddress: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
-                amountIn: 13000000,
-                receiver: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                amountIn: 130000000,
+                receiver: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
                 permit: []
             }],
             outputs: [{
-                tokenAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                tokenAddress: "0x73cb180bf0521828d8849bc8CF2B920918e23032",
                 relativeValue: 1,
                 receiver: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
             }],
-            executor: account.address,
-            valueOutQuote: 1309376945133482,
-            valueOutMin: 1608305435052344,
-            data: "0xf17a454600000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000003b292960491cea47695c000000000000000000000000000000000000000000003afbb9e459471200000000000000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c31607000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000da10009cbd5d07dd0cecc66161fc93d7c9000da10000000000000000000000000000000000000000000000000000000005f65606000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000011c070204000e010001023b87eed5a8f40b81ebd8a01ac1891f04cb59fd6600000000000000000000000000000000000000000000000000000000000000000ae85bc00000000000000000000000000ae7ccc8000000006453953c00000187e67e598a0567616e64616c6674686562726f776e67786d786e6900188817718a922f00000bc8541ebba568a7a776102913aa300c6b021e4e075039c44da20d649373debb3b64e4e3a98fe8ba4db4133f61f241c94f11179df3ba788ccb7dca7e8a6f0c371b020c0001030201ff000000000000000000000000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c3160794b008aa00579c1307b0ef2c499ad98a8ce58e588323d063b1d12acce4742f1e3ed9bc46d71f422200000000"
+            executor: "0x4bdE8Be121D80349662CB98BE900D5d03A78CACf",
+            valueOutQuote: toE6(130),
+            valueOutMin: toE6(129),
+            data: "0xf17a454600000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000002a01325456c92300649fc000000000000000000000000000000000000000000029e0efdfdcab5a00000000000000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c316070000000000000000000000000000000000000000000000000000000007bfa480000000000000000000000000207addb05c548f262219f6bfc6e11c02d0f7fdbe000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000073cb180bf0521828d8849bc8cf2b920918e230320000000000000000000000000000000000000000000000056c1c882fb55a4000000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000007001020500100102000203010210000100010400ff0000000000000000000000008a9cd3dce710e90177b4332c108e159a15736a0f207addb05c548f262219f6bfc6e11c02d0f7fdbe7f5c764cbc14f9669b88837ca1490cca17c31607c40f949f8a4e094d1b49a23ea9241d289b7b281900000000000000000000000000000000"
         });
         console.log(`Transaction hash: ${tx.hash}`);
 
@@ -81,7 +96,7 @@ describe("OdosSwap", function () {
     });
 
 
-    async function showBalances(){
+    async function showBalances() {
 
         const items = [];
 
@@ -112,12 +127,12 @@ describe("OdosSwap", function () {
 
 
 
-async function getPlusTokens(amount, to){
+async function getPlusTokens(amount, to) {
 
     let usdPlus = await getContract('UsdPlusToken', 'optimism');
     let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
 
-    await execTimelock(async (timelock)=>{
+    await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
         let exchangeDaiPlus = await usdPlus.exchange();
 

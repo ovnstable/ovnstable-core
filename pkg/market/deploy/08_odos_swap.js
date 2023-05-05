@@ -5,6 +5,8 @@ module.exports = async ({ deployments }) => {
 
     await deployProxy('OdosSwap', deployments, save);
     console.log("OdosSwap created");
+    // await deployProxy('OdosRouter', deployments, save);
+    // console.log("OdosRouter created");
 };
 
 module.exports.tags = ['OdosSwap'];

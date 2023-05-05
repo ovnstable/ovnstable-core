@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 /// @title Routing contract for Odos SOR
 /// @author Semiotic AI
 /// @notice Wrapper with security gaurentees around execution of arbitrary operations on user tokens
-interface OdosRouter {
+interface IOdosRouter {
     /// @dev Contains all information needed to describe an input token being swapped from
     struct inputToken {
         address tokenAddress;
