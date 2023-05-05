@@ -198,7 +198,7 @@ async function getOdosRequest(request) {
     // }
 
     // @ts-ignore
-    const url = 'https://api.odos.xyz/sor/swap';
+    const url = 'https://api.overnight.fi/root/odos/sor/swap';
     let transaction;
     try {
         transaction = (await axios.post(url, swapParams, {headers: {"Accept-Encoding": "br"}}));
@@ -217,6 +217,7 @@ async function getOdosRequest(request) {
         return 0;
     }
 
+    console.log('Success get data from Odos!');
     return transaction.data.transaction;
 }
 
