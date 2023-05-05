@@ -651,3 +651,21 @@ interface ISiloIncentivesController {
     function getUserUnclaimedRewards(address _user) external view returns (uint256);
 
 }
+
+/// @title Tower
+/// @notice Utility contract that stores addresses of any contracts
+interface ISiloTower {
+
+    /// @param _key string key
+    /// @return address coordinates for the `_key`
+    function coordinates(string calldata _key) external view returns (address);
+
+    /// @param _key raw bytes32 key
+    /// @return address coordinates for the raw `_key`
+    function rawCoordinates(bytes32 _key) external view returns (address);
+
+    /// @dev generating mapping key based on string
+    /// @param _key string key
+    /// @return bytes32 representation of the `_key`
+    function makeKey(string calldata _key) external pure returns (bytes32);
+}
