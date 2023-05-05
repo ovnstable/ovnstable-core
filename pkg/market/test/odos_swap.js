@@ -1,13 +1,23 @@
-const { expect } = require("chai");
-const { deployments, ethers, getNamedAccounts } = require("hardhat");
-const { transferAsset, getERC20, transferETH, initWallet, execTimelock, getContract } = require("@overnight-contracts/common/utils/script-utils");
-const { resetHardhat, greatLess } = require("@overnight-contracts/common/utils/tests");
+const {expect} = require("chai");
+const {deployments, ethers, getNamedAccounts} = require("hardhat");
+const {
+    transferAsset,
+    getERC20,
+    transferETH,
+    initWallet,
+    execTimelock,
+    getContract
+} = require("@overnight-contracts/common/utils/script-utils");
+const {resetHardhat, greatLess} = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
-const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const { fromE6, fromE18, toAsset, toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
+let {OPTIMISM, POLYGON} = require('@overnight-contracts/common/utils/assets');
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {fromE6, fromE18, toAsset, toE6, toE18} = require("@overnight-contracts/common/utils/decimals");
+const axios = require("axios");
 
+
+const ODOS_ROUTER = '0x69Dd38645f7457be13571a847FfD905f9acbaF6d';
 
 describe("OdosSwap", function () {
 
@@ -31,11 +41,11 @@ describe("OdosSwap", function () {
         odosSwap = await ethers.getContract("OdosSwap");
         // odos = await ethers.getContract("Odos");
 
-        usdPlus = await getContract('UsdPlusToken', 'optimism');
-        daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
+        usdPlus = (await getContract('UsdPlusToken', 'optimism')).connect(account);
+        daiPlus = (await getContract('UsdPlusToken', 'optimism_dai')).connect(account);
 
-        usdc = await getERC20("usdc");
-        dai = await getERC20("dai");
+        usdc = (await getERC20("usdc")).connect(account);
+        dai = (await getERC20("dai")).connect(account);
     });
 
 
@@ -43,36 +53,60 @@ describe("OdosSwap", function () {
 
         await showBalances();
 
+        const amountUsdc = toE6(10);
+        const amountDai = toE18(10);
 
-        let approveTx = await usdc.approve("0x4bdE8Be121D80349662CB98BE900D5d03A78CACf", 1300000000);
-        console.log(`Transaction hash: ${approveTx.hash}`);
+        await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
+        await (await dai.approve(odosSwap.address, amountDai)).wait();
 
-        let approveReceipt = await approveTx.wait();
-        console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
-
-        approveTx = await usdc.approve("0x69Dd38645f7457be13571a847FfD905f9acbaF6d", 1300000000);
-        console.log(`Transaction hash: ${approveTx.hash}`);
-
-        approveReceipt = await approveTx.wait();
-        console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
+        const request = await getOdosRequest({
+            "chainId": 10,
+            "inputTokens": [
+                {
+                    "tokenAddress": usdc.address,
+                    "amount": amountUsdc
+                },
+                {
+                    "tokenAddress": dai.address,
+                    "amount": amountDai
+                }
+            ],
+            "outputTokens": [
+                {
+                    "tokenAddress": usdPlus.address,
+                    "proportion": 1
+                }
+            ],
+            "gasPrice": 20,
+            "userAddr": account.address,
+            "slippageLimitPercent": 0.3,
+        });
 
         const tx = await odosSwap.connect(account).swap({
-            router: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
-            inputs: [{
-                tokenAddress: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
-                amountIn: 130000000,
-                receiver: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
-                permit: []
-            }],
+            router: ODOS_ROUTER,
+            inputs: [
+                {
+                    tokenAddress: usdc.address,
+                    amountIn: amountUsdc,
+                    receiver: ODOS_ROUTER, //TODO Must be address of OdosSwap contract?
+                    permit: []
+                },
+                {
+                    tokenAddress: dai.address,
+                    amountIn: amountDai,
+                    receiver: ODOS_ROUTER, //TODO Must be address of OdosSwap contract?
+                    permit: []
+                },
+            ],
             outputs: [{
-                tokenAddress: "0x73cb180bf0521828d8849bc8CF2B920918e23032",
+                tokenAddress: usdPlus.address,
                 relativeValue: 1,
-                receiver: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                receiver: odosSwap.address,
             }],
-            executor: "0x4bdE8Be121D80349662CB98BE900D5d03A78CACf",
+            executor: odosSwap.address,
             valueOutQuote: toE6(130),
             valueOutMin: toE6(129),
-            data: "0xf17a454600000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000002a01325456c92300649fc000000000000000000000000000000000000000000029e0efdfdcab5a00000000000000000000000000000000004bde8be121d80349662cb98be900d5d03a78cacf0000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000007f5c764cbc14f9669b88837ca1490cca17c316070000000000000000000000000000000000000000000000000000000007bfa480000000000000000000000000207addb05c548f262219f6bfc6e11c02d0f7fdbe000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000073cb180bf0521828d8849bc8cf2b920918e230320000000000000000000000000000000000000000000000056c1c882fb55a4000000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000007001020500100102000203010210000100010400ff0000000000000000000000008a9cd3dce710e90177b4332c108e159a15736a0f207addb05c548f262219f6bfc6e11c02d0f7fdbe7f5c764cbc14f9669b88837ca1490cca17c31607c40f949f8a4e094d1b49a23ea9241d289b7b281900000000000000000000000000000000"
+            data: request.data
         });
         console.log(`Transaction hash: ${tx.hash}`);
 
@@ -125,6 +159,66 @@ describe("OdosSwap", function () {
 
 });
 
+async function getOdosRequest(request) {
+    let swapParams = {
+        chainId: request.chainId,
+        inputTokens: request.inputTokens,
+        outputTokens: request.outputTokens,
+        gasPrice: request.gasPrice,
+        userAddr: request.userAddr,
+        slippageLimitPercent: request.slippageLimitPercent,
+        sourceBlacklist: ["Hashflow"],
+        sourceWhitelist: [],
+        simulate: false,
+        pathViz: false,
+        disableRFQs: false
+    }
+    // {
+    // "chainId": 10,
+    // "inputTokens": [
+    // {
+    // "tokenAddress": "0x73cb180bf0521828d8849bc8CF2B920918e23032",
+    // "amount": 183000000000
+    // }
+    // ],
+    // "outputTokens": [
+    // {
+    // "tokenAddress": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+    // "proportion": 1
+    // }
+    // ],
+    // "gasPrice": 20,
+    // "userAddr": "0x47E2D28169738039755586743E2dfCF3bd643f86",
+    // "slippageLimitPercent": 0.3,
+    // "sourceBlacklist": ["Hashflow"],
+    // "sourceWhitelist": [],
+    // "simulate": false,
+    // "pathViz": false,
+    // "disableRFQs": false
+    // }
+
+    // @ts-ignore
+    const url = 'https://api.odos.xyz/sor/swap';
+    let transaction;
+    try {
+        transaction = (await axios.post(url, swapParams, {headers: {"Accept-Encoding": "br"}}));
+    } catch (e) {
+        console.log("[odosSwap] getSwapTransaction: " + e);
+        return 0;
+    }
+
+    if (transaction.statusCode === 400) {
+        console.log(`[odosSwap]  ${transaction.description}`);
+        return 0;
+    }
+
+    if (transaction.data.transaction === undefined) {
+        console.log("[odosSwap] transaction.tx is undefined");
+        return 0;
+    }
+
+    return transaction.data.transaction;
+}
 
 
 async function getPlusTokens(amount, to) {
