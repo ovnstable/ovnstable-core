@@ -1,11 +1,18 @@
-// const { deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
+const { deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
+const {getNamedAccounts} = require("hardhat");
 
-// module.exports = async ({ deployments }) => {
-//     const { deploy, save } = deployments;
-//     await deploy('Airdrop', deployments, save);
+module.exports = async ({ deployments }) => {
+    const { deploy, save } = deployments;
+    const {deployer} = await getNamedAccounts();
 
+     await deploy("Airdrop", {
+        from: deployer,
+        args: [],
+        log: true,
+        skipIfAlreadyDeployed: true
+    });
 
-//     console.log("Airdrop created");
-// };
+    console.log("Airdrop created");
+};
 
-// module.exports.tags = ['airdrop'];
+module.exports.tags = ['Airdrop'];

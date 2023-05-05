@@ -15,11 +15,7 @@ describe("Airdrop", function () {
 
     let account;
     let usdPlus;
-    let daiPlus;
-    let odosSwap;
-    let usdc;
-    let dai;
-    let odos;
+    let airdrop;
 
 
     sharedBeforeEach('deploy and setup', async () => {
@@ -27,23 +23,11 @@ describe("Airdrop", function () {
         await hre.run("compile");
         await resetHardhat("OPTIMISM");
 
-        // await deployments.fixture(['airdrop']);
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-        account = deployer;
-
-        // await deployments.fixture(['test']);
-
-        airdrop = await deploy("Airdrop", {
-            from: deployer,
-            args: [],
-            log: true,
-            skipIfAlreadyDeployed: true
-        });
+        await deployments.fixture(['Airdrop']);
 
         account = await setUp();
-        airdrop = await ethers.getContract("Airdrop");
-        usdPlus = await getContract('UsdPlusToken', 'optimism');
+        airdrop = (await ethers.getContract("Airdrop")).connect(account);
+        usdPlus = (await getContract('UsdPlusToken', 'optimism')).connect(account);
     });
 
 
@@ -51,14 +35,7 @@ describe("Airdrop", function () {
 
         await showBalances();
 
-
-        let approveTx = await usdPlus.approve(airdrop.address, 1e15);
-        console.log(`Transaction hash: ${approveTx.hash}`);
-
-        let approveReceipt = await approveTx.wait();
-        console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
-
-        console.log(airdrop.address)
+        await (await usdPlus.approve(airdrop.address, await usdPlus.balanceOf(account.address))).wait();
 
         const csvFile = fs.readFileSync('OVNUSDPAirdrop.csv', 'utf-8');
         const lines = csvFile.split('\n');
