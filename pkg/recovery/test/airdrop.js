@@ -34,7 +34,7 @@ describe("Airdrop", function () {
 
         // await deployments.fixture(['test']);
 
-        cashStrategy = await deploy("Airdrop", {
+        airdrop = await deploy("Airdrop", {
             from: deployer,
             args: [],
             log: true,
@@ -57,6 +57,8 @@ describe("Airdrop", function () {
 
         let approveReceipt = await approveTx.wait();
         console.log(`Transaction was mined in block ${approveReceipt.blockNumber}`);
+
+        console.log(airdrop.address)
 
         const csvFile = fs.readFileSync('OVNUSDPAirdrop.csv', 'utf-8');
         const lines = csvFile.split('\n');
