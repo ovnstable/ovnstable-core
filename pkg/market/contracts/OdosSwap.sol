@@ -55,6 +55,8 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         _;
     }
 
+    receive() external payable {}
+
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
     function swap(SwapData memory swapData) public {
@@ -75,7 +77,6 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                     swapData.inputs[i].tokenAddress != swapData.inputs[j].tokenAddress,
                     "Duplicate input tokens"
                 );
-
             }
             // no identical inputs and outputs
             for (uint256 j = 0; j < swapData.outputs.length; j++) {
@@ -90,22 +91,19 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             asset.approve(swapData.router, swapData.inputs[i].amountIn);
         }
 
-        IOdosRouter odosRouter = IOdosRouter(swapData.router);
+        // IOdosRouter odosRouter = IOdosRouter(swapData.router);
         // when pools added, update outputs to specific proportions, mb recreate from scratch
-        console.log(
-            "%s",
-            IERC20(swapData.inputs[0].tokenAddress).allowance(msg.sender, swapData.router)
-        );
-        // console.log("%s %s", swapData.valueOutQuote, swapData.valueOutMin);
-        // console.log("%s %s", swapData.inputs, swapData.outputs);
-        (uint256[] memory tokensAmountsOut, uint256 gasLeft) = odosRouter.swap(
-            swapData.inputs,
-            swapData.outputs,
-            swapData.valueOutQuote,
-            swapData.valueOutMin,
-            swapData.executor,
-            swapData.data
-        );
+        // (uint256[] memory tokensAmountsOut, uint256 gasLeft) = odosRouter.swap(
+        //     swapData.inputs,
+        //     swapData.outputs,
+        //     swapData.valueOutQuote,
+        //     swapData.valueOutMin,
+        //     swapData.executor,
+        //     swapData.data
+        // );
+        (bool success, bytes memory result) = swapData.router.call{value: 0}(swapData.data);
+        // console.log("%s", result);
+        require(success, "router swap invalid");
 
         // Emit events
         address[] memory tokensIn = new address[](swapData.inputs.length);
@@ -116,25 +114,25 @@ contract OdosSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         }
         emit InputTokens(amountsIn, tokensIn);
 
-        address[] memory tokensOut = new address[](swapData.outputs.length);
-        uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
-        for (uint256 i = 0; i < swapData.outputs.length; i++) {
-            tokensOut[i] = swapData.outputs[i].tokenAddress;
-            amountsOut[i] = amountsOut[i];
-        }
-        emit OutputTokens(amountsOut, tokensOut);
+        // address[] memory tokensOut = new address[](swapData.outputs.length);
+        // uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
+        // for (uint256 i = 0; i < swapData.outputs.length; i++) {
+        //     tokensOut[i] = swapData.outputs[i].tokenAddress;
+        //     amountsOut[i] = amountsOut[i];
+        // }
+        // emit OutputTokens(amountsOut, tokensOut);
 
         // amountsOut to put where?
-        address[] memory tokensPut = new address[](0);
-        uint256[] memory amountsPut = new uint256[](0);
-        emit PutIntoPool(swapData.router, amountsPut, tokensPut);
+        // address[] memory tokensPut = new address[](0);
+        // uint256[] memory amountsPut = new uint256[](0);
+        // emit PutIntoPool(swapData.router, amountsPut, tokensPut);
 
-        address[] memory tokensReturned = new address[](swapData.inputs.length);
-        uint256[] memory amountsReturned = new uint256[](swapData.inputs.length);
-        for (uint256 i = 0; i < swapData.inputs.length; i++) {
-            tokensReturned[i] = swapData.inputs[i].tokenAddress;
-            amountsReturned[i] = amountsOut[i];
-        }
-        emit ReturnedToUser(amountsReturned, tokensReturned);
+        // address[] memory tokensReturned = new address[](swapData.inputs.length);
+        // uint256[] memory amountsReturned = new uint256[](swapData.inputs.length);
+        // for (uint256 i = 0; i < swapData.inputs.length; i++) {
+        //     tokensReturned[i] = swapData.inputs[i].tokenAddress;
+        //     amountsReturned[i] = amountsOut[i];
+        // }
+        // emit ReturnedToUser(amountsReturned, tokensReturned);
     }
 }

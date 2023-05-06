@@ -1,5 +1,5 @@
-const {expect} = require("chai");
-const {deployments, ethers, getNamedAccounts} = require("hardhat");
+const { expect } = require("chai");
+const { deployments, ethers, getNamedAccounts } = require("hardhat");
 const {
     transferAsset,
     getERC20,
@@ -8,12 +8,12 @@ const {
     execTimelock,
     getContract
 } = require("@overnight-contracts/common/utils/script-utils");
-const {resetHardhat, greatLess} = require("@overnight-contracts/common/utils/tests");
+const { resetHardhat, greatLess } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let {OPTIMISM, POLYGON} = require('@overnight-contracts/common/utils/assets');
-const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const {fromE6, fromE18, toAsset, toE6, toE18} = require("@overnight-contracts/common/utils/decimals");
+let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
+const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const { fromE6, fromE18, toAsset, toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
 const axios = require("axios");
 
 
@@ -53,8 +53,8 @@ describe("OdosSwap", function () {
 
         await showBalances();
 
-        const amountUsdc = toE6(10);
-        const amountDai = toE18(10);
+        const amountUsdc = toE6(10000);
+        const amountDai = toE18(10000);
 
         await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
         await (await dai.approve(odosSwap.address, amountDai)).wait();
@@ -117,14 +117,14 @@ describe("OdosSwap", function () {
 
         // Retrieve event logs
         const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
-        const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
-        const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
-        const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+        // const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
+        // const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
+        // const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
 
         console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
-        console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
-        console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
-        console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+        // console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
+        // console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
+        // console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
 
     });
@@ -201,7 +201,7 @@ async function getOdosRequest(request) {
     const url = 'https://api.overnight.fi/root/odos/sor/swap';
     let transaction;
     try {
-        transaction = (await axios.post(url, swapParams, {headers: {"Accept-Encoding": "br"}}));
+        transaction = (await axios.post(url, swapParams, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
         console.log("[odosSwap] getSwapTransaction: " + e);
         return 0;
