@@ -2,7 +2,13 @@ const {ethers} = require("hardhat");
 
 let {BSC, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe, createSkimTo, createSync} = require("@overnight-contracts/common/utils/payoutListener");
+const {
+    createSkim,
+    createBribe,
+    createSkimTo,
+    createSync,
+    createBribeWithFee
+} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -21,7 +27,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     items.push(...pacnake());
 
 
-    await (await pl.removeItems()).wait();
+    // await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'bsc')).address)).wait();
@@ -30,7 +36,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     console.log('BscPayoutListener setting done');
 
-    function pacnake(){
+    function pacnake() {
 
         let dex = 'Pancake';
 
@@ -41,33 +47,30 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
 
-    function thena(){
+    function thena() {
 
         let dex = 'Thena';
 
         let items = [];
-        // items.push(createBribe('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex, '0x90ab86ddd5fdae0207367c2d09e10ef1fb3cb651'));
-        // items.push(createBribe('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex, '0x8FbF01a6D3Fef2847f2c35d9a05476eb859D6B2e'));
-        // items.push(createBribe('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex, '0x8828Bd1b7abc5296D3FcfEb15F58c23088410449'));
-        // items.push(createBribe('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex, '0xe52917158c3C8e29Ae3B5458200cbF516E56F660'));
-        // items.push(createBribe('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex, '0x39d46d0f49fab60002d2f359d1497ffbfc889ea6'));
 
-        items.push(createSkim('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex));
-        items.push(createSkim('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex));
-        items.push(createSkim('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex));
-        items.push(createSkim('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex));
+        items.push(createBribeWithFee('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex, '0x1c5f9a3464371b441aeab28e4ed2a23cd1a9c6c3'));
 
-        items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', etsAlpha, 'sAMM-ETS Alpha/USD+', dex));
-        items.push(createSkim('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex));
+        items.push(createBribeWithFee('0x150990B9630fFe2322999e86905536E2E7e8d93f', usdPlus.address, 'sAMM-USD+/CUSD', dex, '0x8077d5a4728f6cdebef8503c8f66c39633af347d'));
+        items.push(createBribeWithFee('0xea9abc7AD420bDA7dD42FEa3C4ACd058902A5845', usdPlus.address, 'sAMM-USDT/USD+', dex, '0xac4152d6ac8dbc3d02ae5844c3a24b7914736c20'));
+        items.push(createBribeWithFee('0x7F74D8C2A0D0997695eA121A2155e2710a6D62dc', usdPlus.address, 'vAMM-USD+/THE', dex, '0x094028f6f57c1596132ec5f33d32f45494b15d77'));
 
-        items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdPlus.address, 'sAMM-USDT+/USD+', dex));
-        items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdtPlus.address, 'sAMM-USDT+/USD+', dex));
+        items.push(createBribeWithFee('0x92573046BD4abA37d875eb45a0A1182ac63d5580', etsAlpha, 'sAMM-ETS Alpha/USD+', dex, '0xa5f7c96b4c92f0143d8617778f8592d54252dd4b'));
+
+        items.push(createBribeWithFee('0x92573046BD4abA37d875eb45a0A1182ac63d5580', usdPlus.address, 'sAMM-ETS Alpha/USD+', dex, '0xa5f7c96b4c92f0143d8617778f8592d54252dd4b'));
+
+        items.push(createBribeWithFee('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdPlus.address, 'sAMM-USDT+/USD+', dex, '0xe00a0d3e6fb3d1756986b2d177790226bb9cb14b'));
+        items.push(createBribeWithFee('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdtPlus.address, 'sAMM-USDT+/USD+', dex, '0xe00a0d3e6fb3d1756986b2d177790226bb9cb14b'));
 
 
         return items;
     }
 
-    function wombat(){
+    function wombat() {
 
         let dex = 'Wombat';
 

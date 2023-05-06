@@ -113,7 +113,7 @@ function createBribe(pool, token, poolName, dexName, bribe){
     };
 }
 
-function createBribeWithFee(pool, token, poolName, dexName, bribe, feePercent, feeReceiver){
+function createBribeWithFee(pool, token, poolName, dexName, bribe, feePercent = 20, feeReceiver = COMMON.rewardWallet){
 
     return {
         pool: pool,
