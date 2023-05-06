@@ -1,5 +1,13 @@
-const {verify } = require("@overnight-contracts/common/utils/verify-utils");
-const {getContract, initWallet, getERC20ByAddress, impersonateAccount, getERC20, transferUSDPlus, transferETH} = require("@overnight-contracts/common/utils/script-utils");
+const {verify} = require("@overnight-contracts/common/utils/verify-utils");
+const {
+    getContract,
+    initWallet,
+    getERC20ByAddress,
+    impersonateAccount,
+    getERC20,
+    transferUSDPlus,
+    transferETH
+} = require("@overnight-contracts/common/utils/script-utils");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
@@ -11,7 +19,6 @@ async function main() {
 
     let wallet = await initWallet();
     console.log('Wallet: ' + wallet.address);
-    await transferETH(0.02, wallet.address);
 
     const airdrop = await getContract('Airdrop');
     const airdropToken = await getContract('UsdPlusToken', 'optimism');
@@ -31,7 +38,7 @@ async function main() {
         const line = lines[i].trim();
         if (line) {
             const [address, amount] = line.split(',');
-            airdropInfo.push({ address, amount: parseInt(amount) });
+            airdropInfo.push({address, amount: parseInt(amount)});
         }
     }
     const addressesPerTxn = 100;
@@ -46,7 +53,7 @@ async function main() {
         const addressesList = currentInfos.map(info => ethers.utils.getAddress(info.address));
         const amountsList = currentInfos.map(info => info.amount);
 
-        // const premapping = [];
+        const premapping = [];
         // for (let i = 0; i < addressesList.length; i++) {
         //     premapping.push({
         //         "address": addressesList[i],
@@ -68,12 +75,14 @@ async function main() {
         console.log(`Airdrop transaction ${i} successful with hash: ${receipt.transactionHash}`);
 
         // for (let i = 0; i < premapping.length; i++) {
+        //     const balanceAfter = fromE6(await airdropToken.balanceOf(premapping[i].address));
         //     mapper.push({
         //         "address": premapping[i].address,
         //         "balanceBefore": premapping[i].balanceBefore,
         //         "amount": premapping[i].amount,
-        //         "balanceAfter": fromE6(await airdropToken.balanceOf(premapping[i].address)),
-        //         "txHash": receipt.transactionHash,
+        //         "balanceAfter": balanceAfter,
+        //         "differenceWithAmount": balanceAfter - premapping[i].balanceBefore - premapping[i].amount,
+        //         "txHash": tx.hash,
         //         "blockNumber": receipt.blockNumber,
         //     })
         // }
