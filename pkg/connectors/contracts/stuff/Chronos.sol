@@ -139,10 +139,14 @@ interface IChronosPair {
     function approve(address spender, uint amount) external returns (bool);
     function totalSupply() external view returns (uint);
     function token0() external view returns (address);
+    function tokens() external view returns (address, address);
     function stable() external view returns (bool);
 }
 
 interface IChronosGauge {
+
+    function TOKEN() external returns(IERC20);
+    function maNFTs() external returns(address);
 
     function deposit(uint256 amount) external returns(uint _tokenId);
 
