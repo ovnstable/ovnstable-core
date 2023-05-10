@@ -134,6 +134,10 @@ contract OdosWrapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable
         emit OutputTokens(amountsOut, tokensOut);
     }
 
+    function swap(SwapData memory swapData) internal {
+
+    }
+
     function swapAndStakeIntoChronos(SwapData memory swapData, StakeData memory stakeData) public {
         // different outputs
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
