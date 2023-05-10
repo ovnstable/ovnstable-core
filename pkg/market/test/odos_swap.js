@@ -14,6 +14,8 @@ const hre = require("hardhat");
 let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { fromE6, fromE18, toAsset, toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
+
+const chronosPairAbi = require("@overnight-contracts/pools/abi/ChronosPair.json")
 const axios = require("axios");
 
 
@@ -27,7 +29,8 @@ describe("OdosSwap", function () {
     let odosSwap;
     let usdc;
     let dai;
-    let odos;
+    let chronosPair;
+    let chronosGauge;
 
 
     sharedBeforeEach('deploy and setup', async () => {
@@ -35,10 +38,14 @@ describe("OdosSwap", function () {
         await hre.run("compile");
         await resetHardhat("OPTIMISM");
 
-        await deployments.fixture(['OdosSwap']);
+        await deployments.fixture(['OdosWrapper']);
 
         account = await setUp();
-        odosSwap = await ethers.getContract("OdosSwap");
+        odosSwap = await ethers.getContract("OdosWrapper");
+
+
+        const chronosPair = await ethers.getContractAt(chronosPairAbi, "0xC9445A9AFe8E48c71459aEdf956eD950e983eC5A")
+
         // odos = await ethers.getContract("Odos");
 
         usdPlus = (await getContract('UsdPlusToken', 'optimism')).connect(account);
@@ -88,24 +95,92 @@ describe("OdosSwap", function () {
                 {
                     tokenAddress: usdc.address,
                     amountIn: amountUsdc,
-                    receiver: ODOS_ROUTER, //TODO Must be address of OdosSwap contract?
-                    permit: []
                 },
                 {
                     tokenAddress: dai.address,
                     amountIn: amountDai,
-                    receiver: ODOS_ROUTER, //TODO Must be address of OdosSwap contract?
-                    permit: []
                 },
             ],
             outputs: [{
                 tokenAddress: usdPlus.address,
-                relativeValue: 1,
-                receiver: odosSwap.address,
+                receiver: account.address,
             }],
             executor: odosSwap.address,
-            valueOutQuote: toE6(130),
-            valueOutMin: toE6(129),
+            data: request.data
+        });
+        console.log(`Transaction hash: ${tx.hash}`);
+
+        const receipt = await tx.wait();
+        console.log(`Transaction was mined in block ${receipt.blockNumber}`);
+
+        await showBalances();
+
+        // Retrieve event logs
+        const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
+        // const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
+        // const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
+        // const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+
+        console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
+        // console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
+        // console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
+        // console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+
+
+    });
+
+    it("swap usdc/dai to usd+/dola and put to chronos", async function () {
+
+        await showBalances();
+
+        const amountUsdc = toE6(10000);
+        const amountDai = toE18(10000);
+
+        await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
+        await (await dai.approve(odosSwap.address, amountDai)).wait();
+
+        const reserves = await chronosPair.getReserves();
+
+        const request = await getOdosRequest({
+            "chainId": 10,
+            "inputTokens": [
+                {
+                    "tokenAddress": usdc.address,
+                    "amount": amountUsdc
+                },
+                {
+                    "tokenAddress": dai.address,
+                    "amount": amountDai
+                }
+            ],
+            "outputTokens": [
+                {
+                    "tokenAddress": usdPlus.address,
+                    "proportion": 1
+                }
+            ],
+            "gasPrice": 20,
+            "userAddr": account.address,
+            "slippageLimitPercent": 0.3,
+        });
+
+        const tx = await odosSwap.connect(account).swap({
+            router: ODOS_ROUTER,
+            inputs: [
+                {
+                    tokenAddress: usdc.address,
+                    amountIn: amountUsdc,
+                },
+                {
+                    tokenAddress: dai.address,
+                    amountIn: amountDai,
+                },
+            ],
+            outputs: [{
+                tokenAddress: usdPlus.address,
+                receiver: account.address,
+            }],
+            executor: odosSwap.address,
             data: request.data
         });
         console.log(`Transaction hash: ${tx.hash}`);
