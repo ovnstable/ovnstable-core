@@ -85,16 +85,12 @@ contract ChronosZapper is OdosZapper {
             amountsOut[1],
             reserve0,
             reserve1,
-            IERC20Metadata(tokensOut[0]).decimals(),
-            IERC20Metadata(tokensOut[1]).decimals()
+            10 ** IERC20Metadata(tokensOut[0]).decimals(),
+            10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
-        IERC20 asset0 = IERC20(tokensOut[0]);
-        console.log("amountsOut[0] %s, tokensAmount0 %s, asset0 %s", amountsOut[0], tokensAmount0, asset0.balanceOf(address(this)));
-        asset0.transferFrom(address(this), address(msg.sender), amountsOut[0] - tokensAmount0);
-        IERC20 asset1 = IERC20(tokensOut[1]);
-        console.log("amountsOut[1] %s, tokensAmount1 %s, asset1 %s", amountsOut[1], tokensAmount1, asset1.balanceOf(address(this)));
-        asset1.transferFrom(address(this), address(msg.sender), amountsOut[1] - tokensAmount1);
 
+        IERC20 asset0 = IERC20(tokensOut[0]);
+        IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(address(chronosRouter), tokensAmount0);
         asset1.approve(address(chronosRouter), tokensAmount1);
 
@@ -109,6 +105,15 @@ contract ChronosZapper is OdosZapper {
             address(this),
             block.timestamp
         );
+
+        if (amountsOut[0] - tokensAmount0 > 100) {
+            asset0.transferFrom(address(this), address(msg.sender), amountsOut[0] - tokensAmount0);
+        }
+
+        if (amountsOut[1] - tokensAmount1 > 100) {
+            asset1.transferFrom(address(this), address(msg.sender), amountsOut[1] - tokensAmount1);
+        }
+
         uint256[] memory amountsPut = new uint256[](2);
         amountsPut[0] = tokensAmount0;
         amountsPut[1] = tokensAmount1;
