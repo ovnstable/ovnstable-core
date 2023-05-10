@@ -208,10 +208,17 @@ contract OdosWrapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable
             IERC20Metadata(tokensOut[1]).decimals()
         );
 
+        console.log("amountsOut[0] %s", amountsOut[0]);
+        console.log("tokensAmount0 %s", tokensAmount0);
+        console.log("amountsOut[1] %s", amountsOut[1]);
+        console.log("tokensAmount1 %s", tokensAmount1);
+
         IERC20 asset0 = IERC20(tokensOut[0]);
         asset0.transferFrom(address(this), address(msg.sender), amountsOut[0] - tokensAmount0);
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset1.transferFrom(address(this), address(msg.sender), amountsOut[1] - tokensAmount1);
+        // console.log("tokensAmount0 %s", tokensAmount0 );
+        // console.log("tokensAmount1 %s", tokensAmount1 );
 
         asset0.approve(stakeData.router, tokensAmount0);
         asset1.approve(stakeData.router, tokensAmount1);
@@ -230,12 +237,12 @@ contract OdosWrapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable
         uint256[] memory amountsPut = new uint256[](2);
         amountsPut[0] = tokensAmount0;
         amountsPut[1] = tokensAmount1;
-        
+
         uint256[] memory amountsReturned = new uint256[](2);
         amountsReturned[0] = amountsOut[0] - tokensAmount0;
         amountsReturned[1] = amountsOut[1] - tokensAmount1;
         emit PutIntoPool(amountsPut, tokensOut);
-        emit ReturnedToUser(amountsReturned,tokensOut);
+        emit ReturnedToUser(amountsReturned, tokensOut);
 
         uint256 pairBalance = pair.balanceOf(address(this));
         _stakeToGauge(pairBalance, pair, gauge, token);
@@ -251,16 +258,25 @@ contract OdosWrapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable
     ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
         if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
             newAmount1 = (reserve1 * amount0) / reserve0; // 18 +6 - 6
+            newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
             newAmount0 = (newAmount1 * reserve0) / reserve1; // 18 + 6 - 18
         } else {
             newAmount0 = (reserve0 * amount1) / reserve1;
+            newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
             newAmount1 = (newAmount0 * reserve1) / reserve0;
         }
     }
 
-    function _stakeToGauge(uint256 pairBalance, IChronosPair pair, IChronosGauge gauge, IChronosNFT token) internal {
+    function _stakeToGauge(
+        uint256 pairBalance,
+        IChronosPair pair,
+        IChronosGauge gauge,
+        IChronosNFT token
+    ) internal {
         pair.approve(address(gauge), pairBalance);
         uint256 tokenIdNew = gauge.deposit(pairBalance);
         token.safeTransferFrom(address(this), address(msg.sender), tokenIdNew);
     }
+
+    // через геттеры получал соотношения, и подставлял в абишку одоса
 }

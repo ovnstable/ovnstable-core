@@ -44,147 +44,169 @@ describe("OdosSwap", function () {
         odosSwap = await ethers.getContract("OdosWrapper");
 
 
-        chronosPair = await ethers.getContractAt(chronosPairAbi, "0xC9445A9AFe8E48c71459aEdf956eD950e983eC5A")
+        chronosPair = await ethers.getContractAt(chronosPairAbi, "0xfd1e3458C7a1D3506f5cC6180A53F1e60f9D6BEa")
 
         // odos = await ethers.getContract("Odos");
 
 
-        usdPlus = await getContract('UsdPlusToken', 'arbitrum').connect(account);
-        daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai').connect(account);
+        usdPlus = (await getContract('UsdPlusToken', 'arbitrum')).connect(account);
+        daiPlus = (await getContract('UsdPlusToken', 'arbitrum_dai')).connect(account);
 
         usdc = (await getERC20("usdc")).connect(account);
         dai = (await getERC20("dai")).connect(account);
     });
 
 
-    it("swap usdc to usd+", async function () {
+    // it("swap usdc to usd+", async function () {
 
-        await showBalances();
+    //     await showBalances();
 
-        const amountUsdc = toE6(10000);
-        const amountDai = toE18(10000);
+    //     const amountUsdc = toE6(10000);
+    //     const amountDai = toE18(10000);
 
-        await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
-        await (await dai.approve(odosSwap.address, amountDai)).wait();
+    //     await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
+    //     await (await dai.approve(odosSwap.address, amountDai)).wait();
 
-        const request = await getOdosRequest({
-            "chainId": 42161,
-            "inputTokens": [
-                {
-                    "tokenAddress": usdc.address,
-                    "amount": amountUsdc
-                },
-                {
-                    "tokenAddress": dai.address,
-                    "amount": amountDai
-                }
-            ],
-            "outputTokens": [
-                {
-                    "tokenAddress": usdPlus.address,
-                    "proportion": 1
-                }
-            ],
-            "gasPrice": 20,
-            "userAddr": account.address,
-            "slippageLimitPercent": 0.3,
-        });
+    //     const request = await getOdosRequest({
+    //         "chainId": 42161,
+    //         "inputTokens": [
+    //             {
+    //                 "tokenAddress": usdc.address,
+    //                 "amount": amountUsdc
+    //             },
+    //             {
+    //                 "tokenAddress": dai.address,
+    //                 "amount": amountDai
+    //             }
+    //         ],
+    //         "outputTokens": [
+    //             {
+    //                 "tokenAddress": usdPlus.address,
+    //                 "proportion": 1
+    //             },
 
-        const tx = await odosSwap.connect(account).swap({
-            router: ODOS_ROUTER,
-            inputs: [
-                {
-                    tokenAddress: usdc.address,
-                    amountIn: amountUsdc,
-                },
-                {
-                    tokenAddress: dai.address,
-                    amountIn: amountDai,
-                },
-            ],
-            outputs: [{
-                tokenAddress: usdPlus.address,
-                receiver: account.address,
-            }],
-            executor: odosSwap.address,
-            data: request.data
-        });
-        console.log(`Transaction hash: ${tx.hash}`);
+    //         ],
+    //         "gasPrice": 20,
+    //         "userAddr": account.address,
+    //         "slippageLimitPercent": 0.3,
+    //     });
 
-        const receipt = await tx.wait();
-        console.log(`Transaction was mined in block ${receipt.blockNumber}`);
+    //     const tx = await odosSwap.connect(account).swap({
+    //         router: ODOS_ROUTER,
+    //         inputs: [
+    //             {
+    //                 tokenAddress: usdc.address,
+    //                 amountIn: amountUsdc,
+    //             },
+    //             {
+    //                 tokenAddress: dai.address,
+    //                 amountIn: amountDai,
+    //             },
+    //         ],
+    //         outputs: [{
+    //             tokenAddress: usdPlus.address,
+    //             receiver: account.address,
+    //         }],
+    //         executor: "0x1F635E0e79016E2Cf89B31611d13646EC538E8C1",
+    //         data: request.data
+    //     });
+    //     console.log(`Transaction hash: ${tx.hash}`);
 
-        await showBalances();
+    //     const receipt = await tx.wait();
+    //     console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
-        // Retrieve event logs
-        const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
-        // const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
-        // const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
-        // const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+    //     await showBalances();
 
-        console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
-        // console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
-        // console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
-        // console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+    //     // Retrieve event logs
+    //     const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
+    //     // const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
+    //     // const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
+    //     // const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+
+    //     console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
+    //     // console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
+    //     // console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
+    //     // console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
 
-    });
+    // });
 
     it("swap usdc/dai to usd+/dola and put to chronos", async function () {
 
         await showBalances();
 
-        const amountUsdc = toE6(10000);
-        const amountDai = toE18(10000);
+        const amountUsdc = toE6(10);
+        const amountDai = toE18(10);
 
-        await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
-        await (await dai.approve(odosSwap.address, amountDai)).wait();
+        await (await usdPlus.approve(odosSwap.address, amountUsdc)).wait();
+        await (await daiPlus.approve(odosSwap.address, amountDai)).wait();
 
         const reserves = await chronosPair.getReserves();
 
-        console.log(reserves)
+        const daiAmount = fromE18(reserves._reserve0)
+        const usdcAmount = fromE6(reserves._reserve1)
+        const sumReserves = usdcAmount + daiAmount
+
+        // console.log("proportions", daiAmount / sumReserves, usdcAmount / sumReserves)
 
         const request = await getOdosRequest({
-            "chainId": 10,
+            "chainId": 42161,
             "inputTokens": [
                 {
-                    "tokenAddress": usdc.address,
+                    "tokenAddress": usdPlus.address,
                     "amount": amountUsdc
                 },
                 {
-                    "tokenAddress": dai.address,
+                    "tokenAddress": daiPlus.address,
                     "amount": amountDai
                 }
             ],
             "outputTokens": [
                 {
-                    "tokenAddress": usdPlus.address,
-                    "proportion": 1
-                }
+                    "tokenAddress": dai.address,
+                    "proportion": daiAmount / sumReserves
+                },
+                {
+                    "tokenAddress": usdc.address,
+                    "proportion": usdcAmount / sumReserves
+                },
+
             ],
             "gasPrice": 20,
-            "userAddr": account.address,
+            "userAddr": odosSwap.address,
             "slippageLimitPercent": 0.3,
         });
 
-        const tx = await odosSwap.connect(account).swap({
+        const tx = await odosSwap.connect(account).swapAndStakeIntoChronos({
             router: ODOS_ROUTER,
             inputs: [
                 {
-                    tokenAddress: usdc.address,
+                    tokenAddress: usdPlus.address,
                     amountIn: amountUsdc,
                 },
                 {
-                    tokenAddress: dai.address,
+                    tokenAddress: daiPlus.address,
                     amountIn: amountDai,
                 },
             ],
-            outputs: [{
-                tokenAddress: usdPlus.address,
-                receiver: account.address,
-            }],
-            executor: odosSwap.address,
+            outputs: [
+                {
+                    tokenAddress: dai.address,
+                    receiver: odosSwap.address,
+                },
+                {
+                    tokenAddress: usdc.address,
+                    receiver: odosSwap.address,
+                },
+            ],
+            executor: "0x1F635E0e79016E2Cf89B31611d13646EC538E8C1",
             data: request.data
+        }, {
+            gauge: "0xd3b8de04b90b4bae249e5f0b30ae98d7f02b6dab",
+            pair: "0xfd1e3458C7a1D3506f5cC6180A53F1e60f9D6BEa",
+            router: ARBITRUM.chronosRouter,
+            token: "0x9774ae804e6662385f5ab9b01417bc2c6e548468"
+
         });
         console.log(`Transaction hash: ${tx.hash}`);
 
@@ -195,14 +217,14 @@ describe("OdosSwap", function () {
 
         // Retrieve event logs
         const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
-        // const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
-        // const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
-        // const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+        const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
+        const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
+        const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
 
         console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
-        // console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
-        // console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
-        // console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+        console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
+        console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
+        console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
 
     });
