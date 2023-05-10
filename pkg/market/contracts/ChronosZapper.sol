@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "./OdosWrapper.sol";
+import "./OdosZapper.sol";
 
-contract ChronosZapper is OdosWrapper {
+contract ChronosZapper is OdosZapper {
     IChronosRouter public chronosRouter;
 
-    function setRouters(address _chronosRouter, address _odosRouter) external onlyAdmin {
+    function setRouters(address _odosRouter, address _chronosRouter) external onlyAdmin {
         require(_chronosRouter != address(0), "Zero address not allowed");
         require(_odosRouter != address(0), "Zero address not allowed");
         chronosRouter = IChronosRouter(_chronosRouter);
@@ -61,7 +61,7 @@ contract ChronosZapper is OdosWrapper {
 
     function getProportion(
         address _gauge
-    ) view public returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
+    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IChronosGauge gauge = IChronosGauge(_gauge);
         IERC20 _token = gauge.TOKEN();
         IChronosPair pair = IChronosPair(address(_token));
@@ -72,7 +72,6 @@ contract ChronosZapper is OdosWrapper {
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
         token0Amount = reserve0 * (denominator / (10 ** dec0));
         token1Amount = reserve1 * (denominator / (10 ** dec1));
-
     }
 
     function _addLiquidity(
@@ -90,8 +89,10 @@ contract ChronosZapper is OdosWrapper {
             IERC20Metadata(tokensOut[1]).decimals()
         );
         IERC20 asset0 = IERC20(tokensOut[0]);
+        console.log("amountsOut[0] %s, tokensAmount0 %s, asset0 %s", amountsOut[0], tokensAmount0, asset0.balanceOf(address(this)));
         asset0.transferFrom(address(this), address(msg.sender), amountsOut[0] - tokensAmount0);
         IERC20 asset1 = IERC20(tokensOut[1]);
+        console.log("amountsOut[1] %s, tokensAmount1 %s, asset1 %s", amountsOut[1], tokensAmount1, asset1.balanceOf(address(this)));
         asset1.transferFrom(address(this), address(msg.sender), amountsOut[1] - tokensAmount1);
 
         asset0.approve(address(chronosRouter), tokensAmount0);
@@ -138,12 +139,7 @@ contract ChronosZapper is OdosWrapper {
         }
     }
 
-    function _stakeToGauge(
-        IChronosPair pair,
-        IChronosGauge gauge,
-        IChronosNFT token
-    ) internal {
-        
+    function _stakeToGauge(IChronosPair pair, IChronosGauge gauge, IChronosNFT token) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
         pair.approve(address(gauge), pairBalance);
         uint256 tokenIdNew = gauge.deposit(pairBalance);

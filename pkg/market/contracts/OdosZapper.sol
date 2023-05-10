@@ -12,7 +12,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Chronos.sol";
 
 import "hardhat/console.sol";
 
-contract OdosWrapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract OdosZapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     uint256 constant MAX_UINT_VALUE = type(uint256).max;
     bytes32 constant UNIT_ROLE = keccak256("UNIT_ROLE");
 

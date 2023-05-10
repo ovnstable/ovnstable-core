@@ -21,12 +21,12 @@ const axios = require("axios");
 
 const ODOS_ROUTER = '0xdd94018F54e565dbfc939F7C44a16e163FaAb331';
 
-describe("OdosSwap", function () {
+describe("odosZap", function () {
 
     let account;
     let usdPlus;
     let daiPlus;
-    let odosSwap;
+    let chronosZapper;
     let usdc;
     let dai;
     let chronosPair;
@@ -38,13 +38,13 @@ describe("OdosSwap", function () {
         await hre.run("compile");
         await resetHardhat("ARBITRUM");
 
-        await deployments.fixture(['OdosWrapper']);
+        await deployments.fixture(['OdosZapper']);
 
         account = await setUp();
-        odosSwap = await ethers.getContract("OdosWrapper");
+        chronosZapper = await ethers.getContract("ChronosZapper");
 
 
-        chronosPair = await ethers.getContractAt(chronosPairAbi, "0xfd1e3458C7a1D3506f5cC6180A53F1e60f9D6BEa")
+        // chronosPair = await ethers.getContractAt(chronosPairAbi, "0xfd1e3458C7a1D3506f5cC6180A53F1e60f9D6BEa")
 
         // odos = await ethers.getContract("Odos");
 
@@ -64,8 +64,8 @@ describe("OdosSwap", function () {
     //     const amountUsdc = toE6(10000);
     //     const amountDai = toE18(10000);
 
-    //     await (await usdc.approve(odosSwap.address, amountUsdc)).wait();
-    //     await (await dai.approve(odosSwap.address, amountDai)).wait();
+    //     await (await usdc.approve(chronosZapper.address, amountUsdc)).wait();
+    //     await (await dai.approve(chronosZapper.address, amountDai)).wait();
 
     //     const request = await getOdosRequest({
     //         "chainId": 42161,
@@ -91,7 +91,7 @@ describe("OdosSwap", function () {
     //         "slippageLimitPercent": 0.3,
     //     });
 
-    //     const tx = await odosSwap.connect(account).swap({
+    //     const tx = await chronosZapper.connect(account).swap({
     //         router: ODOS_ROUTER,
     //         inputs: [
     //             {
@@ -138,16 +138,18 @@ describe("OdosSwap", function () {
         const amountUsdc = toE6(10);
         const amountDai = toE18(10);
 
-        await (await usdPlus.approve(odosSwap.address, amountUsdc)).wait();
-        await (await daiPlus.approve(odosSwap.address, amountDai)).wait();
+        await (await usdPlus.approve(chronosZapper.address, amountUsdc)).wait();
+        await (await daiPlus.approve(chronosZapper.address, amountDai)).wait();
 
-        const reserves = await chronosPair.getReserves();
+        const reserves = await chronosZapper.getProportion("0xd3b8de04b90b4bae249e5f0b30ae98d7f02b6dab");
 
-        const daiAmount = fromE18(reserves._reserve0)
-        const usdcAmount = fromE6(reserves._reserve1)
-        const sumReserves = usdcAmount + daiAmount
+        // const daiAmount = fromE18(reserves[0])
+        // const usdcAmount = fromE6(reserves[1])
+        // const sumReserves = usdcAmount + daiAmount
 
-        // console.log("proportions", daiAmount / sumReserves, usdcAmount / sumReserves)
+        const sumReserves = reserves[0].add(reserves[1])
+        console.log(reserves[0] / 1e18, reserves[1] / 1e18, reserves[2] / 1e18, sumReserves / 1e18)
+        console.log("proportion", reserves[0] / sumReserves, "proportion", reserves[1] / sumReserves)
 
         const request = await getOdosRequest({
             "chainId": 42161,
@@ -164,21 +166,24 @@ describe("OdosSwap", function () {
             "outputTokens": [
                 {
                     "tokenAddress": dai.address,
-                    "proportion": daiAmount / sumReserves
+                    "proportion": reserves[0] / sumReserves
                 },
                 {
                     "tokenAddress": usdc.address,
-                    "proportion": usdcAmount / sumReserves
+                    "proportion": reserves[1] / sumReserves
                 },
 
             ],
             "gasPrice": 20,
-            "userAddr": odosSwap.address,
+            "userAddr": chronosZapper.address,
             "slippageLimitPercent": 0.3,
         });
 
-        const tx = await odosSwap.connect(account).swapAndStakeIntoChronos({
-            router: ODOS_ROUTER,
+        const txSet = await chronosZapper.connect(account).setRouters(ODOS_ROUTER, ARBITRUM.chronosRouter);
+
+        const receiptSet = await txSet.wait();
+
+        const tx = await chronosZapper.connect(account).zapIn({
             inputs: [
                 {
                     tokenAddress: usdPlus.address,
@@ -192,22 +197,15 @@ describe("OdosSwap", function () {
             outputs: [
                 {
                     tokenAddress: dai.address,
-                    receiver: odosSwap.address,
+                    receiver: chronosZapper.address,
                 },
                 {
                     tokenAddress: usdc.address,
-                    receiver: odosSwap.address,
+                    receiver: chronosZapper.address,
                 },
             ],
-            executor: "0x1F635E0e79016E2Cf89B31611d13646EC538E8C1",
             data: request.data
-        }, {
-            gauge: "0xd3b8de04b90b4bae249e5f0b30ae98d7f02b6dab",
-            pair: "0xfd1e3458C7a1D3506f5cC6180A53F1e60f9D6BEa",
-            router: ARBITRUM.chronosRouter,
-            token: "0x9774ae804e6662385f5ab9b01417bc2c6e548468"
-
-        });
+        }, "0xd3b8de04b90b4bae249e5f0b30ae98d7f02b6dab");
         console.log(`Transaction hash: ${tx.hash}`);
 
         const receipt = await tx.wait();
@@ -303,17 +301,17 @@ async function getOdosRequest(request) {
     try {
         transaction = (await axios.post(url, swapParams, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
-        console.log("[odosSwap] getSwapTransaction: " + e);
+        console.log("[chronosZapper] getSwapTransaction: " + e);
         return 0;
     }
 
     if (transaction.statusCode === 400) {
-        console.log(`[odosSwap]  ${transaction.description}`);
+        console.log(`[chronosZapper]  ${transaction.description}`);
         return 0;
     }
 
     if (transaction.data.transaction === undefined) {
-        console.log("[odosSwap] transaction.tx is undefined");
+        console.log("[chronosZapper] transaction.tx is undefined");
         return 0;
     }
 
