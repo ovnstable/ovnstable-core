@@ -62,6 +62,8 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
 
         const destDir = `deployments/localhost`;
 
+        await fse.removeSync(destDir);
+
         await fse.copySync(srcDir, destDir, {overwrite: true}, function (err) {
             if (err)
                 console.error(err);
