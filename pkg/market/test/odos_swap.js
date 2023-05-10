@@ -11,7 +11,7 @@ const {
 const { resetHardhat, greatLess } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { OPTIMISM, POLYGON } = require('@overnight-contracts/common/utils/assets');
+let { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { fromE6, fromE18, toAsset, toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
 
@@ -19,7 +19,7 @@ const chronosPairAbi = require("@overnight-contracts/pools/abi/ChronosPair.json"
 const axios = require("axios");
 
 
-const ODOS_ROUTER = '0x69Dd38645f7457be13571a847FfD905f9acbaF6d';
+const ODOS_ROUTER = '0xdd94018F54e565dbfc939F7C44a16e163FaAb331';
 
 describe("OdosSwap", function () {
 
@@ -36,7 +36,7 @@ describe("OdosSwap", function () {
     sharedBeforeEach('deploy and setup', async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
-        await resetHardhat("OPTIMISM");
+        await resetHardhat("ARBITRUM");
 
         await deployments.fixture(['OdosWrapper']);
 
@@ -44,12 +44,13 @@ describe("OdosSwap", function () {
         odosSwap = await ethers.getContract("OdosWrapper");
 
 
-        const chronosPair = await ethers.getContractAt(chronosPairAbi, "0xC9445A9AFe8E48c71459aEdf956eD950e983eC5A")
+        chronosPair = await ethers.getContractAt(chronosPairAbi, "0xC9445A9AFe8E48c71459aEdf956eD950e983eC5A")
 
         // odos = await ethers.getContract("Odos");
 
-        usdPlus = (await getContract('UsdPlusToken', 'optimism')).connect(account);
-        daiPlus = (await getContract('UsdPlusToken', 'optimism_dai')).connect(account);
+
+        usdPlus = await getContract('UsdPlusToken', 'arbitrum').connect(account);
+        daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai').connect(account);
 
         usdc = (await getERC20("usdc")).connect(account);
         dai = (await getERC20("dai")).connect(account);
@@ -67,7 +68,7 @@ describe("OdosSwap", function () {
         await (await dai.approve(odosSwap.address, amountDai)).wait();
 
         const request = await getOdosRequest({
-            "chainId": 10,
+            "chainId": 42161,
             "inputTokens": [
                 {
                     "tokenAddress": usdc.address,
@@ -140,6 +141,8 @@ describe("OdosSwap", function () {
         await (await dai.approve(odosSwap.address, amountDai)).wait();
 
         const reserves = await chronosPair.getReserves();
+
+        console.log(reserves)
 
         const request = await getOdosRequest({
             "chainId": 10,
@@ -299,8 +302,8 @@ async function getOdosRequest(request) {
 
 async function getPlusTokens(amount, to) {
 
-    let usdPlus = await getContract('UsdPlusToken', 'optimism');
-    let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
+    let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
+    let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
 
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
@@ -323,8 +326,8 @@ async function setUp() {
     const signers = await ethers.getSigners();
     const account = signers[0];
 
-    await transferAsset(OPTIMISM.dai, account.address);
-    await transferAsset(OPTIMISM.usdc, account.address);
+    await transferAsset(ARBITRUM.dai, account.address);
+    await transferAsset(ARBITRUM.usdc, account.address);
 
     await getPlusTokens(10_000, account.address);
 
