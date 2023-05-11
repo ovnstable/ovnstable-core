@@ -5,16 +5,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chronos.sol";
-// import "./interfaces/IMaLPNFT.sol";
 
 import "hardhat/console.sol";
 
-contract OdosZapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     uint256 constant MAX_UINT_VALUE = type(uint256).max;
-    bytes32 constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     uint256 public stakeSlippageBP;
     address public odosRouter;
@@ -56,19 +55,15 @@ contract OdosZapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
 
     event ReturnedToUser(uint256[] amountsReturned, address[] tokensReturned);
 
+    event UpdateSlippages(uint256 stakeSlippageBP);
+
     function initialize() public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(UNIT_ROLE, msg.sender);
 
         stakeSlippageBP = 4;
-    }
-
-    modifier onlyUnit() {
-        require(hasRole(UNIT_ROLE, msg.sender), "!Unit");
-        _;
     }
 
     modifier onlyAdmin() {
@@ -80,13 +75,23 @@ contract OdosZapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-    function swap(SwapData memory swapData) public {
-        // different outputs
+
+    function setSlippages(uint256 _stakeSlippageBP) external onlyAdmin {
+        stakeSlippageBP = _stakeSlippageBP;
+
+        emit UpdateSlippages(stakeSlippageBP);
+    }
+
+    function _prepareSwap(SwapData memory swapData) internal {
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             for (uint256 j = 0; j < i; j++) {
                 require(
                     swapData.outputs[i].tokenAddress != swapData.outputs[j].tokenAddress,
                     "Duplicate output tokens"
+                );
+                require(
+                    swapData.outputs[i].receiver == address(this),
+                    "Receiver of swap is not this contract"
                 );
             }
         }
@@ -111,11 +116,10 @@ contract OdosZapper is Initializable, AccessControlUpgradeable, UUPSUpgradeable 
             asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
             asset.approve(odosRouter, swapData.inputs[i].amountIn);
         }
-        _swap(swapData);
     }
 
     function _swap(SwapData memory swapData) internal returns (address[] memory, uint256[] memory) {
-        (bool success, ) = odosRouter.call{value: 0}(swapData.data);
+        (bool success,) = odosRouter.call{value : 0}(swapData.data);
         require(success, "router swap invalid");
 
         // Emit events

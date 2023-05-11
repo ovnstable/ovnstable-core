@@ -44,7 +44,27 @@ async function resetHardhat(network) {
         ],
     });
 
-    console.log('execute: hardhat_reset');
+    console.log(`[Hardhat]: hardhat_reset -> ${block.toString()}`);
+}
+
+async function resetHardhatToLastBlock() {
+    let networkName = process.env.ETH_NETWORK;
+    const provider = new ethers.providers.JsonRpcProvider(node_url(networkName));
+    let block = await provider.getBlockNumber() - 31;
+
+    await hre.network.provider.request({
+        method: "hardhat_reset",
+        params: [
+            {
+                forking: {
+                    jsonRpcUrl: node_url(networkName),
+                    blockNumber: block,
+                },
+            },
+        ],
+    });
+
+    console.log(`[Hardhat]: hardhat_reset -> ${block.toString()}`);
 }
 
 
@@ -144,6 +164,7 @@ async function prepareEnvironment(){
 module.exports = {
     greatLess: greatLess,
     resetHardhat: resetHardhat,
+    resetHardhatToLastBlock: resetHardhatToLastBlock,
     prepareEnvironment: prepareEnvironment,
     prepareArtifacts: prepareArtifacts,
     createRandomWallet: createRandomWallet,
