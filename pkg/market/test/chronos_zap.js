@@ -8,7 +8,7 @@ const {
     execTimelock,
     getContract
 } = require("@overnight-contracts/common/utils/script-utils");
-const { resetHardhat, greatLess, resetHardhatToLastBlock} = require("@overnight-contracts/common/utils/tests");
+const { resetHardhat, greatLess, resetHardhatToLastBlock } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
 let { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
@@ -66,8 +66,6 @@ describe("ChronosZapper", function () {
         const reserves = await chronosZap.getProportion(gauge);
 
         const sumReserves = reserves[0].add(reserves[1])
-        console.log(reserves[0] / 1e18, reserves[1] / 1e18, reserves[2] / 1e18, sumReserves / 1e18)
-        console.log("proportion", reserves[0] / sumReserves, "proportion", reserves[1] / sumReserves)
 
         const request = await getOdosRequest({
             "chainId": 42161,
@@ -138,6 +136,8 @@ describe("ChronosZapper", function () {
         console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
         console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
+
+
         expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
         expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
@@ -153,6 +153,40 @@ describe("ChronosZapper", function () {
         expect(token0Out.address).to.equals(returnedToUserEvent.args.tokensReturned[0]);
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
+        // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
+        // expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
+        // expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
+        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
+        const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
+        expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
+        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
+
+        // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
+
+        const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
+        const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
+
+
+        const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
+        const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
+
+        console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
+        expect(inTokenAmount0 + inTokenAmount1).to.lessThanOrEqual((outTokenAmount0 + outTokenAmount0) / (1 - 0.003));
+
+        expect(inTokenAmount0 + inTokenAmount1).to.lessThanOrEqual((putTokenAmount0 + putTokenAmount1) / (1 - 0.05));
+
+
+        // 3) Free assets token0In|Out, token1In|Out не осталось на контракте с Zap-ом
+        // console.log(fromE6(await token0In.balanceOf(chronosZap.address)))
+
+        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+
+
     });
 
 
@@ -166,7 +200,7 @@ describe("ChronosZapper", function () {
         });
 
         items.push({
-            name:  await token1In.symbol(),
+            name: await token1In.symbol(),
             balance: fromE18(await token1In.balanceOf(account.address))
         });
 
