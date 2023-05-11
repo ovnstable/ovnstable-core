@@ -676,10 +676,13 @@ async function transferAsset(assetAddress, to) {
         case "ARBITRUM":
             switch (assetAddress) {
                 case ARBITRUM.dai:
-                    from = "0x7b7b957c284c2c227c980d6e2f804311947b84d0";
+                    from = "0x2d070ed1321871841245d8ee5b84bd2712644322";
                     break;
                 case ARBITRUM.usdc:
-                    from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
+                    from = '0x62383739D68Dd0F844103Db8dFb05a7EdED5BBE6';
+                    break;
+                case ARBITRUM.usdt:
+                    from = '0x8f9c79b9de8b0713dcac3e535fc5a1a92db6ea2d';
                     break;
                 default:
                     throw new Error('Unknown asset address');

@@ -35,10 +35,14 @@ let ARBITRUM = {
     silo: "0x0341C0C0ec423328621788d4854119B97f44E391",
     mgp: '0xa61F74247455A40b01b0559ff6274441FAfa22A3',
     chr: "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851",
+    df: "0xaE6aab43C4f3E0cea4Ab83752C278f8dEbabA689",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+    // dForce
+    dForceController: "0x8E7e9eA9023B81457Ae7E6D2a51b003D421E5408",
+    dForceRewardDistributor: "0xF45e2ae152384D50d4e9b08b8A1f65F0d96786C3",
     // radiant
     radiantProvider: "0xe21B295ED46528eFD5F3EF66E18BC6ad1c87f003",
     // swaps
