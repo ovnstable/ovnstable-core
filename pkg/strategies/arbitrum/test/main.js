@@ -18,6 +18,8 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         await impersonatingEtsGrantRole('0xc2c84ca763572c6aF596B703Df9232b4313AD4e3', ownerAddress, strategyAddress)
     } else if (strategyName === 'StrategyEtsZeta') {
         await impersonatingEtsGrantRole('0x3271371d5AD147140BF321b6ED859CC02AFce973', ownerAddress, strategyAddress)
+    } else if (strategyName === 'StrategyEtsThetaDai') {
+        await impersonatingEtsGrantRole('0xE711c1273C1d5a1Ca1A7c9e0EC8e14B270621711', ownerAddress, strategyAddress)
     } else if (strategyName === 'StrategySolidlizardUsdcDai') {
         let gauge = '0x884c28296b6ec728ac27bfe7579419709514d154';
         let pair = '0x07d7F291e731A41D3F0EA4F1AE5b6d920ffb3Fe0';
