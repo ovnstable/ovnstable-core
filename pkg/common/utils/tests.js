@@ -79,7 +79,7 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, hedgeExchangerAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
-    if (process.env.STAND === 'arbitrum') {
+    if (process.env.STAND === 'arbitrum' || process.env.STAND === 'arbitrum_dai') {
         await hedgeExchanger.connect(owner).setBlockGetter(ZERO_ADDRESS);
     }
     await hre.network.provider.request({
