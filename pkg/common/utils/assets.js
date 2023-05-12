@@ -61,6 +61,8 @@ let ARBITRUM = {
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
+    odosRouter: "0xdd94018F54e565dbfc939F7C44a16e163FaAb331",
+
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
