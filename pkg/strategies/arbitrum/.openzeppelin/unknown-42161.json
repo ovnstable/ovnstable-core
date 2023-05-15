@@ -160,6 +160,11 @@
       "address": "0x23a007371e265D8C4C186265Fe91F5377c6c7DCD",
       "txHash": "0xabb367ce7780489be45d68e3e079d68e2c3561f6a426dbcd799abde3ae6d269b",
       "kind": "uups"
+    },
+    {
+      "address": "0xe105d6313ABa69E88255dEf71EAf2E53939D567e",
+      "txHash": "0x43b0d6e3155193cefc56b551581fdccfd9397ea10d1d9bd2d1451869619873b9",
+      "kind": "uups"
     }
   ],
   "impls": {
