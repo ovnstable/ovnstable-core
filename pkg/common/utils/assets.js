@@ -36,6 +36,7 @@ let ARBITRUM = {
     mgp: '0xa61F74247455A40b01b0559ff6274441FAfa22A3',
     chr: "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851",
     df: "0xaE6aab43C4f3E0cea4Ab83752C278f8dEbabA689",
+    usx: "0x641441c631e2F909700d2f41FD87F0aA6A6b4EDb",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",

@@ -1,12 +1,9 @@
-/*
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-    Copyright 2020 DODO ZOO.
-    SPDX-License-Identifier: Apache-2.0
-
-*/
-
-pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@overnight-contracts/common/contracts/libraries/SafeMath.sol";
+import "@overnight-contracts/common/contracts/libraries/DecimalMath.sol";
 
 interface IDODOMine {
 
@@ -143,10 +140,6 @@ interface IDODOV2 {
         uint256 payQuoteAmount
     ) external view returns (uint256 receiveBaseAmount, uint256 mtFee);
 }
-
-
-import "@overnight-contracts/common/contracts/libraries/SafeMath.sol";
-import "@overnight-contracts/common/contracts/libraries/DecimalMath.sol";
 
 
 library StrategyDodoLibrary {
@@ -375,6 +368,159 @@ abstract contract DodoExchange {
             directions,
             false,
             block.timestamp + 600
+        );
+    }
+
+}
+
+
+/// @title DODORouteProxy
+/// @author DODO Breeder
+/// @notice new routeProxy contract with fee rebate to manage all route. It provides three methods to swap,
+/// including mixSwap, multiSwap and externalSwap. Mixswap is for linear swap, which describes one token path
+/// with one pool each time. Multiswap is a simplified version about 1inch, which describes one token path
+/// with several pools each time. ExternalSwap is for other routers like 0x, 1inch and paraswap. Dodo and
+/// front-end users could take certain route fee rebate from each swap. Wherein dodo will get a fixed percentage,
+/// and front-end users could assign any proportion through function parameters.
+/// @dev dependence: DODOApprove.sol / DODOApproveProxy.sol / IDODOAdapter.sol
+/// In dodo's contract system, there is only one approve entrance DODOApprove.sol. DODOApprove manages DODOApproveProxy,
+/// Any contract which needs claim user's tokens must be registered in DODOApproveProxy. They used in DODORouteProxy are
+/// to manage user's token, all user's token must be claimed through DODOApproveProxy and DODOApprove
+/// IDODOAdapter determine the interface of adapter, in which swap happened. There are different adapters for different
+/// pools. Adapter addresses are parameters contructed off chain so they are loose coupling with routeProxy.
+/// adapters have two interface functions. func sellBase(address to, address pool, bytes memory moreInfo) and func sellQuote(address to, address pool, bytes memory moreInfo)
+
+contract DODOFeeRouteProxy {
+
+    struct PoolInfo {
+        // pool swap direciton, 0 is for sellBase, 1 is for sellQuote
+        uint256 direction;
+        // distinct transferFrom pool(like dodoV1) and transfer pool
+        // 1 is for transferFrom pool, pool call transferFrom function to get tokens from adapter
+        // 2 is for transfer pool, pool determine swapAmount through balanceOf(Token) - reserve
+        uint256 poolEdition;
+        // pool weight, actualWeight = weight/totalWeight, totalAmount * actualWeight = amount through this pool swap
+        uint256 weight;
+        // pool address
+        address pool;
+        // pool adapter, making actual swap call in corresponding adapter
+        address adapter;
+        // pool adapter's Info, record addtional infos(could be zero-bytes) needed by each pool adapter
+        bytes moreInfo;
+    }
+
+    // ============ Swap ============
+
+
+    /// @notice Call external black box contracts to finish a swap
+    /// @param approveTarget external swap approve address
+    /// @param swapTarget external swap address
+    /// @param feeData route fee info
+    /// @param callDataConcat external swap data, toAddress need to be routeProxy
+    /// specially when toToken is ETH, use WETH as external calldata's toToken
+    function externalSwap(
+        address fromToken,
+        address toToken,
+        address approveTarget,
+        address swapTarget,
+        uint256 fromTokenAmount,
+        uint256 minReturnAmount,
+        bytes memory feeData,
+        bytes memory callDataConcat,
+        uint256 deadLine
+    ) external payable returns (uint256 receiveAmount);
+
+    /// @notice linear version, describes one token path with one pool each time
+    /// @param mixAdapters adapter address array, record each pool's interrelated adapter in order
+    /// @param mixPairs pool address array, record pool address of the whole route in order
+    /// @param assetTo asset Address（pool or proxy）, describe pool adapter's receiver address. Specially assetTo[0] is deposit receiver before all
+    /// @param directions pool directions aggregation, one bit represent one pool direction, 0 means sellBase, 1 means sellQuote
+    /// @param moreInfos pool adapter's Info set, record addtional infos(could be zero-bytes) needed by each pool adapter, keeping order with adapters
+    /// @param feeData route fee info, bytes decode into broker and brokerFee, determine rebate proportion, brokerFee in [0, 1e18]
+    function mixSwap(
+        address fromToken,
+        address toToken,
+        uint256 fromTokenAmount,
+        uint256 minReturnAmount,
+        address[] memory mixAdapters,
+        address[] memory mixPairs,
+        address[] memory assetTo,
+        uint256 directions,
+        bytes[] memory moreInfos,
+        bytes memory feeData,
+        uint256 deadLine
+    ) external payable returns (uint256 receiveAmount);
+
+    /// @notice split version, describes one token path with several pools each time. Called one token pair with several pools "one split"
+    /// @param splitNumber record pool number in one split, determine sequence(poolInfo) array subscript in transverse. Begin with 0
+    /// for example, [0,1, 3], mean the first split has one(1 - 0) pool, the second split has 2 (3 - 1) pool
+    /// @param midToken middle token set, record token path in order.
+    /// Specially midToken[1] is WETH addresss when fromToken is ETH. Besides midToken[1] is also fromToken
+    /// Specially midToken[length - 2] is WETH address and midToken[length -1 ] is ETH address when toToken is ETH. Besides midToken[length -1]
+    /// is the last toToken and midToken[length - 2] is common second last middle token.
+    /// @param assetFrom asset Address（pool or proxy）describe pool adapter's receiver address. Specially assetFrom[0] is deposit receiver before all
+    /// @param sequence PoolInfo sequence, describe each pool's attributions, ordered by spiltNumber
+    /// @param feeData route fee info, bytes decode into broker and brokerFee, determine rebate proportion, brokerFee in [0, 1e18]
+    function dodoMutliSwap(
+        uint256 fromTokenAmount,
+        uint256 minReturnAmount,
+        uint256[] memory splitNumber,
+        address[] memory midToken,
+        address[] memory assetFrom,
+        bytes[] memory sequence,
+        bytes memory feeData,
+        uint256 deadLine
+    ) external payable returns (uint256 receiveAmount);
+
+}
+
+
+library DodoLibrary {
+
+    struct SingleSwapStruct {
+        address dodoApprove;
+        address dodoProxy;
+        address fromToken;
+        address toToken;
+        uint256 fromTokenAmount;
+        address adapter;
+        address pair;
+        address feeProxy;
+        uint256 directions;
+        bytes[] sequence;
+        bytes feeData;
+    }
+
+    function singleSwap(SingleSwapStruct memory swapParams) internal returns (uint256) {
+
+        IERC20(swapParams.fromToken).approve(swapParams.dodoApprove, swapParams.fromTokenAmount);
+
+        address[] memory mixAdapters = new address[](1);
+        mixAdapters[0] = swapParams.adapter;
+
+        address[] memory mixPairs = new address[](1);
+        mixPairs[0] = swapParams.pair;
+
+        address[] memory assetTo = new address[](2);
+        if (swapParams.directions == 0) {
+            assetTo[0] = swapParams.pair;
+        } else {
+            assetTo[0] = swapParams.adapter;
+        }
+        assetTo[1] = swapParams.feeProxy;
+
+        return DODOFeeRouteProxy(swapParams.dodoProxy).mixSwap(
+            swapParams.fromToken,
+            swapParams.toToken,
+            swapParams.fromTokenAmount,
+            1,
+            mixAdapters,
+            mixPairs,
+            assetTo,
+            swapParams.directions,
+            swapParams.sequence,
+            swapParams.feeData,
+            block.timestamp
         );
     }
 
