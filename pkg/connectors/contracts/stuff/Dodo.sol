@@ -390,7 +390,7 @@ abstract contract DodoExchange {
 /// pools. Adapter addresses are parameters contructed off chain so they are loose coupling with routeProxy.
 /// adapters have two interface functions. func sellBase(address to, address pool, bytes memory moreInfo) and func sellQuote(address to, address pool, bytes memory moreInfo)
 
-contract DODOFeeRouteProxy {
+interface DODOFeeRouteProxy {
 
     struct PoolInfo {
         // pool swap direciton, 0 is for sellBase, 1 is for sellQuote
