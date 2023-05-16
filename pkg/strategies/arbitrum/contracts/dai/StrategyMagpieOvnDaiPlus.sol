@@ -105,68 +105,21 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
 
     // --- logic
 
-    function _swapDaiToDaiPlus() internal {
+    function _swapAllToken0ToToken1(IERC20 token0, IERC20 token1) internal {
 
-        uint256 amountToSwap = dai.balanceOf(address(this));
+        uint256 amountToSwap = token0.balanceOf(address(this));
 
-        address[] memory tokenPath = new address[](3);
-        tokenPath[0] = address(dai);
-        tokenPath[1] = address(usdc);
-        tokenPath[2] = address(daiPlus);
+        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
 
-        address[] memory poolPath = new address[](2);
-        poolPath[0] = address(basePoolWombat);
-        poolPath[1] = address(poolWombat);
-
-        uint256 amountOut = WombatLibrary.getMultiAmountOut(
-            router,
-            tokenPath,
-            poolPath,
-            amountToSwap
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
+            address(token0),
+            address(token1),
+            100, // 0.01%
+            address(this),
+            amountToSwap,
+            amountOutMin
         );
-
-        if (amountOut > 0) {
-            WombatLibrary.multiSwap(
-                router,
-                tokenPath,
-                poolPath,
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
-    }
-
-    function _swapDaiPlusToDai() internal {
-
-        uint256 amountToSwap = daiPlus.balanceOf(address(this));
-
-        address[] memory tokenPath = new address[](3);
-        tokenPath[0] = address(daiPlus);
-        tokenPath[1] = address(usdc);
-        tokenPath[2] = address(dai);
-
-        address[] memory poolPath = new address[](2);
-        poolPath[0] = address(poolWombat);
-        poolPath[1] = address(basePoolWombat);
-
-        uint256 amountOut = WombatLibrary.getMultiAmountOut(
-            router,
-            tokenPath,
-            poolPath,
-            amountToSwap
-        );
-
-        if (amountOut > 0) {
-            WombatLibrary.multiSwap(
-                router,
-                tokenPath,
-                poolPath,
-                amountToSwap,
-                0,
-                address(this)
-            );
-        }
     }
 
 
@@ -175,7 +128,7 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
         uint256 _amount
     ) internal override {
 
-        _swapDaiToDaiPlus();
+        _swapAllToken0ToToken1(dai, daiPlus);
 
         uint256 daiPlusAmount = daiPlus.balanceOf(address(this));
 
@@ -204,7 +157,7 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
         // unstake
         poolHelperMgp.withdraw(assetAmount, _amount);
 
-        _swapDaiPlusToDai();
+        _swapAllToken0ToToken1(daiPlus, dai);
 
         return dai.balanceOf(address(this));
     }
@@ -217,7 +170,7 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
         uint256 assetBalance = poolHelperMgp.balance(address(this));
         poolHelperMgp.withdraw(assetBalance, _totalValue(false));
 
-        _swapDaiPlusToDai();
+        _swapAllToken0ToToken1(daiPlus, dai);
 
         return dai.balanceOf(address(this));
     }
