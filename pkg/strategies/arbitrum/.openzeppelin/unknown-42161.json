@@ -5722,7 +5722,7 @@
             "slot": "0",
             "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
             "retypedFrom": "bool"
           },
           {
@@ -5731,7 +5731,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
           },
           {
             "label": "__gap",
@@ -5739,7 +5739,7 @@
             "slot": "1",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
           },
           {
             "label": "__gap",
@@ -5747,7 +5747,7 @@
             "slot": "51",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
           },
           {
             "label": "_roles",
@@ -5755,7 +5755,7 @@
             "slot": "101",
             "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
           },
           {
             "label": "__gap",
@@ -5763,7 +5763,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
           },
           {
             "label": "__gap",
@@ -5771,7 +5771,7 @@
             "slot": "151",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC1967UpgradeUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
           },
           {
             "label": "__gap",
@@ -5779,7 +5779,7 @@
             "slot": "201",
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
           },
           {
             "label": "portfolioManager",
@@ -5787,7 +5787,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
           },
           {
             "label": "swapSlippageBP",
@@ -5795,7 +5795,7 @@
             "slot": "252",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
           },
           {
             "label": "navSlippageBP",
@@ -5803,7 +5803,7 @@
             "slot": "253",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
           },
           {
             "label": "stakeSlippageBP",
@@ -5811,7 +5811,7 @@
             "slot": "254",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
           },
           {
             "label": "__gap",
@@ -5819,7 +5819,7 @@
             "slot": "255",
             "type": "t_array(t_uint256)46_storage",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:167"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
           },
           {
             "label": "usdc",
@@ -5827,7 +5827,7 @@
             "slot": "301",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:48"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:48"
           },
           {
             "label": "usdp",
@@ -5835,7 +5835,7 @@
             "slot": "302",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:49"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:49"
           },
           {
             "label": "usdt",
@@ -5843,7 +5843,7 @@
             "slot": "303",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:50"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:50"
           },
           {
             "label": "weth",
@@ -5851,7 +5851,7 @@
             "slot": "304",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:51"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:51"
           },
           {
             "label": "wom",
@@ -5859,7 +5859,7 @@
             "slot": "305",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:52"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:52"
           },
           {
             "label": "mgp",
@@ -5867,7 +5867,7 @@
             "slot": "306",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:53"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:53"
           },
           {
             "label": "mgpLp",
@@ -5875,7 +5875,7 @@
             "slot": "307",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:54"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:54"
           },
           {
             "label": "stakingWombat",
@@ -5883,47 +5883,47 @@
             "slot": "308",
             "type": "t_address",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:56"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:56"
           },
           {
             "label": "poolWombat",
             "offset": 0,
             "slot": "309",
-            "type": "t_contract(IWombatPool)12315",
+            "type": "t_contract(IWombatPool)13477",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:57"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:57"
           },
           {
             "label": "poolHelperMgp",
             "offset": 0,
             "slot": "310",
-            "type": "t_contract(MagpiePoolHelper)7019",
+            "type": "t_contract(MagpiePoolHelper)8181",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:58"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:58"
           },
           {
             "label": "masterMgp",
             "offset": 0,
             "slot": "311",
-            "type": "t_contract(MasterMagpie)7030",
+            "type": "t_contract(MasterMagpie)8192",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:59"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:59"
           },
           {
             "label": "router",
             "offset": 0,
             "slot": "312",
-            "type": "t_contract(IWombatRouter)12671",
+            "type": "t_contract(IWombatRouter)13833",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:61"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:61"
           },
           {
             "label": "uniswapV3Router",
             "offset": 0,
             "slot": "313",
-            "type": "t_contract(ISwapRouter)10149",
+            "type": "t_contract(ISwapRouter)11311",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:62"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:62"
           },
           {
             "label": "poolFee0",
@@ -5931,7 +5931,7 @@
             "slot": "313",
             "type": "t_uint24",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:64"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:64"
           },
           {
             "label": "poolFee1",
@@ -5939,7 +5939,7 @@
             "slot": "313",
             "type": "t_uint24",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:65"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:65"
           },
           {
             "label": "assetWombatDm",
@@ -5947,15 +5947,15 @@
             "slot": "314",
             "type": "t_uint256",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:67"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:67"
           },
           {
             "label": "traderJoeRouter",
             "offset": 0,
             "slot": "315",
-            "type": "t_contract(JoeRouterV3)9400",
+            "type": "t_contract(JoeRouterV3)10562",
             "contract": "StrategyMagpieOvnUsdp",
-            "src": "contracts/StrategyMagpieOvnUsdp.sol:69"
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:69"
           }
         ],
         "types": {
@@ -5987,27 +5987,27 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(ISwapRouter)10149": {
+          "t_contract(ISwapRouter)11311": {
             "label": "contract ISwapRouter",
             "numberOfBytes": "20"
           },
-          "t_contract(IWombatPool)12315": {
+          "t_contract(IWombatPool)13477": {
             "label": "contract IWombatPool",
             "numberOfBytes": "20"
           },
-          "t_contract(IWombatRouter)12671": {
+          "t_contract(IWombatRouter)13833": {
             "label": "contract IWombatRouter",
             "numberOfBytes": "20"
           },
-          "t_contract(JoeRouterV3)9400": {
+          "t_contract(JoeRouterV3)10562": {
             "label": "contract JoeRouterV3",
             "numberOfBytes": "20"
           },
-          "t_contract(MagpiePoolHelper)7019": {
+          "t_contract(MagpiePoolHelper)8181": {
             "label": "contract MagpiePoolHelper",
             "numberOfBytes": "20"
           },
-          "t_contract(MasterMagpie)7030": {
+          "t_contract(MasterMagpie)8192": {
             "label": "contract MasterMagpie",
             "numberOfBytes": "20"
           },
@@ -7074,7 +7074,7 @@
             "slot": "0",
             "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
             "retypedFrom": "bool"
           },
           {
@@ -7083,7 +7083,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
           },
           {
             "label": "__gap",
@@ -7091,7 +7091,7 @@
             "slot": "1",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
           },
           {
             "label": "__gap",
@@ -7099,7 +7099,7 @@
             "slot": "51",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
           },
           {
             "label": "_roles",
@@ -7107,7 +7107,7 @@
             "slot": "101",
             "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
           },
           {
             "label": "__gap",
@@ -7115,7 +7115,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
           },
           {
             "label": "__gap",
@@ -7123,7 +7123,7 @@
             "slot": "151",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC1967UpgradeUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
           },
           {
             "label": "__gap",
@@ -7131,7 +7131,7 @@
             "slot": "201",
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
           },
           {
             "label": "portfolioManager",
@@ -7139,7 +7139,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
           },
           {
             "label": "swapSlippageBP",
@@ -7147,7 +7147,7 @@
             "slot": "252",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
           },
           {
             "label": "navSlippageBP",
@@ -7155,7 +7155,7 @@
             "slot": "253",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
           },
           {
             "label": "stakeSlippageBP",
@@ -7163,7 +7163,7 @@
             "slot": "254",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
           },
           {
             "label": "__gap",
@@ -7171,7 +7171,7 @@
             "slot": "255",
             "type": "t_array(t_uint256)46_storage",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:167"
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
           },
           {
             "label": "dai",
@@ -7179,7 +7179,7 @@
             "slot": "301",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:38"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:38"
           },
           {
             "label": "daiPlus",
@@ -7187,7 +7187,7 @@
             "slot": "302",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:39"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:39"
           },
           {
             "label": "usdt",
@@ -7195,7 +7195,7 @@
             "slot": "303",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:40"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:40"
           },
           {
             "label": "usdc",
@@ -7203,7 +7203,7 @@
             "slot": "304",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:41"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:41"
           },
           {
             "label": "weth",
@@ -7211,7 +7211,7 @@
             "slot": "305",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:42"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:42"
           },
           {
             "label": "wom",
@@ -7219,7 +7219,7 @@
             "slot": "306",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:43"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:43"
           },
           {
             "label": "mgp",
@@ -7227,7 +7227,7 @@
             "slot": "307",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:44"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:44"
           },
           {
             "label": "mgpLp",
@@ -7235,7 +7235,7 @@
             "slot": "308",
             "type": "t_contract(IERC20)2662",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:45"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:45"
           },
           {
             "label": "stakingWombat",
@@ -7243,55 +7243,55 @@
             "slot": "309",
             "type": "t_address",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:47"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:47"
           },
           {
             "label": "poolWombat",
             "offset": 0,
             "slot": "310",
-            "type": "t_contract(IWombatPool)12315",
+            "type": "t_contract(IWombatPool)13477",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:48"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:48"
           },
           {
             "label": "basePoolWombat",
             "offset": 0,
             "slot": "311",
-            "type": "t_contract(IWombatPool)12315",
+            "type": "t_contract(IWombatPool)13477",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:49"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:49"
           },
           {
             "label": "router",
             "offset": 0,
             "slot": "312",
-            "type": "t_contract(IWombatRouter)12671",
+            "type": "t_contract(IWombatRouter)13833",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:50"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:50"
           },
           {
             "label": "poolHelperMgp",
             "offset": 0,
             "slot": "313",
-            "type": "t_contract(MagpiePoolHelper)7019",
+            "type": "t_contract(MagpiePoolHelper)8181",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:51"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:51"
           },
           {
             "label": "masterMgp",
             "offset": 0,
             "slot": "314",
-            "type": "t_contract(MasterMagpie)7030",
+            "type": "t_contract(MasterMagpie)8192",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:52"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:52"
           },
           {
             "label": "uniswapV3Router",
             "offset": 0,
             "slot": "315",
-            "type": "t_contract(ISwapRouter)10149",
+            "type": "t_contract(ISwapRouter)11311",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:54"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:54"
           },
           {
             "label": "poolFee0",
@@ -7299,7 +7299,7 @@
             "slot": "315",
             "type": "t_uint24",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:56"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:56"
           },
           {
             "label": "poolFee1",
@@ -7307,7 +7307,7 @@
             "slot": "315",
             "type": "t_uint24",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:57"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:57"
           },
           {
             "label": "assetWombatDm",
@@ -7315,15 +7315,15 @@
             "slot": "316",
             "type": "t_uint256",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:59"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:59"
           },
           {
             "label": "traderJoeRouter",
             "offset": 0,
             "slot": "317",
-            "type": "t_contract(JoeRouterV3)9400",
+            "type": "t_contract(JoeRouterV3)10562",
             "contract": "StrategyMagpieOvnDaiPlus",
-            "src": "contracts/dai/StrategyMagpieOvnDaiPlus.sol:61"
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:61"
           }
         ],
         "types": {
@@ -7355,27 +7355,27 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(ISwapRouter)10149": {
+          "t_contract(ISwapRouter)11311": {
             "label": "contract ISwapRouter",
             "numberOfBytes": "20"
           },
-          "t_contract(IWombatPool)12315": {
+          "t_contract(IWombatPool)13477": {
             "label": "contract IWombatPool",
             "numberOfBytes": "20"
           },
-          "t_contract(IWombatRouter)12671": {
+          "t_contract(IWombatRouter)13833": {
             "label": "contract IWombatRouter",
             "numberOfBytes": "20"
           },
-          "t_contract(JoeRouterV3)9400": {
+          "t_contract(JoeRouterV3)10562": {
             "label": "contract JoeRouterV3",
             "numberOfBytes": "20"
           },
-          "t_contract(MagpiePoolHelper)7019": {
+          "t_contract(MagpiePoolHelper)8181": {
             "label": "contract MagpiePoolHelper",
             "numberOfBytes": "20"
           },
-          "t_contract(MasterMagpie)7030": {
+          "t_contract(MasterMagpie)8192": {
             "label": "contract MasterMagpie",
             "numberOfBytes": "20"
           },
@@ -9444,6 +9444,706 @@
               }
             ],
             "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "3caadb79d3e4bbed6adfa2110c7f75fbb6a2ad4c5d8a0bf7cca9777c1d4d4712": {
+      "address": "0xBf21CbE292b40347b3691C3187645501fc0E5F97",
+      "txHash": "0xbe8814f7370782e01af5e9094cd548547c88c4683492a89dbf4b4c9cb75b6f67",
+      "layout": {
+        "solcVersion": "0.8.6",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "portfolioManager",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_address",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
+          },
+          {
+            "label": "swapSlippageBP",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
+          },
+          {
+            "label": "navSlippageBP",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
+          },
+          {
+            "label": "stakeSlippageBP",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_array(t_uint256)46_storage",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:48"
+          },
+          {
+            "label": "usdp",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:49"
+          },
+          {
+            "label": "usdt",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:50"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:51"
+          },
+          {
+            "label": "wom",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:52"
+          },
+          {
+            "label": "mgp",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:53"
+          },
+          {
+            "label": "mgpLp",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:54"
+          },
+          {
+            "label": "stakingWombat",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_address",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:56"
+          },
+          {
+            "label": "poolWombat",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_contract(IWombatPool)6088",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:57"
+          },
+          {
+            "label": "poolHelperMgp",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_contract(MagpiePoolHelper)2820",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:58"
+          },
+          {
+            "label": "masterMgp",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_contract(MasterMagpie)2831",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:59"
+          },
+          {
+            "label": "router",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_contract(IWombatRouter)6444",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:61"
+          },
+          {
+            "label": "uniswapV3Router",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_contract(ISwapRouter)3922",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:62"
+          },
+          {
+            "label": "poolFee0",
+            "offset": 20,
+            "slot": "313",
+            "type": "t_uint24",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:64"
+          },
+          {
+            "label": "poolFee1",
+            "offset": 23,
+            "slot": "313",
+            "type": "t_uint24",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:65"
+          },
+          {
+            "label": "assetWombatDm",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:67"
+          },
+          {
+            "label": "traderJoeRouter",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_contract(JoeRouterV3)3173",
+            "contract": "StrategyMagpieOvnUsdp",
+            "src": "contracts\\StrategyMagpieOvnUsdp.sol:69"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]",
+            "numberOfBytes": "1472"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2662": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISwapRouter)3922": {
+            "label": "contract ISwapRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWombatPool)6088": {
+            "label": "contract IWombatPool",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWombatRouter)6444": {
+            "label": "contract IWombatRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(JoeRouterV3)3173": {
+            "label": "contract JoeRouterV3",
+            "numberOfBytes": "20"
+          },
+          "t_contract(MagpiePoolHelper)2820": {
+            "label": "contract MagpiePoolHelper",
+            "numberOfBytes": "20"
+          },
+          "t_contract(MasterMagpie)2831": {
+            "label": "contract MasterMagpie",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "5896d6c09cbf436930470efd5c4c4b39bc1f9c1122c5fe2221cbc3afbbf77530": {
+      "address": "0xaa6cFd8a0ba4fA23f1a24a6Ac72717ba977fa739",
+      "txHash": "0x8aadabff4a137fb3dff62722cede95408fc8e798060fb017750bacf1b759d3e1",
+      "layout": {
+        "solcVersion": "0.8.6",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "portfolioManager",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_address",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:18"
+          },
+          {
+            "label": "swapSlippageBP",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:20"
+          },
+          {
+            "label": "navSlippageBP",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:21"
+          },
+          {
+            "label": "stakeSlippageBP",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_uint256",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_array(t_uint256)46_storage",
+            "contract": "Strategy",
+            "src": "@overnight-contracts\\core\\contracts\\Strategy.sol:167"
+          },
+          {
+            "label": "dai",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:38"
+          },
+          {
+            "label": "daiPlus",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:39"
+          },
+          {
+            "label": "usdt",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:40"
+          },
+          {
+            "label": "usdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:41"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:42"
+          },
+          {
+            "label": "wom",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:43"
+          },
+          {
+            "label": "mgp",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:44"
+          },
+          {
+            "label": "mgpLp",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_contract(IERC20)2662",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:45"
+          },
+          {
+            "label": "stakingWombat",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_address",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:47"
+          },
+          {
+            "label": "poolWombat",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_contract(IWombatPool)6088",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:48"
+          },
+          {
+            "label": "basePoolWombat",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_contract(IWombatPool)6088",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:49"
+          },
+          {
+            "label": "router",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_contract(IWombatRouter)6444",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:50"
+          },
+          {
+            "label": "poolHelperMgp",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_contract(MagpiePoolHelper)2820",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:51"
+          },
+          {
+            "label": "masterMgp",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_contract(MasterMagpie)2831",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:52"
+          },
+          {
+            "label": "uniswapV3Router",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_contract(ISwapRouter)3922",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:54"
+          },
+          {
+            "label": "poolFee0",
+            "offset": 20,
+            "slot": "315",
+            "type": "t_uint24",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:56"
+          },
+          {
+            "label": "poolFee1",
+            "offset": 23,
+            "slot": "315",
+            "type": "t_uint24",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:57"
+          },
+          {
+            "label": "assetWombatDm",
+            "offset": 0,
+            "slot": "316",
+            "type": "t_uint256",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:59"
+          },
+          {
+            "label": "traderJoeRouter",
+            "offset": 0,
+            "slot": "317",
+            "type": "t_contract(JoeRouterV3)3173",
+            "contract": "StrategyMagpieOvnDaiPlus",
+            "src": "contracts\\dai\\StrategyMagpieOvnDaiPlus.sol:61"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]",
+            "numberOfBytes": "1472"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2662": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISwapRouter)3922": {
+            "label": "contract ISwapRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWombatPool)6088": {
+            "label": "contract IWombatPool",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWombatRouter)6444": {
+            "label": "contract IWombatRouter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(JoeRouterV3)3173": {
+            "label": "contract JoeRouterV3",
+            "numberOfBytes": "20"
+          },
+          "t_contract(MagpiePoolHelper)2820": {
+            "label": "contract MagpiePoolHelper",
+            "numberOfBytes": "20"
+          },
+          "t_contract(MasterMagpie)2831": {
+            "label": "contract MasterMagpie",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
           },
           "t_uint256": {
             "label": "uint256",
