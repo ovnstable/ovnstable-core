@@ -165,6 +165,11 @@
       "address": "0xe105d6313ABa69E88255dEf71EAf2E53939D567e",
       "txHash": "0x43b0d6e3155193cefc56b551581fdccfd9397ea10d1d9bd2d1451869619873b9",
       "kind": "uups"
+    },
+    {
+      "address": "0x7f4f84c02E63A83E52e48B60eec33C1Fe6700E57",
+      "txHash": "0x4a09c4510a0b9c2aa6885ed57d14176b9c73f3ea5928b013d34d70273dd773f6",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -1743,7 +1748,7 @@
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)8853",
+            "type": "t_contract(IHedgeExchanger)16324",
             "contract": "StrategyEts",
             "src": "contracts\\StrategyEts.sol:14"
           }
@@ -1777,7 +1782,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)8853": {
+          "t_contract(IHedgeExchanger)16324": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },
