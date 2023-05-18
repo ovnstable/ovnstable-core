@@ -15,14 +15,25 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let items = [];
 
-    items.push(...velocore());
-    items.push(...syncSwap());
+    // items.push(...velocore());
+    // items.push(...syncSwap());
+    items.push(...vesync());
 
     await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'zksync')).address)).wait();
 
     console.log('ZksyncPayoutListener setting done');
+
+    function vesync(){
+
+        let dex = 'VeSync';
+
+        let items = [];
+        items.push(createSkim('0x16D0fC836FED0f645d832Eacc65106dDB67108Ef', usdPlus.address, 'USDC/USD+', dex));
+
+        return items;
+    }
 
     function velocore(){
 
