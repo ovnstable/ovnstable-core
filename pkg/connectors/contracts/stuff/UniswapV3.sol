@@ -383,6 +383,11 @@ interface IUniswapV3Pool {
         uint160 secondsPerLiquidityCumulativeX128,
         bool initialized
     );
+
+    function observe(uint32[] calldata secondsAgos)
+    external
+    view
+    returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
 }
 
 

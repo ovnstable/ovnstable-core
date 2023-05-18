@@ -154,6 +154,14 @@ interface IChronosRouter {
 }
 
 interface IChronosPair {
+
+    // Structure to capture time period obervations every 30 minutes, used for local oracles
+    struct Observation {
+        uint timestamp;
+        uint reserve0Cumulative;
+        uint reserve1Cumulative;
+    }
+
     function getReserves()
         external
         view
@@ -172,6 +180,10 @@ interface IChronosPair {
     function tokens() external view returns (address, address);
 
     function stable() external view returns (bool);
+
+    function observationLength() external view returns (uint256);
+
+    function observations(uint index) external view returns (Observation memory observation);
 }
 
 interface IChronosGauge {
