@@ -148,6 +148,7 @@ interface IPair {
     function approve(address spender, uint amount) external returns (bool);
     function totalSupply() external view returns (uint);
     function token0() external view returns (address);
+    function stable() external view returns (bool);
 }
 
 interface IGauge {

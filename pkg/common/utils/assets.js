@@ -158,6 +158,7 @@ let OPTIMISM = {
     soLusd: "0xAFdf91f120DEC93c65fd63DBD5ec372e5dcA5f82",
     soUsdt: "0x5Ff29E4470799b982408130EFAaBdeeAE7f66a10",
     soWstEth: "0x26AaB17f27CD1c8d06a0Ad8E4a1Af8B1032171d5",
+    soWeth: "0xf7B5965f5C117Eb1B5450187c9DcFccc3C317e8E",
     // granary
     granaryProvider: '0xdDE5dC81e40799750B92079723Da2acAF9e1C6D6',
     // swaps
