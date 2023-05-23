@@ -200,11 +200,9 @@ contract StrategyPendleUsdt is Strategy {
     }
 
     function calcLpByAmount(uint256 amount) private returns(uint256 lpAmount) {
-        uint256 lpTokenBalance = lp.balanceOf(address(this));
                 
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
-        
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
         uint256 totalLpBalance = lp.totalSupply();
 
@@ -224,8 +222,7 @@ contract StrategyPendleUsdt is Strategy {
         sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
         
         uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-        bytes memory bytesQ = abi.encodeWithSignature("", "");
-        SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), bytesQ, false);
+        SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
         TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
         pt.approve(address(pendleRouter), pt.balanceOf(address(this)));
         yt.approve(address(pendleRouter), yt.balanceOf(address(this)));
