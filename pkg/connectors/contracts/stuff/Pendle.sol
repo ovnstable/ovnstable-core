@@ -98,13 +98,19 @@ interface IPendleRouter {
         address[] calldata markets
     ) external;
 
-    function swapExactPtForYt(
+    function swapExactPtForSy(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minYtOut,
-        ApproxParams calldata guessTotalPtToSwap
-    ) external returns (uint256 netYtOut, uint256 netSyFee);
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
+
+    function swapExactYtForSy(
+        address receiver,
+        address market,
+        uint256 exactYtIn,
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
 
 }
 
