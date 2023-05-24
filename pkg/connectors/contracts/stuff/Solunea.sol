@@ -250,6 +250,8 @@ interface ISoluneaPair {
 
     function claimFees() external returns (uint, uint);
 
+    function totalSupply() external view returns (uint);
+
     function tokens() external view returns (address, address);
 
     function token0() external view returns (address);
