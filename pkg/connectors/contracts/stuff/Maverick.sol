@@ -268,7 +268,7 @@ interface IWETH9 is IERC20 {
     function withdraw(uint256) external;
 }
 
-interface ISlimRouter is ISwapCallback {
+interface IMaverickRouter {
     /// @return Returns the address of WETH9
     function WETH9() external view returns (IWETH9);
     struct ExactInputSingleParams {
@@ -317,9 +317,6 @@ interface ISlimRouter is ISwapCallback {
     /// @param amountMinimum The minimum amount of token required for a transfer
     /// @param recipient The destination address of the token
     function sweepToken(IERC20 token, uint256 amountMinimum, address recipient) external payable;
-}
-
-interface IMaverickRouter is ISlimRouter {
     /// @return Returns the address of the factory
     function factory() external view returns (IFactory);
     /// @return Returns the address of the Position NFT
