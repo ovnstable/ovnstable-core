@@ -215,7 +215,7 @@ interface ISoluneaRouter01 {
     ) external;
 }
 
-interface IPair {
+interface ISoluneaPair {
     // Structure to capture time period obervations every 30 minutes, used for local oracles
     struct Observation {
         uint timestamp;
@@ -237,6 +237,8 @@ interface IPair {
 
     function burn(address to) external returns (uint amount0, uint amount1);
 
+    function balanceOf(address) external view returns (uint);
+
     function mint(address to) external returns (uint liquidity);
 
     function getReserves()
@@ -255,6 +257,12 @@ interface IPair {
     function token1() external view returns (address);
 
     function stable() external view returns (bool);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function observationLength() external view returns (uint256);
+
+    function observations(uint index) external view returns (Observation memory observation);
 
     function metadata()
         external
