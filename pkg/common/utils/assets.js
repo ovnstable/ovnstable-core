@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config({path:__dirname+ '/../../../.env'});
+dotenv.config({ path: __dirname + '/../../../.env' });
 
 let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
@@ -37,6 +37,7 @@ let ARBITRUM = {
     chr: "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851",
     df: "0xaE6aab43C4f3E0cea4Ab83752C278f8dEbabA689",
     usx: "0x641441c631e2F909700d2f41FD87F0aA6A6b4EDb",
+    slna: "0x1C28Edf9e0D66F3124f141A3cF3Ef1217F7019c4",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
@@ -63,6 +64,7 @@ let ARBITRUM = {
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
     odosRouter: "0xdd94018F54e565dbfc939F7C44a16e163FaAb331",
+    soluneaRouter: "0x8C36161aBE3F425F924D4F8E171d25e60ef2A0a4",
 
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
