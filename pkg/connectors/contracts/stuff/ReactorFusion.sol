@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+interface IWETH {
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
+
 interface IRFComptroller {
-    function enterMarkets(address[] calldata cTokens) external returns (uint[] memory);
-    function exitMarket(address cToken) external returns (uint);
+    function enterMarkets(address[] calldata rfTokens) external returns (uint[] memory);
+    function exitMarket(address rfToken) external returns (uint);
 }
 
 interface IRFToken {
@@ -20,7 +25,7 @@ interface IRFToken {
 }
 
 interface IRFRewardsDistributor {
-    function borrowSlot(address cToken) external pure returns (bytes32);
-    function supplySlot(address cToken) external pure returns (bytes32);
+    function borrowSlot(address rfToken) external pure returns (bytes32);
+    function supplySlot(address rfToken) external pure returns (bytes32);
     function harvest(bytes32[] memory ledgerIds) external returns (uint256);
 }
