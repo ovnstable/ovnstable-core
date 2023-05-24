@@ -134,6 +134,11 @@ contract StrategyPendleUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
+        // 1. Swap usdc to usdt
+        // 2. Calculate how usdt we should swap to Sy
+        // 3. Mint from usdt to PT+YT
+        // 4. Add Liquidity in PT+SY
+
         CurveLibrary.swap(
             curvePool,
             address(usdc),
@@ -194,6 +199,9 @@ contract StrategyPendleUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
+        // 1. Calculate how lp we should remove from main pool
+        // 2. Unstake exact Lp
+
         uint256 lpAmount = calcLpByAmount(_amount);
         unstakeExactLp(lpAmount, false);
 
@@ -233,6 +241,11 @@ contract StrategyPendleUsdt is Strategy {
     }
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
+
+        // 1. Remove liquidity from main pool
+        // 2. Redeem from (pt+yt) to usdt
+        // 3. Redeem from sy to usdt
+
         lp.approve(address(pendleRouter), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0); 
         
@@ -319,6 +332,8 @@ contract StrategyPendleUsdt is Strategy {
         return usdcAmount;
     }
 
+
+    // this method make pt and yt amounts euqal
     function _equPtYt() private {
 
         (, uint256 ptAmount) = getAmountsByLp();
