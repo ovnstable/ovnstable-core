@@ -23,13 +23,9 @@ contract StrategyPendleUsdt is Strategy {
         address lpAddress;
         address pendleRouterAddress;
         address stargateUsdtAddress;
+        address pendlePtOracleAddress;
 
         address uniswapV3Router;
-        address middleToken;
-        uint24 poolFeeStg0;
-        uint24 poolFeeStg1;
-        uint24 poolFeePendle0;
-        uint24 poolFeePendle1;
 
         address curvePool;
         address oracleUsdc;
@@ -37,6 +33,8 @@ contract StrategyPendleUsdt is Strategy {
 
         address stgAddress;
         address pendleAddress;
+
+        uint256 thresholdBalancePercent;
     }
 
     // --- params
@@ -46,21 +44,13 @@ contract StrategyPendleUsdt is Strategy {
     IERC20 public pt;
     IERC20 public yt;
 
-    uint256 public usdcDm;
-    uint256 public usdtDm;
-
-    IPendleRouter pendleRouter;
-    IPendleStargateLPSY sy;
-    IPendleMarket lp;
-    address stargateUsdtAddress;
+    IPendleRouter public pendleRouter;
+    IPendleStargateLPSY public sy;
+    IPendleMarket public lp;
+    IPendlePtOracle public ptOracle;
+    address public stargateUsdtAddress;
 
     ISwapRouter public uniswapV3Router;
-    address public middleToken;
-    uint24 public poolFeeStg0;
-    uint24 public poolFeeStg1;
-    uint24 public poolFeePendle0;
-    uint24 public poolFeePendle1;
-
     address public curvePool;
 
     IPriceFeed public oracleUsdc;
@@ -68,6 +58,8 @@ contract StrategyPendleUsdt is Strategy {
 
     IERC20 public stg;
     IERC20 public pendle;
+
+    uint256 public thresholdBalancePercent;
 
     // --- events
 
@@ -94,16 +86,8 @@ contract StrategyPendleUsdt is Strategy {
         stargateUsdtAddress = params.stargateUsdtAddress;
         
         pendleRouter = IPendleRouter(params.pendleRouterAddress);
-
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
-        middleToken = params.middleToken;
-        poolFeeStg0 = params.poolFeeStg0;
-        poolFeeStg1 = params.poolFeeStg1;
-        poolFeePendle0 = params.poolFeePendle0;
-        poolFeePendle1 = params.poolFeePendle1;
-
-        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
-        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
+        ptOracle = IPendlePtOracle(params.pendlePtOracleAddress);
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
@@ -112,6 +96,17 @@ contract StrategyPendleUsdt is Strategy {
 
         stg = IERC20(params.stgAddress);
         pendle = IERC20(params.pendleAddress);
+
+        thresholdBalancePercent = params.thresholdBalancePercent;
+
+        uint256 MAX_VALUE = 2 ** 256 - 1;
+        usdt.approve(address(sy), MAX_VALUE);
+        usdt.approve(address(pendleRouter), MAX_VALUE);
+        sy.approve(address(sy), MAX_VALUE);
+        sy.approve(address(pendleRouter), MAX_VALUE);
+        pt.approve(address(pendleRouter), MAX_VALUE);
+        yt.approve(address(pendleRouter), MAX_VALUE);
+        lp.approve(address(pendleRouter), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -162,25 +157,20 @@ contract StrategyPendleUsdt is Strategy {
                 totalLiquidity * syReserves + ptReserves * totalSupply
             );
 
-            usdt.approve(address(sy), amountUsdtToSy);
             sy.deposit(address(this), address(usdt), amountUsdtToSy, 0);
         }
 
         {
             SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
             TokenInput memory input = TokenInput(address(usdt), usdt.balanceOf(address(this)), address(usdt), address(0x0), address(0x0), swapData);
-            usdt.approve(address(pendleRouter), usdt.balanceOf(address(this)));
             pendleRouter.mintPyFromToken(address(this), address(yt), 0, input); 
         }
 
-        sy.approve(address(pendleRouter), sy.balanceOf(address(this)));
-        pt.approve(address(pendleRouter), pt.balanceOf(address(this)));
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0); 
     }
 
     function _movePtToSy(uint256 ptBalance) private {
         if (ptBalance > 0 && ptBalance <= pt.balanceOf(address(this))) {
-            pt.approve(address(pendleRouter), ptBalance);
             pendleRouter.swapExactPtForSy(address(this), address(lp), ptBalance, 0);
             
         }
@@ -188,9 +178,14 @@ contract StrategyPendleUsdt is Strategy {
 
     function _moveYtToSy(uint256 ytBalance) private {
         if (ytBalance > 0 && ytBalance <= yt.balanceOf(address(this))) {
-            yt.approve(address(pendleRouter), ytBalance);
             pendleRouter.swapExactYtForSy(address(this), address(lp), ytBalance, 0);
         }
+    }
+
+    function _getPtYtRate(uint256 ptAmount, uint256 ytAmount) private view returns (uint256 ptUsdt, uint256 ytUsdt) {
+        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 1);
+        ptUsdt = ptRate * ptAmount / 1e18;
+        ytUsdt = (1e18 - ptRate) * ytAmount / 1e18;
     }
 
     function _unstake(
@@ -246,11 +241,8 @@ contract StrategyPendleUsdt is Strategy {
         // 2. Redeem from (pt+yt) to usdt
         // 3. Redeem from sy to usdt
 
-        lp.approve(address(pendleRouter), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0); 
         
-        pt.approve(address(pendleRouter), pt.balanceOf(address(this)));
-        yt.approve(address(pendleRouter), yt.balanceOf(address(this)));
         {
             uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
             SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
@@ -263,7 +255,6 @@ contract StrategyPendleUsdt is Strategy {
             _moveYtToSy(yt.balanceOf(address(this)));
         }
 
-        sy.approve(address(sy), sy.balanceOf(address(this)));
         sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
 
         uint256 usdtBalance = usdt.balanceOf(address(this));
@@ -320,6 +311,8 @@ contract StrategyPendleUsdt is Strategy {
 
         ptAmount -= minAmount;
         ytAmount -= minAmount;
+        (uint256 ptInUsdt, uint256 ytInUsdt) = _getPtYtRate(ptAmount, ytAmount);
+        usdtAmount += ptInUsdt + ytInUsdt;
 
         if(usdtAmount > 0) {
             if (nav) {
@@ -340,10 +333,20 @@ contract StrategyPendleUsdt is Strategy {
         ptAmount += pt.balanceOf(address(this));
         uint256 ytAmount = yt.balanceOf(address(this));
 
+        uint256 ptInUsdt;
+        uint256 ytInUsdt;
+        uint256 nav = _totalValue(true);
+
         if (ptAmount > ytAmount) {
-            _movePtToSy(ptAmount - ytAmount);
+            (ptInUsdt,) = _getPtYtRate(ptAmount - ytAmount, 0);
+            if (nav * thresholdBalancePercent / 100 < ptInUsdt) {
+                _movePtToSy(ptAmount - ytAmount);
+            }
         } else {
-            _moveYtToSy(ytAmount - ptAmount);
+            (, ytInUsdt) = _getPtYtRate(0, ytAmount - ptAmount);
+            if (nav * thresholdBalancePercent / 100 < ytInUsdt) {
+                _moveYtToSy(ytAmount - ptAmount);
+            }
         }
 
     }
@@ -358,41 +361,42 @@ contract StrategyPendleUsdt is Strategy {
         _equPtYt();
 
         uint256 totalUsdc;
-        // uint256 stgBalance = stg.balanceOf(address(this));
-        // if (stgBalance > 0) {
+        address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+        uint256 stgBalance = stg.balanceOf(address(this));
+        if (stgBalance > 0) {
 
-        //     uint256 amountOut = UniswapV3Library.multiSwap(
-        //         uniswapV3Router,
-        //         address(stg),
-        //         middleToken,
-        //         address(usdc),
-        //         poolFeeStg0,
-        //         poolFeeStg1,
-        //         address(this),
-        //         stgBalance,
-        //         0
-        //     );
+            uint256 amountOut = UniswapV3Library.multiSwap(
+                uniswapV3Router,
+                address(stg),
+                middleTokenWeth,
+                address(usdc),
+                3000,
+                500,
+                address(this),
+                stgBalance,
+                0
+            );
 
-        //     totalUsdc += amountOut;
-        // }
+            totalUsdc += amountOut;
+        }
 
-        // uint256 pendleBalance = pendle.balanceOf(address(this));
-        // if (pendleBalance > 0) {
+        uint256 pendleBalance = pendle.balanceOf(address(this));
+        if (pendleBalance > 0) {
 
-        //     uint256 amountOut = UniswapV3Library.multiSwap(
-        //         uniswapV3Router,
-        //         address(pendle),
-        //         middleToken,
-        //         address(usdc),
-        //         poolFeePendle0,
-        //         poolFeePendle1,
-        //         address(this),
-        //         pendleBalance,
-        //         0
-        //     );
+            uint256 amountOut = UniswapV3Library.multiSwap(
+                uniswapV3Router,
+                address(pendle),
+                middleTokenWeth,
+                address(usdc),
+                3000,
+                500,
+                address(this),
+                pendleBalance,
+                0
+            );
 
-        //     totalUsdc += amountOut;
-        // }
+            totalUsdc += amountOut;
+        }
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
@@ -404,12 +408,12 @@ contract StrategyPendleUsdt is Strategy {
     function _oracleUsdtToUsdc(uint256 amount) internal view returns (uint256) {
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
         uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(amount, usdtDm, usdcDm, priceUsdt, priceUsdc);
+        return ChainlinkLibrary.convertTokenToToken(amount, 1e6, 1e6, priceUsdt, priceUsdc);
     }
 
     function _oracleUsdcToUsdt(uint256 amount) internal view returns (uint256) {
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
         uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(amount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+        return ChainlinkLibrary.convertTokenToToken(amount, 1e6, 1e6, priceUsdc, priceUsdt);
     }
 }
