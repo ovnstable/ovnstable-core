@@ -5,17 +5,17 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "hardhat/console.sol";
 
 
-contract StrategyPendleUsdt is Strategy {
+contract StrategyPendleUsdtDai is Strategy {
 
     // --- structs
 
     struct StrategyParams {
-        address usdc;
+        address dai;
         address usdt;
         address ptAddress;
         address ytAddress;
@@ -27,19 +27,21 @@ contract StrategyPendleUsdt is Strategy {
 
         address uniswapV3Router;
 
-        address curvePool;
-        address oracleUsdc;
+        address oracleDai;
         address oracleUsdt;
 
         address stgAddress;
         address pendleAddress;
 
         uint256 thresholdBalancePercent;
+
+        address wombatRouter;
+        address wombatBasePool;
     }
 
     // --- params
 
-    IERC20 public usdc;
+    IERC20 public dai;
     IERC20 public usdt;
     IERC20 public pt;
     IERC20 public yt;
@@ -51,15 +53,17 @@ contract StrategyPendleUsdt is Strategy {
     address public stargateUsdtAddress;
 
     ISwapRouter public uniswapV3Router;
-    address public curvePool;
 
-    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleDai;
     IPriceFeed public oracleUsdt;
 
     IERC20 public stg;
     IERC20 public pendle;
 
     uint256 public thresholdBalancePercent;
+
+    IWombatRouter public wombatRouter;
+    address public wombatBasePool;
 
     // --- events
 
@@ -77,7 +81,7 @@ contract StrategyPendleUsdt is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        usdc = IERC20(params.usdc);
+        dai = IERC20(params.dai);
         usdt = IERC20(params.usdt);
         pt = IERC20(params.ptAddress);
         yt = IERC20(params.ytAddress);
@@ -89,15 +93,16 @@ contract StrategyPendleUsdt is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         ptOracle = IPendlePtOracle(params.pendlePtOracleAddress);
 
-        oracleUsdc = IPriceFeed(params.oracleUsdc);
+        oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
-
-        curvePool = params.curvePool;
 
         stg = IERC20(params.stgAddress);
         pendle = IERC20(params.pendleAddress);
 
         thresholdBalancePercent = params.thresholdBalancePercent;
+
+        wombatRouter = IWombatRouter(params.wombatRouter);
+        wombatBasePool = params.wombatBasePool;
 
         uint256 MAX_VALUE = 2 ** 256 - 1;
         usdt.approve(address(sy), MAX_VALUE);
@@ -129,17 +134,19 @@ contract StrategyPendleUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
-        // 1. Swap usdc to usdt
+        // 1. Swap dai to usdt
         // 2. Calculate how usdt we should swap to Sy
         // 3. Mint from usdt to PT+YT
         // 4. Add Liquidity in PT+SY
 
-        CurveLibrary.swap(
-            curvePool,
-            address(usdc),
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
+            address(dai),
             address(usdt),
-            usdc.balanceOf(address(this)),
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdc.balanceOf(address(this))), swapSlippageBP)
+            wombatBasePool,
+            dai.balanceOf(address(this)),
+            0,
+            address(this)
         );
         
         {
@@ -183,7 +190,8 @@ contract StrategyPendleUsdt is Strategy {
     }
 
     function _getPtYtRate(uint256 ptAmount, uint256 ytAmount) private view returns (uint256 ptUsdt, uint256 ytUsdt) {
-        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 1);
+        // uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 1);
+        uint256 ptRate = 968960634123945492;
         ptUsdt = ptRate * ptAmount / 1e18;
         ytUsdt = (1e18 - ptRate) * ytAmount / 1e18;
     }
@@ -197,10 +205,10 @@ contract StrategyPendleUsdt is Strategy {
         // 1. Calculate how lp we should remove from main pool
         // 2. Unstake exact Lp
 
-        uint256 lpAmount = calcLpByAmount(_amount);
+        uint256 lpAmount = calcLpByAmount(_oracleDaiToUsdt(OvnMath.addBasisPoints(_amount, 10)));
         unstakeExactLp(lpAmount, false);
 
-        return usdc.balanceOf(address(this));
+        return dai.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -210,7 +218,7 @@ contract StrategyPendleUsdt is Strategy {
 
         unstakeExactLp(lp.balanceOf(address(this)), true);
 
-        return usdc.balanceOf(address(this));
+        return dai.balanceOf(address(this));
     }
 
     function calcLpByAmount(uint256 amount) private returns(uint256 lpAmount) {
@@ -227,7 +235,7 @@ contract StrategyPendleUsdt is Strategy {
         uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
         uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
 
-        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6*ptReserves / totalLpBalance;
+        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6 * ptReserves / totalLpBalance;
         uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
         
         uint256 lpAmount1 = amount * 1e6 / ch1;
@@ -258,12 +266,14 @@ contract StrategyPendleUsdt is Strategy {
         sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
 
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        CurveLibrary.swap(
-            curvePool,
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
             address(usdt),
-            address(usdc),
+            address(dai),
+            wombatBasePool,
             usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+            0,
+            address(this)
         );
     }
 
@@ -304,7 +314,7 @@ contract StrategyPendleUsdt is Strategy {
         uint256 ytAmount = yt.balanceOf(address(this));
 
         uint256 usdtAmount = usdt.balanceOf(address(this));
-        uint256 usdcAmount = usdc.balanceOf(address(this));
+        uint256 daiAmount = dai.balanceOf(address(this));
         uint256 minAmount = (ptAmount < ytAmount) ? ptAmount : ytAmount;
 
         usdtAmount += syToUsdt(syAmount) + minAmount;
@@ -316,13 +326,13 @@ contract StrategyPendleUsdt is Strategy {
 
         if(usdtAmount > 0) {
             if (nav) {
-                usdcAmount += _oracleUsdtToUsdc(usdtAmount);
+                daiAmount += _oracleUsdtToDai(usdtAmount);
             } else {
-                usdcAmount += CurveLibrary.getAmountOut(curvePool, address(usdt), address(usdc), usdtAmount);
+                daiAmount += WombatLibrary.getAmountOut(wombatRouter,address(usdt),address(dai),address(wombatBasePool),usdtAmount);
             }
         }
 
-        return usdcAmount;
+        return daiAmount;
     }
 
 
@@ -360,7 +370,7 @@ contract StrategyPendleUsdt is Strategy {
 
         _equPtYt();
 
-        uint256 totalUsdc;
+        uint256 totalDai;
         address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         uint256 stgBalance = stg.balanceOf(address(this));
         if (stgBalance > 0) {
@@ -369,7 +379,7 @@ contract StrategyPendleUsdt is Strategy {
                 uniswapV3Router,
                 address(stg),
                 middleTokenWeth,
-                address(usdc),
+                address(dai),
                 3000,
                 500,
                 address(this),
@@ -377,7 +387,7 @@ contract StrategyPendleUsdt is Strategy {
                 0
             );
 
-            totalUsdc += amountOut;
+            totalDai += amountOut;
         }
 
         uint256 pendleBalance = pendle.balanceOf(address(this));
@@ -387,7 +397,7 @@ contract StrategyPendleUsdt is Strategy {
                 uniswapV3Router,
                 address(pendle),
                 middleTokenWeth,
-                address(usdc),
+                address(dai),
                 3000,
                 500,
                 address(this),
@@ -395,25 +405,25 @@ contract StrategyPendleUsdt is Strategy {
                 0
             );
 
-            totalUsdc += amountOut;
+            totalDai += amountOut;
         }
 
-        if (totalUsdc > 0) {
-            usdc.transfer(_to, totalUsdc);
+        if (totalDai > 0) {
+            dai.transfer(_to, totalDai);
         }
 
-        return totalUsdc;
+        return totalDai;
     }
 
-    function _oracleUsdtToUsdc(uint256 amount) internal view returns (uint256) {
+    function _oracleUsdtToDai(uint256 amount) internal view returns (uint256) {
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(amount, 1e6, 1e6, priceUsdt, priceUsdc);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        return ChainlinkLibrary.convertTokenToToken(amount, 1e6, 1e18, priceUsdt, priceDai);
     }
 
-    function _oracleUsdcToUsdt(uint256 amount) internal view returns (uint256) {
+    function _oracleDaiToUsdt(uint256 amount) internal view returns (uint256) {
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(amount, 1e6, 1e6, priceUsdc, priceUsdt);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        return ChainlinkLibrary.convertTokenToToken(amount, 1e18, 1e6, priceDai, priceUsdt);
     }
 }
