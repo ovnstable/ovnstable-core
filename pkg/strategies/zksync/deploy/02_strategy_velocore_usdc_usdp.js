@@ -21,7 +21,7 @@ async function getParams(){
         usdc: ZKSYNC.usdc,
         usdp: ZKSYNC.usdPlus,
         vc: ZKSYNC.vc,
-        router: ZKSYNC.vcRouter,
+        router: ZKSYNC.velocoreRouter,
         gauge: '0x4926b61510F086eBa77b374B5689A4DB370c2933',
         pair: '0x4b9f00860d7f42870addeb687fa4e47062df71d9', // USDC/USD+
     }
