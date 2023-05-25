@@ -70,8 +70,8 @@ This repository contains is next modules:
 10. Deploy new governance if new chain. Copy governance files if same chain
 11. Move rules of core contracts to governance in pkg/governance
     npx hardhat run scripts/move_core_to_gov.js --network bsc_usdt
-12. Add cash strategy in dict.strategies and core contracts in dict.contracts.
-13. Set percentage in anal.collateral after adding liquidity in cash strategy.
+12. Add cash strategy in core.strategies and core contracts in dict.contracts.
+13. Set percentage in core.collateral after adding liquidity in cash strategy.
 
 ## How to deploy new strategy:
 
