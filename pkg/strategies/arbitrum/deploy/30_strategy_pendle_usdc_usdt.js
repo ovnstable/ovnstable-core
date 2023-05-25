@@ -34,10 +34,10 @@ async function getParams() {
         oracleUsdt: ARBITRUM.oracleUsdt,
         stgAddress: '0x6694340fc020c5E6B96567843da2df01b2CE1eb6',
         pendleAddress: '0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8',
-        thresholdBalancePercent: 5
+        thresholdBalancePercent: 5,
     }
 }
 
-module.exports.tags = ['StrategyPendleUsdtUsdc'];
+module.exports.tags = ['StrategyPendleUsdcUsdt'];
 module.exports.getParams = getParams
-module.exports.strategyPendleUsdtUsdcParams = getParams
+module.exports.strategyPendleUsdcUsdtParams = getParams
