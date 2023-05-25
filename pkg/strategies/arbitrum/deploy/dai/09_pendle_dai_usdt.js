@@ -38,9 +38,9 @@ async function getParams() {
         wombatRouter: ARBITRUM.wombatRouter,
         wombatBasePool: ARBITRUM.wombatBasePool
     }
-    
+
 }
 
-module.exports.tags = ['StrategyPendleUsdtDai'];
+module.exports.tags = ['StrategyPendleDaiUsdt'];
 module.exports.getParams = getParams
-module.exports.strategyPendleUsdtDaiParams = getParams
+module.exports.strategyPendleDaiUsdtParams = getParams

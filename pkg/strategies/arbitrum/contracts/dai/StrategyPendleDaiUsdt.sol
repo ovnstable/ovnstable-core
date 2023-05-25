@@ -10,7 +10,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "hardhat/console.sol";
 
 
-contract StrategyPendleUsdtDai is Strategy {
+contract StrategyPendleDaiUsdt is Strategy {
 
     // --- structs
 
@@ -88,7 +88,7 @@ contract StrategyPendleUsdtDai is Strategy {
         sy = IPendleStargateLPSY(params.syAddress);
         lp = IPendleMarket(params.lpAddress);
         stargateUsdtAddress = params.stargateUsdtAddress;
-        
+
         pendleRouter = IPendleRouter(params.pendleRouterAddress);
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         ptOracle = IPendlePtOracle(params.pendlePtOracleAddress);
@@ -148,7 +148,7 @@ contract StrategyPendleUsdtDai is Strategy {
             0,
             address(this)
         );
-        
+
         {
             uint256 usAm = usdt.balanceOf(address(this));
             uint256 syAm = sy.balanceOf(address(this));
@@ -157,10 +157,10 @@ contract StrategyPendleUsdtDai is Strategy {
             uint256 syReserves = uint256(uint128(marketStorage.totalSy));
             uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
             uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
-            
+
             uint256 amountUsdtToSy = FullMath.mulDiv(
-                totalLiquidity, 
-                syReserves * usAm - ptReserves * syAm, 
+                totalLiquidity,
+                syReserves * usAm - ptReserves * syAm,
                 totalLiquidity * syReserves + ptReserves * totalSupply
             );
 
@@ -170,16 +170,16 @@ contract StrategyPendleUsdtDai is Strategy {
         {
             SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
             TokenInput memory input = TokenInput(address(usdt), usdt.balanceOf(address(this)), address(usdt), address(0x0), address(0x0), swapData);
-            pendleRouter.mintPyFromToken(address(this), address(yt), 0, input); 
+            pendleRouter.mintPyFromToken(address(this), address(yt), 0, input);
         }
 
-        pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0); 
+        pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
     }
 
     function _movePtToSy(uint256 ptBalance) private {
         if (ptBalance > 0 && ptBalance <= pt.balanceOf(address(this))) {
             pendleRouter.swapExactPtForSy(address(this), address(lp), ptBalance, 0);
-            
+
         }
     }
 
@@ -190,8 +190,7 @@ contract StrategyPendleUsdtDai is Strategy {
     }
 
     function _getPtYtRate(uint256 ptAmount, uint256 ytAmount) private view returns (uint256 ptUsdt, uint256 ytUsdt) {
-        // uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 1);
-        uint256 ptRate = 968960634123945492;
+        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
         ptUsdt = ptRate * ptAmount / 1e18;
         ytUsdt = (1e18 - ptRate) * ytAmount / 1e18;
     }
@@ -222,7 +221,7 @@ contract StrategyPendleUsdtDai is Strategy {
     }
 
     function calcLpByAmount(uint256 amount) private returns(uint256 lpAmount) {
-        
+
         uint256 ptReserves;
         uint256 syReserves;
 
@@ -237,7 +236,7 @@ contract StrategyPendleUsdtDai is Strategy {
 
         uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6 * ptReserves / totalLpBalance;
         uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
-        
+
         uint256 lpAmount1 = amount * 1e6 / ch1;
         uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
         lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
@@ -249,8 +248,8 @@ contract StrategyPendleUsdtDai is Strategy {
         // 2. Redeem from (pt+yt) to usdt
         // 3. Redeem from sy to usdt
 
-        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0); 
-        
+        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+
         {
             uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
             SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
@@ -286,7 +285,7 @@ contract StrategyPendleUsdtDai is Strategy {
     }
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {
-    
+
         uint256 lpTokenBalance = lp.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
@@ -306,11 +305,11 @@ contract StrategyPendleUsdtDai is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        
+
         (uint256 syAmount, uint256 ptAmount) = getAmountsByLp();
         syAmount += sy.balanceOf(address(this));
         ptAmount += pt.balanceOf(address(this));
-        
+
         uint256 ytAmount = yt.balanceOf(address(this));
 
         uint256 usdtAmount = usdt.balanceOf(address(this));
