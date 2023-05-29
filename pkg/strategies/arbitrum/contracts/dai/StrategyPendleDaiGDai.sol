@@ -279,10 +279,8 @@ contract StrategyPendleDaiGDai is Strategy {
 
     function _makeRequest() private {
 
-        IOpenTradesPnlFeed feed = IOpenTradesPnlFeed(0x990BA9Edd8a9615A23E4c452E63A80e519A4a23D);
-
         // if you CAN make request and NEED make request
-        if (feed.nextEpochValuesRequestCount() == 0 && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
+        if (isActivePhase() && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
             _unstakeExactLp(lp.balanceOf(address(this)), true, false);
             gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
             _balance();
