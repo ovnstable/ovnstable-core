@@ -4,8 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-// import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
-import "./TemporaryPendleInterface.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "hardhat/console.sol";
 
 
@@ -43,14 +42,6 @@ contract StrategyPendleDaiGDai is Strategy {
     ISwapRouter public uniswapV3Router;
     IERC20 public pendle;
     uint256 public thresholdBalancePercent;
-
-    uint256 currentEpoch;
-    uint256 withdrawalEpoch;
-    uint256 nextWithdrawalTimeStart;
-    uint256 nextWithdrawalTimeFinish;
-    uint256 nearestWithdrawalMoment;
-    bool canWithdrawNow;
-    bool requestedInThisEpoch;
 
     // --- events
 
@@ -120,12 +111,6 @@ contract StrategyPendleDaiGDai is Strategy {
 
         _balance();
 
-        // makeRequest testing
-        // console.log("isActivePhase", isActivePhase());
-        // console.log("timeToPhaseEnd", timeToPhaseEnd());
-        // console.log("amountCanWithdrawnInTheFuture", gDai.totalSharesBeingWithdrawn(address(this)));
-        // _makeRequest();
-        // console.log("amountCanWithdrawnInTheFuture", gDai.totalSharesBeingWithdrawn(address(this)));
     }
 
     function _balance() private {
@@ -192,11 +177,9 @@ contract StrategyPendleDaiGDai is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        // 1. Calculate how lp we should remove from main pool
-        // 2. Unstake exact Lp
-
-        uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
-        _unstakeExactLp(lpAmount, false, true);
+        if (gDai.maxWithdraw(address(this)) >= _amount) {
+            gDai.withdraw(_amount, address(this), address(this));
+        }
 
         return dai.balanceOf(address(this));
     }
@@ -206,7 +189,9 @@ contract StrategyPendleDaiGDai is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        _unstakeExactLp(lp.balanceOf(address(this)), true, true);
+        if (gDai.maxWithdraw(address(this)) > 0) {
+            gDai.redeem(gDai.balanceOf(address(this)), address(this), address(this));
+        }
 
         return dai.balanceOf(address(this));
     }
@@ -233,12 +218,11 @@ contract StrategyPendleDaiGDai is Strategy {
         lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
     }
 
-    function _unstakeExactLp(uint256 lpAmount, bool clearDiff, bool gDaiToDai) private {
+    function _unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
 
         // 1. Remove liquidity from main pool
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
-        // 4. Swap to dai
 
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
@@ -255,18 +239,11 @@ contract StrategyPendleDaiGDai is Strategy {
         }
 
         sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
-
-        uint256 gDaiBalance = gDai.balanceOf(address(this));
-
-        if (gDaiToDai && gDai.maxRedeem(address(this)) >= gDaiBalance) {
-            gDai.redeem(gDaiBalance, address(this), address(this));
-        }
     }
 
-    function maxRedeemNow() public view returns (uint256) {
-        return gDai.maxRedeem(address(this));
+    function maxWithdrawNow() public view returns (uint256) {
+        return gDai.maxWithdraw(address(this));
     }
-
 
     function timeToPhaseEnd() public view returns (uint256) {
         return gDai.currentEpochStart() + (isActivePhase() ? (2 days) : (3 days)) - block.timestamp;
@@ -277,13 +254,13 @@ contract StrategyPendleDaiGDai is Strategy {
         return feed.nextEpochValuesRequestCount() == 0;
     }
 
-    function _makeRequest() private {
+    function unstakeToGDaiAndMakeRequest(uint256 _amount, bool isUnstakeFull) public onlyPortfolioAgent {
 
         // if you CAN make request and NEED make request
         if (isActivePhase() && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
-            _unstakeExactLp(lp.balanceOf(address(this)), true, false);
+            uint256 lpAmount = isUnstakeFull ? lp.balanceOf(address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
+            _unstakeExactLp(lpAmount, isUnstakeFull);
             gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
-            _balance();
         }
     }
 
@@ -398,8 +375,6 @@ contract StrategyPendleDaiGDai is Strategy {
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
-
-        _makeRequest();
 
         return totalDai;
     }

@@ -177,3 +177,27 @@ interface IPendlePtOracle {
     );
     
 }
+
+
+interface IGToken {
+    function deposit(uint256 assets, address receiver) external returns (uint256 shares);
+    function makeWithdrawRequest(uint shares, address owner) external;
+    function withdraw(uint256 assets, address receiver, address owner) external returns (uint256 shares);
+    function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets);
+    function balanceOf(address account) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function maxRedeem(address owner) external view returns (uint256 maxShares);
+    function maxWithdraw(address owner) external view returns (uint256 maxAssets);
+    function previewDeposit(uint256 assets) external view returns (uint256 shares);
+    function convertToShares(uint256 assets) external view returns (uint256 shares);
+    function convertToAssets(uint256 shares) external view returns (uint256 assets);
+    function previewWithdraw(uint256 assets) external view returns (uint256 shares);
+    function previewRedeem(uint256 shares) external view returns (uint256 assets);
+    function totalSharesBeingWithdrawn(address owner) external view returns (uint shares);
+    function currentEpochStart() external view returns (uint);
+}
+
+interface IOpenTradesPnlFeed{
+    function nextEpochValuesRequestCount() external view returns(uint);
+    function newOpenPnlRequestOrEpoch() external;
+}
