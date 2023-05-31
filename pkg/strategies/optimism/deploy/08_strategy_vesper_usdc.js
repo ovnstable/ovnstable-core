@@ -1,4 +1,4 @@
-const {deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 
@@ -6,7 +6,7 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEts', deployments, save, null);
+        await deployProxy(name, deployments, save);
     });
 
     await settingSection(async (strategy) => {
@@ -16,12 +16,15 @@ module.exports = async ({deployments}) => {
 
 async function getParams() {
     return {
-        asset: OPTIMISM.usdc,
-        rebaseToken: '0x909CC74fa5FC832Cc1C5c7D2d9DDD1574127D231',
-        hedgeExchanger: '0x2533A096f9716C9403A59d7a1877581D1CFC8AC9',
+        usdcToken: OPTIMISM.usdc,
+        opToken: OPTIMISM.op,
+        vUsdc: '0x539505Dde2B9771dEBE0898a84441c5E7fDF6BC0',
+        poolRewards: '0x6104D21888CD996918C8cbA7480C71271DEE3120',
+        uniswapV3Router: OPTIMISM.uniswapV3Router,
+        poolFee: 3000
     };
 }
 
-module.exports.tags = ['StrategyEtsKappa'];
+module.exports.tags = ['StrategyVesperUsdc'];
 module.exports.getParams = getParams;
-module.exports.strategyEtsKappa = getParams;
+module.exports.strategyVesperUsdc = getParams;

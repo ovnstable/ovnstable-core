@@ -70,22 +70,22 @@ This repository contains is next modules:
 10. Deploy new governance if new chain. Copy governance files if same chain
 11. Move rules of core contracts to governance in pkg/governance
     npx hardhat run scripts/move_core_to_gov.js --network bsc_usdt
-12. Add cash strategy in dict.strategies and core contracts in dict.contracts.
-13. Set percentage in anal.collateral after adding liquidity in cash strategy.
+12. Add cash strategy in core.strategies and core contracts in dict.contracts.
+13. Set percentage in core.collateral after adding liquidity in cash strategy.
 
 ## How to deploy new strategy:
 
-1. Set in .env file your parameters and check actual gas price in gas station.
+1. Set in .env file your parameters and check actual gas price in gas station
 2. Deploy strategy and setting in pkg/strategies/polygon
    npx hardhat deploy --tags StrategyEtsAlfaPlus --setting --network polygon
-3. Verify strategy in pkg/strategies/polygon and verify it on scan service.
+3. Verify strategy in pkg/strategies/polygon and verify it on scan service
    npx hardhat run scripts/verify.js --network polygon
-4. Add new record in dict.strategies.
-5. Add FREE_RIDER_ROLE and WHITELIST_ROLE in ETS if it's ETS strategy. Create and execute proposal if ETS under governance.
-6. Change in payout service order of payouts, if it's ETS strategy.
+4. Add new record in core.strategies and in dict.tokens (if it needs)
+5. Add FREE_RIDER_ROLE and WHITELIST_ROLE in ETS if it's ETS strategy. Create and execute proposal if ETS under governance
+6. Change in payout service order of payouts, if it's ETS strategy
 7. Add strategy in PM through proposal in pkg/core
    npx hardhat run scripts/addStrategy.js --network polygon
 8. Move rules of strategy to governance in pkg/governance
    npx hardhat run scripts/move_strategies_to_gov.js --network polygon
-9. Set percentage in anal.collateral after adding liquidity in strategy.
+9. Set percentage in core.collateral after adding liquidity in strategy
 
