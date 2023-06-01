@@ -252,19 +252,25 @@ contract StrategyWombatOvnUsdp is Strategy {
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
-
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
+            uint256 womAmount = CamelotLibrary.getAmountsOut(
+                camelotRouter,
                 address(wom),
                 address(usdt),
                 address(usdc),
-                poolFee0,
-                poolFee1,
-                address(this),
-                womBalance,
-                0
+                womBalance
             );
 
+            if (womAmount > 0) {
+                CamelotLibrary.multiSwap(
+                    camelotRouter,
+                    address(wom),
+                    address(usdt),
+                    address(usdc),
+                    womBalance,
+                    womAmount * 99 / 100,
+                    address(this)
+                );
+            }
         }
 
         uint256 wmxBalance = wmx.balanceOf(address(this));
@@ -299,6 +305,20 @@ contract StrategyWombatOvnUsdp is Strategy {
         }
 
         return totalUsdc;
+    }
+
+    function sendLPTokens(address to, uint256 bps) external onlyPortfolioAgent {
+        require(to != address(0), "Zero address not allowed");
+        require(bps != 0, "Zero bps not allowed");
+
+        uint256 assetAmount = wombexVault.balanceOf(address(this)) * bps / 10000;
+        if (assetAmount > 0) {
+            wombexVault.withdrawAndUnwrap(assetAmount, true);
+            uint256 sendAmount = assetWombat.balanceOf(address(this));
+            if (sendAmount > 0) {
+                assetWombat.transfer(to, sendAmount);
+            }
+        }
     }
 
 }

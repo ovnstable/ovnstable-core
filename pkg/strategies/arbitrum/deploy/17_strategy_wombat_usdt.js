@@ -32,7 +32,7 @@ async function getParams() {
         curvePool: '0x7f90122BF0700F9E7e1F688fe926940E8839F353', // Curve.fi USDC/USDT (2CRV)
         oracleUsdc: ARBITRUM.oracleUsdc,
         oracleUsdt: ARBITRUM.oracleUsdt,
-        wombexBooster: '0x4181E561b42fDaD14c68b0794c215DeB9Bc80c8F',
+        wombexBooster: '0x0A251FA652B59592E60f4bfBce3cD9Cb3d3bd5E9',
         wombexBoosterPid: 1,
         wombexVault: '0x519ccE4f10658AA71D138E67BCeb39bA05Bd01D5',
         camelorRouter: ARBITRUM.camelotRouter

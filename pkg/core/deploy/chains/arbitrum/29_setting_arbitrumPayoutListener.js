@@ -19,14 +19,14 @@ module.exports = async () => {
     // items.push(...sterling());
     // items.push(...ramses());
     // items.push(...arbidex());
-    // items.push(...wombat());
-    items.push(...chronos());
+     items.push(...wombat());
+//    items.push(...chronos());
 
-    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
-    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
-    await (await pl.removeItem(usdPlus.address, '0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33')).wait();
-    await (await pl.removeItem(usdPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
-    await (await pl.removeItem(daiPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
+//    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
+//    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
+//    await (await pl.removeItem(usdPlus.address, '0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33')).wait();
+//    await (await pl.removeItem(usdPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
+//    await (await pl.removeItem(daiPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
 
     // await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
@@ -58,9 +58,9 @@ module.exports = async () => {
         let dex = 'Wombat';
 
         let items = [];
-        items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/USD+', dex));
-        items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex));
-        items.push(createSkim('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'LP-DAI+', dex));
+//        items.push(createSkim('0xF9C2356a21B60c0c4DDF2397f828dd158f82a274', usdPlus.address, 'FRAX/USD+', dex));
+        items.push(createSkimTo('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex, '0xb73a962205D00E28DB4B5A400DF7E35355b61CA6'));
+        items.push(createSkimTo('0x51E073D92b0c226F7B0065909440b18A85769606', daiPlus.address, 'LP-DAI+', dex, '0x71081021ff37D38Dec956386EA5E467e58714951'));
 
         return items;
 
