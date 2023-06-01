@@ -34,7 +34,7 @@ async function main() {
 
     addresses.push(StrategyMagpieDai.address);
     values.push(0);
-    abis.push(StrategyMagpieDai.interface.encodeFunctionData('setParams', [strategyMagpieDaiParams()]));
+    abis.push(StrategyMagpieDai.interface.encodeFunctionData('setParams', [await strategyMagpieDaiParams()]));
 
 
     let StrategyMagpieOvnDaiPlus = await getContract('StrategyMagpieOvnDaiPlus', 'arbitrum_dai');
@@ -45,7 +45,7 @@ async function main() {
 
     addresses.push(StrategyMagpieOvnDaiPlus.address);
     values.push(0);
-    abis.push(StrategyMagpieOvnDaiPlus.interface.encodeFunctionData('setParams', [strategyMagpieOvnDaiPlusParams()]));
+    abis.push(StrategyMagpieOvnDaiPlus.interface.encodeFunctionData('setParams', [await strategyMagpieOvnDaiPlusParams()]));
 
 
     let StrategyWombatDai = await getContract('StrategyWombatDai', 'arbitrum_dai');
@@ -56,7 +56,7 @@ async function main() {
 
     addresses.push(StrategyWombatDai.address);
     values.push(0);
-    abis.push(StrategyWombatDai.interface.encodeFunctionData('setParams', [strategyWombatDaiParams()]));
+    abis.push(StrategyWombatDai.interface.encodeFunctionData('setParams', [await strategyWombatDaiParams()]));
 
 
     let StrategyWombatOvnDaiPlus = await getContract('StrategyWombatOvnDaiPlus', 'arbitrum_dai');
@@ -67,7 +67,7 @@ async function main() {
 
     addresses.push(StrategyWombatOvnDaiPlus.address);
     values.push(0);
-    abis.push(StrategyWombatOvnDaiPlus.interface.encodeFunctionData('setParams', [strategyWombatOvnDaiPlusParams()]));
+    abis.push(StrategyWombatOvnDaiPlus.interface.encodeFunctionData('setParams', [await strategyWombatOvnDaiPlusParams()]));
 
 
     let StrategyMagpieOvnUsdp = await getContract('StrategyMagpieOvnUsdp', 'arbitrum');
@@ -78,7 +78,7 @@ async function main() {
 
     addresses.push(StrategyMagpieOvnUsdp.address);
     values.push(0);
-    abis.push(StrategyMagpieOvnUsdp.interface.encodeFunctionData('setParams', [strategyMagpieOvnUsdpParams()]));
+    abis.push(StrategyMagpieOvnUsdp.interface.encodeFunctionData('setParams', [await strategyMagpieOvnUsdpParams()]));
 
 
     let StrategyMagpieUsdc = await getContract('StrategyMagpieUsdc', 'arbitrum');
@@ -89,7 +89,7 @@ async function main() {
 
     addresses.push(StrategyMagpieUsdc.address);
     values.push(0);
-    abis.push(StrategyMagpieUsdc.interface.encodeFunctionData('setParams', [strategyMagpieUsdcParams()]));
+    abis.push(StrategyMagpieUsdc.interface.encodeFunctionData('setParams', [await strategyMagpieUsdcParams()]));
 
 
     let StrategyWombatOvnUsdp = await getContract('StrategyWombatOvnUsdp', 'arbitrum');
@@ -100,7 +100,7 @@ async function main() {
 
     addresses.push(StrategyWombatOvnUsdp.address);
     values.push(0);
-    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('setParams', [strategyWombatOvnUsdpParams()]));
+    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('setParams', [await strategyWombatOvnUsdpParams()]));
 
 
     let StrategyWombatUsdc = await getContract('StrategyWombatUsdc', 'arbitrum');
@@ -111,7 +111,7 @@ async function main() {
 
     addresses.push(StrategyWombatUsdc.address);
     values.push(0);
-    abis.push(StrategyWombatUsdc.interface.encodeFunctionData('setParams', [strategyWombatUsdcParams()]));
+    abis.push(StrategyWombatUsdc.interface.encodeFunctionData('setParams', [await strategyWombatUsdcParams()]));
 
 
     let StrategyWombatUsdt = await getContract('StrategyWombatUsdt', 'arbitrum');
@@ -122,7 +122,7 @@ async function main() {
 
     addresses.push(StrategyWombatUsdt.address);
     values.push(0);
-    abis.push(StrategyWombatUsdt.interface.encodeFunctionData('setParams', [strategyWombatUsdtParams()]));
+    abis.push(StrategyWombatUsdt.interface.encodeFunctionData('setParams', [await strategyWombatUsdtParams()]));
 
 
     await createProposal(addresses, values, abis);
