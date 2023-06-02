@@ -5,6 +5,12 @@ interface MagpiePoolHelper {
 
     function lpToken() external view returns (address);
 
+    function masterMagpie() external view returns (address);
+
+    function stakingToken() external view returns (address);
+
+    function wombatStaking() external view returns (address);
+
     function balance(address _address) external view returns (uint256);
 
     function deposit(uint256 amount, uint256 minimumAmount) external;

@@ -1544,4 +1544,24 @@ library PancakeSwapV3Library {
         amountOut = ISmartRouter(smartRouter).exactInput(params);
     }
 
+    function pathSwap(
+        address smartRouter,
+        address tokenIn,
+        bytes memory path,
+        address recipient,
+        uint256 amountIn,
+        uint256 amountOutMinimum
+    ) internal returns (uint256 amountOut) {
+
+        IERC20(tokenIn).approve(smartRouter, amountIn);
+
+        IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter.ExactInputParams({
+            path: path,
+            recipient: recipient,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum
+        });
+
+        amountOut = ISmartRouter(smartRouter).exactInput(params);
+    }
 }

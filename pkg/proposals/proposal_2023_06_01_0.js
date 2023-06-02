@@ -4,11 +4,11 @@ const { strategyWombatDaiParams } = require("@overnight-contracts/strategies-arb
 const { strategyMagpieDaiParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/04_strategy_magpie_dai.js");
 const { strategyWombatOvnDaiPlusParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/05_wombat_ovn_daiplus.js");
 const { strategyMagpieOvnDaiPlusParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/06_magpie_ovn_daiplus.js");
-const { strategyWombatUsdcParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/15_strategy_wombat_usdc.js");
-const { strategyWombatUsdtParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/17_strategy_wombat_usdt.js");
-const { strategyMagpieUsdcParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/18_strategy_magpie_usdc.js");
-const { strategyWombatOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/21_wombat_ovn_usdp.js");
-const { strategyMagpieOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/24_magpie_ovn_usdp.js");
+const { strategyWombatUsdcParams } = require("@overnight-contracts/strategies-arbitrum/deploy/15_strategy_wombat_usdc.js");
+const { strategyWombatUsdtParams } = require("@overnight-contracts/strategies-arbitrum/deploy/17_strategy_wombat_usdt.js");
+const { strategyMagpieUsdcParams } = require("@overnight-contracts/strategies-arbitrum/deploy/18_strategy_magpie_usdc.js");
+const { strategyWombatOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/21_wombat_ovn_usdp.js");
+const { strategyMagpieOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/24_magpie_ovn_usdp.js");
 
 
 async function main() {
