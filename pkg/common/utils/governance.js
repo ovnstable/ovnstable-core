@@ -122,28 +122,74 @@ async function testStrategy(strategy){
 
         console.log('Test strategy: ' + strategy.address);
 
+        let operations = [];
+
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
+
+
+        let assetBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await strategy.connect(timelock).claimRewards(testWallet.address);
-        console.log('ClaimRewards: ' + fromAsset(await asset.balanceOf(testWallet.address)));
+        let assetAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+
+        operations.push({
+            name: 'ClaimRewards',
+            before: assetBefore,
+            after: assetAfter,
+            delta: assetAfter - assetBefore
+        });
 
         await getTestAssets(mainWallet.address);
 
         let amount = toAsset(50_000);
         await asset.connect(mainWallet).transfer(testWallet.address, amount);
-
         await asset.connect(testWallet).transfer(strategy.address, amount);
+
+        let navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await strategy.connect(timelock).stake(asset.address, amount);
-        console.log('stake nav: ' + fromAsset(await strategy.netAssetValue()));
+        let navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
 
+        operations.push({
+            name: 'Stake',
+            before: navBefore,
+            after: navAfter,
+            delta: navAfter - navBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
-        console.log('unstake nav: ' + fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
 
+        operations.push({
+            name: 'UnStake',
+            before: navBefore,
+            after: navAfter,
+            delta: navAfter - navBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
-        console.log('unstakefull nav: ' + fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
 
+        operations.push({
+            name: 'UnStakeFull',
+            before: navBefore,
+            after: navAfter,
+            delta: navAfter - navBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await asset.connect(testWallet).transfer(strategy.address, nav);
         await strategy.connect(timelock).stake(asset.address, nav);
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
 
+        operations.push({
+            name: 'Stake Nav base',
+            before: navBefore,
+            after: navAfter,
+            delta: navAfter - navBefore
+        });
+
+        console.table(operations);
         console.log('Test strategy done: ' + strategy.address);
     });
 
