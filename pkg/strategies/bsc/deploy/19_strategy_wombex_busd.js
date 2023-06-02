@@ -12,28 +12,33 @@ let pool = '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0';
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    await deploySection(async (name) => {+
-        await deployProxy(name, deployments, save);
+    await deploySection(async (name) => {
+        +
+            await deployProxy(name, deployments, save);
     });
 
     await settingSection(async (strategy) => {
-        await (await strategy.setParams(
-            {
-                busd: BSC.busd,
-                usdc: BSC.usdc,
-                wom: wom,
-                wmx: wmx,
-                lpBusd: lpBusd,
-                wmxLpBusd: wmxLpBusd,
-                poolDepositor: poolDepositor,
-                pool: pool,
-                pancakeRouter: BSC.pancakeRouter,
-                wombatRouter: BSC.wombatRouter,
-                oracleBusd: BSC.chainlinkBusd,
-                oracleUsdc: BSC.chainlinkUsdc,
-            }
-        )).wait();
+        await (await strategy.setParams(await getParams())).wait();
     });
 };
 
+async function getParams() {
+    return {
+        busd: BSC.busd,
+        usdc: BSC.usdc,
+        wom: wom,
+        wmx: wmx,
+        lpBusd: lpBusd,
+        wmxLpBusd: wmxLpBusd,
+        poolDepositor: poolDepositor,
+        pool: pool,
+        pancakeRouter: BSC.pancakeRouter,
+        wombatRouter: BSC.wombatRouter,
+        oracleBusd: BSC.chainlinkBusd,
+        oracleUsdc: BSC.chainlinkUsdc,
+    };
+}
+
 module.exports.tags = ['StrategyWombexBusd'];
+module.exports.getParams = getParams;
+module.exports.strategyWombexBusdParams = getParams;
