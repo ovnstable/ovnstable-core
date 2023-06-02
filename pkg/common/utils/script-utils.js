@@ -285,8 +285,10 @@ async function getStrategyMapping(){
             url = "https://api.overnight.fi/arbitrum/dai+/dict/strategies";
             break;
         case "bsc":
+            url = "https://api.overnight.fi/bsc/usd+/dict/strategies";
+            break;
         case "bsc_usdt":
-            url = "https://bsc.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/bsc/usdt+/dict/strategies";
             fromAsset = fromE18;
             break;
         case "polygon":

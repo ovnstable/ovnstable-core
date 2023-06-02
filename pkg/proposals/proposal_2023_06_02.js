@@ -1,4 +1,4 @@
-const { getContract, execTimelock } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 const { strategyWombexUsdtParams } = require("@overnight-contracts/strategies-bsc/deploy/usdt/04_strategy_wombex_usdt.js");
 const { strategyWombexUsdcParams } = require("@overnight-contracts/strategies-bsc/deploy/20_strategy_wombex_usdc.js");
@@ -41,7 +41,7 @@ async function main() {
 
     addresses.push(StrategyWombexUsdt.address);
     values.push(0);
-    abis.push(StrategyWombexUsdt.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombexUsdt.interface.encodeFunctionData('upgradeTo', ['0xFA2E545C5613E3531b950ab837a1285DCF5568F3']));
 
     addresses.push(StrategyWombexUsdt.address);
     values.push(0);
@@ -52,7 +52,7 @@ async function main() {
 
     addresses.push(StrategyWombexUsdc.address);
     values.push(0);
-    abis.push(StrategyWombexUsdc.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombexUsdc.interface.encodeFunctionData('upgradeTo', ['0x651fAe2DAa54cda64c7405Ce2EE94F888D9fCD5C']));
 
     addresses.push(StrategyWombexUsdc.address);
     values.push(0);
@@ -63,12 +63,40 @@ async function main() {
 
     addresses.push(StrategyWombexBusd.address);
     values.push(0);
-    abis.push(StrategyWombexBusd.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombexBusd.interface.encodeFunctionData('upgradeTo', ['0x1d5dAbAce0840BEBb2a86601aBBFafa6dad856CB']));
 
     addresses.push(StrategyWombexBusd.address);
     values.push(0);
     abis.push(StrategyWombexBusd.interface.encodeFunctionData('setParams', [await strategyWombexBusdParams()]));
 
+
+    addresses.push(StrategyWombexUsdt.address);
+    values.push(0);
+    abis.push(StrategyWombexUsdt.interface.encodeFunctionData('sendLPTokens', [StrategyMagpieUsdt.address, 5000]));
+
+    addresses.push(StrategyMagpieUsdt.address);
+    values.push(0);
+    abis.push(StrategyMagpieUsdt.interface.encodeFunctionData('stakeLPTokens', []));
+
+    addresses.push(StrategyWombexUsdc.address);
+    values.push(0);
+    abis.push(StrategyWombexUsdc.interface.encodeFunctionData('sendLPTokens', [StrategyMagpieUsdc.address, 5000]));
+
+    addresses.push(StrategyMagpieUsdc.address);
+    values.push(0);
+    abis.push(StrategyMagpieUsdc.interface.encodeFunctionData('stakeLPTokens', []));
+
+    addresses.push(StrategyWombexBusd.address);
+    values.push(0);
+    abis.push(StrategyWombexBusd.interface.encodeFunctionData('sendLPTokens', [StrategyMagpieBusd.address, 5000]));
+
+    addresses.push(StrategyMagpieBusd.address);
+    values.push(0);
+    abis.push(StrategyMagpieBusd.interface.encodeFunctionData('stakeLPTokens', []));
+
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
 
     await createProposal(addresses, values, abis);
 }
