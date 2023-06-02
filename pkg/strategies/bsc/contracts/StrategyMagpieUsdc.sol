@@ -210,7 +210,7 @@ contract StrategyMagpieUsdc is Strategy {
         return totalUsdc;
     }
 
-    function stakeLPTokens() external onlyPortfolioAgent {
+    function stakeLPTokens() external onlyAdmin {
         uint256 assetBalance = IWombatAsset(poolHelperMgp.lpToken()).balanceOf(address(this));
         if (assetBalance > 0) {
             IWombatAsset(poolHelperMgp.lpToken()).approve(address(poolHelperMgp.wombatStaking()), assetBalance);

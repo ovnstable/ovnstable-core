@@ -234,7 +234,7 @@ contract StrategyWombexUsdc is Strategy {
         return totalUsdc;
     }
 
-    function sendLPTokens(address to, uint256 bps) external onlyPortfolioAgent {
+    function sendLPTokens(address to, uint256 bps) external onlyAdmin {
         require(to != address(0), "Zero address not allowed");
         require(bps != 0, "Zero bps not allowed");
 
