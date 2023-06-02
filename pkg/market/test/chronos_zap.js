@@ -57,68 +57,88 @@ describe("ChronosZapper", function () {
 
         await showBalances();
 
-        const amountToken0In = toE6(amountIn);
-        const amountToken1In = toE18(amountIn);
+        const amountToken0In = toE6(529);
+        const amountToken1In = toE18(189);
+        const amountToken0Out = toE6(10);
+        const amountToken1Out = toE18(15);
 
         await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
         await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
 
         const reserves = await chronosZap.getProportion(gauge);
 
         const sumReserves = reserves[0].add(reserves[1])
+        const proportions = calculateProportionForChronosSwapModif({
+            inputTokensDecimalsFunctions: [fromE6, fromE18],
+            inputTokensAddresses: [token0In.address, token1In.address],
+            inputTokensAmounts: [amountToken0In, amountToken1In],
+            inputTokensPrices: [1, 1],
+            outputTokensDecimalsFunctions: [fromE6, fromE18],
+            inverseOutputTokensDecimalsFunctions: [toE6, toE18],
+            outputTokensAddresses: [token0Out.address, token1Out.address],
+            outputTokensAmounts: [amountToken0Out, amountToken1Out],
+            outputTokensPrices: [1, 1],
+            proportion0: reserves[0] / sumReserves
+        })
+        // {
+        //     inputTokensDecimals,
+        //     inputTokensAddresses,
+        //     inputTokensAmounts,
+        //     inputTokensPrices,
+        //     outputTokensDecimals,
+        //     outputTokensAddresses,
+        //     outputTokensAmounts,
+        //     outputTokensPrices,
+        //     proportion0,
+        // }
+        console.log(proportions)
 
         const request = await getOdosRequest({
             "chainId": 42161,
-            "inputTokens": [
-                {
-                    "tokenAddress": token0In.address,
-                    "amount": amountToken0In
-                },
-                {
-                    "tokenAddress": token1In.address,
-                    "amount": amountToken1In
-                }
-            ],
-            "outputTokens": [
-                {
-                    "tokenAddress": token0Out.address,
-                    "proportion": reserves[0] / sumReserves
-                },
-                {
-                    "tokenAddress": token1Out.address,
-                    "proportion": reserves[1] / sumReserves
-                },
-
-            ],
+            "inputTokens": proportions.inputTokens,
+            "outputTokens": proportions.outputTokens,
             "gasPrice": 20,
             "userAddr": chronosZap.address,
             "slippageLimitPercent": 0.3,
         });
 
-
-        const receipt = await (await chronosZap.connect(account).zapIn({
-            inputs: [
-                {
-                    tokenAddress: token0In.address,
-                    amountIn: amountToken0In,
-                },
-                {
-                    tokenAddress: token1In.address,
-                    amountIn: amountToken1In,
-                },
-            ],
+        console.log({
+            inputs: proportions.inputTokens,
             outputs: [
                 {
-                    tokenAddress: token0Out.address,
+                    tokenAddress: proportions.outputTokens[0].tokenAddress,
                     receiver: chronosZap.address,
                 },
                 {
-                    tokenAddress: token1Out.address,
+                    tokenAddress: proportions.outputTokens[1].tokenAddress,
                     receiver: chronosZap.address,
                 },
             ],
             data: request.data
-        }, gauge)).wait();
+        }, { gauge, amountToken0Out, amountToken1Out })
+
+
+        const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
+            return { "tokenAddress": tokenAddress, "amountIn": amount };
+        });
+
+
+        const receipt = await (await chronosZap.connect(account).zapIn({
+            inputs: inputTokens,
+            outputs: [
+                {
+                    tokenAddress: proportions.outputTokens[0].tokenAddress,
+                    receiver: chronosZap.address,
+                },
+                {
+                    tokenAddress: proportions.outputTokens[1].tokenAddress,
+                    receiver: chronosZap.address,
+                },
+            ],
+            data: request.data
+        }, { gauge, amountToken0Out, amountToken1Out })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -256,6 +276,138 @@ async function getOdosRequest(request) {
 
     console.log('Success get data from Odos!');
     return transaction.data.transaction;
+}
+
+function calculateProportionForChronosSwap({
+    tokenOut0Amount,
+    tokenOut0Price,
+    tokenOut1Amount,
+    tokenOut1Price,
+    tokensInputAmount,
+    tokensInputPrice,
+    proportion0,
+}
+) {
+    const tokenOut0 = tokenOut0Amount * tokenOut0Price;
+    const tokenOut1 = tokenOut1Amount * tokenOut1Price;
+    const sumInitialOut = tokenOut0 + tokenOut1;
+    let sumInputs = 0;
+    for (let i = 0; i < tokensInputAmount.length; i++) {
+        sumInputs += tokensInputAmount[i] * tokensInputPrice[i];
+    }
+    sumInputs += sumInitialOut; // общее количество инпутов в деньгах
+    console.log(sumInputs)
+
+    const output0InMoneyWithProportion = sumInputs * proportion0;
+    const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
+
+
+    console.log(proportion0, 1 - proportion0)
+    // if (output0InMoneyWithProportion < )
+    const difToGetFromOdos0 = output0InMoneyWithProportion - tokenOut0;
+    const difToGetFromOdos1 = output1InMoneyWithProportion - tokenOut1;
+
+
+    return { proportion0: difToGetFromOdos0 / (difToGetFromOdos0 + difToGetFromOdos1), proportion1: difToGetFromOdos1 / (difToGetFromOdos0 + difToGetFromOdos1) }
+}
+
+function calculateProportionForChronosSwapModif({
+    inputTokensDecimalsFunctions,
+    inputTokensAddresses,
+    inputTokensAmounts,
+    inputTokensPrices,
+    outputTokensDecimalsFunctions,
+    outputTokensAddresses,
+    outputTokensAmounts,
+    outputTokensPrices,
+    inverseOutputTokensDecimalsFunctions,
+    proportion0,
+}
+) {
+
+    const tokenOut0 = outputTokensDecimalsFunctions[0](outputTokensAmounts[0]) * outputTokensPrices[0];
+    const tokenOut1 = outputTokensDecimalsFunctions[1](outputTokensAmounts[1]) * outputTokensPrices[1];
+    const sumInitialOut = tokenOut0 + tokenOut1;
+    let sumInputs = 0;
+    for (let i = 0; i < inputTokensAmounts.length; i++) {
+        sumInputs += inputTokensDecimalsFunctions[i](inputTokensAmounts[i]) * inputTokensPrices[i];
+    }
+    sumInputs += sumInitialOut; // общее количество инпутов в деньгах 
+    console.log(sumInputs)
+
+    const output0InMoneyWithProportion = sumInputs * proportion0;
+    const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
+    console.log(output0InMoneyWithProportion, tokenOut0)
+    console.log(output1InMoneyWithProportion, tokenOut1)
+    let token0AmountForSwap = 0, token1AmountForSwap = 0;
+    // "outputTokens": [
+    //     {
+    //         "tokenAddress": token0Out.address,
+    //         "proportion": proportions.proportion0
+    //     },
+    //     {
+    //         "tokenAddress": token1Out.address,
+    //         "proportion": proportions.proportion1
+    //     },
+    // ],
+
+    // "inputTokens": [
+    //     {
+    //         "tokenAddress": token0In.address,
+    //         "amount": amountToken0In
+    //     },
+    //     {
+    //         "tokenAddress": token1In.address,
+    //         "amount": amountToken1In
+    //     }
+    // ],
+    const inputTokens = inputTokensAddresses.map((address, index) => {
+        return { "tokenAddress": address, "amount": inputTokensAmounts[index] };
+    });
+    if (output0InMoneyWithProportion < tokenOut0) {
+        const dif = tokenOut0 - output0InMoneyWithProportion;
+        const token0AmountForSwap = inverseOutputTokensDecimalsFunctions[0](dif) / outputTokensPrices[0];
+        inputTokens.push({ "tokenAddress": outputTokensAddresses[0], "amount": token0AmountForSwap })
+        return {
+            "outputTokens": [
+                {
+                    "tokenAddress": outputTokensAddresses[1],
+                    "proportion": 1
+                }
+            ],
+            "inputTokens": inputTokens
+        }
+    } else if (output1InMoneyWithProportion < tokenOut1) {
+        const dif = tokenOut1 - output1InMoneyWithProportion;
+        const token1AmountForSwap = inverseOutputTokensDecimalsFunctions[1](dif) / outputTokensPrices[1];
+        inputTokens.push({ "tokenAddress": outputTokensAddresses[1], "amount": token1AmountForSwap })
+        return {
+            "outputTokens": [
+                {
+                    "tokenAddress": outputTokensAddresses[0],
+                    "proportion": 1
+                }
+            ],
+            "inputTokens": inputTokens
+        }
+    }
+
+    const difToGetFromOdos0 = output0InMoneyWithProportion - tokenOut0;
+    const difToGetFromOdos1 = output1InMoneyWithProportion - tokenOut1;
+    return {
+        "inputTokens": inputTokens,
+        "outputTokens": [
+            {
+                "tokenAddress": outputTokensAddresses[0],
+                "proportion": difToGetFromOdos0 / (difToGetFromOdos0 + difToGetFromOdos1)
+            },
+            {
+                "tokenAddress": outputTokensAddresses[1],
+                "proportion": difToGetFromOdos1 / (difToGetFromOdos0 + difToGetFromOdos1)
+            },
+        ],
+    }
+
 }
 
 

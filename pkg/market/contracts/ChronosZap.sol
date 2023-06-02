@@ -3,13 +3,20 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-contract ChronosZap is OdosZap {
+import "hardhat/console.sol";
 
+contract ChronosZap is OdosZap {
     IChronosRouter public chronosRouter;
 
     struct ZapParams {
         address chronosRouter;
         address odosRouter;
+    }
+
+    struct ChronosZapInParams {
+        address gauge;
+        uint256 amountToken0Out;
+        uint256 amountToken1Out;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -20,12 +27,13 @@ contract ChronosZap is OdosZap {
         odosRouter = params.odosRouter;
     }
 
-
-    function zapIn(SwapData memory swapData, address _gauge) external {
+    function zapIn(SwapData memory swapData, ChronosZapInParams memory chronosData) external {
         _prepareSwap(swapData);
         (address[] memory tokensOut, uint256[] memory amountsOut) = _swap(swapData);
+        amountsOut[0] = amountsOut[0] + chronosData.amountToken0Out;
+        amountsOut[1] = amountsOut[1] + chronosData.amountToken1Out;
 
-        IChronosGauge gauge = IChronosGauge(_gauge);
+        IChronosGauge gauge = IChronosGauge(chronosData.gauge);
         IERC20 _token = gauge.TOKEN();
         IChronosPair pair = IChronosPair(address(_token));
         address maNFTs = gauge.maNFTs();
@@ -40,7 +48,7 @@ contract ChronosZap is OdosZap {
         IChronosGauge gauge = IChronosGauge(_gauge);
         IERC20 _token = gauge.TOKEN();
         IChronosPair pair = IChronosPair(address(_token));
-        (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         (address token0, address token1) = pair.tokens();
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
@@ -54,7 +62,7 @@ contract ChronosZap is OdosZap {
         address[] memory tokensOut,
         uint256[] memory amountsOut
     ) internal {
-        (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
@@ -71,6 +79,11 @@ contract ChronosZap is OdosZap {
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
+
+        // console.log("amount0InToken2: %s", amount0InToken2);
+        console.log("%s %s", tokensAmount0, tokensAmount1);
+
+        console.log("%s %s", tokensOut[0], tokensOut[1]);
 
         chronosRouter.addLiquidity(
             tokensOut[0],
