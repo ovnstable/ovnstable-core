@@ -1,4 +1,4 @@
-const { getContract, execTimelock } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, execTimelock, initWallet, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 const { strategyWombatDaiParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/03_strategy_wombat_dai.js");
 const { strategyMagpieDaiParams } = require("@overnight-contracts/strategies-arbitrum/deploy/dai/04_strategy_magpie_dai.js");
@@ -9,6 +9,7 @@ const { strategyWombatUsdtParams } = require("@overnight-contracts/strategies-ar
 const { strategyMagpieUsdcParams } = require("@overnight-contracts/strategies-arbitrum/deploy/18_strategy_magpie_usdc.js");
 const { strategyWombatOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/21_wombat_ovn_usdp.js");
 const { strategyMagpieOvnUsdpParams } = require("@overnight-contracts/strategies-arbitrum/deploy/24_magpie_ovn_usdp.js");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 
 async function main() {
@@ -23,58 +24,18 @@ async function main() {
 
     addresses.push(PortfolioManager.address);
     values.push(0);
+    abis.push(PortfolioManager.interface.encodeFunctionData('grantRole', [Roles.PORTFOLIO_AGENT_ROLE, (await initWallet()).address]));
+
+    addresses.push(PortfolioManager.address);
+    values.push(0);
     abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', [StrategyMagpieUsdt.address]));
-
-
-    let StrategyMagpieDai = await getContract('StrategyMagpieDai', 'arbitrum_dai');
-
-    addresses.push(StrategyMagpieDai.address);
-    values.push(0);
-    abis.push(StrategyMagpieDai.interface.encodeFunctionData('upgradeTo', ['']));
-
-    addresses.push(StrategyMagpieDai.address);
-    values.push(0);
-    abis.push(StrategyMagpieDai.interface.encodeFunctionData('setParams', [await strategyMagpieDaiParams()]));
-
-
-    let StrategyMagpieOvnDaiPlus = await getContract('StrategyMagpieOvnDaiPlus', 'arbitrum_dai');
-
-    addresses.push(StrategyMagpieOvnDaiPlus.address);
-    values.push(0);
-    abis.push(StrategyMagpieOvnDaiPlus.interface.encodeFunctionData('upgradeTo', ['']));
-
-    addresses.push(StrategyMagpieOvnDaiPlus.address);
-    values.push(0);
-    abis.push(StrategyMagpieOvnDaiPlus.interface.encodeFunctionData('setParams', [await strategyMagpieOvnDaiPlusParams()]));
-
-
-    let StrategyWombatDai = await getContract('StrategyWombatDai', 'arbitrum_dai');
-
-    addresses.push(StrategyWombatDai.address);
-    values.push(0);
-    abis.push(StrategyWombatDai.interface.encodeFunctionData('upgradeTo', ['']));
-
-    addresses.push(StrategyWombatDai.address);
-    values.push(0);
-    abis.push(StrategyWombatDai.interface.encodeFunctionData('setParams', [await strategyWombatDaiParams()]));
-
-
-    let StrategyWombatOvnDaiPlus = await getContract('StrategyWombatOvnDaiPlus', 'arbitrum_dai');
-
-    addresses.push(StrategyWombatOvnDaiPlus.address);
-    values.push(0);
-    abis.push(StrategyWombatOvnDaiPlus.interface.encodeFunctionData('upgradeTo', ['']));
-
-    addresses.push(StrategyWombatOvnDaiPlus.address);
-    values.push(0);
-    abis.push(StrategyWombatOvnDaiPlus.interface.encodeFunctionData('setParams', [await strategyWombatOvnDaiPlusParams()]));
 
 
     let StrategyMagpieOvnUsdp = await getContract('StrategyMagpieOvnUsdp', 'arbitrum');
 
     addresses.push(StrategyMagpieOvnUsdp.address);
     values.push(0);
-    abis.push(StrategyMagpieOvnUsdp.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyMagpieOvnUsdp.interface.encodeFunctionData('upgradeTo', ['0x7D3045d464b40875dbDCBc1e75CFd7E256b5Cc3C']));
 
     addresses.push(StrategyMagpieOvnUsdp.address);
     values.push(0);
@@ -85,7 +46,7 @@ async function main() {
 
     addresses.push(StrategyMagpieUsdc.address);
     values.push(0);
-    abis.push(StrategyMagpieUsdc.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyMagpieUsdc.interface.encodeFunctionData('upgradeTo', ['0x873a2654C73639132CAa0aFb8938bD81279e4E45']));
 
     addresses.push(StrategyMagpieUsdc.address);
     values.push(0);
@@ -96,7 +57,7 @@ async function main() {
 
     addresses.push(StrategyWombatOvnUsdp.address);
     values.push(0);
-    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('upgradeTo', ['0xE965f51008B0a1FBEB2B82d407179696C4716830']));
 
     addresses.push(StrategyWombatOvnUsdp.address);
     values.push(0);
@@ -107,7 +68,7 @@ async function main() {
 
     addresses.push(StrategyWombatUsdc.address);
     values.push(0);
-    abis.push(StrategyWombatUsdc.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombatUsdc.interface.encodeFunctionData('upgradeTo', ['0x8052963910C14C0F0378C3b80BBA3328F028091C']));
 
     addresses.push(StrategyWombatUsdc.address);
     values.push(0);
@@ -118,12 +79,30 @@ async function main() {
 
     addresses.push(StrategyWombatUsdt.address);
     values.push(0);
-    abis.push(StrategyWombatUsdt.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyWombatUsdt.interface.encodeFunctionData('upgradeTo', ['0xBCd5c3dc25202e5ff2f63EC50118a1754cA249D7']));
 
     addresses.push(StrategyWombatUsdt.address);
     values.push(0);
     abis.push(StrategyWombatUsdt.interface.encodeFunctionData('setParams', [await strategyWombatUsdtParams()]));
 
+
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    //
+    // StrategyWombatUsdc = await getContract('StrategyWombatUsdc', 'arbitrum');
+    // StrategyMagpieUsdc = await getContract('StrategyMagpieUsdc', 'arbitrum');
+    // await (await StrategyWombatUsdc.sendLPTokens(StrategyMagpieUsdc.address, 5000)).wait();
+    // await (await StrategyMagpieUsdc.stakeLPTokens()).wait();
+    // console.log("StrategyWombatUsdc -> StrategyMagpieUsdc done");
+    //
+    // StrategyWombatUsdt = await getContract('StrategyWombatUsdt', 'arbitrum');
+    // StrategyMagpieUsdt = await getContract('StrategyMagpieUsdt', 'arbitrum');
+    // await (await StrategyWombatUsdt.sendLPTokens(StrategyMagpieUsdt.address, 5000)).wait();
+    // await (await StrategyMagpieUsdt.stakeLPTokens()).wait();
+    // console.log("StrategyWombatUsdt -> StrategyMagpieUsdt done");
+    //
+    // await showM2M();
 
     await createProposal(addresses, values, abis);
 }
