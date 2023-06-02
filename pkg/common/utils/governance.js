@@ -127,66 +127,71 @@ async function testStrategy(strategy){
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
 
 
-        let assetBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        let balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        let navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await strategy.connect(timelock).claimRewards(testWallet.address);
-        let assetAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        let navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        let balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
         operations.push({
             name: 'ClaimRewards',
-            before: assetBefore,
-            after: assetAfter,
-            delta: assetAfter - assetBefore
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
         });
 
         await getTestAssets(mainWallet.address);
 
         let amount = toAsset(50_000);
         await asset.connect(mainWallet).transfer(testWallet.address, amount);
-        await asset.connect(testWallet).transfer(strategy.address, amount);
 
-        let navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        await asset.connect(testWallet).transfer(strategy.address, amount);
         await strategy.connect(timelock).stake(asset.address, amount);
-        let navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
         operations.push({
             name: 'Stake',
-            before: navBefore,
-            after: navAfter,
-            delta: navAfter - navBefore
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
         });
 
         navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
         navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
         operations.push({
             name: 'UnStake',
-            before: navBefore,
-            after: navAfter,
-            delta: navAfter - navBefore
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
         });
 
         navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
         navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
         operations.push({
             name: 'UnStakeFull',
-            before: navBefore,
-            after: navAfter,
-            delta: navAfter - navBefore
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
         });
 
         navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await asset.connect(testWallet).transfer(strategy.address, nav);
         await strategy.connect(timelock).stake(asset.address, nav);
         navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
         operations.push({
             name: 'Stake Nav base',
-            before: navBefore,
-            after: navAfter,
-            delta: navAfter - navBefore
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
         });
 
         console.table(operations);
