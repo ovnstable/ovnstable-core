@@ -14,13 +14,6 @@ const hre = require("hardhat");
 let { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
-// function toE6(value) {
-//     return new BigNumber(value.toString()).times(new BigNumber(10).pow(6)).toFixed(0)
-// }
-
-// function fromE6(value) {
-//     return Number.parseFloat(new BigNumber(value.toString()).div(new BigNumber(10).pow(6)).toFixed(3).toString());
-// }
 
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
@@ -42,7 +35,6 @@ describe("ChronosZapper", function () {
     let token1Out;
 
     sharedBeforeEach('deploy and setup', async () => {
-        // need to run inside IDEA via node script running
         await hre.run("compile");
         await resetHardhatToLastBlock();
 
@@ -117,7 +109,6 @@ describe("ChronosZapper", function () {
 
         await showBalances();
 
-        // Retrieve event logs
         const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
         const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
         const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
@@ -137,9 +128,6 @@ describe("ChronosZapper", function () {
         expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
         expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
-        // expect(token0Out.address).to.equals(outputTokensEvent.args.tokensOut[0]);
-        // expect(token1Out.address).to.equals(outputTokensEvent.args.tokensOut[1]);
-
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
 
@@ -147,8 +135,6 @@ describe("ChronosZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        // expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        // expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
         const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
         const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
@@ -166,13 +152,6 @@ describe("ChronosZapper", function () {
         const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
-        // expect(inTokenAmount0 + inTokenAmount1).to.lessThanOrEqual((outTokenAmount0 + outTokenAmount0) / (1 - 0.003));
-
-        // expect(inTokenAmount0 + inTokenAmount1).to.lessThanOrEqual((putTokenAmount0 + putTokenAmount1) / (1 - 0.05));
-
-
-        // 3) Free assets token0In|Out, token1In|Out не осталось на контракте с Zap-ом
-        // console.log(fromE6(await token0In.balanceOf(chronosZap.address)))
 
         expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
         expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
@@ -271,7 +250,7 @@ function calculateProportionForChronosSwapModif({
     for (let i = 0; i < inputTokensAmounts.length; i++) {
         sumInputs += Number.parseFloat(new BigNumber(inputTokensAmounts[i].toString()).div(new BigNumber(10).pow(inputTokensDecimals[i])).toFixed(3).toString()) * inputTokensPrices[i];
     }
-    sumInputs += sumInitialOut; // общее количество инпутов в деньгах 
+    sumInputs += sumInitialOut;
 
     const output0InMoneyWithProportion = sumInputs * proportion0;
     const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
@@ -303,10 +282,6 @@ function calculateProportionForChronosSwapModif({
                     "tokenAddress": outputTokensAddresses[0],
                     "proportion": 1
                 },
-                // {
-                //     "tokenAddress": outputTokensAddresses[1],
-                //     "proportion": 0
-                // },
             ],
             "inputTokens": inputTokens,
             "amountToken0Out": new BigNumber((tokenOut0 / outputTokensPrices[0]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(0),

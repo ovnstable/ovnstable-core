@@ -134,7 +134,7 @@ contract ChronosZap is OdosZap {
     ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
         if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
             newAmount1 = (reserve1 * amount0) / reserve0;
-            // 18 +6 - 6
+            // 18 + 6 - 6
             newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
             newAmount0 = (newAmount1 * reserve0) / reserve1;
             // 18 + 6 - 18
