@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "hardhat/console.sol";
-
 contract ChronosZap is OdosZap {
     IChronosRouter public chronosRouter;
 
@@ -15,8 +13,7 @@ contract ChronosZap is OdosZap {
 
     struct ChronosZapInParams {
         address gauge;
-        uint256 amountToken0Out;
-        uint256 amountToken1Out;
+        uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -29,17 +26,30 @@ contract ChronosZap is OdosZap {
 
     function zapIn(SwapData memory swapData, ChronosZapInParams memory chronosData) external {
         _prepareSwap(swapData);
-        (address[] memory tokensOut, uint256[] memory amountsOut) = _swap(swapData);
-        amountsOut[0] = amountsOut[0] + chronosData.amountToken0Out;
-        amountsOut[1] = amountsOut[1] + chronosData.amountToken1Out;
+        _swap(swapData);
 
         IChronosGauge gauge = IChronosGauge(chronosData.gauge);
         IERC20 _token = gauge.TOKEN();
         IChronosPair pair = IChronosPair(address(_token));
         address maNFTs = gauge.maNFTs();
-        IChronosNFT token = IChronosNFT(maNFTs);
+        (address token0, address token1) = pair.tokens();
+
+        address[] memory tokensOut = new address[](2);
+        tokensOut[0] = token0;
+        tokensOut[1] = token1;
+        uint256[] memory amountsOut = new uint256[](2);
+
+        for (uint256 i = 0; i < tokensOut.length; i++) {
+            IERC20 asset = IERC20(tokensOut[i]);
+
+            if (chronosData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), chronosData.amountsOut[i]);
+            }
+            amountsOut[i] = asset.balanceOf(address(this));
+        }
+
         _addLiquidity(pair, tokensOut, amountsOut);
-        _stakeToGauge(pair, gauge, token);
+        _stakeToGauge(pair, gauge, IChronosNFT(maNFTs));
     }
 
     function getProportion(
@@ -79,11 +89,6 @@ contract ChronosZap is OdosZap {
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
-
-        // console.log("amount0InToken2: %s", amount0InToken2);
-        console.log("%s %s", tokensAmount0, tokensAmount1);
-
-        console.log("%s %s", tokensOut[0], tokensOut[1]);
 
         chronosRouter.addLiquidity(
             tokensOut[0],
