@@ -678,8 +678,6 @@ library KyberswapLibrary {
 
 //this part for ets
 
-//SPDX-License-Identifier: UNLICENSED
-
 struct MintParams {
     address token0;
     address token1;
