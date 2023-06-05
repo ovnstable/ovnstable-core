@@ -339,4 +339,17 @@ contract StrategyWombexBusd is Strategy {
         return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, busdDm, priceUsdc, priceBusd);
     }
 
+    function sendLPTokens(address to, uint256 bps) external onlyAdmin {
+        require(to != address(0), "Zero address not allowed");
+        require(bps != 0, "Zero bps not allowed");
+
+        uint256 assetAmount = wmxLpBusd.balanceOf(address(this)) * bps / 10000;
+        if (assetAmount > 0) {
+            wmxLpBusd.withdrawAndUnwrap(assetAmount, true);
+            uint256 sendAmount = lpBusd.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lpBusd.transfer(to, sendAmount);
+            }
+        }
+    }
 }

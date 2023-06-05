@@ -23,7 +23,7 @@ async function getParams() {
         usdt: ARBITRUM.usdt,
         weth: ARBITRUM.weth,
         wom: ARBITRUM.wom,
-        mgp: '0xa61F74247455A40b01b0559ff6274441FAfa22A3',
+        mgp: ARBITRUM.mgp,
         mgpLp: '0xd3a4CfbeE618F51443213a1751Aa5C6208e6be11',
         stakingWombat: '0x3CbFC97f87f534b42bb58276B7b5dCaD29E57EAc',
         poolWombat: '0xc6bc781e20f9323012f6e422bdf552ff06ba6cd1',
@@ -31,8 +31,10 @@ async function getParams() {
         poolHelperMgp: '0x193F9e182700b5eA8e86a2f0a98401df3F396f39',
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
-        poolFee1: 100,   //0,.01% USDT->USDC
-        traderJoeRouter: ARBITRUM.traderJoeRouter
+        poolFee1: 100, //0.01% USDT->USDC
+        traderJoeRouter: ARBITRUM.traderJoeRouter,
+        camelotRouter: ARBITRUM.camelotRouter,
+        usdc: ARBITRUM.usdc
     }
 }
 

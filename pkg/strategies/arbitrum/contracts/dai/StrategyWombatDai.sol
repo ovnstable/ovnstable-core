@@ -226,20 +226,30 @@ contract StrategyWombatDai is Strategy {
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
+            address[] memory path = new address[](4);
+            path[0] = address(wom);
+            path[1] = address(usdt);
+            path[2] = address(usdc);
+            path[3] = address(dai);
 
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(wom),
-                address(usdt),
-                address(dai),
-                poolFee0,
-                poolFee1,
-                address(this),
-                womBalance,
-                0
+            uint256 womAmount = CamelotLibrary.getAmountsOut(
+                camelorRouter,
+                path,
+                womBalance
             );
 
-            totalDai += amountOut;
+            if (womAmount > 0) {
+                uint256 balanceDaiBefore = dai.balanceOf(address(this));
+                CamelotLibrary.pathSwap(
+                    camelorRouter,
+                    path,
+                    womBalance,
+                    womAmount * 99 / 100,
+                    address(this)
+                );
+                uint256 womDai = dai.balanceOf(address(this)) - balanceDaiBefore;
+                totalDai += womDai;
+            }
         }
 
         uint256 wmxBalance = wmx.balanceOf(address(this));
@@ -279,4 +289,17 @@ contract StrategyWombatDai is Strategy {
         return totalDai;
     }
 
+    function sendLPTokens(address to, uint256 bps) external onlyPortfolioAgent {
+        require(to != address(0), "Zero address not allowed");
+        require(bps != 0, "Zero bps not allowed");
+
+        uint256 assetAmount = wombexVault.balanceOf(address(this)) * bps / 10000;
+        if (assetAmount > 0) {
+            wombexVault.withdrawAndUnwrap(assetAmount, true);
+            uint256 sendAmount = assetWombat.balanceOf(address(this));
+            if (sendAmount > 0) {
+                assetWombat.transfer(to, sendAmount);
+            }
+        }
+    }
 }

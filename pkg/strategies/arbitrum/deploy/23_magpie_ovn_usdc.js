@@ -31,8 +31,9 @@ async function getParams() {
         poolHelperMgp: '0xa2bbe73bd596d1914142196162b2ae9830e57f66',
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
-        poolFee1: 100,   //0,.01% USDT->USDC
-        traderJoeRouter: ARBITRUM.traderJoeRouter
+        poolFee1: 100, //0.01% USDT->USDC
+        traderJoeRouter: ARBITRUM.traderJoeRouter,
+        camelotRouter: ARBITRUM.camelotRouter
     }
 }
 

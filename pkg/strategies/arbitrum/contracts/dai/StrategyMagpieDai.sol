@@ -6,7 +6,8 @@ import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
+
 
 contract StrategyMagpieDai is Strategy {
 
@@ -27,6 +28,8 @@ contract StrategyMagpieDai is Strategy {
         uint24 poolFee0;
         uint24 poolFee1;
         address traderJoeRouter;
+        address camelotRouter;
+        address usdc;
     }
 
     // --- params
@@ -48,9 +51,11 @@ contract StrategyMagpieDai is Strategy {
     uint24 public poolFee0;
     uint24 public poolFee1;
 
-    uint256 assetWombatDm;
+    uint256 public assetWombatDm;
 
     JoeRouterV3 public traderJoeRouter;
+    ICamelotRouter public camelotRouter;
+    IERC20 public usdc;
 
     // --- events
 
@@ -87,6 +92,8 @@ contract StrategyMagpieDai is Strategy {
         assetWombatDm = 1e18;
 
         traderJoeRouter = JoeRouterV3(params.traderJoeRouter);
+        camelotRouter = ICamelotRouter(params.camelotRouter);
+        usdc = IERC20(params.usdc);
 
         emit StrategyUpdatedParams();
     }
@@ -98,7 +105,6 @@ contract StrategyMagpieDai is Strategy {
         uint256 _amount
     ) internal override {
 
-        // add liquidity
         (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(dai), _amount);
 
         dai.approve(address(stakingWombat), _amount);
@@ -120,7 +126,6 @@ contract StrategyMagpieDai is Strategy {
             assetAmount = assetBalance;
         }
 
-        // unstake
         poolHelperMgp.withdraw(assetAmount, _amount);
 
         return dai.balanceOf(address(this));
@@ -132,23 +137,26 @@ contract StrategyMagpieDai is Strategy {
     ) internal override returns (uint256) {
 
         uint256 assetBalance = poolHelperMgp.balance(address(this));
-        poolHelperMgp.withdraw(assetBalance, _totalValue(false));
+        (uint256 daiAmount,) = poolWombat.quotePotentialWithdraw(address(dai), assetBalance);
+
+        poolHelperMgp.withdraw(assetBalance, OvnMath.subBasisPoints(daiAmount, 1));
 
         return dai.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue(true);
+        return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue(false);
+        return _totalValue();
     }
 
-    function _totalValue(bool nav) internal view returns (uint256) {
+    function _totalValue() internal view returns (uint256) {
         uint256 daiBalance = dai.balanceOf(address(this));
 
         uint256 assetBalance = poolHelperMgp.balance(address(this));
+        assetBalance += IWombatAsset(poolHelperMgp.lpToken()).balanceOf(address(this));
         if (assetBalance > 0) {
             (uint256 daiAmount,) = poolWombat.quotePotentialWithdraw(address(dai), assetBalance);
             daiBalance += daiAmount;
@@ -157,50 +165,60 @@ contract StrategyMagpieDai is Strategy {
         return daiBalance;
     }
 
-
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        if (poolHelperMgp.balance(address(this)) == 0) {
-            return 0;
+        // claim rewards
+        if (poolHelperMgp.balance(address(this)) > 0) {
+
+            // harvest wom rewards
+            poolHelperMgp.harvest();
+
+            address[] memory stakingRewards = new address[](1);
+            stakingRewards[0] = address(mgpLp);
+
+            address[] memory tokens = new address[](2);
+            tokens[0] = address(wom);
+            tokens[1] = address(mgp);
+
+            address[][] memory rewardTokens = new address [][](1);
+            rewardTokens[0] = tokens;
+
+            masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
         }
-
-        address[] memory stakingRewards = new address[](1);
-        stakingRewards[0] = address(mgpLp);
-
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(wom);
-        tokens[1] = address(mgp);
-
-        address[][] memory rewardTokens = new address [][](1);
-        rewardTokens[0] = tokens;
-
-        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         // sell rewards
         uint256 totalDai;
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
+            address[] memory path = new address[](4);
+            path[0] = address(wom);
+            path[1] = address(usdt);
+            path[2] = address(usdc);
+            path[3] = address(dai);
 
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(wom),
-                address(usdt),
-                address(dai),
-                poolFee0,
-                poolFee1,
-                address(this),
-                womBalance,
-                0
+            uint256 womAmount = CamelotLibrary.getAmountsOut(
+                camelotRouter,
+                path,
+                womBalance
             );
 
-            totalDai += amountOut;
+            if (womAmount > 0) {
+                uint256 balanceDaiBefore = dai.balanceOf(address(this));
+                CamelotLibrary.pathSwap(
+                    camelotRouter,
+                    path,
+                    womBalance,
+                    womAmount * 99 / 100,
+                    address(this)
+                );
+                uint256 womDai = dai.balanceOf(address(this)) - balanceDaiBefore;
+                totalDai += womDai;
+            }
         }
 
         uint256 mgpBalance = mgp.balanceOf(address(this));
         if (mgpBalance > 0) {
-
             IERC20[] memory tokenPath = new IERC20[](3);
             tokenPath[0] = mgp;
             tokenPath[1] = weth;
@@ -232,7 +250,6 @@ contract StrategyMagpieDai is Strategy {
             totalDai += mgpDai;
         }
 
-
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
@@ -240,4 +257,11 @@ contract StrategyMagpieDai is Strategy {
         return totalDai;
     }
 
+    function stakeLPTokens() external onlyPortfolioAgent {
+        uint256 assetBalance = IWombatAsset(poolHelperMgp.lpToken()).balanceOf(address(this));
+        if (assetBalance > 0) {
+            IWombatAsset(poolHelperMgp.lpToken()).approve(address(stakingWombat), assetBalance);
+            poolHelperMgp.depositLP(assetBalance);
+        }
+    }
 }

@@ -122,28 +122,79 @@ async function testStrategy(strategy){
 
         console.log('Test strategy: ' + strategy.address);
 
+        let operations = [];
+
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
+
+
+        let balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        let navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
         await strategy.connect(timelock).claimRewards(testWallet.address);
-        console.log('ClaimRewards: ' + fromAsset(await asset.balanceOf(testWallet.address)));
+        let navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        let balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+
+        operations.push({
+            name: 'ClaimRewards',
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
+        });
 
         await getTestAssets(mainWallet.address);
 
         let amount = toAsset(50_000);
         await asset.connect(mainWallet).transfer(testWallet.address, amount);
 
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await asset.connect(testWallet).transfer(strategy.address, amount);
         await strategy.connect(timelock).stake(asset.address, amount);
-        console.log('stake nav: ' + fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
+        operations.push({
+            name: 'Stake',
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
-        console.log('unstake nav: ' + fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
+        operations.push({
+            name: 'UnStake',
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
-        console.log('unstakefull nav: ' + fromAsset(await strategy.netAssetValue()));
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
+        operations.push({
+            name: 'UnStakeFull',
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
+        });
+
+        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
         await asset.connect(testWallet).transfer(strategy.address, nav);
         await strategy.connect(timelock).stake(asset.address, nav);
+        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
+        operations.push({
+            name: 'Stake Nav base',
+            nav_delta: navAfter - navBefore,
+            balance_delta: balanceAfter - balanceBefore
+        });
+
+        console.table(operations);
         console.log('Test strategy done: ' + strategy.address);
     });
 

@@ -216,4 +216,17 @@ contract StrategyWombexUsdt is Strategy {
         return totalUsdt;
     }
 
+    function sendLPTokens(address to, uint256 bps) external onlyAdmin {
+        require(to != address(0), "Zero address not allowed");
+        require(bps != 0, "Zero bps not allowed");
+
+        uint256 assetAmount = wmxLpUsdt.balanceOf(address(this)) * bps / 10000;
+        if (assetAmount > 0) {
+            wmxLpUsdt.withdrawAndUnwrap(assetAmount, true);
+            uint256 sendAmount = lpUsdt.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lpUsdt.transfer(to, sendAmount);
+            }
+        }
+    }
 }

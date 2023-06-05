@@ -29,7 +29,7 @@ async function getParams() {
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         poolFee0: 3000, //0.3% WOM->USDT
         poolFee1: 100,   //0.01% USDT->USDC
-        wombexBooster: ARBITRUM.wombexBooster,
+        wombexBooster: "0x0A251FA652B59592E60f4bfBce3cD9Cb3d3bd5E9",
         wombexBoosterPid: 9,
         wombexVault: '0xEE8e44Ac5cD5D22704e09c1cFB11A601a5d020d6',
         camelotRouter: ARBITRUM.camelotRouter

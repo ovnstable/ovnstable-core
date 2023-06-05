@@ -6,7 +6,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
 
 /**
  * @dev Self-investment strategy
@@ -41,6 +41,7 @@ contract StrategyMagpieOvnUsdp is Strategy {
         uint24 poolFee0;
         uint24 poolFee1;
         address traderJoeRouter;
+        address camelotRouter;
     }
 
     // --- params
@@ -64,9 +65,10 @@ contract StrategyMagpieOvnUsdp is Strategy {
     uint24 public poolFee0;
     uint24 public poolFee1;
 
-    uint256 assetWombatDm;
+    uint256 public assetWombatDm;
 
     JoeRouterV3 public traderJoeRouter;
+    ICamelotRouter public camelotRouter;
 
     // --- events
 
@@ -105,6 +107,7 @@ contract StrategyMagpieOvnUsdp is Strategy {
         assetWombatDm = 1e18;
 
         traderJoeRouter = JoeRouterV3(params.traderJoeRouter);
+        camelotRouter = ICamelotRouter(params.camelotRouter);
 
         emit StrategyUpdatedParams();
     }
@@ -138,8 +141,6 @@ contract StrategyMagpieOvnUsdp is Strategy {
         _swapAllToken0ToToken1(usdc, usdp);
 
         uint256 amountUsdp = usdp.balanceOf(address(this));
-
-        // add liquidity
         (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(usdp), amountUsdp);
 
         usdp.approve(address(stakingWombat), amountUsdp);
@@ -153,15 +154,14 @@ contract StrategyMagpieOvnUsdp is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        (uint256 usdcAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdp), assetWombatDm);
+        (uint256 usdpAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(usdp), assetWombatDm);
         // add 1bp for smooth withdraw
-        uint256 assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / usdcAmountOneAsset;
+        uint256 assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / usdpAmountOneAsset;
         uint256 assetBalance = poolHelperMgp.balance(address(this));
         if (assetAmount > assetBalance) {
             assetAmount = assetBalance;
         }
 
-        // unstake
         poolHelperMgp.withdraw(assetAmount, _amount);
 
         // Swap All USD+-> USDC
@@ -176,7 +176,9 @@ contract StrategyMagpieOvnUsdp is Strategy {
     ) internal override returns (uint256) {
 
         uint256 assetBalance = poolHelperMgp.balance(address(this));
-        poolHelperMgp.withdraw(assetBalance, _totalValue(false));
+        (uint256 usdpAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
+
+        poolHelperMgp.withdraw(assetBalance, OvnMath.subBasisPoints(usdpAmount, 1));
 
         // Swap All USD+-> USDC
         _swapAllToken0ToToken1(usdp, usdc);
@@ -185,69 +187,79 @@ contract StrategyMagpieOvnUsdp is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue(true);
+        return _totalValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue(false);
+        return _totalValue();
     }
 
-    function _totalValue(bool nav) internal view returns (uint256) {
+    function _totalValue() internal view returns (uint256) {
         uint256 usdcBalance = usdc.balanceOf(address(this));
         usdcBalance += usdp.balanceOf(address(this));
 
         uint256 assetBalance = poolHelperMgp.balance(address(this));
+        assetBalance += IWombatAsset(poolHelperMgp.lpToken()).balanceOf(address(this));
         if (assetBalance > 0) {
-            (uint256 usdcAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
-            usdcBalance += usdcAmount;
+            (uint256 usdpAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
+            usdcBalance += usdpAmount;
         }
 
         return usdcBalance;
     }
 
-
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        if (poolHelperMgp.balance(address(this)) == 0) {
-            return 0;
+        // claim rewards
+        if (poolHelperMgp.balance(address(this)) > 0) {
+
+            // harvest wom rewards
+            poolHelperMgp.harvest();
+
+            address[] memory stakingRewards = new address[](1);
+            stakingRewards[0] = address(mgpLp);
+
+            address[] memory tokens = new address[](2);
+            tokens[0] = address(wom);
+            tokens[1] = address(mgp);
+
+            address[][] memory rewardTokens = new address [][](1);
+            rewardTokens[0] = tokens;
+
+            masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
         }
 
-        address[] memory stakingRewards = new address[](1);
-        stakingRewards[0] = address(mgpLp);
-
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(wom);
-        tokens[1] = address(mgp);
-
-        address[][] memory rewardTokens = new address [][](1);
-        rewardTokens[0] = tokens;
-
-        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
-
         // sell rewards
-        uint256 usdcBefore = usdc.balanceOf(address(this));
+        uint256 totalUsdc;
 
         uint256 womBalance = wom.balanceOf(address(this));
         if (womBalance > 0) {
-
-            UniswapV3Library.multiSwap(
-                uniswapV3Router,
+            uint256 womAmount = CamelotLibrary.getAmountsOut(
+                camelotRouter,
                 address(wom),
                 address(usdt),
                 address(usdc),
-                poolFee0,
-                poolFee1,
-                address(this),
-                womBalance,
-                0
+                womBalance
             );
 
+            if (womAmount > 0) {
+                uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
+                CamelotLibrary.multiSwap(
+                    camelotRouter,
+                    address(wom),
+                    address(usdt),
+                    address(usdc),
+                    womBalance,
+                    womAmount * 99 / 100,
+                    address(this)
+                );
+                uint256 womUsdc = usdc.balanceOf(address(this)) - balanceUsdcBefore;
+                totalUsdc += womUsdc;
+            }
         }
 
         uint256 mgpBalance = mgp.balanceOf(address(this));
         if (mgpBalance > 0) {
-
             IERC20[] memory tokenPath = new IERC20[](3);
             tokenPath[0] = mgp;
             tokenPath[1] = weth;
@@ -268,7 +280,7 @@ contract StrategyMagpieOvnUsdp is Strategy {
 
             mgp.approve(address(traderJoeRouter), mgpBalance);
 
-            traderJoeRouter.swapExactTokensForTokens(
+            uint256 mgpUsdc = traderJoeRouter.swapExactTokensForTokens(
                 mgpBalance,
                 0,
                 path,
@@ -276,9 +288,8 @@ contract StrategyMagpieOvnUsdp is Strategy {
                 block.timestamp
             );
 
+            totalUsdc += mgpUsdc;
         }
-
-        uint256 totalUsdc = usdc.balanceOf(address(this)) - usdcBefore;
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
@@ -287,4 +298,11 @@ contract StrategyMagpieOvnUsdp is Strategy {
         return totalUsdc;
     }
 
+    function stakeLPTokens() external onlyPortfolioAgent {
+        uint256 assetBalance = IWombatAsset(poolHelperMgp.lpToken()).balanceOf(address(this));
+        if (assetBalance > 0) {
+            IWombatAsset(poolHelperMgp.lpToken()).approve(address(stakingWombat), assetBalance);
+            poolHelperMgp.depositLP(assetBalance);
+        }
+    }
 }

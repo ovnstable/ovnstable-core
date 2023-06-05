@@ -279,12 +279,16 @@ async function getStrategyMapping(){
             url = "https://avax.overnight.fi/api/dict/strategies";
             break;
         case "arbitrum":
+            url = "https://api.overnight.fi/arbitrum/usd+/dict/strategies";
+            break
         case "arbitrum_dai":
-            url = "https://arbitrum.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/arbitrum/dai+/dict/strategies";
             break;
         case "bsc":
+            url = "https://api.overnight.fi/bsc/usd+/dict/strategies";
+            break;
         case "bsc_usdt":
-            url = "https://bsc.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/bsc/usdt+/dict/strategies";
             fromAsset = fromE18;
             break;
         case "polygon":
@@ -691,7 +695,7 @@ async function transferAsset(assetAddress, to) {
         case "BSC":
             switch (assetAddress) {
                 case BSC.usdc:
-                    from = '0xf977814e90da44bfa03b6295a0616a897441acec';
+                    from = '0x8894e0a0c962cb723c1976a4421c95949be2d4e3';
                     break;
                 case BSC.usdt:
                     from = '0x4b16c5de96eb2117bbe5fd171e4d203624b014aa';

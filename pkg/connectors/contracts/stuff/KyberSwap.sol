@@ -674,3 +674,147 @@ library KyberswapLibrary {
         amountOut = router.swapExactInput(params);
     }
 }
+
+
+//this part for ets
+
+struct MintParams {
+    address token0;
+    address token1;
+    uint24 fee;
+    int24 tickLower;
+    int24 tickUpper;
+    int24[2] ticksPrevious;
+    uint256 amount0Desired;
+    uint256 amount1Desired;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    address recipient;
+    uint256 deadline;
+}
+struct IncreaseLiquidityParams {
+    uint256 tokenId;
+    int24[2] ticksPrevious;
+    uint256 amount0Desired;
+    uint256 amount1Desired;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    uint256 deadline;
+}
+struct RemoveLiquidityParams {
+    uint256 tokenId;
+    uint128 liquidity;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    uint256 deadline;
+}
+
+struct Position {
+    // the nonce for permits
+    uint96 nonce;
+    // the address that is approved for spending this token
+    address operator;
+    // the ID of the pool with which this token is connected
+    uint80 poolId;
+    // the tick range of the position
+    int24 tickLower;
+    int24 tickUpper;
+    // the liquidity of the position
+    uint128 liquidity;
+    // the current rToken that the position owed
+    uint256 rTokenOwed;
+    // fee growth per unit of liquidity as of the last update to liquidity
+    uint256 feeGrowthInsideLast;
+}
+
+struct PoolInfo {
+    address token0;
+    uint24 fee;
+    address token1;
+}
+
+struct BurnRTokenParams {
+    uint256 tokenId;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    uint256 deadline;
+}
+
+interface AntiSnipAttackPositionManager {
+    function positions(uint256 tokenId)
+        external
+        view
+        returns (Position memory pos, PoolInfo memory info);
+
+    function mint(MintParams calldata params)
+        external
+        payable
+        returns (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        );
+
+    function addLiquidity(IncreaseLiquidityParams calldata params)
+        external
+        payable
+        returns (
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1,
+            uint256 additionalRTokenOwed
+        );
+
+    function removeLiquidity(RemoveLiquidityParams calldata params)
+        external
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 additionalRTokenOwed
+        );
+
+    function transferAllTokens(
+        address token,
+        uint256 minAmount,
+        address recipient
+    ) external payable;
+
+    function burnRTokens(BurnRTokenParams calldata params)
+        external
+        returns (
+            uint256 rTokenQty,
+            uint256 amount0,
+            uint256 amount1
+        );
+
+    function syncFeeGrowth(uint256 tokenId)
+        external
+        returns (uint256 additionalRTokenOwed);
+}
+
+interface Pool {
+    function getPoolState()
+        external
+        view
+        returns (
+            uint160 sqrtP,
+            int24 currentTick,
+            int24 nearestCurrentTick,
+            bool locked
+        );
+
+    function token0() external view returns (address);
+
+    function tickDistance() external view returns (int24);
+}
+
+interface IPoolStorage {}
+
+interface TicksFeesReader {
+    function getTicksInRange(
+        IPoolStorage pool,
+        int24 startTick,
+        uint32 length
+    ) external view returns (int24[] memory allTicks);
+}
