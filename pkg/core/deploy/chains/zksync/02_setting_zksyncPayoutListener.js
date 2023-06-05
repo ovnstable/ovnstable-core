@@ -17,7 +17,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     // items.push(...velocore());
     // items.push(...syncSwap());
-    items.push(...vesync());
+//    items.push(...vesync());
+    items.push(...mute());
 
     await (await pl.addItems(items)).wait();
 
@@ -31,6 +32,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
         let items = [];
         items.push(createSkim('0x16D0fC836FED0f645d832Eacc65106dDB67108Ef', usdPlus.address, 'USDC/USD+', dex));
+
+        return items;
+    }
+
+    function mute() {
+
+        let dex = 'Mute';
+
+        let items = [];
+        items.push(createSkim('0x3848dbd3EAc429497abd464A18fBEC78EF76f750', usdPlus.address, 'USDC/USD+', dex));
 
         return items;
     }
