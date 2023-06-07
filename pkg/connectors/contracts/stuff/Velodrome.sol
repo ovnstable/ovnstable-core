@@ -156,6 +156,7 @@ interface IPair {
 interface IGauge {
     function deposit(uint amount, uint tokenId) external;
     function withdraw(uint amount) external;
+    function stake() external view returns (address);
     function balanceOf(address) external view returns (uint);
     function getReward(address account, address[] memory tokens) external;
 }
