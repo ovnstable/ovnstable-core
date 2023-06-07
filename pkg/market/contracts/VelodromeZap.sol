@@ -3,35 +3,36 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-contract ChronosZap is OdosZap {
-    IChronosRouter public chronosRouter;
+import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
+
+contract VelodromeZap is OdosZap {
+    IRouter public velodromeRouter;
 
     struct ZapParams {
-        address chronosRouter;
+        address velodromeRouter;
         address odosRouter;
     }
 
-    struct ChronosZapInParams {
+    struct VelodromeZapInParams {
         address gauge;
         uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.chronosRouter != address(0), "Zero address not allowed");
+        require(params.velodromeRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
 
-        chronosRouter = IChronosRouter(params.chronosRouter);
+        velodromeRouter = IRouter(params.velodromeRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, ChronosZapInParams memory chronosData) external {
+    function zapIn(SwapData memory swapData, VelodromeZapInParams memory velodromeData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IChronosGauge gauge = IChronosGauge(chronosData.gauge);
-        IERC20 _token = gauge.TOKEN();
-        IChronosPair pair = IChronosPair(address(_token));
-        address maNFTs = gauge.maNFTs();
+        IGauge gauge = IGauge(velodromeData.gauge);
+        address _token = gauge.stake();
+        IPair pair = IPair(_token);
         (address token0, address token1) = pair.tokens();
 
         address[] memory tokensOut = new address[](2);
@@ -42,22 +43,22 @@ contract ChronosZap is OdosZap {
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
 
-            if (chronosData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), chronosData.amountsOut[i]);
+            if (velodromeData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), velodromeData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _stakeToGauge(pair, gauge, IChronosNFT(maNFTs));
+        _transferToUser(pair);
     }
 
     function getProportion(
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IChronosGauge gauge = IChronosGauge(_gauge);
-        IERC20 _token = gauge.TOKEN();
-        IChronosPair pair = IChronosPair(address(_token));
+        IGauge gauge = IGauge(_gauge);
+        address _token = gauge.stake();
+        IPair pair = IPair(_token);
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         (address token0, address token1) = pair.tokens();
         uint256 dec0 = IERC20Metadata(token0).decimals();
@@ -67,11 +68,7 @@ contract ChronosZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(
-        IChronosPair pair,
-        address[] memory tokensOut,
-        uint256[] memory amountsOut
-    ) internal {
+    function _addLiquidity(IPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
             amountsOut[0],
@@ -84,13 +81,13 @@ contract ChronosZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(chronosRouter), tokensAmount0);
-        asset1.approve(address(chronosRouter), tokensAmount1);
+        asset0.approve(address(velodromeRouter), tokensAmount0);
+        asset1.approve(address(velodromeRouter), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        chronosRouter.addLiquidity(
+        velodromeRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
             pair.stable(),
@@ -145,10 +142,9 @@ contract ChronosZap is OdosZap {
         }
     }
 
-    function _stakeToGauge(IChronosPair pair, IChronosGauge gauge, IChronosNFT token) internal {
+    function _transferToUser(IPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), pairBalance);
-        uint256 tokenIdNew = gauge.deposit(pairBalance);
-        token.safeTransferFrom(address(this), address(msg.sender), tokenIdNew);
+        pair.approve(address(msg.sender), pairBalance);
+        pair.transferFrom(address(this), address(msg.sender), pairBalance);
     }
 }

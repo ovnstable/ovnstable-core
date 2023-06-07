@@ -144,10 +144,12 @@ interface IRouter {
 interface IPair {
     function getReserves() external view returns (uint _reserve0, uint _reserve1, uint _blockTimestampLast);
     function getAmountOut(uint, address) external view returns (uint);
+    function transferFrom(address from, address to, uint value) external returns (bool);
     function balanceOf(address) external view returns (uint);
     function approve(address spender, uint amount) external returns (bool);
     function totalSupply() external view returns (uint);
     function token0() external view returns (address);
+    function tokens() external view returns (address, address);
     function stable() external view returns (bool);
 }
 
