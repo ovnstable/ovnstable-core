@@ -42,12 +42,10 @@ contract ThenaZap is OdosZap {
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-
             if (thenaData.amountsOut[i] > 0) {
                 asset.transferFrom(msg.sender, address(this), thenaData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
-            console.log("%s %s", tokensOut[i], amountsOut[i]);
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
