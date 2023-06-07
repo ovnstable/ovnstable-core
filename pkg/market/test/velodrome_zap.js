@@ -11,16 +11,16 @@ const {
 const { resetHardhat, greatLess, resetHardhatToLastBlock } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
+let { OPTIMISM } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
 
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 
-describe("ChronosZapper", function () {
+describe("VelodromeZapper", function () {
 
-    let chronosZap;
+    let velodromeZap;
 
     let account;
     let usdPlus;
@@ -38,43 +38,43 @@ describe("ChronosZapper", function () {
         await hre.run("compile");
         await resetHardhatToLastBlock();
 
-        await deployments.fixture(['ChronosZap']);
+        await deployments.fixture(['VelodromeZap']);
 
         account = await setUp();
-        chronosZap = await ethers.getContract("ChronosZap");
+        velodromeZap = await ethers.getContract("VelodromeZap");
 
-        token0Out = (await getContract('UsdPlusToken', 'arbitrum')).connect(account);
-        token1Out = (await getContract('UsdPlusToken', 'arbitrum_dai')).connect(account);
+        token0Out = (await getContract('UsdPlusToken', 'optimism')).connect(account);
+        token1Out = (await getERC20("usdc")).connect(account);
 
-        token0In = (await getERC20("usdc")).connect(account);
+        token0In = (await getContract('UsdPlusToken', 'optimism_dai')).connect(account);
         token1In = (await getERC20("dai")).connect(account);
     });
 
     it("swap and put nearly equal", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
 
         await showBalances();
 
-        const amountToken0In = toE6(100);
+        const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(400);
-        const amountToken1Out = toE18(500);
+        const amountToken0Out = toE6(350);
+        const amountToken1Out = toE6(550);
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(velodromeZap.address, amountToken0In)).wait();
+        await (await token1In.approve(velodromeZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(velodromeZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(velodromeZap.address, amountToken1Out)).wait();
 
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await velodromeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [6, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -82,11 +82,11 @@ describe("ChronosZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 10,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": velodromeZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -95,11 +95,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": velodromeZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await velodromeZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -135,10 +135,11 @@ describe("ChronosZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE6(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
+        console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
 
@@ -153,39 +154,39 @@ describe("ChronosZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalances on one asset", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
 
         await showBalances();
 
-        const amountToken0In = toE6(100);
+        const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
         const amountToken0Out = toE6(800);
-        const amountToken1Out = toE18(100);
+        const amountToken1Out = toE6(100);
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(velodromeZap.address, amountToken0In)).wait();
+        await (await token1In.approve(velodromeZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(velodromeZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(velodromeZap.address, amountToken1Out)).wait();
 
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await velodromeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [6, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -193,11 +194,11 @@ describe("ChronosZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 10,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": velodromeZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -206,11 +207,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": velodromeZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await velodromeZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -246,8 +247,8 @@ describe("ChronosZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -258,45 +259,41 @@ describe("ChronosZapper", function () {
         const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
         const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
 
-
-        const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
-        const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
-
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalanced on another asset", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
 
         await showBalances();
 
-        const amountToken0In = toE6(100);
+        const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
         const amountToken0Out = toE6(100);
-        const amountToken1Out = toE18(800);
+        const amountToken1Out = toE6(800);
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(velodromeZap.address, amountToken0In)).wait();
+        await (await token1In.approve(velodromeZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(velodromeZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(velodromeZap.address, amountToken1Out)).wait();
 
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await velodromeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [6, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -304,11 +301,11 @@ describe("ChronosZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 10,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": velodromeZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -317,11 +314,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": velodromeZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await velodromeZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -357,8 +354,8 @@ describe("ChronosZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -369,16 +366,12 @@ describe("ChronosZapper", function () {
         const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
         const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
 
-
-        const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
-        const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
-
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
+        expect(fromE18(await token0Out.balanceOf(velodromeZap.address))).to.lessThan(1);
 
 
     });
@@ -390,7 +383,7 @@ describe("ChronosZapper", function () {
 
         items.push({
             name: await token0In.symbol(),
-            balance: fromE6(await token0In.balanceOf(account.address))
+            balance: fromE18(await token0In.balanceOf(account.address))
         });
 
         items.push({
@@ -405,7 +398,7 @@ describe("ChronosZapper", function () {
 
         items.push({
             name: await token1Out.symbol(),
-            balance: fromE18(await token1Out.balanceOf(account.address))
+            balance: fromE6(await token1Out.balanceOf(account.address))
         });
 
         console.table(items);
@@ -434,17 +427,17 @@ async function getOdosRequest(request) {
     try {
         transaction = (await axios.post(url, swapParams, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
-        console.log("[chronosZap] getSwapTransaction: " + e);
+        console.log("[velodromeZap] getSwapTransaction: " + e);
         return 0;
     }
 
     if (transaction.statusCode === 400) {
-        console.log(`[chronosZap]  ${transaction.description}`);
+        console.log(`[velodromeZap]  ${transaction.description}`);
         return 0;
     }
 
     if (transaction.data.transaction === undefined) {
-        console.log("[chronosZap] transaction.tx is undefined");
+        console.log("[velodromeZap] transaction.tx is undefined");
         return 0;
     }
 
@@ -452,7 +445,7 @@ async function getOdosRequest(request) {
     return transaction.data.transaction;
 }
 
-function calculateProportionForChronosSwapModif({
+function calculateProportionForPool({
     inputTokensDecimals,
     inputTokensAddresses,
     inputTokensAmounts,
@@ -497,9 +490,7 @@ function calculateProportionForChronosSwapModif({
     } else if (output1InMoneyWithProportion < tokenOut1) {
         const dif = tokenOut1 - output1InMoneyWithProportion;
         const token1AmountForSwap = new BigNumber((dif / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0);
-        // console.log(new BigNumber((output1InMoneyWithProportion / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0), outputTokensAmounts[1].toString());
         inputTokens.push({ "tokenAddress": outputTokensAddresses[1], "amount": token1AmountForSwap.toString() })
-        // console.log(inputTokens)
         return {
             "outputTokens": [
                 {
@@ -536,8 +527,8 @@ function calculateProportionForChronosSwapModif({
 
 async function getPlusTokens(amount, to) {
 
-    let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
-    let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
+    let usdPlus = await getContract('UsdPlusToken', 'optimism');
+    let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
 
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
@@ -560,8 +551,8 @@ async function setUp() {
     const signers = await ethers.getSigners();
     const account = signers[0];
 
-    await transferAsset(ARBITRUM.dai, account.address);
-    await transferAsset(ARBITRUM.usdc, account.address);
+    await transferAsset(OPTIMISM.dai, account.address);
+    await transferAsset(OPTIMISM.usdc, account.address);
 
     await getPlusTokens(10_000, account.address);
 

@@ -128,6 +128,7 @@ let BSC = {
     pancakeSwapV3Router: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
     inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
     thenaRouter: "0xd4ae6eCA985340Dd434D38F470aCCce4DC78D109",
+    odosRouter: "0x9f138be5aA5cC442Ea7cC7D18cD9E30593ED90b9",
     // oracles
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
     chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",
@@ -177,6 +178,7 @@ let OPTIMISM = {
     curve3Pool: "0x1337BedC9D22ecbe766dF105c9623922A27963EC",
     inchRouter: "0x1111111254760F7ab3F16433eea9304126DCd199",
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
+    odosRouter: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
     // oracles
     oracleDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
     oracleUsdt: "0xecef79e109e997bca29c1c0897ec9d7b03647f5e",

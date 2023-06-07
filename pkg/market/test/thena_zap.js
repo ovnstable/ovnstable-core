@@ -11,16 +11,16 @@ const {
 const { resetHardhat, greatLess, resetHardhatToLastBlock } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
+let { BSC } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
 
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 
-describe("ChronosZapper", function () {
+describe("ThenaZapper", function () {
 
-    let chronosZap;
+    let thenaZap;
 
     let account;
     let usdPlus;
@@ -38,55 +38,53 @@ describe("ChronosZapper", function () {
         await hre.run("compile");
         await resetHardhatToLastBlock();
 
-        await deployments.fixture(['ChronosZap']);
+        await deployments.fixture(['ThenaZap']);
 
         account = await setUp();
-        chronosZap = await ethers.getContract("ChronosZap");
+        thenaZap = await ethers.getContract("ThenaZap");
 
-        token0Out = (await getContract('UsdPlusToken', 'arbitrum')).connect(account);
-        token1Out = (await getContract('UsdPlusToken', 'arbitrum_dai')).connect(account);
+        token0Out = (await getERC20("usdt")).connect(account);
+        token1Out = (await getContract('UsdPlusToken', 'bsc')).connect(account);
 
         token0In = (await getERC20("usdc")).connect(account);
-        token1In = (await getERC20("dai")).connect(account);
     });
 
     it("swap and put nearly equal", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc";
 
         await showBalances();
+        const amountToken0In = toE18(200);
+        const amountToken0Out = toE18(450);
+        const amountToken1Out = toE6(350);
 
-        const amountToken0In = toE6(100);
-        const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(400);
-        const amountToken1Out = toE18(500);
+        await (await token0In.approve(thenaZap.address, amountToken0In)).wait();
+        await (await token0Out.approve(thenaZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(thenaZap.address, amountToken1Out)).wait();
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
-
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await thenaZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18],
+            inputTokensAddresses: [token0In.address],
+            inputTokensAmounts: [amountToken0In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
             proportion0: reserves[0] / sumReserves
         })
 
+        console.log(proportions)
+
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 56,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": thenaZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -95,11 +93,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": thenaZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await thenaZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -123,10 +121,8 @@ describe("ChronosZapper", function () {
 
 
         expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
         expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -135,7 +131,7 @@ describe("ChronosZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE6(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
         const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
@@ -153,39 +149,35 @@ describe("ChronosZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalances on one asset", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc";
 
         await showBalances();
+        const amountToken0In = toE18(100);
+        const amountToken0Out = toE18(800);
+        const amountToken1Out = toE6(100);
 
-        const amountToken0In = toE6(100);
-        const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(800);
-        const amountToken1Out = toE18(100);
+        await (await token0In.approve(thenaZap.address, amountToken0In)).wait();
+        await (await token0Out.approve(thenaZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(thenaZap.address, amountToken1Out)).wait();
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
-
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await thenaZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18],
+            inputTokensAddresses: [token0In.address],
+            inputTokensAmounts: [amountToken0In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -193,11 +185,11 @@ describe("ChronosZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 56,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": thenaZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -206,11 +198,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": thenaZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await thenaZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -234,10 +226,8 @@ describe("ChronosZapper", function () {
 
 
         expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
         expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -264,39 +254,36 @@ describe("ChronosZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalanced on another asset", async function () {
 
-        const gauge = "0xcd4a56221175b88d4fb28ca2138d670cc1197ca9";
+        const gauge = "0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc";
 
         await showBalances();
 
-        const amountToken0In = toE6(100);
-        const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(100);
-        const amountToken1Out = toE18(800);
+        const amountToken0In = toE18(100);
+        const amountToken0Out = toE18(100);
+        const amountToken1Out = toE6(800);
 
-        await (await token0In.approve(chronosZap.address, amountToken0In)).wait();
-        await (await token1In.approve(chronosZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(chronosZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(chronosZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(thenaZap.address, amountToken0In)).wait();
+        await (await token0Out.approve(thenaZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(thenaZap.address, amountToken1Out)).wait();
 
-        const reserves = await chronosZap.getProportion(gauge);
+        const reserves = await thenaZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
-        const proportions = calculateProportionForChronosSwapModif({
-            inputTokensDecimals: [6, 18],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
+        const proportions = calculateProportionForPool({
+            inputTokensDecimals: [18],
+            inputTokensAddresses: [token0In.address],
+            inputTokensAmounts: [amountToken0In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -304,11 +291,11 @@ describe("ChronosZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 56,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": chronosZap.address,
+            "userAddr": thenaZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -317,11 +304,11 @@ describe("ChronosZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": chronosZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": thenaZap.address };
         });
 
 
-        const receipt = await (await chronosZap.connect(account).zapIn({
+        const receipt = await (await thenaZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -345,10 +332,8 @@ describe("ChronosZapper", function () {
 
 
         expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
         expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -375,10 +360,9 @@ describe("ChronosZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(chronosZap.address))).to.lessThan(1);
+        expect(fromE6(await token0In.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(thenaZap.address))).to.lessThan(1);
 
 
     });
@@ -390,22 +374,17 @@ describe("ChronosZapper", function () {
 
         items.push({
             name: await token0In.symbol(),
-            balance: fromE6(await token0In.balanceOf(account.address))
-        });
-
-        items.push({
-            name: await token1In.symbol(),
-            balance: fromE18(await token1In.balanceOf(account.address))
+            balance: fromE18(await token0In.balanceOf(account.address))
         });
 
         items.push({
             name: await token0Out.symbol(),
-            balance: fromE6(await token0Out.balanceOf(account.address))
+            balance: fromE18(await token0Out.balanceOf(account.address))
         });
 
         items.push({
             name: await token1Out.symbol(),
-            balance: fromE18(await token1Out.balanceOf(account.address))
+            balance: fromE6(await token1Out.balanceOf(account.address))
         });
 
         console.table(items);
@@ -434,17 +413,17 @@ async function getOdosRequest(request) {
     try {
         transaction = (await axios.post(url, swapParams, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
-        console.log("[chronosZap] getSwapTransaction: " + e);
+        console.log("[thenaZap] getSwapTransaction: " + e);
         return 0;
     }
 
     if (transaction.statusCode === 400) {
-        console.log(`[chronosZap]  ${transaction.description}`);
+        console.log(`[thenaZap]  ${transaction.description}`);
         return 0;
     }
 
     if (transaction.data.transaction === undefined) {
-        console.log("[chronosZap] transaction.tx is undefined");
+        console.log("[thenaZap] transaction.tx is undefined");
         return 0;
     }
 
@@ -452,7 +431,7 @@ async function getOdosRequest(request) {
     return transaction.data.transaction;
 }
 
-function calculateProportionForChronosSwapModif({
+function calculateProportionForPool({
     inputTokensDecimals,
     inputTokensAddresses,
     inputTokensAmounts,
@@ -536,20 +515,20 @@ function calculateProportionForChronosSwapModif({
 
 async function getPlusTokens(amount, to) {
 
-    let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
-    let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
+    let usdPlus = await getContract('UsdPlusToken', 'bsc');
+    // let daiPlus = await getContract('UsdPlusToken', 'bsc_dai');
 
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
-        let exchangeDaiPlus = await usdPlus.exchange();
+        // let exchangeDaiPlus = await usdPlus.exchange();
 
         await usdPlus.connect(timelock).setExchanger(timelock.address);
         await usdPlus.connect(timelock).mint(to, toE6(amount));
         await usdPlus.connect(timelock).setExchanger(exchangeUsdPlus);
 
-        await daiPlus.connect(timelock).setExchanger(timelock.address);
-        await daiPlus.connect(timelock).mint(to, toE18(amount));
-        await daiPlus.connect(timelock).setExchanger(exchangeDaiPlus);
+        // await daiPlus.connect(timelock).setExchanger(timelock.address);
+        // await daiPlus.connect(timelock).mint(to, toE6(amount));
+        // await daiPlus.connect(timelock).setExchanger(exchangeDaiPlus);
     })
 
 }
@@ -560,8 +539,8 @@ async function setUp() {
     const signers = await ethers.getSigners();
     const account = signers[0];
 
-    await transferAsset(ARBITRUM.dai, account.address);
-    await transferAsset(ARBITRUM.usdc, account.address);
+    await transferAsset(BSC.usdc, account.address);
+    await transferAsset(BSC.usdt, account.address);
 
     await getPlusTokens(10_000, account.address);
 
