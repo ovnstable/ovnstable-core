@@ -22,9 +22,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let items = [];
 
-    items.push(...wombat());
-    items.push(...thena());
-    items.push(...pacnake());
+//    items.push(...wombat());
+//    items.push(...thena());
+//    items.push(...pacnake());
+    items.push(...magicFox());
 
 
     // await (await pl.removeItems()).wait();
@@ -80,6 +81,18 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
         return items;
 
+    }
+
+    function magicFox() {
+
+        let dex = 'MagicFox';
+
+        let items = [];
+
+        items.push(createBribeWithFee('0xA72D2aEAD2bcf791D608D99749EfE5de5b15f65A', usdPlus.address, 'sAMM-USDT+/USD+', dex, '0x476a2bDc6F88d5954F6C55522CDe9cD75fA57B34'));
+        items.push(createBribeWithFee('0xA72D2aEAD2bcf791D608D99749EfE5de5b15f65A', usdtPlus.address, 'sAMM-USDT+/USD+', dex, '0x476a2bDc6F88d5954F6C55522CDe9cD75fA57B34'));
+
+        return items;
     }
 
 };
