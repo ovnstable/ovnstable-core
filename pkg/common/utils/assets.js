@@ -21,6 +21,7 @@ let ZKSYNC = {
     // swaps
     velocoreRouter: '0x46dbd39e26a56778d88507d7aEC6967108C0BD36',
     maverickRouter: '0x39E098A153Ad69834a9Dac32f0FCa92066aD03f4',
+    inchRouterV5: "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F",
 }
 
 let ARBITRUM = {
@@ -65,6 +66,7 @@ let ARBITRUM = {
     solidLizardRouter: "0xF26515D5482e2C2FD237149bF6A653dA4794b3D0",
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
     inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
+    inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     ramsesRouter: "0xAAA87963EFeB6f7E0a2711F397663105Acb1805e",
     camelotRouter: "0xc873fecbd354f5a56e00e710b90ef4201db2448d",
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
@@ -72,7 +74,6 @@ let ARBITRUM = {
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
     odosRouter: "0xdd94018F54e565dbfc939F7C44a16e163FaAb331",
     soluneaRouter: "0x8C36161aBE3F425F924D4F8E171d25e60ef2A0a4",
-
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
@@ -127,6 +128,7 @@ let BSC = {
     wombatPool: '0x312Bc7eAAF93f1C60Dc5AfC115FcCDE161055fb0',
     pancakeSwapV3Router: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
     inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
+    inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     thenaRouter: "0xd4ae6eCA985340Dd434D38F470aCCce4DC78D109",
     odosRouter: "0x9f138be5aA5cC442Ea7cC7D18cD9E30593ED90b9",
     // oracles
@@ -177,6 +179,7 @@ let OPTIMISM = {
     curveExchange: "0x22D710931F01c1681Ca1570Ff016eD42EB7b7c2a",
     curve3Pool: "0x1337BedC9D22ecbe766dF105c9623922A27963EC",
     inchRouter: "0x1111111254760F7ab3F16433eea9304126DCd199",
+    inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
     odosRouter: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
     // oracles
@@ -268,6 +271,7 @@ let POLYGON = {
     synapseSwapRouter: "0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5",
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
+    inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     // strategies params
     crvAavePool: "0x445FE580eF8d70FF569aB36e80c647af338db351",
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
