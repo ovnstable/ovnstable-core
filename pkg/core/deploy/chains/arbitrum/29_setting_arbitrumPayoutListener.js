@@ -21,7 +21,8 @@ module.exports = async () => {
     // items.push(...arbidex());
 //    items.push(...wombat());
 //    items.push(...chronos());
-    items.push(...magicFox());
+//    items.push(...magicFox());
+    items.push(...camelot());
 
 //    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
@@ -152,6 +153,17 @@ module.exports = async () => {
 
         items.push(createSkim('0xb5218593C5d7fcdb4Ae0C11B30d9181dfE010bBD', usdPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0xb5218593C5d7fcdb4Ae0C11B30d9181dfE010bBD', daiPlus.address, 'sAMM-USD+/DAI+', dex));
+
+        return items;
+    }
+
+    function camelot() {
+
+        let dex = 'Camelot';
+
+        let items = [];
+
+        items.push(createSkim('0xC774924Edb53658241dB89924fA7BC704f25fc52', usdPlus.address, 'USDs/USD+', dex));
 
         return items;
     }
