@@ -126,73 +126,129 @@ async function testStrategy(strategy){
 
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
 
+        let balanceBefore = 0;
+        let navBefore = 0;
+        let navAfter = 0;
+        let balanceAfter = 0;
 
-        let balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-        let navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        await strategy.connect(timelock).claimRewards(testWallet.address);
-        let navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        let balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-        operations.push({
-            name: 'ClaimRewards',
-            nav_delta: navAfter - navBefore,
-            balance_delta: balanceAfter - balanceBefore
-        });
 
         await getTestAssets(mainWallet.address);
 
         let amount = toAsset(50_000);
         await asset.connect(mainWallet).transfer(testWallet.address, amount);
 
-        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-        await asset.connect(testWallet).transfer(strategy.address, amount);
-        await strategy.connect(timelock).stake(asset.address, amount);
-        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+        try {
+            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            await asset.connect(testWallet).transfer(strategy.address, amount);
+            await strategy.connect(timelock).stake(asset.address, amount);
+            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
-        operations.push({
-            name: 'Stake',
-            nav_delta: navAfter - navBefore,
-            balance_delta: balanceAfter - balanceBefore
-        });
+            operations.push({
+                name: 'Stake',
+                nav_delta: navAfter - navBefore,
+                balance_delta: balanceAfter - balanceBefore
+            });
+        } catch (e) {
+            console.error('Stake fail: ' + e);
 
-        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-        await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
-        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            operations.push({
+                name: 'Stake',
+                nav_delta: 'error',
+                balance_delta: 'error'
+            });
+        }
 
-        operations.push({
-            name: 'UnStake',
-            nav_delta: navAfter - navBefore,
-            balance_delta: balanceAfter - balanceBefore
-        });
+        try {
+            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            await strategy.connect(timelock).claimRewards(testWallet.address);
+            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
-        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-        await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
-        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            operations.push({
+                name: 'ClaimRewards',
+                nav_delta: navAfter - navBefore,
+                balance_delta: balanceAfter - balanceBefore
+            });
+        } catch (e) {
+            console.error('ClaimRewards fail: ' + e);
 
-        operations.push({
-            name: 'UnStakeFull',
-            nav_delta: navAfter - navBefore,
-            balance_delta: balanceAfter - balanceBefore
-        });
+            operations.push({
+                name: 'ClaimRewards',
+                nav_delta: 'error',
+                balance_delta: 'error'
+            });
+        }
 
-        navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-        await asset.connect(testWallet).transfer(strategy.address, nav);
-        await strategy.connect(timelock).stake(asset.address, nav);
-        navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-        balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
 
-        operations.push({
-            name: 'Stake Nav base',
-            nav_delta: navAfter - navBefore,
-            balance_delta: balanceAfter - balanceBefore
-        });
+        try {
+            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
+            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+
+            operations.push({
+                name: 'UnStake',
+                nav_delta: navAfter - navBefore,
+                balance_delta: balanceAfter - balanceBefore
+            });
+        } catch (e) {
+            console.error('Unstake fail: ' + e);
+
+            operations.push({
+                name: 'UnStake',
+                nav_delta: 'error',
+                balance_delta: 'error'
+            });
+        }
+
+        try {
+            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
+            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+
+            operations.push({
+                name: 'UnStakeFull',
+                nav_delta: navAfter - navBefore,
+                balance_delta: balanceAfter - balanceBefore
+            });
+        } catch (e) {
+            console.error('UnstakeFull fail: ' + e);
+
+            operations.push({
+                name: 'UnStakeFull',
+                nav_delta: 'error',
+                balance_delta: 'error'
+            });
+        }
+
+        try {
+            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+            await asset.connect(testWallet).transfer(strategy.address, nav);
+            await strategy.connect(timelock).stake(asset.address, nav);
+            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
+            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
+
+            operations.push({
+                name: 'Stake Nav base',
+                nav_delta: navAfter - navBefore,
+                balance_delta: balanceAfter - balanceBefore
+            });
+        } catch (e) {
+            console.error('Stake Nav base fail: ' + e);
+
+            operations.push({
+                name: 'Stake Nav base',
+                nav_delta: 'error',
+                balance_delta: 'error'
+            });
+        }
 
         console.table(operations);
         console.log('Test strategy done: ' + strategy.address);

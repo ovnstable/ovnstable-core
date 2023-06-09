@@ -57,15 +57,20 @@ async function main() {
 
     weights = await convertWeights(weights);
 
-    await showM2M();
+    await execTimelock(async (timelock) => {
+        let pm = await getContract('PortfolioManager');
 
-    let pm = await getContract('PortfolioManager');
-    await (await pm.setStrategyWeights(weights)).wait();
-    await (await pm.balance()).wait();
+        await showM2M();
 
-    await showM2M();
+        weights = await convertWeights(weights);
 
-    // await changeWeightsAndBalance(weights);
+        await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelock.address);
+        // await pm.connect(timelock).setStrategyWeights(weights);
+        await pm.connect(timelock).balance();
+
+        await showM2M();
+
+    });
 
 }
 
