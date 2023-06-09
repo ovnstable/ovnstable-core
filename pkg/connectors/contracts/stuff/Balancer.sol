@@ -1354,15 +1354,13 @@ library BalancerLibrary {
 
     function batchSwap(
         IVault vault,
-        IVault.SwapKind kind,
         address token0,
         address token1,
         bytes32 poolId0,
         uint256 amount,
-        int256[] memory limits,
-        address sender,
-        address recipient
-    ) internal returns (uint256) {
+        uint256 amountOutMin,
+        address sender
+    ) internal returns (uint256 amountOut) {
 
         IERC20(token0).approve(address(vault), amount);
 
@@ -1373,24 +1371,26 @@ library BalancerLibrary {
         assets[0] = IAsset(token0);
         assets[1] = IAsset(token1);
 
-        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(sender), false);
 
-        return uint256(- vault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp)[1]);
+        int256[] memory limits = new int256[](2);
+        limits[0] = int256(amount);
+        limits[1] = - int256(amountOutMin);
+
+        amountOut = uint256(- vault.batchSwap(IVault.SwapKind.GIVEN_IN, swaps, assets, fundManagement, limits, block.timestamp)[1]);
     }
 
     function batchSwap(
         IVault vault,
-        IVault.SwapKind kind,
         address token0,
         address token1,
         address token2,
         bytes32 poolId0,
         bytes32 poolId1,
         uint256 amount,
-        int256[] memory limits,
-        address sender,
-        address recipient
-    ) internal returns (uint256) {
+        uint256 amountOutMin,
+        address sender
+    ) internal returns (uint256 amountOut) {
 
         IERC20(token0).approve(address(vault), amount);
 
@@ -1403,9 +1403,14 @@ library BalancerLibrary {
         assets[1] = IAsset(token1);
         assets[2] = IAsset(token2);
 
-        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(recipient), false);
+        IVault.FundManagement memory fundManagement = IVault.FundManagement(sender, false, payable(sender), false);
 
-        return uint256(- vault.batchSwap(kind, swaps, assets, fundManagement, limits, block.timestamp)[2]);
+        int256[] memory limits = new int256[](3);
+        limits[0] = int256(amount);
+        limits[1] = 0;
+        limits[2] = - int256(amountOutMin);
+
+        amountOut = uint256(- vault.batchSwap(IVault.SwapKind.GIVEN_IN, swaps, assets, fundManagement, limits, block.timestamp)[2]);
     }
 
     /**
