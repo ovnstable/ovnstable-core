@@ -791,6 +791,8 @@ interface AntiSnipAttackPositionManager {
     function syncFeeGrowth(uint256 tokenId)
         external
         returns (uint256 additionalRTokenOwed);
+
+    function setApprovalForAll(address operator, bool _approved) external;
 }
 
 interface Pool {
@@ -817,4 +819,23 @@ interface TicksFeesReader {
         int24 startTick,
         uint32 length
     ) external view returns (int24[] memory allTicks);
+}
+
+interface KyberSwapElasticLM {
+
+    function deposit(uint256[] calldata nftIds) external;
+
+    function join(uint256 pId, uint256[] calldata nftIds, uint256[] calldata liqs) external;
+
+    function withdraw(uint256[] calldata nftIds) external;
+
+    function exit(uint256 pId, uint256[] calldata nftIds, uint256[] calldata liqs) external;
+
+    function harvestMultiplePools(uint256[] calldata nftIds, bytes[] calldata datas) external;
+
+    function getUserInfo(uint256 nftId, uint256 pId) external view 
+    returns (uint256 liquidity, uint256[] memory rewardPending, uint256[] memory rewardLast);
+
+    function getJoinedPools(uint256 nftId) external view returns (uint256[] memory poolIds);
+
 }
