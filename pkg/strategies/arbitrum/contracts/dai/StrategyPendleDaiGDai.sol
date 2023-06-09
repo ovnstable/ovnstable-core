@@ -5,7 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
-import "hardhat/console.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 
 
 contract StrategyPendleDaiGDai is Strategy {
@@ -25,6 +25,9 @@ contract StrategyPendleDaiGDai is Strategy {
         address uniswapV3Router;
         address pendleAddress;
         uint256 thresholdBalancePercent;
+
+        address depositHelperMgp;
+        address masterMgp;
     }
 
     // --- params
@@ -42,6 +45,9 @@ contract StrategyPendleDaiGDai is Strategy {
     ISwapRouter public uniswapV3Router;
     IERC20 public pendle;
     uint256 public thresholdBalancePercent;
+
+    PendleMarketDepositHelper public depositHelperMgp;
+    MasterMagpie public masterMgp;
 
     // --- events
 
@@ -74,6 +80,9 @@ contract StrategyPendleDaiGDai is Strategy {
 
         thresholdBalancePercent = params.thresholdBalancePercent;
 
+        depositHelperMgp = PendleMarketDepositHelper(params.depositHelperMgp);
+        masterMgp = MasterMagpie(params.masterMgp);
+
         uint256 MAX_VALUE = 2 ** 256 - 1;
         dai.approve(address(sy), MAX_VALUE);
         dai.approve(address(pendleRouter), MAX_VALUE);
@@ -87,6 +96,10 @@ contract StrategyPendleDaiGDai is Strategy {
         pt.approve(address(pendleRouter), MAX_VALUE);
         yt.approve(address(pendleRouter), MAX_VALUE);
         lp.approve(address(pendleRouter), MAX_VALUE);
+
+        // https://arbiscan.io/address/0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81
+        // PendleStaking
+        lp.approve(address(0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -124,7 +137,7 @@ contract StrategyPendleDaiGDai is Strategy {
             if (dai.balanceOf(address(this)) > 0) {
                 gDai.deposit(dai.balanceOf(address(this)), address(this));
             }
-            
+
             uint256 gDaiAm = gDai.balanceOf(address(this));
             uint256 syAm = sy.balanceOf(address(this));
             MarketStorage memory marketStorage = lp._storage();
@@ -150,6 +163,8 @@ contract StrategyPendleDaiGDai is Strategy {
         }
 
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
+
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
     }
 
     function _movePtToSy(uint256 ptBalance) private {
@@ -224,6 +239,7 @@ contract StrategyPendleDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
+        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
         {
@@ -258,7 +274,7 @@ contract StrategyPendleDaiGDai is Strategy {
 
         // if you CAN make request and NEED make request
         if (isActivePhase() && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
-            uint256 lpAmount = isUnstakeFull ? lp.balanceOf(address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
+            uint256 lpAmount = isUnstakeFull ? depositHelperMgp.balance(address(lp), address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
             _unstakeExactLp(lpAmount, isUnstakeFull);
             gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
         }
@@ -266,7 +282,9 @@ contract StrategyPendleDaiGDai is Strategy {
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {
 
-        uint256 lpTokenBalance = lp.balanceOf(address(this));
+
+        uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
+        lpTokenBalance += lp.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
@@ -310,7 +328,7 @@ contract StrategyPendleDaiGDai is Strategy {
             } else {
                 daiAmount += gDai.previewRedeem(gDaiAmount);
             }
-            
+
         }
 
         return daiAmount;
@@ -344,10 +362,18 @@ contract StrategyPendleDaiGDai is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        address[] memory sys = new address[](1); sys[0] = address(sy);
-        address[] memory yts = new address[](1); yts[0] = address(yt);
-        address[] memory markets = new address[](1); markets[0] = address(lp);
-        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+        depositHelperMgp.harvest(address(lp));
+
+        address[] memory stakingRewards = new address[](1);
+        stakingRewards[0] = address(address(lp));
+
+        address[] memory tokens = new address[](2);
+        tokens[1] = address(pendle);
+
+        address[][] memory rewardTokens = new address [][](1);
+        rewardTokens[0] = tokens;
+
+        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         _equPtYt();
 
