@@ -7,7 +7,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
-import "hardhat/console.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 
 
 contract StrategyPendleDaiUsdt is Strategy {
@@ -37,6 +37,9 @@ contract StrategyPendleDaiUsdt is Strategy {
 
         address wombatRouter;
         address wombatBasePool;
+
+        address depositHelperMgp;
+        address masterMgp;
     }
 
     // --- params
@@ -64,6 +67,10 @@ contract StrategyPendleDaiUsdt is Strategy {
 
     IWombatRouter public wombatRouter;
     address public wombatBasePool;
+
+    PendleMarketDepositHelper public depositHelperMgp;
+    MasterMagpie public masterMgp;
+
 
     // --- events
 
@@ -101,6 +108,9 @@ contract StrategyPendleDaiUsdt is Strategy {
 
         thresholdBalancePercent = params.thresholdBalancePercent;
 
+        depositHelperMgp = PendleMarketDepositHelper(params.depositHelperMgp);
+        masterMgp = MasterMagpie(params.masterMgp);
+
         wombatRouter = IWombatRouter(params.wombatRouter);
         wombatBasePool = params.wombatBasePool;
 
@@ -112,6 +122,10 @@ contract StrategyPendleDaiUsdt is Strategy {
         pt.approve(address(pendleRouter), MAX_VALUE);
         yt.approve(address(pendleRouter), MAX_VALUE);
         lp.approve(address(pendleRouter), MAX_VALUE);
+
+        // https://arbiscan.io/address/0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81
+        // PendleStaking
+        lp.approve(address(0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -174,6 +188,9 @@ contract StrategyPendleDaiUsdt is Strategy {
         }
 
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
+
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
+
     }
 
     function _movePtToSy(uint256 ptBalance) private {
@@ -215,7 +232,7 @@ contract StrategyPendleDaiUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        unstakeExactLp(lp.balanceOf(address(this)), true);
+        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
 
         return dai.balanceOf(address(this));
     }
@@ -244,10 +261,12 @@ contract StrategyPendleDaiUsdt is Strategy {
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
 
-        // 1. Remove liquidity from main pool
-        // 2. Redeem from (pt+yt) to usdt
-        // 3. Redeem from sy to usdt
+        // 1. Remove lp from Magpie
+        // 2. Remove liquidity from main pool
+        // 3. Redeem from (pt+yt) to usdt
+        // 4. Redeem from sy to usdt
 
+        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
         {
@@ -286,7 +305,8 @@ contract StrategyPendleDaiUsdt is Strategy {
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {
 
-        uint256 lpTokenBalance = lp.balanceOf(address(this));
+        uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
+        lpTokenBalance += lp.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
@@ -362,10 +382,19 @@ contract StrategyPendleDaiUsdt is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        address[] memory sys = new address[](1); sys[0] = address(sy);
-        address[] memory yts = new address[](1); yts[0] = address(yt);
-        address[] memory markets = new address[](1); markets[0] = address(lp);
-        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+        depositHelperMgp.harvest(address(lp));
+
+        address[] memory stakingRewards = new address[](1);
+        stakingRewards[0] = address(address(lp));
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(stg);
+        tokens[1] = address(pendle);
+
+        address[][] memory rewardTokens = new address [][](1);
+        rewardTokens[0] = tokens;
+
+        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         _equPtYt();
 
