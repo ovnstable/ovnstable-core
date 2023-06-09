@@ -30,11 +30,10 @@ async function getParams() {
         pendlePtOracleAddress: '0x428f2f93afAc3F96B0DE59854038c585e06165C8',
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         curvePool: '0x7f90122BF0700F9E7e1F688fe926940E8839F353', // Curve.fi USDC/USDT (2CRV)
-        oracleUsdc: ARBITRUM.oracleUsdc,
-        oracleUsdt: ARBITRUM.oracleUsdt,
         stgAddress: '0x6694340fc020c5E6B96567843da2df01b2CE1eb6',
         pendleAddress: '0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8',
-        thresholdBalancePercent: 5,
+        depositHelperMgp: '0x8aa84e8a2d33f6E0e28bE265d6f088e0B97210Bb',
+        masterMgp: '0x0776c06907ce6ff3d9dbf84ba9b3422d7225942d',
     }
 }
 
