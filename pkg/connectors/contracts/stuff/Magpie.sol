@@ -28,3 +28,22 @@ interface MasterMagpie {
 
     function multiclaimSpec(address[] memory _stakingTokens,address[][] memory _rewardTokens) external;
 }
+
+interface PendleMarketDepositHelper {
+
+    /// @notice get the total amount of shares of a user
+    /// @param _market the Pendle Market token
+    /// @param _address the user
+    /// @return the amount of shares
+
+    function balance(
+        address _market,
+        address _address
+    ) external view returns (uint256);
+
+    function depositMarket(address _market, uint256 _amount) external;
+
+    function withdrawMarket(address _market, uint256 _amount) external;
+
+    function harvest(address _market) external;
+}

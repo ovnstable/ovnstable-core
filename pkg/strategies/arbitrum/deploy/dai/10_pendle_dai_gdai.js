@@ -29,7 +29,9 @@ async function getParams() {
         pendlePtOracleAddress: '0x428f2f93afAc3F96B0DE59854038c585e06165C8',
         uniswapV3Router: ARBITRUM.uniswapV3Router,
         pendleAddress: '0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8',
-        thresholdBalancePercent: 5
+        thresholdBalancePercent: 5,
+        depositHelperMgp: '0x8aa84e8a2d33f6E0e28bE265d6f088e0B97210Bb',
+        masterMgp: '0x0776c06907ce6ff3d9dbf84ba9b3422d7225942d',
     }
 
 }

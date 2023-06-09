@@ -36,7 +36,9 @@ async function getParams() {
         pendleAddress: '0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8',
         thresholdBalancePercent: 5,
         wombatRouter: ARBITRUM.wombatRouter,
-        wombatBasePool: ARBITRUM.wombatBasePool
+        wombatBasePool: ARBITRUM.wombatBasePool,
+        depositHelperMgp: '0x8aa84e8a2d33f6E0e28bE265d6f088e0B97210Bb',
+        masterMgp: '0x0776c06907ce6ff3d9dbf84ba9b3422d7225942d',
     }
 
 }

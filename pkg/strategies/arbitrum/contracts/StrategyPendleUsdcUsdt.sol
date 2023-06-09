@@ -7,6 +7,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 
 contract StrategyPendleUsdcUsdt is Strategy {
 
@@ -26,14 +27,14 @@ contract StrategyPendleUsdcUsdt is Strategy {
         address uniswapV3Router;
 
         address curvePool;
-        address oracleUsdc;
-        address oracleUsdt;
 
         address stgAddress;
         address pendleAddress;
 
-        uint256 thresholdBalancePercent;
+        address depositHelperMgp;
+        address masterMgp;
     }
+
 
     // --- params
 
@@ -58,6 +59,9 @@ contract StrategyPendleUsdcUsdt is Strategy {
     IERC20 public pendle;
 
     uint256 public thresholdBalancePercent;
+
+    PendleMarketDepositHelper public depositHelperMgp;
+    MasterMagpie public masterMgp;
 
     // --- events
 
@@ -87,15 +91,18 @@ contract StrategyPendleUsdcUsdt is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         ptOracle = IPendlePtOracle(params.pendlePtOracleAddress);
 
-        oracleUsdc = IPriceFeed(params.oracleUsdc);
-        oracleUsdt = IPriceFeed(params.oracleUsdt);
+        oracleUsdc = IPriceFeed(address(0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3));
+        oracleUsdt = IPriceFeed(address(0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7));
 
         curvePool = params.curvePool;
 
         stg = IERC20(params.stgAddress);
         pendle = IERC20(params.pendleAddress);
 
-        thresholdBalancePercent = params.thresholdBalancePercent;
+        depositHelperMgp = PendleMarketDepositHelper(params.depositHelperMgp);
+        masterMgp = MasterMagpie(params.masterMgp);
+
+        thresholdBalancePercent = 5;
 
         uint256 MAX_VALUE = 2 ** 256 - 1;
         usdt.approve(address(sy), MAX_VALUE);
@@ -105,6 +112,10 @@ contract StrategyPendleUsdcUsdt is Strategy {
         pt.approve(address(pendleRouter), MAX_VALUE);
         yt.approve(address(pendleRouter), MAX_VALUE);
         lp.approve(address(pendleRouter), MAX_VALUE);
+
+        // https://arbiscan.io/address/0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81
+        // PendleStaking
+        lp.approve(address(0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -165,6 +176,8 @@ contract StrategyPendleUsdcUsdt is Strategy {
         }
 
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
+
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
     }
 
     function _movePtToSy(uint256 ptBalance) private {
@@ -206,7 +219,7 @@ contract StrategyPendleUsdcUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        unstakeExactLp(lp.balanceOf(address(this)), true);
+        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
 
         return usdc.balanceOf(address(this));
     }
@@ -235,10 +248,12 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
 
-        // 1. Remove liquidity from main pool
-        // 2. Redeem from (pt+yt) to usdt
-        // 3. Redeem from sy to usdt
+        // 1. Remove lp from Magpie
+        // 2. Remove liquidity from main pool
+        // 3. Redeem from (pt+yt) to usdt
+        // 4. Redeem from sy to usdt
 
+        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
         {
@@ -275,7 +290,8 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {
 
-        uint256 lpTokenBalance = lp.balanceOf(address(this));
+        uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
+        lpTokenBalance += lp.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
@@ -351,10 +367,19 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        address[] memory sys = new address[](1); sys[0] = address(sy);
-        address[] memory yts = new address[](1); yts[0] = address(yt);
-        address[] memory markets = new address[](1); markets[0] = address(lp);
-        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+        depositHelperMgp.harvest(address(lp));
+
+        address[] memory stakingRewards = new address[](1);
+        stakingRewards[0] = address(address(lp));
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(stg);
+        tokens[1] = address(pendle);
+
+        address[][] memory rewardTokens = new address [][](1);
+        rewardTokens[0] = tokens;
+
+        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
 
         _equPtYt();
 
