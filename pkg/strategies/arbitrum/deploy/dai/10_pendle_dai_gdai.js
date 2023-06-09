@@ -38,4 +38,4 @@ async function getParams() {
 
 module.exports.tags = ['StrategyPendleDaiGDai'];
 module.exports.getParams = getParams
-module.exports.strategyPendleDaiUsdtParams = getParams
+module.exports.strategyPendleDaiGDaiParams = getParams
