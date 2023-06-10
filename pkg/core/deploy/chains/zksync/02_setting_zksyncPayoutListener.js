@@ -18,7 +18,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // items.push(...velocore());
     // items.push(...syncSwap());
 //    items.push(...vesync());
-    items.push(...mute());
+//    items.push(...mute());
+    items.push(...ezkalibur());
 
     await (await pl.addItems(items)).wait();
 
@@ -56,7 +57,6 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-
     function syncSwap(){
 
         let dex = 'SyncSwap';
@@ -67,8 +67,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
+    function ezkalibur() {
 
+        let dex = 'Ezkalibur';
 
+        let items = [];
+        items.push(createSkim('0x0DfD96f6DbA1F3AC4ABb4D5CA36ce7Cb48767a13', usdPlus.address, 'USDC/USD+', dex));
+
+        return items;
+    }
 
 };
 
