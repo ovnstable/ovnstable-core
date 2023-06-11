@@ -379,7 +379,7 @@ contract StrategyPendleUsdcUsdt is Strategy {
         address[][] memory rewardTokens = new address [][](1);
         rewardTokens[0] = tokens;
 
-        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
+        masterMgp.multiclaimSpecPNP(stakingRewards, rewardTokens, false);
 
         _equPtYt();
 

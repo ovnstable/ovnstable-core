@@ -27,6 +27,8 @@ interface MagpiePoolHelper {
 interface MasterMagpie {
 
     function multiclaimSpec(address[] memory _stakingTokens,address[][] memory _rewardTokens) external;
+
+    function multiclaimSpecPNP(address[] calldata _stakingTokens, address[][] memory _rewardTokens, bool _withPNP) external;
 }
 
 interface PendleMarketDepositHelper {

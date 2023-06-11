@@ -360,7 +360,17 @@ contract StrategyPendleDaiGDai is Strategy {
 
     }
 
+    function _claimOldPendleRewards() internal {
+
+        address[] memory sys = new address[](1); sys[0] = address(sy);
+        address[] memory yts = new address[](1); yts[0] = address(yt);
+        address[] memory markets = new address[](1); markets[0] = address(lp);
+        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+    }
+
     function _claimRewards(address _to) internal override returns (uint256) {
+
+        _claimOldPendleRewards();
 
         depositHelperMgp.harvest(address(lp));
 
@@ -373,7 +383,7 @@ contract StrategyPendleDaiGDai is Strategy {
         address[][] memory rewardTokens = new address [][](1);
         rewardTokens[0] = tokens;
 
-        masterMgp.multiclaimSpec(stakingRewards, rewardTokens);
+        masterMgp.multiclaimSpecPNP(stakingRewards, rewardTokens, false);
 
         _equPtYt();
 
