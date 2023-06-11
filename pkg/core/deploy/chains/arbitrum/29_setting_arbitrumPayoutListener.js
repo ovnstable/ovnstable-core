@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
@@ -93,7 +93,7 @@ module.exports = async () => {
         items.push(createSkim('0x2423d642C53939a463F84e14C6a9fFC6fd8f4334', usdPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0x2423d642C53939a463F84e14C6a9fFC6fd8f4334', daiPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0x97e5f60fA17816011039B908C19Fa4B43DE73731', usdPlus.address, 'sAMM-ETS Gamma/USD+', dex));
-        items.push(createSkim('0x97e5f60fA17816011039B908C19Fa4B43DE73731', etsGamma, 'sAMM-ETS Gamma/USD+', dex));
+        items.push(createSync('0x97e5f60fA17816011039B908C19Fa4B43DE73731', etsGamma, 'sAMM-ETS Gamma/USD+', dex));
         items.push(createSkim('0xff12e9b0d765d66eb950b2f8c11a356c1e09f0a1', usdPlus.address, 'sAMM-LUSD/USD+', dex));
 
         return items;
@@ -107,7 +107,7 @@ module.exports = async () => {
 
         items.push(createSkim('0xd36A246c848714E52eD810c3f9AE60CCabfccD6B', usdPlus.address, 'sAMM-USD+/USDC', dex));
         items.push(createSkim('0xAc4eeD9Ca04B219935d5C4201167aA9257896443', usdPlus.address, 'sAMM-ETS Gamma/USD+', dex));
-        items.push(createSkim('0xAc4eeD9Ca04B219935d5C4201167aA9257896443', etsGamma, 'sAMM-ETS Gamma/USD+', dex));
+        items.push(createSync('0xAc4eeD9Ca04B219935d5C4201167aA9257896443', etsGamma, 'sAMM-ETS Gamma/USD+', dex));
         items.push(createSkim('0x58C1b1d1DD5e27E929ab159f485E9625ca24969C', daiPlus.address, 'sAMM-DAI/DAI+', dex));
         items.push(createSkim('0xB6490141901FE1a16af2ADA782BA897999683757', daiPlus.address, 'sAMM-USD+/DAI+', dex));
         items.push(createSkim('0xB6490141901FE1a16af2ADA782BA897999683757', usdPlus.address, 'sAMM-USD+/DAI+', dex));
