@@ -178,6 +178,8 @@ interface IStableSwapPool {
 
     function coins(uint256 i) external view returns (address);
 
+    function balances(uint256 i) external view returns (uint256);
+
     function get_virtual_price() external view returns (uint256);
 
     // Get the amount of coin j(received) one would receive for swapping _dx of coin i(send).
