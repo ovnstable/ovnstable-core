@@ -838,4 +838,22 @@ interface KyberSwapElasticLM {
 
     function getJoinedPools(uint256 nftId) external view returns (uint256[] memory poolIds);
 
+    /**
+    * @dev Claim fee from elastic for a list of nft positions
+    * @param nftIds List of NFT ids to claim
+    * @param amount0Min expected min amount of token0 should receive
+    * @param amount1Min expected min amount of token1 should receive
+    * @param poolAddress address of Elastic pool of those nfts
+    * @param isReceiveNative should unwrap native or not
+    * @param deadline deadline of this tx
+    */
+    function claimFee(
+        uint256[] calldata nftIds,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address poolAddress,
+        bool isReceiveNative,
+        uint256 deadline
+    ) external;
+
 }
