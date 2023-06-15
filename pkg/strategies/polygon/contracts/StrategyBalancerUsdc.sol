@@ -207,6 +207,10 @@ contract StrategyBalancerUsdc is Strategy {
             address(this)
         );
 
+        if (bptAmount > gauge.balanceOf(address(this))) {
+            bptAmount = gauge.balanceOf(address(this));
+        }
+
         return _unstakeUsdc(bptAmount);
     }
 
@@ -235,20 +239,20 @@ contract StrategyBalancerUsdc is Strategy {
         gauge.withdraw(bptAmount);
 
         // 2. Calculate swap amounts
-        (uint256 amountUsdc, uint256 amountUsdt, uint256 amountDai) = _getAmountsToSwap(bptAmount);
+//        (uint256 amountUsdc, uint256 amountUsdt, uint256 amountDai) = _getAmountsToSwap(bptAmount);
 
         // 3. Swap all bb-am tokens to native
-        BalancerLibrary.batchSwap(
-            vault,
-            address(bpt),
-            address(bbamUsdc),
-            address(usdc),
-            bbamUsdPoolId,
-            bbamUsdcPoolId,
-            amountUsdc,
-            OvnMath.subBasisPoints(amountUsdc * bbamUsdc.getRate() / 1e30, swapSlippageBP),
-            address(this)
-        );
+//        BalancerLibrary.batchSwap(
+//            vault,
+//            address(bpt),
+//            address(bbamUsdc),
+//            address(usdc),
+//            bbamUsdPoolId,
+//            bbamUsdcPoolId,
+//            amountUsdc,
+//            OvnMath.subBasisPoints(amountUsdc * bbamUsdc.getRate() / 1e30, swapSlippageBP),
+//            address(this)
+//        );
 
         BalancerLibrary.batchSwap(
             vault,
@@ -257,41 +261,45 @@ contract StrategyBalancerUsdc is Strategy {
             address(usdt),
             bbamUsdPoolId,
             bbamUsdtPoolId,
-            amountUsdt,
-            OvnMath.subBasisPoints(amountUsdt * bbamUsdt.getRate() / 1e30, swapSlippageBP),
+            bptAmount,
+            0,
             address(this)
         );
 
-        BalancerLibrary.batchSwap(
-            vault,
-            address(bpt),
-            address(bbamDai),
-            address(dai),
-            bbamUsdPoolId,
-            bbamDaiPoolId,
-            amountDai,
-            OvnMath.subBasisPoints(amountDai * bbamDai.getRate() / 1e18, swapSlippageBP),
-            address(this)
-        );
+//        BalancerLibrary.batchSwap(
+//            vault,
+//            address(bpt),
+//            address(bbamDai),
+//            address(dai),
+//            bbamUsdPoolId,
+//            bbamDaiPoolId,
+//            amountDai,
+//            OvnMath.subBasisPoints(amountDai * bbamDai.getRate() / 1e18, swapSlippageBP),
+//            address(this)
+//        );
 
         // 4. Swap all tokens to USDC
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(usdt),
-            address(usdc),
-            usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
-        );
+        if (usdtBalance > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(usdt),
+                address(usdc),
+                usdtBalance,
+                OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+            );
+        }
 
-        uint256 daiBalance = dai.balanceOf(address(this));
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(dai),
-            address(usdc),
-            daiBalance,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
-        );
+//        uint256 daiBalance = dai.balanceOf(address(this));
+//        if (daiBalance > 0) {
+//            SynapseLibrary.swap(
+//                synapseSwap,
+//                address(dai),
+//                address(usdc),
+//                daiBalance,
+//                OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
+//            );
+//        }
 
         return usdc.balanceOf(address(this));
     }

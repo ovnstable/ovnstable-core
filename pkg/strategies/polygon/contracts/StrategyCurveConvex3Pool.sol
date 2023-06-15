@@ -349,39 +349,47 @@ contract StrategyCurveConvex3Pool is Strategy {
 
     function _swapFromUsdc(uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) internal {
 
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(usdc),
-            address(usdt),
-            amountUsdtInUsdc,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdtInUsdc), swapSlippageBP)
-        );
+        if (amountUsdtInUsdc > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(usdc),
+                address(usdt),
+                amountUsdtInUsdc,
+                OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdtInUsdc), swapSlippageBP)
+            );
+        }
 
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(usdc),
-            address(dai),
-            amountDaiInUsdc,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(amountDaiInUsdc), swapSlippageBP)
-        );
+        if (amountDaiInUsdc > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(usdc),
+                address(dai),
+                amountDaiInUsdc,
+                OvnMath.subBasisPoints(_oracleUsdcToDai(amountDaiInUsdc), swapSlippageBP)
+            );
+        }
     }
 
     function _swapToUsdc(uint256 amountUsdt, uint256 amountDai) internal {
 
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(usdt),
-            address(usdc),
-            amountUsdt,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(amountUsdt), swapSlippageBP)
-        );
+        if (amountUsdt > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(usdt),
+                address(usdc),
+                amountUsdt,
+                OvnMath.subBasisPoints(_oracleUsdtToUsdc(amountUsdt), swapSlippageBP)
+            );
+        }
 
-        SynapseLibrary.swap(
-            synapseSwap,
-            address(dai),
-            address(usdc),
-            amountDai,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(amountDai), swapSlippageBP)
-        );
+        if (amountDai > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(dai),
+                address(usdc),
+                amountDai,
+                OvnMath.subBasisPoints(_oracleDaiToUsdc(amountDai), swapSlippageBP)
+            );
+        }
     }
 }
