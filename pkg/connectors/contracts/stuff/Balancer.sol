@@ -621,6 +621,13 @@ interface IVault {
         bool fromInternalBalance;
     }
 
+    enum JoinKind {
+        INIT,
+        EXACT_TOKENS_IN_FOR_BPT_OUT,
+        TOKEN_IN_FOR_EXACT_BPT_OUT,
+        ALL_TOKENS_IN_FOR_EXACT_BPT_OUT
+    }
+
     /**
      * @dev Called by users to exit a Pool, which transfers tokens from the Pool's balance to `recipient`. This will
      * trigger custom Pool behavior, which will typically ask for something in return from `sender` - often tokenized
@@ -668,6 +675,13 @@ interface IVault {
         uint256[] minAmountsOut;
         bytes userData;
         bool toInternalBalance;
+    }
+
+    enum ExitKind {
+        EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
+        EXACT_BPT_IN_FOR_TOKENS_OUT,
+        BPT_IN_FOR_EXACT_TOKENS_OUT,
+        MANAGEMENT_FEE_TOKENS_OUT // for InvestmentPool
     }
 
     // Swaps

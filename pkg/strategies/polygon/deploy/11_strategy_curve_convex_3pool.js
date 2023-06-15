@@ -27,6 +27,7 @@ async function getParams() {
         rewardPool: '0xf25958C64634FD5b5eb10539769aA6CAB355599A',
         pid: 2,
         uniswapV3Router: POLYGON.uniswapV3Router,
+        synapseSwap: POLYGON.synapseSwapRouter,
         oracleUsdc: POLYGON.oracleChainlinkUsdc,
         oracleUsdt: POLYGON.oracleChainlinkUsdt,
         oracleDai: POLYGON.oracleChainlinkDai,

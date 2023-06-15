@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Convex.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 
@@ -25,6 +26,7 @@ contract StrategyCurveConvex3Pool is Strategy {
     uint256 public pid;
 
     ISwapRouter public uniswapV3Router;
+    ISwap public synapseSwap;
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleUsdt;
@@ -54,6 +56,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         address rewardPool;
         uint256 pid;
         address uniswapV3Router;
+        address synapseSwap;
         address oracleUsdc;
         address oracleUsdt;
         address oracleDai;
@@ -85,6 +88,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         require(params.rewardPool != address(0), "Zero address not allowed");
         require(params.pid != 0, "Zero not allowed");
         require(params.uniswapV3Router != address(0), "Zero address not allowed");
+        require(params.synapseSwap != address(0), "Zero address not allowed");
         require(params.oracleUsdc != address(0), "Zero address not allowed");
         require(params.oracleUsdt != address(0), "Zero address not allowed");
         require(params.oracleDai != address(0), "Zero address not allowed");
@@ -102,6 +106,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         pid = params.pid;
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        synapseSwap = ISwap(params.synapseSwap);
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
@@ -344,22 +349,18 @@ contract StrategyCurveConvex3Pool is Strategy {
 
     function _swapFromUsdc(uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) internal {
 
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        SynapseLibrary.swap(
+            synapseSwap,
             address(usdc),
             address(usdt),
-            100,
-            address(this),
             amountUsdtInUsdc,
             OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdtInUsdc), swapSlippageBP)
         );
 
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        SynapseLibrary.swap(
+            synapseSwap,
             address(usdc),
             address(dai),
-            100,
-            address(this),
             amountDaiInUsdc,
             OvnMath.subBasisPoints(_oracleUsdcToDai(amountDaiInUsdc), swapSlippageBP)
         );
@@ -367,22 +368,18 @@ contract StrategyCurveConvex3Pool is Strategy {
 
     function _swapToUsdc(uint256 amountUsdt, uint256 amountDai) internal {
 
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        SynapseLibrary.swap(
+            synapseSwap,
             address(usdt),
             address(usdc),
-            100,
-            address(this),
             amountUsdt,
             OvnMath.subBasisPoints(_oracleUsdtToUsdc(amountUsdt), swapSlippageBP)
         );
 
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        SynapseLibrary.swap(
+            synapseSwap,
             address(dai),
             address(usdc),
-            100,
-            address(this),
             amountDai,
             OvnMath.subBasisPoints(_oracleDaiToUsdc(amountDai), swapSlippageBP)
         );
