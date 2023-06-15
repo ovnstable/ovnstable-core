@@ -1,6 +1,6 @@
 const { getContract, execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testStrategy} = require("@overnight-contracts/common/utils/governance");
-const { strategyBalancerUsdcParams } = require("@overnight-contracts/strategies-polygon/deploy/dai/42_strategy_balancer_usdc");
+const { strategyBalancerUsdcParams } = require("@overnight-contracts/strategies-polygon/deploy/42_strategy_balancer_usdc");
 
 async function main() {
 
