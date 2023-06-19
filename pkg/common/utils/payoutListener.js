@@ -48,7 +48,7 @@ function createSync(pool, token, poolName, dexName){
 }
 
 
-function createCustom(pool, token, poolName, dexName){
+function createCustom(pool, token, poolName, dexName, to = COMMON.rewardWallet) {
 
     return {
         pool: pool,
@@ -56,7 +56,7 @@ function createCustom(pool, token, poolName, dexName){
         poolName: poolName,
         bribe: ZERO_ADDRESS,
         operation: OPERATIONS.CUSTOM,
-        to: COMMON.rewardWallet,
+        to: to,
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
