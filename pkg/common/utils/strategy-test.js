@@ -1,21 +1,16 @@
 const hre = require("hardhat");
 const {deployments, getNamedAccounts, ethers} = require("hardhat");
+const BigNumber = require('bignumber.js');
+const {expect} = require("chai");
+const chai = require("chai");
+chai.use(require('chai-bignumber')());
 const {resetHardhat, greatLess} = require("./tests");
-const ERC20 = require("./abi/IERC20.json");
 const {logStrategyGasUsage} = require("./strategyCommon");
 const {toE6, toE18, fromAsset} = require("./decimals");
-const {expect} = require("chai");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
-const BigNumber = require('bignumber.js');
-const chai = require("chai");
 const {transferAsset, getERC20, transferETH, initWallet} = require("./script-utils");
-chai.use(require('chai-bignumber')());
+const ERC20 = require("./abi/IERC20.json");
 
-
-hre.ovn = {
-    setting: true,
-    noDeploy: false
-}
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
@@ -529,11 +524,14 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
     await hre.run("compile");
     await resetHardhat(network);
 
-    hre.ovn.tags = strategyParams.name;
-    hre.ovn.setting = true;
+    hre.ovn = {
+        setting: true,
+        noDeploy: false,
+        tags: strategyParams.name
+    }
 
     let strategyName = strategyParams.name;
-    await deployments.fixture([strategyName, `${strategyName}Setting`, 'test']);
+    await deployments.fixture([strategyName]);
 
     const signers = await ethers.getSigners();
     const account = signers[0];
@@ -541,22 +539,20 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
 
     const strategy = await ethers.getContract(strategyName);
     await strategy.setPortfolioManager(recipient.address);
+
     if (strategyParams.isRunStrategyLogic) {
         await runStrategyLogic(strategyName, strategy.address);
     }
 
     let mainAddress = (await initWallet()).address;
-
     await transferETH(100, mainAddress);
 
     const asset = await getERC20(assetName);
-
     await transferAsset(asset.address, mainAddress);
 
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
 
     let decimals = await asset.decimals();
-
     let toAsset;
     if (decimals === 18) {
         toAsset = toE18;

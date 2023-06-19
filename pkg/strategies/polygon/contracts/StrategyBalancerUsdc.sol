@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 
 
 contract StrategyBalancerUsdc is Strategy {
@@ -33,6 +34,16 @@ contract StrategyBalancerUsdc is Strategy {
     uint256 public swapSlippageBp;
     uint256 public allowedSlippageBp;
 
+    ISwap public synapseSwap;
+    IERC20 public usdt;
+    IERC20 public dai;
+    bytes32 public bbamUsdtPoolId;
+    bytes32 public bbamDaiPoolId;
+
+    uint256 public usdcDm;
+    uint256 public usdtDm;
+    uint256 public daiDm;
+
 
     // --- events
 
@@ -56,6 +67,11 @@ contract StrategyBalancerUsdc is Strategy {
         address oracleUsdc;
         address oracleUsdt;
         address oracleDai;
+        address synapseSwap;
+        address usdt;
+        address dai;
+        bytes32 bbamUsdtPoolId;
+        bytes32 bbamDaiPoolId;
     }
 
 
@@ -90,6 +106,16 @@ contract StrategyBalancerUsdc is Strategy {
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
         oracleDai = IPriceFeed(params.oracleDai);
+
+        synapseSwap = ISwap(params.synapseSwap);
+        usdt = IERC20(params.usdt);
+        dai = IERC20(params.dai);
+        bbamUsdtPoolId = params.bbamUsdtPoolId;
+        bbamDaiPoolId = params.bbamDaiPoolId;
+
+        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
+        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
+        daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
         emit StrategyUpdatedParams();
     }
@@ -181,6 +207,10 @@ contract StrategyBalancerUsdc is Strategy {
             address(this)
         );
 
+        if (bptAmount > gauge.balanceOf(address(this))) {
+            bptAmount = gauge.balanceOf(address(this));
+        }
+
         return _unstakeUsdc(bptAmount);
     }
 
@@ -201,45 +231,75 @@ contract StrategyBalancerUsdc is Strategy {
 
         // How it work?
         // 1. Unstake bpt tokens from Gauge
-        // 2. Get all bb-am-USDC from stable pool
-        // 3. Swap all bb-am-USDC to USDC by linear pool
+        // 2. Calculate swap amounts
+        // 3. Swap all bb-am tokens to native
+        // 4. Swap all tokens to USDC
 
-        // 1. Unstake bpt from Gauge
+        // 1. Unstake bpt tokens from Gauge
         gauge.withdraw(bptAmount);
-        uint256 usdcAmount = _convertBptToUsdc(bptAmount);
 
-        IAsset[] memory assets = new IAsset[](4);
-        uint256[] memory minAmountsOut = new uint256[](4);
+        // 2. Calculate swap amounts
+//        (uint256 amountUsdc, uint256 amountUsdt, uint256 amountDai) = _getAmountsToSwap(bptAmount);
 
-        (IERC20[] memory tokens,,) = vault.getPoolTokens(bbamUsdPoolId);
+        // 3. Swap all bb-am tokens to native
+//        BalancerLibrary.batchSwap(
+//            vault,
+//            address(bpt),
+//            address(bbamUsdc),
+//            address(usdc),
+//            bbamUsdPoolId,
+//            bbamUsdcPoolId,
+//            amountUsdc,
+//            OvnMath.subBasisPoints(amountUsdc * bbamUsdc.getRate() / 1e30, swapSlippageBP),
+//            address(this)
+//        );
 
-        for (uint256 i; i < tokens.length; i++) {
-            assets[i] = IAsset(address(tokens[i]));
-        }
-
-        // EXACT_BPT_IN_FOR_ONE_TOKEN_OUT
-        uint256 exitKind = 0;
-        uint256 exitTokenIndex = 1;
-        bytes memory userData = abi.encode(exitKind, bptAmount, exitTokenIndex);
-        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
-
-        // 2. Unstake from stable pool
-        vault.exitPool(bbamUsdPoolId, address(this), payable(address(this)), request);
-
-        // 3. Swap
-        uint256 bbamUsdcBalance = bbamUsdc.balanceOf(address(this));
-        uint256 minAmountUsdc = OvnMath.subBasisPoints(bbamUsdcBalance * bbamUsdc.getRate() / 1e30, swapSlippageBP);
-        BalancerLibrary.swap(
+        BalancerLibrary.batchSwap(
             vault,
-            IVault.SwapKind.GIVEN_IN,
-            address(bbamUsdc),
-            address(usdc),
-            bbamUsdcPoolId,
-            bbamUsdcBalance,
-            minAmountUsdc,
-            address(this),
+            address(bpt),
+            address(bbamUsdt),
+            address(usdt),
+            bbamUsdPoolId,
+            bbamUsdtPoolId,
+            bptAmount,
+            0,
             address(this)
         );
+
+//        BalancerLibrary.batchSwap(
+//            vault,
+//            address(bpt),
+//            address(bbamDai),
+//            address(dai),
+//            bbamUsdPoolId,
+//            bbamDaiPoolId,
+//            amountDai,
+//            OvnMath.subBasisPoints(amountDai * bbamDai.getRate() / 1e18, swapSlippageBP),
+//            address(this)
+//        );
+
+        // 4. Swap all tokens to USDC
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        if (usdtBalance > 0) {
+            SynapseLibrary.swap(
+                synapseSwap,
+                address(usdt),
+                address(usdc),
+                usdtBalance,
+                OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+            );
+        }
+
+//        uint256 daiBalance = dai.balanceOf(address(this));
+//        if (daiBalance > 0) {
+//            SynapseLibrary.swap(
+//                synapseSwap,
+//                address(dai),
+//                address(usdc),
+//                daiBalance,
+//                OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
+//            );
+//        }
 
         return usdc.balanceOf(address(this));
     }
@@ -336,4 +396,55 @@ contract StrategyBalancerUsdc is Strategy {
         return totalUsdc;
     }
 
+    function _getAmountsToSwap(uint256 bptAmount) internal view
+    returns (
+        uint256 amountUsdc,
+        uint256 amountUsdt,
+        uint256 amountDai
+    ) {
+
+        // total used tokens
+        uint256 totalActualSupply = bpt.getActualSupply();
+
+        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(bbamUsdPoolId);
+
+        // How it work?
+        // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
+        // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
+        // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
+
+        // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
+        for (uint256 i = 0; i < tokens.length; i++) {
+
+            address token = address(tokens[i]);
+
+            // calculate share
+            uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
+
+            if (token == address(bbamUsdc)) {
+                // bpt token convert to underlying tokens by Rate
+                // e18 + e18 - e30 = e6
+                amountUsdc = amountToken;
+            } else if (token == address(bbamUsdt)) {
+                // bpt token convert to underlying tokens by Rate
+                // e18 + e18 - e30 = e6
+                amountUsdt = amountToken;
+            }
+
+        }
+
+        amountDai = bptAmount - amountUsdc - amountUsdt;
+    }
+
+    function _oracleUsdtToUsdc(uint256 usdtAmount) internal view returns (uint256) {
+        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
+    }
+
+    function _oracleDaiToUsdc(uint256 daiAmount) internal view returns (uint256) {
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
+    }
 }

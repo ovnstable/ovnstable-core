@@ -2,7 +2,6 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 const {POLYGON, BSC} = require("@overnight-contracts/common/utils/assets");
-const {core} = require("@overnight-contracts/common/utils/core");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
 let dystToken = '0x39aB6574c289c3Ae4d88500eEc792AB5B947A5Eb';
