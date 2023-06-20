@@ -17,6 +17,7 @@ module.exports = async ({deployments}) => {
 async function getParams() {
     return {
         usdc: ARBITRUM.usdc,
+        subAccount: '0xcb0c14adb2a10ab24d3334f09dbdf612ab0c2f4d',
     }
 }
 
