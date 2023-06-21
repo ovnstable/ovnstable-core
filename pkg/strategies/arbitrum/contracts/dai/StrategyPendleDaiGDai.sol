@@ -239,22 +239,22 @@ contract StrategyPendleDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
-        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
-
-        {
-            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-        }
-
-        if (clearDiff) {
-            _movePtToSy(pt.balanceOf(address(this)));
-            _moveYtToSy(yt.balanceOf(address(this)));
-        }
-
-        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
+//        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+//        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+//
+//        {
+//            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+//            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+//            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
+//            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+//        }
+//
+//        if (clearDiff) {
+//            _movePtToSy(pt.balanceOf(address(this)));
+//            _moveYtToSy(yt.balanceOf(address(this)));
+//        }
+//
+//        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
     }
 
     function maxWithdrawNow() public view returns (uint256) {
@@ -372,6 +372,21 @@ contract StrategyPendleDaiGDai is Strategy {
             if (sendAmount > 0) {
                 lp.transfer(to, sendAmount);
             }
+        }
+
+        uint256 ytAmount = yt.balanceOf(address(this)) * bps / 10000;
+        if(ytAmount > 0){
+            yt.transfer(to, ytAmount);
+        }
+
+        uint256 syAmount = sy.balanceOf(address(this)) * bps / 10000;
+        if(syAmount > 0){
+            sy.transfer(to, syAmount);
+        }
+
+        uint256 ptAmount = pt.balanceOf(address(this)) * bps / 10000;
+        if(ptAmount > 0){
+            pt.transfer(to, ptAmount);
         }
     }
 
