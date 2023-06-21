@@ -59,7 +59,7 @@ struct ApproxParams {
 }
 
 interface IPendleRouter {
-    
+
     function mintPyFromToken(
         address receiver,
         address YT,
@@ -134,7 +134,7 @@ interface IPendleStargateLPSY {
     function balanceOf(address account) external view returns (uint256);
 
     function approve(address spender, uint256 amount) external returns (bool);
-    
+
 }
 
 interface IPendleMarket {
@@ -146,7 +146,8 @@ interface IPendleMarket {
     function balanceOf(address account) external view returns (uint256);
 
     function approve(address spender, uint256 amount) external returns (bool);
-    
+    function transfer(address to, uint256 amount) external;
+
 }
 
 interface IStargatePool {
@@ -154,7 +155,7 @@ interface IStargatePool {
     function totalSupply() external view returns (uint256);
 
     function totalLiquidity() external view returns (uint256);
-    
+
 }
 
 interface IPendlePtOracle {
@@ -167,7 +168,7 @@ interface IPendlePtOracle {
     function getOracleState(
         address market,
         uint32 duration
-    ) 
+    )
     external
     view
     returns (
@@ -175,7 +176,7 @@ interface IPendlePtOracle {
         uint16 cardinalityRequired,
         bool oldestObservationSatisfied
     );
-    
+
 }
 
 

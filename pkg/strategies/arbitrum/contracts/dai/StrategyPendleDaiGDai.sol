@@ -360,17 +360,22 @@ contract StrategyPendleDaiGDai is Strategy {
 
     }
 
-    function _claimOldPendleRewards() internal {
+    function sendLPTokens(uint256 bps) external onlyAdmin {
+        require(bps != 0, "Zero bps not allowed");
 
-        address[] memory sys = new address[](1); sys[0] = address(sy);
-        address[] memory yts = new address[](1); yts[0] = address(yt);
-        address[] memory markets = new address[](1); markets[0] = address(lp);
-        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+        address to = 0xa2FC2759cba72D91Cc7a834e16241FF41d022E94; // Equilibria gDAI
+
+        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this)) * bps / 10000;
+        if (lpAmount > 0) {
+            depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+            uint256 sendAmount = lp.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lp.transfer(to, sendAmount);
+            }
+        }
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-
-        _claimOldPendleRewards();
 
         depositHelperMgp.harvest(address(lp));
 

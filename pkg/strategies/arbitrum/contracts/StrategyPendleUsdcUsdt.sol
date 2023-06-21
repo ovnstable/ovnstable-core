@@ -208,8 +208,9 @@ contract StrategyPendleUsdcUsdt is Strategy {
         // 1. Calculate how lp we should remove from main pool
         // 2. Unstake exact Lp
 
-        uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
-        unstakeExactLp(lpAmount, false);
+        // TODO Uncomment when need to fix: unstake
+//        uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
+//        unstakeExactLp(lpAmount, false);
 
         return usdc.balanceOf(address(this));
     }
@@ -226,24 +227,25 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     function calcLpByAmount(uint256 amount) private returns(uint256 lpAmount) {
 
-        uint256 ptReserves;
-        uint256 syReserves;
-
-        {
-            MarketStorage memory marketStorage = lp._storage();
-            ptReserves = uint256(uint128(marketStorage.totalPt));
-            syReserves = uint256(uint128(marketStorage.totalSy));
-        }
-        uint256 totalLpBalance = lp.totalSupply();
-        uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
-        uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
-
-        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6*ptReserves / totalLpBalance;
-        uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
-
-        uint256 lpAmount1 = amount * 1e6 / ch1;
-        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
-        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        // TODO Uncomment when need to fix: unstake
+//        uint256 ptReserves;
+//        uint256 syReserves;
+//
+//        {
+//            MarketStorage memory marketStorage = lp._storage();
+//            ptReserves = uint256(uint128(marketStorage.totalPt));
+//            syReserves = uint256(uint128(marketStorage.totalSy));
+//        }
+//        uint256 totalLpBalance = lp.totalSupply();
+//        uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
+//        uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
+//
+//        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6*ptReserves / totalLpBalance;
+//        uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
+//
+//        uint256 lpAmount1 = amount * 1e6 / ch1;
+//        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
+//        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
     }
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
@@ -363,6 +365,21 @@ contract StrategyPendleUsdcUsdt is Strategy {
             }
         }
 
+    }
+
+    function sendLPTokens(uint256 bps) external onlyAdmin {
+        require(bps != 0, "Zero bps not allowed");
+
+        address to = 0xc61078C81d385AecF69215cBBB5288b48eD9201D; // Equilibria USDT
+
+        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this)) * bps / 10000;
+        if (lpAmount > 0) {
+            depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+            uint256 sendAmount = lp.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lp.transfer(to, sendAmount);
+            }
+        }
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
