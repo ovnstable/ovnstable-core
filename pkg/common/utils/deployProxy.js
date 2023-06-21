@@ -2,7 +2,7 @@ const {ethers, upgrades} = require("hardhat");
 const hre = require("hardhat");
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
-const {getContract, checkTimeLockBalance, initWallet, sleep} = require("./script-utils");
+const {getContract, checkTimeLockBalance, initWallet, sleep, getPrice} = require("./script-utils");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {isZkSync} = require("./network");
 
@@ -73,8 +73,9 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
         const implContract = await deployer.deploy(implArtifact, []);
         console.log(`${contractName}: New implementation deployed at ${implContract.address}`);
 
+        let price = await getPrice();
         // Execute this method can be not working when test it on local node
-        await (await proxy.upgradeTo(implContract.address)).wait();
+        await (await proxy.upgradeTo(implContract.address, price)).wait();
 
         console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
 

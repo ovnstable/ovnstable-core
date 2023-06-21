@@ -2,16 +2,20 @@ const {ethers} = require("hardhat");
 
 let {BSC, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe, createSkimTo, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createBribe, createSkimTo, createCustom, createSkimToWithFee} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
 
-
     const pl = await getContract("ZksyncPayoutListener");
-
     let usdPlus = await getContract('UsdPlusToken', 'zksync');
+
+//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'zksync')).address)).wait();
+
+    let plItems = await pl.getItems();
+    console.log('plItems before:');
+    console.log(plItems);
 
     let items = [];
 
@@ -23,9 +27,11 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await (await pl.addItems(items)).wait();
 
-    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'zksync')).address)).wait();
-
     console.log('ZksyncPayoutListener setting done');
+
+    plItems = await pl.getItems();
+    console.log('plItems after:');
+    console.log(plItems);
 
     function vesync(){
 
@@ -70,9 +76,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     function ezkalibur() {
 
         let dex = 'Ezkalibur';
+        let to = '0x5f112507359b2EdfB02FE8A7e9aCD66008b8343a';
 
         let items = [];
-        items.push(createSkim('0x0DfD96f6DbA1F3AC4ABb4D5CA36ce7Cb48767a13', usdPlus.address, 'USDC/USD+', dex));
+        items.push(createSkimToWithFee('0x0DfD96f6DbA1F3AC4ABb4D5CA36ce7Cb48767a13', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
