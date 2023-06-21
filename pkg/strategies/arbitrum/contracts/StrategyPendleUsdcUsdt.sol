@@ -367,6 +367,10 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     }
 
+    function stakeLp() external onlyAdmin {
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
+    }
+
     function sendLPTokens(uint256 bps) external onlyAdmin {
         require(bps != 0, "Zero bps not allowed");
 

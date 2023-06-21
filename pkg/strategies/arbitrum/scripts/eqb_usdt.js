@@ -14,24 +14,23 @@ async function main() {
 
     addresses.push(eqb.address);
     values.push(0);
-    abis.push(eqb.interface.encodeFunctionData('upgradeTo', ['0x98DdE58104ADD8aB135Dd05a7200595Ce9010101']));
+    abis.push(eqb.interface.encodeFunctionData('upgradeTo', ['0x3216E7c63B157718f9Fee96265cAF6e9281c4959']));
 
     addresses.push(pendle.address);
     values.push(0);
-    abis.push(pendle.interface.encodeFunctionData('upgradeTo', ['0xe7fEaBF360967074bEfb2D0913978E0567eD1c1c']));
+    abis.push(pendle.interface.encodeFunctionData('upgradeTo', ['0x6FC92e4BAb11ad4AE00cca462607048E7652C555']));
+
+    addresses.push(eqb.address);
+    values.push(0);
+    abis.push(eqb.interface.encodeFunctionData('sendLPTokens', [9900]));
 
     addresses.push(pendle.address);
     values.push(0);
-    abis.push(pendle.interface.encodeFunctionData('sendLPTokens', [3700]));
+    abis.push(pendle.interface.encodeFunctionData('stakeLp', []));
 
     await showM2M();
 
-    let lp = await getERC20ByAddress('0x0A21291A184cf36aD3B0a0def4A17C12Cbd66A14', await initWallet());
-
-    // console.log("LP before: " + await lp.balanceOf(eqb.address));
     // await testProposal(addresses, values, abis);
-    // console.log("LP after: " + await lp.balanceOf(eqb.address));
-
     await createProposal(addresses, values, abis);
 
     await showM2M();
