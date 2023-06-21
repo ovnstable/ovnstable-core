@@ -358,6 +358,8 @@ contract StrategyEquilibriaUsdcUsdt is Strategy {
 
         _equPtYt();
 
+        EquilibriaRewardUsdcUsdtLibrary.transferXEqbToTreasure();
+
         uint256 totalUsdc;
 
         totalUsdc += EquilibriaRewardUsdcUsdtLibrary.swapRewardToUsdc(IERC20(0x6694340fc020c5E6B96567843da2df01b2CE1eb6)); // stg

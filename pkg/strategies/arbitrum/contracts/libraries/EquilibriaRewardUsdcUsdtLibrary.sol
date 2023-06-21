@@ -9,6 +9,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 library EquilibriaRewardUsdcUsdtLibrary {
 
 
+    function transferXEqbToTreasure() public {
+
+        IERC20 xEqb = IERC20(0x96C4A48Abdf781e9c931cfA92EC0167Ba219ad8E);
+
+        uint256 balance = xEqb.balanceOf(address(this));
+        if(balance > 0){
+            xEqb.transfer(0x784Cf4b62655486B405Eb76731885CC9ed56f42f, balance);
+        }
+    }
+
+
     function swapEqbToUsdc() public {
 
         IERC20 eqb = IERC20(0xBfbCFe8873fE28Dfa25f1099282b088D52bbAD9C);
