@@ -361,6 +361,8 @@ contract StrategyEquilibriaDaiGDai is Strategy {
 
         _equPtYt();
 
+        EquilibriaRewardDaiGDaiLibrary.transferXEqbToTreasure();
+
         uint256 totalDai;
 
         totalDai += EquilibriaRewardDaiGDaiLibrary.swapEqbToDai();

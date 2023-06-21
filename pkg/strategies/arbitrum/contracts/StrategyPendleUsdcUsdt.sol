@@ -208,8 +208,9 @@ contract StrategyPendleUsdcUsdt is Strategy {
         // 1. Calculate how lp we should remove from main pool
         // 2. Unstake exact Lp
 
-        uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
-        unstakeExactLp(lpAmount, false);
+        // TODO Uncomment when need to fix: unstake
+//        uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
+//        unstakeExactLp(lpAmount, false);
 
         return usdc.balanceOf(address(this));
     }
@@ -219,31 +220,32 @@ contract StrategyPendleUsdcUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
+//        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
 
         return usdc.balanceOf(address(this));
     }
 
     function calcLpByAmount(uint256 amount) private returns(uint256 lpAmount) {
 
-        uint256 ptReserves;
-        uint256 syReserves;
-
-        {
-            MarketStorage memory marketStorage = lp._storage();
-            ptReserves = uint256(uint128(marketStorage.totalPt));
-            syReserves = uint256(uint128(marketStorage.totalSy));
-        }
-        uint256 totalLpBalance = lp.totalSupply();
-        uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
-        uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
-
-        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6*ptReserves / totalLpBalance;
-        uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
-
-        uint256 lpAmount1 = amount * 1e6 / ch1;
-        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
-        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        // TODO Uncomment when need to fix: unstake
+//        uint256 ptReserves;
+//        uint256 syReserves;
+//
+//        {
+//            MarketStorage memory marketStorage = lp._storage();
+//            ptReserves = uint256(uint128(marketStorage.totalPt));
+//            syReserves = uint256(uint128(marketStorage.totalSy));
+//        }
+//        uint256 totalLpBalance = lp.totalSupply();
+//        uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
+//        uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
+//
+//        uint256 ch1 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply + 1e6*ptReserves / totalLpBalance;
+//        uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
+//
+//        uint256 lpAmount1 = amount * 1e6 / ch1;
+//        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
+//        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
     }
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
@@ -253,31 +255,31 @@ contract StrategyPendleUsdcUsdt is Strategy {
         // 3. Redeem from (pt+yt) to usdt
         // 4. Redeem from sy to usdt
 
-        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
-
-        {
-            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-        }
-
-        if (clearDiff) {
-            _movePtToSy(pt.balanceOf(address(this)));
-            _moveYtToSy(yt.balanceOf(address(this)));
-        }
-
-        sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
-
-        uint256 usdtBalance = usdt.balanceOf(address(this));
-        CurveLibrary.swap(
-            curvePool,
-            address(usdt),
-            address(usdc),
-            usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
-        );
+//        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+//        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+//
+//        {
+//            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+//            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+//            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
+//            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+//        }
+//
+//        if (clearDiff) {
+//            _movePtToSy(pt.balanceOf(address(this)));
+//            _moveYtToSy(yt.balanceOf(address(this)));
+//        }
+//
+//        sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
+//
+//        uint256 usdtBalance = usdt.balanceOf(address(this));
+//        CurveLibrary.swap(
+//            curvePool,
+//            address(usdt),
+//            address(usdc),
+//            usdtBalance,
+//            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+//        );
     }
 
     function usdtToSy(uint256 amount) public view returns (uint256) {
@@ -363,6 +365,21 @@ contract StrategyPendleUsdcUsdt is Strategy {
             }
         }
 
+    }
+
+    function stakeLp() external onlyAdmin {
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
+    }
+
+    function sendLPTokens(uint256 bps) external onlyAdmin {
+        require(bps != 0, "Zero bps not allowed");
+
+        address to = 0xc61078C81d385AecF69215cBBB5288b48eD9201D; // Equilibria USDT
+
+        uint256 ytAmount = yt.balanceOf(address(this)) * bps / 10000;
+        if(ytAmount > 0){
+            yt.transfer(to, ytAmount);
+        }
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {

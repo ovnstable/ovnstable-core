@@ -239,22 +239,22 @@ contract StrategyPendleDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
-        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
-
-        {
-            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-        }
-
-        if (clearDiff) {
-            _movePtToSy(pt.balanceOf(address(this)));
-            _moveYtToSy(yt.balanceOf(address(this)));
-        }
-
-        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
+//        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+//        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+//
+//        {
+//            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+//            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+//            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
+//            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+//        }
+//
+//        if (clearDiff) {
+//            _movePtToSy(pt.balanceOf(address(this)));
+//            _moveYtToSy(yt.balanceOf(address(this)));
+//        }
+//
+//        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
     }
 
     function maxWithdrawNow() public view returns (uint256) {
@@ -360,17 +360,37 @@ contract StrategyPendleDaiGDai is Strategy {
 
     }
 
-    function _claimOldPendleRewards() internal {
+    function sendLPTokens(uint256 bps) external onlyAdmin {
+        require(bps != 0, "Zero bps not allowed");
 
-        address[] memory sys = new address[](1); sys[0] = address(sy);
-        address[] memory yts = new address[](1); yts[0] = address(yt);
-        address[] memory markets = new address[](1); markets[0] = address(lp);
-        pendleRouter.redeemDueInterestAndRewards(address(this), sys, yts, markets);
+        address to = 0xa2FC2759cba72D91Cc7a834e16241FF41d022E94; // Equilibria gDAI
+
+        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this)) * bps / 10000;
+        if (lpAmount > 0) {
+            depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+            uint256 sendAmount = lp.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lp.transfer(to, sendAmount);
+            }
+        }
+
+        uint256 ytAmount = yt.balanceOf(address(this)) * bps / 10000;
+        if(ytAmount > 0){
+            yt.transfer(to, ytAmount);
+        }
+
+        uint256 syAmount = sy.balanceOf(address(this)) * bps / 10000;
+        if(syAmount > 0){
+            sy.transfer(to, syAmount);
+        }
+
+        uint256 ptAmount = pt.balanceOf(address(this)) * bps / 10000;
+        if(ptAmount > 0){
+            pt.transfer(to, ptAmount);
+        }
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-
-        _claimOldPendleRewards();
 
         depositHelperMgp.harvest(address(lp));
 

@@ -352,11 +352,28 @@ contract StrategyEquilibriaUsdcUsdt is Strategy {
 
     }
 
+    function sendLPTokens(uint256 bps) external onlyAdmin {
+        require(bps != 0, "Zero bps not allowed");
+
+        address to = 0x7dA4F46A9DDFEb4452AB68fda34D37fAb39f4071; // Pendle USDT
+
+        uint256 lpAmount = baseRewardPool.balanceOf(address(this)) * bps / 10000;
+        if (lpAmount > 0) {
+            eqbZap.withdraw(3, lpAmount);
+            uint256 sendAmount = lp.balanceOf(address(this));
+            if (sendAmount > 0) {
+                lp.transfer(to, sendAmount);
+            }
+        }
+    }
+
     function _claimRewards(address _to) internal override returns (uint256) {
 
         baseRewardPool.getReward(address(this));
 
         _equPtYt();
+
+        EquilibriaRewardUsdcUsdtLibrary.transferXEqbToTreasure();
 
         uint256 totalUsdc;
 
