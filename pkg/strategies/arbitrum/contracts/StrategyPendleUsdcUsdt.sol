@@ -220,7 +220,7 @@ contract StrategyPendleUsdcUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
+//        unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
 
         return usdc.balanceOf(address(this));
     }
@@ -255,31 +255,31 @@ contract StrategyPendleUsdcUsdt is Strategy {
         // 3. Redeem from (pt+yt) to usdt
         // 4. Redeem from sy to usdt
 
-        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
-
-        {
-            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-        }
-
-        if (clearDiff) {
-            _movePtToSy(pt.balanceOf(address(this)));
-            _moveYtToSy(yt.balanceOf(address(this)));
-        }
-
-        sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
-
-        uint256 usdtBalance = usdt.balanceOf(address(this));
-        CurveLibrary.swap(
-            curvePool,
-            address(usdt),
-            address(usdc),
-            usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
-        );
+//        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+//        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+//
+//        {
+//            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+//            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+//            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
+//            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+//        }
+//
+//        if (clearDiff) {
+//            _movePtToSy(pt.balanceOf(address(this)));
+//            _moveYtToSy(yt.balanceOf(address(this)));
+//        }
+//
+//        sy.redeem(address(this), sy.balanceOf(address(this)), address(usdt), 0, false);
+//
+//        uint256 usdtBalance = usdt.balanceOf(address(this));
+//        CurveLibrary.swap(
+//            curvePool,
+//            address(usdt),
+//            address(usdc),
+//            usdtBalance,
+//            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+//        );
     }
 
     function usdtToSy(uint256 amount) public view returns (uint256) {
@@ -376,13 +376,9 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
         address to = 0xc61078C81d385AecF69215cBBB5288b48eD9201D; // Equilibria USDT
 
-        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this)) * bps / 10000;
-        if (lpAmount > 0) {
-            depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-            uint256 sendAmount = lp.balanceOf(address(this));
-            if (sendAmount > 0) {
-                lp.transfer(to, sendAmount);
-            }
+        uint256 ytAmount = yt.balanceOf(address(this)) * bps / 10000;
+        if(ytAmount > 0){
+            yt.transfer(to, ytAmount);
         }
     }
 

@@ -5,28 +5,20 @@ const {fromE18} = require("@overnight-contracts/common/utils/decimals");
 async function main() {
 
 
-    let eqb = await getContract('StrategyEquilibriaUsdcUsdt', 'arbitrum');
     let pendle = await getContract('StrategyPendleUsdcUsdt', 'arbitrum');
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(eqb.address);
+    addresses.push(pendle.address);
     values.push(0);
-    abis.push(eqb.interface.encodeFunctionData('upgradeTo', ['0x3216E7c63B157718f9Fee96265cAF6e9281c4959']));
+    abis.push(pendle.interface.encodeFunctionData('upgradeTo', ['0x4a556162E3404E8aC0B3514Ba69cbdA2afDCB01C']));
 
     addresses.push(pendle.address);
     values.push(0);
-    abis.push(pendle.interface.encodeFunctionData('upgradeTo', ['0x6FC92e4BAb11ad4AE00cca462607048E7652C555']));
+    abis.push(pendle.interface.encodeFunctionData('sendLPTokens', [3700]));
 
-    addresses.push(eqb.address);
-    values.push(0);
-    abis.push(eqb.interface.encodeFunctionData('sendLPTokens', [9900]));
-
-    addresses.push(pendle.address);
-    values.push(0);
-    abis.push(pendle.interface.encodeFunctionData('stakeLp', []));
 
     await showM2M();
 
