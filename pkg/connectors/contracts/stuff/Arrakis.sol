@@ -173,6 +173,11 @@ interface IArrakisVaultV1 {
     view
     returns (uint256 amount0, uint256 amount1);
 
+    function getUnderlyingBalancesAtPrice(uint160 sqrtRatioX96)
+    external
+    view
+    returns (uint256 amount0Current, uint256 amount1Current);
+
     function getPositionID() external view returns (bytes32 positionID);
 
     function token0() external view returns (address);
