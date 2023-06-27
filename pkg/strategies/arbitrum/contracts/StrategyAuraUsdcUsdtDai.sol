@@ -7,8 +7,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aura.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
-
-import "hardhat/console.sol";
+import "./libraries/AuraRewardUsdcUsdtDaiLibrary.sol";
 
 contract StrategyAuraUsdcUsdtDai is Strategy {
 
@@ -336,23 +335,9 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         // sell rewards
         uint256 totalUsdc;
 
-        IERC20 bal = IERC20(0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8);
-        IERC20 aura = IERC20(0x1509706a6c66CA549ff0cB464de88231DDBe213B);
+        totalUsdc += AuraRewardUsdcUsdtDaiLibrary.swapBalToUsdc();
+        AuraRewardUsdcUsdtDaiLibrary.transferAuraToTreasure();
 
-//        uint256 balBalance = bal.balanceOf(address(this));
-//        if (balBalance > 0) {
-//            BalancerLibrary.batchSwap(
-//                vault,
-//                address(bal),
-//                address(bbamDai),
-//                address(dai),
-//                poolId,
-//                bbamDaiPoolId,
-//                daiBptAmount,
-//                0,
-//                address(this)
-//            );
-//        }
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);

@@ -1,12 +1,28 @@
-const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
+const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const {POLYGON, ARBITRUM} = require('@overnight-contracts/common/utils/assets');
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
-module.exports = async ({deployments}) => {
-    const {save} = deployments;
+module.exports = async ({getNamedAccounts, deployments}) => {
+    const {save, deploy} = deployments;
+    const {deployer} = await getNamedAccounts();
 
     await deploySection(async (name) => {
-        await deployProxy(name, deployments, save);
+        const rewardLibrary = await deploy("AuraRewardUsdcUsdtDaiLibrary", {
+            from: deployer
+        });
+
+        console.log('AuraRewardUsdcUsdtDaiLibrary deployed: ' + rewardLibrary.address);
+
+        let params = {
+            factoryOptions: {
+                libraries: {
+                    "AuraRewardUsdcUsdtDaiLibrary": rewardLibrary.address,
+                }
+            },
+            unsafeAllow: ["external-library-linking"]
+        };
+
+        await deployProxyMulti(name, 'StrategyAuraUsdcUsdtDai', deployments, save, params);
     });
 
     await settingSection(async (strategy) => {
