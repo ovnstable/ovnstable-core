@@ -237,3 +237,62 @@ interface IArbidexGauge is IERC721 {
 
     function lastTokenId() external view returns (uint256);
 }
+
+interface IBEP20 {
+
+    function totalSupply() external view returns (uint256);
+
+    function decimals() external view returns (uint8);
+
+    function symbol() external view returns (string memory);
+
+    function name() external view returns (string memory);
+
+    function getOwner() external view returns (address);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount) external returns (bool);
+
+    function allowance(address _owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+}
+
+interface IMasterChef {
+
+    // Info of each pool.
+    struct PoolInfo {
+        IBEP20 lpToken;           // Address of LP token contract.
+        uint256 arxAllocPoint;       // How many allocation points assigned to this pool. ARXs to distribute per block.
+        uint256 WETHAllocPoint; 
+        uint256 lastRewardTime;  // Last block number that ARXs distribution occurs.
+        uint256 accArxPerShare; // Accumulated ARXs per share, times 1e12. See below.
+        uint256 accWETHPerShare;
+        uint256 totalDeposit;
+    }
+
+    function poolLength() external view returns (uint256);
+
+    function poolInfo(uint256 _pid) external view returns (PoolInfo memory poolInfo);
+
+    // View function to see pending ARXs on frontend.
+    function pendingArx(uint256 _pid, address _user) external view returns (uint256);
+    // View function to see pending WETH on frontend.
+    function pendingWETH(uint256 _pid, address _user) external view returns (uint256);
+
+    // Deposit LP tokens to MasterChef for ARX allocation.
+    function deposit(uint256 _pid, uint256 _amount) external;
+
+    // Withdraw LP tokens from MasterChef.
+    function withdraw(uint256 _pid, uint256 _amount) external;
+
+    // Withdraw without caring about rewards. EMERGENCY ONLY.
+    function emergencyWithdraw(uint256 _pid) external ;
+}

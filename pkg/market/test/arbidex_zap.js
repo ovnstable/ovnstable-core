@@ -34,6 +34,9 @@ describe("ArbidexZapper", function () {
     let token0Out;
     let token1Out;
 
+    const gauge = "0xd2bcFd6b84E778D2DE5Bb6A167EcBBef5D053A06";
+    const poolId = 8;
+
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
@@ -44,7 +47,7 @@ describe("ArbidexZapper", function () {
         arbidexZap = await ethers.getContract("ArbidexZap");
 
         token0Out = (await getContract('UsdPlusToken', 'arbitrum')).connect(account);
-        token1Out = "0xD74f5255D557944cf7Dd0E45FF521520002D5748"
+        token1Out = (await getERC20("usdc")).connect(account);
 
         token0In = (await getContract('UsdPlusToken', 'arbitrum_dai')).connect(account);
         token1In = (await getERC20("dai")).connect(account);
@@ -52,21 +55,19 @@ describe("ArbidexZapper", function () {
 
     it("swap and put nearly equal", async function () {
 
-        const gauge = "0xC8F82e522BC5ca3C340753b69Cb18e68dA216362";
-
         await showBalances();
 
         const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
         const amountToken0Out = toE6(400);
-        const amountToken1Out = toE18(0);
+        const amountToken1Out = toE6(500);
 
         await (await token0In.approve(arbidexZap.address, amountToken0In)).wait();
         await (await token1In.approve(arbidexZap.address, amountToken1In)).wait();
         await (await token0Out.approve(arbidexZap.address, amountToken0Out)).wait();
-        // await (await token1Out.approve(arbidexZap.address, amountToken1Out)).wait();
+        await (await token1Out.approve(arbidexZap.address, amountToken1Out)).wait();
 
-        const reserves = await arbidexZap.getProportion(gauge);
+        const reserves = await arbidexZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -74,8 +75,8 @@ describe("ArbidexZapper", function () {
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
-            outputTokensAddresses: [token0Out.address, "0xD74f5255D557944cf7Dd0E45FF521520002D5748"],
+            outputTokensDecimals: [6, 6],
+            outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
             proportion0: reserves[0] / sumReserves
@@ -103,7 +104,7 @@ describe("ArbidexZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out], poolId })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -135,9 +136,9 @@ describe("ArbidexZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
         console.log(proportion0)
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -154,39 +155,37 @@ describe("ArbidexZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE18(await token1In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalances on one asset", async function () {
 
-        const gauge = "0xC8F82e522BC5ca3C340753b69Cb18e68dA216362";
-
         await showBalances();
 
-        const amountToken0In = toE6(100);
+        const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
         const amountToken0Out = toE6(800);
-        const amountToken1Out = toE18(100);
+        const amountToken1Out = toE6(100);
 
         await (await token0In.approve(arbidexZap.address, amountToken0In)).wait();
         await (await token1In.approve(arbidexZap.address, amountToken1In)).wait();
         await (await token0Out.approve(arbidexZap.address, amountToken0Out)).wait();
         await (await token1Out.approve(arbidexZap.address, amountToken1Out)).wait();
 
-        const reserves = await arbidexZap.getProportion(gauge);
+        const reserves = await arbidexZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [6, 18],
+            inputTokensDecimals: [18, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [6, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -215,7 +214,7 @@ describe("ArbidexZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out], poolId })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -247,8 +246,9 @@ describe("ArbidexZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
+        console.log(proportion0)
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -258,41 +258,44 @@ describe("ArbidexZapper", function () {
 
         const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
         const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
+
+
+        const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
+        const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
+
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE18(await token1In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
 
 
     });
 
     it("swap and put disbalanced on another asset", async function () {
 
-        const gauge = "0xC8F82e522BC5ca3C340753b69Cb18e68dA216362";
-
         await showBalances();
 
-        const amountToken0In = toE6(100);
+        const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
         const amountToken0Out = toE6(100);
-        const amountToken1Out = toE18(800);
+        const amountToken1Out = toE6(800);
 
         await (await token0In.approve(arbidexZap.address, amountToken0In)).wait();
         await (await token1In.approve(arbidexZap.address, amountToken1In)).wait();
         await (await token0Out.approve(arbidexZap.address, amountToken0Out)).wait();
         await (await token1Out.approve(arbidexZap.address, amountToken1Out)).wait();
 
-        const reserves = await arbidexZap.getProportion(gauge);
+        const reserves = await arbidexZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [6, 18],
+            inputTokensDecimals: [18, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 18],
+            outputTokensDecimals: [6, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -321,7 +324,7 @@ describe("ArbidexZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out], poolId })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -353,8 +356,9 @@ describe("ArbidexZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
-        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
+        console.log(proportion0)
+        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -364,12 +368,17 @@ describe("ArbidexZapper", function () {
 
         const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
         const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
+
+
+        const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
+        const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
+
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE6(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE18(await token1In.balanceOf(arbidexZap.address))).to.lessThan(1);
         expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
-        expect(fromE18(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(arbidexZap.address))).to.lessThan(1);
 
 
     });
@@ -381,7 +390,7 @@ describe("ArbidexZapper", function () {
 
         items.push({
             name: await token0In.symbol(),
-            balance: fromE6(await token0In.balanceOf(account.address))
+            balance: fromE18(await token0In.balanceOf(account.address))
         });
 
         items.push({
@@ -396,7 +405,7 @@ describe("ArbidexZapper", function () {
 
         items.push({
             name: await token1Out.symbol(),
-            balance: fromE18(await token1Out.balanceOf(account.address))
+            balance: fromE6(await token1Out.balanceOf(account.address))
         });
 
         console.table(items);

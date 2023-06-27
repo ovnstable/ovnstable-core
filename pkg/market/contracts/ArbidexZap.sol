@@ -16,6 +16,7 @@ contract ArbidexZap is OdosZap {
     struct ArbidexZapInParams {
         address gauge;
         uint256[] amountsOut;
+        uint256 poolId;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -30,9 +31,9 @@ contract ArbidexZap is OdosZap {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IArbidexGauge gauge = IArbidexGauge(arbidexData.gauge);
-        (address _token,,,,,,,,,) = gauge.getPoolInfo();
-        IArbiDexPair pair = IArbiDexPair(_token);
+        IMasterChef gauge = IMasterChef(arbidexData.gauge);
+        IMasterChef.PoolInfo memory poolInfo = gauge.poolInfo(arbidexData.poolId);
+        IArbiDexPair pair = IArbiDexPair(address(poolInfo.lpToken));
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = pair.token0();
@@ -49,15 +50,16 @@ contract ArbidexZap is OdosZap {
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _stakeToGauge(pair, gauge);
+        _returnToUser(pair);
     }
 
     function getProportion(
-        address _gauge
+        address _gauge,
+        uint256 poolId
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IArbidexGauge gauge = IArbidexGauge(_gauge);
-        (address _token,,,,,,,,,) = gauge.getPoolInfo();
-        IArbiDexPair pair = IArbiDexPair(_token);
+        IMasterChef gauge = IMasterChef(_gauge);
+        IMasterChef.PoolInfo memory poolInfo = gauge.poolInfo(poolId);
+        IArbiDexPair pair = IArbiDexPair(address(poolInfo.lpToken));
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         address token0 = pair.token0();
         address token1 = pair.token1();
@@ -141,10 +143,8 @@ contract ArbidexZap is OdosZap {
         }
     }
 
-    function _stakeToGauge(IArbiDexPair pair, IArbidexGauge gauge) internal {
+    function _returnToUser(IArbiDexPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), pairBalance);
-        gauge.createPosition(pairBalance, 0);
-        gauge.safeTransferFrom(address(this), address(msg.sender), gauge.lastTokenId());
+        pair.transfer(msg.sender, pairBalance);
     }
 }
