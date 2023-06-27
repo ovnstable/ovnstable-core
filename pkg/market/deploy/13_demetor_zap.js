@@ -11,7 +11,7 @@ module.exports = async ({ deployments }) => {
 
     let params = {
         odosRouter: ARBITRUM.odosRouter,
-        ramsesRouter: ARBITRUM.demetorRouter
+        positionHelper: ARBITRUM.positionHelperCamelot
     }
 
     let zap = await ethers.getContract('DemetorZap');

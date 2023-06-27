@@ -76,6 +76,8 @@ let ARBITRUM = {
     odosRouter: "0xdd94018F54e565dbfc939F7C44a16e163FaAb331",
     soluneaRouter: "0x8C36161aBE3F425F924D4F8E171d25e60ef2A0a4",
     balancerVault: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+    arbidexRouter: "0x7238fb45146bd8fcb2c463dc119a53494be57aac",
+    positionHelperCamelot: "0xe458018ad4283c90fb7f5460e24c4016f81b8175",
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",

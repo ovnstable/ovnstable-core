@@ -11,7 +11,7 @@ module.exports = async ({ deployments }) => {
 
     let params = {
         odosRouter: ARBITRUM.odosRouter,
-        ramsesRouter: ARBITRUM.arbidexRouter
+        arbidexRouter: ARBITRUM.arbidexRouter
     }
 
     let zap = await ethers.getContract('ArbidexZap');
