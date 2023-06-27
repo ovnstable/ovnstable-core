@@ -18,11 +18,11 @@ module.exports = async () => {
     // items.push(...solidlizard());
     // items.push(...sterling());
     // items.push(...ramses());
-    // items.push(...arbidex());
+     items.push(...arbidex());
 //    items.push(...wombat());
 //    items.push(...chronos());
 //    items.push(...magicFox());
-    items.push(...camelot());
+//    items.push(...camelot());
 
 //    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
@@ -141,6 +141,8 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0xECe52B1fc32D2B4f22eb45238210b470a64bfDd5', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0xEa5f97aab76E397E4089137345c38b5c4e7939B3', usdPlus.address, 'USD+/WETH', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0xeE5e74Dc56594d070E0827ec270F974A68EBAF22', daiPlus.address, 'DAI/DAI+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xb0Fb1787238879171Edc30b9730968600D55762A', usdPlus.address, 'FRAX/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x306132b6147751B85E608B4C1EC452E111531eA2', daiPlus.address, 'FRAX/DAI+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
