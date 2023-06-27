@@ -186,9 +186,61 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        uint256 reserveUsdc;
+        uint256 reserveUsdt;
+        uint256 reserveDai;
 
-        return 0;
+        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+
+        for (uint256 i = 0; i < tokens.length; i++) {
+
+            address token = address(tokens[i]);
+
+            if (token == address(bbamUsdc)) {
+                reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
+            } else if (token == address(bbamUsdt)) {
+                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
+            } else if (token == address(bbamDai)) {
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
+            }
+
+        }
+
+        uint256 amountUsdcUsdt = _oracleUsdcToUsdt(usdcDm);
+        uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
+
+        // with decimals
+        uint256 usdtAmount = amountUsdcUsdt * (_amount * reserveUsdt) / (reserveUsdc * amountUsdcUsdt / usdcDm
+        + reserveUsdt + reserveDai * amountUsdcUsdt / amountUsdcDai) / usdcDm; 
+        uint256 daiAmount = amountUsdcDai * (_amount * reserveDai) / (reserveUsdc * amountUsdcDai / usdcDm
+        + reserveUsdt * amountUsdcDai / amountUsdcUsdt + reserveDai) / usdcDm; 
+        uint256 usdcAmount = usdtAmount * usdcDm *reserveUsdc / (reserveUsdt  * amountUsdcUsdt);
+
+        uint256 usdtBptAmount = OvnMath.subBasisPoints(usdtAmount * 1e30 / bbamUsdt.getRate(), swapSlippageBP);
+        uint256 usdcBptAmount = OvnMath.subBasisPoints(usdcAmount * 1e30 / bbamUsdc.getRate(), swapSlippageBP);
+        uint256 daiBptAmount = OvnMath.subBasisPoints(daiAmount * 1e18 / bbamDai.getRate(), swapSlippageBP);
+
+        console.log("usdtBptAmount %s", usdtBptAmount);
+        console.log("usdcBptAmount %s", usdcBptAmount);
+        console.log("daiBptAmount %s", daiBptAmount);
+
+        
     }
+
+    //     function _unstake(
+    //     address _asset,
+    //     uint256 _amount,
+    //     address _beneficiary
+    // ) internal override returns (uint256) {
+
+    //     // 1. Calculate how lp we should remove from main pool
+    //     // 2. Unstake exact Lp
+
+    //     uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
+    //     unstakeExactLp(lpAmount, false);
+
+    //     return usdc.balanceOf(address(this));
+    // }
 
     function _unstakeFull(
         address _asset,
