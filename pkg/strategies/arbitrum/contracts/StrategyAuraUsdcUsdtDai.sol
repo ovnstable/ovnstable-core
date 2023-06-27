@@ -154,13 +154,13 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         for (uint256 i; i < tokens.length; i++) {
             assets[i] = IAsset(address(tokens[i]));
 
-            if(address(tokens[i]) == address(bbamUsdc)){
+            if (address(tokens[i]) == address(bbamUsdc)) {
                 amountsIn[i] = bbamUsdc.balanceOf(address(this));
                 maxAmountsIn[i] = MAX_UINT_VALUE;
-            }else if(address(tokens[i]) == address(bbamUsdt)){
+            } else if (address(tokens[i]) == address(bbamUsdt)) {
                 amountsIn[i] = bbamUsdt.balanceOf(address(this));
                 maxAmountsIn[i] = MAX_UINT_VALUE;
-            }else if(address(tokens[i]) == address(bbamDai)){
+            } else if (address(tokens[i]) == address(bbamDai)) {
                 amountsIn[i] = bbamDai.balanceOf(address(this));
                 maxAmountsIn[i] = MAX_UINT_VALUE;
             }
@@ -186,72 +186,79 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        uint256 reserveUsdc;
-        uint256 reserveUsdt;
-        uint256 reserveDai;
 
-        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+        _unstakeUsdc(_amount, false);
 
-        for (uint256 i = 0; i < tokens.length; i++) {
+        return usdc.balanceOf(address(this));
 
-            address token = address(tokens[i]);
-
-            if (token == address(bbamUsdc)) {
-                reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
-            } else if (token == address(bbamUsdt)) {
-                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
-            } else if (token == address(bbamDai)) {
-                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
-            }
-
-        }
-
-        uint256 amountUsdcUsdt = _oracleUsdcToUsdt(usdcDm);
-        uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
-
-        // with decimals
-        uint256 usdtAmount = amountUsdcUsdt * (_amount * reserveUsdt) / (reserveUsdc * amountUsdcUsdt / usdcDm
-        + reserveUsdt + reserveDai * amountUsdcUsdt / amountUsdcDai) / usdcDm; 
-        uint256 daiAmount = amountUsdcDai * (_amount * reserveDai) / (reserveUsdc * amountUsdcDai / usdcDm
-        + reserveUsdt * amountUsdcDai / amountUsdcUsdt + reserveDai) / usdcDm; 
-        uint256 usdcAmount = usdtAmount * usdcDm *reserveUsdc / (reserveUsdt  * amountUsdcUsdt);
-
-        uint256 usdtBptAmount = OvnMath.subBasisPoints(usdtAmount * 1e30 / bbamUsdt.getRate(), swapSlippageBP);
-        uint256 usdcBptAmount = OvnMath.subBasisPoints(usdcAmount * 1e30 / bbamUsdc.getRate(), swapSlippageBP);
-        uint256 daiBptAmount = OvnMath.subBasisPoints(daiAmount * 1e18 / bbamDai.getRate(), swapSlippageBP);
-
-        console.log("usdtBptAmount %s", usdtBptAmount);
-        console.log("usdcBptAmount %s", usdcBptAmount);
-        console.log("daiBptAmount %s", daiBptAmount);
-
-        
     }
-
-    //     function _unstake(
-    //     address _asset,
-    //     uint256 _amount,
-    //     address _beneficiary
-    // ) internal override returns (uint256) {
-
-    //     // 1. Calculate how lp we should remove from main pool
-    //     // 2. Unstake exact Lp
-
-    //     uint256 lpAmount = calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
-    //     unstakeExactLp(lpAmount, false);
-
-    //     return usdc.balanceOf(address(this));
-    // }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        return 0;
+
+        if (auraLp.balanceOf(address(this)) > 0) {
+            _unstakeUsdc(_totalValue(), true);
+        }
+
+        return usdc.balanceOf(address(this));
+
     }
 
 
-    function _unstakeUsdc(uint256 bptAmount) internal returns (uint256){
-        return 0;
+    function _unstakeUsdc(uint256 amount, bool unstakeFull) internal {
+        (uint256 usdcBptAmount, uint256 usdtBptAmount, uint256 daiBptAmount) = _getBptAmounts(OvnMath.addBasisPoints(amount, swapSlippageBP));
+
+        uint256 totalBpt = usdcBptAmount + usdtBptAmount + daiBptAmount;
+
+        if (unstakeFull) {
+            totalBpt = auraLp.balanceOf(address(this));
+        }
+
+        auraBaseRewardPool.withdrawAndUnwrap(totalBpt, false);
+
+        BalancerLibrary.batchSwap(
+            vault,
+            address(bpt),
+            address(bbamUsdc),
+            address(usdc),
+            poolId,
+            bbamUsdcPoolId,
+            usdcBptAmount,
+            0,
+            address(this)
+        );
+
+        BalancerLibrary.batchSwap(
+            vault,
+            address(bpt),
+            address(bbamUsdt),
+            address(usdt),
+            poolId,
+            bbamUsdtPoolId,
+            usdtBptAmount,
+            0,
+            address(this)
+        );
+
+        if (unstakeFull) {
+            daiBptAmount = bpt.balanceOf(address(this));
+        }
+
+        BalancerLibrary.batchSwap(
+            vault,
+            address(bpt),
+            address(bbamDai),
+            address(dai),
+            poolId,
+            bbamDaiPoolId,
+            daiBptAmount,
+            0,
+            address(this)
+        );
+
+        _swapTokensToUsdcByUniV3();
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -316,38 +323,45 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         return totalBalanceUsdc;
     }
 
-    function _claimRewards(address _beneficiary) internal override returns (uint256) {
+    function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        return 0;
-    }
 
-    function _getAmountsToSwap(uint256 bptAmount) internal view
-    returns (
-        uint256 amountBptUsdc,
-        uint256 amountBptUsdt,
-        uint256 amountBptDai
-    ) {
-
-        uint256 totalActualSupply = bpt.getActualSupply();
-        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
-        for (uint256 i = 0; i < tokens.length; i++) {
-
-            address token = address(tokens[i]);
-
-            // calculate share
-            uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
-
-            if (token == address(bbamUsdc)) {
-                amountBptUsdc = amountToken;
-            } else if (token == address(bbamUsdt)) {
-                amountBptUsdt = amountToken;
-            }else if(token == address(bbamDai)){
-                amountBptDai = amountToken;
-            }
-
+        if(auraLp.balanceOf(address(this)) == 0){
+            return 0;
         }
+
+        auraBaseRewardPool.getReward();
+
+        // sell rewards
+        uint256 totalUsdc;
+
+        IERC20 bal = IERC20(0x040d1EdC9569d4Bab2D15287Dc5A4F10F56a56B8);
+        IERC20 aura = IERC20(0x1509706a6c66CA549ff0cB464de88231DDBe213B);
+
+//        uint256 balBalance = bal.balanceOf(address(this));
+//        if (balBalance > 0) {
+//            BalancerLibrary.batchSwap(
+//                vault,
+//                address(bal),
+//                address(bbamDai),
+//                address(dai),
+//                poolId,
+//                bbamDaiPoolId,
+//                daiBptAmount,
+//                0,
+//                address(this)
+//            );
+//        }
+
+        if (totalUsdc > 0) {
+            usdc.transfer(_to, totalUsdc);
+        }
+
+        return totalUsdc;
+
     }
+
 
     function _calcAmountsToSwap(uint256 amountUsdcTotal) internal returns (uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) {
 
@@ -381,7 +395,32 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
 
     }
 
+    function _swapTokensToUsdcByUniV3() internal {
 
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
+            address(usdt),
+            address(usdc),
+            100, // 0.01%
+            address(this),
+            usdtBalance,
+            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
+        );
+
+        uint256 daiBalance = dai.balanceOf(address(this));
+        UniswapV3Library.singleSwap(
+            uniswapV3Router,
+            address(dai),
+            address(usdc),
+            100, // 0.01%
+            address(this),
+            daiBalance,
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
+        );
+
+
+    }
 
     function _swapUsdcByUniV3(uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) internal {
 
@@ -422,6 +461,45 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
             address(this),
             address(this)
         );
+    }
+
+    function _getBptAmounts(uint256 amount) internal view returns (uint256 usdcBptAmount, uint256 usdtBptAmount, uint256 daiBptAmount){
+
+        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+
+        uint256 reserveUsdc;
+        uint256 reserveUsdt;
+        uint256 reserveDai;
+
+
+        for (uint256 i = 0; i < tokens.length; i++) {
+
+            address token = address(tokens[i]);
+
+            if (token == address(bbamUsdc)) {
+                reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
+            } else if (token == address(bbamUsdt)) {
+                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
+            } else if (token == address(bbamDai)) {
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
+            }
+
+        }
+
+        uint256 amountUsdcUsdt = _oracleUsdcToUsdt(usdcDm);
+        uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
+
+        // with decimals
+        uint256 usdtAmount = amountUsdcUsdt * (amount * reserveUsdt) / (reserveUsdc * amountUsdcUsdt / usdcDm
+        + reserveUsdt + reserveDai * amountUsdcUsdt / amountUsdcDai) / usdcDm;
+        uint256 daiAmount = amountUsdcDai * (amount * reserveDai) / (reserveUsdc * amountUsdcDai / usdcDm
+        + reserveUsdt * amountUsdcDai / amountUsdcUsdt + reserveDai) / usdcDm;
+        uint256 usdcAmount = usdtAmount * usdcDm * reserveUsdc / (reserveUsdt * amountUsdcUsdt);
+
+        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
+        usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();
+        daiBptAmount = daiAmount * 1e18 / bbamDai.getRate();
+
     }
 
 

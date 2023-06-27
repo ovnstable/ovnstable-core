@@ -19,4 +19,6 @@ interface AuraBoosterLite {
 interface AuraBaseRewardPool {
 
     function getReward() external;
+
+    function withdrawAndUnwrap(uint256 amount, bool claim) external;
 }
