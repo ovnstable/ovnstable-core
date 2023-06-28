@@ -269,57 +269,50 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     }
 
     function _totalValue() internal view returns (uint256){
+        uint256 usdcBalance = usdc.balanceOf(address(this));
+        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
+
         uint256 bptAmount = auraLp.balanceOf(address(this));
-        if (bptAmount == 0) {
-            return usdc.balanceOf(address(this));
-        }
-        return _convertBptToUsdc(bptAmount);
-    }
+        if (bptAmount > 0) {
+            // total used tokens
+            uint256 totalActualSupply = bpt.getActualSupply();
 
-    function _convertBptToUsdc(uint256 bptAmount) internal view returns (uint256) {
+            (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
 
-        // total used tokens
-        uint256 totalActualSupply = bpt.getActualSupply();
+            // How it work?
+            // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
+            // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
+            // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
 
-        uint256 totalBalanceUsdc = usdc.balanceOf(address(this));
+            // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
+            for (uint256 i = 0; i < tokens.length; i++) {
 
-        (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+                address token = address(tokens[i]);
 
-        // How it work?
-        // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
-        // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
-        // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
+                // calculate share
+                uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
 
-        // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
-        for (uint256 i = 0; i < tokens.length; i++) {
-
-            address token = address(tokens[i]);
-
-            // calculate share
-            uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
-
-            if (token == address(bbamUsdc)) {
-                // bpt token convert to underlying tokens by Rate
-                // e18 + e18 - e30 = e6
-                amountToken = amountToken * bbamUsdc.getRate() / 1e30;
-                totalBalanceUsdc += amountToken;
-            } else if (token == address(bbamUsdt)) {
-                // bpt token convert to underlying tokens by Rate
-                // e18 + e18 - e30 = e6
-                amountToken = amountToken * bbamUsdt.getRate() / 1e30;
-                amountToken += usdt.balanceOf(address(this));
-                totalBalanceUsdc += _oracleUsdtToUsdc(amountToken);
-            } else if (token == address(bbamDai)) {
-                // bpt token convert to underlying tokens by Rate
-                // e18 + e18 - e18 = e18
-                amountToken = amountToken * bbamDai.getRate() / 1e18;
-                amountToken += dai.balanceOf(address(this));
-                totalBalanceUsdc += _oracleDaiToUsdc(amountToken);
+                if (token == address(bbamUsdc)) {
+                    // bpt token convert to underlying tokens by Rate
+                    // e18 + e18 - e30 = e6
+                    usdcBalance += amountToken * bbamUsdc.getRate() / 1e30;
+                } else if (token == address(bbamUsdt)) {
+                    // bpt token convert to underlying tokens by Rate
+                    // e18 + e18 - e30 = e6
+                    usdtBalance += amountToken * bbamUsdt.getRate() / 1e30;
+                } else if (token == address(bbamDai)) {
+                    // bpt token convert to underlying tokens by Rate
+                    // e18 + e18 - e18 = e18
+                    daiBalance = amountToken * bbamDai.getRate() / 1e18;
+                }
             }
-
         }
 
-        return totalBalanceUsdc;
+        usdcBalance += _oracleUsdtToUsdc(usdtBalance);
+        usdcBalance += _oracleDaiToUsdc(daiBalance);
+
+        return usdcBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -475,10 +468,10 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
 
         // with decimals
-        uint256 usdtAmount = amountUsdcUsdt * (amount * reserveUsdt) / (reserveUsdc * amountUsdcUsdt / usdcDm
-        + reserveUsdt + reserveDai * amountUsdcUsdt / amountUsdcDai) / usdcDm;
-        uint256 daiAmount = amountUsdcDai * (amount * reserveDai) / (reserveUsdc * amountUsdcDai / usdcDm
-        + reserveUsdt * amountUsdcDai / amountUsdcUsdt + reserveDai) / usdcDm;
+        uint256 usdtAmount = (amount * reserveUsdt) / (reserveUsdc
+                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
+        uint256 daiAmount = (amount * reserveDai) / (reserveUsdc
+                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
         uint256 usdcAmount = usdtAmount * usdcDm * reserveUsdc / (reserveUsdt * amountUsdcUsdt);
 
         usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
