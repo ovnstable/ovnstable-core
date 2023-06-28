@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/VelodromeV2.sol";
 
 contract VelodromeZap is OdosZap {
     IRouter public velodromeRouter;
@@ -31,9 +31,9 @@ contract VelodromeZap is OdosZap {
         _swap(swapData);
 
         IGauge gauge = IGauge(velodromeData.gauge);
-        address _token = gauge.stake();
-        IPair pair = IPair(_token);
-        (address token0, address token1) = pair.tokens();
+        address _token = gauge.stakingToken();
+        IPool pool = IPool(_token);
+        (address token0, address token1) = pool.tokens();
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = token0;
@@ -49,18 +49,18 @@ contract VelodromeZap is OdosZap {
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pair, tokensOut, amountsOut);
-        _transferToUser(pair);
+        _addLiquidity(pool, tokensOut, amountsOut);
+        _depositToGauge(pool, gauge);
     }
 
     function getProportion(
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IGauge gauge = IGauge(_gauge);
-        address _token = gauge.stake();
-        IPair pair = IPair(_token);
-        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        (address token0, address token1) = pair.tokens();
+        address _token = gauge.stakingToken();
+        IPool pool = IPool(_token);
+        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+        (address token0, address token1) = pool.tokens();
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -68,8 +68,8 @@ contract VelodromeZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(IPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+    function _addLiquidity(IPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
         (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
@@ -90,7 +90,7 @@ contract VelodromeZap is OdosZap {
         velodromeRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
-            pair.stable(),
+            pool.stable(),
             tokensAmount0,
             tokensAmount1,
             OvnMath.subBasisPoints(tokensAmount0, stakeSlippageBP),
@@ -142,9 +142,9 @@ contract VelodromeZap is OdosZap {
         }
     }
 
-    function _transferToUser(IPair pair) internal {
-        uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(msg.sender), pairBalance);
-        pair.transferFrom(address(this), address(msg.sender), pairBalance);
+    function _depositToGauge(IPool pool, IGauge gauge) internal {
+        uint256 poolBalance = pool.balanceOf(address(this));
+        pool.approve(address(gauge), poolBalance);
+        gauge.deposit(poolBalance, msg.sender);
     }
 }

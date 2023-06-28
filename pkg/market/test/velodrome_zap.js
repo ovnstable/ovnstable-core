@@ -52,7 +52,7 @@ describe("VelodromeZapper", function () {
 
     it("swap and put nearly equal", async function () {
 
-        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
+        const gauge = "0xC263655114CdE848C73B899846FE7A2D219c10a8";
 
         await showBalances();
 
@@ -164,7 +164,7 @@ describe("VelodromeZapper", function () {
 
     it("swap and put disbalances on one asset", async function () {
 
-        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
+        const gauge = "0xC263655114CdE848C73B899846FE7A2D219c10a8";
 
         await showBalances();
 
@@ -271,7 +271,7 @@ describe("VelodromeZapper", function () {
 
     it("swap and put disbalanced on another asset", async function () {
 
-        const gauge = "0xd2d95775D35A6D492CED7C7e26817aAcB7D264F2";
+        const gauge = "0xC263655114CdE848C73B899846FE7A2D219c10a8";
 
         await showBalances();
 

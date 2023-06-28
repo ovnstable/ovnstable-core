@@ -11,7 +11,7 @@ module.exports = async ({ deployments }) => {
 
     let params = {
         odosRouter: OPTIMISM.odosRouter,
-        velodromeRouter: OPTIMISM.velodromeRouter
+        velodromeRouter: OPTIMISM.velodromeRouterV2
     }
 
     let zap = await ethers.getContract('VelodromeZap');
