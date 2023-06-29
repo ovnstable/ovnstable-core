@@ -390,12 +390,76 @@ interface IAlgebraPool {
         );
 }
 
-interface IBribe {
-    function _deposit(uint amount, uint tokenId) external;
-    function _withdraw(uint amount, uint tokenId) external;
-    function getRewardForOwner(uint tokenId, address[] memory tokens) external;
-    function notifyRewardAmount(address token, uint amount) external;
-    function left(address token) external view returns (uint);
+
+/// @title Router token swapping functionality
+/// @notice Functions for swapping tokens via Algebra
+/// @dev Credit to Uniswap Labs under GPL-2.0-or-later license:
+/// https://github.com/Uniswap/v3-periphery
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 limitSqrtPrice;
+    }
+
+    /// @notice Swaps `amountIn` of one token for as much as possible of another token
+    /// @param params The parameters necessary for the swap, encoded as `ExactInputSingleParams` in calldata
+    /// @return amountOut The amount of the received token
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+
+    struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+
+    /// @notice Swaps `amountIn` of one token for as much as possible of another along the specified path
+    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactInputParams` in calldata
+    /// @return amountOut The amount of the received token
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
+
+    struct ExactOutputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 deadline;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+        uint160 limitSqrtPrice;
+    }
+
+    /// @notice Swaps as little as possible of one token for `amountOut` of another token
+    /// @param params The parameters necessary for the swap, encoded as `ExactOutputSingleParams` in calldata
+    /// @return amountIn The amount of the input token
+    function exactOutputSingle(ExactOutputSingleParams calldata params) external payable returns (uint256 amountIn);
+
+    struct ExactOutputParams {
+        bytes path;
+        address recipient;
+        uint256 deadline;
+        uint256 amountOut;
+        uint256 amountInMaximum;
+    }
+
+    /// @notice Swaps as little as possible of one token for `amountOut` of another along the specified path (reversed)
+    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactOutputParams` in calldata
+    /// @return amountIn The amount of the input token
+    function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn);
+
+    /// @notice Swaps `amountIn` of one token for as much as possible of another along the specified path
+    /// @dev Unlike standard swaps, handles transferring from user before the actual swap.
+    /// @param params The parameters necessary for the multi-hop swap, encoded as `ExactInputParams` in calldata
+    /// @return amountOut The amount of the received token
+    function exactInputSingleSupportingFeeOnTransferTokens(ExactInputSingleParams calldata params)
+    external
+    returns (uint256 amountOut);
 }
 
 
@@ -493,6 +557,58 @@ library ThenaLibrary {
             recipient,
             block.timestamp
         )[2];
+    }
+
+}
+
+
+library ThenaFusionLibrary {
+
+    function singleSwap(
+        address swapRouter,
+        address tokenIn,
+        address tokenOut,
+        address recipient,
+        uint256 amountIn,
+        uint256 amountOutMinimum
+    ) internal returns (uint256 amountOut) {
+
+        IERC20(tokenIn).approve(swapRouter, amountIn);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            recipient: recipient,
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum,
+            limitSqrtPrice: 0
+        });
+
+        amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
+    }
+
+    function multiSwap(
+        address swapRouter,
+        address tokenIn,
+        address tokenMid,
+        address tokenOut,
+        address recipient,
+        uint256 amountIn,
+        uint256 amountOutMinimum
+    ) internal returns (uint256 amountOut) {
+
+        IERC20(tokenIn).approve(swapRouter, amountIn);
+
+        ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
+            path: abi.encodePacked(tokenIn, tokenMid, tokenOut),
+            recipient: recipient,
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum
+        });
+
+        amountOut = ISwapRouter(swapRouter).exactInput(params);
     }
 
 }
