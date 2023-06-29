@@ -135,6 +135,7 @@ let BSC = {
     inchRouter: "0x1111111254fb6c44bAC0beD2854e76F90643097d",
     inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     thenaRouter: "0xd4ae6eCA985340Dd434D38F470aCCce4DC78D109",
+    thenaFusionRouter: '0x327Dd3208f0bCF590A66110aCB6e5e6941A4EfA0',
     odosRouter: "0x9f138be5aA5cC442Ea7cC7D18cD9E30593ED90b9",
     // oracles
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
