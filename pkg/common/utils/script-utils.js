@@ -673,7 +673,7 @@ async function transferUSDPlus(amount, to){
     console.log('Balance USD+: ' + fromAsset(await usdPlus.balanceOf(to)));
 }
 
-async function transferAsset(assetAddress, to) {
+async function transferAsset(assetAddress, to, amount) {
 
     let from;
     switch (process.env.ETH_NETWORK) {
@@ -749,7 +749,10 @@ async function transferAsset(assetAddress, to) {
 
     let account = await hre.ethers.getSigner(from);
 
-    await asset.connect(account).transfer(to, await asset.balanceOf(from));
+    if (!amount){
+        amount = await asset.balanceOf(from);
+    }
+    await asset.connect(account).transfer(to, amount);
 
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
