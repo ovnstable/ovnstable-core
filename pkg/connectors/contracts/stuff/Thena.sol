@@ -395,7 +395,7 @@ interface IAlgebraPool {
 /// @notice Functions for swapping tokens via Algebra
 /// @dev Credit to Uniswap Labs under GPL-2.0-or-later license:
 /// https://github.com/Uniswap/v3-periphery
-interface ISwapRouter {
+interface IThenaSwapRouter {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;
@@ -575,7 +575,7 @@ library ThenaFusionLibrary {
 
         IERC20(tokenIn).approve(swapRouter, amountIn);
 
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+        IThenaSwapRouter.ExactInputSingleParams memory params = IThenaSwapRouter.ExactInputSingleParams({
             tokenIn: tokenIn,
             tokenOut: tokenOut,
             recipient: recipient,
@@ -585,7 +585,7 @@ library ThenaFusionLibrary {
             limitSqrtPrice: 0
         });
 
-        amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
+        amountOut = IThenaSwapRouter(swapRouter).exactInputSingle(params);
     }
 
     function multiSwap(
@@ -600,7 +600,7 @@ library ThenaFusionLibrary {
 
         IERC20(tokenIn).approve(swapRouter, amountIn);
 
-        ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
+        IThenaSwapRouter.ExactInputParams memory params = IThenaSwapRouter.ExactInputParams({
             path: abi.encodePacked(tokenIn, tokenMid, tokenOut),
             recipient: recipient,
             deadline: block.timestamp,
@@ -608,7 +608,7 @@ library ThenaFusionLibrary {
             amountOutMinimum: amountOutMinimum
         });
 
-        amountOut = ISwapRouter(swapRouter).exactInput(params);
+        amountOut = IThenaSwapRouter(swapRouter).exactInput(params);
     }
 
 }

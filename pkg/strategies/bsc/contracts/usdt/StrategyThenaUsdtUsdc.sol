@@ -76,6 +76,11 @@ contract StrategyThenaUsdtUsdc is Strategy {
         usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
 
+        usdc.approve(address(lpToken), type(uint256).max);
+        usdt.approve(address(lpToken), type(uint256).max);
+        lpToken.approve(address(gauge), type(uint256).max);
+        lpToken.approve(address(uniProxy), type(uint256).max);
+
         emit StrategyUpdatedParams();
     }
 
@@ -99,16 +104,10 @@ contract StrategyThenaUsdtUsdc is Strategy {
             OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtToSwap), swapSlippageBP)
         );
 
-        // approve deposit balances
-        uint256 usdtBalance = usdt.balanceOf(address(this));
-        uint256 usdcBalance = usdc.balanceOf(address(this));
-        usdt.approve(address(lpToken), usdtBalance);
-        usdc.approve(address(lpToken), usdcBalance);
-
         // deposit in cycle
         IUniProxy.Position memory position = uniProxy.positions(address(lpToken));
-        uint256 token0Amount = usdtBalance;
-        uint256 token1Amount = usdcBalance;
+        uint256 token0Amount = usdt.balanceOf(address(this));
+        uint256 token1Amount = usdc.balanceOf(address(this));
         while (token0Amount > 0 && token1Amount > 0) {
             (uint256 delta0, uint256 delta1) = _getDepositDeltas(position, token0Amount, token1Amount);
             token0Amount -= delta0;
@@ -124,7 +123,6 @@ contract StrategyThenaUsdtUsdc is Strategy {
 
         // stake
         uint256 lpTokenAmount = lpToken.balanceOf(address(this));
-        lpToken.approve(address(gauge), lpTokenAmount);
         gauge.deposit(lpTokenAmount);
     }
 
@@ -198,7 +196,6 @@ contract StrategyThenaUsdtUsdc is Strategy {
         gauge.withdraw(amountLp);
 
         // remove liquidity
-        lpToken.approve(address(uniProxy), amountLp);
         lpToken.withdraw(
             amountLp,
             address(this),
