@@ -1243,6 +1243,9 @@ contract MerkleOrchard {
     }
 }
 
+interface IBalancerMinter {
+    function mint(address gauge) external returns (uint256);
+}
 
 library BalancerLibrary {
 

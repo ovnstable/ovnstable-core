@@ -3,47 +3,48 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aura.sol";
-import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
-import "./libraries/AuraRewardUsdcUsdtDaiLibrary.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
+import "./../libraries/AuraRewardUsdcUsdtDaiLibrary.sol";
 
-contract StrategyAuraUsdcUsdtDai is Strategy {
+contract StrategyAuraDaiUsdcUsdt is Strategy {
 
     uint256 public constant MAX_UINT_VALUE = type(uint256).max;
 
     // --- params
 
+    IERC20 public dai;
     IERC20 public usdc;
     IERC20 public usdt;
-    IERC20 public dai;
 
+    IBptToken public bbamDai;
     IBptToken public bbamUsdc;
     IBptToken public bbamUsdt;
-    IBptToken public bbamDai;
     IBptToken public bpt;
 
     IVault public vault;
-    bytes32 public poolId;
 
-    IPriceFeed public oracleUsdc;
-    IPriceFeed public oracleUsdt;
-    IPriceFeed public oracleDai;
-
+    bytes32 public bbamDaiPoolId;
     bytes32 public bbamUsdcPoolId;
     bytes32 public bbamUsdtPoolId;
-    bytes32 public bbamDaiPoolId;
+    bytes32 public poolId;
 
-    uint256 public usdcDm;
-    uint256 public usdtDm;
-    uint256 public daiDm;
+    IPriceFeed public oracleDai;
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleUsdt;
 
     IERC20 public auraLp;
     AuraBoosterLite public auraBoosterLite;
     AuraBaseRewardPool public auraBaseRewardPool;
 
-    ISwapRouter public uniswapV3Router;
+    IWombatRouter public wombatRouter;
+    address public wombatBasePool;
+
+    uint256 public daiDm;
+    uint256 public usdcDm;
+    uint256 public usdtDm;
+
 
     // --- events
 
@@ -53,26 +54,26 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     // --- structs
 
     struct StrategyParams {
+        address dai;
         address usdc;
         address usdt;
-        address dai;
+        address bbamDai;
         address bbamUsdc;
         address bbamUsdt;
-        address bbamDai;
         address bpt;
         address vault;
+        bytes32 bbamDaiPoolId;
         bytes32 bbamUsdcPoolId;
         bytes32 bbamUsdtPoolId;
-        bytes32 bbamDaiPoolId;
         bytes32 poolId;
+        address oracleDai;
         address oracleUsdc;
         address oracleUsdt;
-        address oracleDai;
         address auraLp;
         address auraBoosterLite;
         address auraBaseRewardPool;
-        address uniswapV3Router;
-
+        address wombatRouter;
+        address wombatBasePool;
     }
 
 
@@ -89,39 +90,41 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
+        dai = IERC20(params.dai);
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
-        dai = IERC20(params.dai);
 
+        bbamDai = IBptToken(params.bbamDai);
         bbamUsdc = IBptToken(params.bbamUsdc);
         bbamUsdt = IBptToken(params.bbamUsdt);
-        bbamDai = IBptToken(params.bbamDai);
         bpt = IBptToken(params.bpt);
 
         vault = IVault(params.vault);
 
+        bbamDaiPoolId = params.bbamDaiPoolId;
         bbamUsdcPoolId = params.bbamUsdcPoolId;
         bbamUsdtPoolId = params.bbamUsdtPoolId;
-        bbamDaiPoolId = params.bbamDaiPoolId;
         poolId = params.poolId;
 
+        oracleDai = IPriceFeed(params.oracleDai);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
-        oracleDai = IPriceFeed(params.oracleDai);
-
-        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
-        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
-        daiDm = 10 ** IERC20Metadata(params.dai).decimals();
 
         auraLp = IERC20(params.auraLp);
         auraBoosterLite = AuraBoosterLite(params.auraBoosterLite);
         auraBaseRewardPool = AuraBaseRewardPool(params.auraBaseRewardPool);
 
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        wombatRouter = IWombatRouter(params.wombatRouter);
+        wombatBasePool = params.wombatBasePool;
 
+        daiDm = 10 ** IERC20Metadata(params.dai).decimals();
+        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
+        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
+
+        bbamDai.approve(address(vault), MAX_UINT_VALUE);
         bbamUsdc.approve(address(vault), MAX_UINT_VALUE);
         bbamUsdt.approve(address(vault), MAX_UINT_VALUE);
-        bbamDai.approve(address(vault), MAX_UINT_VALUE);
+        bpt.approve(address(auraBoosterLite), MAX_UINT_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -134,13 +137,13 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         uint256 _amount
     ) internal override {
 
-        (uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) = _calcAmountsToSwap(usdc.balanceOf(address(this)));
+        (uint256 amountUsdcInDai, uint256 amountUsdtInDai) = _calcAmountsToSwap(dai.balanceOf(address(this)));
 
-        _swapUsdcByUniV3(amountUsdtInUsdc, amountDaiInUsdc);
+        _swapDaiToTokens(amountUsdcInDai, amountUsdtInDai);
 
+        _swapAssetToBptToken(dai, bbamDai, bbamDaiPoolId, 1e18);
         _swapAssetToBptToken(usdc, bbamUsdc, bbamUsdcPoolId, 1e30);
         _swapAssetToBptToken(usdt, bbamUsdt, bbamUsdtPoolId, 1e30);
-        _swapAssetToBptToken(dai, bbamDai, bbamDaiPoolId, 1e18);
 
         (IERC20[] memory tokens,,) = vault.getPoolTokens(poolId);
 
@@ -153,14 +156,14 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         for (uint256 i; i < tokens.length; i++) {
             assets[i] = IAsset(address(tokens[i]));
 
-            if (address(tokens[i]) == address(bbamUsdc)) {
+            if (address(tokens[i]) == address(bbamDai)) {
+                amountsIn[i] = bbamDai.balanceOf(address(this));
+                maxAmountsIn[i] = MAX_UINT_VALUE;
+            } else if (address(tokens[i]) == address(bbamUsdc)) {
                 amountsIn[i] = bbamUsdc.balanceOf(address(this));
                 maxAmountsIn[i] = MAX_UINT_VALUE;
             } else if (address(tokens[i]) == address(bbamUsdt)) {
                 amountsIn[i] = bbamUsdt.balanceOf(address(this));
-                maxAmountsIn[i] = MAX_UINT_VALUE;
-            } else if (address(tokens[i]) == address(bbamDai)) {
-                amountsIn[i] = bbamDai.balanceOf(address(this));
                 maxAmountsIn[i] = MAX_UINT_VALUE;
             }
         }
@@ -171,12 +174,11 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
 
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
 
-        // 2. Put bb-am-USDC to Stable pool
+        // 2. Put into Stable pool
         vault.joinPool(poolId, address(this), address(this), request);
 
         // 3. Put bpt tokens to Aura
         uint256 bptAmount = bpt.balanceOf(address(this));
-        bpt.approve(address(auraBoosterLite), bptAmount);
         auraBoosterLite.deposit(2, bptAmount, true);
     }
 
@@ -186,10 +188,9 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        _unstakeUsdc(_amount, false);
+        _unstakeDai(_amount);
 
-        return usdc.balanceOf(address(this));
-
+        return dai.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -198,52 +199,23 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     ) internal override returns (uint256) {
 
         if (auraLp.balanceOf(address(this)) > 0) {
-            _unstakeUsdc(_totalValue(), true);
+            _unstakeDai(_totalValue());
         }
 
-        return usdc.balanceOf(address(this));
-
+        return dai.balanceOf(address(this));
     }
 
+    function _unstakeDai(uint256 amount) internal {
+        (uint256 daiBptAmount, uint256 usdcBptAmount, uint256 usdtBptAmount) = _getBptAmounts(OvnMath.addBasisPoints(amount, swapSlippageBP));
 
-    function _unstakeUsdc(uint256 amount, bool unstakeFull) internal {
-        (uint256 usdcBptAmount, uint256 usdtBptAmount, uint256 daiBptAmount) = _getBptAmounts(OvnMath.addBasisPoints(amount, swapSlippageBP));
+        uint256 totalBpt = daiBptAmount + usdcBptAmount + usdtBptAmount;
 
-        uint256 totalBpt = usdcBptAmount + usdtBptAmount + daiBptAmount;
-
-        if (unstakeFull) {
-            totalBpt = auraLp.balanceOf(address(this));
+        uint256 bptBalance = auraLp.balanceOf(address(this));
+        if (totalBpt > bptBalance) {
+            totalBpt = bptBalance;
         }
 
         auraBaseRewardPool.withdrawAndUnwrap(totalBpt, false);
-
-        BalancerLibrary.batchSwap(
-            vault,
-            address(bpt),
-            address(bbamUsdc),
-            address(usdc),
-            poolId,
-            bbamUsdcPoolId,
-            usdcBptAmount,
-            0,
-            address(this)
-        );
-
-        BalancerLibrary.batchSwap(
-            vault,
-            address(bpt),
-            address(bbamUsdt),
-            address(usdt),
-            poolId,
-            bbamUsdtPoolId,
-            usdtBptAmount,
-            0,
-            address(this)
-        );
-
-        if (unstakeFull) {
-            daiBptAmount = bpt.balanceOf(address(this));
-        }
 
         BalancerLibrary.batchSwap(
             vault,
@@ -257,7 +229,35 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
             address(this)
         );
 
-        _swapTokensToUsdcByUniV3();
+        BalancerLibrary.batchSwap(
+            vault,
+            address(bpt),
+            address(bbamUsdc),
+            address(usdc),
+            poolId,
+            bbamUsdcPoolId,
+            usdcBptAmount,
+            0,
+            address(this)
+        );
+
+        if (totalBpt == bptBalance) {
+            usdtBptAmount = bpt.balanceOf(address(this));
+        }
+
+        BalancerLibrary.batchSwap(
+            vault,
+            address(bpt),
+            address(bbamUsdt),
+            address(usdt),
+            poolId,
+            bbamUsdtPoolId,
+            usdtBptAmount,
+            0,
+            address(this)
+        );
+
+        _swapTokensToDai();
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -269,9 +269,9 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     }
 
     function _totalValue() internal view returns (uint256){
+        uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdcBalance = usdc.balanceOf(address(this));
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        uint256 daiBalance = dai.balanceOf(address(this));
 
         uint256 bptAmount = auraLp.balanceOf(address(this));
         if (bptAmount > 0) {
@@ -280,12 +280,6 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
 
             (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
 
-            // How it work?
-            // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
-            // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
-            // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
-
-            // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
             for (uint256 i = 0; i < tokens.length; i++) {
 
                 address token = address(tokens[i]);
@@ -293,26 +287,26 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
                 // calculate share
                 uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
 
-                if (token == address(bbamUsdc)) {
+                if (token == address(bbamDai)) {
+                    // bpt token convert to underlying tokens by Rate
+                    // e18 + e18 - e30 = e6
+                    daiBalance += amountToken * bbamDai.getRate() / 1e18;
+                } else if (token == address(bbamUsdc)) {
                     // bpt token convert to underlying tokens by Rate
                     // e18 + e18 - e30 = e6
                     usdcBalance += amountToken * bbamUsdc.getRate() / 1e30;
                 } else if (token == address(bbamUsdt)) {
                     // bpt token convert to underlying tokens by Rate
-                    // e18 + e18 - e30 = e6
-                    usdtBalance += amountToken * bbamUsdt.getRate() / 1e30;
-                } else if (token == address(bbamDai)) {
-                    // bpt token convert to underlying tokens by Rate
                     // e18 + e18 - e18 = e18
-                    daiBalance = amountToken * bbamDai.getRate() / 1e18;
+                    usdtBalance = amountToken * bbamUsdt.getRate() / 1e30;
                 }
             }
         }
 
-        usdcBalance += _oracleUsdtToUsdc(usdtBalance);
-        usdcBalance += _oracleDaiToUsdc(daiBalance);
+        daiBalance += _oracleUsdcToDai(usdcBalance);
+        daiBalance += _oracleUsdtToDai(usdtBalance);
 
-        return usdcBalance;
+        return daiBalance;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -326,26 +320,23 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         auraBaseRewardPool.getReward();
 
         // sell rewards
-        uint256 totalUsdc;
+        uint256 totalDai;
 
-        totalUsdc += AuraRewardUsdcUsdtDaiLibrary.swapBalToUsdc();
+        totalDai += AuraRewardUsdcUsdtDaiLibrary.swapBalToDai();
         AuraRewardUsdcUsdtDaiLibrary.transferAuraToTreasure();
 
-
-        if (totalUsdc > 0) {
-            usdc.transfer(_to, totalUsdc);
+        if (totalDai > 0) {
+            dai.transfer(_to, totalDai);
         }
 
-        return totalUsdc;
-
+        return totalDai;
     }
 
+    function _calcAmountsToSwap(uint256 amountDaiTotal) internal returns (uint256 amountUsdcInDai, uint256 amountUsdtInDai) {
 
-    function _calcAmountsToSwap(uint256 amountUsdcTotal) internal returns (uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) {
-
+        uint256 reserveDai;
         uint256 reserveUsdc;
         uint256 reserveUsdt;
-        uint256 reserveDai;
 
         (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
 
@@ -353,75 +344,71 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
 
             address token = address(tokens[i]);
 
-            if (token == address(bbamUsdc)) {
+            if (token == address(bbamDai)) {
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
+            } else if (token == address(bbamUsdc)) {
                 reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
             } else if (token == address(bbamUsdt)) {
                 reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
-            } else if (token == address(bbamDai)) {
-                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
             }
 
         }
 
-        uint256 amountUsdcUsdt = _oracleUsdcToUsdt(usdcDm);
-        uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
+        uint256 amountDaiUsdc = _oracleDaiToUsdc(daiDm);
+        uint256 amountDaiUsdt = _oracleDaiToUsdt(daiDm);
 
-        amountUsdtInUsdc = (amountUsdcTotal * reserveUsdt) / (reserveUsdc * amountUsdcUsdt / usdcDm
-        + reserveUsdt + reserveDai * amountUsdcUsdt / amountUsdcDai);
-        amountDaiInUsdc = (amountUsdcTotal * reserveDai) / (reserveUsdc * amountUsdcDai / usdcDm
-        + reserveUsdt * amountUsdcDai / amountUsdcUsdt + reserveDai);
-
+        amountUsdcInDai = (amountDaiTotal * reserveUsdc) / (reserveDai * amountDaiUsdc / daiDm
+                + reserveUsdc + reserveUsdt * amountDaiUsdc / amountDaiUsdt);
+        amountUsdtInDai = (amountDaiTotal * reserveUsdt) / (reserveDai * amountDaiUsdt / daiDm
+                + reserveUsdc * amountDaiUsdt / amountDaiUsdc + reserveUsdt);
     }
 
-    function _swapTokensToUsdcByUniV3() internal {
+    function _swapTokensToDai() internal {
+
+        uint256 usdcBalance = usdc.balanceOf(address(this));
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
+            address(usdc),
+            address(dai),
+            wombatBasePool,
+            usdcBalance,
+            0,
+            address(this)
+        );
 
         uint256 usdtBalance = usdt.balanceOf(address(this));
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
             address(usdt),
-            address(usdc),
-            100, // 0.01%
-            address(this),
-            usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP)
-        );
-
-        uint256 daiBalance = dai.balanceOf(address(this));
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
             address(dai),
-            address(usdc),
-            100, // 0.01%
-            address(this),
-            daiBalance,
-            OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP)
+            wombatBasePool,
+            usdtBalance,
+            0,
+            address(this)
         );
-
-
     }
 
-    function _swapUsdcByUniV3(uint256 amountUsdtInUsdc, uint256 amountDaiInUsdc) internal {
+    function _swapDaiToTokens(uint256 amountUsdcInDai, uint256 amountUsdtInDai) internal {
 
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(usdc),
-            address(usdt),
-            100, // 0.01%
-            address(this),
-            amountUsdtInUsdc,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdtInUsdc), swapSlippageBP)
-        );
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(usdc),
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
             address(dai),
-            100, // 0.01%
-            address(this),
-            amountDaiInUsdc,
-            OvnMath.subBasisPoints(_oracleUsdcToDai(amountDaiInUsdc), swapSlippageBP)
+            address(usdc),
+            wombatBasePool,
+            amountUsdcInDai,
+            0,
+            address(this)
         );
 
+        WombatLibrary.swapExactTokensForTokens(
+            wombatRouter,
+            address(dai),
+            address(usdt),
+            wombatBasePool,
+            amountUsdtInDai,
+            0,
+            address(this)
+        );
     }
 
     function _swapAssetToBptToken(IERC20 asset, IBptToken bptToken, bytes32 poolId, uint256 decimals) internal {
@@ -441,68 +428,65 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         );
     }
 
-    function _getBptAmounts(uint256 amount) internal view returns (uint256 usdcBptAmount, uint256 usdtBptAmount, uint256 daiBptAmount){
+    function _getBptAmounts(uint256 amount) internal view returns (uint256 daiBptAmount, uint256 usdcBptAmount, uint256 usdtBptAmount){
 
         (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
 
+        uint256 reserveDai;
         uint256 reserveUsdc;
         uint256 reserveUsdt;
-        uint256 reserveDai;
-
 
         for (uint256 i = 0; i < tokens.length; i++) {
 
             address token = address(tokens[i]);
 
-            if (token == address(bbamUsdc)) {
+            if (token == address(bbamDai)) {
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
+            } else if (token == address(bbamUsdc)) {
                 reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
             } else if (token == address(bbamUsdt)) {
                 reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
-            } else if (token == address(bbamDai)) {
-                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
             }
 
         }
 
-        uint256 amountUsdcUsdt = _oracleUsdcToUsdt(usdcDm);
-        uint256 amountUsdcDai = _oracleUsdcToDai(usdcDm);
+        uint256 amountDaiUsdc = _oracleDaiToUsdc(daiDm);
+        uint256 amountDaiUsdt = _oracleDaiToUsdt(daiDm);
 
         // with decimals
-        uint256 usdtAmount = (amount * reserveUsdt) / (reserveUsdc
-                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
-        uint256 daiAmount = (amount * reserveDai) / (reserveUsdc
-                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
-        uint256 usdcAmount = usdtAmount * reserveUsdc / reserveUsdt;
+        uint256 usdcAmount = (amount * reserveUsdc) / (reserveDai
+                + reserveUsdc * daiDm / amountDaiUsdc + reserveUsdt * daiDm / amountDaiUsdt);
+        uint256 usdtAmount = (amount * reserveUsdt) / (reserveDai
+                + reserveUsdc * daiDm / amountDaiUsdc + reserveUsdt * daiDm / amountDaiUsdt);
+        uint256 daiAmount = usdcAmount * reserveDai / reserveUsdc;
 
-        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
-        usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();
         daiBptAmount = daiAmount * 1e18 / bbamDai.getRate();
-
-    }
-
-
-    function _oracleUsdtToUsdc(uint256 usdtAmount) internal view returns (uint256) {
-        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
-    }
-
-    function _oracleDaiToUsdc(uint256 daiAmount) internal view returns (uint256) {
-        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
-    }
-
-    function _oracleUsdcToUsdt(uint256 usdcAmount) internal view returns (uint256) {
-        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+        usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();
+        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
     }
 
     function _oracleUsdcToDai(uint256 usdcAmount) internal view returns (uint256) {
-        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
         uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
         return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, daiDm, priceUsdc, priceDai);
+    }
+
+    function _oracleUsdtToDai(uint256 usdtAmount) internal view returns (uint256) {
+        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, daiDm, priceUsdt, priceDai);
+    }
+
+    function _oracleDaiToUsdc(uint256 daiAmount) internal view returns (uint256) {
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
+    }
+
+    function _oracleDaiToUsdt(uint256 daiAmount) internal view returns (uint256) {
+        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdtDm, priceDai, priceUsdt);
     }
 
 }
