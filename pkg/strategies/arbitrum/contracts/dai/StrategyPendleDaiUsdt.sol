@@ -255,8 +255,12 @@ contract StrategyPendleDaiUsdt is Strategy {
         uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
 
         uint256 lpAmount1 = amount * 1e6 / ch1;
-        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
-        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        if (yt.balanceOf(address(this)) < amount) {
+            uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
+            lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        } else {
+            lpAmount = lpAmount1;
+        }
     }
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
