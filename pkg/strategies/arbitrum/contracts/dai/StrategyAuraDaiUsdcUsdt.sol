@@ -141,9 +141,9 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
 
         _swapDaiToTokens(amountUsdcInDai, amountUsdtInDai);
 
-        _swapAssetToBptToken(dai, bbamDai, bbamDaiPoolId, 1e30);
+        _swapAssetToBptToken(dai, bbamDai, bbamDaiPoolId, 1e18);
         _swapAssetToBptToken(usdc, bbamUsdc, bbamUsdcPoolId, 1e30);
-        _swapAssetToBptToken(usdt, bbamUsdt, bbamUsdtPoolId, 1e18);
+        _swapAssetToBptToken(usdt, bbamUsdt, bbamUsdtPoolId, 1e30);
 
         (IERC20[] memory tokens,,) = vault.getPoolTokens(poolId);
 
@@ -290,7 +290,7 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
                 if (token == address(bbamDai)) {
                     // bpt token convert to underlying tokens by Rate
                     // e18 + e18 - e30 = e6
-                    daiBalance += amountToken * bbamDai.getRate() / 1e30;
+                    daiBalance += amountToken * bbamDai.getRate() / 1e18;
                 } else if (token == address(bbamUsdc)) {
                     // bpt token convert to underlying tokens by Rate
                     // e18 + e18 - e30 = e6
@@ -298,7 +298,7 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
                 } else if (token == address(bbamUsdt)) {
                     // bpt token convert to underlying tokens by Rate
                     // e18 + e18 - e18 = e18
-                    usdtBalance = amountToken * bbamUsdt.getRate() / 1e18;
+                    usdtBalance = amountToken * bbamUsdt.getRate() / 1e30;
                 }
             }
         }
@@ -345,11 +345,11 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
             address token = address(tokens[i]);
 
             if (token == address(bbamDai)) {
-                reserveDai = balances[i] * bbamDai.getRate() / 1e30;
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
             } else if (token == address(bbamUsdc)) {
                 reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
             } else if (token == address(bbamUsdt)) {
-                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e18;
+                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
             }
 
         }
@@ -441,11 +441,11 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
             address token = address(tokens[i]);
 
             if (token == address(bbamDai)) {
-                reserveDai = balances[i] * bbamDai.getRate() / 1e30;
+                reserveDai = balances[i] * bbamDai.getRate() / 1e18;
             } else if (token == address(bbamUsdc)) {
                 reserveUsdc = balances[i] * bbamUsdc.getRate() / 1e30;
             } else if (token == address(bbamUsdt)) {
-                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e18;
+                reserveUsdt = balances[i] * bbamUsdt.getRate() / 1e30;
             }
 
         }
@@ -458,11 +458,11 @@ contract StrategyAuraDaiUsdcUsdt is Strategy {
                 + reserveUsdc * daiDm / amountDaiUsdc + reserveUsdt * daiDm / amountDaiUsdt);
         uint256 usdtAmount = (amount * reserveUsdt) / (reserveDai
                 + reserveUsdc * daiDm / amountDaiUsdc + reserveUsdt * daiDm / amountDaiUsdt);
-        uint256 daiAmount = usdcAmount * daiDm * reserveDai / (reserveUsdc * amountDaiUsdc);
+        uint256 daiAmount = usdcAmount * reserveDai / reserveUsdc;
 
+        daiBptAmount = daiAmount * 1e18 / bbamDai.getRate();
         usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();
-        daiBptAmount = daiAmount * 1e30 / bbamDai.getRate();
-        usdtBptAmount = usdtAmount * 1e18 / bbamUsdt.getRate();
+        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
     }
 
     function _oracleUsdcToDai(uint256 usdcAmount) internal view returns (uint256) {

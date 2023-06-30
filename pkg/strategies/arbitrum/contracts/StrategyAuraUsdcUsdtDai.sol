@@ -472,7 +472,7 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
                 + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
         uint256 daiAmount = (amount * reserveDai) / (reserveUsdc
                 + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
-        uint256 usdcAmount = usdtAmount * usdcDm * reserveUsdc / (reserveUsdt * amountUsdcUsdt);
+        uint256 usdcAmount = usdtAmount * reserveUsdc / reserveUsdt;
 
         usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
         usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();

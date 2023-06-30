@@ -41,6 +41,7 @@ async function getParams() {
         bpt: '0xee02583596aee94cccb7e8ccd3921d955f17982a',
         vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         gauge: '0xb0Bdd5000307144Ed7d30Cf4025Ec1FBA9D79D65',
+        balancerMinter: '0xc3ccacE87f6d3A81724075ADcb5ddd85a8A1bB68',
         bbamUsdcPoolId: '0x7c82a23b4c48d796dee36a9ca215b641c6a8709d000000000000000000000406',
         bbamUsdtPoolId: '0x4739e50b59b552d490d3fdc60d200977a38510c0000000000000000000000409',
         bbamDaiPoolId: '0x9e34631547adcf2f8cefa0f5f223955c7b137571000000000000000000000407',

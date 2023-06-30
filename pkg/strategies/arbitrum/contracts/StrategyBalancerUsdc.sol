@@ -24,6 +24,7 @@ contract StrategyBalancerUsdc is Strategy {
 
     IVault public vault;
     IGauge public gauge;
+    IBalancerMinter public balancerMinter;
 
     bytes32 public bbamUsdcPoolId;
     bytes32 public bbamUsdtPoolId;
@@ -58,6 +59,7 @@ contract StrategyBalancerUsdc is Strategy {
         address bpt;
         address vault;
         address gauge;
+        address balancerMinter;
         bytes32 bbamUsdcPoolId;
         bytes32 bbamUsdtPoolId;
         bytes32 bbamDaiPoolId;
@@ -93,6 +95,7 @@ contract StrategyBalancerUsdc is Strategy {
 
         vault = IVault(params.vault);
         gauge = IGauge(params.gauge);
+        balancerMinter = IBalancerMinter(params.balancerMinter);
 
         bbamUsdcPoolId = params.bbamUsdcPoolId;
         bbamUsdtPoolId = params.bbamUsdtPoolId;
@@ -305,7 +308,7 @@ contract StrategyBalancerUsdc is Strategy {
             return 0;
         }
 
-        gauge.claim_rewards();
+        balancerMinter.mint(address(gauge));
 
         // sell rewards
         uint256 totalUsdc;
@@ -443,13 +446,13 @@ contract StrategyBalancerUsdc is Strategy {
 
         // with decimals
         uint256 usdtAmount = (amount * reserveUsdt) / (reserveUsdc
-        + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
+                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
         uint256 daiAmount = (amount * reserveDai) / (reserveUsdc
-        + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
-        uint256 usdcAmount = usdtAmount * usdcDm * reserveUsdc / (reserveUsdt * amountUsdcUsdt);
+                + reserveUsdt * usdcDm / amountUsdcUsdt + reserveDai * usdcDm / amountUsdcDai);
+        uint256 usdcAmount = usdtAmount * reserveUsdc / reserveUsdt;
 
-        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
         usdcBptAmount = usdcAmount * 1e30 / bbamUsdc.getRate();
+        usdtBptAmount = usdtAmount * 1e30 / bbamUsdt.getRate();
         daiBptAmount = daiAmount * 1e18 / bbamDai.getRate();
     }
 

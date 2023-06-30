@@ -45,7 +45,7 @@ library AuraRewardUsdcUsdtDaiLibrary {
 
         uint256 wethBalance = weth.balanceOf(address(this));
         uint256 amountOut = 0;
-        if (wethBalance > 0) {
+        if (wethBalance > 1e9) {
             amountOut = UniswapV3Library.singleSwap(
                 uniswapV3Router,
                 address(weth),
@@ -89,7 +89,7 @@ library AuraRewardUsdcUsdtDaiLibrary {
 
         uint256 wethBalance = weth.balanceOf(address(this));
         uint256 amountOut = 0;
-        if (wethBalance > 0) {
+        if (wethBalance > 1e9) {
             amountOut = UniswapV3Library.multiSwap(
                 uniswapV3Router,
                 address(weth),
