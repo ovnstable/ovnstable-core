@@ -326,11 +326,10 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
         auraBaseRewardPool.getReward();
 
         // sell rewards
-        uint256 totalUsdc;
-
-        totalUsdc += AuraRewardUsdcUsdtDaiLibrary.swapBalToUsdc();
-        AuraRewardUsdcUsdtDaiLibrary.transferAuraToTreasure();
-
+        uint256 balanceBefore = usdc.balanceOf(address(this));
+        AuraRewardUsdcUsdtDaiLibrary.swapBalToUsdc();
+        AuraRewardUsdcUsdtDaiLibrary.swapAuraToUsdc();
+        uint256 totalUsdc = usdc.balanceOf(address(this)) - balanceBefore;
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
