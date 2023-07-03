@@ -7,16 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 library AuraRewardUsdcUsdtDaiLibrary {
 
-    function transferAuraToTreasure() public {
-
-        IERC20 aura = IERC20(0x1509706a6c66CA549ff0cB464de88231DDBe213B);
-
-        uint256 balance = aura.balanceOf(address(this));
-        if (balance > 0) {
-            aura.transfer(0x784Cf4b62655486B405Eb76731885CC9ed56f42f, balance);
-        }
-    }
-
     function swapAuraToUsdc() public returns (uint256) {
 
         IVault vault = IVault(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
