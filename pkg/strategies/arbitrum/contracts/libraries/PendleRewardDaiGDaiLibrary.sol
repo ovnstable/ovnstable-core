@@ -21,44 +21,32 @@ library PendleRewardDaiGDaiLibrary {
         address[][] memory rewardTokens = new address [][](1);
         rewardTokens[0] = tokens;
 
-        MasterMagpie(address(0x0776C06907CE6Ff3d9Dbf84bA9B3422d7225942D)).multiclaimSpecPNP(stakingRewards, rewardTokens, false);
+        MasterMagpie(address(0x0776C06907CE6Ff3d9Dbf84bA9B3422d7225942D)).multiclaimSpecPNP(stakingRewards, rewardTokens, true);
     }
 
-    function swapPnpToDai() public returns(uint256) {
-
+function swapPnpToDai() public returns(uint256) {
         IERC20 pnp = IERC20(0x2Ac2B254Bc18cD4999f64773a966E4f4869c34Ee);
-        IERC20 dai = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        address dai = address(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+        address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
+        ISwapRouter uniswapV3Router = ISwapRouter(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
         uint256 pnpBalance = pnp.balanceOf(address(this));
-
+        uint256 amountOut = 0;
+        
         if (pnpBalance > 0) {
-
-            ICamelotRouter camelotRouter = ICamelotRouter(0xc873fEcbd354f5A56E00E710B90EF4201db2448d); // Camelot Router
-
-            address[] memory path = new address[](4);
-            path[0] = address(pnp);
-            path[1] = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // WETH
-            path[2] = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8; // USDC
-            path[3] = address(dai); // DAI
-
-            uint256 amountOut = CamelotLibrary.getAmountsOut(
-                camelotRouter,
-                path,
-                pnpBalance
+            amountOut = UniswapV3Library.multiSwap(
+                uniswapV3Router,
+                address(pnp),
+                middleTokenWeth,
+                dai,
+                10000,
+                500,
+                address(this),
+                pnpBalance,
+                0
             );
-
-            if (amountOut > 0) {
-                uint256 balanceDaiBefore = dai.balanceOf(address(this));
-                CamelotLibrary.pathSwap(
-                    camelotRouter,
-                    path,
-                    pnpBalance,
-                    0,
-                    address(this)
-                );
-                return dai.balanceOf(address(this)) - balanceDaiBefore;
-            }
         }
-        return 0;
+
+        return amountOut;
     }
 
 
