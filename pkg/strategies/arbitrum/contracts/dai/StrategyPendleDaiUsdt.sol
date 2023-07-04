@@ -397,6 +397,8 @@ contract StrategyPendleDaiUsdt is Strategy {
         totalDai += PendleRewardDaiUsdtLibrary.swapRewardToDai(stg);        
         totalDai += PendleRewardDaiUsdtLibrary.swapRewardToDai(pendle);
 
+        totalDai += PendleRewardDaiUsdtLibrary.swapPnpToDai();
+
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }

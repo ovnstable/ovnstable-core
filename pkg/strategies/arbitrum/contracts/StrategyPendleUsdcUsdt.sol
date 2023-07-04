@@ -402,6 +402,8 @@ contract StrategyPendleUsdcUsdt is Strategy {
         uint256 totalUsdc;
         totalUsdc += PendleRewardUsdcUsdtLibrary.swapRewardToUsdc(stg);        
         totalUsdc += PendleRewardUsdcUsdtLibrary.swapRewardToUsdc(pendle);
+        
+        totalUsdc += PendleRewardUsdcUsdtLibrary.swapPnpToUsdc();
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);

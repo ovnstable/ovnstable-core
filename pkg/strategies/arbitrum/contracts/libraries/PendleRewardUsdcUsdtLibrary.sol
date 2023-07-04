@@ -25,6 +25,45 @@ library PendleRewardUsdcUsdtLibrary {
         MasterMagpie(address(0x0776C06907CE6Ff3d9Dbf84bA9B3422d7225942D)).multiclaimSpecPNP(stakingRewards, rewardTokens, false);
     }
 
+    function swapPnpToUsdc() public returns(uint256) {
+
+        IERC20 pnp = IERC20(0x2Ac2B254Bc18cD4999f64773a966E4f4869c34Ee);
+        IERC20 usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
+        uint256 pnpBalance = pnp.balanceOf(address(this));
+
+        if (pnpBalance > 0) {
+
+            ICamelotRouter camelotRouter = ICamelotRouter(0xc873fEcbd354f5A56E00E710B90EF4201db2448d); // Camelot Router
+            address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1; // WETH
+
+            address[] memory path = new address[](3);
+            path[0] = address(pnp);
+            path[1] = middleTokenWeth; // WETH
+            path[2] = address(usdc);
+
+            uint256 amountOut = CamelotLibrary.getAmountsOut(
+                camelotRouter,
+                path,
+                pnpBalance
+            );
+
+            if (amountOut > 0) {
+                
+                uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
+                CamelotLibrary.pathSwap(
+                    camelotRouter,
+                    path,
+                    pnpBalance,
+                    0,
+                    address(this)
+                );
+                
+                return usdc.balanceOf(address(this)) - balanceUsdcBefore;
+            }
+        }
+        return 0;
+    }
+
 
     function swapRewardToUsdc(IERC20 reward) public returns (uint256){
 

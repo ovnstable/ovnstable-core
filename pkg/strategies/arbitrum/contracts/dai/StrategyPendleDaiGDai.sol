@@ -401,7 +401,9 @@ contract StrategyPendleDaiGDai is Strategy {
 
         uint256 totalDai;        
         totalDai += PendleRewardDaiGDaiLibrary.swapRewardToDai(pendle);
-
+        
+        totalDai += PendleRewardDaiGDaiLibrary.swapPnpToDai();
+        
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
