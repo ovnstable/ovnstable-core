@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV2.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 contract StrategySushiswapUsdcUsdt is Strategy {
@@ -11,11 +12,14 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
     IERC20 public usdc;
     IERC20 public usdt;
+    IERC20 public weth;
+    IERC20 public sushi;
 
     IPriceFeed public oracleUsdc;
     IPriceFeed public oracleUsdt;
 
     ISwapRouter public uniswapV3Router;
+    IUniswapV2Router02 public sushiswapRouter;
 
     INonfungiblePositionManager public npm;
     IUniswapV3Pool public pool;
@@ -36,9 +40,12 @@ contract StrategySushiswapUsdcUsdt is Strategy {
     struct StrategyParams {
         address usdc;
         address usdt;
+        address weth;
+        address sushi;
         address oracleUsdc;
         address oracleUsdt;
         address uniswapV3Router;
+        address sushiswapRouter;
         address npm;
         address pool;
         int24 tickLower;
@@ -59,14 +66,21 @@ contract StrategySushiswapUsdcUsdt is Strategy {
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
+        weth = IERC20(params.weth);
+        sushi = IERC20(params.sushi);
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        sushiswapRouter = IUniswapV2Router02(params.sushiswapRouter);
 
         npm = INonfungiblePositionManager(params.npm);
         pool = IUniswapV3Pool(params.pool);
+        // reset tokenId if we change position
+        if (tickLower != params.tickLower || tickUpper != params.tickUpper) {
+            tokenId = 0;
+        }
         tickLower = params.tickLower;
         tickUpper = params.tickUpper;
 
@@ -99,8 +113,8 @@ contract StrategySushiswapUsdcUsdt is Strategy {
             OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdcAmount), swapSlippageBP)
         );
 
+        // add liquidity
         bool isReverse = _isReverse();
-
         usdcBalance = usdc.balanceOf(address(this));
         uint256 usdtBalance = usdt.balanceOf(address(this));
         if (tokenId == 0) {
@@ -140,6 +154,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
+        // remove liquidity
         uint128 liquidityToUnstake = _getLiquidityToUnstake(_amount);
 
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -152,7 +167,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         npm.decreaseLiquidity(params);
 
-        //TODO need it?
+        // collect fees
         _collectFees();
 
         // swap usdt to usdc
@@ -175,6 +190,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
+        // remove liquidity
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenId);
 
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -187,7 +203,7 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
         npm.decreaseLiquidity(params);
 
-        //TODO need it?
+        // collect fees
         _collectFees();
 
         // swap usdt to usdc
@@ -223,7 +239,12 @@ contract StrategySushiswapUsdcUsdt is Strategy {
                 (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
                 uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
                 uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-                (uint256 balance0, uint256 balance1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
+                (uint256 balance0, uint256 balance1) = LiquidityAmounts.getAmountsForLiquidity(
+                    sqrtRatioX96,
+                    sqrtRatioAX96,
+                    sqrtRatioBX96,
+                    liquidity
+                );
                 if (_isReverse()) {
                     usdcBalance += balance1;
                     usdtBalance += balance0;
@@ -251,22 +272,22 @@ contract StrategySushiswapUsdcUsdt is Strategy {
 
     function _getAmountToSwap(uint256 _amount) internal view returns (uint256) {
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-        uint160 sa = TickMath.getSqrtRatioAtTick(tickLower);
-        uint160 sb = TickMath.getSqrtRatioAtTick(tickUpper);
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
         bool isReverse = _isReverse();
-        uint256 maxPrice = 10 * _amount;
+
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
             sqrtRatioX96,
-            sa,
-            sb,
-            isReverse ? OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount), swapSlippageBP) : maxPrice,
-            isReverse ? maxPrice : OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount), swapSlippageBP)
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            isReverse ? OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount), swapSlippageBP) : _amount,
+            isReverse ? _amount : OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount), swapSlippageBP)
         );
-        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96, sb, int128(liquidity)));
-        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sa, sqrtRatioX96, int128(liquidity)));
 
+        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96, sqrtRatioBX96, int128(liquidity)));
+        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioX96, int128(liquidity)));
         if (isReverse) {
-            return _amount * amount1 / (amount1 + _oracleUsdcToUsdt(amount0));            
+            return _amount * amount1 / (amount1 + _oracleUsdcToUsdt(amount0));
         } else {
             return _amount * amount0 / (amount0 + _oracleUsdcToUsdt(amount1));
         }
@@ -277,22 +298,27 @@ contract StrategySushiswapUsdcUsdt is Strategy {
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
         uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
         uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            liquidity
+        );
 
         bool isReverse = _isReverse();
-        uint256 usdcAmount;
+        uint256 usdtAmountInUsdc;
         if (isReverse) {
-            usdcAmount = _amount * amount1 / (amount1 + _oracleUsdcToUsdt(amount0));
+            usdtAmountInUsdc = _amount * amount1 / (amount1 + _oracleUsdcToUsdt(amount0));
         } else {
-            usdcAmount = _amount * amount0 / (amount0 + _oracleUsdcToUsdt(amount1));
+            usdtAmountInUsdc = _amount * amount0 / (amount0 + _oracleUsdcToUsdt(amount1));
         }
-        uint256 maxPrice = 10 * _amount;
+
         uint128 liquidityToUnstake = LiquidityAmounts.getLiquidityForAmounts(
             sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            isReverse ? OvnMath.addBasisPoints(_oracleUsdcToUsdt(usdcAmount), swapSlippageBP) : maxPrice,
-            isReverse ? maxPrice : OvnMath.addBasisPoints(_oracleUsdcToUsdt(usdcAmount), swapSlippageBP)
+            sqrtRatioAX96,
+            sqrtRatioBX96,
+            isReverse ? OvnMath.addBasisPoints(_oracleUsdcToUsdt(usdtAmountInUsdc), swapSlippageBP) : _amount,
+            isReverse ? _amount : OvnMath.addBasisPoints(_oracleUsdcToUsdt(usdtAmountInUsdc), swapSlippageBP)
         );
 
         if (liquidityToUnstake > liquidity) {
@@ -303,10 +329,42 @@ contract StrategySushiswapUsdcUsdt is Strategy {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
+
+        // collect fees
         _collectFees();
-        //TODO need stake or sell?
-        _stake(address(usdc), 0);
-        return 0;
+
+        // sell rewards
+        uint256 totalUsdc;
+
+        uint256 sushiBalance = sushi.balanceOf(address(this));
+        if (sushiBalance > 0) {
+            uint256 sushiUsdc = UniswapV2Library.getAmountsOut(
+                sushiswapRouter,
+                address(sushi),
+                address(weth),
+                address(usdc),
+                sushiBalance
+            );
+
+            if (sushiUsdc > 0) {
+                totalUsdc += UniswapV2Library.swapExactTokensForTokens(
+                    sushiswapRouter,
+                    address(sushi),
+                    address(weth),
+                    address(usdc),
+                    sushiBalance,
+                    sushiUsdc * 99 / 100,
+                    address(this)
+                );
+            }
+        }
+
+        // send rewards
+        if (totalUsdc > 0) {
+            usdc.transfer(_to, totalUsdc);
+        }
+
+        return totalUsdc;
     }
 
     function _collectFees() internal {

@@ -18,9 +18,12 @@ async function getParams() {
     return {
         usdc: ARBITRUM.usdc,
         usdt: ARBITRUM.usdt,
+        weth: ARBITRUM.weth,
+        sushi: ARBITRUM.sushi,
         oracleUsdc: ARBITRUM.oracleUsdc,
         oracleUsdt: ARBITRUM.oracleUsdt,
         uniswapV3Router: ARBITRUM.uniswapV3Router,
+        sushiswapRouter: ARBITRUM.sushiswapRouter,
         npm: '0xF0cBce1942A68BEB3d1b73F0dd86C8DCc363eF49',
         pool: '0xD9e96F78B3C68BA79fd4DfAd4Ddf4F27bD1e2ECF',
         tickLower: -887272,
