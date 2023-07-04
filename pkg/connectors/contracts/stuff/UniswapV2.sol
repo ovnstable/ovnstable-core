@@ -346,6 +346,26 @@ library UniswapV2Library {
         return amounts[2];
     }
 
+    function getAmountsOut(
+        IUniswapV2Router02 uniswapRouter,
+        address inputToken,
+        address middleToken0,
+        address middleToken1,
+        address outputToken,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        address[] memory path = new address[](4);
+        path[0] = inputToken;
+        path[1] = middleToken0;
+        path[2] = middleToken1;
+        path[3] = outputToken;
+
+        uint[] memory amounts = uniswapRouter.getAmountsOut(amountInput, path);
+
+        return amounts[3];
+    }
+
     function swapExactTokensForTokens(
         IUniswapV2Router02 uniswapRouter,
         address inputToken,
@@ -425,5 +445,35 @@ library UniswapV2Library {
         );
 
         return amounts[2];
+    }
+
+    function swapExactTokensForTokens(
+        IUniswapV2Router02 uniswapRouter,
+        address inputToken,
+        address middleToken0,
+        address middleToken1,
+        address outputToken,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address to
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(address(uniswapRouter), amountInput);
+
+        address[] memory path = new address[](4);
+        path[0] = inputToken;
+        path[1] = middleToken0;
+        path[2] = middleToken1;
+        path[3] = outputToken;
+
+        uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            to,
+            block.timestamp
+        );
+
+        return amounts[3];
     }
 }

@@ -688,9 +688,6 @@ async function transferAsset(assetAddress, to, amount) {
                 case ARBITRUM.usdt:
                     from = '0x8f9c79b9de8b0713dcac3e535fc5a1a92db6ea2d';
                     break;
-                case ARBITRUM.sushi:
-                    from = '0xd7a827fbaf38c98e8336c5658e4bcbcd20a4fd2d';
-                    break;
                 default:
                     throw new Error('Unknown asset address');
             }
