@@ -48,6 +48,7 @@ let ARBITRUM = {
     usx: "0x641441c631e2F909700d2f41FD87F0aA6A6b4EDb",
     slna: "0x1C28Edf9e0D66F3124f141A3cF3Ef1217F7019c4",
     ohm: "0xf0cb2dc0db5e6c66B9a70Ac27B06b878da017028",
+    sushi: '0xd4d42F0b6DEF4CE0383636770eF773390d85c61A',
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
@@ -78,6 +79,7 @@ let ARBITRUM = {
     balancerVault: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
     arbidexRouter: "0x7238fb45146bd8fcb2c463dc119a53494be57aac",
     positionHelperCamelot: "0xe458018ad4283c90fb7f5460e24c4016f81b8175",
+    sushiswapRouter: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
