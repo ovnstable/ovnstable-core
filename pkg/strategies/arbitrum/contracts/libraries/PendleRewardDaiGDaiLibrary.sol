@@ -24,14 +24,14 @@ library PendleRewardDaiGDaiLibrary {
         MasterMagpie(address(0x0776C06907CE6Ff3d9Dbf84bA9B3422d7225942D)).multiclaimSpecPNP(stakingRewards, rewardTokens, true);
     }
 
-function swapPnpToDai() public returns(uint256) {
+    function swapPnpToDai() public returns(uint256) {
         IERC20 pnp = IERC20(0x2Ac2B254Bc18cD4999f64773a966E4f4869c34Ee);
         address dai = address(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
         address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
         ISwapRouter uniswapV3Router = ISwapRouter(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
         uint256 pnpBalance = pnp.balanceOf(address(this));
         uint256 amountOut = 0;
-        
+
         if (pnpBalance > 0) {
             amountOut = UniswapV3Library.multiSwap(
                 uniswapV3Router,
