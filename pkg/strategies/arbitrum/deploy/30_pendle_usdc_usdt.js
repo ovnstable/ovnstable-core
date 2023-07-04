@@ -1,13 +1,29 @@
-const {deployProxyMulti, deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {ARBITRUM} = require("@overnight-contracts/common/utils/assets");
+const { deployProxyMulti, deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
+const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
+const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 
 
-module.exports = async ({deployments}) => {
-    const {save} = deployments;
+module.exports = async ({ deployments }) => {
+    const { save, deploy } = deployments;
+    const { deployer } = await getNamedAccounts();
 
     await deploySection(async (name) => {
-        await deployProxy(name, deployments, save);
+
+        const rewardLibrary = await deploy("PendleRewardUsdcUsdtLibrary", {
+            from: deployer
+        });
+
+        console.log('RewardLibrary deployed: ' + rewardLibrary.address);
+
+        let params = {
+            factoryOptions: {
+                libraries: {
+                    "PendleRewardUsdcUsdtLibrary": rewardLibrary.address,
+                }
+            },
+            unsafeAllow: ["external-library-linking"]
+        };
+        await deployProxyMulti(name, 'StrategyPendleUsdcUsdt', deployments, save, params);
     });
 
     await settingSection(async (strategy) => {

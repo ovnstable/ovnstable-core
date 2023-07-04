@@ -10,7 +10,7 @@ const { getTestAssets, createRandomWallet } = require("@overnight-contracts/comm
 
 async function main() {
 
-    const strategy = await getContract('StrategyPendleDaiUsdt', 'arbitrum_dai');
+    const strategy = await getContract('StrategyPendleUsdcUsdt', 'arbitrum');
 
     // let pendleDaiUsdt = await getContract('StrategyPendleDaiUsdt', 'arbitrum_dai');
     let testWallet = await createRandomWallet();

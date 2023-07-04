@@ -9,6 +9,8 @@ import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 
+import "./libraries/PendleRewardUsdcUsdtLibrary.sol";
+
 contract StrategyPendleUsdcUsdt is Strategy {
 
     // --- structs
@@ -143,41 +145,41 @@ contract StrategyPendleUsdcUsdt is Strategy {
         // 3. Mint from usdt to PT+YT
         // 4. Add Liquidity in PT+SY
 
-        // CurveLibrary.swap(
-        //     curvePool,
-        //     address(usdc),
-        //     address(usdt),
-        //     usdc.balanceOf(address(this)),
-        //     OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdc.balanceOf(address(this))), swapSlippageBP)
-        // );
+        CurveLibrary.swap(
+            curvePool,
+            address(usdc),
+            address(usdt),
+            usdc.balanceOf(address(this)),
+            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdc.balanceOf(address(this))), swapSlippageBP)
+        );
 
-        // {
-        //     uint256 usAm = usdt.balanceOf(address(this));
-        //     uint256 syAm = sy.balanceOf(address(this));
-        //     MarketStorage memory marketStorage = lp._storage();
-        //     uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
-        //     uint256 syReserves = uint256(uint128(marketStorage.totalSy));
-        //     uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
-        //     uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
+        {
+            uint256 usAm = usdt.balanceOf(address(this));
+            uint256 syAm = sy.balanceOf(address(this));
+            MarketStorage memory marketStorage = lp._storage();
+            uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
+            uint256 syReserves = uint256(uint128(marketStorage.totalSy));
+            uint256 totalLiquidity = IStargatePool(stargateUsdtAddress).totalLiquidity();
+            uint256 totalSupply = IStargatePool(stargateUsdtAddress).totalSupply();
 
-        //     uint256 amountUsdtToSy = FullMath.mulDiv(
-        //         totalLiquidity,
-        //         syReserves * usAm - ptReserves * syAm,
-        //         totalLiquidity * syReserves + ptReserves * totalSupply
-        //     );
+            uint256 amountUsdtToSy = FullMath.mulDiv(
+                totalLiquidity,
+                syReserves * usAm - ptReserves * syAm,
+                totalLiquidity * syReserves + ptReserves * totalSupply
+            );
 
-        //     sy.deposit(address(this), address(usdt), amountUsdtToSy, 0);
-        // }
+            sy.deposit(address(this), address(usdt), amountUsdtToSy, 0);
+        }
 
-        // {
-        //     SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-        //     TokenInput memory input = TokenInput(address(usdt), usdt.balanceOf(address(this)), address(usdt), address(0x0), address(0x0), swapData);
-        //     pendleRouter.mintPyFromToken(address(this), address(yt), 0, input);
-        // }
+        {
+            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+            TokenInput memory input = TokenInput(address(usdt), usdt.balanceOf(address(this)), address(usdt), address(0x0), address(0x0), swapData);
+            pendleRouter.mintPyFromToken(address(this), address(yt), 0, input);
+        }
 
-        // pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
+        pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
 
-        // depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
+        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
     }
 
     function _movePtToSy(uint256 ptBalance) private {
@@ -393,57 +395,13 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
         depositHelperMgp.harvest(address(lp));
 
-        address[] memory stakingRewards = new address[](1);
-        stakingRewards[0] = address(address(lp));
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(stg);
-        tokens[1] = address(pendle);
-
-        address[][] memory rewardTokens = new address [][](1);
-        rewardTokens[0] = tokens;
-
-        masterMgp.multiclaimSpecPNP(stakingRewards, rewardTokens, false);
+        PendleRewardUsdcUsdtLibrary.claimSpecPnp();
 
         _equPtYt();
 
         uint256 totalUsdc;
-        address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-        uint256 stgBalance = stg.balanceOf(address(this));
-        if (stgBalance > 0) {
-
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(stg),
-                middleTokenWeth,
-                address(usdc),
-                3000,
-                500,
-                address(this),
-                stgBalance,
-                0
-            );
-
-            totalUsdc += amountOut;
-        }
-
-        uint256 pendleBalance = pendle.balanceOf(address(this));
-        if (pendleBalance > 0) {
-
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(pendle),
-                middleTokenWeth,
-                address(usdc),
-                3000,
-                500,
-                address(this),
-                pendleBalance,
-                0
-            );
-
-            totalUsdc += amountOut;
-        }
+        totalUsdc += PendleRewardUsdcUsdtLibrary.swapRewardToUsdc(stg);        
+        totalUsdc += PendleRewardUsdcUsdtLibrary.swapRewardToUsdc(pendle);
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
