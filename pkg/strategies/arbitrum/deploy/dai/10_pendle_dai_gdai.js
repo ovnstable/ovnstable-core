@@ -3,7 +3,7 @@ const { deploySection, settingSection } = require("@overnight-contracts/common/u
 const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 
 
-module.exports = async ({ deployments }) => {
+module.exports = async ({ getNamedAccounts, deployments }) => {
     const { save, deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
