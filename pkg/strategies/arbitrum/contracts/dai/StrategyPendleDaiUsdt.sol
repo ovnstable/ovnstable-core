@@ -8,6 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
+import "../libraries/PendleRewardDaiUsdtLibrary.sol";
 
 
 contract StrategyPendleDaiUsdt is Strategy {
@@ -255,8 +256,12 @@ contract StrategyPendleDaiUsdt is Strategy {
         uint256 ch2 = 1e6 * syReserves * totalLiquidity / totalLpBalance / totalSupply;
 
         uint256 lpAmount1 = amount * 1e6 / ch1;
-        uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
-        lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        if (yt.balanceOf(address(this)) < amount) {
+            uint256 lpAmount2 = (amount - yt.balanceOf(address(this))) * 1e6 / ch2;
+            lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
+        } else {
+            lpAmount = lpAmount1;
+        }
     }
 
     function unstakeExactLp(uint256 lpAmount, bool clearDiff) private {
@@ -384,57 +389,15 @@ contract StrategyPendleDaiUsdt is Strategy {
 
         depositHelperMgp.harvest(address(lp));
 
-        address[] memory stakingRewards = new address[](1);
-        stakingRewards[0] = address(address(lp));
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(stg);
-        tokens[1] = address(pendle);
-
-        address[][] memory rewardTokens = new address [][](1);
-        rewardTokens[0] = tokens;
-
-        masterMgp.multiclaimSpecPNP(stakingRewards, rewardTokens, false);
+        PendleRewardDaiUsdtLibrary.claimSpecPnp();
 
         _equPtYt();
 
         uint256 totalDai;
-        address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-        uint256 stgBalance = stg.balanceOf(address(this));
-        if (stgBalance > 0) {
+        totalDai += PendleRewardDaiUsdtLibrary.swapRewardToDai(stg);        
+        totalDai += PendleRewardDaiUsdtLibrary.swapRewardToDai(pendle);
 
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(stg),
-                middleTokenWeth,
-                address(dai),
-                3000,
-                500,
-                address(this),
-                stgBalance,
-                0
-            );
-
-            totalDai += amountOut;
-        }
-
-        uint256 pendleBalance = pendle.balanceOf(address(this));
-        if (pendleBalance > 0) {
-
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(pendle),
-                middleTokenWeth,
-                address(dai),
-                3000,
-                500,
-                address(this),
-                pendleBalance,
-                0
-            );
-
-            totalDai += amountOut;
-        }
+        totalDai += PendleRewardDaiUsdtLibrary.swapPnpToDai();
 
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);

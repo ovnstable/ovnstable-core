@@ -6,6 +6,7 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
+import "../libraries/PendleRewardDaiGDaiLibrary.sol";
 
 
 contract StrategyPendleDaiGDai is Strategy {
@@ -239,22 +240,22 @@ contract StrategyPendleDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
-//        depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-//        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
-//
-//        {
-//            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-//            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-//            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
-//            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-//        }
-//
-//        if (clearDiff) {
-//            _movePtToSy(pt.balanceOf(address(this)));
-//            _moveYtToSy(yt.balanceOf(address(this)));
-//        }
-//
-//        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
+       depositHelperMgp.withdrawMarket(address(lp), lpAmount);
+       pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+
+       {
+           uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+           SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+           TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
+           pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+       }
+
+       if (clearDiff) {
+           _movePtToSy(pt.balanceOf(address(this)));
+           _moveYtToSy(yt.balanceOf(address(this)));
+       }
+
+       sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
     }
 
     function maxWithdrawNow() public view returns (uint256) {
@@ -394,40 +395,15 @@ contract StrategyPendleDaiGDai is Strategy {
 
         depositHelperMgp.harvest(address(lp));
 
-        address[] memory stakingRewards = new address[](1);
-        stakingRewards[0] = address(address(lp));
-
-        address[] memory tokens = new address[](2);
-        tokens[1] = address(pendle);
-
-        address[][] memory rewardTokens = new address [][](1);
-        rewardTokens[0] = tokens;
-
-        masterMgp.multiclaimSpecPNP(stakingRewards, rewardTokens, false);
+        PendleRewardDaiGDaiLibrary.claimSpecPnp();
 
         _equPtYt();
 
-        uint256 totalDai;
-        address middleTokenWeth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-
-        uint256 pendleBalance = pendle.balanceOf(address(this));
-        if (pendleBalance > 0) {
-
-            uint256 amountOut = UniswapV3Library.multiSwap(
-                uniswapV3Router,
-                address(pendle),
-                middleTokenWeth,
-                address(dai),
-                3000,
-                500,
-                address(this),
-                pendleBalance,
-                0
-            );
-
-            totalDai += amountOut;
-        }
-
+        uint256 totalDai;        
+        totalDai += PendleRewardDaiGDaiLibrary.swapRewardToDai(pendle);
+        
+        totalDai += PendleRewardDaiGDaiLibrary.swapPnpToDai();
+        
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
