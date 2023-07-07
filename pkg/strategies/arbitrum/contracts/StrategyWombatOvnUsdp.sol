@@ -143,8 +143,16 @@ contract StrategyWombatOvnUsdp is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        return _amount;
+    }
+
+
+    function unstakeAmount(uint256 _amount) external onlyPortfolioAgent{
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
         _unstakeAmount(_amount);
-        return usdc.balanceOf(address(this));
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
     }
 
     function _unstakeAmount(uint256 _amount) internal {
@@ -266,7 +274,6 @@ contract StrategyWombatOvnUsdp is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        _unstakeAmount(0);
         return usdc.balanceOf(address(this));
     }
 
@@ -284,7 +291,7 @@ contract StrategyWombatOvnUsdp is Strategy {
 
         uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetBalance > 0) {
-            (uint256 usdpAmount,) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
+            (uint256 usdpAmount, uint256 fee) = poolWombat.quotePotentialWithdraw(address(usdp), assetBalance);
             usdcBalance += usdpAmount;
         }
 
