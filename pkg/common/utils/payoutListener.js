@@ -27,7 +27,9 @@ function createSkim(pool, token, poolName, dexName){
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -43,12 +45,14 @@ function createSync(pool, token, poolName, dexName){
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
 
-function createCustom(pool, token, poolName, dexName, to = COMMON.rewardWallet) {
+function createCustom(pool, token, poolName, dexName, to = COMMON.rewardWallet, tickLower = 0, tickUpper = 0) {
 
     return {
         pool: pool,
@@ -60,7 +64,9 @@ function createCustom(pool, token, poolName, dexName, to = COMMON.rewardWallet) 
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: tickLower,
+        tickUpper: tickUpper,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -77,7 +83,9 @@ function createSkimTo(pool, token, poolName, dexName, to){
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -93,7 +101,9 @@ function createSkimToWithFee(pool, token, poolName, dexName, to, feePercent, fee
         dexName: dexName,
         feePercent: feePercent,
         feeReceiver: feeReceiver,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -109,7 +119,9 @@ function createBribe(pool, token, poolName, dexName, bribe){
         dexName: dexName,
         feePercent: 0,
         feeReceiver: ZERO_ADDRESS,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -125,7 +137,9 @@ function createBribeWithFee(pool, token, poolName, dexName, bribe, feePercent = 
         dexName: dexName,
         feePercent: feePercent,
         feeReceiver: feeReceiver,
-        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tickLower: 0,
+        tickUpper: 0,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0]
     };
 }
 
@@ -149,7 +163,9 @@ function showPoolOperations(receipt){
                     amount: result.args[5].toString(),
                     to: result.args[6],
                     feeAmount: result.args[7].toString(),
-                    feeReceiver: result.args[8]
+                    feeReceiver: result.args[8],
+                    tickLower: result.args[9],
+                    tickUpper: result.args[10]
                 })
 
             }

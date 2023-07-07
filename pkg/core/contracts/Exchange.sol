@@ -545,6 +545,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit + excessProfit;
 
+        // notify listener about payout undone
+        if (address(payoutListener) != address(0)) {
+            payoutListener.payoutUndone(address(usdPlus));
+        }
+
         // set newLiquidityIndex
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 

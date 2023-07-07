@@ -70,7 +70,9 @@ describe("GlobalPayoutListener", function () {
                 dexName: 'Ramses',
                 feePercent: 0,
                 feeReceiver: ZERO_ADDRESS,
-                __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                tickLower: 0,
+                tickUpper: 0,
+                __gap: [0, 0, 0, 0, 0, 0, 0, 0]
             }
 
             await pl.addItem(item);
@@ -112,6 +114,8 @@ describe("GlobalPayoutListener", function () {
             expect(item.dexName).to.equal(chainItem.dexName);
             expect(item.feePercent).to.equal(chainItem.feePercent);
             expect(item.feeReceiver).to.equal(chainItem.feeReceiver);
+            expect(item.tickLower).to.equal(chainItem.tickLower);
+            expect(item.tickUpper).to.equal(chainItem.tickUpper);
 
             let items = await pl.getItems();
 
@@ -123,6 +127,8 @@ describe("GlobalPayoutListener", function () {
             expect(item.to).to.equal(items[0].to);
             expect(item.dexName).to.equal(items[0].dexName);
             expect(item.feePercent).to.equal(items[0].feePercent);
+            expect(item.feeReceiver).to.equal(items[0].feeReceiver);
+            expect(item.tickLower).to.equal(items[0].tickLower);
             expect(item.feeReceiver).to.equal(items[0].feeReceiver);
         });
 
@@ -166,6 +172,8 @@ describe("GlobalPayoutListener", function () {
             expect(secondItem.dexName).to.equal(chainItem.dexName);
             expect(secondItem.feePercent).to.equal(chainItem.feePercent);
             expect(secondItem.feeReceiver).to.equal(chainItem.feeReceiver);
+            expect(secondItem.tickLower).to.equal(chainItem.tickLower);
+            expect(secondItem.tickUpper).to.equal(chainItem.tickUpper);
 
             let items = await pl.getItems();
 
@@ -177,6 +185,8 @@ describe("GlobalPayoutListener", function () {
             expect(secondItem.to).to.equal(items[1].to);
             expect(secondItem.dexName).to.equal(items[1].dexName);
             expect(secondItem.feePercent).to.equal(items[1].feePercent);
+            expect(secondItem.feeReceiver).to.equal(items[1].feeReceiver);
+            expect(secondItem.tickLower).to.equal(items[1].tickLower);
             expect(secondItem.feeReceiver).to.equal(items[1].feeReceiver);
         });
 
@@ -196,6 +206,8 @@ describe("GlobalPayoutListener", function () {
             expect(item.dexName).to.equal(chainItem.dexName);
             expect(item.feePercent).to.equal(chainItem.feePercent);
             expect(item.feeReceiver).to.equal(chainItem.feeReceiver);
+            expect(item.tickLower).to.equal(chainItem.tickLower);
+            expect(item.tickUpper).to.equal(chainItem.tickUpper);
         });
 
         it("Remove an exist item", async function () {
@@ -313,7 +325,7 @@ describe("GlobalPayoutListener", function () {
         describe('permissions', ()=>{
 
             it("[setDisabled] Restricted to admins", async function () {
-                await expectRevert(pl.connect(testAccount).setDisabled(true),'Restricted to admins');
+                await expectRevert(pl.connect(testAccount).setDisabled(true, true),'Restricted to admins');
             });
 
             it("[addItem] Restricted to admins", async function () {
@@ -357,7 +369,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 0,
                     feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -411,7 +425,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 20,
                     feeReceiver: feeReceiver.address,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -475,7 +491,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 100,
                     feeReceiver: feeReceiver.address,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -528,7 +546,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 0,
                     feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -583,7 +603,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 20,
                     feeReceiver: feeReceiver.address,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -648,7 +670,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 100,
                     feeReceiver: feeReceiver.address,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -701,7 +725,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 0,
                     feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -739,7 +765,9 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 0,
                     feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
                 await pl.addItem(item);
@@ -767,10 +795,12 @@ describe("GlobalPayoutListener", function () {
                     dexName: 'Test Dex',
                     feePercent: 0,
                     feeReceiver: ZERO_ADDRESS,
-                    __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    tickLower: 0,
+                    tickUpper: 0,
+                    __gap: [0, 0, 0, 0, 0, 0, 0, 0]
                 }
                 await pl.addItem(item);
-                await pl.setDisabled(true);
+                await pl.setDisabled(true, true);
 
             });
 
@@ -778,6 +808,14 @@ describe("GlobalPayoutListener", function () {
 
                 let tx = await (await pl.payoutDone(mockToken.address)).wait();
                 let event = tx.events.find((e) => e.event == 'PayoutDoneDisabled');
+                expect(event).to.not.null;
+
+            });
+
+            it('event exist: PayoutUndoneDisabled', async ()=> {
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let event = tx.events.find((e) => e.event == 'PayoutUndoneDisabled');
                 expect(event).to.not.null;
 
             });
