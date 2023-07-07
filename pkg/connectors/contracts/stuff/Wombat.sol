@@ -66,6 +66,10 @@ interface IWombatPool {
         address toToken,
         int256 toAmount
     ) external view returns (uint256 amountIn, uint256 haircut);
+
+    function exchangeRate(
+        address token
+    ) external view returns (uint256 rate);
 }
 
 
