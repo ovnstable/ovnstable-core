@@ -51,6 +51,10 @@ describe("OPTIMISM", function () {
 
     console.log(`Strategy ID ${params.name}`);
 
+    if (params.name === 'StrategyPikaV4'){
+        params.unstakeDelay = 4 * 24 * 60 * 60 * 1000;
+    }
+
     switch (process.env.STAND) {
         case 'optimism_dai':
             strategyTest(params, 'OPTIMISM', 'dai', runStrategyLogic);
