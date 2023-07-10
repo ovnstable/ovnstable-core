@@ -7,6 +7,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/TraderJoe.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
+import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 
 /**
  * @dev Self-investment strategy
@@ -120,37 +121,12 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
 
     // --- logic
 
-    function _swapAllToken0ToToken1(IERC20 token0, IERC20 token1) internal {
-
-        uint256 amountToSwap = token0.balanceOf(address(this));
-
-        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(token0),
-            address(token1),
-            100, // 0.01%
-            address(this),
-            amountToSwap,
-            amountOutMin
-        );
-    }
-
 
     function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
 
-        // Swap All DAI->DAI+
-        _swapAllToken0ToToken1(dai, daiPlus);
-
-        uint256 daiPlusAmount = daiPlus.balanceOf(address(this));
-        (uint256 assetAmount,) = poolWombat.quotePotentialDeposit(address(daiPlus), daiPlusAmount);
-
-        daiPlus.approve(address(stakingWombat), daiPlusAmount);
-        poolHelperMgp.deposit(daiPlusAmount, OvnMath.subBasisPoints(assetAmount, 1));
     }
 
     function _unstake(
@@ -158,37 +134,40 @@ contract StrategyMagpieOvnDaiPlus is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        return _amount;
+    }
+
+    function unstakeAmount(uint256 _amount) external onlyPortfolioAgent {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         // get amount to unstake
         (uint256 daiPlusAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetWombatDm);
         // add 1bp for smooth withdraw
-        uint256 assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / daiPlusAmountOneAsset;
         uint256 assetBalance = poolHelperMgp.balance(address(this));
-        if (assetAmount > assetBalance) {
+        uint256 assetAmount;
+        if (_amount == 0) {
             assetAmount = assetBalance;
+        } else {
+            assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / daiPlusAmountOneAsset;
+
+            if (assetAmount > assetBalance) {
+                assetAmount = assetBalance;
+            }
         }
 
         poolHelperMgp.withdraw(assetAmount, _amount);
 
-        // Swap All DAI+-> DAI
-        _swapAllToken0ToToken1(daiPlus, dai);
+        IExchange exchange = IExchange(0xc8261DC93428F0D2dC04D675b7852CdCdC19d4fd);
+        exchange.redeem(address(dai), daiPlus.balanceOf(address(this)));
 
-        return dai.balanceOf(address(this));
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
-        uint256 assetBalance = poolHelperMgp.balance(address(this));
-        (uint256 daiPlusAmount,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetBalance);
-
-        poolHelperMgp.withdraw(assetBalance, OvnMath.subBasisPoints(daiPlusAmount, 1));
-
-        // Swap All DAI+-> DAI
-        _swapAllToken0ToToken1(daiPlus, dai);
-
         return dai.balanceOf(address(this));
     }
 

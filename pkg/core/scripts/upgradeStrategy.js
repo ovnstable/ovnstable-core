@@ -2,40 +2,28 @@ const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, execProposal, testStrategy, testProposal} = require("@overnight-contracts/common/utils/governance");
 const {ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 async function main() {
 
-    let strategy = await getContract('StrategyUsdPlusDai', 'arbitrum_dai');
-
+    let wombat = await getContract('StrategyWombatOvnUsdp', 'arbitrum');
+    let wombatDai = await getContract('StrategyWombatOvnDaiPlus', 'arbitrum_dai');
+    let magpieDai = await getContract('StrategyMagpieOvnDaiPlus', 'arbitrum_dai');
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(strategy.address);
+    addresses.push(wombat.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0xEbE7a13039Bb28E6135D9994aB4a28Dd0AA8D2f8']));
+    abis.push(wombat.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
 
-    let usdPlus = await getContract("UsdPlusToken", "arbitrum");
-    let exchange = await getContract("Exchange", "arbitrum");
-
-    let params = {
-
-        usdc: ARBITRUM.usdc,
-        dai: ARBITRUM.dai,
-        usdPlus: usdPlus.address,
-        exchange: exchange.address,
-        oracleDai: ARBITRUM.oracleDai,
-        oracleUsdc: ARBITRUM.oracleUsdc,
-        gmxRouter: ARBITRUM.gmxRouter,
-        zyberPool: ARBITRUM.zyber3Pool,
-        uniswapV3Router: ARBITRUM.uniswapV3Router,
-        poolFee: 500, //0.05%
-        gmxVault: ARBITRUM.gmxVault
-    }
-
-    addresses.push(strategy.address);
+    addresses.push(wombatDai.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('setParams', [params]));
+    abis.push(wombatDai.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+
+    addresses.push(magpieDai.address);
+    values.push(0);
+    abis.push(magpieDai.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
 
     // await testProposal(addresses, values, abis);
     // await prepareEnvironment();
