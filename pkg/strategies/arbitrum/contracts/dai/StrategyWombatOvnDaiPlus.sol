@@ -119,15 +119,14 @@ contract StrategyWombatOvnDaiPlus is Strategy {
 
     // --- logic
 
-    function _swapDaiToDaiPlus() internal {
+    function _swapAllToken0ToToken1(IERC20 token0, IERC20 token1, uint256 amountOutMin) internal {
 
-        uint256 amountToSwap = dai.balanceOf(address(this));
-        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
+        uint256 amountToSwap = token0.balanceOf(address(this));
 
         UniswapV3Library.singleSwap(
             uniswapV3Router,
-            address(dai),
-            address(daiPlus),
+            address(token0),
+            address(token1),
             100, // 0.01%
             address(this),
             amountToSwap,
@@ -135,23 +134,6 @@ contract StrategyWombatOvnDaiPlus is Strategy {
         );
 
     }
-
-    function _swapDaiPlusToDai() internal {
-
-        uint256 amountToSwap = daiPlus.balanceOf(address(this));
-        uint256 amountOutMin = OvnMath.subBasisPoints(amountToSwap, swapSlippageBP);
-
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(daiPlus),
-            address(dai),
-            100, // 0.01%
-            address(this),
-            amountToSwap,
-            amountOutMin
-        );
-    }
-
 
     function _stake(
         address _asset,
@@ -172,25 +154,128 @@ contract StrategyWombatOvnDaiPlus is Strategy {
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         // get amount to unstake
-        (uint256 daiPlusAmountOneAsset,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetWombatDm);
-        // add 1bp for smooth withdraw
+        (uint256 oneAsset,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetWombatDm);
+
         uint256 assetBalance = wombexVault.balanceOf(address(this));
         uint256 assetAmount;
         if (_amount == 0) {
             assetAmount = assetBalance;
         } else {
-            assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / daiPlusAmountOneAsset;
+            assetAmount = OvnMath.addBasisPoints(_amount, swapSlippageBP) * assetWombatDm / oneAsset;
 
             if (assetAmount > assetBalance) {
                 assetAmount = assetBalance;
             }
         }
+
         wombexVault.withdrawAndUnwrap(assetAmount, false);
+        assetWombat.approve(address(poolWombat), assetAmount);
+
+        IERC20 usdp = IERC20(0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65);
+        IERC20 usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
+
+        (uint256 usdpAmount, uint256 usdpFee) = poolWombat.quotePotentialWithdraw(address(usdp), assetAmount);
+        (uint256 usdcAmount, uint256 usdcFee) = poolWombat.quotePotentialWithdraw(address(usdc), assetAmount);
+        (uint256 daiAmount, uint256 daiFee) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetAmount);
+
+
+//        console.log('USD+     %s', usdpAmount);
+//        console.log('USD+ fee %s', usdpFee);
+//
+//        console.log('USDC     %s', usdcAmount);
+//        console.log('USDC fee %s', usdcFee);
+//
+//        console.log('DAI+     %s', daiAmount);
+//        console.log('DAI+ fee %s', daiFee);
+        //
+        if (usdpFee < usdcFee) {
+
+            if (usdpFee < daiFee) {
+                _unstakeUsdp(assetAmount, _amount);
+            } else {
+                _unstakeDaip(assetAmount, _amount);
+            }
+        } else if (usdcFee < usdpFee) {
+
+            if (usdcFee < daiFee) {
+                _unstakeUsdc(assetAmount, _amount);
+            } else {
+                _unstakeDaip(assetAmount, _amount);
+            }
+        } else if (daiFee < usdcFee) {
+
+            if (daiFee < usdpFee) {
+                _unstakeDaip(assetAmount, _amount);
+            } else {
+                _unstakeUsdp(assetAmount, _amount);
+            }
+        } else if (daiFee < usdpFee) {
+
+            if (daiFee < usdcFee) {
+                _unstakeDaip(assetAmount, _amount);
+            } else {
+                _unstakeUsdc(assetAmount, _amount);
+            }
+        }
+
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+    }
+
+    function _unstakeUsdp(uint256 assetAmount, uint256 _amount) internal {
+
+        IERC20 usdp = IERC20(0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65);
+        IERC20 usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
+
+        poolWombat.withdrawFromOtherAsset(
+            address(daiPlus),
+            address(usdp),
+            assetAmount,
+            _amount,
+            address(this),
+            block.timestamp
+        );
+
+        IExchange exchange = IExchange(0x73cb180bf0521828d8849bc8CF2B920918e23032);
+        exchange.redeem(address(usdc), usdp.balanceOf(address(this)));
+
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdc.balanceOf(address(this))), swapSlippageBP);
+        _swapAllToken0ToToken1(usdc, dai, amountOutMin);
+    }
+
+    function _unstakeUsdc(uint256 assetAmount, uint256 _amount) internal {
+
+
+        IERC20 usdp = IERC20(0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65);
+        IERC20 usdc = IERC20(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8);
+
+        poolWombat.withdrawFromOtherAsset(
+            address(daiPlus),
+            address(usdc),
+            assetAmount,
+            OvnMath.subBasisPoints(_oracleDaiToUsdc(_amount), swapSlippageBP),
+            address(this),
+            block.timestamp
+        );
+
+
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdc.balanceOf(address(this))), swapSlippageBP);
+        _swapAllToken0ToToken1(usdc, dai, amountOutMin);
+    }
+
+    function _unstakeDaip(uint256 assetAmount, uint256 _amount) internal {
+
+        poolWombat.withdraw(
+            address(daiPlus),
+            assetAmount,
+            OvnMath.subBasisPoints(_amount, swapSlippageBP),
+            address(this),
+            block.timestamp
+        );
 
         IExchange exchange = IExchange(0xc8261DC93428F0D2dC04D675b7852CdCdC19d4fd);
         exchange.redeem(address(dai), daiPlus.balanceOf(address(this)));
 
-        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
     }
 
     function _unstakeFull(
@@ -216,10 +301,10 @@ contract StrategyWombatOvnDaiPlus is Strategy {
         uint256 assetBalance = wombexVault.balanceOf(address(this));
         if (assetBalance > 0) {
 
-            if(nav){
-                (uint256 usdPlusAmount,) = poolWombat.quotePotentialWithdraw(address(usdPlus), assetBalance);
-                daiBalance += _oracleUsdcToDai(usdPlusAmount);
-            }else {
+            if (nav) {
+                (uint256 daiPlusAmount,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetBalance);
+                daiBalance += daiPlusAmount;
+            } else {
                 (uint256 daiPlusAmount,) = poolWombat.quotePotentialWithdraw(address(daiPlus), assetBalance);
                 daiBalance += daiPlusAmount;
             }
