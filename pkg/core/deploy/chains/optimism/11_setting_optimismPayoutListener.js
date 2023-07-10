@@ -8,7 +8,7 @@ const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
 
-    const pl = await getContract("OptimismPayoutListener", 'localhost');
+    const pl = await getContract("OptimismPayoutListener", 'optimism');
 
     let usdPlus = await getContract('UsdPlusToken', 'optimism');
     let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
@@ -56,7 +56,8 @@ module.exports = async () => {
         let dex = 'DefiEdge';
 
         let items = [];
-        items.push(createCustom('0xD1C33D0AF58eB7403f7c01b21307713Aa18b29d3', usdPlus.address, 'USD+', dex, COMMON.rewardWallet, -100, 100));
+        items.push(createCustom('0xD1C33D0AF58eB7403f7c01b21307713Aa18b29d3', usdPlus.address, 'USD+', dex));
+        items.push(createCustom('0x014b7eedbb373866f2fafd76643fdf143ef39960', daiPlus.address, 'DAI+', dex));
 
         return items;
     }

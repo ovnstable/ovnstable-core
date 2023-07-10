@@ -8,6 +8,8 @@ import "hardhat/console.sol";
 
 contract OptimismPayoutListener is GlobalPayoutListener {
 
+    IDefiEdgeTwapStrategy.NewTick[] private defiEdgeTicks;
+
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -26,20 +28,44 @@ contract OptimismPayoutListener is GlobalPayoutListener {
 
             IDefiEdgeTwapStrategy defiEdgeTwapStrategy = IDefiEdgeTwapStrategy(item.pool);
             IUniswapV3Pool pool = IUniswapV3Pool(defiEdgeTwapStrategy.pool());
-            console.log("usd+ before: %s", IERC20(item.token).balanceOf(defiEdgeTwapStrategy.pool()));
+
             uint256 amount0 = IERC20(pool.token0()).balanceOf(address(defiEdgeTwapStrategy));
             uint256 amount1 = IERC20(pool.token1()).balanceOf(address(defiEdgeTwapStrategy));
             console.log("amount0 before: %s", amount0);
             console.log("amount1 before: %s", amount1);
 
+            delete defiEdgeTicks;
             IDefiEdgeTwapStrategy.Tick[] memory ticks = defiEdgeTwapStrategy.getTicks();
-            console.log("tickLower before: %s", uint256(-item.tickLower));
-            console.log("tickUpper before: %s", uint256(item.tickUpper));
+            for (uint8 i = 0; i < ticks.length; i++) {
+                int24 tickLower = ticks[i].tickLower;
+                int24 tickUpper = ticks[i].tickUpper;
+                (uint128 liquidity, , , , ) = pool.positions(PositionKey.compute(address(defiEdgeTwapStrategy), tickLower, tickUpper));
+                (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
+                (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+                    sqrtRatioX96,
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity
+                );
+
+                IDefiEdgeTwapStrategy.NewTick memory newTick = IDefiEdgeTwapStrategy.NewTick({
+                    tickLower: tickLower,
+                    tickUpper: tickUpper,
+                    amount0: amount0,
+                    amount1: amount1
+                });
+
+                defiEdgeTicks.push(newTick);
+
+                console.log("tickLower: %s", uint24(-tickLower));
+                console.log("tickUpper: %s", uint24(tickUpper));
+                console.log("amount0: %s", amount0);
+                console.log("amount1: %s", amount1);
+            }
 
             // remove liquidity
             IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
             IDefiEdgeTwapStrategy.NewTick[] memory newTicks;
-
             defiEdgeTwapStrategy.rebalance("", existingTicks, newTicks, true);
         }
     }
@@ -50,31 +76,13 @@ contract OptimismPayoutListener is GlobalPayoutListener {
 
             IDefiEdgeTwapStrategy defiEdgeTwapStrategy = IDefiEdgeTwapStrategy(item.pool);
             IUniswapV3Pool pool = IUniswapV3Pool(defiEdgeTwapStrategy.pool());
-            console.log("usd+: %s", IERC20(item.token).balanceOf(defiEdgeTwapStrategy.pool()));
 
             // add liquidity
-            console.log("tickLower after: %s", uint256(-item.tickLower));
-            console.log("tickUpper after: %s", uint256(item.tickUpper));
+            IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
+            defiEdgeTwapStrategy.rebalance("", existingTicks, defiEdgeTicks, false);
+
             uint256 amount0 = IERC20(pool.token0()).balanceOf(address(defiEdgeTwapStrategy));
             uint256 amount1 = IERC20(pool.token1()).balanceOf(address(defiEdgeTwapStrategy));
-            console.log("amount0: %s", amount0);
-            console.log("amount1: %s", amount1);
-            IDefiEdgeTwapStrategy.NewTick memory newTick = IDefiEdgeTwapStrategy.NewTick({
-                tickLower: int24(item.tickLower),
-                tickUpper: int24(item.tickUpper),
-                amount0: amount0,
-                amount1: amount1
-            });
-            IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
-            IDefiEdgeTwapStrategy.NewTick[] memory newTicks = new IDefiEdgeTwapStrategy.NewTick[](1);
-            newTicks[0] = newTick;
-
-            defiEdgeTwapStrategy.rebalance("", existingTicks, newTicks, false);
-
-            console.log("usd+ after: %s", IERC20(item.token).balanceOf(defiEdgeTwapStrategy.pool()));
-
-            amount0 = IERC20(pool.token0()).balanceOf(address(defiEdgeTwapStrategy));
-            amount1 = IERC20(pool.token1()).balanceOf(address(defiEdgeTwapStrategy));
             console.log("amount0 after: %s", amount0);
             console.log("amount1 after: %s", amount1);
         }

@@ -22,9 +22,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         string dexName;
         uint24 feePercent;
         address feeReceiver;
-        int256 tickLower;
-        int256 tickUpper;
-        uint256[8] __gap;
+        uint256[10] __gap;
     }
 
     enum Operation {
