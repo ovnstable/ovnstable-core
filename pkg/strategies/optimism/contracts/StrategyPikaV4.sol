@@ -113,8 +113,7 @@ contract StrategyPikaV4 is Strategy {
 
     function _total() internal view returns (uint256){
         PikaPerpV4.Stake memory stake = pika.getStake(address(this));
-        PikaPerpV4.Vault memory vault = pika.getVault();
-        uint256 stakeUsdc = (stake.shares * vault.balance / pika.getTotalShare()) / 1e2;
+        uint256 stakeUsdc = (uint256(stake.amount) / 1e2);
 
         uint256 balanceUsdc = usdc.balanceOf(address(this));
         return balanceUsdc + stakeUsdc;
