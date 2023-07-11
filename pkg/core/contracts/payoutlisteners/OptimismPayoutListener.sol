@@ -8,6 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 contract OptimismPayoutListener is GlobalPayoutListener {
 
     IDefiEdgeTwapStrategy.NewTick[] private defiEdgeTicks;
+    uint256 private tokenAmount;
 
     // ---  constructor
 
@@ -57,6 +58,8 @@ contract OptimismPayoutListener is GlobalPayoutListener {
             IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
             IDefiEdgeTwapStrategy.NewTick[] memory newTicks;
             strategy.rebalance("", existingTicks, newTicks, true);
+
+            tokenAmount = IERC20(item.token).balanceOf(item.pool);
         }
     }
 
@@ -69,6 +72,17 @@ contract OptimismPayoutListener is GlobalPayoutListener {
             // add liquidity
             IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
             strategy.rebalance("", existingTicks, defiEdgeTicks, false);
+
+            // count delta
+            uint256 delta;
+            uint256 tokenAmountAfter = IERC20(item.token).balanceOf(item.pool);
+            if (tokenAmountAfter > tokenAmount) {
+                delta = tokenAmountAfter - tokenAmount;
+            } else {
+                delta = tokenAmount - tokenAmountAfter;
+            }
+
+            emit PoolOperation(item.dexName, 'Custom', item.poolName, item.pool, item.token, delta, item.pool);
         }
     }
 }
