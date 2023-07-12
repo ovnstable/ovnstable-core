@@ -104,19 +104,26 @@ contract StrategyPikaV4 is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _total();
+        return _total(true);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _total();
+        return _total(false);
     }
 
-    function _total() internal view returns (uint256){
+    function _total(bool nav) internal view returns (uint256){
         PikaPerpV4.Stake memory stake = pika.getStake(address(this));
-        uint256 stakeUsdc = (uint256(stake.amount) / 1e2);
+        PikaPerpV4.Vault memory vault = pika.getVault();
+
+        uint256 stakedUsdc;
+        if(nav){
+            stakedUsdc = (uint256(stake.amount) / 1e2);
+        }else{
+            stakedUsdc = (stake.shares * vault.balance / pika.getTotalShare()) / 1e2;
+        }
 
         uint256 balanceUsdc = usdc.balanceOf(address(this));
-        return balanceUsdc + stakeUsdc;
+        return balanceUsdc + stakedUsdc;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
