@@ -1,5 +1,5 @@
 const {ethers} = require("hardhat");
-const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {createSkim, createBribe, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const BigNumber = require('bignumber.js');
@@ -21,7 +21,7 @@ module.exports = async () => {
 //    await (await pl.removeItem(usdPlus.address, '0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f')).wait();
 //    await (await pl.removeItems()).wait();
-    await (await pl.addItems(items)).wait();
+    await (await pl.addItems(items, await getPrice())).wait();
 
 //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
 //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism_dai')).address)).wait();
