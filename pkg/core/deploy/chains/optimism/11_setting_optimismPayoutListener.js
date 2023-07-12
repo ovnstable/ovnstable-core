@@ -1,19 +1,22 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createBribe, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
+const BigNumber = require('bignumber.js');
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async () => {
 
-    const pl = await ethers.getContract("OptimismPayoutListener");
+    const pl = await getContract("OptimismPayoutListener", 'optimism');
 
     let usdPlus = await getContract('UsdPlusToken', 'optimism');
     let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
 
     let items = [];
 
-    items.push(...velodrome());
+//    items.push(...velodrome());
+    items.push(...defiEdge());
 
 //    await (await pl.removeItem(usdPlus.address, '0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f')).wait();
@@ -48,6 +51,16 @@ module.exports = async () => {
         return items;
     }
 
+    function defiEdge() {
+
+        let dex = 'DefiEdge';
+
+        let items = [];
+        items.push(createCustom('0xD1C33D0AF58eB7403f7c01b21307713Aa18b29d3', usdPlus.address, 'USD+', dex));
+        items.push(createCustom('0x014b7eedbb373866f2fafd76643fdf143ef39960', daiPlus.address, 'DAI+', dex));
+
+        return items;
+    }
 };
 
 module.exports.tags = ['SettingOptimismPayoutListener'];

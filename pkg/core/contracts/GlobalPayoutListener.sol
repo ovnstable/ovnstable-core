@@ -33,15 +33,15 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     Item[] public items;
+
     bool public disabled; // Admin can disable to executing PayoutDone
+    bool public undoneDisabled; // Admin can disable to executing PayoutUndone
 
     function __PayoutListener_init() internal initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
-        disabled = false;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -53,10 +53,11 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     // ---  events
 
     event AddItem(address token, address pool);
-    event DisabledUpdated(bool value);
-    event PayoutDoneDisabled();
     event RemoveItem(address token, address pool);
     event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
+    event DisabledUpdated(bool disabled, bool undoneDisabled);
+    event PayoutDoneDisabled();
+    event PayoutUndoneDisabled();
 
     // ---  modifiers
 
@@ -72,9 +73,10 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
 
     // --- setters
 
-    function setDisabled(bool _value) external onlyAdmin {
-        disabled = _value;
-        emit DisabledUpdated(disabled);
+    function setDisabled(bool _disabled, bool _undoneDisabled) external onlyAdmin {
+        disabled = _disabled;
+        undoneDisabled = _undoneDisabled;
+        emit DisabledUpdated(disabled, undoneDisabled);
     }
 
     // --- logic
@@ -192,6 +194,32 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
     /**
+     * This function executing in payout before increase/decrease liquidity index for USD+|DAI+|ETS tokens
+     * see details: Exchange.sol | HedgeExchanger.sol
+     */
+    function payoutUndone(address token) external override onlyExchanger {
+
+        if (undoneDisabled) {
+            emit PayoutUndoneDisabled();
+            return;
+        }
+
+        for (uint256 x = 0; x < items.length; x++) {
+
+            Item memory item = items[x];
+
+            // Items contains all tokens then need filter by token
+            if (item.token != token) {
+                continue;
+            }
+
+            if (item.operation == Operation.CUSTOM) {
+                _customUndone(item);
+            }
+        }
+    }
+
+    /**
      * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
      * see details: Exchange.sol | HedgeExchanger.sol
      */
@@ -289,8 +317,15 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         revert("Custom not implemented");
     }
 
+    /**
+     * Runs before payout for custom logic e.g. UniV3 pools.
+     * In most cases this function must be empty.
+     */
+    function _customUndone(Item memory item) internal virtual {
+    }
 
-    uint256[50] private __gap;
+
+    uint256[49] private __gap;
 
 }
 

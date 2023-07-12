@@ -390,6 +390,16 @@ interface IUniswapV3Pool {
     returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
 }
 
+library PositionKey {
+    /// @dev Returns the key of the position in the core library
+    function compute(
+        address owner,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(owner, tickLower, tickUpper));
+    }
+}
 
 /// @title Contains 512-bit math functions
 /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision

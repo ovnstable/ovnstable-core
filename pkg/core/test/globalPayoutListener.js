@@ -313,7 +313,7 @@ describe("GlobalPayoutListener", function () {
         describe('permissions', ()=>{
 
             it("[setDisabled] Restricted to admins", async function () {
-                await expectRevert(pl.connect(testAccount).setDisabled(true),'Restricted to admins');
+                await expectRevert(pl.connect(testAccount).setDisabled(true, true),'Restricted to admins');
             });
 
             it("[addItem] Restricted to admins", async function () {
@@ -770,7 +770,7 @@ describe("GlobalPayoutListener", function () {
                     __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
                 await pl.addItem(item);
-                await pl.setDisabled(true);
+                await pl.setDisabled(true, true);
 
             });
 
@@ -778,6 +778,14 @@ describe("GlobalPayoutListener", function () {
 
                 let tx = await (await pl.payoutDone(mockToken.address)).wait();
                 let event = tx.events.find((e) => e.event == 'PayoutDoneDisabled');
+                expect(event).to.not.null;
+
+            });
+
+            it('event exist: PayoutUndoneDisabled', async ()=> {
+
+                let tx = await (await pl.payoutDone(mockToken.address)).wait();
+                let event = tx.events.find((e) => e.event == 'PayoutUndoneDisabled');
                 expect(event).to.not.null;
 
             });
