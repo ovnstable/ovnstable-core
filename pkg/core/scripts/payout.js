@@ -5,17 +5,19 @@ const {
     getPrice,
     execTimelock,
     showM2M,
-    getCoreAsset
+    getCoreAsset, showRewardsFromPayout, transferAsset
 } = require("@overnight-contracts/common/utils/script-utils");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const {fromE6, fromAsset, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {COMMON, ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
 
     let exchange = await getContract('Exchange');
-   // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    let pm = await getContract('PortfolioManager');
+    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     let usdPlus = await getContract('UsdPlusToken');
+
 
     while (true) {
         await showM2M();
@@ -39,10 +41,13 @@ async function main() {
 
             let event = tx.events.find((e) => e.event === 'PayoutEvent');
 
+
             console.log('Profit:       ' + fromE6(await event.args[0].toString()));
             console.log('ExcessProfit: ' + fromE6(await event.args[2].toString()));
             console.log('Premium:      ' + fromE6(await event.args[3].toString()));
             console.log('Loss:         ' + fromE6(await event.args[4].toString()));
+
+            await showRewardsFromPayout(tx);
 
             break
         } catch (e) {

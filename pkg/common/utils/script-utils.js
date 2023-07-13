@@ -742,6 +742,10 @@ async function transferAsset(assetAddress, to, amount) {
 
     let asset = await getERC20ByAddress(assetAddress);
 
+    if (hre.network.name === 'localhost'){
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
+
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [from],
@@ -753,7 +757,6 @@ async function transferAsset(assetAddress, to, amount) {
         amount = await asset.balanceOf(from);
     }
     await asset.connect(account).transfer(to, amount);
-
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [from],
@@ -764,6 +767,27 @@ async function transferAsset(assetAddress, to, amount) {
     let symbol = await asset.symbol();
     let fromAsset = (await asset.decimals()) === 18 ? fromE18: fromE6;
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
+}
+
+async function showRewardsFromPayout(receipt){
+
+    let strategy = await getContract('StrategyEtsEta', 'arbitrum');
+    const rewardsItems = [];
+    receipt.logs.forEach((value, index)=>{
+
+        try {
+            let log = strategy.interface.parseLog(value);
+            if (log.name === 'Reward'){
+                rewardsItems.push({
+                    address: value.address,
+                    amount: fromAsset(log.args[0].toString())
+                })
+            }
+        } catch (e) {
+        }
+    });
+
+    console.table(rewardsItems);
 }
 
 async function transferDAI(to) {
@@ -910,4 +934,5 @@ module.exports = {
     settingSection: settingSection,
     checkTimeLockBalance: checkTimeLockBalance,
     impersonateAccount: impersonateAccount,
+    showRewardsFromPayout: showRewardsFromPayout,
 }
