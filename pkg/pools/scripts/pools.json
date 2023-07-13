@@ -28,8 +28,20 @@
         "address": "0x117a3d474976274B37B7b94aF5DcAde5c90C6e85"
       },
       {
-        "name": "bpt-USD+",
+        "name": "[OLD] bpt-USD+",
         "address": "0x519cCe718FCD11AC09194CFf4517F12D263BE067"
+      },
+      {
+        "name": "(NEW) Overnight pulse",
+        "address": "0xA8af146d79aC0BB981E4e0d8b788Ec5711b1d5d0",
+        "gauge": "0x05425483b6cb1021b66d981f1b16c8c706de879a",
+        "mainnet_gauge": "0x175FAb9C7aB502B9E76E7fca0C9Da618387EBAdA"
+      },
+      {
+        "name": "Dola&Overnight Pulse",
+        "address": "0x1e550b7764Da9638FDD32c8a701364dE31f45eE8",
+        "gauge": "0x0181d47f376f83e600136717824add4fd9a25f1c",
+        "mainnet_gauge": "0xe8D07f5f469e985cd819Ea17115993636bCb6e91"
       }
     ]
   },
