@@ -69,10 +69,6 @@ contract OptimismPayoutListener is GlobalPayoutListener {
 
             IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(item.pool);
 
-            // add liquidity
-            IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
-            strategy.rebalance("", existingTicks, defiEdgeTicks, false);
-
             // count delta
             uint256 delta;
             uint256 tokenAmountAfter = IERC20(item.token).balanceOf(item.pool);
@@ -81,6 +77,10 @@ contract OptimismPayoutListener is GlobalPayoutListener {
             } else {
                 delta = tokenAmount - tokenAmountAfter;
             }
+
+            // add liquidity
+            IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
+            strategy.rebalance("", existingTicks, defiEdgeTicks, false);
 
             emit PoolOperation(item.dexName, 'Custom', item.poolName, item.pool, item.token, delta, item.pool);
         }
