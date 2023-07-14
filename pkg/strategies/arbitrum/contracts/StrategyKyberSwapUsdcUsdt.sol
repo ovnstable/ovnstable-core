@@ -409,7 +409,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
                 address(usdt),
                 100, // 0.01%
                 address(this),
-                needUsdt,
+                OvnMath.addBasisPoints(needUsdt, swapSlippageBP/4), // needUsdt,
                 OvnMath.subBasisPoints(_oracleUsdcToUsdt(needUsdt), swapSlippageBP)
             );
         }
