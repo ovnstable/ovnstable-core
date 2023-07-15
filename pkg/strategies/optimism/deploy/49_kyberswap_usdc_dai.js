@@ -7,7 +7,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     await deploySection(async (name) => {
-        const rewardLibrary = await deploy("KyberSwapRewardUsdcUsdtLibrary", {
+        const rewardLibrary = await deploy("KyberSwapRewardUsdcDaiLibrary", {
             from: deployer
         });
 
@@ -16,13 +16,13 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         let params = {
             factoryOptions: {
                 libraries: {
-                    "KyberSwapRewardUsdcUsdtLibrary": rewardLibrary.address,
+                    "KyberSwapRewardUsdcDaiLibrary": rewardLibrary.address,
                 }
             },
             unsafeAllow: ["external-library-linking"]
         };
 
-        await deployProxyMulti(name, 'StrategyKyberSwapUsdcUsdt', deployments, save, params);
+        await deployProxyMulti(name, 'StrategyKyberSwapUsdcDai', deployments, save, params);
     });
 
     await settingSection(async (strategy) => {
@@ -30,25 +30,24 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 };
 
-
 async function getParams() {
     return {
         usdc: OPTIMISM.usdc,
-        usdt: OPTIMISM.usdt,
+        dai: OPTIMISM.dai,
         oracleUsdc: OPTIMISM.oracleUsdc,
-        oracleUsdt: OPTIMISM.oracleUsdt,
+        oracleDai: OPTIMISM.oracleDai,
         uniswapV3Router: OPTIMISM.uniswapV3Router,
-        pool: "0x9766B7fA623A65dFe56D9788c2D39AB4718c80A6",
+        pool: "0x80d39502FC199A5094cf231413F5c20D9ee244c4",
         npm: "0xe222fbe074a436145b255442d919e4e3a6c6a480",
         lm: "0x7d5ba536ab244aaa1ea42ab88428847f25e3e676",
         fee: 8,
-        lowerTick: -5,
-        upperTick: 5,
-        poolId: 29,
-        curve3Pool: OPTIMISM.curve3Pool
+        lowerTick: 276319,
+        upperTick: 	276329,
+        poolId: 28,
+        curvePool: OPTIMISM.curve3Pool
     }
 }
 
-module.exports.tags = ['StrategyKyberSwapUsdcUsdt'];
+module.exports.tags = ['StrategyKyberSwapUsdcDai'];
 module.exports.getParams = getParams;
-module.exports.StrategyKyberSwapUsdcUsdt = getParams;
+module.exports.StrategyKyberSwapUsdcDai = getParams;

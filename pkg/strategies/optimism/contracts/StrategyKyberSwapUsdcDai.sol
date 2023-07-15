@@ -9,23 +9,23 @@ import "@overnight-contracts/connectors/contracts/stuff/KyberSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
-import "./libraries/KyberSwapRewardUsdcUsdtLibrary.sol";
+import "./libraries/KyberSwapRewardUsdcDaiLibrary.sol";
 
 import "hardhat/console.sol";
 
-contract StrategyKyberSwapUsdcUsdt is Strategy {
+contract StrategyKyberSwapUsdcDai is Strategy {
 
 
     // --- params
 
-    IERC20 public usdt;
+    IERC20 public dai;
     IERC20 public usdc;
 
     IPriceFeed public oracleUsdc;
-    IPriceFeed public oracleUsdt;
+    IPriceFeed public oracleDai;
 
     uint256 public usdcDm;
-    uint256 public usdtDm;
+    uint256 public daiDm;
 
     ISwapRouter public uniswapV3Router;
 
@@ -40,7 +40,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
     KyberSwapElasticLM public lm;
 
-    address public curve3Pool;
+    address curvePool;
 
     // --- events
 
@@ -51,18 +51,18 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
     struct StrategyParams {
         address usdc;
-        address usdt;
+        address dai;
         address oracleUsdc;
-        address oracleUsdt;
+        address oracleDai;
         address uniswapV3Router;
         address pool;
         address npm;
         address lm;
+        address curvePool;
         uint24 fee;
         uint256 poolId;
         int24 lowerTick;
         int24 upperTick;
-        address curve3Pool;
 
     }
 
@@ -79,22 +79,22 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdc = IERC20(params.usdc);
-        usdt = IERC20(params.usdt);
+        dai = IERC20(params.dai);
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
-        oracleUsdt = IPriceFeed(params.oracleUsdt);
+        oracleDai = IPriceFeed(params.oracleDai);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
-        usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
+        daiDm = 10 ** IERC20Metadata(params.dai).decimals();
+
+        curvePool = params.curvePool;
 
         pool = Pool(params.pool);
         npm = AntiSnipAttackPositionManager(params.npm);
         lm = KyberSwapElasticLM(params.lm);
         poolId = params.poolId;
-
-        curve3Pool = params.curve3Pool;
 
         lowerTick = params.lowerTick;
         upperTick = params.upperTick;
@@ -102,7 +102,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         fee = params.fee;
 
         usdc.approve(params.npm, type(uint256).max);
-        usdt.approve(params.npm, type(uint256).max);
+        dai.approve(params.npm, type(uint256).max);
 
         npm.setApprovalForAll(params.lm, true);
 
@@ -116,10 +116,10 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
-        _swapUsdcToUsdt();
+        _swapUsdcToDai();
 
         uint256 usdcAmount = usdc.balanceOf(address(this));
-        uint256 usdtAmount = usdt.balanceOf(address(this));
+        uint256 daiAmount = dai.balanceOf(address(this));
 
         int24[2] memory ticksPrevious;
         (ticksPrevious[0], ticksPrevious[1]) = getPreviousTicks(lowerTick, upperTick);
@@ -128,13 +128,13 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
             MintParams memory params = MintParams({
                 token0 : address(usdc),
-                token1 : address(usdt),
+                token1 : address(dai),
                 fee : fee,
                 tickLower : lowerTick,
                 tickUpper : upperTick,
                 ticksPrevious : ticksPrevious,
                 amount0Desired : usdcAmount,
-                amount1Desired : usdtAmount,
+                amount1Desired : daiAmount,
                 amount0Min : 0,
                 amount1Min : 0,
                 recipient : address(this),
@@ -151,7 +151,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
                 tokenId : tokenId,
                 ticksPrevious : ticksPrevious,
                 amount0Desired : usdcAmount,
-                amount1Desired : usdtAmount,
+                amount1Desired : daiAmount,
                 amount0Min : 0,
                 amount1Min : 0,
                 deadline : block.timestamp
@@ -172,8 +172,8 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         _amount = OvnMath.addBasisPoints(_amount, swapSlippageBP);
 
-        uint256 amountUsdt = _calcUsdcAmountToSwap(_amount);
-        uint256 amountUsdc = _amount - amountUsdt;
+        uint256 amountDai = _calcUsdcAmountToSwap(_amount) * 1e12;
+        uint256 amountUsdc = _amount - (amountDai / 1e12);
 
         _exitAndWithdrawNFT();
 
@@ -184,11 +184,11 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
             TickMath.getSqrtRatioAtTick(lowerTick),
             TickMath.getSqrtRatioAtTick(upperTick),
             amountUsdc,
-            amountUsdt
+            amountDai
         );
 
         _removeLiquidity(liquidity);
-        _swapAllUsdtToUsdc();
+        _swapAllDaiToUsdc();
 
         return usdc.balanceOf(address(this));
     }
@@ -215,7 +215,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
             tokenId = 0;
 
-            _swapAllUsdtToUsdc();
+            _swapAllDaiToUsdc();
         }
 
 
@@ -234,7 +234,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
     function _totalValue(bool nav) internal view returns (uint256) {
         uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
 
         if (tokenId > 0) {
 
@@ -243,18 +243,18 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
                 uint160 sqrtRatioX96 = getCurrentSqrtRatio();
                 uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(lowerTick);
                 uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(upperTick);
-                (uint256 usdcAmount, uint256 usdtAmount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
+                (uint256 usdcAmount, uint256 daiAmount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
 
                 usdcBalance += usdcAmount;
-                usdtBalance += usdtAmount;
+                daiBalance += daiAmount;
             }
         }
 
-        if (usdtBalance > 0) {
+        if (daiBalance > 0) {
             if (nav) {
-                usdcBalance += _oracleUsdtToUsdc(usdtBalance);
+                usdcBalance += _oracleDaiToUsdc(daiBalance);
             } else {
-                usdcBalance += OvnMath.subBasisPoints(_oracleUsdtToUsdc(usdtBalance), swapSlippageBP);
+                usdcBalance += OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
             }
         }
 
@@ -281,8 +281,8 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         uint256 totalUsdc;
 
-        totalUsdc += KyberSwapRewardUsdcUsdtLibrary.swapKnc();
-        totalUsdc += KyberSwapRewardUsdcUsdtLibrary.swapOp();
+        totalUsdc += KyberSwapRewardUsdcDaiLibrary.swapKnc();
+        totalUsdc += KyberSwapRewardUsdcDaiLibrary.swapOp();
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
@@ -293,16 +293,17 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
 
 
-    function _swapAllUsdtToUsdc() internal {
+    function _swapAllDaiToUsdc() internal {
 
-        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
 
+        uint256 usdcMinAmount = OvnMath.subBasisPoints(_oracleDaiToUsdc(daiBalance), swapSlippageBP);
         CurveLibrary.swap(
-            curve3Pool,
-            address(usdt),
+            curvePool,
+            address(dai),
             address(usdc),
-            usdtBalance,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdtBalance), swapSlippageBP)
+            daiBalance,
+            usdcMinAmount
         );
     }
 
@@ -318,7 +319,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         npm.removeLiquidity(params);
         npm.transferAllTokens(address(usdc), 0, address(this));
-        npm.transferAllTokens(address(usdt), 0, address(this));
+        npm.transferAllTokens(address(dai), 0, address(this));
     }
 
     function _depositAndJoinNFT() internal {
@@ -353,38 +354,40 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         }
     }
 
-    function _swapUsdcToUsdt() internal {
+    function _swapUsdcToDai() internal {
 
-        uint256 usdtBalance = usdt.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
         uint256 usdcBalance = usdc.balanceOf(address(this));
 
         (uint160 sqrtP, , ,) = pool.getPoolState();
         (uint128 baseL,,) = pool.getLiquidityState();
 
-        (uint256 reserveUsdc, uint256 reserveUsdt) = LiquidityAmounts.getAmountsForLiquidity(
+        (uint256 amountUsdc, uint256 amountDai) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtP,
             TickMath.getSqrtRatioAtTick(lowerTick),
             TickMath.getSqrtRatioAtTick(upperTick),
             baseL);
 
-        uint256 amountUsdc = CurveLibrary.getAmountToSwap(
-            curve3Pool,
+        uint256 amountUsdcToSwap = CurveLibrary.getAmountToSwap(
+            curvePool,
             address(usdc),
-            address(usdt),
+            address(dai),
             usdcBalance,
-            reserveUsdc,
-            reserveUsdt,
+            amountUsdc,
+            amountDai,
             usdcDm,
-            usdtDm,
+            daiDm,
             1
         );
 
+        // swap USDC to needed DAI amount
+        uint256 daiMinAmount = OvnMath.subBasisPoints(_oracleUsdcToDai(amountUsdcToSwap), swapSlippageBP) - 1e13;
         CurveLibrary.swap(
-            curve3Pool,
+            curvePool,
             address(usdc),
-            address(usdt),
-            amountUsdc,
-            OvnMath.subBasisPoints(_oracleUsdcToUsdt(amountUsdc), swapSlippageBP)
+            address(dai),
+            amountUsdcToSwap,
+            daiMinAmount
         );
 
     }
@@ -394,14 +397,14 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         (uint160 sqrtP, , ,) = pool.getPoolState();
         (uint128 baseL,,) = pool.getLiquidityState();
 
-        (uint256 amountUsdc, uint256 amountUsdt) = LiquidityAmounts.getAmountsForLiquidity(
+        (uint256 amountUsdc, uint256 amountDai) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtP,
             TickMath.getSqrtRatioAtTick(lowerTick),
             TickMath.getSqrtRatioAtTick(upperTick),
             baseL);
 
 
-        uint256 needUsdcValue = (_amount * amountUsdt) / (amountUsdc * usdtDm / usdcDm + amountUsdt);
+        uint256 needUsdcValue = (_amount * amountDai) / (amountUsdc * daiDm / usdcDm + amountDai);
         return needUsdcValue;
     }
 
@@ -443,15 +446,15 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
         if (allTicks[r] <= upperTick) upperPrevious = allTicks[r];
     }
 
-    function _oracleUsdtToUsdc(uint256 usdtAmount) internal view returns (uint256) {
-        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
+    function _oracleDaiToUsdc(uint256 amount) internal view returns (uint256) {
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        uint256 priceDai = uint256(oracleDai.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(amount, daiDm, usdcDm, priceDai, priceUsdc);
     }
 
-    function _oracleUsdcToUsdt(uint256 usdcAmount) internal view returns (uint256) {
-        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
-        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
-        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+    function _oracleUsdcToDai(uint256 amount) internal view returns (uint256) {
+        uint256 priceUsdc = uint256(oracleUsdc.latestAnswer());
+        uint256 priceDai = uint256(oracleDai.latestAnswer());
+        return ChainlinkLibrary.convertTokenToToken(amount, usdcDm, daiDm, priceUsdc, priceDai);
     }
 }
