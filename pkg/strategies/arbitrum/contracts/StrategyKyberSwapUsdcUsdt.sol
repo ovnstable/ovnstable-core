@@ -399,6 +399,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
 
         uint256 usdtBalance = usdt.balanceOf(address(this));
         uint256 usdcBalance = usdc.balanceOf(address(this));
+        usdcBalance = OvnMath.addBasisPoints(usdcBalance, swapSlippageBP);
 
         uint256 needUsdt = _calcUsdcAmountToSwap(usdcBalance - usdtBalance);
 
@@ -409,7 +410,7 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
                 address(usdt),
                 100, // 0.01%
                 address(this),
-                OvnMath.addBasisPoints(needUsdt, swapSlippageBP/4), // needUsdt,
+                needUsdt,
                 OvnMath.subBasisPoints(_oracleUsdcToUsdt(needUsdt), swapSlippageBP)
             );
         }
@@ -427,8 +428,9 @@ contract StrategyKyberSwapUsdcUsdt is Strategy {
             TickMath.getSqrtRatioAtTick(upperTick),
             baseL);
 
-        uint256 needUsdtValue = (_amount * amountUsdt) / (amountUsdc + amountUsdt);
-        return needUsdtValue;
+
+        uint256 needUsdcValue = (_amount * amountUsdt) / (amountUsdc * usdtDm / usdcDm + amountUsdt);
+        return needUsdcValue;
     }
 
     function getPreviousTicks(int24 lowerTick, int24 upperTick) public view returns(int24 lowerPrevious, int24 upperPrevious) {
