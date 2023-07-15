@@ -809,6 +809,15 @@ interface Pool {
     function token0() external view returns (address);
 
     function tickDistance() external view returns (int24);
+
+    function getLiquidityState()
+    external
+    view
+    returns (
+        uint128 baseL,
+        uint128 reinvestL,
+        uint128 reinvestLLast
+    );
 }
 
 interface IPoolStorage {}
@@ -833,7 +842,7 @@ interface KyberSwapElasticLM {
 
     function harvestMultiplePools(uint256[] calldata nftIds, bytes[] calldata datas) external;
 
-    function getUserInfo(uint256 nftId, uint256 pId) external view 
+    function getUserInfo(uint256 nftId, uint256 pId) external view
     returns (uint256 liquidity, uint256[] memory rewardPending, uint256[] memory rewardLast);
 
     function getJoinedPools(uint256 nftId) external view returns (uint256[] memory poolIds);
