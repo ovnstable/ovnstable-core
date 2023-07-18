@@ -3,33 +3,40 @@ const {createProposal, execProposal, testStrategy, testProposal} = require("@ove
 const {ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {StrategyThenaUsdcUsdt} = require("@overnight-contracts/strategies-bsc/deploy/07_strategy_thena_usdc_usdt");
+const {StrategyThenaUsdtUsdc} = require("@overnight-contracts/strategies-bsc/deploy/usdt/10_strategy_thena_usdt_usdc");
 
 async function main() {
 
-    let wombat = await getContract('StrategyWombatOvnUsdp', 'arbitrum');
-    let wombatDai = await getContract('StrategyWombatOvnDaiPlus', 'arbitrum_dai');
-    let magpieDai = await getContract('StrategyMagpieOvnDaiPlus', 'arbitrum_dai');
+    let thenaUsdPlus = await getContract('StrategyThenaUsdcUsdt', 'bsc');
+    let thenaUsdtPlus = await getContract('StrategyThenaUsdtUsdc', 'bsc_usdt');
+
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(wombat.address);
+    addresses.push(thenaUsdPlus.address);
     values.push(0);
-    abis.push(wombat.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+    abis.push(thenaUsdPlus.interface.encodeFunctionData('upgradeTo', ['0x9A67f1d9544fE91852c832b931154E64E68Ec5A4']));
 
-    addresses.push(wombatDai.address);
+    addresses.push(thenaUsdPlus.address);
     values.push(0);
-    abis.push(wombatDai.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+    abis.push(thenaUsdPlus.interface.encodeFunctionData('setParams', [await StrategyThenaUsdcUsdt()]));
 
-    addresses.push(magpieDai.address);
+    addresses.push(thenaUsdtPlus.address);
     values.push(0);
-    abis.push(magpieDai.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+    abis.push(thenaUsdtPlus.interface.encodeFunctionData('upgradeTo', ['0xD6B74d3E9cE9E58D587AE88bac78eD25E4a86da9']));
 
-    // await testProposal(addresses, values, abis);
+    addresses.push(thenaUsdtPlus.address);
+    values.push(0);
+    abis.push(thenaUsdtPlus.interface.encodeFunctionData('setParams', [await StrategyThenaUsdtUsdc()]));
+
+    await testProposal(addresses, values, abis);
     // await prepareEnvironment();
-    // await testStrategy(strategy);
+    await testStrategy(thenaUsdPlus);
+    await testStrategy(thenaUsdtPlus);
 
-    await createProposal(addresses, values, abis)
+    // await createProposal(addresses, values, abis)
 
 }
 
