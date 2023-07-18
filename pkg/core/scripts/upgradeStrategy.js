@@ -31,12 +31,23 @@ async function main() {
     values.push(0);
     abis.push(thenaUsdtPlus.interface.encodeFunctionData('setParams', [await StrategyThenaUsdtUsdc()]));
 
-    await testProposal(addresses, values, abis);
-    // await prepareEnvironment();
-    await testStrategy(thenaUsdPlus);
-    await testStrategy(thenaUsdtPlus);
 
-    // await createProposal(addresses, values, abis)
+    // ETS DeltaBsc
+    addresses.push('0x63b4D2bF2E3fF2355B2B6378063CD65588c7c90A');
+    values.push(0);
+    abis.push(thenaUsdtPlus.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+
+    // ETS EpsilonBsc
+    addresses.push('0xEe52bbd79F71790DC3D85c3e0c9037eC776692e3');
+    values.push(0);
+    abis.push(thenaUsdtPlus.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+
+    // await testProposal(addresses, values, abis);
+    // await prepareEnvironment();
+    // await testStrategy(thenaUsdPlus);
+    // await testStrategy(thenaUsdtPlus);
+
+    await createProposal(addresses, values, abis)
 
 }
 
