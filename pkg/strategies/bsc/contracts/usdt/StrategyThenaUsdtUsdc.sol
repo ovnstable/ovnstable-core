@@ -28,6 +28,8 @@ contract StrategyThenaUsdtUsdc is Strategy {
     uint256 public usdtDm;
     uint256 public usdcDm;
 
+    IClearing public clearing;
+
     // --- structs
 
     struct StrategyParams {
@@ -41,6 +43,7 @@ contract StrategyThenaUsdtUsdc is Strategy {
         address thenaFusionRouter;
         address oracleUsdt;
         address oracleUsdc;
+        address clearing;
     }
 
     // --- events
@@ -66,6 +69,7 @@ contract StrategyThenaUsdtUsdc is Strategy {
         lpToken = IHypervisor(params.lpToken);
         uniProxy = IUniProxy(params.uniProxy);
         gauge = IGaugeV2(params.gauge);
+        clearing = IClearing(params.clearing);
 
         pancakeSwapV3Router = params.pancakeSwapV3Router;
         thenaFusionRouter = params.thenaFusionRouter;
@@ -105,7 +109,7 @@ contract StrategyThenaUsdtUsdc is Strategy {
         );
 
         // deposit in cycle
-        IUniProxy.Position memory position = uniProxy.positions(address(lpToken));
+        IClearing.ClearingPosition memory position = clearing.positions(address(lpToken));
         uint256 token0Amount = usdt.balanceOf(address(this));
         uint256 token1Amount = usdc.balanceOf(address(this));
         while (token0Amount > 0 && token1Amount > 0) {
@@ -127,7 +131,7 @@ contract StrategyThenaUsdtUsdc is Strategy {
     }
 
     function _getDepositDeltas(
-        IUniProxy.Position memory position,
+        IClearing.ClearingPosition memory position,
         uint256 token0Amount,
         uint256 token1Amount
     ) internal returns (uint256 delta0, uint256 delta1) {

@@ -100,6 +100,43 @@ interface IHypervisor {
     function limitUpper() external view returns (int24);
 }
 
+// New version of Gamma Contract
+// In previous version methods from this contract was be in UniProxy contract
+// In new version Gamma create Clearing contract for it's methods
+interface IClearing {
+
+    struct ClearingPosition {
+        bool zeroDeposit;
+        bool customRatio;
+        bool customTwap;
+        bool ratioRemoved;
+        bool depositOverride; // force custom deposit constraints
+        bool twapOverride; // force twap check for hypervisor instance
+        uint8 version;
+        uint32 twapInterval; // override global twap
+        uint256 priceThreshold; // custom price threshold
+        uint256 deposit0Max;
+        uint256 deposit1Max;
+        uint256 maxTotalSupply;
+        uint256 fauxTotal0;
+        uint256 fauxTotal1;
+    }
+
+    function positions(address pos) external returns (ClearingPosition calldata position);
+
+    /// @notice Get the amount of token to deposit for the given amount of pair token
+    /// @param pos Hypervisor Address
+    /// @param token Address of token to deposit
+    /// @param _deposit Amount of token to deposit
+    /// @return amountStart Minimum amounts of the pair token to deposit
+    /// @return amountEnd Maximum amounts of the pair token to deposit
+    function getDepositAmount(
+        address pos,
+        address token,
+        uint256 _deposit
+    ) external view returns (uint256 amountStart, uint256 amountEnd);
+}
+
 /// @title UniProxy
 /// @notice Proxy contract for hypervisor positions management
 interface IUniProxy {
