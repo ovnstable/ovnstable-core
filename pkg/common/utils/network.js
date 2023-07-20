@@ -50,19 +50,7 @@ function isZkSync(){
     return process.env.STAND.toLowerCase() === 'zksync';
 }
 
-function getGasPrice() {
 
-
-    let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
-
-    if (gasPrice === undefined || gasPrice === 0)
-        throw new Error("Unknown gasPpice");
-
-    let wei = gasPrice * 1e9;
-    console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
-
-    return wei;
-}
 
 function blockNumber(networkName) {
 
@@ -90,7 +78,6 @@ module.exports = {
     node_url: node_url,
     isZkSync: isZkSync,
     accounts: accounts,
-    getGasPrice: getGasPrice,
     blockNumber: blockNumber,
     getBlockNumber: getBlockNumber,
 }
