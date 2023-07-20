@@ -6,7 +6,7 @@ interface IWETH {
     function withdraw(uint wad) external;
 }
 
-interface IRFComptroller {
+interface IRFUnitroller {
     function enterMarkets(address[] calldata rfTokens) external returns (uint[] memory);
     function exitMarket(address rfToken) external returns (uint);
 }
