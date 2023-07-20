@@ -397,33 +397,31 @@ async function showM2M(blocknumber) {
 
 
 async function getPrice() {
-    let value = process.env.GAS_PRICE.toString() + "000000000";
 
-    let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
+    let params = {};
 
-    if (process.env.ETH_NETWORK === 'POLYGON') {
-        params.gasLimit = 15000000;
-        if (process.env.BLOCK_NATIVE_ENABLED === "true") {
-            let value = await gasPriceBlockNative();
-            if (value !== 0) {
-                params.maxFeePerGas = value;
-                params.maxPriorityFeePerGas = value;
-            }
-        }
-    } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
-        params.gasLimit = 8000000;
-    } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
-        params = {gasLimit: 25000000}; // gasPrice always 0.1 GWEI
-    } else if (process.env.ETH_NETWORK === 'BSC') {
-        params = {gasPrice: "3000000000", gasLimit: 15000000}; // gasPrice always 3 GWEI
-    } else if (process.env.ETH_NETWORK === "OPTIMISM") {
-        params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
-    }else if (process.env.ETH_NETWORK === 'ZKSYNC'){
+    if (process.env.ETH_NETWORK === 'ARBITRUM' ||
+        process.env.ETH_NETWORK === 'BSC') {
+
+        let gasPrice = await ethers.provider.getGasPrice();
+        params = {gasPrice: gasPrice.toString() };
+
+    } else if (
+        process.env.ETH_NETWORK === 'ZKSYNC' ||
+        process.env.ETH_NETWORK === 'OPTIMISM' ||
+        process.env.ETH_NETWORK === 'POLYGON'
+    ) {
+
         // provider.getGasprice + 5%
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return {gasPrice: gasPrice}
+        params = {gasPrice: gasPrice}
+    }
+
+    let gasLimit = process.env.GAS_LIMIT;
+    if (gasLimit){
+        params.gasLimit = Number.parseInt(gasLimit);
     }
 
     return params;
