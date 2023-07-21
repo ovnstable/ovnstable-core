@@ -95,8 +95,6 @@ contract StrategyEquilibriaDaiGDai is Strategy {
         lp.approve(address(pendleRouter), MAX_VALUE);
         lp.approve(address(pendleBooster), MAX_VALUE);
 
-        IERC20 eqbLp = IERC20(0x3672abD8b9c70e0F2ED8210cE8663d3dbC5E491a);
-        eqbLp.approve(address(eqbZap), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -239,6 +237,9 @@ contract StrategyEquilibriaDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
+        IERC20 eqbLp = IERC20(0x183b30706ff2655e7aB0aB37867DD7AF8Cb75e78);
+        eqbLp.approve(address(eqbZap), type(uint256).max);
+
         eqbZap.withdraw(2, lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
@@ -272,12 +273,16 @@ contract StrategyEquilibriaDaiGDai is Strategy {
 
     function unstakeToGDaiAndMakeRequest(uint256 _amount, bool isUnstakeFull) public onlyPortfolioAgent {
 
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
         // if you CAN make request and NEED make request
         if (isActivePhase() && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
             uint256 lpAmount = isUnstakeFull ? baseRewardPool.balanceOf(address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
             _unstakeExactLp(lpAmount, isUnstakeFull);
             gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
         }
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
     }
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {

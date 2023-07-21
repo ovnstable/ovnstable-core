@@ -15,7 +15,7 @@ const {ethers} = require("hardhat");
 
 async function main() {
 
-    let strategy = await getContract('StrategyPendleDaiGDai', 'localhost');
+    let strategy = await getContract('StrategyEquilibriaDaiGDai', 'localhost');
 
     let dai = await getERC20ByAddress(ARBITRUM.dai);
 
@@ -29,14 +29,6 @@ async function main() {
         await strategy.connect(timelock).setPortfolioManager(timelock.address);
         await strategy.connect(timelock).unstakeToGDaiAndMakeRequest(0, true);
 
-        let delay = 4 * 24 * 60 * 60 * 1000;
-
-        await ethers.provider.send("evm_increaseTime", [delay]);
-        await ethers.provider.send('evm_mine');
-
-        await strategy.newOpenPnlRequestOrEpoch();
-
-        await strategy.connect(timelock).unstake(ARBITRUM.dai, 0, timelock.address, true);
 
         console.log('NAV: ' + fromAsset(await strategy.netAssetValue()));
         console.log('LIQ: ' + fromAsset(await strategy.liquidationValue()));
