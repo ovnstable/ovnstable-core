@@ -10,6 +10,7 @@ const {fromAsset, toAsset } = require("./decimals");
 const {Wallet} = require("zksync-web3");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {BigNumber} = require("ethers");
+const {isZkSync} = require("./network");
 
 let ethers = require('hardhat').ethers;
 
@@ -76,6 +77,13 @@ async function settingSection(exec){
         let strategyName = hre.ovn.tags;
         try {
             let strategy = await ethers.getContract(strategyName);
+
+            // Ethers by default connect default wallet
+            // For ZkSync we should use special zkSync wallet object
+            // ZkWallet by default return from initWallet()
+            if (isZkSync()){
+                strategy = strategy.connect(await initWallet())
+            }
 
             let pm = await getContract('PortfolioManager', process.env.STAND);
             await (await strategy.setPortfolioManager(pm.address)).wait();
