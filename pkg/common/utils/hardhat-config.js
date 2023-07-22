@@ -4,6 +4,8 @@ console.log('Process:' + process.cwd());
 dotenv.config({path:__dirname+ '/../../../.env'});
 
 const {node_url, accounts, blockNumber, isZkSync} = require("./network");
+const {getGasPrice} = require("./network");
+let gasPrice = getGasPrice();
 
 let timeout = 362000000;
 
@@ -20,7 +22,7 @@ function getNetworkByName(network) {
     if (zkSync){
         localhost = {
             // Use local node zkSync for testing
-            url: 'http://localhost:8011',
+            url: 'http://localhost:3050',
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
@@ -41,6 +43,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -48,6 +51,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -55,6 +59,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             ethNetwork: "mainnet",
             zksync: true,
         },
@@ -63,6 +68,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -70,6 +76,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -77,6 +84,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -84,6 +92,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
         },
 
 
@@ -91,6 +100,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 
@@ -98,6 +108,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
+            gasPrice: gasPrice,
             zksync: false,
         },
 

@@ -396,35 +396,52 @@ async function showM2M(blocknumber) {
 }
 
 
+
 async function getPrice() {
+    let value = process.env.GAS_PRICE.toString() + "000000000";
 
-    let params = {};
+    let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
 
-    if (process.env.ETH_NETWORK === 'ARBITRUM' ||
-        process.env.ETH_NETWORK === 'BSC') {
-
-        let gasPrice = await ethers.provider.getGasPrice();
-        params = {gasPrice: gasPrice.toString() };
-
-    } else if (
-        process.env.ETH_NETWORK === 'ZKSYNC' ||
-        process.env.ETH_NETWORK === 'OPTIMISM' ||
-        process.env.ETH_NETWORK === 'POLYGON'
-    ) {
-
+    if (process.env.ETH_NETWORK === 'POLYGON') {
+        params.gasLimit = 15000000;
+        if (process.env.BLOCK_NATIVE_ENABLED === "true") {
+            let value = await gasPriceBlockNative();
+            if (value !== 0) {
+                params.maxFeePerGas = value;
+                params.maxPriorityFeePerGas = value;
+            }
+        }
+    } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
+        params.gasLimit = 8000000;
+    } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
+        params = {gasLimit: 25000000}; // gasPrice always 0.1 GWEI
+    } else if (process.env.ETH_NETWORK === 'BSC') {
+        params = {gasPrice: "3000000000", gasLimit: 15000000}; // gasPrice always 3 GWEI
+    } else if (process.env.ETH_NETWORK === "OPTIMISM") {
+        params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
+    }else if (process.env.ETH_NETWORK === 'ZKSYNC'){
         // provider.getGasprice + 5%
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
-        params = {gasPrice: gasPrice}
-    }
-
-    let gasLimit = process.env.GAS_LIMIT;
-    if (gasLimit){
-        params.gasLimit = Number.parseInt(gasLimit);
+        return {gasPrice: gasPrice}
     }
 
     return params;
+}
+
+function getGasPrice() {
+
+
+    let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
+
+    if (gasPrice === undefined || gasPrice === 0)
+        throw new Error("Unknown gasPpice");
+
+    let wei = gasPrice * 1e9;
+    console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
+
+    return wei;
 }
 
 async function gasPriceBlockNative() {
