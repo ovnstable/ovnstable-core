@@ -3,6 +3,11 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface IWETH {
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
+
 interface IMuteSwitchRouterDynamic {
     function WETH() external view returns (address);
     function factory() external view returns (address);
@@ -100,7 +105,7 @@ interface IMuteSwitchRouterDynamic {
 
     function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
     function getAmountOut(uint amountIn, address tokenIn, address tokenOut) external view returns (uint amountOut, bool stable, uint fee);
-
+    function getReserves(address tokenA, address tokenB, bool stable) external view returns (uint reserveA, uint reserveB);
     function getAmountsOutExpanded(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts, bool[] memory stable, uint[] memory fees);
     function getAmountsOut(uint amountIn, address[] calldata path, bool[] calldata stable) external view returns (uint[] memory amounts, bool[] memory _stable, uint[] memory fees);
     function getPairInfo(address[] calldata path, bool stable) external view returns(address tokenA, address tokenB, address pair, uint reserveA, uint reserveB, uint fee);
