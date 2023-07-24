@@ -22,7 +22,7 @@ function getNetworkByName(network) {
     if (zkSync){
         localhost = {
             // Use local node zkSync for testing
-            url: 'http://localhost:3050',
+            url: 'http://localhost:8011',
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,

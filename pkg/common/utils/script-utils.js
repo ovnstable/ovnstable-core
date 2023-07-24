@@ -427,12 +427,12 @@ async function getPrice() {
         params = {gasPrice: "3000000000", gasLimit: 15000000}; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
-    }else if (process.env.ETH_NETWORK === 'ZKSYNC'){
+    } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         // provider.getGasprice + 5%
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return {gasPrice: gasPrice}
+        return {gasPrice: gasPrice, gasLimit: 20000000}
     }
 
     return params;
