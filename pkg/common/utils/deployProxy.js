@@ -73,9 +73,11 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
         const implContract = await deployer.deploy(implArtifact, []);
         console.log(`${contractName}: New implementation deployed at ${implContract.address}`);
 
-        let price = await getPrice();
+        let wallet = await initWallet();
+        proxy = proxy.connect(wallet);
+        // let price = await getPrice();
         // Execute this method can be not working when test it on local node
-        await (await proxy.upgradeTo(implContract.address, price)).wait();
+        await (await proxy.upgradeTo(implContract.address)).wait();
 
         console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
 
