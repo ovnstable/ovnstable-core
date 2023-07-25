@@ -440,6 +440,22 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
+    function negativeRebase() external onlyUnit {
+
+        uint256 totalUsdPlus = usdPlus.totalSupply();
+        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
+
+        require(totalUsdPlus > totalNav, 'supply > nav');
+
+        uint256 newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+
+        usdPlus.setLiquidityIndex(newLiquidityIndex);
+
+        // notify listener about payout done
+        if (address(payoutListener) != address(0)) {
+            payoutListener.payoutDone(address(usdPlus));
+        }
+    }
 
     function payout() external whenNotPaused onlyUnit {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
