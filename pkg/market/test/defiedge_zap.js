@@ -36,7 +36,7 @@ describe("DefiedgeZapper", function () {
 
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
-        // await resetHardhatToLastBlock();
+        await resetHardhatToLastBlock();
 
         await deployments.fixture(['DefiedgeZap']);
 
@@ -50,9 +50,10 @@ describe("DefiedgeZapper", function () {
         token1In = (await getERC20("dai")).connect(account);
     });
 
+
     it("swap and put nearly equal", async function () {
 
-        const strategy = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
 
         await showBalances();
 
@@ -66,7 +67,7 @@ describe("DefiedgeZapper", function () {
         await (await token0Out.approve(defiedgeZap.address, amountToken0Out)).wait();
         await (await token1Out.approve(defiedgeZap.address, amountToken1Out)).wait();
 
-        const reserves = await defiedgeZap.getProportion(strategy);
+        const reserves = await defiedgeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -103,7 +104,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { strategy, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -119,7 +120,6 @@ describe("DefiedgeZapper", function () {
         console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
         console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
         console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
-
 
 
         expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
@@ -140,14 +140,13 @@ describe("DefiedgeZapper", function () {
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
-
         const inTokenAmount0 = fromE18(inputTokensEvent.args.amountsIn[0] > 1e14 ? inputTokensEvent.args.amountsIn[0] : inputTokensEvent.args.amountsIn[0] * 1e12)
         const inTokenAmount1 = fromE18(inputTokensEvent.args.amountsIn[1] > 1e14 ? inputTokensEvent.args.amountsIn[1] : inputTokensEvent.args.amountsIn[1] * 1e12)
-
 
         const outTokenAmount0 = fromE18(outputTokensEvent.args.amountsOut[0] > 1e14 ? outputTokensEvent.args.amountsOut[0] : outputTokensEvent.args.amountsOut[0] * 1e12)
         const outTokenAmount1 = fromE18(outputTokensEvent.args.amountsOut[1] > 1e14 ? outputTokensEvent.args.amountsOut[1] : outputTokensEvent.args.amountsOut[1] * 1e12)
@@ -164,7 +163,7 @@ describe("DefiedgeZapper", function () {
 
     it("swap and put disbalances on one asset", async function () {
 
-        const strategy = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
 
         await showBalances();
 
@@ -178,7 +177,7 @@ describe("DefiedgeZapper", function () {
         await (await token0Out.approve(defiedgeZap.address, amountToken0Out)).wait();
         await (await token1Out.approve(defiedgeZap.address, amountToken1Out)).wait();
 
-        const reserves = await defiedgeZap.getProportion(strategy);
+        const reserves = await defiedgeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -215,7 +214,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { strategy, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -271,7 +270,7 @@ describe("DefiedgeZapper", function () {
 
     it("swap and put disbalanced on another asset", async function () {
 
-        const strategy = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
 
         await showBalances();
 
@@ -285,7 +284,7 @@ describe("DefiedgeZapper", function () {
         await (await token0Out.approve(defiedgeZap.address, amountToken0Out)).wait();
         await (await token1Out.approve(defiedgeZap.address, amountToken1Out)).wait();
 
-        const reserves = await defiedgeZap.getProportion(strategy);
+        const reserves = await defiedgeZap.getProportion(gauge);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -322,7 +321,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { strategy, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 

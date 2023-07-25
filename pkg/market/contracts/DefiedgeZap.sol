@@ -12,7 +12,7 @@ contract DefiedgeZap is OdosZap {
     }
 
     struct DefiedgeZapInParams {
-        address defiedgeStrategy;
+        address gauge;
         uint256[] amountsOut;
     }
 
@@ -36,7 +36,7 @@ contract DefiedgeZap is OdosZap {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(defiedgeData.defiedgeStrategy);
+        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(defiedgeData.gauge);
         IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
         address token0 = pool.token0();
         address token1 = pool.token1();
@@ -59,29 +59,21 @@ contract DefiedgeZap is OdosZap {
     }
 
     function getProportion(
-        address _strategyAddress
+        address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(_strategyAddress);
+        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(_gauge);
         IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-
-        IDefiEdgeTwapStrategy.Tick memory tick = strategy.getTicks()[1];
-        int24 tickLower = tick.tickLower;
-        int24 tickUpper = tick.tickUpper;
-
-        (uint128 liquidity, , , , ) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
-        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
-        (uint256 reserve0, uint256 reserve1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            liquidity
-        );
-
         address token0 = pool.token0();
         address token1 = pool.token1();
 
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
+
+        // total liquidity = active(univ3pool balances) + unused(strategy balances)
+        uint256 reserve0 = IERC20Metadata(token0).balanceOf(address(pool));
+        uint256 reserve1 = IERC20Metadata(token1).balanceOf(address(pool));
+        reserve0 += IERC20Metadata(token0).balanceOf(address(strategy));
+        reserve1 += IERC20Metadata(token1).balanceOf(address(strategy));
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
         token0Amount = reserve0 * (denominator / (10 ** dec0));
@@ -89,14 +81,11 @@ contract DefiedgeZap is OdosZap {
     }
 
     function _addLiquidity(IUniswapV3Pool pool, IDefiEdgeTwapStrategy strategy, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        (uint128 liquidity, , , , ) = pool.positions(PositionKey.compute(address(strategy), strategy.getTicks()[1].tickLower, strategy.getTicks()[1].tickUpper));
-        (uint160 sqrtRatioX96, , , , , , ) = pool.slot0();
-        (uint256 reserve0, uint256 reserve1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(strategy.getTicks()[1].tickLower),
-            TickMath.getSqrtRatioAtTick(strategy.getTicks()[1].tickUpper),
-            liquidity
-        );
+        // total liquidity = active(univ3pool balances) + unused(strategy balances)
+        uint256 reserve0 = IERC20Metadata(tokensOut[0]).balanceOf(address(pool));
+        uint256 reserve1 = IERC20Metadata(tokensOut[1]).balanceOf(address(pool));
+        reserve0 += IERC20Metadata(tokensOut[0]).balanceOf(address(strategy));
+        reserve1 += IERC20Metadata(tokensOut[1]).balanceOf(address(strategy));
 
         (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
             amountsOut[0],
@@ -121,8 +110,6 @@ contract DefiedgeZap is OdosZap {
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));
 
-        uint256 amountAsset1After = asset1.balanceOf(address(this));
-
         if (result.amountAsset0After > 0) {
             asset0.transfer(msg.sender, result.amountAsset0After);
         }
@@ -130,7 +117,6 @@ contract DefiedgeZap is OdosZap {
         if (result.amountAsset1After > 0) {
             asset1.transfer(msg.sender, result.amountAsset1After);
         }
-
 
         result.amountsPut = new uint256[](2);
         result.amountsPut[0] = result.amountAsset0Before - result.amountAsset0After;
