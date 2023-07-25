@@ -440,14 +440,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function negativeRebase() external onlyUnit {
+    function negativeRebase(uint256 newLiquidityIndex) external onlyUnit {
 
         uint256 totalUsdPlus = usdPlus.totalSupply();
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
 
         require(totalUsdPlus > totalNav, 'supply > nav');
 
-        uint256 newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+        if(newLiquidityIndex == 0){
+           newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+        }
 
         usdPlus.setLiquidityIndex(newLiquidityIndex);
 
