@@ -307,6 +307,34 @@ contract StrategyVelocoreUsdcUsdPlus is Strategy {
         return usdc.balanceOf(address(this));
     }
 
+    function unstakeFromPool() external onlyAdmin {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
+        uint256 lpTokenBalance = gauge.balanceOf(address(this));
+        gauge.withdraw(lpTokenBalance);
+
+        uint256 totalLpBalance = pair.totalSupply();
+        (uint256 reserveUsdc, uint256 reserveUsdp,) = pair.getReserves();
+
+        uint256 amountUsdc = reserveUsdc * lpTokenBalance / totalLpBalance;
+        uint256 amountUsdp = reserveUsdp * lpTokenBalance / totalLpBalance;
+
+        pair.approve(address(router), lpTokenBalance);
+        router.removeLiquidity(
+            address(usdc),
+            address(usdp),
+            true,
+            lpTokenBalance,
+            OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
+            OvnMath.subBasisPoints(amountUsdp, stakeSlippageBP),
+            address(this),
+            block.timestamp
+        );
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+    }
+
     function netAssetValue() external view override returns (uint256) {
         return _totalValue(true);
     }
