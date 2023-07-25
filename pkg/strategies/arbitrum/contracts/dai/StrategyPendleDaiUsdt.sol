@@ -9,7 +9,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
 import "../libraries/PendleRewardDaiUsdtLibrary.sol";
-
+import "hardhat/console.sol";
 
 contract StrategyPendleDaiUsdt is Strategy {
 
@@ -274,12 +274,13 @@ contract StrategyPendleDaiUsdt is Strategy {
         depositHelperMgp.withdrawMarket(address(lp), lpAmount);
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
-        {
-            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-        }
+        // Let this code be commented, not deleted
+        // {
+        //     uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+        //     SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+        //     TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
+        //     pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+        // }
 
         if (clearDiff) {
             _movePtToSy(pt.balanceOf(address(this)));
