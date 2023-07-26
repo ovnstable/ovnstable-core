@@ -54,6 +54,8 @@ describe("DefiedgeZapper", function () {
     it("swap and put nearly equal", async function () {
 
         const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const chef = "0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088";
+        const pid = 0;
 
         await showBalances();
 
@@ -104,7 +106,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { chef, pid, gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -164,6 +166,8 @@ describe("DefiedgeZapper", function () {
     it("swap and put disbalances on one asset", async function () {
 
         const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const chef = "0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088";
+        const pid = 0;
 
         await showBalances();
 
@@ -214,7 +218,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { chef, pid, gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
@@ -271,6 +275,8 @@ describe("DefiedgeZapper", function () {
     it("swap and put disbalanced on another asset", async function () {
 
         const gauge = "0xd1c33d0af58eb7403f7c01b21307713aa18b29d3";
+        const chef = "0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088";
+        const pid = 0;
 
         await showBalances();
 
@@ -321,7 +327,7 @@ describe("DefiedgeZapper", function () {
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
-        }, { gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
+        }, { chef, pid, gauge, amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out] })).wait();
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 

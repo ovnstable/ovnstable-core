@@ -12,6 +12,8 @@ contract DefiedgeZap is OdosZap {
     }
 
     struct DefiedgeZapInParams {
+        address chef;
+        uint256 pid;
         address gauge;
         uint256[] amountsOut;
     }
@@ -38,12 +40,10 @@ contract DefiedgeZap is OdosZap {
 
         IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(defiedgeData.gauge);
         IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-        address token0 = pool.token0();
-        address token1 = pool.token1();
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = token0;
-        tokensOut[1] = token1;
+        tokensOut[0] = pool.token0();
+        tokensOut[1] = pool.token1();
         uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
@@ -56,6 +56,7 @@ contract DefiedgeZap is OdosZap {
         }
 
         _addLiquidity(pool, strategy, tokensOut, amountsOut);
+        _depositToGauge(strategy, IMiniChefV2(defiedgeData.chef), defiedgeData.pid);
     }
 
     function getProportion(
@@ -63,17 +64,17 @@ contract DefiedgeZap is OdosZap {
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(_gauge);
         IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-        address token0 = pool.token0();
-        address token1 = pool.token1();
+        IERC20Metadata token0 = IERC20Metadata(pool.token0());
+        IERC20Metadata token1 = IERC20Metadata(pool.token1());
 
-        uint256 dec0 = IERC20Metadata(token0).decimals();
-        uint256 dec1 = IERC20Metadata(token1).decimals();
+        uint256 dec0 = token0.decimals();
+        uint256 dec1 = token1.decimals();
 
         // total liquidity = active(univ3pool balances) + unused(strategy balances)
-        uint256 reserve0 = IERC20Metadata(token0).balanceOf(address(pool));
-        uint256 reserve1 = IERC20Metadata(token1).balanceOf(address(pool));
-        reserve0 += IERC20Metadata(token0).balanceOf(address(strategy));
-        reserve1 += IERC20Metadata(token1).balanceOf(address(strategy));
+        uint256 reserve0 = token0.balanceOf(address(pool));
+        uint256 reserve1 = token1.balanceOf(address(pool));
+        reserve0 += token0.balanceOf(address(strategy));
+        reserve1 += token1.balanceOf(address(strategy));
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
         token0Amount = reserve0 * (denominator / (10 ** dec0));
@@ -106,6 +107,7 @@ contract DefiedgeZap is OdosZap {
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
         strategy.mint(tokensAmount0, tokensAmount1, 0, 0, 0);
+        strategy.transfer(msg.sender, strategy.balanceOf(address(this)));
 
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));
@@ -149,6 +151,12 @@ contract DefiedgeZap is OdosZap {
             newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
             newAmount1 = (newAmount0 * reserve1) / reserve0;
         }
+    }
+
+    function _depositToGauge(IDefiEdgeTwapStrategy strategy, IMiniChefV2 chef, uint256 pid) internal {
+        uint256 poolBalance = strategy.balanceOf(address(this));
+        strategy.approve(address(chef), poolBalance);
+        chef.deposit(pid, poolBalance, msg.sender);
     }
 
 }
