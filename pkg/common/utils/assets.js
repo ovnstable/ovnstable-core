@@ -5,6 +5,16 @@ let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
 }
 
+let BASE = {
+   usdc: "",
+   weth: "",
+};
+
+let LINEA = {
+    usdc: "",
+    weth: "",
+};
+
 let ZKSYNC = {
     usdc: "0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4",
     weth: "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91",
@@ -345,6 +355,12 @@ function setDefault(network) {
         case "ZKSYNC":
             DEFAULT = ZKSYNC;
             break
+        case "LINEA":
+            DEFAULT = LINEA;
+            break
+        case "BASE":
+            DEFAULT = BASE;
+            break
         default:
             throw new Error('Unknown network');
     }
@@ -357,6 +373,8 @@ module.exports = {
     FANTOM: FANTOM,
     POLYGON: POLYGON,
     ZKSYNC: ZKSYNC,
+    BASE: BASE,
+    LINEA: LINEA,
     OPTIMISM: OPTIMISM,
     DEFAULT: DEFAULT,
     COMMON: COMMON,

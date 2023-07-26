@@ -71,11 +71,11 @@ contract StrategyNexon is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _totalValue();
+        return 0;
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return _totalValue();
+        return 0;
     }
 
     function _totalValue() internal view returns (uint256) {

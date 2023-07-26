@@ -38,6 +38,21 @@ function getNetworkByName(network) {
 
     return {
 
+        base: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+            zksync: false,
+        },
+
+        linea: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+            zksync: false,
+        },
 
         arbitrum: {
             url: forkingUrl,
