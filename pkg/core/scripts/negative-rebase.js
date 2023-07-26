@@ -1,7 +1,5 @@
-const {getContract, getERC20, getWalletAddress} = require("@overnight-contracts/common/utils/script-utils");
-const {strategyVelocoreUsdcUsdPlus} = require("../deploy/02_strategy_velocore_usdc_usdp");
-const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {getContract, getPrice, initWallet, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
+const {fromE6} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
@@ -13,11 +11,7 @@ async function main() {
     console.log('Total: ' + fromE6(await usdPlus.totalSupply()));
     console.log('Index: ' + await usdPlus.liquidityIndex());
 
-    let strategy = await getContract('StrategyVelocoreUsdcUsdPlus');
-
-    await (await usdPlus.setExchanger('0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait();
-    await (await usdPlus.burn(strategy.address, await usdPlus.balanceOf(strategy.address))).wait();
-    await (await usdPlus.setExchanger(exchange.address)).wait();
+    await (await exchange.negativeRebase()).wait();
 
     console.log('NAV:   ' + fromE6(await m2m.totalNetAssets()));
     console.log('Total: ' + fromE6(await usdPlus.totalSupply()));
@@ -30,4 +24,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-

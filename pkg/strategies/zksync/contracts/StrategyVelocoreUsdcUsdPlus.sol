@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 
@@ -305,6 +306,16 @@ contract StrategyVelocoreUsdcUsdPlus is Strategy {
         }
 
         return usdc.balanceOf(address(this));
+    }
+
+    function moveToCash() external onlyAdmin {
+
+        IExchange exchange = IExchange(0x84d05333f1F5Bf1358c3f63A113B1953C427925D);
+
+        usdp.approve(address(exchange), usdp.balanceOf(address(this)));
+        exchange.redeem(address(usdc), usdp.balanceOf(address(this)));
+
+        usdc.transfer(0x6fdaF7CEF6518Bf99eE130d651b8625748746176, usdc.balanceOf(address(this)));
     }
 
     function netAssetValue() external view override returns (uint256) {
