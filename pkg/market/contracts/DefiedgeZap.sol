@@ -107,7 +107,6 @@ contract DefiedgeZap is OdosZap {
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
         strategy.mint(tokensAmount0, tokensAmount1, 0, 0, 0);
-        strategy.transfer(msg.sender, strategy.balanceOf(address(this)));
 
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));
