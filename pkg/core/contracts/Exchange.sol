@@ -440,7 +440,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function negativeRebase(uint256 newLiquidityIndex) external onlyPortfolioAgent {
+    function negativeRebase(uint256 newLiquidityIndex) external onlyAdmin {
 
         uint256 totalUsdPlus = usdPlus.totalSupply();
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
