@@ -5,13 +5,25 @@ const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 async function main() {
 
-    let strategy = await getContract('StrategyEtsBeta');
+    let exchange = await getContract('Exchange');
+    let usdPlus = await getContract('UsdPlusToken');
+    let m2m = await getContract('Mark2Market');
 
-    console.log('NAV: ' + await strategy.netAssetValue());
-    console.log('Rebase: ' + await strategy.rebaseToken());
-    console.log('Exchange: ' + await strategy.hedgeExchanger());
-    console.log('asset: ' + await strategy.asset());
-    console.log('pm: ' + await strategy.portfolioManager());
+    console.log('NAV:   ' + fromE6(await m2m.totalNetAssets()));
+    console.log('Total: ' + fromE6(await usdPlus.totalSupply()));
+    console.log('Index: ' + await usdPlus.liquidityIndex());
+
+    let strategy = await getContract('StrategyVelocoreUsdcUsdPlus');
+
+    await (await exchange.grantRole(Roles.FREE_RIDER_ROLE, strategy.address)).wait();
+    await (await exchange.grantRole(Roles.WHITELIST_ROLE, strategy.address)).wait();
+    console.log('Grant role done()');
+    await (await strategy.moveToCash()).wait();
+    console.log('Move to cash done()');
+
+    console.log('NAV:   ' + fromE6(await m2m.totalNetAssets()));
+    console.log('Total: ' + fromE6(await usdPlus.totalSupply()));
+    console.log('Index: ' + await usdPlus.liquidityIndex());
 }
 
 main()

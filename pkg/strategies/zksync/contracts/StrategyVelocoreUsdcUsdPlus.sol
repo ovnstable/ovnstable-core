@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
+import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 
@@ -307,32 +308,14 @@ contract StrategyVelocoreUsdcUsdPlus is Strategy {
         return usdc.balanceOf(address(this));
     }
 
-    function unstakeFromPool() external onlyAdmin {
+    function moveToCash() external onlyAdmin {
 
-        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+        IExchange exchange = IExchange(0x84d05333f1F5Bf1358c3f63A113B1953C427925D);
 
-        uint256 lpTokenBalance = gauge.balanceOf(address(this));
-        gauge.withdraw(lpTokenBalance);
+        usdp.approve(address(exchange), usdp.balanceOf(address(this)));
+        exchange.redeem(address(usdc), usdp.balanceOf(address(this)));
 
-        uint256 totalLpBalance = pair.totalSupply();
-        (uint256 reserveUsdc, uint256 reserveUsdp,) = pair.getReserves();
-
-        uint256 amountUsdc = reserveUsdc * lpTokenBalance / totalLpBalance;
-        uint256 amountUsdp = reserveUsdp * lpTokenBalance / totalLpBalance;
-
-        pair.approve(address(router), lpTokenBalance);
-        router.removeLiquidity(
-            address(usdc),
-            address(usdp),
-            true,
-            lpTokenBalance,
-            OvnMath.subBasisPoints(amountUsdc, stakeSlippageBP),
-            OvnMath.subBasisPoints(amountUsdp, stakeSlippageBP),
-            address(this),
-            block.timestamp
-        );
-
-        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+        usdc.transfer(0x6fdaF7CEF6518Bf99eE130d651b8625748746176, usdc.balanceOf(address(this)));
     }
 
     function netAssetValue() external view override returns (uint256) {
