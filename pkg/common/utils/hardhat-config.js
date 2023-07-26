@@ -83,7 +83,7 @@ function getNetworkByName(network) {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: 'auto',
             zksync: false,
         },
 
