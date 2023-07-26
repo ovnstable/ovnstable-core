@@ -15,11 +15,9 @@ async function main() {
 
     let strategy = await getContract('StrategyVelocoreUsdcUsdPlus');
 
-    await (await exchange.grantRole(Roles.FREE_RIDER_ROLE, strategy.address)).wait();
-    await (await exchange.grantRole(Roles.WHITELIST_ROLE, strategy.address)).wait();
-    console.log('Grant role done()');
-    await (await strategy.moveToCash()).wait();
-    console.log('Move to cash done()');
+    await (await usdPlus.setExchanger('0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait();
+    await (await usdPlus.burn(strategy.address, await usdPlus.balanceOf(strategy.address))).wait();
+    await (await usdPlus.setExchanger(exchange.address)).wait();
 
     console.log('NAV:   ' + fromE6(await m2m.totalNetAssets()));
     console.log('Total: ' + fromE6(await usdPlus.totalSupply()));
