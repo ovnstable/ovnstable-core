@@ -3,9 +3,8 @@ pragma solidity 0.8.17;
 
 import "@pendle/core-v2/contracts/core/StandardizedYield/SYBase.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
-import "../interfaces/IExchange.sol";
-import "../interfaces/IUsdPlusToken.sol";
-
+import "./interfaces/IExchange.sol";
+import "./interfaces/IUsdPlusToken.sol";
 
 contract PendleUsdPlusTokenSY is SYBase {
     using WadRayMath for uint256;
@@ -43,7 +42,7 @@ contract PendleUsdPlusTokenSY is SYBase {
         address tokenIn,
         uint256 amountDeposited
     ) internal virtual override returns (uint256 amountSharesOut) {
-        
+
         if (tokenIn == usdPlusToken) {
             amountSharesOut = amountDeposited;
         } else {
@@ -58,7 +57,7 @@ contract PendleUsdPlusTokenSY is SYBase {
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
 
-        if (tokenOut == qiToken) {
+        if (tokenOut == usdPlusToken) {
             amountTokenOut = amountSharesToRedeem;
         } else {
             amountTokenOut = IExchange(usdPlusExchanger).redeem(tokenOut, amountSharesToRedeem);
@@ -77,7 +76,7 @@ contract PendleUsdPlusTokenSY is SYBase {
         address tokenIn,
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 amountSharesOut) {
-       amountSharesOut = amountTokenToDeposit.rayDivDown(exchangeRate());
+        amountSharesOut = amountTokenToDeposit.rayDivDown(exchangeRate());
     }
 
     function _previewRedeem(
@@ -108,9 +107,9 @@ contract PendleUsdPlusTokenSY is SYBase {
     }
 
     function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
+    external
+    view
+    returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, usdPlusToken, IERC20Metadata(usdPlusToken).decimals());
     }
