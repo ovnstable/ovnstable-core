@@ -58,6 +58,18 @@ interface IRouter {
         bytes calldata callbackData
     ) external payable returns (uint liquidity);
 
+// Adds some liquidity (supports unbalanced mint).
+// Alternatively, use `addLiquidity2` with the same params to register the position,
+// to make sure it can be indexed by the interface.
+    function addLiquidity2(
+        address pool,
+        TokenInput[] calldata inputs,
+        bytes calldata data,
+        uint minLiquidity,
+        address callback,
+        bytes calldata callbackData
+    ) external payable returns (uint liquidity);
+
 // Adds some liquidity with permit (supports unbalanced mint).
 // Alternatively, use `addLiquidityWithPermit` with the same params to register the position,
 // to make sure it can be indexed by the interface.
@@ -118,14 +130,14 @@ interface IRouter {
         SwapPath[] memory paths,
         uint amountOutMin,
         uint deadline
-    ) external payable returns (uint amountOut);
+    ) external payable returns (IPool.TokenAmount memory amountOut);
 
     function swapWithPermit(
         SwapPath[] memory paths,
         uint amountOutMin,
         uint deadline,
         SplitPermitParams calldata permit
-    ) external payable returns (uint amountOut);
+    ) external payable returns (IPool.TokenAmount memory amountOut);
 
 /// @notice Wrapper function to allow pool deployment to be batched.
     function createPool(address factory, bytes calldata data) external payable returns (address);
@@ -389,7 +401,7 @@ library SyncswapLibrary {
 
         IRouter.SwapStep[] memory steps = new IRouter.SwapStep[](1);
         steps[0].pool = pool;
-        steps[0].data = abi.encodePacked(tokenOut, recipient, uint8(2));
+        steps[0].data = abi.encodePacked(tokenIn, recipient, uint8(2));
         steps[0].callback = address(0x0);
         steps[0].callbackData = "0x";
 
@@ -398,10 +410,12 @@ library SyncswapLibrary {
         paths[0].tokenIn = tokenIn;
         paths[0].amountIn = amountIn;
 
-        return IRouter(router).swap(
+        IPool.TokenAmount memory amountOut = IRouter(router).swap(
             paths,
             amountOutMin,
             block.timestamp
         );
+
+        return amountOut.amount;
     }
 }

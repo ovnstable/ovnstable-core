@@ -20,6 +20,8 @@ async function getParams() {
         usdt: ZKSYNC.usdt,
         router: ZKSYNC.syncswapRouter,
         pool: '0x0E595bfcAfb552F83E25d24e8a383F88c1Ab48A4', // USDC/USDT
+        oracleUsdc: ZKSYNC.pythOracleUsdc,
+        oracleUsdt: ZKSYNC.pythOracleUsdt,
     }
 }
 

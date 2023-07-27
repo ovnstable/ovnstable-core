@@ -38,6 +38,9 @@ let ZKSYNC = {
     muteRouter: '0x8B791913eB07C32779a16750e3868aA8495F5964',
     maverickRouter: '0x39E098A153Ad69834a9Dac32f0FCa92066aD03f4',
     syncswapRouter: '0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295',
+    // oracles
+    pythOracleUsdc: '0x419E1428b4A6F22b860825e0B374607415636495',
+    pythOracleUsdt: '0xC25cbAe9FCC39bFd46B81F2eB4c3cfb0dac4Cbe9',
 }
 
 let ARBITRUM = {

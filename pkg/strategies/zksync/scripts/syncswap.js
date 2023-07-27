@@ -12,22 +12,22 @@ async function main() {
     await (await strategy.setPortfolioManager(walletAddress, price)).wait();
     console.log('setPortfolioManager done');
 
-    await (await usdc.transfer(strategy.address, toE6(5), price)).wait();
+    await (await usdc.transfer(strategy.address, toE6(3), price)).wait();
     console.log('transfer done');
 
-    await (await strategy.stake(usdc.address, toE6(5), price)).wait();
+    await (await strategy.stake(usdc.address, toE6(3), price)).wait();
     console.log('stake done');
 
-    await (await usdc.transfer(strategy.address, toE6(5), price)).wait();
+    await (await usdc.transfer(strategy.address, toE6(3), price)).wait();
     console.log('transfer done');
 
-    await (await strategy.stake(usdc.address, toE6(5), price)).wait();
+    await (await strategy.stake(usdc.address, toE6(3), price)).wait();
     console.log('stake done');
 
-    await (await strategy.unstake(usdc.address, toE6(5), walletAddress, false, price)).wait();
+    await (await strategy.unstake(usdc.address, toE6(3), walletAddress, false, price)).wait();
     console.log('unstake done');
 
-    await (await strategy.unstake(usdc.address, toE6(5), walletAddress, true, price)).wait();
+    await (await strategy.unstake(usdc.address, toE6(3), walletAddress, true, price)).wait();
     console.log('unstakeFull done');
 }
 

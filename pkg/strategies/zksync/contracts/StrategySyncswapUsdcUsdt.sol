@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Syncswap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "hardhat/console.sol";
 
 contract StrategySyncswapUsdcUsdt is Strategy {
@@ -14,6 +15,9 @@ contract StrategySyncswapUsdcUsdt is Strategy {
 
     IRouter public router;
     IStablePool public pool;
+
+    IPriceFeed public oracleUsdc;
+    IPriceFeed public oracleUsdt;
 
     uint256 public usdcDm;
     uint256 public usdtDm;
@@ -31,6 +35,8 @@ contract StrategySyncswapUsdcUsdt is Strategy {
         address usdt;
         address router;
         address pool;
+        address oracleUsdc;
+        address oracleUsdt;
     }
 
 
@@ -52,6 +58,9 @@ contract StrategySyncswapUsdcUsdt is Strategy {
 
         router = IRouter(params.router);
         pool = IStablePool(params.pool);
+
+        oracleUsdc = IPriceFeed(params.oracleUsdc);
+        oracleUsdt = IPriceFeed(params.oracleUsdt);
 
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
@@ -293,8 +302,7 @@ contract StrategySyncswapUsdcUsdt is Strategy {
         uint256 usdcBalanceFromUsdt;
         if (usdtBalance > 0) {
             if (nav) {
-                //TODO change to pyth oracle
-                usdcBalanceFromUsdt = usdtBalance;
+                usdcBalanceFromUsdt = _oracleUsdtToUsdc(usdtBalance);
             } else {
                 usdcBalanceFromUsdt = SyncswapLibrary.getAmountOut(address(pool), address(usdt), usdtBalance, address(this));
             }
@@ -340,6 +348,18 @@ contract StrategySyncswapUsdcUsdt is Strategy {
         }
 
         return r;
+    }
+
+    function _oracleUsdcToUsdt(uint256 usdcAmount) internal view returns (uint256) {
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
+        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+    }
+
+    function _oracleUsdtToUsdc(uint256 usdtAmount) internal view returns (uint256) {
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
+        return ChainlinkLibrary.convertTokenToToken(usdtAmount, usdtDm, usdcDm, priceUsdt, priceUsdc);
     }
 
 }
