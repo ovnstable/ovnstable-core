@@ -172,7 +172,7 @@ let zksolc = {
 }
 
 let solidity = {
-    version: "0.8.17",
+    version: "0.8.6",
     settings: {
         optimizer: {
             enabled: true,
