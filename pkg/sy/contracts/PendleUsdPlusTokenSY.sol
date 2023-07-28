@@ -4,26 +4,19 @@ pragma solidity 0.8.17;
 import "@pendle/core-v2/contracts/core/StandardizedYield/SYBase.sol";
 import "@pendle/core-v2/contracts/core/libraries/Errors.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
-import "./interfaces/IExchange.sol";
 import "./interfaces/IUsdPlusToken.sol";
 
 contract PendleUsdPlusTokenSY is SYBase {
     using WadRayMath for uint256;
 
     address public immutable usdPlusToken;
-    address public immutable usdPlusExchanger;
-    address public immutable baseAsset;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _usdPlusToken,
-        address _usdPlusExchanger,
-        address _baseAsset
+        address _usdPlusToken
     ) SYBase(_name, _symbol, _usdPlusToken) {
         usdPlusToken = _usdPlusToken;
-        usdPlusExchanger = _usdPlusExchanger;
-        baseAsset = _baseAsset;
     }
 
     function _deposit(
@@ -33,11 +26,6 @@ contract PendleUsdPlusTokenSY is SYBase {
 
         if (tokenIn == usdPlusToken) {
             amountSharesOut = amountDeposited;
-        } else if (tokenIn == baseAsset) {
-            IERC20(tokenIn).approve(usdPlusExchanger, amountDeposited);
-            IExchange.MintParams memory mintParams = IExchange.MintParams(tokenIn, amountDeposited, "");
-            IExchange(usdPlusExchanger).mint(mintParams);
-            amountSharesOut = amountDeposited.rayDivDown(exchangeRate());
         } else {
             revert Errors.SYInvalidTokenIn(tokenIn);
         }
@@ -51,8 +39,6 @@ contract PendleUsdPlusTokenSY is SYBase {
 
         if (tokenOut == usdPlusToken) {
             amountTokenOut = amountSharesToRedeem;
-        } else if (tokenOut == baseAsset) {
-            amountTokenOut = IExchange(usdPlusExchanger).redeem(tokenOut, amountSharesToRedeem);
         } else {
             revert Errors.SYInvalidTokenOut(tokenOut);
         }
@@ -74,8 +60,6 @@ contract PendleUsdPlusTokenSY is SYBase {
 
         if (tokenIn == usdPlusToken) {
             amountSharesOut = amountTokenToDeposit;
-        } else if (tokenIn == baseAsset) {
-            amountSharesOut = amountTokenToDeposit.rayDivDown(exchangeRate());
         } else {
             revert Errors.SYInvalidTokenIn(tokenIn);
         }
@@ -89,8 +73,6 @@ contract PendleUsdPlusTokenSY is SYBase {
 
         if (tokenOut == usdPlusToken) {
             amountTokenOut = amountSharesToRedeem;
-        } else if (tokenOut == baseAsset) {
-            amountTokenOut = amountSharesToRedeem.rayMulDown(exchangeRate());
         } else {
             revert Errors.SYInvalidTokenOut(tokenOut);
         }
@@ -98,23 +80,21 @@ contract PendleUsdPlusTokenSY is SYBase {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](2);
+        res = new address[](1);
         res[0] = usdPlusToken;
-        res[1] = baseAsset;
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
-        res = new address[](2);
+        res = new address[](1);
         res[0] = usdPlusToken;
-        res[1] = baseAsset;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == usdPlusToken || token == baseAsset;
+        return token == usdPlusToken;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == usdPlusToken || token == baseAsset;
+        return token == usdPlusToken;
     }
 
     function assetInfo()
