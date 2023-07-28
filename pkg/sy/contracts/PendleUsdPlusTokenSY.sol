@@ -59,7 +59,7 @@ contract PendleUsdPlusTokenSY is SYBase {
     ) internal view override returns (uint256 amountSharesOut) {
 
         if (tokenIn == usdPlusToken) {
-            amountSharesOut = amountTokenToDeposit;
+            amountSharesOut = amountTokenToDeposit.rayDivDown(exchangeRate());
         } else {
             revert Errors.SYInvalidTokenIn(tokenIn);
         }
@@ -72,7 +72,7 @@ contract PendleUsdPlusTokenSY is SYBase {
     ) internal view override returns (uint256 amountTokenOut) {
 
         if (tokenOut == usdPlusToken) {
-            amountTokenOut = amountSharesToRedeem;
+            amountTokenOut = amountSharesToRedeem.rayMulDown(exchangeRate());
         } else {
             revert Errors.SYInvalidTokenOut(tokenOut);
         }

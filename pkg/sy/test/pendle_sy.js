@@ -132,10 +132,10 @@ describe("PendleUsdPlusTokenSY", function () {
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
                 
         await depositUsdPlus(usdcAmountToDeposit2);
-        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2);
+        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 / koef);
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).divn(koef));
-        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2);
+        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 / koef);
         
     });
 
@@ -150,10 +150,10 @@ describe("PendleUsdPlusTokenSY", function () {
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
                 
         await depositUsdPlus(usdcAmountToDeposit2);
-        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2);
+        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 * koef);
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).muln(koef));
-        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2);
+        expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 * koef);
         
     });
 
