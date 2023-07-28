@@ -75,6 +75,7 @@ let ARBITRUM = {
     // radiant
     radiantProvider: "0xe21B295ED46528eFD5F3EF66E18BC6ad1c87f003",
     // swaps
+    quickSwapRouter: "0xf8bb9CE13Fd5312e6174c33e799b75BED679AEE0",
     uniswapV3Router: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
     xcaliburRouter: "0x81c7ebbc66b5f9e1db29c4c427fe6339cc32d4ea",
     gmxRouter: "0xaBBc5F99639c9B6bCb58544ddf04EFA6802F4064",

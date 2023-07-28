@@ -1,15 +1,16 @@
+const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
-    const usdPlusAddress = '0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65';
-    const exchangeAddress = '0x73cb180bf0521828d8849bc8CF2B920918e23032';
-    const baseAssetAddress = '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8';
+
+    const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
+    const mockExchange = await ethers.getContract("MockExchange");
 
     let pendleUsdPlusTokenSY = await deploy("PendleUsdPlusTokenSY", {
         from: deployer,
-        args: ['Pendle USD+', 'USD+SY', usdPlusAddress, exchangeAddress, baseAssetAddress],
+        args: ['Pendle USD+', 'USD+SY', mockUsdPlusToken.address, mockExchange.address, ARBITRUM.usdc],
         log: true,
         skipIfAlreadyDeployed: false
     });
