@@ -24,6 +24,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 //    items.push(...vesync());
 //    items.push(...mute());
 //    items.push(...ezkalibur());
+//    items.push(...kyberswap());
 
     await (await pl.addItems(items)).wait();
 
@@ -32,6 +33,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     plItems = await pl.getItems();
     console.log('plItems after:');
     console.log(plItems);
+
+    function kyberswap(){
+
+        let dex = 'Kyberswap';
+
+        let items = [];
+        items.push(createSkim('0x760B36C9024d27b95e45a1aA033aaDCB87DA77Dc', usdPlus.address, 'USDC/USD+', dex));
+
+        return items;
+    }
 
     function vesync(){
 
