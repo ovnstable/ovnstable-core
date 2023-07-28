@@ -6,11 +6,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
     const mockUsdPlusToken = await ethers.getContract("MockUsdPlusToken");
-    const mockExchange = await ethers.getContract("MockExchange");
 
     let pendleUsdPlusTokenSY = await deploy("PendleUsdPlusTokenSY", {
         from: deployer,
-        args: ['Pendle USD+', 'USD+SY', mockUsdPlusToken.address, mockExchange.address, ARBITRUM.usdc],
+        args: ['Pendle USD+', 'USD+SY', mockUsdPlusToken.address],
         log: true,
         skipIfAlreadyDeployed: false
     });
