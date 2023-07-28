@@ -27,7 +27,7 @@ async function getParams() {
         fee: 8,
         lowerTick: -276329,
         upperTick: 	-276319,
-        poolId: 38,
+        poolId: 61,
     }
 }
 

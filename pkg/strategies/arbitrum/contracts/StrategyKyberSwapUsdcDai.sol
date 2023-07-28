@@ -257,7 +257,7 @@ contract StrategyKyberSwapUsdcDai is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
 
-        if(tokenId == 0){
+        if(tokenId == 0 || !isJoined()){
             return 0;
         }
 
@@ -378,10 +378,19 @@ contract StrategyKyberSwapUsdcDai is Strategy {
 
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
-        uint256[] memory liqs = new uint256[](1);
-        (liqs[0],,) = lm.getUserInfo(tokenId, poolId);
-        lm.exit(poolId, nftIds, liqs);
+
+        if(isJoined()){
+            uint256[] memory liqs = new uint256[](1);
+            (liqs[0],,) = lm.getUserInfo(tokenId, poolId);
+            lm.exit(poolId, nftIds, liqs);
+        }
+
         lm.withdraw(nftIds);
+    }
+
+    function isJoined() internal returns(bool){
+        uint256[] memory pools = lm.getJoinedPools(tokenId);
+        return pools.length > 0;
     }
 
     function getCurrentSqrtRatio() public view returns (uint160 sqrtRatioX96) {
