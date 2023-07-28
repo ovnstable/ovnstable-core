@@ -20,6 +20,28 @@ describe("PendleUsdPlusTokenSY", function () {
     let usdcAmountToDeposit2;
     let usdcAmountToDepositForFees;
 
+    sharedBeforeEach('deploy and setup', async () => {
+
+        await hre.run("compile");
+
+        await deployments.fixture(['BuyonSwap', 'MockUsdPlusToken', 'MockExchange', 'PendleUsdPlusTokenSY']);
+
+        const {deployer} = await getNamedAccounts();
+        account = deployer;
+
+        usdPlusSY = await ethers.getContract("PendleUsdPlusTokenSY");
+        usdPlus = await ethers.getContract("MockUsdPlusToken");
+        usdc = await ethers.getContractAt("IERC20", ARBITRUM.usdc);
+        exchange = await ethers.getContract("MockExchange");
+        koef = 10;
+        usdcAmountToDeposit = 250;
+        usdcAmountToDeposit2 = 500;
+        usdcAmountToDepositForFees = 100000000;
+
+        await usdPlus.setExchanger(exchange.address);
+    });
+
+
 
     async function depositUsdPlus(usdcAmountToDeposit) {
 
@@ -55,7 +77,7 @@ describe("PendleUsdPlusTokenSY", function () {
         expect(depositEvent.args[2].toString()).to.equals(String(usdPlus.address));
         expect(depositEvent.args[3].toString()).to.equals(String(usdPlusBalance));
         expect(depositEvent.args[4].toString()).to.equals(String(mintedWrappedAmount));
-    
+
     }
 
     async function redeemUsdPlus(amountSharesToRedeem) {
@@ -82,37 +104,15 @@ describe("PendleUsdPlusTokenSY", function () {
         expect(depositEvent.args[2].toString()).to.equals(String(usdPlus.address));
         expect(depositEvent.args[3].toString()).to.equals(String(amountSharesToRedeem));
         expect(depositEvent.args[4].toString()).to.equals(String(redeemedUsdPlusAmount));
-    
+
     }
 
     async function setLiquidityIndex(liquidityIndex) {
 
         await exchange.setLiquidityIndex(liquidityIndex.toString());
         expect((await usdPlusSY.exchangeRate()).toString()).to.equals(liquidityIndex.toString());
-    
+
     }
-
-
-    sharedBeforeEach('deploy and setup', async () => {
-
-        await hre.run("compile");
-
-        await deployments.fixture(['BuyonSwap', 'MockUsdPlusToken', 'MockExchange', 'PendleUsdPlusTokenSY']);
-
-        const {deployer} = await getNamedAccounts();
-        account = deployer;
-
-        usdPlusSY = await ethers.getContract("PendleUsdPlusTokenSY");
-        usdPlus = await ethers.getContract("MockUsdPlusToken");
-        usdc = await ethers.getContractAt("IERC20", ARBITRUM.usdc);
-        exchange = await ethers.getContract("MockExchange");
-        koef = 10;
-        usdcAmountToDeposit = 250;
-        usdcAmountToDeposit2 = 500;
-        usdcAmountToDepositForFees = 100000000;
-
-        await usdPlus.setExchanger(exchange.address);
-    });
 
 
     it("0. SY info", async function () {
@@ -122,7 +122,7 @@ describe("PendleUsdPlusTokenSY", function () {
     });
 
     it("1. deposit usd+ --> liq up --> deposit usd+ --> liq down", async function () {
-        
+
         await setLiquidityIndex(new BN(10).pow(new BN(27)));
 
         await depositUsdPlus(usdcAmountToDeposit);
@@ -130,17 +130,17 @@ describe("PendleUsdPlusTokenSY", function () {
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).muln(koef));
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
-                
+
         await depositUsdPlus(usdcAmountToDeposit2);
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 / koef);
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).divn(koef));
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 / koef);
-        
+
     });
 
     it("2. deposit usd+ --> liq down --> deposit usd+ --> liq up", async function () {
-        
+
         await setLiquidityIndex(new BN(10).pow(new BN(27)));
 
         await depositUsdPlus(usdcAmountToDeposit);
@@ -148,39 +148,39 @@ describe("PendleUsdPlusTokenSY", function () {
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).divn(koef));
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
-                
+
         await depositUsdPlus(usdcAmountToDeposit2);
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 * koef);
 
         await setLiquidityIndex(new BN(10).pow(new BN(27)).muln(koef));
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit + usdcAmountToDeposit2 * koef);
-        
+
     });
 
     it("9. deposit usd+ --> redeem usd+", async function () {
-        
+
         await setLiquidityIndex(new BN(10).pow(new BN(27)));
 
         await depositUsdPlus(usdcAmountToDeposit);
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
-                
+
         await redeemUsdPlus(usdcAmountToDeposit / koef);
         expect(await usdPlus.balanceOf(account)).to.equals(usdcAmountToDeposit / koef);
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit / koef * (koef - 1));
-        
+
     });
 
     it("11. deposit usd+ --> redeem usd+ all", async function () {
-        
+
         await setLiquidityIndex(new BN(10).pow(new BN(27)));
 
         await depositUsdPlus(usdcAmountToDeposit);
         expect(await usdPlusSY.balanceOf(account)).to.equals(usdcAmountToDeposit);
-                
+
         await redeemUsdPlus(usdcAmountToDeposit);
         expect(await usdPlus.balanceOf(account)).to.equals(usdcAmountToDeposit);
         expect(await usdPlusSY.balanceOf(account)).to.equals(0);
-        
+
     });
 
 });
