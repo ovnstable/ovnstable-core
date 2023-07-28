@@ -8,7 +8,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     await deploySection(async (name) => {
         const rewardLibrary = await deploy("KyberSwapRewardUsdcDaiLibrary", {
-            from: deployer
+            from: deployer,
+            skipIfAlreadyDeployed: true,
         });
 
         console.log('RewardLibrary deployed: ' + rewardLibrary.address);
@@ -43,7 +44,7 @@ async function getParams() {
         fee: 8,
         lowerTick: 276319,
         upperTick: 	276329,
-        poolId: 28,
+        poolId: 42,
         curvePool: OPTIMISM.curve3Pool
     }
 }

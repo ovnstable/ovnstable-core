@@ -202,16 +202,9 @@ contract StrategyKyberSwapUsdcDai is Strategy {
 
             uint256 liquidity = getLiquidity();
 
-            (Position memory pos, ) = npm.positions(tokenId);
-
-            if (pos.rTokenOwed > 0) {
-                uint256[] memory nftIds = new uint256[](1);
-                nftIds[0] = tokenId;
-                lm.claimFee(nftIds, 0, 0, address(pool), false, block.timestamp);
-            }
-
             _exitAndWithdrawNFT();
             _removeLiquidity(liquidity);
+            claimFeesNft();
 
             tokenId = 0;
 
@@ -265,7 +258,7 @@ contract StrategyKyberSwapUsdcDai is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
 
-        if(tokenId == 0){
+        if(tokenId == 0 || !isJoined()){
             return 0;
         }
 
@@ -277,6 +270,8 @@ contract StrategyKyberSwapUsdcDai is Strategy {
 
         bytes[] memory datas = new bytes[](1);
         datas[0] = abi.encode(IKyberSwapElasticLM.HarvestData(pIds));
+
+        claimFeesNft();
         lm.harvestMultiplePools(nftIds, datas);
 
         uint256 totalUsdc;
@@ -337,14 +332,41 @@ contract StrategyKyberSwapUsdcDai is Strategy {
 
         uint256[] memory nftIds = new uint256[](1);
         nftIds[0] = tokenId;
-        uint256[] memory liqs = new uint256[](1);
-        (liqs[0],,) = lm.getUserInfo(tokenId, poolId);
-        lm.exit(poolId, nftIds, liqs);
+
+        if(isJoined()){
+            uint256[] memory liqs = new uint256[](1);
+            (liqs[0],,) = lm.getUserInfo(tokenId, poolId);
+            lm.exit(poolId, nftIds, liqs);
+        }
+
         lm.withdraw(nftIds);
     }
 
     function getCurrentSqrtRatio() public view returns (uint160 sqrtRatioX96) {
         (sqrtRatioX96,,,) = pool.getPoolState();
+    }
+
+    function updatePoolId(uint256 _poolId) external onlyPortfolioAgent {
+        _exitAndWithdrawNFT();
+
+        poolId = _poolId;
+
+        _depositAndJoinNFT();
+    }
+
+    function isJoined() internal returns(bool){
+        uint256[] memory pools = lm.getJoinedPools(tokenId);
+        return pools.length > 0;
+    }
+
+    function claimFeesNft() internal {
+
+        (Position memory pos,) = npm.positions(tokenId);
+        if (pos.rTokenOwed > 0) {
+            uint256[] memory nftIds = new uint256[](1);
+            nftIds[0] = tokenId;
+            lm.claimFee(nftIds, 0, 0, address(pool), false, block.timestamp);
+        }
     }
 
     function getLiquidity() public view returns (uint128 liquidity) {

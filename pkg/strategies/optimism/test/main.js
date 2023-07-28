@@ -7,6 +7,7 @@ const ReaperSonneUsdc = require("./abi/reaper/ReaperSonneUsdc.json");
 const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
 const ReaperSonneUsdt = require("./abi/reaper/ReaperSonneUsdt.json");
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
+const {ethers} = require("hardhat");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
 
