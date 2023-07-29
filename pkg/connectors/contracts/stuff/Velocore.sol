@@ -119,7 +119,7 @@ interface IVelocoreRouter {
         bool stable,
         address to,
         uint deadline
-    ) external returns (uint[] memory amounts);
+    ) external returns (uint);
 
     function swapExactTokensForTokens(
         uint amountIn,
@@ -127,16 +127,16 @@ interface IVelocoreRouter {
         route[] calldata routes,
         address to,
         uint deadline
-    ) external returns (uint[] memory amounts);
+    ) external returns (uint);
 
     function swapExactETHForTokens(uint amountOutMin, route[] calldata routes, address to, uint deadline)
     external
     payable
-    returns (uint[] memory amounts);
+    returns (uint);
 
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, route[] calldata routes, address to, uint deadline)
     external
-    returns (uint[] memory amounts);
+    returns (uint);
 
 }
 
@@ -217,15 +217,13 @@ library VelocoreLibrary {
         routes[0].to = outputToken;
         routes[0].stable = isStablePair0;
 
-        uint[] memory amounts = router.swapExactTokensForTokens(
+        return router.swapExactTokensForTokens(
             amountInput,
             amountOutMin,
             routes,
             recipient,
             block.timestamp
         );
-
-        return amounts[1];
     }
 
     function multiSwap(
@@ -250,15 +248,13 @@ library VelocoreLibrary {
         routes[1].to = outputToken;
         routes[1].stable = isStablePair1;
 
-        uint[] memory amounts = router.swapExactTokensForTokens(
+        return router.swapExactTokensForTokens(
             amountInput,
             amountOutMin,
             routes,
             recipient,
             block.timestamp
         );
-
-        return amounts[2];
     }
 
     function getMultiAmount0(
