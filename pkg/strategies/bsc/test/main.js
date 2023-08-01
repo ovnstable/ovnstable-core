@@ -28,6 +28,21 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             method: "hardhat_stopImpersonatingAccount",
             params: [ownerAddress],
         });
+
+    } else if (strategyName == 'StrategyUsdPlusUsdc') {
+        let ownerAddress = "0xe497285e466227F4E8648209E34B465dAA1F90a0";
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ownerAddress],
+        });
+        await transferETH(1, ownerAddress);
+        const owner = await ethers.getSigner(ownerAddress);
+        let exchange = await getContract("Exchange", "bsc_usdt");
+        await exchange.connect(owner).grantRole(await exchange.FREE_RIDER_ROLE(), strategyAddress);
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ownerAddress],
+        });
     }
 }
 
