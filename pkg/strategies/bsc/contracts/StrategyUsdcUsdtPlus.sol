@@ -8,14 +8,14 @@ import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 
-contract StrategyUsdPlusUsdc is Strategy {
+contract StrategyUsdcUsdtPlus is Strategy {
 
     // --- structs
 
     struct StrategyParams {
         address usdc;
         address usdt;
-        address usdPlus;
+        address usdtPlus;
         address exchange;
         address oracleUsdc;
         address oracleUsdt;
@@ -27,7 +27,7 @@ contract StrategyUsdPlusUsdc is Strategy {
     IERC20 public usdc;
     IERC20 public usdt;
     
-    IUsdPlusToken public usdPlus;
+    IUsdPlusToken public usdtPlus;
     IExchange public exchange;
     
     IPriceFeed public oracleUsdc;
@@ -57,7 +57,7 @@ contract StrategyUsdPlusUsdc is Strategy {
         usdc = IERC20(params.usdc);
         usdt = IERC20(params.usdt);
 
-        usdPlus = IUsdPlusToken(params.usdPlus);
+        usdtPlus = IUsdPlusToken(params.usdtPlus);
         exchange = IExchange(params.exchange);
 
         oracleUsdc = IPriceFeed(params.oracleUsdc);
@@ -90,7 +90,7 @@ contract StrategyUsdPlusUsdc is Strategy {
             OvnMath.subBasisPoints(_oracleUsdcToUsdt(usdcBalance), swapSlippageBP)
         );
 
-        // mint usdPlus
+        // mint usdtPlus
         uint256 usdtBalance = usdt.balanceOf(address(this));
         usdt.approve(address(exchange), usdtBalance);
         IExchange.MintParams memory params = IExchange.MintParams({
@@ -107,19 +107,19 @@ contract StrategyUsdPlusUsdc is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        if (usdPlusBalance == 0) {
+        uint256 usdtPlusBalance = usdtPlus.balanceOf(address(this));
+        if (usdtPlusBalance == 0) {
             return 0;
         }
 
         // add swap slippage
-        uint256 usdPlusAmount = OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount) + 10, swapSlippageBP);
-        if (usdPlusAmount >= usdPlusBalance) {
-            usdPlusAmount = usdPlusBalance;
+        uint256 usdtPlusAmount = OvnMath.addBasisPoints(_oracleUsdcToUsdt(_amount) + 10, swapSlippageBP);
+        if (usdtPlusAmount >= usdtPlusBalance) {
+            usdtPlusAmount = usdtPlusBalance;
         }
 
-        // redeem usdPlus
-        exchange.redeem(address(usdt), usdPlusAmount);
+        // redeem usdtPlus
+        exchange.redeem(address(usdt), usdtPlusAmount);
 
         // swap usdt to usdc
         uint256 usdtBalance = usdt.balanceOf(address(this));
@@ -141,13 +141,13 @@ contract StrategyUsdPlusUsdc is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        if (usdPlusBalance == 0) {
+        uint256 usdtPlusBalance = usdtPlus.balanceOf(address(this));
+        if (usdtPlusBalance == 0) {
             return 0;
         }
 
-        // redeem usdPlus
-        exchange.redeem(address(usdt), usdPlusBalance);
+        // redeem usdtPlus
+        exchange.redeem(address(usdt), usdtPlusBalance);
 
         // swap usdt to usdc
         uint256 usdtBalance = usdt.balanceOf(address(this));
@@ -169,12 +169,12 @@ contract StrategyUsdPlusUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        uint256 balance = usdt.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
+        uint256 balance = usdt.balanceOf(address(this)) + usdtPlus.balanceOf(address(this));
         return usdc.balanceOf(address(this)) + _oracleUsdtToUsdc(balance);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        uint256 balance = usdt.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
+        uint256 balance = usdt.balanceOf(address(this)) + usdtPlus.balanceOf(address(this));
         return usdc.balanceOf(address(this)) + OvnMath.subBasisPoints(_oracleUsdtToUsdc(balance), swapSlippageBP);
     }
 

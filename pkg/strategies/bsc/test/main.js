@@ -29,7 +29,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
             params: [ownerAddress],
         });
 
-    } else if (strategyName == 'StrategyUsdPlusUsdc') {
+    } else if (strategyName == 'StrategyUsdcUsdtPlus') {
         let ownerAddress = "0xe497285e466227F4E8648209E34B465dAA1F90a0";
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
