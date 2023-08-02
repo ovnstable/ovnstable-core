@@ -271,6 +271,11 @@ contract StrategyEquilibriaDaiGDai is Strategy {
         return feed.nextEpochValuesRequestCount() == 0;
     }
 
+    function makeWithdrawRequest() external onlyPortfolioAgent {
+        gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
+    }
+
+
     function unstakeToGDaiAndMakeRequest(uint256 _amount, bool isUnstakeFull) public onlyPortfolioAgent {
 
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
