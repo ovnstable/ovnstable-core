@@ -7,7 +7,7 @@ const {DEFAULT, ARBITRUM, BSC, OPTIMISM, POLYGON} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
-const {Wallet} = require("zksync-web3");
+const {Wallet, Provider} = require("zksync-web3");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {BigNumber} = require("ethers");
 const {isZkSync} = require("./network");
@@ -190,7 +190,10 @@ async function getImplementation(name, network){
     }
 }
 
-async function getAbi(name){
+async function getAbi(name, network){
+
+    if (!network)
+        network = process.env.STAND;
 
     let searchPath = fromDir(require('app-root-path').path, path.join("/" + name + ".json"));
     return JSON.parse(fs.readFileSync(searchPath)).abi;
@@ -653,6 +656,8 @@ async function getChainId(){
             return 10;
         case "POLYGON":
             return 137;
+        case "ZKSYNC":
+            return 324;
         default:
             throw new Error("Unknown chain");
     }
@@ -668,14 +673,26 @@ async function getDevWallet(){
 
 async function transferETH(amount, to) {
 
-    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
-    let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+    if (isZkSync()) {
+        let provider = new Provider("http://localhost:8011");
+        let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
+        console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 
-    // вернул как было. у меня не работала почему-то твоя версия
-    await walletWithProvider.sendTransaction({
-        to: to,
-        value: ethers.utils.parseEther(amount+"")
-    });
+        await wallet.transfer({
+          to: to,
+          token: '0x0000000000000000000000000000000000000000',
+          amount: ethers.utils.parseEther(amount+""),
+        });
+    } else {
+        let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+        let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+
+        // вернул как было. у меня не работала почему-то твоя версия
+        await walletWithProvider.sendTransaction({
+            to: to,
+            value: ethers.utils.parseEther(amount+"")
+        });
+    }
 
     console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]:`);
 }

@@ -1,3 +1,5 @@
+const {isZkSync} = require('@overnight-contracts/common/utils/network');
+
 /**
  * Got from balancer: https://github.com/balancer-labs/balancer-v2-monorepo/blob/master/pvt/common/sharedBeforeEach.ts
  * and adopter to js.
@@ -41,32 +43,42 @@ function sharedBeforeEach(nameOrFn, maybeFn) {
 
     let initialized = false;
 
-    beforeEach(wrapWithTitle(name, 'Running shared before each or reverting'), async function () {
-        const provider = await getProvider();
-        if (!initialized) {
-            const prevSnapshot = SNAPSHOTS.pop();
-            if (prevSnapshot !== undefined) {
-                await revert(provider, prevSnapshot);
+    if (isZkSync()) {
+        beforeEach(wrapWithTitle(name, 'Running shared before each or reverting'), async function () {
+            if (!initialized) {
+                await fn.call(this);
+                initialized = true;
+            }
+        });
+
+    } else {
+        beforeEach(wrapWithTitle(name, 'Running shared before each or reverting'), async function () {
+            const provider = await getProvider();
+            if (!initialized) {
+                const prevSnapshot = SNAPSHOTS.pop();
+                if (prevSnapshot !== undefined) {
+                    await revert(provider, prevSnapshot);
+                    SNAPSHOTS.push(await takeSnapshot(provider));
+                }
+
+                await fn.call(this);
+
+                SNAPSHOTS.push(await takeSnapshot(provider));
+                initialized = true;
+            } else {
+                const snapshotId = SNAPSHOTS.pop();
+                if (snapshotId === undefined) throw Error('Missing snapshot ID');
+                await revert(provider, snapshotId);
                 SNAPSHOTS.push(await takeSnapshot(provider));
             }
+        });
 
-            await fn.call(this);
-
-            SNAPSHOTS.push(await takeSnapshot(provider));
-            initialized = true;
-        } else {
-            const snapshotId = SNAPSHOTS.pop();
-            if (snapshotId === undefined) throw Error('Missing snapshot ID');
-            await revert(provider, snapshotId);
-            SNAPSHOTS.push(await takeSnapshot(provider));
-        }
-    });
-
-    after(async function () {
-        if (initialized) {
-            SNAPSHOTS.pop();
-        }
-    });
+        after(async function () {
+            if (initialized) {
+                SNAPSHOTS.pop();
+            }
+        });
+    }
 }
 
 function wrapWithTitle(title, str) {
@@ -74,6 +86,9 @@ function wrapWithTitle(title, str) {
 }
 
 async function evmCheckpoint(label, provider) {
+    if (isZkSync()) {
+        return;
+    }
 
     if (!provider)
         provider = await getProvider();
@@ -89,6 +104,9 @@ async function evmCheckpoint(label, provider) {
 
 
 async function evmRestore(label, provider) {
+    if (isZkSync()) {
+        return;
+    }
 
     if (!provider)
         provider = await getProvider();

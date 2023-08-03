@@ -26,7 +26,7 @@ function getNetworkByName(network) {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
-            ethNetwork: "mainnet",
+            ethNetwork: "http://localhost:8545",
         }
     }else {
         localhost = {
