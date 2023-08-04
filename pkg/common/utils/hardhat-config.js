@@ -196,7 +196,20 @@ function getEtherScan(chain){
         chain = process.env.ETH_NETWORK
     }
 
-    let object = {};
+    let object = {
+
+        customChains: [
+            {
+                network: "base",
+                chainId:  8453,
+                urls: {
+                    apiURL: "https://api.basescan.org/api",
+                    browserURL: "https://basescan.org"
+                }
+            }
+        ]
+
+    };
 
     let api = process.env[`ETHERSCAN_API_${chain.toUpperCase()}`];
 

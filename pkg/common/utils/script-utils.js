@@ -436,6 +436,11 @@ async function getPrice() {
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
         return {gasPrice: gasPrice, gasLimit: 20000000}
+    }else if (process.env.ETH_NETWORK === 'BASE'){
+        let gasPrice = await ethers.provider.getGasPrice();
+        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        gasPrice = gasPrice.add(percentage);
+        return {gasPrice: gasPrice, gasLimit: 20000000}
     }
 
     return params;

@@ -6,8 +6,8 @@ let COMMON = {
 }
 
 let BASE = {
-   usdc: "",
-   weth: "",
+   usdc: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+   weth: "0x4200000000000000000000000000000000000006",
 };
 
 let LINEA = {

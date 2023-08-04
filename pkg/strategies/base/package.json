@@ -1,0 +1,13 @@
+{
+  "name": "@overnight-contracts/strategies-base",
+  "version": "0.0.1",
+  "description": "Strategies BASE contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  }
+}
