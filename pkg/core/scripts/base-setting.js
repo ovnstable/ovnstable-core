@@ -21,6 +21,7 @@ async function main() {
     await (await exchange.grantRole(Roles.UNIT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait(); // dev
 
     await (await exchange.setProfitRecipient( '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46')).wait(); // ovn reward wallet
+    await (await exchange.setPayoutListener(undefined)).wait(); // PayoutListener
 
     await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
     await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D')).wait();       // pm

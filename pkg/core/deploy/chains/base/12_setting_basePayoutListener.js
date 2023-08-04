@@ -7,17 +7,18 @@ const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
 
-    const pl = await ethers.getContract("BasePayoutListener");
+    const pl = await getContract("BasePayoutListener", 'base');
 
     let usdPlus = await getContract('UsdPlusToken', 'base');
+    let daiPlus = await getContract('UsdPlusToken', 'base_dai');
 
     let items = [];
 
     items.push(...baseSwap());
     // await (await pl.addItems(items)).wait();
 
-    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'base')).address));
-    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'base_dai')).address));
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'base')).address));
+    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'base_dai')).address));
 
     console.log('BasePayoutListener setting done');
 

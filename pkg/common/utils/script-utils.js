@@ -245,6 +245,8 @@ async function getCoreAsset() {
         return await getERC20('dai');
     } else if (process.env.STAND === 'arbitrum_dai') {
         return await getERC20('dai');
+    } else if (process.env.STAND === 'base_dai') {
+        return await getERC20('dai');
     } else if (process.env.STAND === 'bsc_usdt') {
         return await getERC20('usdt');
     } else {

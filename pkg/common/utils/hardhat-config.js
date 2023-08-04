@@ -46,6 +46,14 @@ function getNetworkByName(network) {
             zksync: false,
         },
 
+        base_dai: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+            zksync: false,
+        },
+
         linea: {
             url: forkingUrl,
             accounts: accountsNetwork,
@@ -201,6 +209,14 @@ function getEtherScan(chain){
         customChains: [
             {
                 network: "base",
+                chainId:  8453,
+                urls: {
+                    apiURL: "https://api.basescan.org/api",
+                    browserURL: "https://basescan.org"
+                }
+            },
+            {
+                network: "base_dai",
                 chainId:  8453,
                 urls: {
                     apiURL: "https://api.basescan.org/api",

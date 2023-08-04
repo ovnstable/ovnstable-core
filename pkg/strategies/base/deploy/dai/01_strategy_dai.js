@@ -18,10 +18,10 @@ module.exports = async ({deployments}) => {
 async function getParams(){
 
     return {
-        usdc: BASE.usdc,
+        dai: BASE.dai,
     }
 
 }
 
-module.exports.tags = ['StrategyUsdc'];
-module.exports.strategyUsdc = getParams
+module.exports.tags = ['StrategyDai'];
+module.exports.strategyDai = getParams
