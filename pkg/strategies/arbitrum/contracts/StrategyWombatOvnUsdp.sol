@@ -189,35 +189,35 @@ contract StrategyWombatOvnUsdp is Strategy {
         //        console.log('DAI+     %s', daiAmount);
         //        console.log('DAI+ fee %s', daiFee);
         //
-        if (usdpFee < usdcFee) {
-
-            if (usdpFee < daiFee) {
-                _unstakeUsdp(assetAmount, _amount);
-            } else {
-                _unstakeDaip(assetAmount, _amount);
-            }
-        } else if (usdcFee < usdpFee) {
-
-            if (usdcFee < daiFee) {
-                _unstakeUsdc(assetAmount, _amount);
-            } else {
-                _unstakeDaip(assetAmount, _amount);
-            }
-        } else if (daiFee < usdcFee) {
-
-            if (daiFee < usdpFee) {
-                _unstakeDaip(assetAmount, _amount);
-            } else {
-                _unstakeUsdp(assetAmount, _amount);
-            }
-        } else if (daiFee < usdpFee) {
-
-            if (daiFee < usdcFee) {
-                _unstakeDaip(assetAmount, _amount);
-            } else {
-                _unstakeUsdc(assetAmount, _amount);
-            }
-        }
+//        if (usdpFee < usdcFee) {
+//
+//            if (usdpFee < daiFee) {
+//                _unstakeUsdp(assetAmount, _amount);
+//            } else {
+//                _unstakeDaip(assetAmount, _amount);
+//            }
+//        } else if (usdcFee < usdpFee) {
+//
+//            if (usdcFee < daiFee) {
+//                _unstakeUsdc(assetAmount, _amount);
+//            } else {
+//                _unstakeDaip(assetAmount, _amount);
+//            }
+//        } else if (daiFee < usdcFee) {
+//
+//            if (daiFee < usdpFee) {
+//                _unstakeDaip(assetAmount, _amount);
+//            } else {
+//                _unstakeUsdp(assetAmount, _amount);
+//            }
+//        } else if (daiFee < usdpFee) {
+//
+//            if (daiFee < usdcFee) {
+//                _unstakeDaip(assetAmount, _amount);
+//            } else {
+//                _unstakeUsdc(assetAmount, _amount);
+//            }
+//        }
 
     }
 
@@ -255,18 +255,9 @@ contract StrategyWombatOvnUsdp is Strategy {
         _swapAllToken0ToToken1(dai, usdc, amountOutMin);
     }
 
-    function _unstakeUsdp(uint256 assetAmount, uint256 _amount) internal {
-
-        poolWombat.withdraw(
-            address(usdp),
-            assetAmount,
-            _amount,
-            address(this),
-            block.timestamp
-        );
+    function unstakeUsdp() external onlyPortfolioAgent {
 
         IExchange exchange = IExchange(0x73cb180bf0521828d8849bc8CF2B920918e23032);
-
         exchange.redeem(address(usdc), usdp.balanceOf(address(this)));
     }
 
