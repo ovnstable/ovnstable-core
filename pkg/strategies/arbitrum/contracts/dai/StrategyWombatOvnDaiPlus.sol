@@ -188,35 +188,35 @@ contract StrategyWombatOvnDaiPlus is Strategy {
 //        console.log('DAI+     %s', daiAmount);
 //        console.log('DAI+ fee %s', daiFee);
         //
-        if (usdpFee < usdcFee) {
-
-            if (usdpFee < daiFee) {
-                _unstakeUsdp(assetAmount, _amount);
-            } else {
-                _unstakeDaip(assetAmount, _amount);
-            }
-        } else if (usdcFee < usdpFee) {
-
-            if (usdcFee < daiFee) {
-                _unstakeUsdc(assetAmount, _amount);
-            } else {
-                _unstakeDaip(assetAmount, _amount);
-            }
-        } else if (daiFee < usdcFee) {
-
-            if (daiFee < usdpFee) {
-                _unstakeDaip(assetAmount, _amount);
-            } else {
-                _unstakeUsdp(assetAmount, _amount);
-            }
-        } else if (daiFee < usdpFee) {
-
-            if (daiFee < usdcFee) {
-                _unstakeDaip(assetAmount, _amount);
-            } else {
-                _unstakeUsdc(assetAmount, _amount);
-            }
-        }
+//        if (usdpFee < usdcFee) {
+//
+//            if (usdpFee < daiFee) {
+//                _unstakeUsdp(assetAmount, _amount);
+//            } else {
+//                _unstakeDaip(assetAmount, _amount);
+//            }
+//        } else if (usdcFee < usdpFee) {
+//
+//            if (usdcFee < daiFee) {
+//                _unstakeUsdc(assetAmount, _amount);
+//            } else {
+//                _unstakeDaip(assetAmount, _amount);
+//            }
+//        } else if (daiFee < usdcFee) {
+//
+//            if (daiFee < usdpFee) {
+//                _unstakeDaip(assetAmount, _amount);
+//            } else {
+//                _unstakeUsdp(assetAmount, _amount);
+//            }
+//        } else if (daiFee < usdpFee) {
+//
+//            if (daiFee < usdcFee) {
+//                _unstakeDaip(assetAmount, _amount);
+//            } else {
+//                _unstakeUsdc(assetAmount, _amount);
+//            }
+//        }
 
 
         require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
@@ -263,15 +263,7 @@ contract StrategyWombatOvnDaiPlus is Strategy {
         _swapAllToken0ToToken1(usdc, dai, amountOutMin);
     }
 
-    function _unstakeDaip(uint256 assetAmount, uint256 _amount) internal {
-
-        poolWombat.withdraw(
-            address(daiPlus),
-            assetAmount,
-            OvnMath.subBasisPoints(_amount, swapSlippageBP),
-            address(this),
-            block.timestamp
-        );
+    function unstakeDaip() external onlyPortfolioAgent {
 
         IExchange exchange = IExchange(0xc8261DC93428F0D2dC04D675b7852CdCdC19d4fd);
         exchange.redeem(address(dai), daiPlus.balanceOf(address(this)));
