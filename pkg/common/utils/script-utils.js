@@ -756,7 +756,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0xe26D67B169420e2AB7697ba95d35A8a9A27e6158';
                     break;
                 case BASE.dai:
-                  from = '0xce3abf9281c8bc207d6ca5bdbe2db1e58914bc3a';
+                  from = '0xbed01252c3542b02be6162c00ce636720d3c05bd';
                   break;
               default:
                     throw new Error('Unknown asset address');
