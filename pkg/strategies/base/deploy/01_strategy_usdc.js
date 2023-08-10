@@ -18,7 +18,7 @@ module.exports = async ({deployments}) => {
 async function getParams(){
 
     return {
-        usdc: BASE.usdc,
+        usdc: BASE.usdbc,
     }
 
 }

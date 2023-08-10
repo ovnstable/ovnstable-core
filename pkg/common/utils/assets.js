@@ -6,12 +6,27 @@ let COMMON = {
 }
 
 let BASE = {
-    usdPlus: "0xb79dd08ea68a908a97220c76d19a6aa9cbde4376",
-    usdc: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+    // tokens
+    usdPlus: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
+    daiPlus: "0x65a2508C429a6078a7BC2f7dF81aB575BD9D9275",
+    usdbc: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
     weth: "0x4200000000000000000000000000000000000006",
     dai: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+    bvm: '0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a',
+    bswap: '0x78a087d713Be963Bf307b18F2Ff8122EF9A63ae9',
+    sonne: "",
+    // sonne
+    sonneUnitroller: "",
+    soUsdbc: "",
+    soWeth: "",
+    // routers
+    uniswapV3Router: "0x2626664c2603336E57B271c5C0b26F421741e481",
+    velocimeterRouter: '0xE11b93B61f6291d35c5a2beA0A9fF169080160cF',
+    baseSwapRouter: '0x327Df1E6de05895d2ab08513aaDD9313Fe505d86',
+    // oracles
+    chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
+    chainlinkWeth: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
     // swaps
-    baseswapRouter: "0x327Df1E6de05895d2ab08513aaDD9313Fe505d86",
     odosRouter: "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
 };
 
