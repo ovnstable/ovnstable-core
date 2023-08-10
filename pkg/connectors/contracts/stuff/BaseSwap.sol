@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-interface IPancakeRouter01 {
+interface IBaseSwapRouter01 {
     function factory() external pure returns (address);
 
     function WETH() external pure returns (address);
@@ -139,7 +139,7 @@ interface IPancakeRouter01 {
     function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
 }
 
-interface IPancakeRouter02 is IPancakeRouter01 {
+interface IBaseSwapRouter02 is IBaseSwapRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
         uint256 liquidity,
@@ -186,7 +186,7 @@ interface IPancakeRouter02 is IPancakeRouter01 {
     ) external;
 }
 
-interface IPancakePair {
+interface IBaseSwapPair {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -298,7 +298,7 @@ interface IMasterChefV2 {
 
 }
 
-library PancakeSwapLibrary {
+library BaseSwapLibrary {
 
     function getAmountOut(
         address baseSwapRouter,
@@ -311,7 +311,7 @@ library PancakeSwapLibrary {
         path[0] = inputToken;
         path[1] = outputToken;
 
-        uint[] memory amounts = IPancakeRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
 
         return amounts[1];
     }
@@ -329,7 +329,7 @@ library PancakeSwapLibrary {
         path[1] = middleToken;
         path[2] = outputToken;
 
-        uint[] memory amounts = IPancakeRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
 
         return amounts[2];
     }
@@ -349,7 +349,7 @@ library PancakeSwapLibrary {
         path[0] = inputToken;
         path[1] = outputToken;
 
-        uint[] memory amounts = IPancakeRouter02(baseSwapRouter).swapExactTokensForTokens(
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).swapExactTokensForTokens(
             amountInput,
             amountOutMin,
             path,
@@ -377,7 +377,7 @@ library PancakeSwapLibrary {
         path[1] = middleToken;
         path[2] = outputToken;
 
-        uint[] memory amounts = IPancakeRouter02(baseSwapRouter).swapExactTokensForTokens(
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).swapExactTokensForTokens(
             amountInput,
             amountOutMin,
             path,
