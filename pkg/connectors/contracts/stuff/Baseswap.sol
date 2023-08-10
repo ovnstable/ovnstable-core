@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface IBaseSwapRouter01 {
     function factory() external pure returns (address);
@@ -267,7 +265,6 @@ interface IBaseSwapPair {
     function initialize(address, address) external;
 }
 
-
 interface IBEP20 {
 
     function totalSupply() external view returns (uint256);
@@ -295,16 +292,18 @@ interface IBEP20 {
     ) external returns (bool);
 }
 
-interface IMasterChef {
+interface IMasterChefV2 {
+
+    // Info of each user that stakes LP tokens.
+    function userInfo(uint256 pid, address user) external view returns (uint256 amount, uint256 rewardDebt);
+
 
     // Info of each pool.
     struct PoolInfo {
-        IBEP20 lpToken;           // Address of LP token contract.
-        uint256 arxAllocPoint;       // How many allocation points assigned to this pool. ARXs to distribute per block.
-        uint256 WETHAllocPoint;
-        uint256 lastRewardTime;  // Last block number that ARXs distribution occurs.
-        uint256 accArxPerShare; // Accumulated ARXs per share, times 1e12. See below.
-        uint256 accWETHPerShare;
+        address lpToken;           // Address of LP token contract.
+        uint256 allocPoint;
+        uint256 lastRewardTime;
+        uint256 accPerShare;
         uint256 totalDeposit;
     }
 
@@ -312,17 +311,120 @@ interface IMasterChef {
 
     function poolInfo(uint256 _pid) external view returns (PoolInfo memory poolInfo);
 
-    // View function to see pending ARXs on frontend.
-    function pendingArx(uint256 _pid, address _user) external view returns (uint256);
-    // View function to see pending WETH on frontend.
-    function pendingWETH(uint256 _pid, address _user) external view returns (uint256);
+    // Allows users to see if rewards have started
+    function rewardsStarted() external view returns (bool);
 
-    // Deposit LP tokens to MasterChef for ARX allocation.
+    // Return reward multiplier over the given _from to _to block.
+    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
+
+    // View function to see pending BSWAP on frontend.
+    function pendingReward(uint256 _pid, address _user) external view returns (uint256);
+
+    // Update reward variables for all pools. Be careful of gas spending!
+    function massUpdatePools() external;
+
+    // Update reward variables of the given pool to be up-to-date.
+    function updatePool(uint256 _pid) external;
+
+    // Deposit LP tokens to MasterChef for BSWAP allocation.
     function deposit(uint256 _pid, uint256 _amount) external;
 
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) external;
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) external ;
+    function emergencyWithdraw(uint256 _pid) external;
+
+}
+
+library BaseSwapLibrary {
+
+    function getAmountOut(
+        address baseSwapRouter,
+        address inputToken,
+        address outputToken,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        address[] memory path = new address[](2);
+        path[0] = inputToken;
+        path[1] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
+
+        return amounts[1];
+    }
+
+    function getAmountOut(
+        address baseSwapRouter,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        address[] memory path = new address[](3);
+        path[0] = inputToken;
+        path[1] = middleToken;
+        path[2] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
+
+        return amounts[2];
+    }
+
+    function singleSwap(
+        address baseSwapRouter,
+        address inputToken,
+        address outputToken,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(baseSwapRouter, amountInput);
+
+        address[] memory path = new address[](2);
+        path[0] = inputToken;
+        path[1] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            recipient,
+            block.timestamp
+        );
+
+        return amounts[1];
+    }
+
+    function multiSwap(
+        address baseSwapRouter,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(baseSwapRouter, amountInput);
+
+        address[] memory path = new address[](3);
+        path[0] = inputToken;
+        path[1] = middleToken;
+        path[2] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            recipient,
+            block.timestamp
+        );
+
+        return amounts[2];
+    }
+
 }

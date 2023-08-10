@@ -18,9 +18,9 @@ const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 
-describe("BaseswapZapper", function () {
+describe("BaseSwapZapper", function () {
 
-    let baseswapZap;
+    let baseSwapZap;
 
     let account;
     let usdPlus;
@@ -35,33 +35,25 @@ describe("BaseswapZapper", function () {
     let token1Out;
 
     const gauge = "0x2b0a43dccbd7d42c18f6a83f86d1a19fa58d541a";
-    const poolId = 10; // 0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A usd+/usdbc
+    const poolId = 10;
 
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
-        console.log("resetHardhatToLastBlock done()");
 
-        await deployments.fixture(['BaseswapZap']);
-        console.log("deployments step 1");
+        await deployments.fixture(['BaseSwapZap']);
 
         account = await setUp();
-        baseswapZap = await ethers.getContract("BaseswapZap");
-        console.log("deployments step 2");
+        baseSwapZap = await ethers.getContract("BaseSwapZap");
 
         token0Out = (await getContract('UsdPlusToken', 'base')).connect(account);
-        console.log("deployments step 3");
-        token1Out = (await getERC20("usdc")).connect(account);
-        console.log("deployments step 4");
+        token1Out = (await getERC20("usdbc")).connect(account);
 
         token0In = (await getContract('UsdPlusToken', 'base_dai')).connect(account);
-        console.log("deployments step 5");
         token1In = (await getERC20("dai")).connect(account);
-        console.log("deployments step 6");
     });
 
-    it.only("swap and put nearly equal", async function () {
-
+    it("swap and put nearly equal", async function () {
         await showBalances();
 
         const amountToken0In = toE18(100);
@@ -69,12 +61,12 @@ describe("BaseswapZapper", function () {
         const amountToken0Out = toE6(400);
         const amountToken1Out = toE6(500);
 
-        await (await token0In.approve(baseswapZap.address, amountToken0In)).wait();
-        await (await token1In.approve(baseswapZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(baseswapZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(baseswapZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(baseSwapZap.address, amountToken0In)).wait();
+        await (await token1In.approve(baseSwapZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(baseSwapZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(baseSwapZap.address, amountToken1Out)).wait();
 
-        const reserves = await baseswapZap.getProportion(gauge, poolId);
+        const reserves = await baseSwapZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -90,24 +82,23 @@ describe("BaseswapZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": baseswapZap.address,
+            "userAddr": baseSwapZap.address,
             "slippageLimitPercent": 0.4,
         });
-
 
         const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": baseswapZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": baseSwapZap.address };
         });
 
 
-        const receipt = await (await baseswapZap.connect(account).zapIn({
+        const receipt = await (await baseSwapZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -162,10 +153,10 @@ describe("BaseswapZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE18(await token0In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
 
 
     });
@@ -179,12 +170,12 @@ describe("BaseswapZapper", function () {
         const amountToken0Out = toE6(800);
         const amountToken1Out = toE6(100);
 
-        await (await token0In.approve(baseswapZap.address, amountToken0In)).wait();
-        await (await token1In.approve(baseswapZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(baseswapZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(baseswapZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(baseSwapZap.address, amountToken0In)).wait();
+        await (await token1In.approve(baseSwapZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(baseSwapZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(baseSwapZap.address, amountToken1Out)).wait();
 
-        const reserves = await baseswapZap.getProportion(gauge, poolId);
+        const reserves = await baseSwapZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -200,11 +191,11 @@ describe("BaseswapZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": baseswapZap.address,
+            "userAddr": baseSwapZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -213,11 +204,11 @@ describe("BaseswapZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": baseswapZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": baseSwapZap.address };
         });
 
 
-        const receipt = await (await baseswapZap.connect(account).zapIn({
+        const receipt = await (await baseSwapZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -272,10 +263,10 @@ describe("BaseswapZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE18(await token0In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
 
 
     });
@@ -289,12 +280,12 @@ describe("BaseswapZapper", function () {
         const amountToken0Out = toE6(100);
         const amountToken1Out = toE6(800);
 
-        await (await token0In.approve(baseswapZap.address, amountToken0In)).wait();
-        await (await token1In.approve(baseswapZap.address, amountToken1In)).wait();
-        await (await token0Out.approve(baseswapZap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(baseswapZap.address, amountToken1Out)).wait();
+        await (await token0In.approve(baseSwapZap.address, amountToken0In)).wait();
+        await (await token1In.approve(baseSwapZap.address, amountToken1In)).wait();
+        await (await token0Out.approve(baseSwapZap.address, amountToken0Out)).wait();
+        await (await token1Out.approve(baseSwapZap.address, amountToken1Out)).wait();
 
-        const reserves = await baseswapZap.getProportion(gauge, poolId);
+        const reserves = await baseSwapZap.getProportion(gauge, poolId);
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
@@ -310,11 +301,11 @@ describe("BaseswapZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 42161,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
-            "userAddr": baseswapZap.address,
+            "userAddr": baseSwapZap.address,
             "slippageLimitPercent": 0.4,
         });
 
@@ -323,11 +314,11 @@ describe("BaseswapZapper", function () {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-            return { "tokenAddress": tokenAddress, "receiver": baseswapZap.address };
+            return { "tokenAddress": tokenAddress, "receiver": baseSwapZap.address };
         });
 
 
-        const receipt = await (await baseswapZap.connect(account).zapIn({
+        const receipt = await (await baseSwapZap.connect(account).zapIn({
             inputs: inputTokens,
             outputs: outputTokens,
             data: request.data
@@ -382,10 +373,10 @@ describe("BaseswapZapper", function () {
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
-        expect(fromE18(await token0In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE18(await token1In.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
-        expect(fromE6(await token0Out.balanceOf(baseswapZap.address))).to.lessThan(1);
+        expect(fromE18(await token0In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE18(await token1In.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
+        expect(fromE6(await token0Out.balanceOf(baseSwapZap.address))).to.lessThan(1);
 
 
     });
@@ -436,22 +427,32 @@ async function getOdosRequest(request) {
     }
 
     // @ts-ignore
-    const url = 'https://api.overnight.fi/root/odos/sor/swap';
+    const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
+    const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
     let transaction;
     try {
-        transaction = (await axios.post(url, swapParams, { headers: { "Accept-Encoding": "br" } }));
+        let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { "Accept-Encoding": "br" } }));
+
+        let assembleData = {
+            "userAddr": request.userAddr,
+            "pathId": quotaResponse.data.pathId,
+            "simulate": false
+        }
+
+        console.log("assembleData: ", assembleData)
+        transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
-        console.log("[baseswapZap] getSwapTransaction: " + e);
+        console.log("[baseSwapZap] getSwapTransaction: ", e);
         return 0;
     }
 
     if (transaction.statusCode === 400) {
-        console.log(`[baseswapZap]  ${transaction.description}`);
+        console.log(`[baseSwapZap]  ${transaction.description}`);
         return 0;
     }
 
     if (transaction.data.transaction === undefined) {
-        console.log("[baseswapZap] transaction.tx is undefined");
+        console.log("[baseSwapZap] transaction.tx is undefined");
         return 0;
     }
 
@@ -568,7 +569,7 @@ async function setUp() {
     const account = signers[0];
 
     await transferAsset(BASE.dai, account.address);
-    await transferAsset(BASE.usdc, account.address);
+    await transferAsset(BASE.usdbc, account.address);
 
     await getPlusTokens(10_000, account.address);
 

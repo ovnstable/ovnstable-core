@@ -747,7 +747,6 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x7d94283d7c15b87aed6a296c3d1c2fb334509907';
                     break;
                 default:
-                    console.log('assetAddress', assetAddress);
                     throw new Error('Unknown asset address');
             }
             break;
@@ -757,7 +756,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0xe26D67B169420e2AB7697ba95d35A8a9A27e6158';
                     break;
                 case BASE.dai:
-                  from = '0xe4605f61a7a11293fdadb5fab474c059c19b8717';
+                  from = '0xce3abf9281c8bc207d6ca5bdbe2db1e58914bc3a';
                   break;
               default:
                     throw new Error('Unknown asset address');

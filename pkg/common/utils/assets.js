@@ -22,7 +22,7 @@ let BASE = {
     // routers
     uniswapV3Router: "0x2626664c2603336E57B271c5C0b26F421741e481",
     velocimeterRouter: '0xE11b93B61f6291d35c5a2beA0A9fF169080160cF',
-    baseSwapRouter: '0x327Df1E6de05895d2ab08513aaDD9313Fe505d86',
+    baseSwapRouter: '0x327df1e6de05895d2ab08513aadd9313fe505d86',
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkWeth: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",

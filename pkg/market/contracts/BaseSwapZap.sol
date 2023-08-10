@@ -3,36 +3,36 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/Baseswap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
 
-contract BaseswapZap is OdosZap {
-    IBaseSwapRouter02 public baseswapRouter;
+contract BaseSwapZap is OdosZap {
+    IBaseSwapRouter01 public baseSwapRouter;
 
     struct ZapParams {
-        address baseswapRouter;
+        address baseSwapRouter;
         address odosRouter;
     }
 
-    struct BaseswapZapInParams {
+    struct BaseSwapZapInParams {
         address gauge;
         uint256[] amountsOut;
         uint256 poolId;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.baseswapRouter != address(0), "Zero address not allowed");
+        require(params.baseSwapRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
 
-        baseswapRouter = IBaseSwapRouter02(params.baseswapRouter);
+        baseSwapRouter = IBaseSwapRouter02(params.baseSwapRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, BaseswapZapInParams memory baseswapData) external {
+    function zapIn(SwapData memory swapData, BaseSwapZapInParams memory baseSwapData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IMasterChef gauge = IMasterChef(baseswapData.gauge);
-        IMasterChef.PoolInfo memory poolInfo = gauge.poolInfo(baseswapData.poolId);
+        IMasterChefV2 gauge = IMasterChefV2(baseSwapData.gauge);
+        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(baseSwapData.poolId);
         IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
 
         address[] memory tokensOut = new address[](2);
@@ -43,8 +43,8 @@ contract BaseswapZap is OdosZap {
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
 
-            if (baseswapData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), baseswapData.amountsOut[i]);
+            if (baseSwapData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), baseSwapData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
@@ -57,21 +57,11 @@ contract BaseswapZap is OdosZap {
         address _gauge,
         uint256 poolId
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        console.log("Contract: getProportion Gauge %s", _gauge);
-        console.log("Contract: getProportion poolId: %s", poolId);
-        IMasterChef gauge = IMasterChef(_gauge);
-        console.log("Contract: getProportion gauge: %s", address(gauge));
-
-        IMasterChef.PoolInfo memory poolInfo = gauge.poolInfo(poolId);
-//        console.log("Contract: getProportion poolInfo: %s", poolInfo.poolLength());
-        console.log("Contract: getProportion poolInfo: %s", address(poolInfo.lpToken));
-
+        IMasterChefV2 gauge = IMasterChefV2(_gauge);
+        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(poolId);
         IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
-        console.log("Contract: getProportion pair: %s", address(pair));
 
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        console.log("Contract: getProportion reserve0: %s", reserve0);
-        console.log("Contract: getProportion reserve1: %s", reserve1);
         address token0 = pair.token0();
         address token1 = pair.token1();
         uint256 dec0 = IERC20Metadata(token0).decimals();
@@ -94,13 +84,13 @@ contract BaseswapZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(baseswapRouter), tokensAmount0);
-        asset1.approve(address(baseswapRouter), tokensAmount1);
+        asset0.approve(address(baseSwapRouter), tokensAmount0);
+        asset1.approve(address(baseSwapRouter), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        baseswapRouter.addLiquidity(
+        baseSwapRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
             tokensAmount0,

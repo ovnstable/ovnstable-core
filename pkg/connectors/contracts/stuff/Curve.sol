@@ -179,6 +179,7 @@ interface IStableSwapPool {
     function coins(uint256 i) external view returns (address);
 
     function balances(uint256 i) external view returns (uint256);
+
     function get_balances() external view returns (uint256[2] memory);
 
     function get_virtual_price() external view returns (uint256);
