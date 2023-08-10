@@ -12,8 +12,9 @@ module.exports = async () => {
     const daiPlus = await getContract('UsdPlusToken', 'base_dai');
 
     let items = [];
-    items.push(...baseSwap());
-    items.push(...velocimeter());
+//    items.push(...baseSwap());
+//    items.push(...velocimeter());
+    items.push(...swapBased());
 
     let price = await getPrice();
 
@@ -53,6 +54,19 @@ module.exports = async () => {
 
     }
 
+    function swapBased() {
+
+        let dex = 'SwapBased';
+        let to = '0x1d868A13E1938fF16deb69A4ee49e8891d6a0A16';
+
+        let items = [];
+        items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x282f9231E5294E7354744df36461c21e0E68061C', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+
+    }
 };
 
 module.exports.tags = ['SettingBasePayoutListener'];

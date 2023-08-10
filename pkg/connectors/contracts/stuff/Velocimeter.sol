@@ -319,14 +319,14 @@ interface IOptionToken is IERC20 {
     /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens
     /// @param _amount The amount of options tokens to exercise
     /// @return The amount of payment tokens to pay to purchase the underlying tokens
-    function getDiscountedPrice(uint256 _amount) public view returns (uint256);
+    function getDiscountedPrice(uint256 _amount) external view returns (uint256);
 
     /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
     /// @param _amount The amount of options tokens to exercise
     /// @return The amount of payment tokens to pay to purchase the underlying tokens
     function getVeDiscountedPrice(
         uint256 _amount
-    ) public view returns (uint256);
+    ) external view returns (uint256);
 
     /// @notice Returns the discounted price in paymentTokens for a given amount of options tokens redeemed to veFLOW
     /// @param _amount The amount of options tokens to exercise
@@ -335,21 +335,21 @@ interface IOptionToken is IERC20 {
     function getLpDiscountedPrice(
         uint256 _amount,
         uint256 _discount
-    ) public view returns (uint256);
+    ) external view returns (uint256);
 
     /// @notice Returns the lock duration for a desired discount to create locked LP
     ///
     function getLockDurationForLpDiscount(
         uint256 _discount
-    ) public view returns (uint256 duration);
+    ) external view returns (uint256 duration);
 
     // @notice Returns the amount in paymentTokens for a given amount of options tokens required for the LP exercise lp
     /// @param _amount The amount of options tokens to exercise
     /// @param _discount The discount amount
-    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) public view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity);
+    function getPaymentTokenAmountForExerciseLp(uint256 _amount,uint256 _discount) external view returns (uint256 paymentAmount, uint256 paymentAmountToAddLiquidity);
 
     function getSlopeInterceptForLpDiscount()
-    public
+    external
     view
     returns (int256 slope, int256 intercept);
 
@@ -358,7 +358,7 @@ interface IOptionToken is IERC20 {
     /// @return The amount of payment tokens
     function getTimeWeightedAveragePrice(
         uint256 _amount
-    ) public view returns (uint256);
+    ) external view returns (uint256);
 }
 
 library VelocimeterLibrary {

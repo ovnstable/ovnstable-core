@@ -750,7 +750,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BASE":
             switch (assetAddress) {
                 case BASE.usdbc:
-                    from = '0x20f03E26968B179025F65C1f4aFAdFD3959C8d03';
+                    from = '0xe26D67B169420e2AB7697ba95d35A8a9A27e6158';
                     break;
                 default:
                     throw new Error('Unknown asset address');

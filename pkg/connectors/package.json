@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/connectors",
-  "version": "0.0.73",
+  "version": "0.0.74",
   "description": "Connectors to protocols",
   "main": "hardhat.config",
   "directories": {

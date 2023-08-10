@@ -273,28 +273,28 @@ interface IMasterChefV2 {
     function poolLength() external view returns (uint256);
 
     // Allows users to see if rewards have started
-    function rewardsStarted() public view returns (bool);
+    function rewardsStarted() external view returns (bool);
 
     // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256);
+    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
 
     // View function to see pending BSWAP on frontend.
-    function pendingReward(uint256 _pid, address _user) public view returns (uint256);
+    function pendingReward(uint256 _pid, address _user) external view returns (uint256);
 
     // Update reward variables for all pools. Be careful of gas spending!
-    function massUpdatePools() public;
+    function massUpdatePools() external;
 
     // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public;
+    function updatePool(uint256 _pid) external;
 
     // Deposit LP tokens to MasterChef for BSWAP allocation.
-    function deposit(uint256 _pid, uint256 _amount) public;
+    function deposit(uint256 _pid, uint256 _amount) external;
 
     // Withdraw LP tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) public;
+    function withdraw(uint256 _pid, uint256 _amount) external;
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) public;
+    function emergencyWithdraw(uint256 _pid) external;
 
 }
 
