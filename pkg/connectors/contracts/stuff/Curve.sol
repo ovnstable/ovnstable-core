@@ -179,8 +179,11 @@ interface IStableSwapPool {
     function coins(uint256 i) external view returns (address);
 
     function balances(uint256 i) external view returns (uint256);
+    function get_balances() external view returns (uint256[2] memory);
 
     function get_virtual_price() external view returns (uint256);
+
+    function balanceOf(address _address) external view returns (uint256);
 
     // Get the amount of coin j(received) one would receive for swapping _dx of coin i(send).
     function get_dy(int128 sendToken, int128 receivedToken, uint256 _dx) external view returns (uint256);
@@ -202,6 +205,8 @@ interface IStableSwapPool {
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount) external returns (uint256);
 
     function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 _min_amount, bool _use_underlying) external returns (uint256);
+
+    function approve(address _spender, uint256 _value) external returns (bool);
 
 }
 
@@ -237,7 +242,7 @@ interface IRewardsOnlyGauge is IERC20 {
 
     function withdraw(uint256 _value) external;
 
-    function lp_token() external returns (address);
+    function lp_token() external view returns (address);
 
     function claim_rewards(address _addr, address _receiver) external;
 

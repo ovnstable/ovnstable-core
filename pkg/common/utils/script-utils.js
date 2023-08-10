@@ -741,7 +741,11 @@ async function transferAsset(assetAddress, to, amount) {
                 case ARBITRUM.usdt:
                     from = '0x8f9c79b9de8b0713dcac3e535fc5a1a92db6ea2d';
                     break;
+                case ARBITRUM.fraxbp:
+                    from = '0x7d94283d7c15b87aed6a296c3d1c2fb334509907';
+                    break;
                 default:
+                    console.log('assetAddress', assetAddress);
                     throw new Error('Unknown asset address');
             }
             break;
@@ -770,6 +774,9 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case OPTIMISM.wbtc:
                     from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+                    break;
+                case OPTIMISM.fraxbp:
+                    from = '0xbabf8480349dab3840c8040db80c42cd456dea85';
                     break;
                 default:
                     throw new Error('Unknown asset address');
