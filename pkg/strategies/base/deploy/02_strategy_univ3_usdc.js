@@ -12,8 +12,8 @@ let params =  {
     npm: '0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1',
     fee: 100,
     pool: '0x22f9623817f152148b4e080e98af66fbe9c5adf8',
-    tickLower: -276354,
-    tickUpper: -276353,
+    tickLower: -276325, // 0.999903
+    tickUpper: -276324, // 1.000003
 }
 
 module.exports = async ({deployments}) => {

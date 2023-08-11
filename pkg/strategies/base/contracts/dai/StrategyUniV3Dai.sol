@@ -93,9 +93,6 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
         dai.approve(address(balancerVault), type(uint256).max);
         usdc.approve(address(balancerVault), type(uint256).max);
 
-        swapSlippageBP = 50; // 0.5%
-        stakeSlippageBP = 100; // 1%
-
         emit StrategyUpdatedParams();
     }
 
@@ -120,7 +117,7 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
                 tickUpper : tickUpper,
                 amount0Desired : daiAmount,
                 amount1Desired : 0,
-                amount0Min : 0,
+                amount0Min : OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
                 amount1Min : 0,
                 recipient : address(this),
                 deadline : block.timestamp
@@ -133,7 +130,7 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
                 tokenId: tokenId,
                 amount0Desired: daiAmount,
                 amount1Desired: 0,
-                amount0Min: 0,
+                amount0Min: OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
                 amount1Min: 0,
                 deadline: block.timestamp
             });
@@ -155,7 +152,7 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
             return 0;
         }
 
-        _amount = OvnMath.reverseSubBasisPoints(_amount, swapSlippageBP + stakeSlippageBP);
+        _amount = OvnMath.addBasisPoints(_amount, swapSlippageBP + stakeSlippageBP);
 
         (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
@@ -169,7 +166,7 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: tokenId,
             liquidity: liquidity,
-            amount0Min: 0,
+            amount0Min: OvnMath.subBasisPoints(_amount, stakeSlippageBP),
             amount1Min: 0,
             deadline: block.timestamp
         });
@@ -257,7 +254,7 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
                 tickUpper : tickUpper,
                 amount0Desired : daiAmount,
                 amount1Desired : 0,
-                amount0Min : 0,
+                amount0Min : OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
                 amount1Min : 0,
                 recipient : address(this),
                 deadline : block.timestamp
