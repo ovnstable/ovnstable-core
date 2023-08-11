@@ -345,6 +345,26 @@ library BaseSwapLibrary {
         return amounts[2];
     }
 
+    function getAmountOut(
+        address baseSwapRouter,
+        address inputToken,
+        address middleToken0,
+        address middleToken1,
+        address outputToken,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        address[] memory path = new address[](4);
+        path[0] = inputToken;
+        path[1] = middleToken0;
+        path[2] = middleToken1;
+        path[3] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).getAmountsOut(amountInput, path);
+
+        return amounts[3];
+    }
+
     function singleSwap(
         address baseSwapRouter,
         address inputToken,
@@ -397,6 +417,36 @@ library BaseSwapLibrary {
         );
 
         return amounts[2];
+    }
+
+    function multiSwap(
+        address baseSwapRouter,
+        address inputToken,
+        address middleToken0,
+        address middleToken1,
+        address outputToken,
+        uint256 amountInput,
+        uint256 amountOutMin,
+        address recipient
+    ) internal returns (uint256) {
+
+        IERC20(inputToken).approve(baseSwapRouter, amountInput);
+
+        address[] memory path = new address[](4);
+        path[0] = inputToken;
+        path[1] = middleToken0;
+        path[2] = middleToken1;
+        path[3] = outputToken;
+
+        uint[] memory amounts = IBaseSwapRouter02(baseSwapRouter).swapExactTokensForTokens(
+            amountInput,
+            amountOutMin,
+            path,
+            recipient,
+            block.timestamp
+        );
+
+        return amounts[3];
     }
 
 }
