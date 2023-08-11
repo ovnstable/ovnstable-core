@@ -1,5 +1,5 @@
 const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
@@ -16,7 +16,7 @@ async function main() {
 
     addresses.push(pmUsd.address);
     values.push(0);
-    abis.push(pmUsd.interface.encodeFunctionData('addStrategy', ['']));
+    abis.push(pmUsd.interface.encodeFunctionData('addStrategy', ['0xf0b8121E1871712aaD5173525492c016Ca67FFD5']));
 
     addresses.push(pmDai.address);
     values.push(0);
@@ -24,9 +24,10 @@ async function main() {
 
     addresses.push(pmDai.address);
     values.push(0);
-    abis.push(pmDai.interface.encodeFunctionData('addStrategy', ['']));
+    abis.push(pmDai.interface.encodeFunctionData('addStrategy', ['0xb4493a7C35645Ef5c677688F92125ED6cedAB9E7']));
 
 
+    // await testProposal(addresses, values, abis);
     await createProposal(addresses, values, abis);
 }
 
