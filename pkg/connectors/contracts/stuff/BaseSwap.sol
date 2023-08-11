@@ -270,7 +270,18 @@ interface IMasterChefV2 {
     // Info of each user that stakes LP tokens.
     function userInfo(uint256 pid, address user) external view returns (uint256 amount, uint256 rewardDebt);
 
+    // Info of each pool.
+    struct PoolInfo {
+        address lpToken;           // Address of LP token contract.
+        uint256 allocPoint;
+        uint256 lastRewardTime;
+        uint256 accPerShare;
+        uint256 totalDeposit;
+    }
+
     function poolLength() external view returns (uint256);
+
+    function poolInfo(uint256 _pid) external view returns (PoolInfo memory poolInfo);
 
     // Allows users to see if rewards have started
     function rewardsStarted() external view returns (bool);
