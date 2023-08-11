@@ -20,7 +20,7 @@ describe("BASE", function () {
             strategyTest(params, 'BASE', 'dai', runStrategyLogic);
             break;
         default:
-            strategyTest(params, 'BASE', 'usdc', runStrategyLogic);
+            strategyTest(params, 'BASE', 'usdbc', runStrategyLogic);
             break;
     }
 });

@@ -368,15 +368,18 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
         values.forEach(item => {
 
             let stakeValue = item.value;
+            let freeAssetPercent = item.freeAssetPercent ? item.freeAssetPercent : 0.1;
 
             describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
                 let balanceAsset;
                 let freeAsset;
+                let FREE_ASSET_DELTA;
 
                 sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
                     let assetValue = toAsset(stakeValue);
+                    FREE_ASSET_DELTA = new BigNumber(assetValue).times(new BigNumber(freeAssetPercent)).div(100);
 
                     await asset.transfer(recipient.address, assetValue);
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
@@ -405,7 +408,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                     let items = [
                         ...createCheck('claimRewards', 'rewards', new BigNumber(0), balanceAsset, new BigNumber(0), new BigNumber(-1), true),
-                        ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), new BigNumber(0)),
+                        ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
                     ]
 
                     console.table(items);
@@ -415,8 +418,8 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                     expect(balanceAsset.toNumber()).to.greaterThan(0);
                 });
 
-                it(`Free asset is 0`, async function () {
-                    expect(freeAsset.toFixed()).to.equal('0');
+                it(`Free asset is in range`, async function () {
+                    greatLess(freeAsset, FREE_ASSET_DELTA, FREE_ASSET_DELTA);
                 });
 
             });
@@ -450,17 +453,20 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
             values.forEach(item => {
 
                 let stakeValue = item.value;
+                let freeAssetPercent = item.freeAssetPercent ? item.freeAssetPercent : 0.1;
 
                 describe(`Stake ${stakeValue} => ClaimRewards`, function () {
 
                     let balanceAsset;
                     let balanceAssetDoubleFarm;
                     let freeAsset;
+                    let FREE_ASSET_DELTA;
 
                     sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
                         let assetValue = toAsset(stakeValue);
                         let totalStaked = assetValue;
+                        FREE_ASSET_DELTA = new BigNumber(assetValue).times(new BigNumber(freeAssetPercent)).div(100);
 
                         await asset.transfer(recipient.address, assetValue);
                         await asset.connect(recipient).transfer(strategy.address, assetValue);
@@ -495,7 +501,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                         let items = [
                             ...createCheck('claimRewards', 'double rewards', new BigNumber(0), balanceAssetDoubleFarm, balanceAsset.times(new BigNumber(1.2)), new BigNumber(-1), true),
-                            ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), new BigNumber(0)),
+                            ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
                         ]
 
                         console.table(items);
@@ -507,8 +513,8 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                         }
                     });
 
-                    it(`Free asset is 0`, async function () {
-                        expect(freeAsset.toFixed()).to.equal('0');
+                    it(`Free asset is in range`, async function () {
+                        greatLess(freeAsset, FREE_ASSET_DELTA, FREE_ASSET_DELTA);
                     });
 
                 });

@@ -25,6 +25,7 @@ let BASE = {
     baseSwapRouter: '0x327df1e6de05895d2ab08513aadd9313fe505d86',
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
+    chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
     chainlinkWeth: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
     // swaps
     odosRouter: "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
