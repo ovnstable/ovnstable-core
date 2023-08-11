@@ -1,4 +1,4 @@
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getPrice, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
 const {fromE6, fromE18} = require("@overnight-contracts/common/utils/decimals");
 
@@ -10,17 +10,23 @@ async function main() {
     let uniV3Dai = await getContract('StrategyUniV3Dai', 'base_dai');
 
     // For test
-    // await (await uniV3Dai.resetNewPosition()).wait();
+    await (await uniV3Dai.resetNewPosition(-276300, -276299)).wait();
+    await (await baseSwap.setSlippages(40, 20, 4)).wait();
 
     // Test block: 2489907
-    console.log('BaseSwap USDC/DAI: ' + fromE6(await baseSwap.netAssetValue()));
-    console.log('UniV3         DAI: ' + fromE18(await uniV3Dai.netAssetValue()));
+
+    await showM2M('base');
+    await showM2M('base_dai');
+
+    console.log('Balance DAI+');
     await (await pmDai.balance()).wait();
-    console.log('BaseSwap USDC/DAI: ' + fromE6(await baseSwap.netAssetValue()));
-    console.log('UniV3         DAI: ' + fromE18(await uniV3Dai.netAssetValue()));
+    await showM2M('base');
+    await showM2M('base_dai');
+
+    console.log('Balance USD+');
     await (await pmUsd.balance()).wait();
-    console.log('BaseSwap USDC/DAI: ' + fromE6(await baseSwap.netAssetValue()));
-    console.log('UniV3         DAI: ' + fromE18(await uniV3Dai.netAssetValue()));
+    await showM2M('base');
+    await showM2M('base_dai');
 }
 
 
