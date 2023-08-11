@@ -10,6 +10,7 @@ const {toE6, toE18, fromAsset} = require("./decimals");
 const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
 const {transferAsset, getERC20, transferETH, initWallet} = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
+const {Roles} = require("./roles");
 
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
@@ -545,6 +546,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic){
 
     const strategy = await ethers.getContract(strategyName);
     await strategy.setPortfolioManager(recipient.address);
+    await strategy.grantRole(Roles.PORTFOLIO_AGENT_ROLE, recipient.address);
 
     if (strategyParams.isRunStrategyLogic) {
         await runStrategyLogic(strategyName, strategy.address);
