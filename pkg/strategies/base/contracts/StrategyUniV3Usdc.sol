@@ -35,9 +35,6 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
     IVault public balancerVault;
     bytes32 public poolId;
 
-    uint256 public allowedSwapSlippage;
-    uint256 public allowedStakeSlippage;
-
     // --- events
     event StrategyUpdatedParams();
 
@@ -57,7 +54,7 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
         int24 tickLower;
         int24 tickUpper;
         uint256 allowedSwapSlippage;
-        uint256 allowedStakeSlippage;
+        uint256 stakeSlippageBP;
     }
 
 
@@ -90,16 +87,16 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
         balancerVault = IVault(params.balancerVault);
         poolId = params.poolId;
 
-        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals(); 
+        usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
-
-        allowedSwapSlippage = params.allowedSwapSlippage;
-        allowedStakeSlippage = params.allowedStakeSlippage;
 
         dai.approve(address(npm), type(uint256).max);
         usdc.approve(address(npm), type(uint256).max);
         dai.approve(address(balancerVault), type(uint256).max);
         usdc.approve(address(balancerVault), type(uint256).max);
+
+        swapSlippageBP = 50; // 0.5%
+        stakeSlippageBP = 100; // 1%
 
         emit StrategyUpdatedParams();
     }
@@ -160,7 +157,7 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
             return 0;
         }
 
-        _amount = OvnMath.reverseSubBasisPoints(_amount, allowedSwapSlippage + allowedStakeSlippage);
+        _amount = OvnMath.reverseSubBasisPoints(_amount, swapSlippageBP + stakeSlippageBP);
 
         (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
@@ -214,14 +211,14 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
         tokenId = 0;
 
         if (dai.balanceOf(address(this)) > 10**15) {
-            uint256 usdcAmountMin = OvnMath.subBasisPoints(usdToUsdc(daiToUsd(dai.balanceOf(address(this)))), allowedSwapSlippage);
+            uint256 usdcAmountMin = OvnMath.subBasisPoints(_oracleDaiToUsdc(dai.balanceOf(address(this))), swapSlippageBP);
             _swap(dai, usdc, usdcAmountMin);
         }
 
         return usdc.balanceOf(address(this));
     }
 
-    function resetNewPosition(int24 _tickLower, int24 _tickUpper) external onlyAdmin {
+    function resetNewPosition(int24 _tickLower, int24 _tickUpper) external onlyPortfolioAgent {
 
         if (tokenId > 0) {
 
@@ -245,7 +242,7 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
         }
 
         if (dai.balanceOf(address(this)) > 10**15) {
-            uint256 usdcAmountMin = OvnMath.subBasisPoints(usdToUsdc(daiToUsd(dai.balanceOf(address(this)))), allowedSwapSlippage);
+            uint256 usdcAmountMin = OvnMath.subBasisPoints(_oracleDaiToUsdc(dai.balanceOf(address(this))), swapSlippageBP);
             _swap(dai, usdc, usdcAmountMin);
         }
 
@@ -296,35 +293,31 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        (uint256 balance0, uint256 balance1) = (0, 0);
+        (uint256 balanceDai, uint256 balanceUsdc) = (0, 0);
         if (tokenId > 0) {
             (,,,,,,,uint128 liquidity,,,,) = npm.positions(tokenId);
             if (liquidity > 0) {
                 (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
                 uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
                 uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-                (balance0, balance1) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
+                (balanceDai, balanceUsdc) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
             }
         }
-        uint256 daiBalance = usdToUsdc(daiToUsd(balance0 + dai.balanceOf(address(this))));
-        uint256 usdcBalance = balance1 + usdc.balanceOf(address(this));
+        uint256 daiBalance = _oracleDaiToUsdc(balanceDai + dai.balanceOf(address(this)));
+        uint256 usdcBalance = balanceUsdc + usdc.balanceOf(address(this));
         return daiBalance + usdcBalance;
     }
 
-    function daiToUsd(uint256 amount) public view returns (uint256) {
-        return amount * uint256(oracleDai.latestAnswer()) / daiDm / 100;
+    function _oracleDaiToUsdc(uint256 daiAmount) internal view returns (uint256) {
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdcDm, priceDai, priceUsdc);
     }
 
-    function usdcToUsd(uint256 amount) public view returns (uint256) {
-        return amount * uint256(oracleUsdc.latestAnswer()) / usdcDm / 100;
-    }
-
-    function usdToUsdc(uint256 amount) public view returns (uint256) {
-        return amount * 100 * usdcDm / uint256(oracleUsdc.latestAnswer());
-    }
-
-    function usdToDai(uint256 amount) public view returns (uint256) {
-        return amount * 100 * daiDm / uint256(oracleDai.latestAnswer());
+    function _oracleUsdcToDai(uint256 usdcAmount) internal view returns (uint256) {
+        uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
+        uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
+        return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, daiDm, priceUsdc, priceDai);
     }
 
     function _isAllLiquidityInBaseAsset() internal view returns (bool) {

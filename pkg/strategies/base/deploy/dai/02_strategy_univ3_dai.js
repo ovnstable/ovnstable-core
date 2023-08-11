@@ -14,8 +14,6 @@ let params =  {
     pool: '0x22f9623817f152148b4e080e98af66fbe9c5adf8',
     tickLower: -276289,
     tickUpper: -276288,
-    allowedSwapSlippage: 50, // 0.5%
-    allowedStakeSlippage: 100, // 1%
 }
 
 module.exports = async ({deployments}) => {
