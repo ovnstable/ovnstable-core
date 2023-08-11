@@ -215,6 +215,8 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
 
     function resetNewPosition(int24 _tickLower, int24 _tickUpper) external onlyPortfolioAgent {
 
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
         if (tokenId > 0) {
 
             require(_isAllLiquidityInBaseAsset(), 'Reset new position with split liquidity is not supported');
@@ -246,21 +248,26 @@ contract StrategyUniV3Dai is Strategy, IERC721Receiver {
 
         uint256 daiAmount = dai.balanceOf(address(this));
 
-        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-                token0 : address(dai),
-                token1 : address(usdc),
-                fee: fee,
-                tickLower : tickLower,
-                tickUpper : tickUpper,
-                amount0Desired : daiAmount,
-                amount1Desired : 0,
-                amount0Min : OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
-                amount1Min : 0,
-                recipient : address(this),
-                deadline : block.timestamp
+        if(daiAmount > 0){
+            INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0 : address(dai),
+            token1 : address(usdc),
+            fee: fee,
+            tickLower : tickLower,
+            tickUpper : tickUpper,
+            amount0Desired : daiAmount,
+            amount1Desired : 0,
+            amount0Min : OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
+            amount1Min : 0,
+            recipient : address(this),
+            deadline : block.timestamp
             });
 
-        (tokenId,,,) = npm.mint(params);
+            (tokenId,,,) = npm.mint(params);
+        }
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
     }
 
     function _swap(IERC20 token0, IERC20 token1, uint256 minAmount) internal {
