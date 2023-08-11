@@ -53,8 +53,6 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
         address pool;
         int24 tickLower;
         int24 tickUpper;
-        uint256 allowedSwapSlippage;
-        uint256 stakeSlippageBP;
     }
 
 
