@@ -338,17 +338,17 @@ async function getStrategyMapping(){
     return strategiesMapping;
 }
 
-async function showM2M(blocknumber) {
+async function showM2M(stand = process.env.STAND, blocknumber) {
 
-    let m2m = await getContract('Mark2Market', process.env.STAND);
+    let m2m = await getContract('Mark2Market', stand);
 
     let usdPlus;
-    if (process.env.STAND.includes('_ins')){
-        usdPlus = await getContract('InsuranceToken', process.env.STAND);
+    if (stand.includes('_ins')){
+        usdPlus = await getContract('InsuranceToken', stand);
     }else {
-        usdPlus = await getContract('UsdPlusToken', process.env.STAND);
+        usdPlus = await getContract('UsdPlusToken', stand);
     }
-    let pm = await getContract('PortfolioManager', process.env.STAND);
+    let pm = await getContract('PortfolioManager', stand);
 
     let strategyAssets;
     let totalNetAssets;
@@ -382,14 +382,14 @@ async function showM2M(blocknumber) {
         items.push(
             {
                 name: mapping ? mapping.name : asset.strategy,
-                netAssetValue: fromAsset(asset.netAssetValue.toString()),
-                liquidationValue: fromAsset(asset.liquidationValue.toString()),
+                netAssetValue: fromAsset(asset.netAssetValue.toString(), stand),
+                liquidationValue: fromAsset(asset.liquidationValue.toString(), stand),
                 targetWeight:  weight.targetWeight.toNumber() / 1000,
                 maxWeight: weight.maxWeight.toNumber() / 1000,
                 enabled: weight.enabled,
                 enabledReward: weight.enabledReward
             });
-        sum += parseFloat(fromAsset(asset.netAssetValue.toString()));
+        sum += parseFloat(fromAsset(asset.netAssetValue.toString(), stand));
     }
 
     for (let i = 0; i < items.length; i++) {
@@ -397,18 +397,10 @@ async function showM2M(blocknumber) {
     }
 
     console.table(items);
-    console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString()));
+    console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString(), stand));
 
     if (usdPlus){
-
-        let fromUsdPlus;
-        if (process.env.STAND.includes('dai')){
-            fromUsdPlus = fromE18;
-        }else {
-            fromUsdPlus = fromE6;
-        }
-
-        let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({blockTag: blocknumber}));
+        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}), stand);
         console.log('Total USD+: ' + totalUsdPlus);
     }
 

@@ -30,24 +30,24 @@ function fromE8(value) {
     return value / 10 ** 8;
 }
 
-function toAsset(value) {
-    if (process.env.STAND === 'bsc' ||
-        process.env.STAND === 'bsc_usdt' ||
-        process.env.STAND === 'optimism_dai' ||
-        process.env.STAND === "base_dai" ||
-        process.env.STAND === "arbitrum_dai") {
+function toAsset(value, stand = process.env.STAND) {
+    if (stand === 'bsc' ||
+        stand === 'bsc_usdt' ||
+        stand === 'optimism_dai' ||
+        stand === "base_dai" ||
+        stand === "arbitrum_dai") {
         return toE18(value);
     } else {
         return toE6(value);
     }
 }
 
-function fromAsset(value) {
-    if (process.env.STAND === 'bsc' ||
-        process.env.STAND === 'bsc_usdt' ||
-        process.env.STAND === 'optimism_dai' ||
-        process.env.STAND === 'base_dai' ||
-        process.env.STAND === "arbitrum_dai") {
+function fromAsset(value, stand = process.env.STAND) {
+    if (stand === 'bsc' ||
+        stand === 'bsc_usdt' ||
+        stand === 'optimism_dai' ||
+        stand === 'base_dai' ||
+        stand === "arbitrum_dai") {
         return fromE18(value);
     } else {
         return fromE6(value);
