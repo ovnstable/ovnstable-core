@@ -15,6 +15,7 @@ let BASE = {
     bvm: '0xd386a121991E51Eab5e3433Bf5B1cF4C8884b47a',
     bswap: '0x78a087d713Be963Bf307b18F2Ff8122EF9A63ae9',
     well: '0xFF8adeC2221f9f4D8dfbAFa6B9a297d17603493D',
+    alb: '0x1dd2d631c92b1aCdFCDd51A0F7145A50130050C4',
     // moonwell
     moonwellUnitroller: '0xfBb21d0380beE3312B33c4353c8936a0F13EF26C',
     moonwellUsdbc: '0x703843C3379b52F9FF486c9f5892218d2a065cC8',
@@ -25,6 +26,7 @@ let BASE = {
     baseSwapRouter: '0x327df1e6de05895d2ab08513aadd9313fe505d86',
     odosRouter: "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
     balancerVault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+    alienBaseRouter: '0x7f2ff89d3C45010c976Ea6bb7715DC7098AF786E',
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
