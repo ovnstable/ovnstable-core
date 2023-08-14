@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/common",
-  "version": "0.0.81",
+  "version": "0.0.82",
   "description": "Common contracts and scripts",
   "main": "hardhat.config",
   "directories": {
