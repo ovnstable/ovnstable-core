@@ -138,7 +138,7 @@ interface IAlienBaseRouter02 is IAlienBaseRouter01 {
     ) external;
 }
 
-interface IUniswapV2Pair {
+interface IAlienBasePair {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
@@ -279,51 +279,6 @@ interface IBasedDistributorV2 {
 
     // Function to harvest many pools in a single transaction
     function harvestMany(uint256[] calldata _pids) external;
-
-}
-
-interface IMasterChefV2 {
-
-    // Info of each user that stakes LP tokens.
-    function userInfo(uint256 pid, address user) external view returns (uint256 amount, uint256 rewardDebt);
-
-    // Info of each pool.
-    struct PoolInfo {
-        address lpToken;           // Address of LP token contract.
-        uint256 allocPoint;
-        uint256 lastRewardTime;
-        uint256 accPerShare;
-        uint256 totalDeposit;
-    }
-
-    function poolLength() external view returns (uint256);
-
-    function poolInfo(uint256 _pid) external view returns (PoolInfo memory poolInfo);
-
-    // Allows users to see if rewards have started
-    function rewardsStarted() external view returns (bool);
-
-    // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to) external view returns (uint256);
-
-    // View function to see pending BSWAP on frontend.
-    function pendingReward(uint256 _pid, address _user) external view returns (uint256);
-
-    // Update reward variables for all pools. Be careful of gas spending!
-    function massUpdatePools() external;
-
-    // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) external;
-
-    // Deposit LP tokens to MasterChef for BSWAP allocation.
-    function deposit(uint256 _pid, uint256 _amount) external;
-
-    // Withdraw LP tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) external;
-
-    // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) external;
-
 }
 
 library AlienBaseLibrary {
