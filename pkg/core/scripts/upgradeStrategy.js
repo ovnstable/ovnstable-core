@@ -8,16 +8,22 @@ const {StrategyThenaUsdtUsdc} = require("@overnight-contracts/strategies-bsc/dep
 
 async function main() {
 
-    let strategy = await getContract('StrategyEquilibriaDaiGDai', 'arbitrum_dai');
+    let daiStrategy = await getContract('StrategyKyberSwapUsdcDai', 'optimism');
+    let usdtStrategy = await getContract('StrategyKyberSwapUsdcUsdt', 'optimism');
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    addresses.push(strategy.address);
+    addresses.push(daiStrategy.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0x17cAeEb820f6763C7e98F026E5B5a91E448c94d6']));
+    abis.push(daiStrategy.interface.encodeFunctionData('upgradeTo', ['0x44bb1f5eEa87cD910505EEa6aD7EaC6E14EeE1bB']));
 
+    addresses.push(usdtStrategy.address);
+    values.push(0);
+    abis.push(usdtStrategy.interface.encodeFunctionData('upgradeTo', ['0xb21350049EEeF54Ffb1bcaf8C7848acC631e6D6f']));
+
+    // await testProposal(addresses, values, abis);
     await createProposal(addresses, values, abis)
 
 }
