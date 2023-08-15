@@ -832,6 +832,8 @@ interface TicksFeesReader {
 
 interface KyberSwapElasticLM {
 
+    function positions(uint256 nftId) external view returns (address owner, uint256 liquidity);
+
     function deposit(uint256[] calldata nftIds) external;
 
     function join(uint256 pId, uint256[] calldata nftIds, uint256[] calldata liqs) external;
