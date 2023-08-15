@@ -29,4 +29,4 @@ async function getParams() {
 }
 
 module.exports.tags = ['StrategyMoonwellUsdbc'];
-module.exports.strategyUsdc = getParams;
+module.exports.strategyMoonwellUsdbc = getParams;
