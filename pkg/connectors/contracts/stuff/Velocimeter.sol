@@ -153,10 +153,11 @@ interface IRouter {
 
 interface IPair {
     function metadata() external view returns (uint dec0, uint dec1, uint r0, uint r1, bool st, address t0, address t1);
-    function tokens() external returns (address, address);
+    function tokens() external view returns (address, address);
     function token0() external returns (address);
     function token1() external returns (address);
     function externalBribe() external returns (address);
+    function balanceOf(address account) external view returns (uint256);
     function transferFrom(address src, address dst, uint amount) external returns (bool);
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
@@ -178,6 +179,8 @@ interface IGauge {
     function balanceOf(address) external view returns (uint);
 
     function getReward(address account, address[] memory tokens) external;
+
+    function stake() external view returns (address _pool);
 
     function rewardPerToken(address token) external view returns (uint);
 
@@ -464,5 +467,4 @@ library VelocimeterLibrary {
 
         return amounts[2];
     }
-
 }
