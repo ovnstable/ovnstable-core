@@ -113,12 +113,17 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             }
 
             IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
+            console.log("[Contract Odos] transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), swapData.inputs[i].amountIn);
             asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
+            console.log("[Contract Odos] need approve: %s", odosRouter, swapData.inputs[i].amountIn);
             asset.approve(odosRouter, swapData.inputs[i].amountIn);
+            console.log("[Contract Odos] asset address: %s current address: %s", address(asset), address(this));
+            console.log("[Contract Odos] asset approve: %s", asset.allowance(address(this), odosRouter));
         }
     }
 
     function _swap(SwapData memory swapData) internal returns (address[] memory, uint256[] memory) {
+        console.log("[Contract Odos] _swap");
         (bool success,) = odosRouter.call{value : 0}(swapData.data);
         require(success, "router swap invalid");
 
@@ -128,6 +133,7 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         for (uint256 i = 0; i < swapData.inputs.length; i++) {
             tokensIn[i] = swapData.inputs[i].tokenAddress;
             amountsIn[i] = swapData.inputs[i].amountIn;
+            console.log("[Contract Odos] tokenIn: %s amountIn: %s", tokensIn[i], amountsIn[i]);
         }
         emit InputTokens(amountsIn, tokensIn);
 
@@ -136,7 +142,10 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             tokensOut[i] = swapData.outputs[i].tokenAddress;
             amountsOut[i] = IERC20(tokensOut[i]).balanceOf(swapData.outputs[i].receiver);
+            console.log("[Contract Odos] tokenOut: %s amountOut: %s", tokensOut[i], amountsOut[i]);
         }
+
+        console.log("[Contract Odos] _swap end");
         emit OutputTokens(amountsOut, tokensOut);
         return (tokensOut, amountsOut);
     }

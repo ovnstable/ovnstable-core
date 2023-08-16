@@ -35,6 +35,7 @@ contract VelocimeterZap is OdosZap {
         address _token = gauge.stake();
         IPair pair = IPair(_token);
         (address token0, address token1) = pair.tokens();
+        console.log("[Contract] token0: %s token1: %s", token0, token1);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = token0;
@@ -45,8 +46,11 @@ contract VelocimeterZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (velocimeterData.amountsOut[i] > 0) {
-                console.log("transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velocimeterData.amountsOut[i]);
-                console.log("asset balance: %s", asset.balanceOf(address(this)));
+                console.log("[Contract] transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velocimeterData.amountsOut[i]);
+                console.log("[Contract] asset address: %s current address: %s", address(asset), address(this));
+                console.log("[Contract] asset balance: %s", asset.balanceOf(address(this)));
+                console.log("[Contract] sender balance: %s", asset.balanceOf(msg.sender));
+//                asset.approve(msg.sender, velocimeterData.amountsOut[i]);
                 asset.transferFrom(msg.sender, address(this), velocimeterData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
@@ -153,6 +157,6 @@ contract VelocimeterZap is OdosZap {
 
     function _returnToUser(IPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-//        pair.transfer(msg.sender, pairBalance);
+        pair.transfer(msg.sender, pairBalance);
     }
 }

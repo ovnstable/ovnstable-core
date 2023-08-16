@@ -44,6 +44,10 @@ contract VelodromeZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (velodromeData.amountsOut[i] > 0) {
+                console.log("[Contract] transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velodromeData.amountsOut[i]);
+                console.log("[Contract] asset address: %s current address: %s", address(asset), address(this));
+                console.log("[Contract] asset balance: %s", asset.balanceOf(address(this)));
+                console.log("[Contract] sender balance: %s", asset.balanceOf(msg.sender));
                 asset.transferFrom(msg.sender, address(this), velodromeData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));

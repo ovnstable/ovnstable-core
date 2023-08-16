@@ -54,7 +54,7 @@ describe("VelocimeterZapper", function () {
         token1In = (await getERC20("dai")).connect(account);
     });
 
-    it.only("swap and put nearly equal", async function () {
+    it("swap and put nearly equal", async function () {
 
         const gauge = "0x0daf00a383f8897553ac1d03f4445b15afa1dcb9";
 
@@ -62,8 +62,8 @@ describe("VelocimeterZapper", function () {
 
         const amountToken0In = toE18(100);
         const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(350);
-        const amountToken1Out = toE6(550);
+        const amountToken0Out = toE6(400);
+        const amountToken1Out = toE6(500);
 
         await (await token0In.approve(velocimeterZap.address, amountToken0In)).wait();
         await (await token1In.approve(velocimeterZap.address, amountToken1In)).wait();

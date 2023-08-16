@@ -151,14 +151,14 @@ interface IRouter {
 
 }
 
-interface IPair {
+interface IPair is IERC20Metadata {
     function metadata() external view returns (uint dec0, uint dec1, uint r0, uint r1, bool st, address t0, address t1);
     function tokens() external view returns (address, address);
     function token0() external returns (address);
     function token1() external returns (address);
     function externalBribe() external returns (address);
-    function balanceOf(address account) external view returns (uint256);
-    function transferFrom(address src, address dst, uint amount) external returns (bool);
+//    function balanceOf(address account) external view returns (uint256);
+//    function transferFrom(address src, address dst, uint amount) external returns (bool);
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
     function burn(address to) external returns (uint amount0, uint amount1);
