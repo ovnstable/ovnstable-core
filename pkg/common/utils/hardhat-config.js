@@ -54,11 +54,20 @@ function getNetworkByName(network) {
             zksync: false,
         },
 
+        linea_usdt: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: 'auto',
+            zksync: false,
+        },
+
+
         linea: {
             url: forkingUrl,
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: 'auto',
             zksync: false,
         },
 

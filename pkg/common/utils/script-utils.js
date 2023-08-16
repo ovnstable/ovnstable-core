@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const {DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON} = require("./assets");
+const {DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA} = require("./assets");
 const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const {fromAsset, toAsset } = require("./decimals");
@@ -746,6 +746,18 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case BASE.dai:
                     from = '0xbed01252c3542b02be6162c00ce636720d3c05bd';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
+            break;
+        case "LINEA":
+            switch (assetAddress) {
+                case LINEA.usdc:
+                    from = '0x555ce236c0220695b68341bc48c68d52210cc35b';
+                    break;
+                case LINEA.usdt:
+                    from = '0x4f2604aac91114ae3b3d0be485d407d02b24480b';
                     break;
                 default:
                     throw new Error('Unknown asset address');

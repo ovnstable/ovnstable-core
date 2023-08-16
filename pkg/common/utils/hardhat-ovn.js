@@ -44,9 +44,10 @@ task('deploy', 'deploy')
             };
 
 
+            // By default hre.ethers.provider is proxy object.
+            // Hardhat recreate proxy by events but for real chains we override it
             hre.ethers.provider = new EthersProviderWrapper(hre.network.provider);
             hre.ethers.provider.getFeeData = getFeeData;
-            console.log(await hre.ethers.provider.getFeeData())
         }
 
 

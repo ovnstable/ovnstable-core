@@ -30,7 +30,7 @@ async function main() {
     // If we plan to deploy DAI+|USDT+ and we will have run the rebalancer bot then grantRole below
     // await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, "0x6d2aed058bc4b24faa3397c00f2af6bef4849fe6")).wait();  // Rebalance bot
 
-    await (await exchange.setAbroad(1000100, 1112950)).wait();
+    await (await exchange.setAbroad(1000100, 1000360)).wait();
     await (await exchange.setOracleLoss(100, 100000)).wait();
     await (await exchange.setCompensateLoss(10, 100000)).wait();
 
