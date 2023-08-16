@@ -31,7 +31,7 @@ async function getParams() {
         oracleUsdc: POLYGON.oracleChainlinkUsdc,
         oracleUsdt: POLYGON.oracleChainlinkUsdt,
         oracleDai: POLYGON.oracleChainlinkDai,
-        synapseSwap: POLYGON.synapseSwapRouter,
+        uniswapV3Router: POLYGON.uniswapV3Router,
         usdt: POLYGON.usdt,
         dai: POLYGON.dai,
         bbamUsdtPoolId: "0xff4ce5aaab5a627bf82f4a571ab1ce94aa365ea600000000000000000000075a",

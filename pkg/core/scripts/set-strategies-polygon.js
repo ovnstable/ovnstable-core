@@ -10,7 +10,7 @@ async function main() {
                 "strategy": "0x5e0d74aCeC01b8cb9623658Fc356304fEB01Aa96",
                 "name": "Aave",
                 "minWeight": 0,
-                "targetWeight": 34,
+                "targetWeight": 100,
                 "riskFactor": 0,
                 "maxWeight": 100,
                 "enabled": true,
@@ -21,17 +21,7 @@ async function main() {
                 "name": "Balancer USDC",
                 "minWeight": 0,
                 "targetWeight": 0,
-                "riskFactor": 1,
-                "maxWeight": 100,
-                "enabled": true,
-                "enabledReward": true
-            },
-            {
-                "strategy": "",
-                "name": "Curve Convex 3Pool",
-                "minWeight": 0,
-                "targetWeight": 66,
-                "riskFactor": 1,
+                "riskFactor": 0,
                 "maxWeight": 100,
                 "enabled": true,
                 "enabledReward": true
@@ -40,16 +30,22 @@ async function main() {
 
         weights = await convertWeights(weights);
 
-        let pm = await getContract('PortfolioManager');
         let price = await getPrice();
 
-        await showM2M();
-
+        let pm = await getContract('PortfolioManager');
         await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), (await initWallet()).address, price);
         console.log("role granted");
 
+//        let StrategyBalancerUsdc = await getContract('StrategyBalancerUsdc', 'localhost');
+//        await StrategyBalancerUsdc.setSlippages(100, 20, 4);
+//        console.log("StrategyBalancerUsdc setSlippages done");
+
+        await showM2M();
+
         await pm.setStrategyWeights(weights, price);
         console.log("setStrategyWeights done");
+
+        await showM2M();
 
         await pm.balance(price);
         console.log("balance done");
