@@ -208,7 +208,6 @@ interface IBasedDistributorV2 {
         uint16 depositFeeBP; // Deposit fee in basis points
         uint256 harvestInterval; // Harvest interval in seconds
         uint256 totalLp; // Total token in Pool
-        address[] rewarders; // Array of rewarder contract for pools with incentives
     }
 
     function userInfo(uint256 pid, address user) external view returns (UserInfo memory userInfo);
