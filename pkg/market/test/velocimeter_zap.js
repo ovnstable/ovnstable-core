@@ -86,7 +86,7 @@ describe("VelocimeterZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 10,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
@@ -199,7 +199,7 @@ describe("VelocimeterZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 10,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
@@ -306,7 +306,7 @@ describe("VelocimeterZapper", function () {
         })
 
         const request = await getOdosRequest({
-            "chainId": 10,
+            "chainId": 8453,
             "inputTokens": proportions.inputTokens,
             "outputTokens": proportions.outputTokens,
             "gasPrice": 0.1,
@@ -569,15 +569,10 @@ async function setUp() {
     const signers = await ethers.getSigners();
     const account = signers[0];
 
-    console.log("account.address", account.address);
     await transferAsset(BASE.dai, account.address);
-    console.log("dai transferred");
     await transferAsset(BASE.usdbc, account.address);
-    console.log("usdc transferred");
 
     await getPlusTokens(10_000, account.address);
-    console.log("plus tokens minted");
 
     return account;
-
 }

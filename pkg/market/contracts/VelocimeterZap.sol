@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./OdosZap.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Velocimeter.sol";
+import "hardhat/console.sol";
 
 contract VelocimeterZap is OdosZap {
     IRouter public velocimeterRouter;
@@ -44,6 +45,8 @@ contract VelocimeterZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (velocimeterData.amountsOut[i] > 0) {
+                console.log("transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velocimeterData.amountsOut[i]);
+                console.log("asset balance: %s", asset.balanceOf(address(this)));
                 asset.transferFrom(msg.sender, address(this), velocimeterData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
