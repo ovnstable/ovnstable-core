@@ -11,17 +11,20 @@ const {Wallet, Provider} = require("zksync-web3");
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {BigNumber} = require("ethers");
 const {isZkSync} = require("./network");
+const {updateFeeData} = require("./hardhat-ovn");
 
 let ethers = require('hardhat').ethers;
 
 let wallet = undefined;
 async function initWallet() {
 
-    if (wallet)
+    updateFeeData(hre);
+
+    if (wallet){
         return wallet;
+    }
 
     let provider = ethers.provider;
-
 
     if(process.env.STAND === 'zksync'){
         wallet = new Wallet(process.env.PK_POLYGON);

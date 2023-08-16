@@ -30,26 +30,7 @@ task('deploy', 'deploy')
             gov: args.gov
         }
 
-
-        // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
-        if (hre.network.name !== 'localhost'){
-            let provider = new hre.ethers.providers.StaticJsonRpcProvider(node_url(hre.network.name));
-
-            let getFeeData = async function (){
-                let gasPrice = await provider.getGasPrice();
-                console.log(`Get gasPrice: ${gasPrice.toString()}`);
-                return {
-                    gasPrice: gasPrice
-                }
-            };
-
-
-            // By default hre.ethers.provider is proxy object.
-            // Hardhat recreate proxy by events but for real chains we override it
-            hre.ethers.provider = new EthersProviderWrapper(hre.network.provider);
-            hre.ethers.provider.getFeeData = getFeeData;
-        }
-
+        updateFeedData(hre);
 
         await hre.run('deploy:main', args);
     });
@@ -164,6 +145,7 @@ task(TASK_RUN, 'Run task')
             tags: args.tags,
         }
 
+
         if (hre.network.name === 'localhost'){
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
@@ -172,6 +154,8 @@ task(TASK_RUN, 'Run task')
             await evmCheckpoint('task', hre.network.provider);
 
         await runSuper(args);
+
+        updateFeedData(hre);
 
         if (args.reset)
             await evmRestore('task', hre.network.provider);
@@ -310,3 +294,34 @@ async function transferETH(amount, to, hre) {
 
     console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 }
+
+function updateFeedData(hre){
+
+    // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
+    if (hre.network.name !== 'localhost'){
+        let url = node_url(process.env.ETH_NETWORK);
+        let provider = new hre.ethers.providers.StaticJsonRpcProvider(url);
+
+        let getFeeData = async function (){
+            let gasPrice = await provider.getGasPrice();
+            console.log(`Get gasPrice: ${gasPrice.toString()}`);
+            return {
+                gasPrice: gasPrice
+            }
+        };
+
+
+        // By default hre.ethers.provider is proxy object.
+        // Hardhat recreate proxy by events but for real chains we override it
+        hre.ethers.provider = new EthersProviderWrapper(hre.network.provider);
+        hre.ethers.provider.getFeeData = getFeeData;
+    }
+
+}
+
+module.exports = {
+    updateFeeData: updateFeedData
+}
+
+
+
