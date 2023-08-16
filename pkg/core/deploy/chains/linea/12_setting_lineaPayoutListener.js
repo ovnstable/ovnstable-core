@@ -13,7 +13,9 @@ module.exports = async () => {
 
     let items = [];
 
-    await (await pl.addItems(items)).wait();
+    // await (await pl.addItems(items)).wait();
+   await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'linea')).address)).wait();
+   // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'linea_usdt')).address)).wait();
 
     console.log('LineaPayoutListener setting done');
 

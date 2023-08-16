@@ -1,5 +1,6 @@
 const {getContract, initWallet} = require("@overnight-contracts/common/utils/script-utils");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 /**
@@ -20,7 +21,7 @@ async function main() {
     await (await exchange.grantRole(Roles.UNIT_ROLE, '0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055')).wait(); // payout
     await (await exchange.grantRole(Roles.UNIT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait(); // dev
 
-    await (await exchange.setProfitRecipient( '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46')).wait(); // ovn reward wallet
+    await (await exchange.setProfitRecipient(COMMON.rewardWallet)).wait(); // ovn reward wallet
     await (await exchange.setPayoutListener(undefined)).wait(); // PayoutListener
 
     await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
