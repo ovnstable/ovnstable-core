@@ -339,7 +339,10 @@ contract StrategyKyberSwapUsdcDai is Strategy {
             lm.exit(poolId, nftIds, liqs);
         }
 
-        lm.withdraw(nftIds);
+        (address owner,) = lm.positions(tokenId);
+        if (owner == address(this)) {
+            lm.withdraw(nftIds);
+        }
     }
 
     function getCurrentSqrtRatio() public view returns (uint160 sqrtRatioX96) {

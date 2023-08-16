@@ -14,7 +14,8 @@ module.exports = async () => {
     let items = [];
 //    items.push(...baseSwap());
 //    items.push(...velocimeter());
-    items.push(...swapBased());
+//    items.push(...swapBased());
+    items.push(...alienBase());
 
     let price = await getPrice();
 
@@ -63,6 +64,20 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x282f9231E5294E7354744df36461c21e0E68061C', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+
+    }
+
+    function alienBase() {
+
+        let dex = 'AlienBase';
+        let to = '0x845e2f1336D686794f791203CA6733d51672F543';
+
+        let items = [];
+        items.push(createSkimToWithFee('0xd97a40434627D5c897790DE9a3d2E577Cba5F2E0', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xd97a40434627D5c897790DE9a3d2E577Cba5F2E0', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x553666081db0a8fdB337560009932852059d589A', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
 
