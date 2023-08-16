@@ -9,7 +9,7 @@ const {
     TASK_TEST,
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
-const {getNodeUrl, getBlockNumber} = require("./network");
+const {getNodeUrl, getBlockNumber, node_url} = require("./network");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -28,6 +28,23 @@ task('deploy', 'deploy')
             tags: args.tags,
             gov: args.gov
         }
+
+
+        // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
+        if (hre.network.name !== 'localhost'){
+            let provider = new hre.ethers.providers.StaticJsonRpcProvider(node_url(hre.network.name));
+            provider.getFeeData = async function (){
+                let gasPrice = await provider.getGasPrice();
+                console.log(`Get gasPrice: ${gasPrice.toString()}`);
+                return {
+                    gasPrice: gasPrice
+                }
+            };
+
+
+            hre.ethers.provider = provider;
+        }
+
 
         await hre.run('deploy:main', args);
     });
