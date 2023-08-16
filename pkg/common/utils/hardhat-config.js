@@ -222,6 +222,22 @@ function getEtherScan(chain){
                     apiURL: "https://api.basescan.org/api",
                     browserURL: "https://basescan.org"
                 }
+            },
+            {
+                network: "linea",
+                chainId:  59144,
+                urls: {
+                    apiURL: "https://api.lineascan.build/api",
+                    browserURL: "https://lineascan.build"
+                }
+            },
+            {
+                network: "linea_usdt",
+                chainId:  59144,
+                urls: {
+                    apiURL: "https://api.lineascan.build/api",
+                    browserURL: "https://lineascan.build"
+                }
             }
         ]
 
