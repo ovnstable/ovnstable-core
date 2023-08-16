@@ -1,4 +1,4 @@
-const {task} = require("hardhat/config");
+const {task, extendEnvironment} = require("hardhat/config");
 const fs = require('fs');
 const fse = require('fs-extra');
 
@@ -10,6 +10,7 @@ const {
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 const {getNodeUrl, getBlockNumber, node_url} = require("./network");
+const {EthersProviderWrapper} = require("@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -33,7 +34,8 @@ task('deploy', 'deploy')
         // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
         if (hre.network.name !== 'localhost'){
             let provider = new hre.ethers.providers.StaticJsonRpcProvider(node_url(hre.network.name));
-            provider.getFeeData = async function (){
+
+            let getFeeData = async function (){
                 let gasPrice = await provider.getGasPrice();
                 console.log(`Get gasPrice: ${gasPrice.toString()}`);
                 return {
@@ -42,7 +44,9 @@ task('deploy', 'deploy')
             };
 
 
-            hre.ethers.provider = provider;
+            hre.ethers.provider = new EthersProviderWrapper(hre.network.provider);
+            hre.ethers.provider.getFeeData = getFeeData;
+            console.log(await hre.ethers.provider.getFeeData())
         }
 
 
