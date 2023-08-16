@@ -11,6 +11,9 @@ interface VaultFeeReward {
 }
 
 interface VaultTokenReward {
+
+    function earned(address account) external view returns (uint256);
+
     function getReward() external;
 
 }
@@ -95,3 +98,67 @@ interface PikaPerpV4 {
     function stake(uint256 amount, address user) external;
 }
 
+interface IPikaVester {
+
+    struct UserInfo {
+        uint256 initialDepositAmount;
+        uint256 depositAmount;
+        uint256 vestedUntil;
+        uint256 vestingStartTime;
+    }
+
+    struct DepositVestingStatus {
+        uint256 depositId;
+        uint256 initialDepositAmount;
+        uint256 depositAmount;
+        uint256 claimableAmount;
+        uint256 vestedUntil;
+        uint256 vestingStartTime;
+    }
+
+    /**
+     * @notice Deposit esPIKA for vesting.
+     */
+    function deposit(uint256 _amount) external;
+
+    /**
+     * @notice Deposit esPIKA to vest for _to address.
+     */
+    function depositFor(uint256 _amount, address _to) external;
+
+    /**
+     * @notice Withdraw the deposited esPIKA. The vesting is reset for the withdrawn amount.
+     */
+    function withdraw(uint256 _amount, uint256 _depositId) external;
+
+    /**
+     * @notice Claim PIKA token from vesting. If the vesting is not completed, it is attached a fee,
+     * which decreases linearly to 0 at the vesting completion time. The deposited esPIKA token is burned and
+     * the fee is transferred to the treasury.
+     */
+    function claim(uint256 _depositId) external;
+
+    function claimAll() external;
+
+    function claimable(address _account, uint256 _depositId) external view returns(uint256);
+
+    function claimableAll(address _account) external view returns(uint256 claimableAmount);
+
+    function unvested(address _account, uint256 _depositId) external view returns(uint256);
+
+    function unvestedAll(address _account) view external returns(uint256);
+
+    function initialDeposited(address _account, uint256 _depositId) external view returns(uint256);
+
+    function initialDepositedAll(address _account) external view returns(uint256 initialDepositedAllAmount);
+
+    function deposited(address _account, uint256 _depositId) external view returns(uint256);
+
+    function depositedAll(address _account) external view returns(uint256 depositedAllAmount);
+
+    function getAllUserDepositIds(address _user) external view returns (uint256[] memory);
+
+    function getVestingStatus(address _user, uint256 _depositId) external view returns(DepositVestingStatus memory);
+
+    function getVestingStatuses(address _user) external view returns(DepositVestingStatus[] memory);
+}
