@@ -46,11 +46,15 @@ contract VelocimeterZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (velocimeterData.amountsOut[i] > 0) {
+                console.log("[Contract] sender account: %s", msg.sender);
+                console.log("[Contract] this account: %s", address(this));
+                console.log("[Contract] asset approved to sender: %s", asset.allowance(msg.sender, address(this)));
+                console.log("[Contract] asset approved to odosrouter: %s", asset.allowance(msg.sender, odosRouter));
+                console.log("[Contract] asset balance on sender: %s", asset.balanceOf(msg.sender));
                 console.log("[Contract] transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velocimeterData.amountsOut[i]);
-                console.log("[Contract] asset address: %s current address: %s", address(asset), address(this));
-                console.log("[Contract] asset balance: %s", asset.balanceOf(address(this)));
-                console.log("[Contract] sender balance: %s", asset.balanceOf(msg.sender));
 //                asset.approve(msg.sender, velocimeterData.amountsOut[i]);
+                asset.approve(address(this), velocimeterData.amountsOut[i]);
+                console.log("[Contract] asset allowance approve contract: %s", asset.allowance(msg.sender, address(this)));
                 asset.transferFrom(msg.sender, address(this), velocimeterData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));

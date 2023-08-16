@@ -43,9 +43,9 @@ describe("VelocimeterZapper", function () {
         console.log("contracts deployed")
 
         account = await setUp();
-        console.log("account set up")
+        console.log("[Deploy] account set up: " + account.address)
         velocimeterZap = await ethers.getContract("VelocimeterZap");
-        console.log("velocimeterZap set up")
+        console.log("[Deploy] velocimeterZap set up", velocimeterZap.address)
 
         token0Out = (await getContract('UsdPlusToken', 'base')).connect(account);
         token1Out = (await getERC20("usdbc")).connect(account);
