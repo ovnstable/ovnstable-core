@@ -88,6 +88,17 @@ async function settingSection(exec){
                 strategy = strategy.connect(await initWallet())
             }
 
+            if (hre.ovn.gov) {
+                let timelock = await getContract('OvnTimelockController');
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+                await hre.network.provider.request({
+                    method: "hardhat_impersonateAccount",
+                    params: [timelock.address],
+                });
+                const timelockAccount = await hre.ethers.getSigner(timelock.address);
+                strategy = strategy.connect(timelockAccount);
+            }
+
             let pm = await getContract('PortfolioManager', process.env.STAND);
             await (await strategy.setPortfolioManager(pm.address)).wait();
 
