@@ -37,20 +37,15 @@ describe("VelocimeterZapper", function () {
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
-
-        console.log("deploying contracts...")
         await deployments.fixture(['VelocimeterZap']);
-        console.log("contracts deployed")
 
         account = await setUp();
-        console.log("[Deploy] account set up: " + account.address)
         velocimeterZap = await ethers.getContract("VelocimeterZap");
-        console.log("[Deploy] velocimeterZap set up", velocimeterZap.address)
 
-        token0Out = (await getContract('UsdPlusToken', 'base')).connect(account);
-        token1Out = (await getERC20("usdbc")).connect(account);
+        token0Out = (await getContract('UsdPlusToken', 'base_dai')).connect(account);
+        token1Out = (await getContract('UsdPlusToken', 'base')).connect(account);
 
-        token0In = (await getContract('UsdPlusToken', 'base_dai')).connect(account);
+        token0In = (await getERC20("usdbc")).connect(account);
         token1In = (await getERC20("dai")).connect(account);
     });
 
@@ -60,9 +55,9 @@ describe("VelocimeterZapper", function () {
 
         await showBalances();
 
-        const amountToken0In = toE18(100);
+        const amountToken0In = toE6(100);
         const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(400);
+        const amountToken0Out = toE18(400);
         const amountToken1Out = toE6(500);
 
         await (await token0In.approve(velocimeterZap.address, amountToken0In)).wait();
@@ -74,11 +69,11 @@ describe("VelocimeterZapper", function () {
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [18, 18],
+            inputTokensDecimals: [6, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 6],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -140,8 +135,8 @@ describe("VelocimeterZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
-        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
@@ -173,9 +168,9 @@ describe("VelocimeterZapper", function () {
 
         await showBalances();
 
-        const amountToken0In = toE18(100);
+        const amountToken0In = toE6(100);
         const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(800);
+        const amountToken0Out = toE18(800);
         const amountToken1Out = toE6(100);
 
         await (await token0In.approve(velocimeterZap.address, amountToken0In)).wait();
@@ -187,11 +182,11 @@ describe("VelocimeterZapper", function () {
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [18, 18],
+            inputTokensDecimals: [6, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 6],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -252,8 +247,8 @@ describe("VelocimeterZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
-        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -280,9 +275,9 @@ describe("VelocimeterZapper", function () {
 
         await showBalances();
 
-        const amountToken0In = toE18(100);
+        const amountToken0In = toE6(100);
         const amountToken1In = toE18(100);
-        const amountToken0Out = toE6(100);
+        const amountToken0Out = toE18(100);
         const amountToken1Out = toE6(800);
 
         await (await token0In.approve(velocimeterZap.address, amountToken0In)).wait();
@@ -294,11 +289,11 @@ describe("VelocimeterZapper", function () {
         const sumReserves = reserves[0].add(reserves[1])
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [18, 18],
+            inputTokensDecimals: [6, 18],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            outputTokensDecimals: [6, 6],
+            outputTokensDecimals: [18, 6],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
             outputTokensPrices: [1, 1],
@@ -359,8 +354,8 @@ describe("VelocimeterZapper", function () {
         expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
 
         // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-        const proportion0 = fromE6(reserves[0]) / fromE6(reserves[0].add(reserves[1]))
-        const proportion1 = fromE6(reserves[1]) / fromE6(reserves[0].add(reserves[1]))
+        const proportion0 = fromE18(reserves[0]) / fromE18(reserves[0].add(reserves[1]))
+        const proportion1 = fromE18(reserves[1]) / fromE18(reserves[0].add(reserves[1]))
         const putTokenAmount0 = fromE18(putIntoPoolEvent.args.amountsPut[0] > 1e14 ? putIntoPoolEvent.args.amountsPut[0] : putIntoPoolEvent.args.amountsPut[0] * 1e12)
         const putTokenAmount1 = fromE18(putIntoPoolEvent.args.amountsPut[1] > 1e14 ? putIntoPoolEvent.args.amountsPut[1] : putIntoPoolEvent.args.amountsPut[1] * 1e12)
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
@@ -388,7 +383,7 @@ describe("VelocimeterZapper", function () {
 
         items.push({
             name: await token0In.symbol(),
-            balance: fromE18(await token0In.balanceOf(account.address))
+            balance: fromE6(await token0In.balanceOf(account.address))
         });
 
         items.push({
@@ -398,7 +393,7 @@ describe("VelocimeterZapper", function () {
 
         items.push({
             name: await token0Out.symbol(),
-            balance: fromE6(await token0Out.balanceOf(account.address))
+            balance: fromE18(await token0Out.balanceOf(account.address))
         });
 
         items.push({
@@ -432,9 +427,7 @@ async function getOdosRequest(request) {
     const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
     let transaction;
     try {
-        console.log("swapParams: ", swapParams)
         let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { "Accept-Encoding": "br" } }));
-        console.log("quotaResponse: ", quotaResponse.data)
 
         let assembleData = {
             "userAddr": request.userAddr,
@@ -442,7 +435,6 @@ async function getOdosRequest(request) {
             "simulate": false
         }
 
-        console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
     } catch (e) {
         console.log("[baseSwapZap] getSwapTransaction: ", e);

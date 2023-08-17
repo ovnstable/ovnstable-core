@@ -35,7 +35,6 @@ contract VelocimeterZap is OdosZap {
         address _token = gauge.stake();
         IPair pair = IPair(_token);
         (address token0, address token1) = pair.tokens();
-        console.log("[Contract] token0: %s token1: %s", token0, token1);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = token0;
@@ -46,15 +45,6 @@ contract VelocimeterZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (velocimeterData.amountsOut[i] > 0) {
-                console.log("[Contract] sender account: %s", msg.sender);
-                console.log("[Contract] this account: %s", address(this));
-                console.log("[Contract] asset approved to sender: %s", asset.allowance(msg.sender, address(this)));
-                console.log("[Contract] asset approved to odosrouter: %s", asset.allowance(msg.sender, odosRouter));
-                console.log("[Contract] asset balance on sender: %s", asset.balanceOf(msg.sender));
-                console.log("[Contract] transferFrom sender: %s from: %s amount: %s", msg.sender, address(this), velocimeterData.amountsOut[i]);
-//                asset.approve(msg.sender, velocimeterData.amountsOut[i]);
-                asset.approve(address(this), velocimeterData.amountsOut[i]);
-                console.log("[Contract] asset allowance approve contract: %s", asset.allowance(msg.sender, address(this)));
                 asset.transferFrom(msg.sender, address(this), velocimeterData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
@@ -152,12 +142,6 @@ contract VelocimeterZap is OdosZap {
             newAmount1 = (newAmount0 * reserve1) / reserve0;
         }
     }
-
-/*    function _depositToGauge(IPair pair, IGauge gauge) internal {
-        uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), pairBalance);
-        gauge.deposit(pairBalance, 0);
-    }*/
 
     function _returnToUser(IPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
