@@ -2,7 +2,6 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-
 import "@overnight-contracts/connectors/contracts/stuff/Pika.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
@@ -13,10 +12,11 @@ contract StrategyPikaV4 is Strategy {
     PikaPerpV4 public pika;
     VaultFeeReward public pikaFeeReward;
     VaultTokenReward public pikaTokenReward;
-
     ISwapRouter public uniswapV3Router;
     uint24 public poolFee;
-
+    IPikaVester public pikaVester;
+    IERC20 public esPika;
+    address public treasureWallet;
 
     // --- events
     event StrategyUpdatedParams();
@@ -32,6 +32,9 @@ contract StrategyPikaV4 is Strategy {
         address pikaTokenReward;
         address uniswapV3Router;
         uint24 poolFee;
+        address pikaVester;
+        address esPika;
+        address treasureWallet;
     }
 
 
@@ -55,6 +58,9 @@ contract StrategyPikaV4 is Strategy {
         pikaTokenReward = VaultTokenReward(params.pikaTokenReward);
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee = params.poolFee;
+        pikaVester = IPikaVester(params.pikaVester);
+        esPika = IERC20(params.esPika);
+        treasureWallet = params.treasureWallet;
 
         usdc.approve(address(pika), type(uint256).max);
 
@@ -133,36 +139,41 @@ contract StrategyPikaV4 is Strategy {
             return 0;
         }
 
+        // claim esPika if esPika > 1000
+        if (pikaTokenReward.earned(address(this)) > 1e21) {
+            pikaTokenReward.getReward();
+            uint256 esPikaBalance = esPika.balanceOf(address(this));
+            if (esPikaBalance > 0) {
+                // deposit esPika for treasureWallet
+                esPika.approve(address(pikaVester), esPikaBalance);
+                pikaVester.depositFor(esPikaBalance, treasureWallet);
+            }
+        }
+
         uint256 balanceUsdc = usdc.balanceOf(address(this));
 
         // claim USDC
         pikaFeeReward.claimReward(address(this));
 
-        // claim OP
-        pikaTokenReward.getReward();
-
         uint256 totalUsdc = usdc.balanceOf(address(this)) - balanceUsdc;
-
-        uint256 opBalance = op.balanceOf(address(this));
-        if (opBalance > 0) {
-
-            uint256 opUsdc = UniswapV3Library.singleSwap(
-                uniswapV3Router,
-                address(op),
-                address(usdc),
-                poolFee,
-                address(this),
-                opBalance,
-                0
-            );
-            totalUsdc += opUsdc;
-        }
 
         if (totalUsdc > 0) {
             usdc.transfer(_beneficiary, totalUsdc);
         }
 
         return totalUsdc;
+    }
+
+    // added if we unstakeFull and not claim all pika rewards
+    function claimAndDepositEsPika() external onlyPortfolioAgent {
+        // claim esPika
+        pikaTokenReward.getReward();
+        uint256 esPikaBalance = esPika.balanceOf(address(this));
+        if (esPikaBalance > 0) {
+            // deposit esPika for treasureWallet
+            esPika.approve(address(pikaVester), esPikaBalance);
+            pikaVester.depositFor(esPikaBalance, treasureWallet);
+        }
     }
 
 }
