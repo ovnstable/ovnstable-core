@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT, BSC, OPTIMISM, ARBITRUM, BASE} = require('@overnight-contracts/common/utils/assets');
+let {DEFAULT, BSC, OPTIMISM, ARBITRUM, BASE, LINEA} = require('@overnight-contracts/common/utils/assets');
 const hre = require("hardhat");
 const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -21,6 +21,8 @@ module.exports = async () => {
         asset = BSC.usdt;
     } else if (hre.network.name === "base_dai") {
         asset = BASE.dai;
+    } else if(hre.network.name === "linea_usdt"){
+        asset = LINEA.usdt;
     } else {
         asset = DEFAULT.usdc;
     }
