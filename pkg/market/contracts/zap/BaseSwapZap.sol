@@ -73,7 +73,7 @@ contract BaseSwapZap is OdosZap {
 
     function _addLiquidity(IBaseSwapPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
+        (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
             reserve0,
@@ -121,27 +121,6 @@ contract BaseSwapZap is OdosZap {
         amountsReturned[1] = amountAsset1After;
         emit PutIntoPool(amountsPut, tokensOut);
         emit ReturnedToUser(amountsReturned, tokensOut);
-    }
-
-    function getAmountToSwap(
-        uint256 amount0,
-        uint256 amount1,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1
-    ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
-        if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
-            newAmount1 = (reserve1 * amount0) / reserve0;
-            // 18 + 6 - 6
-            newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
-            newAmount0 = (newAmount1 * reserve0) / reserve1;
-            // 18 + 6 - 18
-        } else {
-            newAmount0 = (reserve0 * amount1) / reserve1;
-            newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
-            newAmount1 = (newAmount0 * reserve1) / reserve0;
-        }
     }
 
     function _returnToUser(IBaseSwapPair pair) internal {
