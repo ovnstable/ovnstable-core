@@ -12,7 +12,7 @@ const {toE18, toE6, fromE18, fromE6, toAsset, fromAsset} = require("@overnight-c
 let BalancerFactoryAddress = "0x202fE8BA86cA85872577fab79Ba78aD192E79C02";
 // let owner = "0xe497285e466227f4e8648209e34b465daa1f90a0";
 let upperTarget = new BN(10).pow(new BN(18)).muln(25000); // 25 000
-let swapFee = "60000000000000000"; // 0.06%
+let swapFee = "600000000000000"; // 0.06%
 
 async function main() {
 

@@ -21,7 +21,7 @@ let VaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 let owner = "0xd9e2889ac8c6fff8e94c7c1beeade1352df1a513"; // Owner Beets
 
 let upperTarget = new BN(10).pow(new BN(18)).muln(25000); // 25 000
-let swapFee = "60000000000000000"; // 0.06%
+let swapFee = "600000000000000"; // 0.06%
 
 async function main() {
 

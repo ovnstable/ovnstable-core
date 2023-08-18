@@ -20,7 +20,7 @@ const VaultAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 const owner = "0xba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1ba1b"; // Owner DAO Balancer
 
 const upperTarget = new BN(10).pow(new BN(18)).muln(25000); // 25 000
-const swapFee = "60000000000000000"; // 0.06%
+const swapFee = "600000000000000"; // 0.06%
 
 const protocolId = 19;
 
