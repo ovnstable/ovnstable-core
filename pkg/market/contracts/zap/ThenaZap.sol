@@ -1,69 +1,65 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Thena.sol";
 
-contract BaseSwapZap is OdosZap {
-    IBaseSwapRouter01 public baseSwapRouter;
+contract ThenaZap is OdosZap {
+    IRouter public thenaRouter;
 
     struct ZapParams {
-        address baseSwapRouter;
+        address thenaRouter;
         address odosRouter;
     }
 
-    struct BaseSwapZapInParams {
+    struct ThenaZapInParams {
         address gauge;
         uint256[] amountsOut;
-        uint256 poolId;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.baseSwapRouter != address(0), "Zero address not allowed");
+        require(params.thenaRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
 
-        baseSwapRouter = IBaseSwapRouter02(params.baseSwapRouter);
+        thenaRouter = IRouter(params.thenaRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, BaseSwapZapInParams memory baseSwapData) external {
+    function zapIn(SwapData memory swapData, ThenaZapInParams memory thenaData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IMasterChefV2 gauge = IMasterChefV2(baseSwapData.gauge);
-        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(baseSwapData.poolId);
-        IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
+        IGaugeV2 gauge = IGaugeV2(thenaData.gauge);
+        address _token = gauge.TOKEN();
+        IPair pair = IPair(_token);
+        (address token0, address token1) = pair.tokens();
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = pair.token0();
-        tokensOut[1] = pair.token1();
+        tokensOut[0] = token0;
+        tokensOut[1] = token1;
         uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-
-            if (baseSwapData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), baseSwapData.amountsOut[i]);
+            if (thenaData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), thenaData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _returnToUser(pair);
+        _transferToUser(pair);
     }
 
     function getProportion(
-        address _gauge,
-        uint256 poolId
+        address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IMasterChefV2 gauge = IMasterChefV2(_gauge);
-        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(poolId);
-        IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
-
+        IGaugeV2 gauge = IGaugeV2(_gauge);
+        address _token = gauge.TOKEN();
+        IPair pair = IPair(_token);
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        address token0 = pair.token0();
-        address token1 = pair.token1();
+        (address token0, address token1) = pair.tokens();
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -71,7 +67,7 @@ contract BaseSwapZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(IBaseSwapPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+    function _addLiquidity(IPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
             amountsOut[0],
@@ -84,15 +80,16 @@ contract BaseSwapZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(baseSwapRouter), tokensAmount0);
-        asset1.approve(address(baseSwapRouter), tokensAmount1);
+        asset0.approve(address(thenaRouter), tokensAmount0);
+        asset1.approve(address(thenaRouter), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        baseSwapRouter.addLiquidity(
+        thenaRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
+            pair.stable(),
             tokensAmount0,
             tokensAmount1,
             OvnMath.subBasisPoints(tokensAmount0, stakeSlippageBP),
@@ -144,8 +141,9 @@ contract BaseSwapZap is OdosZap {
         }
     }
 
-    function _returnToUser(IBaseSwapPair pair) internal {
+    function _transferToUser(IPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.transfer(msg.sender, pairBalance);
+        pair.approve(address(msg.sender), pairBalance);
+        pair.transferFrom(address(this), address(msg.sender), pairBalance);
     }
 }

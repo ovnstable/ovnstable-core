@@ -4,6 +4,9 @@ pragma solidity >=0.5.0 <0.9.0;
 interface IUsdPlusToken {
 
     function liquidityIndex() external view returns (uint256);
+
+    function setLiquidityIndex(uint256 _liquidityIndex) external;
+
     function exchange() external view returns (address);
 
     function mint(address _sender, uint256 _amount) external;
