@@ -28,7 +28,8 @@ async function getParams() {
         pair: '0x6D3c5a4a7aC4B1428368310E4EC3bB1350d01455', // DAI/USDbC
         pid: 5,
         uniswapV3Router: BASE.uniswapV3Router,
-        poolFee: 100, // 0.01%
+        poolFee: 100, // 0.01%,
+        pool: '0xEC652B590Fe21dcd18Ea01253B5152b202cc3dEb',
     }
 
 }

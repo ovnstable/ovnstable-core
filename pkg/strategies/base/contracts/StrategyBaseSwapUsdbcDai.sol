@@ -6,6 +6,9 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
+import "hardhat/console.sol";
 
 contract StrategyBaseSwapUsdbcDai is Strategy {
 
@@ -24,6 +27,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         uint256 pid;
         address uniswapV3Router;
         uint24 poolFee;
+        address pool;
     }
 
     // --- params
@@ -37,15 +41,18 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
     IPriceFeed public oracleDai;
 
     IBaseSwapRouter02 public router;
-    IMasterChefV2 public masterChef;
+    IMasterChefV2 public masterChef; // deprecated
     IBaseSwapPair public pair;
-    uint256 public pid;
+    uint256 public pid; // deprecated
 
     ISwapRouter public uniswapV3Router;
     uint24 public poolFee;
 
     uint256 public usdbcDm;
     uint256 public daiDm;
+
+    INFTPool public pool;
+    uint256 public tokenId;
 
     // --- events
 
@@ -76,6 +83,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         masterChef = IMasterChefV2(params.masterChef);
         pair = IBaseSwapPair(params.pair);
         pid = params.pid;
+        pool = INFTPool(params.pool);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee = params.poolFee;
@@ -137,8 +145,15 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
 
         // stake
         uint256 lpTokenBalance = pair.balanceOf(address(this));
-        pair.approve(address(masterChef), lpTokenBalance);
-        masterChef.deposit(pid, lpTokenBalance);
+        pair.approve(address(pool), lpTokenBalance);
+
+        if(tokenId == 0){
+            pool.createPosition(lpTokenBalance, 0);
+            tokenId = pool.lastTokenId();
+            require(pool.ownerOf(tokenId) == address(this), 'not owner');
+        }else {
+            pool.addToPosition(tokenId, lpTokenBalance);
+        }
     }
 
     function _unstake(
@@ -152,7 +167,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         (uint256 reserveDai, uint256 reserveUsdbc,) = pair.getReserves();
         uint256 amountUsdbcToUnstake = OvnMath.addBasisPoints(_amount + 10, swapSlippageBP);
         uint256 amountLp = (totalLpBalance * amountUsdbcToUnstake) / (reserveUsdbc + reserveDai * usdbcDm / daiDm);
-        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        uint256 lpTokenBalance = getLpTokenBalance();
         if (amountLp > lpTokenBalance) {
             amountLp = lpTokenBalance;
         }
@@ -160,7 +175,8 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         uint256 amountDai = reserveDai * amountLp / totalLpBalance;
 
         // unstake
-        masterChef.withdraw(pid, amountLp);
+
+        pool.withdrawFromPosition(tokenId, amountLp);
 
         // remove liquidity
         pair.approve(address(router), amountLp);
@@ -196,7 +212,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        uint256 lpTokenBalance = getLpTokenBalance();
         if (lpTokenBalance == 0) {
             return usdbc.balanceOf(address(this));
         }
@@ -206,7 +222,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         uint256 amountDai = reserveDai * lpTokenBalance / totalLpBalance;
 
         // unstake
-        masterChef.withdraw(pid, lpTokenBalance);
+        pool.withdrawFromPosition(tokenId, lpTokenBalance);
 
         // remove liquidity
         pair.approve(address(router), lpTokenBalance);
@@ -236,6 +252,11 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         return usdbc.balanceOf(address(this));
     }
 
+    function getLpTokenBalance() internal view returns (uint256){
+        (uint256 lpTokenBalance,,,,,,,) = pool.getStakingPosition(tokenId);
+        return lpTokenBalance;
+    }
+
     function netAssetValue() external view override returns (uint256) {
         return _totalValue(true);
     }
@@ -249,6 +270,10 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         uint256 daiBalance = dai.balanceOf(address(this));
 
         (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+
+        if(lpTokenBalance == 0){
+            lpTokenBalance = getLpTokenBalance();
+        }
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = pair.totalSupply();
             (uint256 reserveDai, uint256 reserveUsdbc,) = pair.getReserves();
@@ -267,15 +292,32 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         return usdbcBalance;
     }
 
-    function _claimRewards(address _to) internal override returns (uint256) {
+    function restakeToNewFarms() external onlyPortfolioAgent {
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        masterChef.deposit(pid, 0);
+        masterChef.withdraw(pid, lpTokenBalance);
+
+        pair.approve(address(pool), lpTokenBalance);
+
+        pool.createPosition(lpTokenBalance, 0);
+        tokenId = pool.lastTokenId();
+        require(pool.ownerOf(tokenId) == address(this), 'not owner');
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
+    }
+
+    function _claimRewards(address _to) internal override returns (uint256) {
+
+        uint256 lpTokenBalance = getLpTokenBalance();
         if (lpTokenBalance == 0) {
             return 0;
         }
 
         // claim rewards
-        masterChef.deposit(pid, 0);
+        pool.harvestPosition(tokenId);
 
         // sell rewards
         uint256 totalUsdbc;
@@ -319,5 +361,31 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
         uint256 priceUsdbc = ChainlinkLibrary.getPrice(oracleUsdbc);
         return ChainlinkLibrary.convertTokenToToken(usdbcAmount, usdbcDm, daiDm, priceUsdbc, priceDai);
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function onNFTAddToPosition(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
+    }
+
+    function onNFTHarvest(
+        address operator,
+        address to,
+        uint256 tokenId,
+        uint256 arxAmount,
+        uint256 xArxAmount,
+        uint256 wethAmount
+    ) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
+    }
+
+    function onNFTWithdraw(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
     }
 }
