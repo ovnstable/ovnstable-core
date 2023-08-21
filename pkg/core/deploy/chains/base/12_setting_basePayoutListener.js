@@ -15,7 +15,8 @@ module.exports = async () => {
 //    items.push(...baseSwap());
 //    items.push(...velocimeter());
 //    items.push(...swapBased());
-    items.push(...alienBase());
+//     items.push(...alienBase());
+    items.push(...zyberSwap());
 
     let price = await getPrice();
 
@@ -24,6 +25,19 @@ module.exports = async () => {
     await (await pl.addItems(items, price)).wait();
 
     console.log('BasePayoutListener setting done');
+
+    function zyberSwap(){
+
+        let dex = 'ZyberSwap';
+        let to = '0x55e6a720FF12ee43ADc6F5BdEA8580ec07b21C47';
+
+        let items = [];
+        items.push(createSkimToWithFee('0xb71dEc1ae87A174429a367318082C13b7512a947', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xb71dEc1ae87A174429a367318082C13b7512a947', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+
+    }
 
 
     function baseSwap() {

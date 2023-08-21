@@ -24,6 +24,7 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         uint256 pid;
         address uniswapV3Router;
         uint24 poolFee;
+        address pool;
     }
 
     // --- params
@@ -46,6 +47,9 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
 
     uint256 public daiDm;
     uint256 public usdbcDm;
+
+    INFTPool public pool;
+    uint256 public tokenId;
 
     // --- events
 
@@ -76,6 +80,8 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         masterChef = IMasterChefV2(params.masterChef);
         pair = IBaseSwapPair(params.pair);
         pid = params.pid;
+
+        pool = INFTPool(params.pool);
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFee = params.poolFee;
@@ -137,8 +143,15 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
 
         // stake
         uint256 lpTokenBalance = pair.balanceOf(address(this));
-        pair.approve(address(masterChef), lpTokenBalance);
-        masterChef.deposit(pid, lpTokenBalance);
+        pair.approve(address(pool), lpTokenBalance);
+
+        if(tokenId == 0){
+            pool.createPosition(lpTokenBalance, 0);
+            tokenId = pool.lastTokenId();
+            require(pool.ownerOf(tokenId) == address(this), 'not owner');
+        }else {
+            pool.addToPosition(tokenId, lpTokenBalance);
+        }
     }
 
     function _unstake(
@@ -152,7 +165,8 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         (uint256 reserveDai, uint256 reserveUsdbc,) = pair.getReserves();
         uint256 amountDaiToUnstake = OvnMath.addBasisPoints(_amount + 10, swapSlippageBP);
         uint256 amountLp = (totalLpBalance * amountDaiToUnstake) / (reserveDai + reserveUsdbc * daiDm / usdbcDm);
-        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        uint256 lpTokenBalance = getLpTokenBalance();
+
         if (amountLp > lpTokenBalance) {
             amountLp = lpTokenBalance;
         }
@@ -160,7 +174,7 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         uint256 amountUsdbc = reserveUsdbc * amountLp / totalLpBalance;
 
         // unstake
-        masterChef.withdraw(pid, amountLp);
+        pool.withdrawFromPosition(tokenId, amountLp);
 
         // remove liquidity
         pair.approve(address(router), amountLp);
@@ -196,7 +210,8 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        uint256 lpTokenBalance = getLpTokenBalance();
+
         if (lpTokenBalance == 0) {
             return dai.balanceOf(address(this));
         }
@@ -206,7 +221,7 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         uint256 amountUsdbc = reserveUsdbc * lpTokenBalance / totalLpBalance;
 
         // unstake
-        masterChef.withdraw(pid, lpTokenBalance);
+        pool.withdrawFromPosition(tokenId, lpTokenBalance);
 
         // remove liquidity
         pair.approve(address(router), lpTokenBalance);
@@ -236,6 +251,28 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         return dai.balanceOf(address(this));
     }
 
+    function restakeToNewFarms() external onlyPortfolioAgent {
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
+        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        masterChef.deposit(pid, 0);
+        masterChef.withdraw(pid, lpTokenBalance);
+
+        pair.approve(address(pool), lpTokenBalance);
+
+        pool.createPosition(lpTokenBalance, 0);
+        tokenId = pool.lastTokenId();
+        require(pool.ownerOf(tokenId) == address(this), 'not owner');
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
+    }
+    function getLpTokenBalance() internal view returns (uint256){
+        (uint256 lpTokenBalance,,,,,,,) = pool.getStakingPosition(tokenId);
+        return lpTokenBalance;
+    }
+
+
     function netAssetValue() external view override returns (uint256) {
         return _totalValue(true);
     }
@@ -249,6 +286,11 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         uint256 usdbcBalance = usdbc.balanceOf(address(this));
 
         (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+
+        if(lpTokenBalance == 0){
+            lpTokenBalance = getLpTokenBalance();
+        }
+
         if (lpTokenBalance > 0) {
             uint256 totalLpBalance = pair.totalSupply();
             (uint256 reserveDai, uint256 reserveUsdbc,) = pair.getReserves();
@@ -269,13 +311,13 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        (uint256 lpTokenBalance,) = masterChef.userInfo(pid, address(this));
+        uint256 lpTokenBalance = getLpTokenBalance();
         if (lpTokenBalance == 0) {
             return 0;
         }
 
         // claim rewards
-        masterChef.deposit(pid, 0);
+        pool.harvestPosition(tokenId);
 
         // sell rewards
         uint256 totalDai;
@@ -320,5 +362,31 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         uint256 priceUsdbc = ChainlinkLibrary.getPrice(oracleUsdbc);
         uint256 priceDai = ChainlinkLibrary.getPrice(oracleDai);
         return ChainlinkLibrary.convertTokenToToken(daiAmount, daiDm, usdbcDm, priceDai, priceUsdbc);
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function onNFTAddToPosition(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
+    }
+
+    function onNFTHarvest(
+        address operator,
+        address to,
+        uint256 tokenId,
+        uint256 arxAmount,
+        uint256 xArxAmount,
+        uint256 wethAmount
+    ) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
+    }
+
+    function onNFTWithdraw(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool){
+        require(operator == address(this), 'only owner');
+        return true;
     }
 }
