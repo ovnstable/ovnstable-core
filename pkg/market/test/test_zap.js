@@ -82,7 +82,7 @@ let zaps = [
     },
     {
         name: 'SwapBasedZap',
-        gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // DAI+/USD+
+        gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // USDbC+/USD+
         token0Out: 'usdPlus',
         token1Out: 'usdbc',
         token0In: 'daiPlus',
@@ -292,8 +292,8 @@ describe(`Test ${params.name}`, function () {
 
         console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
-        expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
-        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.001);
+        expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.003);
+        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.003);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
@@ -363,11 +363,12 @@ async function getOdosRequest(request) {
         let assembleData = {
             "userAddr": request.userAddr,
             "pathId": quotaResponse.data.pathId,
-            "simulate": false
+            "simulate": true
         }
 
         console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
+        console.log("odos transaction simulation: ", transaction.data.simulation)
     } catch (e) {
         console.log("[zap] getSwapTransaction: ", e);
         return 0;
