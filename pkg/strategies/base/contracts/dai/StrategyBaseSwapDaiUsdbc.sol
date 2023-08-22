@@ -25,6 +25,7 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
         address uniswapV3Router;
         uint24 poolFee;
         address pool;
+        address bsx;
     }
 
     // --- params
@@ -50,6 +51,8 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
 
     INFTPool public pool;
     uint256 public tokenId;
+
+    IERC20 public bsx;
 
     // --- events
 
@@ -88,6 +91,8 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
 
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
         usdbcDm = 10 ** IERC20Metadata(params.usdbc).decimals();
+
+        bsx = IERC20(params.bsx);
 
         emit StrategyUpdatedParams();
     }
@@ -340,6 +345,29 @@ contract StrategyBaseSwapDaiUsdbc is Strategy {
                     address(dai),
                     bswapBalance,
                     bswapAmount * 1e12 * 99 / 100,
+                    address(this)
+                );
+            }
+        }
+
+        uint256 bsxBalance = bsx.balanceOf(address(this));
+        if (bsxBalance > 0) {
+            uint256 bsxAmount = BaseSwapLibrary.getAmountOut(
+                address(router),
+                address(bsx),
+                address(weth),
+                address(usdbc),
+                bsxBalance
+            );
+            if (bsxAmount > 0) {
+                totalDai += BaseSwapLibrary.multiSwap(
+                    address(router),
+                    address(bsx),
+                    address(weth),
+                    address(usdbc),
+                    address(dai),
+                    bsxBalance,
+                    bsxAmount * 1e12 * 99 / 100,
                     address(this)
                 );
             }
