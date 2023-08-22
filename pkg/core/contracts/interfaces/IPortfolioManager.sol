@@ -26,7 +26,15 @@ interface IPortfolioManager {
 
     function deposit() external;
 
-    function withdraw(uint256 _amount) external returns (uint256);
+    /**
+     * @dev
+     * Withdraw target amount assets from strategies
+     * Send amount to Exchanger
+     * @return withdrawAmount - how much PortfolioManager unstake from strategies
+     * @return isBalanced - executed or not balance function on PortfolioManager
+     */
+
+    function withdraw(uint256 _amount) external returns (uint256 withdrawAmount, bool isBalanced);
 
     function getStrategyWeight(address strategy) external view returns (StrategyWeight memory);
 
