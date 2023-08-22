@@ -8,8 +8,6 @@ import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyBaseSwapUsdbcDai is Strategy {
 
     // --- structs
@@ -28,6 +26,7 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         address uniswapV3Router;
         uint24 poolFee;
         address pool;
+        address bsx;
     }
 
     // --- params
@@ -53,6 +52,8 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
 
     INFTPool public pool;
     uint256 public tokenId;
+
+    IERC20 public bsx;
 
     // --- events
 
@@ -90,6 +91,8 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
 
         usdbcDm = 10 ** IERC20Metadata(params.usdbc).decimals();
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
+
+        bsx = IERC20(params.bsx);
 
         emit StrategyUpdatedParams();
     }
@@ -339,6 +342,28 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
                     address(usdbc),
                     bswapBalance,
                     bswapAmount * 99 / 100,
+                    address(this)
+                );
+            }
+        }
+
+        uint256 bsxBalance = bsx.balanceOf(address(this));
+        if (bsxBalance > 0) {
+            uint256 bsxAmount = BaseSwapLibrary.getAmountOut(
+                address(router),
+                address(bsx),
+                address(weth),
+                address(usdbc),
+                bsxBalance
+            );
+            if (bsxAmount > 0) {
+                totalUsdbc += BaseSwapLibrary.multiSwap(
+                    address(router),
+                    address(bsx),
+                    address(weth),
+                    address(usdbc),
+                    bsxBalance,
+                    bsxAmount * 99 / 100,
                     address(this)
                 );
             }

@@ -30,9 +30,10 @@ async function getParams() {
         uniswapV3Router: BASE.uniswapV3Router,
         poolFee: 100, // 0.01%,
         pool: '0xEC652B590Fe21dcd18Ea01253B5152b202cc3dEb',
+        bsx: BASE.bsx,
     }
 
 }
 
 module.exports.tags = ['StrategyBaseSwapUsdbcDai'];
-module.exports.strategyBaseSwapUsdbcDai = getParams;
+module.exports.strategyBaseSwapUsdbcDaiParams = getParams;
