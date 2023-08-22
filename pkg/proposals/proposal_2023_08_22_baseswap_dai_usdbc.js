@@ -13,7 +13,7 @@ async function main() {
 
     addresses.push(StrategyBaseSwapDaiUsdbc.address);
     values.push(0);
-    abis.push(StrategyBaseSwapDaiUsdbc.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyBaseSwapDaiUsdbc.interface.encodeFunctionData('upgradeTo', ['0xF29443ec2a0664eB33eab0A585a2c97ac1de4693']));
 
     addresses.push(StrategyBaseSwapDaiUsdbc.address);
     values.push(0);
