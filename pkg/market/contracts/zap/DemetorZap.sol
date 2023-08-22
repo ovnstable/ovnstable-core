@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
@@ -49,7 +49,7 @@ contract DemetorZap is OdosZap {
             amountsOut[i] = assets[i].balanceOf(address(this));
         }
         (uint256 reserve0, uint256 reserve1,, ) = pair.getReserves();
-        uint256[] memory tokensAmount = getAmountToSwap(
+        (uint256 newAmount0, uint256 newAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
             reserve0,
@@ -57,6 +57,10 @@ contract DemetorZap is OdosZap {
             10 ** IERC20Metadata(tokensOut[0]).decimals(),
             10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
+        uint256[] memory tokensAmount = new uint256[](2);
+        tokensAmount[0] = newAmount0;
+        tokensAmount[1] = newAmount1;
+
         IERC20(tokensOut[0]).approve(address(positionHelper), tokensAmount[0]);
         IERC20(tokensOut[1]).approve(address(positionHelper), tokensAmount[1]);
 
@@ -118,28 +122,6 @@ contract DemetorZap is OdosZap {
             0
         );
         gauge.safeTransferFrom(address(this), address(msg.sender), gauge.lastTokenId());
-    }
-
-    function getAmountToSwap(
-        uint256 amount0,
-        uint256 amount1,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1
-    ) internal pure returns (uint256[] memory newAmounts) {
-        newAmounts = new uint256[](2);
-        if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
-            newAmounts[1] = (reserve1 * amount0) / reserve0;
-            // 18 + 6 - 6
-            newAmounts[1] = newAmounts[1] > amount1 ? amount1 : newAmounts[1];
-            newAmounts[0] = (newAmounts[1] * reserve0) / reserve1;
-            // 18 + 6 - 18
-        } else {
-            newAmounts[0] = (reserve0 * amount1) / reserve1;
-            newAmounts[0] = newAmounts[0] > amount0 ? amount0 : newAmounts[0];
-            newAmounts[1] = (newAmounts[0] * reserve1) / reserve0;
-        }
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {

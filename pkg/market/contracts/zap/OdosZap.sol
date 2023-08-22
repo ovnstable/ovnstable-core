@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -6,10 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Chronos.sol";
-
 import "hardhat/console.sol";
 
 contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -80,6 +77,27 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         stakeSlippageBP = _stakeSlippageBP;
 
         emit UpdateSlippages(stakeSlippageBP);
+    }
+
+    function _getAmountToSwap(
+        uint256 amount0,
+        uint256 amount1,
+        uint256 reserve0,
+        uint256 reserve1,
+        uint256 denominator0,
+        uint256 denominator1
+    ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
+        if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
+            newAmount1 = (reserve1 * amount0) / reserve0;
+            // 18 + 6 - 6
+            newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
+            newAmount0 = (newAmount1 * reserve0) / reserve1;
+            // 18 + 6 - 18
+        } else {
+            newAmount0 = (reserve0 * amount1) / reserve1;
+            newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
+            newAmount1 = (newAmount0 * reserve1) / reserve0;
+        }
     }
 
     function _prepareSwap(SwapData memory swapData) internal {

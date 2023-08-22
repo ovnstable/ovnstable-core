@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
@@ -88,7 +88,7 @@ contract DefiedgeZap is OdosZap {
         reserve0 += IERC20Metadata(tokensOut[0]).balanceOf(address(strategy));
         reserve1 += IERC20Metadata(tokensOut[1]).balanceOf(address(strategy));
 
-        (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
+        (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
             reserve0,
@@ -129,27 +129,6 @@ contract DefiedgeZap is OdosZap {
 
         emit PutIntoPool(result.amountsPut, tokensOut);
         emit ReturnedToUser(result.amountsReturned, tokensOut);
-    }
-
-    function getAmountToSwap(
-        uint256 amount0,
-        uint256 amount1,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1
-    ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
-        if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
-            newAmount1 = (reserve1 * amount0) / reserve0;
-            // 18 + 6 - 6
-            newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
-            newAmount0 = (newAmount1 * reserve0) / reserve1;
-            // 18 + 6 - 18
-        } else {
-            newAmount0 = (reserve0 * amount1) / reserve1;
-            newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
-            newAmount1 = (newAmount0 * reserve1) / reserve0;
-        }
     }
 
     function _depositToGauge(IDefiEdgeTwapStrategy strategy, IMiniChefV2 chef, uint256 pid) internal {

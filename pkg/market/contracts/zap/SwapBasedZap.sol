@@ -1,65 +1,65 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@overnight-contracts/connectors/contracts/stuff/SwapBased.sol";
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/Thena.sol";
+contract SwapBasedZap is OdosZap {
 
-contract ThenaZap is OdosZap {
-    IRouter public thenaRouter;
+    ISwapBasedRouter02 public swapBasedRouter;
 
     struct ZapParams {
-        address thenaRouter;
+        address swapBasedRouter;
         address odosRouter;
     }
 
-    struct ThenaZapInParams {
+    struct ZapInParams {
         address gauge;
         uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.thenaRouter != address(0), "Zero address not allowed");
+        require(params.swapBasedRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
 
-        thenaRouter = IRouter(params.thenaRouter);
+        swapBasedRouter = ISwapBasedRouter02(params.swapBasedRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, ThenaZapInParams memory thenaData) external {
+    function zapIn(SwapData memory swapData, ZapInParams memory params) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IGaugeV2 gauge = IGaugeV2(thenaData.gauge);
-        address _token = gauge.TOKEN();
-        IPair pair = IPair(_token);
-        (address token0, address token1) = pair.tokens();
+        IStakingRewards gauge = IStakingRewards(params.gauge);
+        ISwapBasedPair pair = ISwapBasedPair(gauge.stakingToken());
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = token0;
-        tokensOut[1] = token1;
+        tokensOut[0] = pair.token0();
+        tokensOut[1] = pair.token1();
         uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-            if (thenaData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), thenaData.amountsOut[i]);
+
+            if (params.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), params.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _transferToUser(pair);
+        _returnToUser(pair);
     }
 
     function getProportion(
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IGaugeV2 gauge = IGaugeV2(_gauge);
-        address _token = gauge.TOKEN();
-        IPair pair = IPair(_token);
+        IStakingRewards gauge = IStakingRewards(_gauge);
+        ISwapBasedPair pair = ISwapBasedPair(gauge.stakingToken());
+
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        (address token0, address token1) = pair.tokens();
+        address token0 = pair.token0();
+        address token1 = pair.token1();
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -67,9 +67,9 @@ contract ThenaZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(IPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+    function _addLiquidity(ISwapBasedPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-        (uint256 tokensAmount0, uint256 tokensAmount1) = getAmountToSwap(
+        (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
             reserve0,
@@ -80,16 +80,15 @@ contract ThenaZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(thenaRouter), tokensAmount0);
-        asset1.approve(address(thenaRouter), tokensAmount1);
+        asset0.approve(address(swapBasedRouter), tokensAmount0);
+        asset1.approve(address(swapBasedRouter), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        thenaRouter.addLiquidity(
+        swapBasedRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
-            pair.stable(),
             tokensAmount0,
             tokensAmount1,
             OvnMath.subBasisPoints(tokensAmount0, stakeSlippageBP),
@@ -120,30 +119,8 @@ contract ThenaZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function getAmountToSwap(
-        uint256 amount0,
-        uint256 amount1,
-        uint256 reserve0,
-        uint256 reserve1,
-        uint256 denominator0,
-        uint256 denominator1
-    ) internal pure returns (uint256 newAmount0, uint256 newAmount1) {
-        if ((reserve0 * 100) / denominator0 > (reserve1 * 100) / denominator1) {
-            newAmount1 = (reserve1 * amount0) / reserve0;
-            // 18 + 6 - 6
-            newAmount1 = newAmount1 > amount1 ? amount1 : newAmount1;
-            newAmount0 = (newAmount1 * reserve0) / reserve1;
-            // 18 + 6 - 18
-        } else {
-            newAmount0 = (reserve0 * amount1) / reserve1;
-            newAmount0 = newAmount0 > amount0 ? amount0 : newAmount0;
-            newAmount1 = (newAmount0 * reserve1) / reserve0;
-        }
-    }
-
-    function _transferToUser(IPair pair) internal {
+    function _returnToUser(ISwapBasedPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(msg.sender), pairBalance);
-        pair.transferFrom(address(this), address(msg.sender), pairBalance);
+        pair.transfer(msg.sender, pairBalance);
     }
 }
