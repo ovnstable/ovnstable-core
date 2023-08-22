@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+interface IWETH {
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
+
 interface IUnitroller {
     function enterMarkets(address[] calldata mTokens) external returns (uint[] memory);
     function exitMarket(address mToken) external returns (uint);
