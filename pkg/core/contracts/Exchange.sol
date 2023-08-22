@@ -116,38 +116,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
-    modifier oncePerBlock() {
-
-        uint256 blockNumber;
-
-        // Arbitrum when call block.number return blockNumber from L1(mainnet)
-        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2(Arbitrum)
-
-        // What is it needed?
-        // 15 seconds ~ average time for a new block to appear on the mainnet
-
-        // User1 send transaction mint:
-        // - l1.blockNumber = 100
-        // - l2.blockNumber = 60000
-        // 5 seconds later
-        // User2 send transaction mint:
-        // - l1.blockNumber = 100
-        // - l2.blockNumber = 60001
-        // If blockNumber from L1 then tx be revert("Only once in block")
-        // If blockNumber from L2 then tx be success mint!
-
-        if(blockGetter != address(0)){
-            blockNumber = IBlockGetter(blockGetter).getNumber();
-        }else {
-            blockNumber = block.number;
-        }
-
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            require(lastBlockNumber < blockNumber, "Only once in block");
-        }
-        lastBlockNumber = blockNumber;
-        _;
-    }
 
     modifier onlyUnit(){
         require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
@@ -320,12 +288,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // Minting USD+ in exchange for an asset
 
-    function mint(MintParams calldata params) external whenNotPaused oncePerBlock returns (uint256) {
+    function mint(MintParams calldata params) external whenNotPaused returns (uint256) {
         return _buy(params.asset, params.amount, params.referral);
     }
 
     // Deprecated method - not recommended for use
-    function buy(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+    function buy(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
         return _buy(_asset, _amount, "");
     }
 
@@ -352,6 +320,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
 
         portfolioManager.deposit();
+        _requireOncePerBlock(false);
 
         uint256 buyFeeAmount;
         uint256 buyAmount;
@@ -369,7 +338,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function redeem(address _asset, uint256 _amount) external whenNotPaused oncePerBlock returns (uint256) {
+    function redeem(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
         require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
@@ -382,7 +351,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         (redeemAmount, redeemFeeAmount) = _takeFee(assetAmount, false);
 
-        portfolioManager.withdraw(redeemAmount);
+        (, bool isBalanced) = portfolioManager.withdraw(redeemAmount);
+        _requireOncePerBlock(isBalanced);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
@@ -395,6 +365,48 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return redeemAmount;
     }
 
+    /**
+     * @dev Protect from flashloan attacks
+     * Allow execute only one mint or redeem transaction in per block
+     * ONLY if balance function triggered on PortfolioManager
+     * in other cases: stake/unstake only from cash strategy is safe
+     */
+
+    function _requireOncePerBlock(bool isBalanced) internal {
+
+        uint256 blockNumber;
+
+        // Arbitrum when call block.number return blockNumber from L1(mainnet)
+        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2(Arbitrum)
+
+        // What is it needed?
+        // 15 seconds ~ average time for a new block to appear on the mainnet
+
+        // User1 send transaction mint:
+        // - l1.blockNumber = 100
+        // - l2.blockNumber = 60000
+        // 5 seconds later
+        // User2 send transaction mint:
+        // - l1.blockNumber = 100
+        // - l2.blockNumber = 60001
+        // If blockNumber from L1 then tx be revert("Only once in block")
+        // If blockNumber from L2 then tx be success mint!
+
+        if (blockGetter != address(0)) {
+            blockNumber = IBlockGetter(blockGetter).getNumber();
+        } else {
+            blockNumber = block.number;
+        }
+
+        // Flag isBalanced take about:
+        // PortfolioManager run balance function and unstake liquidity from non cash strategies
+        // Check is not actual if stake/unstake will be only from cash strategy (for example Aave or Venus)
+        if (!hasRole(FREE_RIDER_ROLE, msg.sender) && isBalanced) {
+            require(lastBlockNumber < blockNumber, "Only once in block");
+        }
+
+        lastBlockNumber = blockNumber;
+    }
 
     function _takeFee(uint256 _amount, bool isBuy) internal view returns (uint256, uint256){
 

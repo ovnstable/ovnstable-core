@@ -168,12 +168,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     // ---  logic
 
-    function deposit() external override onlyExchanger cashStrategySet {
 
-        // 1. get cashStrategy current asset amount
-        // 2. get cashStrategy upper limit
-        // 3. if _amount + current < limit then just stake to cash strategy
-        // 4. else call _balance
+    function deposit() external override onlyExchanger cashStrategySet {
 
         uint256 pmAssetBalance = asset.balanceOf(address(this));
         if (pmAssetBalance == 0) {
@@ -182,32 +178,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             return;
         }
 
-        uint256 totalAsset = pmAssetBalance;
-        uint256 totalWeight = 0;
-        for (uint8 i; i < strategyWeights.length; i++) {
-            if (!strategyWeights[i].enabled) {// Skip if strategy is not enabled
-                continue;
-            }
-            totalAsset += IStrategy(strategyWeights[i].strategy).netAssetValue();
-            totalWeight += strategyWeights[i].targetWeight;
-        }
+        // Stake all free asset amounts to cash Strategy
+        asset.transfer(address(cashStrategy), pmAssetBalance);
+        cashStrategy.stake(
+            address(asset),
+            pmAssetBalance
+        );
 
-        uint256 currentCashLiquidity = cashStrategy.netAssetValue();
-        StrategyWeight memory cashStrategyWeight = getStrategyWeight(address(cashStrategy));
-        //TODO: can be optimized by saving previous totalAsset gere and in balance
-        uint256 maxCashLiquidity = (totalAsset * cashStrategyWeight.maxWeight) / totalWeight;
-
-        if (currentCashLiquidity + pmAssetBalance < maxCashLiquidity) {
-            // we may add _amount to cash strategy without balancing
-            asset.transfer(address(cashStrategy), pmAssetBalance);
-            cashStrategy.stake(
-                address(asset),
-                pmAssetBalance
-            );
-            return;
-        }
-
-        _balance();
     }
 
 
@@ -216,10 +193,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     override
     onlyExchanger
     cashStrategySet
-    returns (uint256) {
+    returns (uint256, bool) {
 
         // if cash strategy has enough liquidity then prevent balancing
         uint256 liquidationValue = cashStrategy.liquidationValue();
+
+        // Flag needed for exchanger for check: oncePerBlock
+        bool isBalanced = false;
         if (liquidationValue > _amount) {
             cashStrategy.unstake(
                 address(asset),
@@ -230,6 +210,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         } else {
             // balance to needed amount
             _balance(asset, _amount);
+            isBalanced = true;
         }
 
         uint256 currentBalance = asset.balanceOf(address(this));
@@ -249,7 +230,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // transfer back tokens
         asset.transfer(exchanger, _amount);
 
-        return _amount;
+        return (_amount, isBalanced);
     }
 
     function claimAndBalance() external override onlyExchanger {

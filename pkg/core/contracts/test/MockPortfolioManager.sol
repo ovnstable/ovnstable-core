@@ -12,6 +12,7 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
     uint256 public avgApy;
     IERC20 public asset;
     uint256 public totalRiskFactor;
+    bool public isBalanced;
 
     function setAsset(address _asset) external {
         asset = IERC20(_asset);
@@ -26,18 +27,24 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
         navLessTo = to;
     }
 
+    function setIsBalanced(bool value) external {
+        isBalanced = value;
+    }
+
 
     function deposit() external override{
 
     }
 
-    function withdraw( uint256 _amount) external override returns (uint256){
+    function withdraw( uint256 _amount) external override returns (uint256, bool){
 
         if(navLess){
             asset.transfer(navLessTo, _amount);
         }else {
             asset.transfer(msg.sender, _amount);
         }
+
+        return (_amount, isBalanced);
     }
 
 

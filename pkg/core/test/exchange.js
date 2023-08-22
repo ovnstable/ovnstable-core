@@ -476,53 +476,56 @@ describe("Exchange", function () {
                     // transfer 100 usd+ and 100 asset to multicall tester
                     await asset.mint(multiCallWrapper.address, toAsset(100));
                     await usdPlus.transfer(multiCallWrapper.address, toRebase(100));
+                    await pm.setIsBalanced(false);
                 });
 
-                it("two buys should fail", async function () {
-                    await expectRevert(
-                        multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1)),
-                        "Only once in block"
-                    );
+                it("two buys should pass", async function () {
+                    await multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1))
                 });
 
-                it("buy into redeem should fail", async function () {
+                it("buy into redeem should pass", async function () {
+                    await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toRebase(1));
+                });
+
+                it("buy into redeem&balance should fail", async function () {
+                    await pm.setIsBalanced(true);
                     await expectRevert(
                         multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toRebase(1)),
                         "Only once in block"
                     );
                 });
 
-                it("two redeems should fail", async function () {
+                it("two redeems should pass", async function () {
+                    await multiCallWrapper.redeem2(asset.address, usdPlus.address, toRebase(1), toRebase(1))
+                });
+
+                it("two redeems&balance should fail", async function () {
+                    await pm.setIsBalanced(true);
                     await expectRevert(
                         multiCallWrapper.redeem2(asset.address, usdPlus.address, toRebase(1), toRebase(1)),
                         "Only once in block"
                     );
                 });
 
-                it("redeem into buy should fail", async function () {
-                    await expectRevert(
-                        multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1)),
-                        "Only once in block"
-                    );
+                it("redeem into buy should pass", async function () {
+                    await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1))
                 });
 
-                it("two buys should pass with FREE_RIDER_ROLE", async function () {
+                it("buy into redeem&balance should pass with FREE_RIDER_ROLE", async function () {
                     await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
-                    await multiCallWrapper.buy2(asset.address, usdPlus.address, toAsset(1), toAsset(1));
-                });
-
-                it("buy into redeem should pass with FREE_RIDER_ROLE", async function () {
-                    await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await pm.setIsBalanced(true);
                     await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toRebase(1));
                 });
 
-                it("two redeems should pass with FREE_RIDER_ROLE", async function () {
+                it("two redeems&balance should pass with FREE_RIDER_ROLE", async function () {
                     await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await pm.setIsBalanced(true);
                     await multiCallWrapper.redeem2(asset.address, usdPlus.address, toRebase(1), toRebase(1));
                 });
 
-                it("redeem into buy should pass with FREE_RIDER_ROLE", async function () {
+                it("redeem&balance into buy should pass with FREE_RIDER_ROLE", async function () {
                     await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await pm.setIsBalanced(true);
                     await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1));
                 });
             });
