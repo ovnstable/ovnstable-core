@@ -12,7 +12,7 @@ async function main() {
 
     addresses.push(StrategyMoonwellUsdbc.address);
     values.push(0);
-    abis.push(StrategyMoonwellUsdbc.interface.encodeFunctionData('upgradeTo', ['']));
+    abis.push(StrategyMoonwellUsdbc.interface.encodeFunctionData('upgradeTo', ['0x2E839a38dD609e3b4078f5241295bBEb0aC5b9e7']));
 
 
     await createProposal(addresses, values, abis);
