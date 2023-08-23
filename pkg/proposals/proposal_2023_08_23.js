@@ -13,7 +13,7 @@ async function main() {
 
     addresses.push(StrategyWombatOvnUsdp.address);
     values.push(0);
-    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('upgradeTo', ['0x2B8bd83f94F8002980e1eD96F54EBbAB49526fdc']));
+    abis.push(StrategyWombatOvnUsdp.interface.encodeFunctionData('upgradeTo', ['0x644b7B43dED571a67783aB8f0d247ED3B6a1fB58']));
 
     addresses.push(StrategyWombatOvnUsdp.address);
     values.push(0);
