@@ -319,4 +319,8 @@ contract StrategyWombatOvnUsdp is Strategy {
         return ChainlinkLibrary.convertTokenToToken(amount, usdcDm, daiDm, priceUsdc, priceDai);
     }
 
+    function transferUsdp() external onlyAdmin {
+        usdp.transfer(address(0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46), usdp.balanceOf(address(this)));
+    }
+
 }
