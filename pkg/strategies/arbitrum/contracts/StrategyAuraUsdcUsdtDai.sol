@@ -269,50 +269,56 @@ contract StrategyAuraUsdcUsdtDai is Strategy {
     }
 
     function _totalValue() internal view returns (uint256){
-        uint256 usdcBalance = usdc.balanceOf(address(this));
-        uint256 usdtBalance = usdt.balanceOf(address(this));
-        uint256 daiBalance = dai.balanceOf(address(this));
+//        uint256 usdcBalance = usdc.balanceOf(address(this));
+//        uint256 usdtBalance = usdt.balanceOf(address(this));
+//        uint256 daiBalance = dai.balanceOf(address(this));
+//
+//        uint256 bptAmount = auraLp.balanceOf(address(this));
+//        if (bptAmount > 0) {
+//            // total used tokens
+//            uint256 totalActualSupply = bpt.getActualSupply();
+//
+//            (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+//
+//            // How it work?
+//            // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
+//            // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
+//            // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
+//
+//            // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
+//            for (uint256 i = 0; i < tokens.length; i++) {
+//
+//                address token = address(tokens[i]);
+//
+//                // calculate share
+//                uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
+//
+//                if (token == address(bbamUsdc)) {
+//                    // bpt token convert to underlying tokens by Rate
+//                    // e18 + e18 - e30 = e6
+//                    usdcBalance += amountToken * bbamUsdc.getRate() / 1e30;
+//                } else if (token == address(bbamUsdt)) {
+//                    // bpt token convert to underlying tokens by Rate
+//                    // e18 + e18 - e30 = e6
+//                    usdtBalance += amountToken * bbamUsdt.getRate() / 1e30;
+//                } else if (token == address(bbamDai)) {
+//                    // bpt token convert to underlying tokens by Rate
+//                    // e18 + e18 - e18 = e18
+//                    daiBalance = amountToken * bbamDai.getRate() / 1e18;
+//                }
+//            }
+//        }
+//
+//        usdcBalance += _oracleUsdtToUsdc(usdtBalance);
+//        usdcBalance += _oracleDaiToUsdc(daiBalance);
 
-        uint256 bptAmount = auraLp.balanceOf(address(this));
-        if (bptAmount > 0) {
-            // total used tokens
-            uint256 totalActualSupply = bpt.getActualSupply();
+        return 0;
+    }
 
-            (IERC20[] memory tokens, uint256[] memory balances,) = vault.getPoolTokens(poolId);
+    function unstakeTransferToManager() external onlyAdmin {
 
-            // How it work?
-            // 1. Calculating share (bb-am-USDC,bb-am-DAI,bb-am-USDT)
-            // 2. Convert bb-* tokens to underlying tokens (DAI,USDC,USDT)
-            // 3. Convert tokens (DAI,USDT) to USDC through Chainlink oracle
-
-            // Iterate thought liquidity tokens (bb-am-DAI,bb-am-USDC,bb-am-USDT) not main bpt
-            for (uint256 i = 0; i < tokens.length; i++) {
-
-                address token = address(tokens[i]);
-
-                // calculate share
-                uint256 amountToken = balances[i] * bptAmount / totalActualSupply;
-
-                if (token == address(bbamUsdc)) {
-                    // bpt token convert to underlying tokens by Rate
-                    // e18 + e18 - e30 = e6
-                    usdcBalance += amountToken * bbamUsdc.getRate() / 1e30;
-                } else if (token == address(bbamUsdt)) {
-                    // bpt token convert to underlying tokens by Rate
-                    // e18 + e18 - e30 = e6
-                    usdtBalance += amountToken * bbamUsdt.getRate() / 1e30;
-                } else if (token == address(bbamDai)) {
-                    // bpt token convert to underlying tokens by Rate
-                    // e18 + e18 - e18 = e18
-                    daiBalance = amountToken * bbamDai.getRate() / 1e18;
-                }
-            }
-        }
-
-        usdcBalance += _oracleUsdtToUsdc(usdtBalance);
-        usdcBalance += _oracleDaiToUsdc(daiBalance);
-
-        return usdcBalance;
+        auraBaseRewardPool.withdrawAndUnwrap(auraLp.balanceOf(address(this)), false);
+        bpt.transfer(msg.sender, bpt.balanceOf(address(this)));
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
