@@ -127,28 +127,30 @@ contract StrategyMoonwellUsdbc is Strategy {
 
         uint256 wellBalance = well.balanceOf(address(this));
         if (wellBalance > 0) {
-            uint256 wethBalance = BalancerLibrary.swap(
-                balancerVault,
-                IVault.SwapKind.GIVEN_IN,
-                address(well),
-                address(weth),
-                poolIdWellWeth,
-                wellBalance,
-                0,
-                address(this),
-                address(this)
-            );
-
-            if (wethBalance > 0) {
-                totalUsdbc += UniswapV3Library.singleSwap(
-                    uniswapV3Router,
+            (, uint256[] memory balances,) = balancerVault.getPoolTokens(poolIdWellWeth);
+            // ETH in pool > 1 ETH
+            if (balances[0] > 1e18) {
+                uint256 wethBalance = BalancerLibrary.batchSwap(
+                    balancerVault,
+                    address(well),
                     address(weth),
-                    address(usdbc),
-                    poolFeeWethUsdbc,
-                    address(this),
-                    wethBalance,
-                    0
+                    poolIdWellWeth,
+                    wellBalance,
+                    0,
+                    address(this)
                 );
+
+                if (wethBalance > 0) {
+                    totalUsdbc += UniswapV3Library.singleSwap(
+                        uniswapV3Router,
+                        address(weth),
+                        address(usdbc),
+                        poolFeeWethUsdbc,
+                        address(this),
+                        wethBalance,
+                        0
+                    );
+                }
             }
         }
 

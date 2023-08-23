@@ -758,7 +758,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BASE":
             switch (assetAddress) {
                 case BASE.usdbc:
-                    from = '0xd34ea7278e6bd48defe656bbe263aef11101469c';
+                    from = '0x20f03e26968b179025f65c1f4afadfd3959c8d03';
                     break;
                 case BASE.dai:
                     from = '0x1797b056c84e56f1b7c8d19715b75f761a81e6c4';
