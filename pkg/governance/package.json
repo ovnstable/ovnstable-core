@@ -9,5 +9,8 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.9.3"
   }
 }
