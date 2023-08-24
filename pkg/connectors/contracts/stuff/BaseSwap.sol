@@ -22,6 +22,7 @@ interface INFTHandler is IERC721Receiver {
 
 
 interface INFTPool is IERC721 {
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
     function exists(uint256 tokenId) external view returns (bool);
     function hasDeposits() external view returns (bool);
     function lastTokenId() external view returns (uint256);
