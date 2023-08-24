@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/BaseSwap.sol";
+contract BaseSwapZap is OdosZap, IERC721Receiver {
 
-contract BaseSwapZap is OdosZap {
     IBaseSwapRouter01 public baseSwapRouter;
 
     struct ZapParams {
@@ -14,9 +15,10 @@ contract BaseSwapZap is OdosZap {
     }
 
     struct BaseSwapZapInParams {
+        address pair;
         address gauge;
+        uint256 tokenId;
         uint256[] amountsOut;
-        uint256 poolId;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -27,13 +29,20 @@ contract BaseSwapZap is OdosZap {
         odosRouter = params.odosRouter;
     }
 
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
     function zapIn(SwapData memory swapData, BaseSwapZapInParams memory baseSwapData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IMasterChefV2 gauge = IMasterChefV2(baseSwapData.gauge);
-        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(baseSwapData.poolId);
-        IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
+        IBaseSwapPair pair = IBaseSwapPair(baseSwapData.pair);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = pair.token0();
@@ -50,17 +59,11 @@ contract BaseSwapZap is OdosZap {
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _returnToUser(pair);
+        _stake(baseSwapData);
     }
 
-    function getProportion(
-        address _gauge,
-        uint256 poolId
-    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IMasterChefV2 gauge = IMasterChefV2(_gauge);
-        IMasterChefV2.PoolInfo memory poolInfo = gauge.poolInfo(poolId);
-        IBaseSwapPair pair = IBaseSwapPair(address(poolInfo.lpToken));
-
+    function getProportion(address _pair) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
+        IBaseSwapPair pair = IBaseSwapPair(_pair);
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         address token0 = pair.token0();
         address token1 = pair.token1();
@@ -123,8 +126,19 @@ contract BaseSwapZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function _returnToUser(IBaseSwapPair pair) internal {
+    function _stake(BaseSwapZapInParams memory baseSwapData) internal {
+        IBaseSwapPair pair = IBaseSwapPair(baseSwapData.pair);
+        INFTPool gauge = INFTPool(baseSwapData.gauge);
+        uint256 tokenId = baseSwapData.tokenId;
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.transfer(msg.sender, pairBalance);
+        pair.approve(address(gauge), pairBalance);
+        if (tokenId == 0) {
+            gauge.createPosition(pairBalance, 0);
+            tokenId = gauge.tokenOfOwnerByIndex(address(this), gauge.balanceOf(address(this)) - 1);
+            gauge.safeTransferFrom(address(this), address(msg.sender), tokenId);
+        } else {
+            require(gauge.ownerOf(tokenId) == msg.sender, 'not owner');
+            gauge.addToPosition(tokenId, pairBalance);
+        }
     }
 }

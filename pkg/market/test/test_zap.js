@@ -17,6 +17,7 @@ const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBe
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
+const abiNFTPool = require("./abi/NFTPool.json");
 
 let zaps = [
     {
@@ -39,8 +40,9 @@ let zaps = [
     },
     {
         name: 'BaseSwapZap',
-        gauge: '0x2b0a43dccbd7d42c18f6a83f86d1a19fa58d541a',
-        poolId: 10,
+        pair: '0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A',
+        gauge: '0xB404b32D20F780c7c2Fa44502096675867DecA1e',
+        tokenId: 0,
         token0Out: 'usdPlus',
         token1Out: 'usdbc',
         token0In: 'daiPlus',
@@ -208,13 +210,15 @@ describe(`Test ${params.name}`, function () {
 
         await showBalances();
 
-        await (await token0In.approve(zap.address, amountToken0In)).wait();
-        await (await token1In.approve(zap.address, amountToken1In)).wait();
-        await (await token0Out.approve(zap.address, amountToken0Out)).wait();
-        await (await token1Out.approve(zap.address, amountToken1Out)).wait();
+        await (await token0In.approve(zap.address, toE18(10000))).wait();
+        await (await token1In.approve(zap.address, toE18(10000))).wait();
+        await (await token0Out.approve(zap.address, toE18(10000))).wait();
+        await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        if (params.poolId) {
+        if ('pair' in params) {
+            reserves = await zap.getProportion(params.pair);
+        } else if ('poolId' in params) {
             reserves = await zap.getProportion(params.gauge, params.poolId);
         } else {
             reserves = await zap.getProportion(params.gauge);
@@ -246,7 +250,7 @@ describe(`Test ${params.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        const receipt = await (await zap.zapIn(
+        let receipt = await (await zap.connect(account).zapIn(
             {
                 inputs: inputTokens,
                 outputs: outputTokens,
@@ -257,6 +261,29 @@ describe(`Test ${params.name}`, function () {
                 ...params,
             }
         )).wait();
+
+        if ('tokenId' in params) {
+            let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);
+            let lastTokenId = await gauge.lastTokenId();
+            params.tokenId = lastTokenId;
+            console.log("lastTokenId: " + lastTokenId);
+
+            await gauge.connect(account).approve(zap.address, lastTokenId);
+
+            receipt = await (await zap.connect(account).zapIn(
+                {
+                    inputs: inputTokens,
+                    outputs: outputTokens,
+                    data: request.data
+                },
+                {
+                    amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
+                    ...params,
+                }
+            )).wait();
+
+            params.tokenId = 0;
+        }
 
         console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
