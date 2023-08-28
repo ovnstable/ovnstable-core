@@ -248,7 +248,7 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
 
         uint256 usdcAmount = usdc.balanceOf(address(this));
 
-        if(usdcAmount > 0){
+        if(usdcAmount > 0) {
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0 : address(dai),
             token1 : address(usdc),
@@ -259,6 +259,62 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
             amount1Desired : usdcAmount,
             amount0Min : 0,
             amount1Min : OvnMath.subBasisPoints(usdcAmount, stakeSlippageBP),
+            recipient : address(this),
+            deadline : block.timestamp
+            });
+
+            (tokenId,,,) = npm.mint(params);
+        }
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+    }
+
+    function resetNewReversePosition(int24 _tickLower, int24 _tickUpper) external onlyPortfolioAgent {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
+        if (tokenId > 0) {
+
+            require(_isAllLiquidityInSideAsset(), 'Reset new position with split liquidity is not supported');
+
+            (,,,,,,,uint128 liquidity,,,,) = npm.positions(tokenId);
+            INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
+                tokenId: tokenId,
+                liquidity: liquidity,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            });
+
+            npm.decreaseLiquidity(params);
+
+            INonfungiblePositionManager.CollectParams memory collectParam = INonfungiblePositionManager.CollectParams(tokenId, address(this), type(uint128).max, type(uint128).max);
+            npm.collect(collectParam);
+
+            tokenId = 0;
+        }
+
+        if (usdc.balanceOf(address(this)) > 10**3) {
+            uint256 daiAmountMin = OvnMath.subBasisPoints(_oracleUsdcToDai(usdc.balanceOf(address(this))), swapSlippageBP);
+            _swap(usdc, dai, daiAmountMin);
+        }
+
+        tickLower = _tickLower;
+        tickUpper = _tickUpper;
+
+        uint256 daiAmount = dai.balanceOf(address(this));
+
+        if(daiAmount > 0) {
+            INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0 : address(dai),
+            token1 : address(usdc),
+            fee: fee,
+            tickLower : tickLower,
+            tickUpper : tickUpper,
+            amount0Desired : daiAmount,
+            amount1Desired : 0,
+            amount0Min : OvnMath.subBasisPoints(daiAmount, stakeSlippageBP),
+            amount1Min : 0,
             recipient : address(this),
             deadline : block.timestamp
             });
@@ -324,6 +380,12 @@ contract StrategyUniV3Usdc is Strategy, IERC721Receiver {
     function _isAllLiquidityInBaseAsset() internal view returns (bool) {
         (,int24 tick,,,,,) = pool.slot0();
         return tick > tickUpper;
+    }
+
+    function _isAllLiquidityInSideAsset() internal view returns (bool) {
+        (,int24 tick,,,,,) = pool.slot0();
+        console.log("tick -", uint24(-tick));
+        return tick < tickLower;
     }
 
     function getPriceBySqrtRatio(uint160 sqrtRatio) public view returns (uint256) {
