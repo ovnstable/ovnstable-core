@@ -247,9 +247,11 @@ contract StrategyEquilibriaUsdcUsdt is Strategy {
 
         {
             uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-            TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
-            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+            if(minAmount != 0){
+                SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+                TokenOutput memory output = TokenOutput(address(usdt), 0, address(usdt), address(0x0), address(0x0), swapData);
+                pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+            }
         }
 
         if (clearDiff) {
