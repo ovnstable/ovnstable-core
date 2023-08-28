@@ -4,13 +4,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import "./LinearVesting.sol";
 
 contract OverflowICO is Ownable, LinearVesting {
     using SafeERC20 for IERC20;
-    using ECDSA for bytes32;
 
     IERC20 public immutable salesToken;
     IERC20 public immutable emissionToken;
@@ -38,9 +36,17 @@ contract OverflowICO is Ownable, LinearVesting {
     mapping(address => uint256) public finalEmissions;
     mapping(address => uint256) public finalTokens;
 
+    mapping(address => bool) public whitelist;
+
     event Commit(address indexed buyer, uint256 amount);
     event Claim(address indexed buyer, uint256 eth, uint256 token, uint256 emission);
     event Claim2(address indexed buyer, uint256 token, uint256 emission);
+
+
+    modifier onlyWhitelist() {
+        require(whitelist[msg.sender], "!whitelist");
+        _;
+    }
 
     function calculateEmission(uint256 value) internal view returns (uint256) {
         return (value * emissionPerEther) / 10 ** 18;
@@ -56,48 +62,50 @@ contract OverflowICO is Ownable, LinearVesting {
         lastUpdate = block.timestamp;
     }
 
-    struct SetUpParams{
+    struct SetUpParams {
+        IERC20 salesToken;
+        uint256 tokensToSell;
+        uint256 ethersToRaise;
+        uint256 refundThreshold;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 receiveTime;
         uint256 vestingBegin;
         uint256 vestingDuration;
         uint256 vestingProportion;
+        uint256 minCommit;
+        uint256 maxCommit;
+        IERC20 emissionToken;
+        uint256 totalEmission;
+        address burnAddress;
     }
 
     constructor(
-        IERC20 _salesToken,
-        uint256 _tokensToSell,
-        uint256 _ethersToRaise,
-        uint256 _refundThreshold,
-        uint256 _startTime,
-        uint256 _endTime,
-        uint256 _receiveTime,
-        SetUpParams memory params,
-        uint256 _minCommit,
-        uint256 _maxCommit,
-        IERC20 _emissionToken,
-        uint256 _totalEmission,
-        address _burnAddress
-    ) LinearVesting(_salesToken, params.vestingBegin, params.vestingDuration) {
-        require(_startTime >= block.timestamp, "Start time must be in the future.");
-        require(_endTime > _startTime, "End time must be greater than start time.");
-        require(_ethersToRaise > 0, "Ethers to raise should be greater than 0");
-        require(_ethersToRaise > _refundThreshold, "Ethers to raise should be greater than refund threshold");
-        require(_minCommit > 0, "Minimum commitment should be greater than 0");
-        require(_maxCommit >= _minCommit, "Maximum commitment should be greater or equal to minimum commitment");
+        SetUpParams memory params
+    ) LinearVesting(params.salesToken, params.vestingBegin, params.vestingDuration) {
+        require(params.startTime >= block.timestamp, "Start time must be in the future.");
+        require(params.endTime > params.startTime, "End time must be greater than start time.");
+        require(params.ethersToRaise > 0, "Ethers to raise should be greater than 0");
+        require(params.ethersToRaise > params.refundThreshold, "Ethers to raise should be greater than refund threshold");
+        require(params.minCommit > 0, "Minimum commitment should be greater than 0");
+        require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
 
-        salesToken = _salesToken;
-        tokensToSell = _tokensToSell;
-        ethersToRaise = _ethersToRaise;
-        refundThreshold = _refundThreshold;
-        startTime = _startTime;
-        endTime = _endTime;
-        receiveTime = _receiveTime;
-        minCommit = _minCommit;
-        maxCommit = _maxCommit;
-        emissionToken = _emissionToken;
-        totalEmission = _totalEmission;
-        burnAddress = _burnAddress;
+        salesToken = params.salesToken;
+        tokensToSell = params.tokensToSell;
+        ethersToRaise = params.ethersToRaise;
+        refundThreshold = params.refundThreshold;
+        startTime = params.startTime;
+        endTime = params.endTime;
+        receiveTime = params.receiveTime;
+        minCommit = params.minCommit;
+        maxCommit = params.maxCommit;
+        emissionToken = params.emissionToken;
+        totalEmission = params.totalEmission;
+        burnAddress = params.burnAddress;
         vestingProportion = params.vestingProportion;
     }
+
+
 
     function start() external onlyOwner {
         require(!started, "Already started.");
@@ -106,12 +114,8 @@ contract OverflowICO is Ownable, LinearVesting {
         emissionToken.safeTransferFrom(msg.sender, address(this), totalEmission);
     }
 
-    function commit(bytes calldata sig) external payable nonReentrant {
-        require(
-            keccak256(abi.encode(msg.sender)).toEthSignedMessageHash().recover(sig)
-            == 0x9998719cd6CE8F82e8842c2c9b0C71AA1A5301BD,
-            "not whitelisted"
-        );
+
+    function commit() external payable nonReentrant onlyWhitelist {
         _updateEmission();
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
@@ -218,4 +222,24 @@ contract OverflowICO is Ownable, LinearVesting {
         // Anyone can donate a few gwei to fix integer division accuracy issues.
         // Typically, the deployer will call this.
     }
+
+    function addToWhitelist(address[] calldata toAddAddresses)
+    external onlyOwner
+    {
+        for (uint i = 0; i < toAddAddresses.length; i++) {
+            whitelist[toAddAddresses[i]] = true;
+        }
+    }
+
+    /**
+     * @notice Remove from whitelist
+     */
+    function removeFromWhitelist(address[] calldata toRemoveAddresses)
+    external onlyOwner
+    {
+        for (uint i = 0; i < toRemoveAddresses.length; i++) {
+            delete whitelist[toRemoveAddresses[i]];
+        }
+    }
+
 }
