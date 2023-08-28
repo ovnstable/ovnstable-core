@@ -99,6 +99,50 @@ describe("OverflowICO", function () {
 
     })
 
+    describe('finish', ()=>{
+
+        beforeEach(async () =>{
+
+            await salesToken.mint(account.address, toE18(1_000_000));
+            await salesToken.approve(overflowICO.address, toE18(1_000_000));
+            await overflowICO.start();
+            await overflowICO.addToWhitelist([account.address]);
+
+        });
+
+
+        it('Revert: Can only finish after the sale has ended', async ()=>{
+            await expectRevert(overflowICO.finish(), "Can only finish after the sale has ended");
+        })
+
+        it("onlyOwner", async ()=>{
+            await expectRevert(overflowICO.connect(secondAccount).finish(), "Ownable: caller is not the owner");
+        });
+
+        it('Revert: Already finished', async ()=>{
+            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
+            await overflowICO.finish();
+            await expectRevert(overflowICO.finish(), "Already finished");
+        });
+
+        it('ETH send to owner', async ()=>{
+            let balanceBefore = await hre.ethers.provider.getBalance(account.address);
+            await commit(100);
+            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
+
+            await overflowICO.finish();
+            let balanceAfter = await hre.ethers.provider.getBalance(account.address);
+
+            // TODO Need to check
+            balanceBefore = Math.floor(ethers.utils.formatEther(balanceBefore.toString()));
+            balanceAfter = Math.floor(ethers.utils.formatEther(balanceAfter.toString()));
+            console.log(balanceBefore);
+            console.log(balanceAfter);
+            expect(99999999).eq(balanceAfter);
+
+        });
+    })
+
     describe('commit', ()=>{
 
         beforeEach(async () =>{
