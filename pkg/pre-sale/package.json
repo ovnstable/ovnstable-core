@@ -1,0 +1,15 @@
+{
+  "name": "@overnight-contracts/pre-sale",
+  "version": "0.0.4",
+  "description": "pre-sale",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+  }
+}
