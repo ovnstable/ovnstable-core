@@ -16,17 +16,19 @@ module.exports = async ({deployments}) => {
 
 async function getParams() {
     return {
+        dai: BASE.dai,
         usdbc: BASE.usdbc,
         well: BASE.well,
         weth: BASE.weth,
-        mUsdbc: BASE.moonwellUsdbc,
+        mDai: BASE.moonwellDai,
         unitroller: BASE.moonwellUnitroller,
         balancerVault: BASE.balancerVault,
         poolIdWellWeth: '0xfab10dd71e11d0ad403cc31418b45d816f2f988200020000000000000000001d',
         uniswapV3Router: BASE.uniswapV3Router,
         poolFeeWethUsdbc: 500, // 0.05%
+        poolFeeUsdbcDai: 100, // 0.01%
     }
 }
 
-module.exports.tags = ['StrategyMoonwellUsdbc'];
-module.exports.strategyMoonwellUsdbcParams = getParams;
+module.exports.tags = ['StrategyMoonwellDai'];
+module.exports.strategyMoonwellDaiParams = getParams;
