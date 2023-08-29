@@ -218,6 +218,31 @@ describe("OverflowICO", function () {
         });
     })
 
+    describe('claim', ()=>{
+
+        beforeEach(async () =>{
+
+            await salesToken.mint(account.address, toE18(1_000_000));
+            await salesToken.approve(overflowICO.address, toE18(1_000_000));
+            await overflowICO.start();
+            await overflowICO.addToWhitelist([account.address]);
+            await commit(100);
+            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate + 1000]);
+            await overflowICO.finish();
+        });
+
+
+        it('[1] claim', async ()=>{
+            await overflowICO.claim();
+            await overflowICO.claim2();
+            await overflowICO.claim3();
+        })
+
+
+
+
+
+    })
 
     function addDays(days) {
         return (days * 24 * 60 * 60 * 1000);
