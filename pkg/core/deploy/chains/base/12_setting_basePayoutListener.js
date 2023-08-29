@@ -15,8 +15,8 @@ module.exports = async () => {
 //    items.push(...baseSwap());
 //    items.push(...velocimeter());
 //    items.push(...swapBased());
-//     items.push(...alienBase());
-    items.push(...zyberSwap());
+//    items.push(...alienBase());
+//    items.push(...zyberSwap());
 
     let price = await getPrice();
 
@@ -36,9 +36,7 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0xb71dEc1ae87A174429a367318082C13b7512a947', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
-
     }
-
 
     function baseSwap() {
 
@@ -51,7 +49,6 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
-
     }
 
     function velocimeter() {
@@ -64,9 +61,11 @@ module.exports = async () => {
         items.push(createBribeWithFee('0x653685aa9913c6ab13d659a4ea8f358ecec3d34f', usdPlus.address, 'USD+/USDbC', dex, '0x3be8Bc75E0902f4F51316eE8F142Bc1F0C57948e', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0x42731e7774cf1b389fe2d9552bbdd6e4bb05e42b', daiPlus.address, 'DAI+/USDbC', dex, '0x18DBECb056aCFb8C731483207FC4029ca09D6aE1', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0x4a9683ab8f705ef3cf61c6466e77471aef41abd5', usdPlus.address, 'ERN/USD+', dex, '0xc8334Db5dB446FCcF47E48E30A5E0b95576Bea09', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xe31e3a567bf57dcd773586392c358bf73e2133c3', usdPlus.address, 'gCEAZOR/USD+', dex, '0xA1e87EaEc809c8A70F725b26e1Da209018240a37', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xeEabF63f536979A0073f27E1CB44711A21Ae21Be', usdPlus.address, 'gLEVI/USD+', dex, '0x1EB5f2fd6de9E4BA24E6cb3E8e4a1A44006a63bc', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0x433B5fB936fe8FA77fa94f2a1C5f70dD3237b1D3', usdPlus.address, 'WETH/USD+', dex, '0x7eB01BD690fCC6CB45597f2BEf85BF132f59ECd2', 20, COMMON.rewardWallet));
 
         return items;
-
     }
 
     function swapBased() {
@@ -80,7 +79,6 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x282f9231E5294E7354744df36461c21e0E68061C', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
-
     }
 
     function alienBase() {
@@ -94,7 +92,6 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x553666081db0a8fdB337560009932852059d589A', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
-
     }
 };
 
