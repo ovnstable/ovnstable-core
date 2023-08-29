@@ -154,11 +154,9 @@ interface IRouter {
 interface IPair is IERC20Metadata {
     function metadata() external view returns (uint dec0, uint dec1, uint r0, uint r1, bool st, address t0, address t1);
     function tokens() external view returns (address, address);
-    function token0() external returns (address);
-    function token1() external returns (address);
+    function token0() external view returns (address);
+    function token1() external view returns (address);
     function externalBribe() external returns (address);
-//    function balanceOf(address account) external view returns (uint256);
-//    function transferFrom(address src, address dst, uint amount) external returns (bool);
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
     function burn(address to) external returns (uint amount0, uint amount1);
@@ -208,6 +206,21 @@ interface IGauge {
     function left(address token) external view returns (uint);
 
     function notifyRewardAmount(address token, uint amount) external;
+
+}
+
+// Flashloan sells oToken for a specified approved want.
+interface ITransmutationVelocimeter {
+
+    /** @notice Main Function used to swap oToken via a flash loan to specified approved want.
+     * @param _want The token the user wants to swap to.
+     * @param _amount Amount of oToken we are swapping.
+     * @param _minAmountOut Minimum amount of want we are requesting, used for slippage protection.
+    */
+    function transmute(address _want, uint256 _amount, uint256 _minAmountOut) external returns (uint256 wantAmount);
+
+    // Should be close to an estimate on how much you receive to transmute.
+    function getAmountOut(address _want, uint256 _amount) external view returns (uint256 amountOut);
 
 }
 
