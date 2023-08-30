@@ -4,7 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 
-
 contract StrategyEts is Strategy {
 
     // --- params
@@ -13,10 +12,9 @@ contract StrategyEts is Strategy {
     IERC20 public rebaseToken;
     IHedgeExchanger public hedgeExchanger;
 
-
     // --- events
-    event StrategyUpdatedParams();
 
+    event StrategyUpdatedParams();
 
     // --- structs
 
@@ -26,7 +24,6 @@ contract StrategyEts is Strategy {
         address hedgeExchanger;
     }
 
-
     // --- constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -35,7 +32,6 @@ contract StrategyEts is Strategy {
     function initialize() initializer public {
         __Strategy_init();
     }
-
 
     // --- setters
 
@@ -47,15 +43,12 @@ contract StrategyEts is Strategy {
         emit StrategyUpdatedParams();
     }
 
-
     // --- logic
 
     function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
-
-        require(_asset == address(asset), "Some token not compatible");
 
         asset.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.buy(_amount, "");
@@ -67,8 +60,6 @@ contract StrategyEts is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(asset), "Some token not compatible");
-
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
 
@@ -79,8 +70,6 @@ contract StrategyEts is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
-        require(_asset == address(asset), "Some token not compatible");
 
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
