@@ -13,8 +13,15 @@ module.exports = {
 
     namedAccounts: config.namedAccounts,
     networks: config.getNetwork(process.env.ETH_NETWORK),
-    solidity: config.solidity,
-    zksolc: config.zksolc,
+    solidity: {
+        version: "0.8.8",
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            }
+        }
+    },
     etherscan: config.etherscan(),
     mocha: config.mocha,
     gasReporter: config.gasReport
