@@ -21,6 +21,14 @@ const abiNFTPool = require("./abi/NFTPool.json");
 
 let zaps = [
     {
+        name: 'AerodromeZap',
+        gauge: '0x87803Cb321624921cedaAD4555F07Daa0D1Ed325',
+        token0Out: 'daiPlus',
+        token1Out: 'usdPlus',
+        token0In: 'usdbc',
+        token1In: 'dai',
+    },
+    {
         name: 'AlienBaseZap',
         gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
         poolId: 7,
