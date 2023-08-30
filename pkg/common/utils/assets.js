@@ -36,6 +36,7 @@ let BASE = {
     alienBaseRouter: '0x7f2ff89d3C45010c976Ea6bb7715DC7098AF786E',
     swapBasedRouter: '0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066',
     aerodromeRouter: '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43',
+    maverickRouter: '0x32AED3Bce901DA12ca8489788F3A99fCe1056e14',
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
