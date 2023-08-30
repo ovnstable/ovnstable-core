@@ -1,0 +1,16 @@
+{
+  "name": "@overnight-contracts/governance-new",
+  "version": "0.0.1",
+  "description": "New governance contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.9.3"
+  }
+}
