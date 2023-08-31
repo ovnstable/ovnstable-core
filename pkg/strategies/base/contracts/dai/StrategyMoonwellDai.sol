@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Moonwell.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
 contract StrategyMoonwellDai is Strategy {
 
@@ -22,6 +23,8 @@ contract StrategyMoonwellDai is Strategy {
         address uniswapV3Router;
         uint24 poolFeeWethUsdbc;
         uint24 poolFeeUsdbcDai;
+        address aerodromeRouter;
+        address poolWellWeth;
     }
 
     // --- params
@@ -37,6 +40,8 @@ contract StrategyMoonwellDai is Strategy {
     ISwapRouter public uniswapV3Router;
     uint24 public poolFeeWethUsdbc;
     uint24 public poolFeeUsdbcDai;
+    address public aerodromeRouter;
+    address public poolWellWeth;
 
     // --- events
 
@@ -65,6 +70,8 @@ contract StrategyMoonwellDai is Strategy {
         require(params.uniswapV3Router != address(0), 'uniswapV3Router is empty');
         require(params.poolFeeWethUsdbc != 0, 'poolFeeWethUsdbc is empty');
         require(params.poolFeeUsdbcDai != 0, 'poolFeeUsdbcDai is empty');
+        require(params.aerodromeRouter != address(0), 'aerodromeRouter is empty');
+        require(params.poolWellWeth != address(0), 'poolWellWeth is empty');
 
         dai = IERC20(params.dai);
         usdbc = IERC20(params.usdbc);
@@ -77,6 +84,8 @@ contract StrategyMoonwellDai is Strategy {
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeWethUsdbc = params.poolFeeWethUsdbc;
         poolFeeUsdbcDai = params.poolFeeUsdbcDai;
+        aerodromeRouter = params.aerodromeRouter;
+        poolWellWeth = params.poolWellWeth;
 
         emit StrategyUpdatedParams();
     }
@@ -132,16 +141,21 @@ contract StrategyMoonwellDai is Strategy {
 
         uint256 wellBalance = well.balanceOf(address(this));
         if (wellBalance > 0) {
-            (, uint256[] memory balances,) = balancerVault.getPoolTokens(poolIdWellWeth);
-            // ETH in pool > 1 ETH
-            if (balances[0] > 1e18) {
-                uint256 wethBalance = BalancerLibrary.batchSwap(
-                    balancerVault,
+            uint256 wethBalance = AerodromeLibrary.getAmountsOut(
+                aerodromeRouter,
+                address(well),
+                address(weth),
+                poolWellWeth,
+                wellBalance
+            );
+            if (wethBalance > 0) {
+                wethBalance = AerodromeLibrary.singleSwap(
+                    aerodromeRouter,
                     address(well),
                     address(weth),
-                    poolIdWellWeth,
+                    poolWellWeth,
                     wellBalance,
-                    0,
+                    wethBalance * 99 / 100,
                     address(this)
                 );
                 if (wethBalance > 0) {

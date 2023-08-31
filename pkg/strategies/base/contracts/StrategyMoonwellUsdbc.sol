@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Moonwell.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
 contract StrategyMoonwellUsdbc is Strategy {
 
@@ -20,6 +21,8 @@ contract StrategyMoonwellUsdbc is Strategy {
         bytes32 poolIdWellWeth;
         address uniswapV3Router;
         uint24 poolFeeWethUsdbc;
+        address aerodromeRouter;
+        address poolWellWeth;
     }
 
     // --- params
@@ -33,6 +36,8 @@ contract StrategyMoonwellUsdbc is Strategy {
     bytes32 public poolIdWellWeth;
     ISwapRouter public uniswapV3Router;
     uint24 public poolFeeWethUsdbc;
+    address public aerodromeRouter;
+    address public poolWellWeth;
 
     // --- events
 
@@ -59,6 +64,8 @@ contract StrategyMoonwellUsdbc is Strategy {
         require(params.poolIdWellWeth != "", 'poolIdWellWeth is empty');
         require(params.uniswapV3Router != address(0), 'uniswapV3Router is empty');
         require(params.poolFeeWethUsdbc != 0, 'poolFeeWethUsdbc is empty');
+        require(params.aerodromeRouter != address(0), 'aerodromeRouter is empty');
+        require(params.poolWellWeth != address(0), 'poolWellWeth is empty');
 
         usdbc = IERC20(params.usdbc);
         well = IERC20(params.well);
@@ -69,6 +76,8 @@ contract StrategyMoonwellUsdbc is Strategy {
         poolIdWellWeth = params.poolIdWellWeth;
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeWethUsdbc = params.poolFeeWethUsdbc;
+        aerodromeRouter = params.aerodromeRouter;
+        poolWellWeth = params.poolWellWeth;
 
         emit StrategyUpdatedParams();
     }
@@ -79,7 +88,6 @@ contract StrategyMoonwellUsdbc is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-
         usdbc.approve(address(mUsdbc), _amount);
         mUsdbc.mint(usdbc.balanceOf(address(this)));
     }
@@ -89,7 +97,6 @@ contract StrategyMoonwellUsdbc is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
         mUsdbc.redeemUnderlying(_amount);
         return usdbc.balanceOf(address(this));
     }
@@ -98,7 +105,6 @@ contract StrategyMoonwellUsdbc is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
         mUsdbc.redeem(mUsdbc.balanceOf(address(this)));
         return usdbc.balanceOf(address(this));
     }
@@ -127,19 +133,23 @@ contract StrategyMoonwellUsdbc is Strategy {
 
         uint256 wellBalance = well.balanceOf(address(this));
         if (wellBalance > 0) {
-            (, uint256[] memory balances,) = balancerVault.getPoolTokens(poolIdWellWeth);
-            // ETH in pool > 1 ETH
-            if (balances[0] > 1e18) {
-                uint256 wethBalance = BalancerLibrary.batchSwap(
-                    balancerVault,
+            uint256 wethBalance = AerodromeLibrary.getAmountsOut(
+                aerodromeRouter,
+                address(well),
+                address(weth),
+                poolWellWeth,
+                wellBalance
+            );
+            if (wethBalance > 0) {
+                wethBalance = AerodromeLibrary.singleSwap(
+                    aerodromeRouter,
                     address(well),
                     address(weth),
-                    poolIdWellWeth,
+                    poolWellWeth,
                     wellBalance,
-                    0,
+                    wethBalance * 99 / 100,
                     address(this)
                 );
-
                 if (wethBalance > 0) {
                     totalUsdbc += UniswapV3Library.singleSwap(
                         uniswapV3Router,
