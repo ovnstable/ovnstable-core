@@ -27,6 +27,8 @@ async function getParams() {
         uniswapV3Router: BASE.uniswapV3Router,
         poolFeeWethUsdbc: 500, // 0.05%
         poolFeeUsdbcDai: 100, // 0.01%
+        aerodromeRouter: BASE.aerodromeRouter,
+        poolWellWeth: '0xffA3F8737C39e36dec4300B162c2153c67c8352f',
     }
 }
 
