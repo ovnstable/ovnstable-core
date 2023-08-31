@@ -15,10 +15,6 @@ async function main() {
     values.push(0);
     abis.push(PortfolioManager.interface.encodeFunctionData('addStrategy', [StrategyCompoundUsdbc.address]));
 
-    addresses.push(PortfolioManager.address);
-    values.push(0);
-    abis.push(PortfolioManager.interface.encodeFunctionData('setCashStrategy', [StrategyCompoundUsdbc.address]));
-
 
     await createProposal(addresses, values, abis);
 }
