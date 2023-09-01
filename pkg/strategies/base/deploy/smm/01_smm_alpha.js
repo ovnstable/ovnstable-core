@@ -2,7 +2,7 @@ const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployPr
 const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
 const { BASE } = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '0x9a1F3333F573664465E19f1d71721135393a4F46';
+let rebaseToken = '0xc10Cf2f6900dcc124E8D7F41436AeE76347ec896';
 let hedgeExchanger = '0xE4A765E2D178c007Ba04B444f172e99b10F70421';
 
 module.exports = async ({ deployments }) => {
