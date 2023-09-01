@@ -1,29 +1,28 @@
-const { getContract, execTimelock, showM2M } = require("@overnight-contracts/common/utils/script-utils");
-const { createProposal, testProposal, testStrategy } = require("@overnight-contracts/common/utils/governance");
-const { strategySmmAlphaParams } = require("@overnight-contracts/strategies-base/deploy/smm/01_smm_alpha");
-const { strategySmmBetaParams } = require("@overnight-contracts/strategies-base/deploy/smm/02_smm_beta");
+const { getContract, getPrice, showM2M } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
+
+    let pm = await getContract('PortfolioManager');
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-
-    let StrategySmmAlpha = await getContract('StrategySmmAlpha', 'base');
-    let StrategySmmBeta = await getContract('StrategySmmBeta', 'base_dai');
-
-    addresses.push(StrategySmmAlpha.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(StrategySmmAlpha.interface.encodeFunctionData('setParams', [await strategySmmAlphaParams()]));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x4666Cb455A9a136230244fB9d7df55168e60E22a']));
 
-    addresses.push(StrategySmmBeta.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(StrategySmmBeta.interface.encodeFunctionData('setParams', [await strategySmmBetaParams()]));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0xF681af43e1B333D8c26D6cf35c4F6654F894c274']));
 
-
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
     await createProposal(addresses, values, abis);
 }
+
 
 main()
     .then(() => process.exit(0))
