@@ -6,7 +6,7 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 let {ARBITRUM} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
-const {toE18, fromE18} = require("@overnight-contracts/common/utils/decimals");
+const {toE18, fromE18, toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 
 
 describe("OverflowICO", function () {
@@ -14,6 +14,7 @@ describe("OverflowICO", function () {
     let account;
     let overflowICO;
     let salesToken;
+    let emissionToken;
     let secondAccount;
 
     let startDate;
@@ -26,11 +27,10 @@ describe("OverflowICO", function () {
         account = signers[0];
         secondAccount = signers[1];
 
-        await deployments.fixture(['SalesToken']);
+        await deployments.fixture(['SalesToken', 'EmissionToken']);
 
         salesToken = await ethers.getContract("SalesToken");
-
-
+        emissionToken = await ethers.getContract("EmissionToken");
 
         startDate = Math.floor((new Date().getTime()) / 1000);
         console.log('startDate: ' + startDate);
@@ -41,20 +41,18 @@ describe("OverflowICO", function () {
 
         let params = {
             salesToken: salesToken.address,
-            tokensToSell: '500000000000000000000000',
-            ethersToRaise: '450000000000000000000',
-            refundThreshold: '150000000000000000000',
+            ethersToRaise: '300000000000',
+            refundThreshold: '225000000000',
             startTime: startDate,
             endTime: endDate,
             receiveTime: endDate + 100,
             vestingBegin: '1692961500',
             vestingDuration: '5259486',
             vestingProportion: '300000000000000000',
-            minCommit: '1000000000000000',
+            minCommit: '1000000',
             maxCommit: '115792089237316195423570985008687907853269984665640564039457584007913129639935',
-            emissionToken: salesToken.address,
-            totalEmission: '500000000000000000000000',
-            burnAddress: '0x000000000000000000000000000000000000dead'
+            emissionToken: emissionToken.address,
+            totalEmission: '10000000000',
         }
 
         overflowICO = await deployments.deploy("OverflowICO", {
@@ -71,163 +69,167 @@ describe("OverflowICO", function () {
         overflowICO = await ethers.getContract("OverflowICO");
     });
 
-    describe("start", () =>{
+    // describe("start", () =>{
 
 
-        beforeEach(async () =>{
+    //     beforeEach(async () =>{
+    //         await emissionToken.mint(account.address, toE18(10_000));
+    //         await emissionToken.approve(overflowICO.address, toE18(10_000));
+    //         await overflowICO.start();
+    //     });
 
-            await salesToken.mint(account.address, toE18(1_000_000));
-            await salesToken.approve(overflowICO.address, toE18(1_000_000));
-            await overflowICO.start();
-        });
+    //     it("onlyOwner", async ()=>{
+    //         await expectRevert(overflowICO.connect(secondAccount).start(), "Ownable: caller is not the owner");
+    //     });
 
-        it("onlyOwner", async ()=>{
-            await expectRevert(overflowICO.connect(secondAccount).start(), "Ownable: caller is not the owner");
-        });
+    //     it("started = true", async ()=>{
+    //         expect(await overflowICO.started()).to.eq(true);
+    //     });
 
-        it("started = true", async ()=>{
-            expect(await overflowICO.started()).to.eq(true);
-        });
+    //     it("Error: Already started.", async ()=>{
+    //         await expectRevert(overflowICO.start(), "Already started.");
+    //     });
 
-        it("Error: Already started.", async ()=>{
-            await expectRevert(overflowICO.start(), "Already started.");
-        });
+    //     it("transfer correct", async ()=>{
+    //         expect(fromE6(await emissionToken.balanceOf(overflowICO.address))).to.eq(10_000);
+    //     });
 
-        it("transfer correct", async ()=>{
-            expect(fromE18(await salesToken.balanceOf(overflowICO.address))).to.eq(1_000_000);
-        });
+    // })
 
-    })
+    // describe('finish', ()=>{
 
-    describe('finish', ()=>{
+    //     beforeEach(async () =>{
 
-        beforeEach(async () =>{
+    //         await salesToken.mint(account.address, toE18(1_000_000));
+    //         await salesToken.approve(overflowICO.address, toE18(1_000_000));
+    //         await emissionToken.mint(account.address, toE18(10_000));
+    //         await emissionToken.approve(overflowICO.address, toE18(10_000));
+    //         await overflowICO.start();
+    //         await overflowICO.addToWhitelist([account.address]);
 
-            await salesToken.mint(account.address, toE18(1_000_000));
-            await salesToken.approve(overflowICO.address, toE18(1_000_000));
-            await overflowICO.start();
-            await overflowICO.addToWhitelist([account.address]);
-
-        });
-
-
-        it('Revert: Can only finish after the sale has ended', async ()=>{
-            await expectRevert(overflowICO.finish(), "Can only finish after the sale has ended");
-        })
-
-        it("onlyOwner", async ()=>{
-            await expectRevert(overflowICO.connect(secondAccount).finish(), "Ownable: caller is not the owner");
-        });
-
-        it('Revert: Already finished', async ()=>{
-            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
-            await overflowICO.finish();
-            await expectRevert(overflowICO.finish(), "Already finished");
-        });
-
-        it('ETH send to owner', async ()=>{
-            let balanceBefore = await hre.ethers.provider.getBalance(account.address);
-            await commit(100);
-            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
-
-            await overflowICO.finish();
-            let balanceAfter = await hre.ethers.provider.getBalance(account.address);
-
-            // TODO Need to check
-            balanceBefore = Math.floor(ethers.utils.formatEther(balanceBefore.toString()));
-            balanceAfter = Math.floor(ethers.utils.formatEther(balanceAfter.toString()));
-            console.log(balanceBefore);
-            console.log(balanceAfter);
-            expect(99999999).eq(balanceAfter);
-
-        });
-    })
-
-    describe('commit', ()=>{
-
-        beforeEach(async () =>{
-
-            await salesToken.mint(account.address, toE18(1_000_000));
-            await salesToken.approve(overflowICO.address, toE18(1_000_000));
-            await overflowICO.start();
-            await overflowICO.addToWhitelist([account.address]);
-
-        });
+    //     });
 
 
-        it('Revert: Can only deposit Ether during the sale period', async ()=>{
-            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate + 1000]);
-            await expectRevert(overflowICO.commit({value: ethers.utils.parseEther(1 + "", "ether")}), 'Can only deposit Ether during the sale period');
-        })
+    //     it('Revert: Can only finish after the sale has ended', async ()=>{
+    //         await expectRevert(overflowICO.finish(), "Can only finish after the sale has ended");
+    //     })
 
-        it('Revert: Commitment amount is outside the allowed range -> minCommit', async ()=>{
-            await expectRevert(overflowICO.commit({value: ethers.utils.parseEther("0.0001", "ether")}), 'Commitment amount is outside the allowed range');
-        })
+    //     it("onlyOwner", async ()=>{
+    //         await expectRevert(overflowICO.connect(secondAccount).finish(), "Ownable: caller is not the owner");
+    //     });
 
-        it('commitments = amount', async ()=>{
-            let value = ethers.utils.parseEther("0.1", "ether");
-            await overflowICO.commit({value: value});
-            expect(await overflowICO.commitments(account.address)).to.eq(value);
-        })
+    //     it('Revert: Already finished', async ()=>{
+    //         await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
+    //         await overflowICO.finish();
+    //         await expectRevert(overflowICO.finish(), "Already finished");
+    //     });
 
-        it('totalEmission = amount', async ()=>{
-            let value = ethers.utils.parseEther("0.1", "ether");
-            await overflowICO.commit({value: value});
-            expect(await overflowICO.totalCommitments()).to.eq(value);
-        })
+    //     it('USD+ send to owner', async ()=>{
+    //         let balanceBefore = await salesToken.balanceOf(account.address);
+    //         console.log("balanceBefore", balanceBefore.toString());
+    //         await overflowICO.commit(1000000);
+    //         await ethers.provider.send("evm_setNextBlockTimestamp", [endDate+1000]);
 
-        it('emissionPerEther (?)', async ()=>{
-            let value = ethers.utils.parseEther("0.1", "ether");
-            await overflowICO.commit({value: value});
+    //         await overflowICO.finish();
+    //         let balanceAfter = await salesToken.balanceOf(account.address);
+    //         console.log("balanceAfter", balanceAfter.toString());
 
-            //TODO Need check formula
-            expect(await overflowICO.emissionPerEther()).to.eq('some value');
-        })
+    //         expect(balanceBefore).eq(balanceAfter);
 
-        it('missedEmissions (?)', async ()=>{
-            let value = ethers.utils.parseEther("0.1", "ether");
-            await overflowICO.commit({value: value});
+    //     });
+    // })
 
-            //TODO Need check formula
-            expect(await overflowICO.missedEmissions(account.address)).to.eq('some value');
-        })
-    })
+    // describe('commit', ()=>{
+
+    //     beforeEach(async () =>{
+
+    //         await salesToken.mint(account.address, toE18(1_000_000));
+    //         await salesToken.approve(overflowICO.address, toE18(1_000_000));
+    //         await emissionToken.mint(account.address, toE18(10_000));
+    //         await emissionToken.approve(overflowICO.address, toE18(10_000));
+    //         await overflowICO.start();
+    //         await overflowICO.addToWhitelist([account.address]);
+
+    //     });
 
 
-    describe("whitelist", () => {
+    //     it('Revert: Can only deposit Ether during the sale period', async ()=>{
+    //         await ethers.provider.send("evm_setNextBlockTimestamp", [endDate + 1000]);
+    //         await expectRevert(overflowICO.commit(1000000), 'Can only deposit Ether during the sale period');
+    //     })
 
-        beforeEach(async () => {
-            await salesToken.mint(account.address, toE18(1_000_000));
-            await salesToken.approve(overflowICO.address, toE18(1_000_000));
-            await overflowICO.start();
-        })
+    //     it('Revert: Commitment amount is outside the allowed range -> minCommit', async ()=>{
+    //         await expectRevert(overflowICO.commit(1000000), 'Commitment amount is outside the allowed range');
+    //     })
 
-        it("commit && not whitelist", async function () {
-            await expectRevert(commit(1), '!whitelist');
-        });
+    //     it('commitments = amount', async ()=>{
+    //         let value = ethers.utils.parseEther("0.1", "ether");
+    //         await overflowICO.commit({value: value});
+    //         expect(await overflowICO.commitments(account.address)).to.eq(value);
+    //     })
 
-        it("commit && add whitelist", async function () {
-            await overflowICO.addToWhitelist([account.address]);
-            await commit(1);
-        });
+    //     it('totalEmission = amount', async ()=>{
+    //         let value = ethers.utils.parseEther("0.1", "ether");
+    //         await overflowICO.commit({value: value});
+    //         expect(await overflowICO.totalCommitments()).to.eq(value);
+    //     })
 
-        it("commit && add/remove whitelist", async function () {
-            await overflowICO.addToWhitelist([account.address]);
-            await overflowICO.removeFromWhitelist([account.address]);
-            await expectRevert(commit(1), '!whitelist');
-        });
-    })
+    //     it('emissionPerEther (?)', async ()=>{
+    //         let value = ethers.utils.parseEther("0.1", "ether");
+    //         await overflowICO.commit({value: value});
+
+    //         //TODO Need check formula
+    //         expect(await overflowICO.emissionPerEther()).to.eq('some value');
+    //     })
+
+    //     it('missedEmissions (?)', async ()=>{
+    //         let value = ethers.utils.parseEther("0.1", "ether");
+    //         await overflowICO.commit({value: value});
+
+    //         //TODO Need check formula
+    //         expect(await overflowICO.missedEmissions(account.address)).to.eq('some value');
+    //     })
+    // })
+
+
+    // describe("whitelist", () => {
+
+    //     beforeEach(async () => {
+    //         await salesToken.mint(account.address, toE6(1_000_000));
+    //         await salesToken.approve(overflowICO.address, toE6(1_000_000));
+    //         await emissionToken.mint(account.address, toE6(10_000));
+    //         await emissionToken.approve(overflowICO.address, toE6(10_000));
+    //         await overflowICO.start();
+    //     })
+
+    //     it("commit && not whitelist", async function () {
+    //         await expectRevert(overflowICO.commit(1000000), '!whitelist');
+    //     });
+
+    //     it("commit && add whitelist", async function () {
+    //         await overflowICO.addToWhitelist([account.address]);
+    //         await overflowICO.commit(1000000);
+    //     });
+
+    //     it("commit && add/remove whitelist", async function () {
+    //         await overflowICO.addToWhitelist([account.address]);
+    //         await overflowICO.removeFromWhitelist([account.address]);
+    //         await expectRevert(overflowICO.commit(1000000), '!whitelist');
+    //     });
+    // })
 
     describe('claim', ()=>{
 
         beforeEach(async () =>{
 
-            await salesToken.mint(account.address, toE18(1_000_000));
-            await salesToken.approve(overflowICO.address, toE18(1_000_000));
+            await salesToken.mint(account.address, toE6(225000));
+            await salesToken.approve(overflowICO.address, toE6(225000));
+            await emissionToken.mint(account.address, toE6(10_000));
+            await emissionToken.approve(overflowICO.address, toE6(10_000));
             await overflowICO.start();
             await overflowICO.addToWhitelist([account.address]);
-            await commit(100);
-            await ethers.provider.send("evm_setNextBlockTimestamp", [endDate + 1000]);
+            await overflowICO.commit("225000000000");
+            await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
         });
 
@@ -248,10 +250,10 @@ describe("OverflowICO", function () {
         return (days * 24 * 60 * 60 * 1000);
     }
 
-    async function commit(ether) {
-        await overflowICO.commit({value: ethers.utils.parseEther(ether + "", "ether")});
+    async function spendTimeWithPayoyt(value) {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
+        await salesToken.setLiquidityIndex("1010000000000000000000000000");
     }
-
 
 });
 

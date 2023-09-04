@@ -2,10 +2,10 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract SalesToken is ERC20 {
+contract EmissionToken is ERC20 {
 
 
-    constructor() ERC20("SalesToken", "SalesToken"){
+    constructor() ERC20("EmissionToken", "EmissionToken"){
     }
 
     function mint(address to, uint256 amount) external {

@@ -6,12 +6,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
 
-    let token = await ethers.getContract('SalesToken');
+    let salesToken = await ethers.getContract('SalesToken');
+    let emissionToken = await ethers.getContract('EmissionToken');
 
 
     let params = {
-        salesToken: token.address,
-        tokensToSell: '500000000000000000000000',
+        salesToken: salesToken.address,
         ethersToRaise: '450000000000000000000',
         refundThreshold: '150000000000000000000',
         startTime: '1692788400',
@@ -22,9 +22,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         vestingProportion: '300000000000000000',
         minCommit: '1000000000000000',
         maxCommit: '115792089237316195423570985008687907853269984665640564039457584007913129639935',
-        emissionToken: token.address,
-        totalEmission: '500000000000000000000000',
-        burnAddress: '0x000000000000000000000000000000000000dead'
+        emissionToken: emissionToken.address,
+        totalEmission: '500000000000000000000000'
     }
     let overflowICO = await deploy("OverflowICO", {
         from: deployer,
