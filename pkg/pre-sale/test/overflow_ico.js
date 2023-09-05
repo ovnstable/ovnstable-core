@@ -32,6 +32,8 @@ describe("OverflowICO", function () {
         salesToken = await ethers.getContract("SalesToken");
         emissionToken = await ethers.getContract("EmissionToken");
 
+        await salesToken.setExchanger(account.address);
+
         startDate = Math.floor((new Date().getTime()) / 1000);
         console.log('startDate: ' + startDate);
         endDate = startDate + addDays(5);

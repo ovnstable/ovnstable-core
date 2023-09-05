@@ -1,18 +1,15 @@
 const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
+    const {save} = deployments;
 
-    let token = await deploy("SalesToken", {
-        from: deployer,
-        args: [  ],
-        log: true,
-        skipIfAlreadyDeployed: false
-    });
+    let params = {args: ["SalesToken", "SalesToken", 6]}
 
-    console.log(`SalesToken deployed at ${token.address}`);
+    await deployProxy('SalesToken', deployments, save, params);
 
 };
 
