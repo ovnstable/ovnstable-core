@@ -57,6 +57,15 @@
         "address": "0x9A020BDC2FAFF5bd24c6AcC2020d01Ff9f2c627a"
       }
     ]
+  },
+  {
+    "chain": "Base",
+    "pools": [
+      {
+        "name": "Overnight/Curve",
+        "address": "0xda3de145054ed30ee937865d31b500505c4bdfe7"
+      }
+    ]
   }
 ]
 
