@@ -550,6 +550,7 @@ async function execTimelock(exec){
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
+    await sleep(1000);
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
