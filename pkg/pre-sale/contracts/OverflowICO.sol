@@ -11,22 +11,22 @@ import "./LinearVesting.sol";
 contract OverflowICO is Ownable, LinearVesting {
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable salesToken;    // USD+ token
-    IERC20 public immutable emissionToken; // OVN token
+    IERC20 public immutable commitToken; // USD+ token
+    IERC20 public immutable salesToken;  // OVN token
     uint256 public immutable usdpToRaise;
     uint256 public immutable refundThreshold;
-    uint256 public immutable totalEmission;
+    uint256 public immutable totalSales;
     uint256 public immutable startTime;
     uint256 public immutable endTime;
     uint256 public immutable receiveTime;
     uint256 public immutable vestingProportion;
-    uint256 public immutable emissionPerUsdPlus;
+    uint256 public immutable salesPerUsdPlus;
 
     uint256 public immutable minCommit;
     uint256 public immutable maxCommit;
 
+    uint256 public immutable commitDm;
     uint256 public immutable salesDm;
-    uint256 public immutable emissionDm;
     uint256 public immutable ratioDm;
 
     bool public started;
@@ -36,17 +36,17 @@ contract OverflowICO is Ownable, LinearVesting {
     uint256 public lastUpdate;
     uint256 public totalCommitments;
     uint256 public totalMissed;
-    uint256 public totalSalesAmountToBonus;
+    uint256 public totalCommitAmountToBonus;
     mapping(address => uint256) public commitments;
-    mapping(address => uint256) public missedSales;
-    mapping(address => uint256) public finalEmissions;
-    mapping(address => uint256) public finalSales;
+    mapping(address => uint256) public missedCommit;
+    mapping(address => uint256) public finalSaless;
+    mapping(address => uint256) public finalCommit;
 
     mapping(address => bool) public whitelist;
 
     event Commit(address indexed buyer, uint256 amount);
-    event Claim(address indexed buyer, uint256 sales, uint256 token, uint256 emission);
-    event Claim2(address indexed buyer, uint256 token, uint256 emission);
+    event Claim(address indexed buyer, uint256 commit, uint256 token, uint256 sales);
+    event Claim2(address indexed buyer, uint256 token, uint256 sales);
 
     modifier onlyWhitelist() {
         require(whitelist[msg.sender], "!whitelist");
@@ -54,8 +54,8 @@ contract OverflowICO is Ownable, LinearVesting {
     }
 
     struct SetUpParams {
+        address commitToken;
         address salesToken;
-        address emissionToken;
         uint256 usdpToRaise;
         uint256 refundThreshold;
         uint256 startTime;
@@ -66,12 +66,12 @@ contract OverflowICO is Ownable, LinearVesting {
         uint256 vestingProportion;
         uint256 minCommit;
         uint256 maxCommit;
-        uint256 totalEmission;
+        uint256 totalSales;
     }
 
     constructor(
         SetUpParams memory params
-    ) LinearVesting(params.emissionToken, params.vestingBegin, params.vestingDuration) {
+    ) LinearVesting(params.salesToken, params.vestingBegin, params.vestingDuration) {
         require(params.startTime >= block.timestamp, "Start time must be in the future.");
         require(params.endTime > params.startTime, "End time must be greater than start time.");
         require(params.usdpToRaise > 0, "USD+ to raise should be greater than 0");
@@ -79,8 +79,8 @@ contract OverflowICO is Ownable, LinearVesting {
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
 
+        commitToken = IERC20(params.commitToken);
         salesToken = IERC20(params.salesToken);
-        emissionToken = IERC20(params.emissionToken);
         usdpToRaise = params.usdpToRaise;
         refundThreshold = params.refundThreshold;
         startTime = params.startTime;
@@ -88,27 +88,27 @@ contract OverflowICO is Ownable, LinearVesting {
         receiveTime = params.receiveTime;
         minCommit = params.minCommit;
         maxCommit = params.maxCommit;
-        totalEmission = params.totalEmission;
+        totalSales = params.totalSales;
         vestingProportion = params.vestingProportion;
+        commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
         salesDm = 10 ** IERC20Metadata(params.salesToken).decimals();
-        emissionDm = 10 ** IERC20Metadata(params.emissionToken).decimals();
-        ratioDm = 10 ** IERC20Metadata(params.emissionToken).decimals() / 10 ** IERC20Metadata(params.salesToken).decimals();
+        ratioDm = 10 ** IERC20Metadata(params.salesToken).decimals() / 10 ** IERC20Metadata(params.commitToken).decimals();
 
-        emissionPerUsdPlus = params.totalEmission * 1e6 / params.usdpToRaise;
-        consolelog("emissionPerUsdPlus", params.totalEmission * 1e6 / params.usdpToRaise);
+        salesPerUsdPlus = params.totalSales * 1e6 / params.usdpToRaise;
+        consolelog("salesPerUsdPlus", params.totalSales * 1e6 / params.usdpToRaise);
     }
 
     function start() external onlyOwner {
         require(!started, "Already started.");
         started = true;
-        emissionToken.safeTransferFrom(msg.sender, address(this), totalEmission);
+        salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
     function commit(uint256 amount) external payable nonReentrant onlyWhitelist {
         consolelog("---commit---");
-        _updateEmission();
+        _updateSales();
 
-        salesToken.safeTransferFrom(msg.sender, address(this), amount);
+        commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
@@ -120,35 +120,35 @@ contract OverflowICO is Ownable, LinearVesting {
         );
         commitments[msg.sender] += amount;
         totalCommitments += amount;
-        missedSales[msg.sender] += _calculateEmission(amount);
-        totalMissed += _calculateEmission(amount);
+        missedCommit[msg.sender] += _calculateCommit(amount);
+        totalMissed += _calculateCommit(amount);
         consolelog("amount", amount);
-        consolelog("usd+ balanceOf", salesToken.balanceOf(address(this)));
+        consolelog("usd+ balanceOf", commitToken.balanceOf(address(this)));
         consolelog("commitments[msg.sender]", commitments[msg.sender]);
         consolelog("totalCommitments", totalCommitments);
-        consolelog("_calculateEmission(amount)", _calculateEmission(amount));
-        consolelog("missedSales[msg.sender]", missedSales[msg.sender]);
+        consolelog("_calculateCommit(amount)", _calculateCommit(amount));
+        consolelog("missedCommit[msg.sender]", missedCommit[msg.sender]);
         consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
 
     function simulateClaim(address user) external returns (uint256, uint256, uint256) {
-        _updateEmission();
-        if (finalSales[user] > 0) {
-            return (0, finalSales[user], finalEmissions[user]);
+        _updateSales();
+        if (finalCommit[user] > 0) {
+            return (0, finalCommit[user], finalSaless[user]);
         }
 
         if (commitments[user] == 0) return (0, 0, 0);
 
         if (totalCommitments >= refundThreshold) {
-            uint256 salesToSpend = Math.min(commitments[user], (commitments[user] * usdpToRaise) / totalCommitments);
-            uint256 salesToRefund = commitments[user] - salesToSpend;
-            uint256 userShare = _calculateEmission(commitments[user]) - missedSales[user];
-            uint256 totalShare = _calculateEmission(totalCommitments) - totalMissed;
-            uint256 salesToBonus = salesToken.balanceOf(address(this)) - totalCommitments;
-            uint256 salesToReceive = userShare * salesToBonus / totalShare;
-            uint256 emissionToReceive = (salesToSpend * emissionPerUsdPlus) / salesDm;
-            return (salesToRefund, salesToReceive, emissionToReceive);
+            uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * usdpToRaise) / totalCommitments);
+            uint256 commitToRefund = commitments[user] - commitToSpend;
+            uint256 userShare = _calculateCommit(commitments[user]) - missedCommit[user];
+            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissed;
+            uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
+            uint256 commitToReceive = userShare * commitToBonus / totalShare;
+            uint256 salesToReceive = (commitToSpend * salesPerUsdPlus) / commitDm;
+            return (commitToRefund, commitToReceive, salesToReceive);
         } else {
             return (commitments[user], 0, 0);
         }
@@ -156,7 +156,7 @@ contract OverflowICO is Ownable, LinearVesting {
 
     function claim() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claim---");
-        _updateEmission();
+        _updateSales();
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended.");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+.");
 
@@ -166,38 +166,38 @@ contract OverflowICO is Ownable, LinearVesting {
 
         if (totalCommitments >= refundThreshold) {
             consolelog("totalCommitments >= refundThreshold");
-            uint256 salesToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * usdpToRaise) / totalCommitments);
-            uint256 salesToRefund = commitments[msg.sender] - salesToSpend;
-            consolelog("salesToSpend", salesToSpend);
-            consolelog("salesToRefund", salesToRefund);
+            uint256 commitToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * usdpToRaise) / totalCommitments);
+            uint256 commitToRefund = commitments[msg.sender] - commitToSpend;
+            consolelog("commitToSpend", commitToSpend);
+            consolelog("commitToRefund", commitToRefund);
 
-            consolelog("partiCommWoMissed", _calculateEmission(commitments[msg.sender]) - missedSales[msg.sender]);
-            consolelog("totalSalesAmountToBonus", totalSalesAmountToBonus);
-            consolelog("totalEmission", totalEmission);
+            consolelog("partiCommWoMissed", _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender]);
+            consolelog("totalCommitAmountToBonus", totalCommitAmountToBonus);
+            consolelog("totalSales", totalSales);
 
-            uint256 userShare = _calculateEmission(commitments[msg.sender]) - missedSales[msg.sender];
-            uint256 totalShare = _calculateEmission(totalCommitments) - totalMissed;
-            uint256 salesToReceive = userShare * totalSalesAmountToBonus / totalShare;
-            uint256 emissionToReceive = (salesToSpend * emissionPerUsdPlus) / salesDm;
+            uint256 userShare = _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender];
+            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissed;
+            uint256 commitToReceive = userShare * totalCommitAmountToBonus / totalShare;
+            uint256 salesToReceive = (commitToSpend * salesPerUsdPlus) / commitDm;
 
+            consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
-            consolelog("emissionToReceive", emissionToReceive);
 
             commitments[msg.sender] = 0;
 
-            finalEmissions[msg.sender] = emissionToReceive;
-            finalSales[msg.sender] = salesToReceive;
+            finalSaless[msg.sender] = salesToReceive;
+            finalCommit[msg.sender] = commitToReceive;
 
-            salesToken.safeTransfer(msg.sender, salesToRefund);
+            commitToken.safeTransfer(msg.sender, commitToRefund);
             
-            emit Claim(msg.sender, salesToRefund, salesToReceive, emissionToReceive);
+            emit Claim(msg.sender, commitToRefund, salesToReceive, commitToReceive);
             consolelog("---claim end---\n");
-            return (salesToRefund, salesToReceive, emissionToReceive);
+            return (commitToRefund, salesToReceive, commitToReceive);
         } else {
             consolelog("totalCommitments < refundThreshold");
             uint256 amt = commitments[msg.sender];
             commitments[msg.sender] = 0;
-            salesToken.safeTransfer(msg.sender, amt);
+            commitToken.safeTransfer(msg.sender, amt);
             consolelog("usd+ refund", amt);
             emit Claim(msg.sender, amt, 0, 0);
             consolelog("---claim end---\n");
@@ -208,29 +208,29 @@ contract OverflowICO is Ownable, LinearVesting {
     function claim2() external nonReentrant {
         consolelog("---claim2---");
         require(block.timestamp >= receiveTime, "not claimable yet");
-        uint256 a1 = finalSales[msg.sender];
-        uint256 a2 = finalEmissions[msg.sender];
+        uint256 a1 = finalSaless[msg.sender];
+        uint256 a2 = finalCommit[msg.sender];
         consolelog("a1", a1);
         consolelog("a2", a2);
         require(a1 != 0 || a2 != 0, "not zero final values");
-        finalSales[msg.sender] = 0;
-        finalEmissions[msg.sender] = 0;
+        finalCommit[msg.sender] = 0;
+        finalSaless[msg.sender] = 0;
 
-        uint256 vesting = a2 * vestingProportion / emissionDm;
+        uint256 vesting = a1 * vestingProportion / salesDm;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
-        consolelog("send OVN to participant", a2 - vesting);
-        emissionToken.safeTransfer(msg.sender, a2 - vesting);
+        consolelog("send OVN to participant", a1 - vesting);
+        salesToken.safeTransfer(msg.sender, a1 - vesting);
 
-        consolelog("send USD+ to participant", a1);
-        salesToken.safeTransfer(msg.sender, a1);
+        consolelog("send USD+ to participant", a2);
+        commitToken.safeTransfer(msg.sender, a2);
         consolelog("---claim2 end---\n");
         emit Claim2(msg.sender, a1, a2);
     }
 
     function finish() public onlyOwner {
-         _updateEmission();
+         _updateSales();
         consolelog("---finish---");
         require(block.timestamp > endTime, "Can only finish after the sale has ended.");
         require(!finished, "Already finished.");
@@ -238,29 +238,29 @@ contract OverflowICO is Ownable, LinearVesting {
 
         if (totalCommitments >= refundThreshold) {
             consolelog("totalCommitments >= refundThreshold");
-            consolelog("usd+ .balanceOf", salesToken.balanceOf(address(this)));
+            consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
             consolelog("totalCommitments", totalCommitments);
             consolelog("usdpToRaise", usdpToRaise);
-            uint256 usingSalesToken = Math.min(usdpToRaise, totalCommitments);
-            consolelog("send usd+ to owner", usingSalesToken);
-            salesToken.safeTransfer(owner(), usingSalesToken);
-            consolelog("send ovn to owner", totalEmission - (usingSalesToken * emissionPerUsdPlus) / salesDm);
-            emissionToken.safeTransfer(owner(), totalEmission - (usingSalesToken * emissionPerUsdPlus) / salesDm);
+            uint256 usingCommitToken = Math.min(usdpToRaise, totalCommitments);
+            consolelog("send usd+ to owner", usingCommitToken);
+            commitToken.safeTransfer(owner(), usingCommitToken);
+            consolelog("send ovn to owner", totalSales - (usingCommitToken * salesPerUsdPlus) / commitDm);
+            salesToken.safeTransfer(owner(), totalSales - (usingCommitToken * salesPerUsdPlus) / commitDm);
         } else {
             consolelog("totalCommitments < refundThreshold");
-            consolelog("usd+ .balanceOf", salesToken.balanceOf(address(this)));
+            consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
             consolelog("totalCommitments", totalCommitments);
-            consolelog("send usd+ to owner", salesToken.balanceOf(address(this)) - totalCommitments);
-            salesToken.safeTransfer(owner(), salesToken.balanceOf(address(this)) - totalCommitments);
-            emissionToken.safeTransfer(owner(), totalEmission);
+            consolelog("send usd+ to owner", commitToken.balanceOf(address(this)) - totalCommitments);
+            commitToken.safeTransfer(owner(), commitToken.balanceOf(address(this)) - totalCommitments);
+            salesToken.safeTransfer(owner(), totalSales);
         }
 
-        totalSalesAmountToBonus = salesToken.balanceOf(address(this));
+        totalCommitAmountToBonus = commitToken.balanceOf(address(this));
         if (totalCommitments >= usdpToRaise) {
-            totalSalesAmountToBonus -= (totalCommitments - usdpToRaise);
+            totalCommitAmountToBonus -= (totalCommitments - usdpToRaise);
         }
 
-        consolelog("totalSalesAmountToBonus", totalSalesAmountToBonus);
+        consolelog("totalCommitAmountToBonus", totalCommitAmountToBonus);
         consolelog("---finish end---\n");
     }
 
@@ -281,34 +281,34 @@ contract OverflowICO is Ownable, LinearVesting {
         }
     }
 
-    function _calculateEmission(uint256 value) internal view returns (uint256) {
-        return (value * timeMovingRatio) / salesDm;
+    function _calculateCommit(uint256 value) internal view returns (uint256) {
+        return (value * timeMovingRatio) / commitDm;
     }
 
-    function _updateEmission() internal {
-        consolelog("---_updateEmission---");
+    function _updateSales() internal {
+        consolelog("---_updateSales---");
         require(block.timestamp >= startTime, "not started");
         if (totalCommitments > 0) {
             uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
             consolelog("elapsed", elapsed);
             consolelog("duration", endTime - startTime);
-            consolelog("totalEmission", totalEmission);
-            uint256 emission = (totalEmission * elapsed) / (endTime - startTime);
-            consolelog("emission", emission);
-            timeMovingRatio += (emission * salesDm) / (totalCommitments);
+            consolelog("totalSales", totalSales);
+            uint256 commit = (totalSales * elapsed) / (endTime - startTime);
+            consolelog("commit", commit);
+            timeMovingRatio += (commit * commitDm) / (totalCommitments);
             consolelog("timeMovingRatio", timeMovingRatio);
         }
         lastUpdate = block.timestamp;
-        consolelog("---_updateEmission end---\n");
+        consolelog("---_updateSales end---\n");
     }
 
     // will be deleted later
     function logCommonInfo() public {
         consolelog("---logCommonInfo---");
-        consolelog("|usdpBalance(contract)", salesToken.balanceOf(address(this)));
-        consolelog("|ovnBalance(contract) ", emissionToken.balanceOf(address(this)));
-        consolelog("|usdpBalance(owner)   ", salesToken.balanceOf(address(owner())));
-        consolelog("|ovnBalance(owner)    ", emissionToken.balanceOf(address(owner())));
+        consolelog("|usdpBalance(contract)", commitToken.balanceOf(address(this)));
+        consolelog("|ovnBalance(contract) ", salesToken.balanceOf(address(this)));
+        consolelog("|usdpBalance(owner)   ", commitToken.balanceOf(address(owner())));
+        consolelog("|ovnBalance(owner)    ", salesToken.balanceOf(address(owner())));
         consolelog("---logCommonInfo---");
     }
 

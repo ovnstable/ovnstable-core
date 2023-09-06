@@ -5,15 +5,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
 
-    let token = await deploy("EmissionToken", {
+    let token = await deploy("SalesToken", {
         from: deployer,
         args: [  ],
         log: true,
         skipIfAlreadyDeployed: false
     });
 
-    console.log(`EmissionToken deployed at ${token.address}`);
+    console.log(`SalesToken deployed at ${token.address}`);
 
 };
 
-module.exports.tags = ['EmissionToken'];
+module.exports.tags = ['SalesToken'];

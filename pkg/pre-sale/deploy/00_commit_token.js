@@ -7,10 +7,10 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
     const {save} = deployments;
 
-    let params = {args: ["SalesToken", "SalesToken", 6]}
+    let params = {args: ["CommitToken", "CommitToken", 6]}
 
-    await deployProxy('SalesToken', deployments, save, params);
+    await deployProxy('CommitToken', deployments, save, params);
 
 };
 
-module.exports.tags = ['SalesToken'];
+module.exports.tags = ['CommitToken'];

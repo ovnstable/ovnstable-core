@@ -13,8 +13,8 @@ describe("OverflowICO", function () {
 
     let account;
     let overflowICO;
+    let commitToken;
     let salesToken;
-    let emissionToken;
     let firstAccount;
     let secondAccount;
 
@@ -25,7 +25,7 @@ describe("OverflowICO", function () {
     let vestingBegin;
     let vestingDuration;
     let vestingProportion;
-    let totalEmission;
+    let totalSales;
 
     let usdpToRaise;
     let refundThreshold;
@@ -43,12 +43,12 @@ describe("OverflowICO", function () {
         console.log("firstAccount address:", firstAccount.address);
         console.log("secondAccount address:", secondAccount.address);
 
-        await deployments.fixture(['SalesToken', 'EmissionToken']);
+        await deployments.fixture(['CommitToken', 'SalesToken']);
 
+        commitToken = await ethers.getContract("CommitToken");
         salesToken = await ethers.getContract("SalesToken");
-        emissionToken = await ethers.getContract("EmissionToken");
 
-        await salesToken.setExchanger(account.address);
+        await commitToken.setExchanger(account.address);
 
         startDate = Math.floor((new Date().getTime()) / 1000);
         console.log('startDate: ' + startDate);
@@ -58,7 +58,7 @@ describe("OverflowICO", function () {
         vestingBegin = endDate + addDays(1);
         vestingDuration = addDays(1);
         vestingProportion = toE18(0.75);
-        totalEmission = toE18(10000);
+        totalSales = toE18(10000);
         usdpToRaise = toE6(300000);
         refundThreshold = toE6(225000);
         minCommit = toE6(1);
@@ -67,8 +67,8 @@ describe("OverflowICO", function () {
         await spendTime(startDate);
 
         let params = {
+            commitToken: commitToken.address,
             salesToken: salesToken.address,
-            emissionToken: emissionToken.address,
             usdpToRaise: usdpToRaise,
             refundThreshold: refundThreshold,
             startTime: startDate,
@@ -79,7 +79,7 @@ describe("OverflowICO", function () {
             vestingProportion: vestingProportion,
             minCommit: minCommit,
             maxCommit: maxCommit,
-            totalEmission: totalEmission,
+            totalSales: totalSales,
         }
 
         overflowICO = await deployments.deploy("OverflowICO", {
@@ -100,8 +100,8 @@ describe("OverflowICO", function () {
     describe("start", () => {
 
         beforeEach(async () => {
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
         });
 
@@ -118,7 +118,7 @@ describe("OverflowICO", function () {
         });
 
         it("transfer correct", async () => {
-            expect(await emissionToken.balanceOf(overflowICO.address)).to.eq(totalEmission);
+            expect(await salesToken.balanceOf(overflowICO.address)).to.eq(totalSales);
         });
 
     })
@@ -129,14 +129,14 @@ describe("OverflowICO", function () {
         let amount = toE6(1000);
 
         beforeEach(async () => {
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
         });
 
         it('Revert: Can only finish after the sale has ended', async () => {
@@ -155,14 +155,14 @@ describe("OverflowICO", function () {
 
         it('Participant return USD+ after fail precale', async () => {
 
-            let balanceBefore = await salesToken.balanceOf(firstAccount.address);
+            let balanceBefore = await commitToken.balanceOf(firstAccount.address);
 
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
             await overflowICO.connect(firstAccount).claim();
 
-            let balanceAfter = await salesToken.balanceOf(firstAccount.address);
+            let balanceAfter = await commitToken.balanceOf(firstAccount.address);
 
             expect(balanceBefore).eq(balanceAfter);
         });
@@ -176,14 +176,14 @@ describe("OverflowICO", function () {
         let amount = toE6(1000);
 
         beforeEach(async () => {
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
         });
 
         it('Revert: Can only deposit USD+ during the sale period', async () => {
@@ -200,7 +200,7 @@ describe("OverflowICO", function () {
             expect(await overflowICO.commitments(firstAccount.address)).to.eq(amount);
         })
 
-        it('totalEmission = amount', async () => {
+        it('totalSales = amount', async () => {
             await overflowICO.connect(firstAccount).commit(amount);
             expect(await overflowICO.totalCommitments()).to.eq(amount);
         })
@@ -213,12 +213,12 @@ describe("OverflowICO", function () {
         let amount = toE6(200000);
 
         beforeEach(async () => {
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
         })
 
         it("commit && not whitelist", async function () {
@@ -243,14 +243,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(200000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -267,14 +267,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(250000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -294,14 +294,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(250000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -321,14 +321,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(250000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -348,14 +348,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(350000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -376,14 +376,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(350000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -403,14 +403,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(350000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
@@ -431,14 +431,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(200000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount / 2);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(firstAccount).commit(amount / 2);
@@ -458,14 +458,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(250000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount / 2);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(firstAccount).commit(amount / 2);
@@ -488,14 +488,14 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(350000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount / 2);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(firstAccount).commit(amount / 2);
@@ -519,17 +519,17 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(20000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await overflowICO.addToWhitelist([secondAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.mint(secondAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await salesToken.connect(secondAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.mint(secondAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(secondAccount).commit(amount);
@@ -550,17 +550,17 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(125000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await overflowICO.addToWhitelist([secondAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.mint(secondAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await salesToken.connect(secondAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.mint(secondAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(secondAccount).commit(amount);
@@ -586,17 +586,17 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             let amount = toE6(200000);
-            await emissionToken.mint(account.address, totalEmission);
-            await emissionToken.approve(overflowICO.address, totalEmission);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await overflowICO.addToWhitelist([secondAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await salesToken.mint(firstAccount.address, amount);
-            await salesToken.mint(secondAccount.address, amount);
-            await salesToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await salesToken.connect(secondAccount).approve(overflowICO.address, amount);
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.mint(secondAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, amount);
             await overflowICO.connect(firstAccount).commit(amount);
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(secondAccount).commit(amount);
@@ -623,12 +623,12 @@ describe("OverflowICO", function () {
 
     async function spendTimeWithPayoyt(value) {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
-        await salesToken.setLiquidityIndex("1200000000000000000000000000");
+        await commitToken.setLiquidityIndex("1200000000000000000000000000");
     }
 
     async function spendTimeWithPayoyt2(value) {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
-        await salesToken.setLiquidityIndex("1300000000000000000000000000");
+        await commitToken.setLiquidityIndex("1300000000000000000000000000");
     }
 
     async function spendTime(value) {
