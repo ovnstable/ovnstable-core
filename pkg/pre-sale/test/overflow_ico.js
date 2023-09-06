@@ -238,7 +238,6 @@ describe("OverflowICO", function () {
 
     })
 
-
     describe('[one participant], [less soft cap]', () => {
 
         let commitAmount = toE6(200000);
@@ -265,7 +264,7 @@ describe("OverflowICO", function () {
             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(240000));
         })
 
-        it('All OVN should return to account', async ()=>{
+        it('All OVN should return to account', async () => {
             expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
         })
 
@@ -290,8 +289,7 @@ describe("OverflowICO", function () {
         });
 
 
-
-        describe('[full vest]', ()=>{
+        describe('[full vest]', () => {
 
             it('all claims', async () => {
                 await overflowICO.connect(firstAccount).claim();
@@ -317,7 +315,7 @@ describe("OverflowICO", function () {
             })
         })
 
-        describe('[partial vest]', ()=>{
+        describe('[partial vest]', () => {
 
             it('all claims', async () => {
                 await overflowICO.connect(firstAccount).claim();
@@ -343,7 +341,7 @@ describe("OverflowICO", function () {
             })
         })
 
-        describe('[zero vest]', ()=>{
+        describe('[zero vest]', () => {
 
             it('all claims', async () => {
                 await overflowICO.connect(firstAccount).claim();
@@ -372,7 +370,6 @@ describe("OverflowICO", function () {
     })
 
 
-
     describe('[one participant], [more hard cap], [full vest]', () => {
 
         beforeEach(async () => {
@@ -390,68 +387,93 @@ describe("OverflowICO", function () {
             await overflowICO.finish();
         });
 
-        it('all claims', async () => {
-            await overflowICO.connect(firstAccount).claim();
-            await overflowICO.logCommonInfo();
-            await overflowICO.connect(firstAccount).claim2();
-            await spendTime(vestingBegin + vestingDuration + 1000);
-            await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+
+        describe('[full vest]', () => {
+
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claim();
+
+                // Return extra USD+ to user
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
+
+                await overflowICO.logCommonInfo();
+                await overflowICO.connect(firstAccount).claim2();
+
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
+
+                await spendTime(vestingBegin + vestingDuration + 1000);
+                await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("9999999999999999900000");
+            })
+
         })
 
-    })
+        describe('[partial vest]', () => {
 
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claim();
 
-    describe('[one participant], [more hard cap], [partial vest]', () => {
+                // Return extra USD+ to user
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
 
-        beforeEach(async () => {
-            let amount = toE6(350000);
-            await salesToken.mint(account.address, totalSales);
-            await salesToken.approve(overflowICO.address, totalSales);
-            await overflowICO.start();
-            await overflowICO.addToWhitelist([firstAccount.address]);
-            await spendTime(startDate + addDays(1));
+                await overflowICO.logCommonInfo();
+                await overflowICO.connect(firstAccount).claim2();
 
-            await commitToken.mint(firstAccount.address, amount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await overflowICO.connect(firstAccount).commit(amount);
-            await spendTimeWithPayoyt(endDate + 1000);
-            await overflowICO.finish();
-        });
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
 
-        it('all claims', async () => {
-            await overflowICO.connect(firstAccount).claim();
-            await overflowICO.logCommonInfo();
-            await overflowICO.connect(firstAccount).claim2();
-            await spendTime(vestingBegin + vestingDuration / 2);
-            await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+                await spendTime(vestingBegin + vestingDuration / 2);
+
+                await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("6249999999999999937500");
+            })
+
         })
 
-    })
+        describe('[zero vest]', () => {
 
-    describe('[one participant], [more hard cap], [zero vest]', () => {
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claim();
 
-        beforeEach(async () => {
-            let amount = toE6(350000);
-            await salesToken.mint(account.address, totalSales);
-            await salesToken.approve(overflowICO.address, totalSales);
-            await overflowICO.start();
-            await overflowICO.addToWhitelist([firstAccount.address]);
-            await spendTime(startDate + addDays(1));
+                // Return extra USD+ to user
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
 
-            await commitToken.mint(firstAccount.address, amount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await overflowICO.connect(firstAccount).commit(amount);
-            await spendTimeWithPayoyt(endDate + 1000);
-            await overflowICO.finish();
-        });
+                await overflowICO.logCommonInfo();
+                await overflowICO.connect(firstAccount).claim2();
 
-        it('all claims', async () => {
-            await overflowICO.connect(firstAccount).claim();
-            await overflowICO.logCommonInfo();
-            await overflowICO.connect(firstAccount).claim2();
-            await spendTime(vestingBegin - 1000);
-            await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
+
+                await spendTime(vestingBegin - 1000);
+
+                await overflowICO.connect(firstAccount).claim3(firstAccount.address);
+
+                //TODO Check value
+                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
+                // TODO Check value
+                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
+            })
+
         })
+
 
     })
 
@@ -585,7 +607,7 @@ describe("OverflowICO", function () {
             expect(await commitToken.balanceOf(secondAccount.address)).to.eq(commitAmount);
         })
 
-        it('All OVN should return to account', async ()=>{
+        it('All OVN should return to account', async () => {
             expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
         })
 
