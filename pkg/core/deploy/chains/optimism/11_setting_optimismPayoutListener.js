@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createBribe, createCustom, createBribeWithFee} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const BigNumber = require('bignumber.js');
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
@@ -15,8 +15,8 @@ module.exports = async () => {
 
     let items = [];
 
-//    items.push(...velodrome());
-    items.push(...defiEdge());
+    items.push(...velodrome());
+//    items.push(...defiEdge());
 
 //    await (await pl.removeItem(usdPlus.address, '0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a')).wait();
 //    await (await pl.removeItem(usdPlus.address, '0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f')).wait();
@@ -43,10 +43,11 @@ module.exports = async () => {
         items.push(createSkim('0x667002F9DC61ebcBA8Ee1Cbeb2ad04060388f223', daiPlus.address, 'sAMMV2-USD+/DAI+', dex));
         items.push(createSkim('0xd95E98fc33670dC033424E7Aa0578D742D00f9C7', usdPlus.address, 'sAMMV2-USD+/USDC', dex));
         items.push(createSkim('0x0b28C2e41058EDc7D66c516c617b664Ea86eeC5d', usdPlus.address, 'sAMMV2-USD+/DOLA', dex));
-        items.push(createSkim('0xD330841EF9527E3Bd0abc28a230C7cA8dec9423B', usdPlus.address, 'sAMMV2-FRAX/USD+', dex));
 
         items.push(createBribe('0x8a9Cd3dce710e90177B4332C108E159a15736A0F', usdPlus.address, 'sAMM-USD+/LUSD', dex, '0x41a7540ec8cb3afafe16a834abe0863f22016ec0'));
         items.push(createBribe('0x37e7D30CC180A750C83D68ED0C2511dA10694d63', usdPlus.address, 'sAMMV2-USD+/LUSD', dex, '0x203904F6A00f15768c3e388E093E3BfcF810D552'));
+
+        items.push(createBribeWithFee('0xD330841EF9527E3Bd0abc28a230C7cA8dec9423B', usdPlus.address, 'sAMMV2-FRAX/USD+', dex, '0x07242953F8B338552267904Ae1eb6C236DA85592', 20, COMMON.rewardWallet));
 
         return items;
     }
