@@ -146,7 +146,7 @@ contract OverflowICO is Ownable, LinearVesting {
             uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
             uint256 commitToReceive = userShare * commitToBonus / totalShare;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
-            return (commitToRefund, commitToReceive, salesToReceive);
+            return (commitToRefund, salesToReceive, commitToReceive);
         } else {
             return (commitments[user], 0, 0);
         }
