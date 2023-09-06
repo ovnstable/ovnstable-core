@@ -774,7 +774,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x555ce236c0220695b68341bc48c68d52210cc35b';
                     break;
                 case LINEA.usdt:
-                    from = '0x4f2604aac91114ae3b3d0be485d407d02b24480b';
+                    from = '0xfaf2d55952647f378fe478bf2064dd7b19ac189b';
                     break;
                 default:
                     throw new Error('Unknown asset address');
