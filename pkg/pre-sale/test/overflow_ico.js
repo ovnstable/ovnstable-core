@@ -27,8 +27,8 @@ describe("OverflowICO", function () {
     let vestingProportion;
     let totalSales;
 
-    let usdpToRaise;
-    let refundThreshold;
+    let hardCap;
+    let softCap;
     let minCommit;
     let maxCommit;
 
@@ -59,8 +59,8 @@ describe("OverflowICO", function () {
         vestingDuration = addDays(1);
         vestingProportion = toE18(0.75);
         totalSales = toE18(10000);
-        usdpToRaise = toE6(300000);
-        refundThreshold = toE6(225000);
+        hardCap = toE6(300000);
+        softCap = toE6(225000);
         minCommit = toE6(1);
         maxCommit = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
@@ -69,8 +69,8 @@ describe("OverflowICO", function () {
         let params = {
             commitToken: commitToken.address,
             salesToken: salesToken.address,
-            usdpToRaise: usdpToRaise,
-            refundThreshold: refundThreshold,
+            hardCap: hardCap,
+            softCap: softCap,
             startTime: startDate,
             endTime: endDate,
             receiveTime: receiveTime,
@@ -260,8 +260,7 @@ describe("OverflowICO", function () {
         it('All USD+ should return to user', async () => {
             await overflowICO.connect(firstAccount).claim();
 
-            //TODO USD+ with rebase should return user
-            expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(240000));
+            expect(await commitToken.balanceOf(firstAccount.address)).to.eq(commitAmount);
         })
 
         it('All OVN should return to account', async () => {
@@ -579,11 +578,11 @@ describe("OverflowICO", function () {
             await spendTime(startDate + addDays(1));
 
             await commitToken.mint(firstAccount.address, commitAmount);
-            await commitToken.mint(secondAccount.address, commitAmount);
             await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
-            await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount);
             await overflowICO.connect(firstAccount).commit(commitAmount);
             await spendTimeWithPayoyt(startDate + addDays(2));
+            await commitToken.mint(secondAccount.address, commitAmount);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount);
             await overflowICO.connect(secondAccount).commit(commitAmount);
             await spendTimeWithPayoyt2(endDate + 1000);
             await overflowICO.finish();
@@ -602,15 +601,12 @@ describe("OverflowICO", function () {
 
         it('USD+ should return to user[2]', async () => {
             await overflowICO.connect(secondAccount).claim();
-            //TODO Return All rebase USD+ to user - is it not correct.
-            // We should return rebase as promise by user share
             expect(await commitToken.balanceOf(secondAccount.address)).to.eq(commitAmount);
         })
 
         it('All OVN should return to account', async () => {
             expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
         })
-
 
     })
 

@@ -20,7 +20,7 @@ contract LinearVesting is ReentrancyGuard {
     mapping(address => bool) public registered;
 
     // will be deleted later
-    bool public constant consoleEnabled = true;
+    bool public constant consoleEnabled = false;
 
     event ClaimVesting(address addr, uint256 amount);
 

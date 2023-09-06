@@ -13,40 +13,39 @@ contract OverflowICO is Ownable, LinearVesting {
 
     IERC20 public immutable commitToken; // USD+ token
     IERC20 public immutable salesToken;  // OVN token
-    uint256 public immutable usdpToRaise;
-    uint256 public immutable refundThreshold;
+    uint256 public immutable hardCap;
+    uint256 public immutable softCap;
     uint256 public immutable totalSales;
     uint256 public immutable startTime;
     uint256 public immutable endTime;
     uint256 public immutable receiveTime;
     uint256 public immutable vestingProportion;
-    uint256 public immutable salesPerUsdPlus;
+    uint256 public immutable vestingProportionDm;
+    uint256 public immutable salesPerCommit;
+    uint256 public immutable commitDm;
+    uint256 public immutable totalTime;
 
     uint256 public immutable minCommit;
     uint256 public immutable maxCommit;
 
-    uint256 public immutable commitDm;
-    uint256 public immutable salesDm;
-    uint256 public immutable ratioDm;
-
     bool public started;
     bool public finished;
 
-    uint256 public timeMovingRatio;
+    uint256 public timeRatio;
     uint256 public lastUpdate;
     uint256 public totalCommitments;
-    uint256 public totalMissed;
-    uint256 public totalCommitAmountToBonus;
+    uint256 public totalMissedCommit;
+    uint256 public totalCommitToBonus;
     mapping(address => uint256) public commitments;
     mapping(address => uint256) public missedCommit;
-    mapping(address => uint256) public finalSaless; // TODO FIX grammar error
+    mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
     mapping(address => bool) public whitelist;
 
     event Commit(address indexed buyer, uint256 amount);
-    event Claim(address indexed buyer, uint256 commit, uint256 token, uint256 sales);
-    event Claim2(address indexed buyer, uint256 token, uint256 sales);
+    event Claim(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
+    event Claim2(address indexed buyer, uint256 sales, uint256 commit);
 
     modifier onlyWhitelist() {
         require(whitelist[msg.sender], "!whitelist");
@@ -56,8 +55,8 @@ contract OverflowICO is Ownable, LinearVesting {
     struct SetUpParams {
         address commitToken;
         address salesToken;
-        uint256 usdpToRaise;
-        uint256 refundThreshold;
+        uint256 hardCap;
+        uint256 softCap;
         uint256 startTime;
         uint256 endTime;
         uint256 receiveTime;
@@ -74,16 +73,15 @@ contract OverflowICO is Ownable, LinearVesting {
     ) LinearVesting(params.salesToken, params.vestingBegin, params.vestingDuration) {
         require(params.startTime >= block.timestamp, "Start time must be in the future.");
         require(params.endTime > params.startTime, "End time must be greater than start time.");
-        require(params.usdpToRaise > 0, "USD+ to raise should be greater than 0");
-        require(params.usdpToRaise > params.refundThreshold, "USD+ to raise should be greater than refund threshold");
+        require(params.hardCap > 0, "hardCap should be greater than 0");
+        require(params.hardCap > params.softCap, "hardCap should be greater than softCap");
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
 
-        //TODO Need to rename usdpToRaise and refundThreshold as softCap and hardCap
         commitToken = IERC20(params.commitToken);
         salesToken = IERC20(params.salesToken);
-        usdpToRaise = params.usdpToRaise;
-        refundThreshold = params.refundThreshold;
+        hardCap = params.hardCap;
+        softCap = params.softCap;
         startTime = params.startTime;
         endTime = params.endTime;
         receiveTime = params.receiveTime;
@@ -92,11 +90,10 @@ contract OverflowICO is Ownable, LinearVesting {
         totalSales = params.totalSales;
         vestingProportion = params.vestingProportion;
         commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
-        salesDm = 10 ** IERC20Metadata(params.salesToken).decimals();
-        ratioDm = 10 ** IERC20Metadata(params.salesToken).decimals() / 10 ** IERC20Metadata(params.commitToken).decimals();
-
-        salesPerUsdPlus = params.totalSales * 1e6 / params.usdpToRaise;
-        consolelog("salesPerUsdPlus", params.totalSales * 1e6 / params.usdpToRaise);
+        vestingProportionDm = 1e18;
+        totalTime = 1e18;
+        salesPerCommit = params.totalSales * 1e6 / params.hardCap;
+        consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
     }
 
     function start() external onlyOwner {
@@ -107,7 +104,7 @@ contract OverflowICO is Ownable, LinearVesting {
 
     function commit(uint256 amount) external payable nonReentrant onlyWhitelist {
         consolelog("---commit---");
-        _updateSales();
+        _updateTime();
 
         commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -122,7 +119,7 @@ contract OverflowICO is Ownable, LinearVesting {
         commitments[msg.sender] += amount;
         totalCommitments += amount;
         missedCommit[msg.sender] += _calculateCommit(amount);
-        totalMissed += _calculateCommit(amount);
+        totalMissedCommit += _calculateCommit(amount);
         consolelog("amount", amount);
         consolelog("usd+ balanceOf", commitToken.balanceOf(address(this)));
         consolelog("commitments[msg.sender]", commitments[msg.sender]);
@@ -134,21 +131,21 @@ contract OverflowICO is Ownable, LinearVesting {
     }
 
     function simulateClaim(address user) external returns (uint256, uint256, uint256) {
-        _updateSales();
+        _updateTime();
         if (finalCommit[user] > 0) {
-            return (0, finalCommit[user], finalSaless[user]);
+            return (0, finalCommit[user], finalSales[user]);
         }
 
         if (commitments[user] == 0) return (0, 0, 0);
 
-        if (totalCommitments >= refundThreshold) {
-            uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * usdpToRaise) / totalCommitments);
+        if (totalCommitments >= softCap) {
+            uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
             uint256 commitToRefund = commitments[user] - commitToSpend;
             uint256 userShare = _calculateCommit(commitments[user]) - missedCommit[user];
-            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissed;
+            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissedCommit;
             uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
             uint256 commitToReceive = userShare * commitToBonus / totalShare;
-            uint256 salesToReceive = (commitToSpend * salesPerUsdPlus) / commitDm;
+            uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
             return (commitToRefund, commitToReceive, salesToReceive);
         } else {
             return (commitments[user], 0, 0);
@@ -157,7 +154,7 @@ contract OverflowICO is Ownable, LinearVesting {
 
     function claim() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claim---");
-        _updateSales();
+        _updateTime();
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended.");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+.");
 
@@ -165,28 +162,28 @@ contract OverflowICO is Ownable, LinearVesting {
             finish();
         }
 
-        if (totalCommitments >= refundThreshold) {
-            consolelog("totalCommitments >= refundThreshold");
-            uint256 commitToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * usdpToRaise) / totalCommitments);
+        if (totalCommitments >= softCap) {
+            consolelog("totalCommitments >= softCap");
+            uint256 commitToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * hardCap) / totalCommitments);
             uint256 commitToRefund = commitments[msg.sender] - commitToSpend;
             consolelog("commitToSpend", commitToSpend);
             consolelog("commitToRefund", commitToRefund);
 
             consolelog("partiCommWoMissed", _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender]);
-            consolelog("totalCommitAmountToBonus", totalCommitAmountToBonus);
+            consolelog("totalCommitToBonus", totalCommitToBonus);
             consolelog("totalSales", totalSales);
 
             uint256 userShare = _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender];
-            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissed;
-            uint256 commitToReceive = userShare * totalCommitAmountToBonus / totalShare;
-            uint256 salesToReceive = (commitToSpend * salesPerUsdPlus) / commitDm;
+            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissedCommit;
+            uint256 commitToReceive = userShare * totalCommitToBonus / totalShare;
+            uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
 
             consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
 
             commitments[msg.sender] = 0;
 
-            finalSaless[msg.sender] = salesToReceive;
+            finalSales[msg.sender] = salesToReceive;
             finalCommit[msg.sender] = commitToReceive;
 
             commitToken.safeTransfer(msg.sender, commitToRefund);
@@ -195,7 +192,7 @@ contract OverflowICO is Ownable, LinearVesting {
             consolelog("---claim end---\n");
             return (commitToRefund, salesToReceive, commitToReceive);
         } else {
-            consolelog("totalCommitments < refundThreshold");
+            consolelog("totalCommitments < softCap");
             uint256 amt = commitments[msg.sender];
             commitments[msg.sender] = 0;
             commitToken.safeTransfer(msg.sender, amt);
@@ -209,15 +206,15 @@ contract OverflowICO is Ownable, LinearVesting {
     function claim2() external nonReentrant {
         consolelog("---claim2---");
         require(block.timestamp >= receiveTime, "not claimable yet");
-        uint256 a1 = finalSaless[msg.sender];
+        uint256 a1 = finalSales[msg.sender];
         uint256 a2 = finalCommit[msg.sender];
         consolelog("a1", a1);
         consolelog("a2", a2);
         require(a1 != 0 || a2 != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
-        finalSaless[msg.sender] = 0;
+        finalSales[msg.sender] = 0;
 
-        uint256 vesting = a1 * vestingProportion / salesDm;
+        uint256 vesting = a1 * vestingProportion / vestingProportionDm;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
@@ -231,24 +228,24 @@ contract OverflowICO is Ownable, LinearVesting {
     }
 
     function finish() public onlyOwner {
-         _updateSales();
+         _updateTime();
         consolelog("---finish---");
         require(block.timestamp > endTime, "Can only finish after the sale has ended.");
         require(!finished, "Already finished.");
         finished = true;
 
-        if (totalCommitments >= refundThreshold) {
-            consolelog("totalCommitments >= refundThreshold");
+        if (totalCommitments >= softCap) {
+            consolelog("totalCommitments >= softCap");
             consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
             consolelog("totalCommitments", totalCommitments);
-            consolelog("usdpToRaise", usdpToRaise);
-            uint256 usingCommitToken = Math.min(usdpToRaise, totalCommitments);
+            consolelog("hardCap", hardCap);
+            uint256 usingCommitToken = Math.min(hardCap, totalCommitments);
             consolelog("send usd+ to owner", usingCommitToken);
             commitToken.safeTransfer(owner(), usingCommitToken);
-            consolelog("send ovn to owner", totalSales - (usingCommitToken * salesPerUsdPlus) / commitDm);
-            salesToken.safeTransfer(owner(), totalSales - (usingCommitToken * salesPerUsdPlus) / commitDm);
+            consolelog("send ovn to owner", totalSales - (usingCommitToken * salesPerCommit) / commitDm);
+            salesToken.safeTransfer(owner(), totalSales - (usingCommitToken * salesPerCommit) / commitDm);
         } else {
-            consolelog("totalCommitments < refundThreshold");
+            consolelog("totalCommitments < softCap");
             consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
             consolelog("totalCommitments", totalCommitments);
             consolelog("send usd+ to owner", commitToken.balanceOf(address(this)) - totalCommitments);
@@ -256,12 +253,12 @@ contract OverflowICO is Ownable, LinearVesting {
             salesToken.safeTransfer(owner(), totalSales);
         }
 
-        totalCommitAmountToBonus = commitToken.balanceOf(address(this));
-        if (totalCommitments >= usdpToRaise) {
-            totalCommitAmountToBonus -= (totalCommitments - usdpToRaise);
+        totalCommitToBonus = commitToken.balanceOf(address(this));
+        if (totalCommitments >= hardCap) {
+            totalCommitToBonus -= (totalCommitments - hardCap);
         }
 
-        consolelog("totalCommitAmountToBonus", totalCommitAmountToBonus);
+        consolelog("totalCommitToBonus", totalCommitToBonus);
         consolelog("---finish end---\n");
     }
 
@@ -283,24 +280,24 @@ contract OverflowICO is Ownable, LinearVesting {
     }
 
     function _calculateCommit(uint256 value) internal view returns (uint256) {
-        return (value * timeMovingRatio) / commitDm;
+        return value * timeRatio;
     }
 
-    function _updateSales() internal {
-        consolelog("---_updateSales---");
+    function _updateTime() internal {
+        consolelog("---_updateTime---");
+       
         require(block.timestamp >= startTime, "not started");
         if (totalCommitments > 0) {
             uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
             consolelog("elapsed", elapsed);
             consolelog("duration", endTime - startTime);
             consolelog("totalSales", totalSales);
-            uint256 commit = (totalSales * elapsed) / (endTime - startTime);
-            consolelog("commit", commit);
-            timeMovingRatio += (commit * commitDm) / (totalCommitments);
-            consolelog("timeMovingRatio", timeMovingRatio);
+            uint256 share = totalTime * elapsed / (endTime - startTime);
+            timeRatio += share / totalCommitments;
+            consolelog("timeRatio", timeRatio);
         }
         lastUpdate = block.timestamp;
-        consolelog("---_updateSales end---\n");
+        consolelog("---_updateTime end---\n");
     }
 
     // will be deleted later
