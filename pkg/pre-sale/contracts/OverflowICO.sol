@@ -39,7 +39,7 @@ contract OverflowICO is Ownable, LinearVesting {
     uint256 public totalCommitAmountToBonus;
     mapping(address => uint256) public commitments;
     mapping(address => uint256) public missedCommit;
-    mapping(address => uint256) public finalSaless;
+    mapping(address => uint256) public finalSaless; // TODO FIX grammar error
     mapping(address => uint256) public finalCommit;
 
     mapping(address => bool) public whitelist;
@@ -79,6 +79,7 @@ contract OverflowICO is Ownable, LinearVesting {
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
 
+        //TODO Need to rename usdpToRaise and refundThreshold as softCap and hardCap
         commitToken = IERC20(params.commitToken);
         salesToken = IERC20(params.salesToken);
         usdpToRaise = params.usdpToRaise;
@@ -189,7 +190,7 @@ contract OverflowICO is Ownable, LinearVesting {
             finalCommit[msg.sender] = commitToReceive;
 
             commitToken.safeTransfer(msg.sender, commitToRefund);
-            
+
             emit Claim(msg.sender, commitToRefund, salesToReceive, commitToReceive);
             consolelog("---claim end---\n");
             return (commitToRefund, salesToReceive, commitToReceive);
