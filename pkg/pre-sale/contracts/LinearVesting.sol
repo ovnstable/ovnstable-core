@@ -20,7 +20,7 @@ contract LinearVesting is ReentrancyGuard {
     mapping(address => bool) public registered;
 
     // will be deleted later
-    bool public constant consoleEnabled = false;
+    bool public constant consoleEnabled = true;
 
     event ClaimVesting(address addr, uint256 amount);
 
@@ -65,14 +65,14 @@ contract LinearVesting is ReentrancyGuard {
     // will be deleted later
     function consolelog(string memory text, uint256 value) public {
         if (consoleEnabled) {
-            console.log(text, value);    
+            console.log(text, value);
         }
     }
 
     // will be deleted later
     function consolelog(string memory text) public {
         if (consoleEnabled) {
-            console.log(text);    
+            console.log(text);
         }
     }
 }

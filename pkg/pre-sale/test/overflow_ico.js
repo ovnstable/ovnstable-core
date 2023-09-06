@@ -96,7 +96,7 @@ describe("OverflowICO", function () {
         overflowICO = await ethers.getContract("OverflowICO");
     });
 
-    
+
     describe("start", () => {
 
         beforeEach(async () => {
@@ -123,7 +123,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('finish', () => {
 
         let amount = toE6(1000);
@@ -238,31 +238,40 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [less soft cap]', () => {
 
+        let commitAmount = toE6(200000);
+
         beforeEach(async () => {
-            let amount = toE6(200000);
             await salesToken.mint(account.address, totalSales);
             await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await commitToken.mint(firstAccount.address, amount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await overflowICO.connect(firstAccount).commit(amount);
+            await commitToken.mint(firstAccount.address, commitAmount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
+            await overflowICO.connect(firstAccount).commit(commitAmount);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
         });
 
-        it('all claims', async () => {
+
+        it('All USD+ should return to user', async () => {
             await overflowICO.connect(firstAccount).claim();
+
+            //TODO USD+ with rebase should return user
+            expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(240000));
         })
-        
+
+        it('All OVN should return to account', async ()=>{
+            expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
+        })
+
     })
 
-    
+
     describe('[one participant], [between soft and hard cap], [full vest]', () => {
 
         beforeEach(async () => {
@@ -289,7 +298,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [between soft and hard cap], [partial vest]', () => {
 
         beforeEach(async () => {
@@ -316,7 +325,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [between soft and hard cap], [zero vest]', () => {
 
         beforeEach(async () => {
@@ -343,7 +352,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [more hard cap], [full vest]', () => {
 
         beforeEach(async () => {
@@ -371,7 +380,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [more hard cap], [partial vest]', () => {
 
         beforeEach(async () => {
@@ -426,7 +435,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [two times], [less soft cap]', () => {
 
         beforeEach(async () => {
@@ -453,7 +462,7 @@ describe("OverflowICO", function () {
 
     })
 
-    
+
     describe('[one participant], [two times], [between soft and hard cap], [full vest]', () => {
 
         beforeEach(async () => {
@@ -513,12 +522,13 @@ describe("OverflowICO", function () {
         })
 
     })
-    
-    
+
+
     describe('[two participants], [one time], [less soft cap]', () => {
 
+        let commitAmount = toE6(20000);
+
         beforeEach(async () => {
-            let amount = toE6(20000);
             await salesToken.mint(account.address, totalSales);
             await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
@@ -526,13 +536,13 @@ describe("OverflowICO", function () {
             await overflowICO.addToWhitelist([secondAccount.address]);
             await spendTime(startDate + addDays(1));
 
-            await commitToken.mint(firstAccount.address, amount);
-            await commitToken.mint(secondAccount.address, amount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await commitToken.connect(secondAccount).approve(overflowICO.address, amount);
-            await overflowICO.connect(firstAccount).commit(amount);
+            await commitToken.mint(firstAccount.address, commitAmount);
+            await commitToken.mint(secondAccount.address, commitAmount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount);
+            await overflowICO.connect(firstAccount).commit(commitAmount);
             await spendTimeWithPayoyt(startDate + addDays(2));
-            await overflowICO.connect(secondAccount).commit(amount);
+            await overflowICO.connect(secondAccount).commit(commitAmount);
             await spendTimeWithPayoyt2(endDate + 1000);
             await overflowICO.finish();
         });
@@ -543,9 +553,26 @@ describe("OverflowICO", function () {
             await overflowICO.logCommonInfo();
         })
 
+        it('USD+ should return to user[1]', async () => {
+            await overflowICO.connect(firstAccount).claim();
+            expect(await commitToken.balanceOf(firstAccount.address)).to.eq(commitAmount);
+        })
+
+        it('USD+ should return to user[2]', async () => {
+            await overflowICO.connect(secondAccount).claim();
+            //TODO Return All rebase USD+ to user - is it not correct.
+            // We should return rebase as promise by user share
+            expect(await commitToken.balanceOf(secondAccount.address)).to.eq(commitAmount);
+        })
+
+        it('All OVN should return to account', async ()=>{
+            expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
+        })
+
+
     })
 
-    
+
     describe('[two participants], [one time], [between soft and hard cap], [full vest]', () => {
 
         beforeEach(async () => {
