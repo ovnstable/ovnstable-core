@@ -41,7 +41,7 @@ let BASE = {
     uniswapV3Router: "0x2626664c2603336E57B271c5C0b26F421741e481",
     velocimeterRouter: '0xE11b93B61f6291d35c5a2beA0A9fF169080160cF',
     baseSwapRouter: '0x327df1e6de05895d2ab08513aadd9313fe505d86',
-    odosRouter: "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
+    odosRouterV2: "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
     balancerVault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
     alienBaseRouter: '0x7f2ff89d3C45010c976Ea6bb7715DC7098AF786E',
     swapBasedRouter: '0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066',
@@ -150,6 +150,7 @@ let ARBITRUM = {
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
     odosRouter: "0xdd94018F54e565dbfc939F7C44a16e163FaAb331",
+    odosRouterV2: "0xa669e7A0d4b3e4Fa48af2dE86BD4CD7126Be4e13",
     soluneaRouter: "0x8C36161aBE3F425F924D4F8E171d25e60ef2A0a4",
     balancerVault: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
     arbidexRouter: "0x7238fb45146bd8fcb2c463dc119a53494be57aac",
@@ -214,6 +215,7 @@ let BSC = {
     thenaRouter: "0xd4ae6eCA985340Dd434D38F470aCCce4DC78D109",
     thenaFusionRouter: '0x327Dd3208f0bCF590A66110aCB6e5e6941A4EfA0',
     odosRouter: "0x9f138be5aA5cC442Ea7cC7D18cD9E30593ED90b9",
+    odosRouterV2: "0x89b8AA89FDd0507a99d334CBe3C808fAFC7d850E",
     // oracles
     chainlinkBusd: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f",
     chainlinkUsdc: "0x51597f405303C4377E36123cBc172b13269EA163",
@@ -269,6 +271,7 @@ let OPTIMISM = {
     inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
     odosRouter: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
+    odosRouterV2: "0xCa423977156BB05b13A2BA3b76Bc5419E2fE9680",
     // oracles
     oracleDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
     oracleUsdt: "0xecef79e109e997bca29c1c0897ec9d7b03647f5e",

@@ -11,7 +11,7 @@ module.exports = async ({ deployments }) => {
 
 
     let params = {
-        odosRouter: ARBITRUM.odosRouter,
+        odosRouter: ARBITRUM.odosRouterV2,
         chronosRouter: ARBITRUM.chronosRouter
     }
 

@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     console.log("VelodromeZap deploy done()");
 
     let params = {
-        odosRouter: OPTIMISM.odosRouter,
+        odosRouter: OPTIMISM.odosRouterV2,
         velodromeRouter: OPTIMISM.velodromeRouterV2
     }
 

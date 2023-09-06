@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     console.log("DefiedgeZap deploy done()");
 
     let params = {
-        odosRouter: OPTIMISM.odosRouter,
+        odosRouter: OPTIMISM.odosRouterV2,
     }
 
     let zap = await ethers.getContract('DefiedgeZap');

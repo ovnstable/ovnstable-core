@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     console.log("DemetorZap deploy done()");
 
     let params = {
-        odosRouter: ARBITRUM.odosRouter,
+        odosRouter: ARBITRUM.odosRouterV2,
         positionHelper: ARBITRUM.positionHelperCamelot
     }
 

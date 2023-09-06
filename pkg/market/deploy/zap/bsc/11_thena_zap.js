@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     console.log("ThenaZap deploy done()");
 
     let params = {
-        odosRouter: BSC.odosRouter,
+        odosRouter: BSC.odosRouterV2,
         thenaRouter: BSC.thenaRouter
     }
 

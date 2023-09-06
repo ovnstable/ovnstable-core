@@ -9,7 +9,7 @@ module.exports = async ({ deployments }) => {
     let deployResult = await deployProxy('AlienBaseZap', deployments, save);
     let params = {
         alienBaseRouter: BASE.alienBaseRouter,
-        odosRouter: BASE.odosRouter
+        odosRouter: BASE.odosRouterV2
     }
 
     let zap = await ethers.getContract('AlienBaseZap');

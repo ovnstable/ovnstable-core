@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     console.log("AerodromeZap deploy done()");
 
     let params = {
-        odosRouter: BASE.odosRouter,
+        odosRouter: BASE.odosRouterV2,
         aerodromeRouter: BASE.aerodromeRouter
     }
 

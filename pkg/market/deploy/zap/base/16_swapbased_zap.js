@@ -13,7 +13,7 @@ module.exports = async ({ deployments }) => {
     await (await zap.setParams(
         {
             swapBasedRouter: BASE.swapBasedRouter,
-            odosRouter: BASE.odosRouter
+            odosRouter: BASE.odosRouterV2
         }
     )).wait();
 };
