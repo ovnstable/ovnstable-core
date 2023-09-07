@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -22,6 +22,32 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         WAITING_FOR_CLAIM_VESTING,
         CLAIM_VESTING,
         NOTHING_TO_DO
+    }
+
+    struct SetUpParams {
+        address commitToken;
+        address salesToken;
+        uint256 hardCap;
+        uint256 softCap;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 claimBonusTime;
+        uint256 claimSalesFirstPartTime;
+        uint256 vestingBeginTime;
+        uint256 vestingDuration;
+        uint256 vestingProportion;
+        uint256 minCommit;
+        uint256 maxCommit;
+        uint256 totalSales;
+    }
+
+    struct UserInfo {
+        uint256 userCommitments;
+        uint256 salesToReceive;
+        uint256 commitToReceive;
+        uint256 commitToRefund;
+        uint256 lockedSales;
+        uint256 unlockedSales;
     }
 
     IERC20 public immutable commitToken; // USD+ token
@@ -79,33 +105,16 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         _;
     }
 
-    struct SetUpParams {
-        address commitToken;
-        address salesToken;
-        uint256 hardCap;
-        uint256 softCap;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 claimBonusTime;
-        uint256 claimSalesFirstPartTime;
-        uint256 vestingBeginTime;
-        uint256 vestingDuration;
-        uint256 vestingProportion;
-        uint256 minCommit;
-        uint256 maxCommit;
-        uint256 totalSales;
-    }
-
     constructor(SetUpParams memory params) {
-        require(params.startTime >= block.timestamp, "Start time must be in the future.");
-        require(params.endTime > params.startTime, "End time must be greater than start time.");
+        require(params.startTime >= block.timestamp, "Start time must be in the future");
+        require(params.endTime > params.startTime, "End time must be greater than start time");
         require(params.hardCap > 0, "hardCap should be greater than 0");
         require(params.hardCap > params.softCap, "hardCap should be greater than softCap");
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
-        require(params.claimBonusTime > params.endTime, "claimBonusTime must be greater than endTime.");
-        require(params.claimSalesFirstPartTime > params.claimBonusTime, "claimSalesFirstPartTime must be greater than claimBonusTime.");
-        require(params.vestingBeginTime > params.claimSalesFirstPartTime, "vestingBeginTime must be greater than claimSalesFirstPartTime.");
+        require(params.claimBonusTime > params.endTime, "claimBonusTime must be greater than endTime");
+        require(params.claimSalesFirstPartTime > params.claimBonusTime, "claimSalesFirstPartTime must be greater than claimBonusTime");
+        require(params.vestingBeginTime > params.claimSalesFirstPartTime, "vestingBeginTime must be greater than claimSalesFirstPartTime");
 
         commitToken = IERC20(params.commitToken);
         salesToken = IERC20(params.salesToken);
@@ -129,27 +138,28 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     }
 
     function start() external onlyOwner {
-        require(!started, "Already started.");
+        require(!started, "Already started");
         started = true;
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
     function commit(uint256 amount) external payable nonReentrant onlyWhitelist {
         consolelog("---commit---");
-        _updateTime();
-
-        commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
-            "Can only deposit USD+ during the sale period."
+            "Can only deposit USD+ during the sale period"
         );
         require(
             minCommit <= commitments[msg.sender] + amount && commitments[msg.sender] + amount <= maxCommit,
-            "Commitment amount is outside the allowed range."
+            "Commitment amount is outside the allowed range"
         );
 
         require(getUserState(msg.sender) == UserPresaleState.COMMIT, "Inappropriate user's state");
+
+        _updateTime();
+
+        commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         commitments[msg.sender] += amount;
         immutableCommitments[msg.sender] += amount;
@@ -168,10 +178,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claimRefund---");
-        _updateTime();
-        require(block.timestamp > endTime, "Can only claim tokens after the sale has ended.");
-        require(commitments[msg.sender] > 0, "You have not deposited any USD+.");
+        
+        require(block.timestamp > endTime, "Can only claim tokens after the sale has ended");
+        require(commitments[msg.sender] > 0, "You have not deposited any USD+");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
+
+        _updateTime();
 
         if (!finished) {
             finish();
@@ -208,13 +220,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             return (commitToRefund, salesToReceive, commitToReceive);
         } else {
             consolelog("totalCommitments < softCap");
-            uint256 amt = commitments[msg.sender];
+            uint256 userCommitments = commitments[msg.sender];
             commitments[msg.sender] = 0;
-            commitToken.safeTransfer(msg.sender, amt);
-            consolelog("usd+ refund", amt);
-            emit ClaimRefund(msg.sender, amt, 0, 0);
+            commitToken.safeTransfer(msg.sender, userCommitments);
+            consolelog("usd+ refund", userCommitments);
+            emit ClaimRefund(msg.sender, userCommitments, 0, 0);
             consolelog("---claim end---\n");
-            return (amt, 0, 0);
+            return (userCommitments, 0, 0);
         }
     }
 
@@ -223,15 +235,15 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(block.timestamp >= claimBonusTime, "not bonus yet");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
 
-        uint256 a2 = finalCommit[msg.sender];
-        consolelog("a2", a2);
-        require(a2 != 0, "not zero final values");
+        uint256 userCommit = finalCommit[msg.sender];
+        consolelog("userCommit", userCommit);
+        require(userCommit != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
         
-        consolelog("send USD+ to participant", a2);
-        commitToken.safeTransfer(msg.sender, a2);
+        consolelog("send USD+ to participant", userCommit);
+        commitToken.safeTransfer(msg.sender, userCommit);
         consolelog("---claimBonus end---\n");
-        emit ClaimBonus(msg.sender, a2);
+        emit ClaimBonus(msg.sender, userCommit);
     }
 
     function claimSalesFirstPart() external nonReentrant {
@@ -239,20 +251,20 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(block.timestamp >= claimSalesFirstPartTime, "not claimSalesFirstPart yet");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_SALES_FIRST_PART, "Inappropriate user's state");
 
-        uint256 a1 = finalSales[msg.sender];
-        consolelog("a1", a1);
-        require(a1 != 0, "not zero final values");
+        uint256 userSales = finalSales[msg.sender];
+        consolelog("userSales", userSales);
+        require(userSales != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
-        uint256 vesting = a1 * vestingProportion / vestingProportionDm;
+        uint256 vesting = userSales * vestingProportion / vestingProportionDm;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
-        consolelog("send OVN to participant", a1 - vesting);
-        salesToken.safeTransfer(msg.sender, a1 - vesting);
+        consolelog("send OVN to participant", userSales - vesting);
+        salesToken.safeTransfer(msg.sender, userSales - vesting);
 
         consolelog("---claimSalesFirstPart end---\n");
-        emit ClaimSalesFirstPart(msg.sender, a1);
+        emit ClaimSalesFirstPart(msg.sender, userSales);
     }
 
     function claimVesting(address addr) public nonReentrant returns (uint256) {
@@ -282,10 +294,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     }
 
     function finish() public onlyOwner {
-         _updateTime();
         consolelog("---finish---");
-        require(block.timestamp > endTime, "Can only finish after the sale has ended.");
-        require(!finished, "Already finished.");
+        require(block.timestamp > endTime, "Can only finish after the sale has ended");
+        require(!finished, "Already finished");
+
+        _updateTime();
+
         finished = true;
 
         if (totalCommitments >= softCap) {
@@ -314,11 +328,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         consolelog("totalCommitToBonus", totalCommitToBonus);
         consolelog("---finish end---\n");
-    }
-
-    function donate() external payable {
-        // Anyone can donate a few gwei to fix integer division accuracy issues.
-        // Typically, the deployer will call this.
     }
 
     function addToWhitelist(address[] calldata toAddAddresses) external onlyOwner {
@@ -433,15 +442,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
 
         return UserPresaleState.NOTHING_TO_DO;
-    }
-
-    struct UserInfo {
-        uint256 userCommitments;
-        uint256 salesToReceive;
-        uint256 commitToReceive;
-        uint256 commitToRefund;
-        uint256 lockedSales;
-        uint256 unlockedSales;
     }
 
     function getUserInfo(address user) external view returns (UserInfo memory userInfo) {
