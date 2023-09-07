@@ -3,27 +3,44 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
-import "./LinearVesting.sol";
-
-contract OverflowICO is Ownable, LinearVesting {
+contract OverflowICO is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+
+    enum UserPresaleState {
+        WAITING_FOR_PRESALE_START,
+        COMMIT,
+        CLAIM_REFUND,
+        WAITING_FOR_CLAIM_BONUS,
+        CLAIM_BONUS,
+        WAITING_FOR_CLAIM_SALES_FIRST_PART,
+        CLAIM_SALES_FIRST_PART,
+        WAITING_FOR_CLAIM_VESTING,
+        CLAIM_VESTING,
+        NOTHING_TO_DO
+    }
 
     IERC20 public immutable commitToken; // USD+ token
     IERC20 public immutable salesToken;  // OVN token
     uint256 public immutable hardCap;
     uint256 public immutable softCap;
     uint256 public immutable totalSales;
-    uint256 public immutable startTime;
-    uint256 public immutable endTime;
-    uint256 public immutable receiveTime;
     uint256 public immutable vestingProportion;
     uint256 public immutable vestingProportionDm;
     uint256 public immutable salesPerCommit;
     uint256 public immutable commitDm;
     uint256 public immutable totalTime;
+
+    uint256 public immutable startTime;
+    uint256 public immutable endTime;
+    uint256 public immutable claimBonusTime;
+    uint256 public immutable claimSalesFirstPartTime;
+    uint256 public immutable vestingBeginTime;
+    uint256 public immutable vestingDuration;
 
     uint256 public immutable minCommit;
     uint256 public immutable maxCommit;
@@ -37,15 +54,25 @@ contract OverflowICO is Ownable, LinearVesting {
     uint256 public totalMissedCommit;
     uint256 public totalCommitToBonus;
     mapping(address => uint256) public commitments;
+    mapping(address => uint256) public immutableCommitments;
     mapping(address => uint256) public missedCommit;
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
     mapping(address => bool) public whitelist;
 
+    mapping(address => uint256) public claimableTotal;
+    mapping(address => uint256) public claimed;
+    mapping(address => bool) public registered;
+
+    // will be deleted later
+    bool public constant consoleEnabled = false;
+
     event Commit(address indexed buyer, uint256 amount);
-    event Claim(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
-    event Claim2(address indexed buyer, uint256 sales, uint256 commit);
+    event ClaimRefund(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
+    event ClaimBonus(address indexed buyer, uint256 commit);
+    event ClaimSalesFirstPart(address indexed buyer, uint256 sales);
+    event ClaimVesting(address addr, uint256 amount);
 
     modifier onlyWhitelist() {
         require(whitelist[msg.sender], "!whitelist");
@@ -59,8 +86,9 @@ contract OverflowICO is Ownable, LinearVesting {
         uint256 softCap;
         uint256 startTime;
         uint256 endTime;
-        uint256 receiveTime;
-        uint256 vestingBegin;
+        uint256 claimBonusTime;
+        uint256 claimSalesFirstPartTime;
+        uint256 vestingBeginTime;
         uint256 vestingDuration;
         uint256 vestingProportion;
         uint256 minCommit;
@@ -68,15 +96,16 @@ contract OverflowICO is Ownable, LinearVesting {
         uint256 totalSales;
     }
 
-    constructor(
-        SetUpParams memory params
-    ) LinearVesting(params.salesToken, params.vestingBegin, params.vestingDuration) {
+    constructor(SetUpParams memory params) {
         require(params.startTime >= block.timestamp, "Start time must be in the future.");
         require(params.endTime > params.startTime, "End time must be greater than start time.");
         require(params.hardCap > 0, "hardCap should be greater than 0");
         require(params.hardCap > params.softCap, "hardCap should be greater than softCap");
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
+        require(params.claimBonusTime > params.endTime, "claimBonusTime must be greater than endTime.");
+        require(params.claimSalesFirstPartTime > params.claimBonusTime, "claimSalesFirstPartTime must be greater than claimBonusTime.");
+        require(params.vestingBeginTime > params.claimSalesFirstPartTime, "vestingBeginTime must be greater than claimSalesFirstPartTime.");
 
         commitToken = IERC20(params.commitToken);
         salesToken = IERC20(params.salesToken);
@@ -84,7 +113,10 @@ contract OverflowICO is Ownable, LinearVesting {
         softCap = params.softCap;
         startTime = params.startTime;
         endTime = params.endTime;
-        receiveTime = params.receiveTime;
+        claimBonusTime = params.claimBonusTime;
+        claimSalesFirstPartTime = params.claimSalesFirstPartTime;
+        vestingBeginTime = params.vestingBeginTime;
+        vestingDuration = params.vestingDuration;
         minCommit = params.minCommit;
         maxCommit = params.maxCommit;
         totalSales = params.totalSales;
@@ -116,7 +148,11 @@ contract OverflowICO is Ownable, LinearVesting {
             minCommit <= commitments[msg.sender] + amount && commitments[msg.sender] + amount <= maxCommit,
             "Commitment amount is outside the allowed range."
         );
+
+        require(getUserState(msg.sender) == UserPresaleState.COMMIT, "Inappropriate user's state");
+
         commitments[msg.sender] += amount;
+        immutableCommitments[msg.sender] += amount;
         totalCommitments += amount;
         missedCommit[msg.sender] += _calculateCommit(amount);
         totalMissedCommit += _calculateCommit(amount);
@@ -130,33 +166,12 @@ contract OverflowICO is Ownable, LinearVesting {
         emit Commit(msg.sender, amount);
     }
 
-    function simulateClaim(address user) external returns (uint256, uint256, uint256) {
-        _updateTime();
-        if (finalCommit[user] > 0) {
-            return (0, finalCommit[user], finalSales[user]);
-        }
-
-        if (commitments[user] == 0) return (0, 0, 0);
-
-        if (totalCommitments >= softCap) {
-            uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
-            uint256 commitToRefund = commitments[user] - commitToSpend;
-            uint256 userShare = _calculateCommit(commitments[user]) - missedCommit[user];
-            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissedCommit;
-            uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
-            uint256 commitToReceive = userShare * commitToBonus / totalShare;
-            uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
-            return (commitToRefund, salesToReceive, commitToReceive);
-        } else {
-            return (commitments[user], 0, 0);
-        }
-    }
-
-    function claim() external nonReentrant returns (uint256, uint256, uint256) {
-        consolelog("---claim---");
+    function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
+        consolelog("---claimRefund---");
         _updateTime();
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended.");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+.");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
 
         if (!finished) {
             finish();
@@ -188,8 +203,8 @@ contract OverflowICO is Ownable, LinearVesting {
 
             commitToken.safeTransfer(msg.sender, commitToRefund);
 
-            emit Claim(msg.sender, commitToRefund, salesToReceive, commitToReceive);
-            consolelog("---claim end---\n");
+            emit ClaimRefund(msg.sender, commitToRefund, salesToReceive, commitToReceive);
+            consolelog("---claimRefundCommit end---\n");
             return (commitToRefund, salesToReceive, commitToReceive);
         } else {
             consolelog("totalCommitments < softCap");
@@ -197,21 +212,36 @@ contract OverflowICO is Ownable, LinearVesting {
             commitments[msg.sender] = 0;
             commitToken.safeTransfer(msg.sender, amt);
             consolelog("usd+ refund", amt);
-            emit Claim(msg.sender, amt, 0, 0);
+            emit ClaimRefund(msg.sender, amt, 0, 0);
             consolelog("---claim end---\n");
             return (amt, 0, 0);
         }
     }
 
-    function claim2() external nonReentrant {
-        consolelog("---claim2---");
-        require(block.timestamp >= receiveTime, "not claimable yet");
-        uint256 a1 = finalSales[msg.sender];
+    function claimBonus() external nonReentrant {
+        consolelog("---claimBonus---");
+        require(block.timestamp >= claimBonusTime, "not bonus yet");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
+
         uint256 a2 = finalCommit[msg.sender];
-        consolelog("a1", a1);
         consolelog("a2", a2);
-        require(a1 != 0 || a2 != 0, "not zero final values");
+        require(a2 != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
+        
+        consolelog("send USD+ to participant", a2);
+        commitToken.safeTransfer(msg.sender, a2);
+        consolelog("---claimBonus end---\n");
+        emit ClaimBonus(msg.sender, a2);
+    }
+
+    function claimSalesFirstPart() external nonReentrant {
+        consolelog("---claimSalesFirstPart---");
+        require(block.timestamp >= claimSalesFirstPartTime, "not claimSalesFirstPart yet");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_SALES_FIRST_PART, "Inappropriate user's state");
+
+        uint256 a1 = finalSales[msg.sender];
+        consolelog("a1", a1);
+        require(a1 != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
         uint256 vesting = a1 * vestingProportion / vestingProportionDm;
@@ -221,10 +251,34 @@ contract OverflowICO is Ownable, LinearVesting {
         consolelog("send OVN to participant", a1 - vesting);
         salesToken.safeTransfer(msg.sender, a1 - vesting);
 
-        consolelog("send USD+ to participant", a2);
-        commitToken.safeTransfer(msg.sender, a2);
-        consolelog("---claim2 end---\n");
-        emit Claim2(msg.sender, a1, a2);
+        consolelog("---claimSalesFirstPart end---\n");
+        emit ClaimSalesFirstPart(msg.sender, a1);
+    }
+
+    function claimVesting(address addr) public nonReentrant returns (uint256) {
+        consolelog("---claimVesting---");
+        require(registered[addr]);
+        require(block.timestamp >= vestingBeginTime, "not claimVesting yet");
+        require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
+
+        uint256 vested = 0;
+        if (block.timestamp >= vestingBeginTime + vestingDuration) {
+            consolelog("block.timestamp >= vestBeginning + vestDuration");
+            vested = claimableTotal[addr];
+        } else {
+            consolelog("block.timestamp >= vestBeginning && block.timestamp < vestBeginning + vestDuration");
+            vested = Math.mulDiv(claimableTotal[addr], block.timestamp - vestingBeginTime, vestingDuration);
+        }
+
+        consolelog("vested", vested);
+
+        uint256 delta = vested - claimed[addr];
+        claimed[addr] = vested;
+
+        salesToken.safeTransfer(addr, delta);
+        emit ClaimVesting(addr, delta);
+        consolelog("---claimVesting end---\n");
+        return delta;
     }
 
     function finish() public onlyOwner {
@@ -280,7 +334,7 @@ contract OverflowICO is Ownable, LinearVesting {
     }
 
     function _calculateCommit(uint256 value) internal view returns (uint256) {
-        return value * timeRatio;
+        return value * timeRatio / 1e18;
     }
 
     function _updateTime() internal {
@@ -293,11 +347,28 @@ contract OverflowICO is Ownable, LinearVesting {
             consolelog("duration", endTime - startTime);
             consolelog("totalSales", totalSales);
             uint256 share = totalTime * elapsed / (endTime - startTime);
-            timeRatio += share / totalCommitments;
+            consolelog("share", share);
+            timeRatio += share * 1e18 / totalCommitments;
             consolelog("timeRatio", timeRatio);
         }
         lastUpdate = block.timestamp;
         consolelog("---_updateTime end---\n");
+    }
+
+    function _updateTimeStatic() internal view returns (uint256) {
+        if (totalCommitments > 0) {
+            uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
+            uint256 share = totalTime * elapsed / (endTime - startTime);
+            return timeRatio + share / totalCommitments;
+        } else {
+            return 0;
+        }
+    }
+
+    function _grantVestedReward(address addr, uint256 amount) internal {
+        require(!registered[addr], "already registered");
+        claimableTotal[addr] = amount;
+        registered[addr] = true;
     }
 
     // will be deleted later
@@ -308,6 +379,169 @@ contract OverflowICO is Ownable, LinearVesting {
         consolelog("|usdpBalance(owner)   ", commitToken.balanceOf(address(owner())));
         consolelog("|ovnBalance(owner)    ", salesToken.balanceOf(address(owner())));
         consolelog("---logCommonInfo---");
+    }
+
+    // will be deleted later
+    function consolelog(string memory text, uint256 value) public {
+        if (consoleEnabled) {
+            console.log(text, value);
+        }
+    }
+
+    // will be deleted later
+    function consolelog(string memory text) public {
+        if (consoleEnabled) {
+            console.log(text);
+        }
+    }
+
+    function getUserState(address user) public view returns (UserPresaleState) {
+        if (!started || block.timestamp < startTime) {
+            return UserPresaleState.WAITING_FOR_PRESALE_START;
+        }
+
+        if (block.timestamp >= startTime && block.timestamp < endTime) {
+            return UserPresaleState.COMMIT;
+        }
+
+        if (block.timestamp >= endTime && commitments[user] > 0) {
+            return UserPresaleState.CLAIM_REFUND;
+        }
+
+        if (block.timestamp >= endTime && block.timestamp < claimBonusTime && commitments[user] == 0 && finalSales[user] != 0) {
+            return UserPresaleState.WAITING_FOR_CLAIM_BONUS;
+        }
+
+        if (block.timestamp >= claimBonusTime && finalCommit[user] != 0) {
+            return UserPresaleState.CLAIM_BONUS;
+        }
+
+        if (block.timestamp >= claimBonusTime && block.timestamp < claimSalesFirstPartTime && finalCommit[user] == 0 && finalSales[user] != 0) {
+            return UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART;
+        }
+
+        if (block.timestamp >= claimSalesFirstPartTime && finalSales[user] != 0) {
+            return UserPresaleState.CLAIM_SALES_FIRST_PART;
+        }
+
+        if (block.timestamp >= claimSalesFirstPartTime && block.timestamp < vestingBeginTime && registered[user]) {
+            return UserPresaleState.WAITING_FOR_CLAIM_VESTING;
+        }
+
+        if (block.timestamp > vestingBeginTime && registered[user] && claimableTotal[user] != claimed[user]) {
+            return UserPresaleState.CLAIM_VESTING;
+        }
+
+        return UserPresaleState.NOTHING_TO_DO;
+    }
+
+    struct UserInfo {
+        uint256 userCommitments;
+        uint256 salesToReceive;
+        uint256 commitToReceive;
+        uint256 commitToRefund;
+        uint256 lockedSales;
+        uint256 unlockedSales;
+    }
+
+    function getUserInfo(address user) external view returns (UserInfo memory userInfo) {
+
+        uint256 timeRatioStatic = _updateTimeStatic();
+
+        if (getUserState(user) == UserPresaleState.WAITING_FOR_PRESALE_START) {
+            return UserInfo(0, 0, 0, 0, 0, 0);
+        }
+
+        if (getUserState(user) == UserPresaleState.COMMIT || getUserState(user) == UserPresaleState.CLAIM_REFUND) {
+            if (commitments[user] == 0) {
+                return UserInfo(0, 0, 0, 0, 0, 0);
+            } else {
+                uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
+                uint256 commitToRefund = commitments[user] - commitToSpend;
+                uint256 userShare = commitments[user] * timeRatioStatic - missedCommit[user];
+                uint256 totalShare = totalCommitments * timeRatioStatic - totalMissedCommit;
+                uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
+                uint256 commitToReceive = userShare * commitToBonus / totalShare;
+                uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
+
+                return UserInfo(
+                    commitments[user],
+                    salesToReceive,
+                    commitToReceive,
+                    commitToRefund,
+                    salesToReceive,
+                    0
+                );
+            }
+        }
+
+        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_BONUS || getUserState(user) == UserPresaleState.CLAIM_BONUS) {
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                finalCommit[user],
+                0,
+                finalSales[user],
+                0
+            );
+        }
+
+        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART) {
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                0,
+                0,
+                finalSales[user],
+                0
+            );
+        }
+
+        if (getUserState(user) == UserPresaleState.CLAIM_SALES_FIRST_PART) {
+            uint256 vesting = finalSales[user] * vestingProportion / vestingProportionDm;
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                0,
+                0,
+                vesting,
+                finalSales[user] - vesting
+            );
+        }
+
+        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_VESTING) {
+            return UserInfo(
+                immutableCommitments[user],
+                claimableTotal[user],
+                0,
+                0,
+                claimableTotal[user],
+                0
+            );
+        }
+
+        if (getUserState(user) == UserPresaleState.CLAIM_VESTING) {
+            uint256 vested;
+            if (block.timestamp >= vestingBeginTime + vestingDuration) {
+                vested = claimableTotal[user];
+            } else {
+                vested = Math.mulDiv(claimableTotal[user], block.timestamp - vestingBeginTime, vestingDuration);
+            }
+            uint256 delta = vested - claimed[user];
+            return UserInfo(
+                immutableCommitments[user],
+                claimableTotal[user] - claimed[user],
+                0,
+                0,
+                claimableTotal[user] - claimed[user] - delta,
+                delta
+            );
+        }
+
+        if (getUserState(user) == UserPresaleState.NOTHING_TO_DO) {
+            return UserInfo(immutableCommitments[user], 0, 0, 0, 0, 0);
+        }
+
     }
 
 }
