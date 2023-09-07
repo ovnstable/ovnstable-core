@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
+import "./IWhitelist.sol";
 
 contract OverflowICO is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -39,6 +40,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         uint256 minCommit;
         uint256 maxCommit;
         uint256 totalSales;
+        address whitelist;
     }
 
     struct UserInfo {
@@ -85,11 +87,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
-    mapping(address => bool) public whitelist;
 
     mapping(address => uint256) public claimableTotal;
     mapping(address => uint256) public claimed;
     mapping(address => bool) public registered;
+
+    IWhitelist public whitelist;
 
     // will be deleted later
     bool public constant consoleEnabled = false;
@@ -100,10 +103,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     event ClaimSalesFirstPart(address indexed buyer, uint256 sales);
     event ClaimVesting(address addr, uint256 amount);
 
-    modifier onlyWhitelist() {
-        require(whitelist[msg.sender], "!whitelist");
-        _;
-    }
 
     constructor(SetUpParams memory params) {
         require(params.startTime >= block.timestamp, "Start time must be in the future");
@@ -135,6 +134,8 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         totalTime = 1e18;
         salesPerCommit = params.totalSales * 1e6 / params.hardCap;
         consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
+
+        whitelist = IWhitelist(params.whitelist);
     }
 
     function start() external onlyOwner {
@@ -143,8 +144,9 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
-    function commit(uint256 amount) external payable nonReentrant onlyWhitelist {
+    function commit(uint256 amount) external payable nonReentrant {
         consolelog("---commit---");
+        whitelist.verify(msg.sender);
 
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
@@ -178,7 +180,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claimRefund---");
-        
+
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
@@ -239,7 +241,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("userCommit", userCommit);
         require(userCommit != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
-        
+
         consolelog("send USD+ to participant", userCommit);
         commitToken.safeTransfer(msg.sender, userCommit);
         consolelog("---claimBonus end---\n");
@@ -330,25 +332,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("---finish end---\n");
     }
 
-    function addToWhitelist(address[] calldata toAddAddresses) external onlyOwner {
-        for (uint i = 0; i < toAddAddresses.length; i++) {
-            whitelist[toAddAddresses[i]] = true;
-        }
-    }
-
-    function removeFromWhitelist(address[] calldata toRemoveAddresses) external onlyOwner {
-        for (uint i = 0; i < toRemoveAddresses.length; i++) {
-            delete whitelist[toRemoveAddresses[i]];
-        }
-    }
-
     function _calculateCommit(uint256 value) internal view returns (uint256) {
         return value * timeRatio / 1e18;
     }
 
     function _updateTime() internal {
         consolelog("---_updateTime---");
-       
+
         require(block.timestamp >= startTime, "not started");
         if (totalCommitments > 0) {
             uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);

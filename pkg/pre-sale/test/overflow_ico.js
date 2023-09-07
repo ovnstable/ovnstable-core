@@ -17,6 +17,7 @@ describe("OverflowICO", function () {
     let salesToken;
     let firstAccount;
     let secondAccount;
+    let whitelist;
 
     let startDate;
     let endDate;
@@ -32,7 +33,7 @@ describe("OverflowICO", function () {
     let softCap;
     let minCommit;
     let maxCommit;
-    
+
     const UserPresaleStates = {
         WAITING_FOR_PRESALE_START: "0",
         COMMIT: "1",
@@ -57,10 +58,11 @@ describe("OverflowICO", function () {
         console.log("firstAccount address:", firstAccount.address);
         console.log("secondAccount address:", secondAccount.address);
 
-        await deployments.fixture(['CommitToken', 'SalesToken']);
+        await deployments.fixture(['CommitToken', 'SalesToken', 'MockWhitelist']);
 
         commitToken = await ethers.getContract("CommitToken");
         salesToken = await ethers.getContract("SalesToken");
+        whitelist = await ethers.getContract("MockWhitelist");
 
         await commitToken.setExchanger(account.address);
 
@@ -96,6 +98,7 @@ describe("OverflowICO", function () {
             minCommit: minCommit,
             maxCommit: maxCommit,
             totalSales: totalSales,
+            whitelist: whitelist.address,
         }
 
         overflowICO = await deployments.deploy("OverflowICO", {
@@ -148,7 +151,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -195,7 +197,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -242,12 +243,10 @@ describe("OverflowICO", function () {
     //     });
 
     //     it("commit && add whitelist", async function () {
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await overflowICO.connect(firstAccount).commit(amount);
     //     });
 
     //     it("commit && add/remove whitelist", async function () {
-    //         await overflowICO.addToWhitelist([account.address]);
     //         await overflowICO.removeFromWhitelist([account.address]);
     //         await expectRevert(overflowICO.commit(1000000), '!whitelist');
     //     });
@@ -265,7 +264,6 @@ describe("OverflowICO", function () {
             await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             expect(await checkState(firstAccount, UserPresaleStates.COMMIT)).to.eq(true);
-            await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
             await commitToken.mint(firstAccount.address, commitAmount);
@@ -316,7 +314,6 @@ describe("OverflowICO", function () {
             await salesToken.approve(overflowICO.address, totalSales);
             await overflowICO.start();
             expect(await checkState(firstAccount, UserPresaleStates.COMMIT)).to.eq(true);;
-            await overflowICO.addToWhitelist([firstAccount.address]);
             await spendTime(startDate + addDays(1));
 
             await commitToken.mint(firstAccount.address, amount);
@@ -432,7 +429,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -543,7 +539,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -570,7 +565,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -601,7 +595,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -634,8 +627,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
-    //         await overflowICO.addToWhitelist([secondAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, commitAmount);
@@ -679,8 +670,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
-    //         await overflowICO.addToWhitelist([secondAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
@@ -717,8 +706,6 @@ describe("OverflowICO", function () {
     //         await salesToken.mint(account.address, totalSales);
     //         await salesToken.approve(overflowICO.address, totalSales);
     //         await overflowICO.start();
-    //         await overflowICO.addToWhitelist([firstAccount.address]);
-    //         await overflowICO.addToWhitelist([secondAccount.address]);
     //         await spendTime(startDate + addDays(1));
 
     //         await commitToken.mint(firstAccount.address, amount);
