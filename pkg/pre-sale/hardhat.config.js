@@ -4,6 +4,7 @@ require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter")
 require("@nomiclabs/hardhat-waffle");
 require('@overnight-contracts/common/utils/hardhat-ovn');
+require('hardhat-contract-sizer');
 
 const config = require("../common/utils/hardhat-config");
 
