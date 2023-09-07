@@ -106,6 +106,7 @@ module.exports = async () => {
         items.push(createBribeWithFee('0xdC0F1F6eCd03ec1C9FFC2A17BaBAbd313477b20E', usdPlus.address, 'vAMM-USD+/USDbC', dex, '0x3CAE2895a4fc57336Fc8FBab40D9e534874B17CE', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0x607363389331f4B2D1b955d009506A67c565D75E', usdPlus.address, 'vAMM-USD+/stERN', dex, '0x6CEd86715f74ff109ea7f908eAc78AF4ab2f41ea', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex, '0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', 20, COMMON.rewardWallet));
+        items.push(createBribeWithFee('0xc3B5ac236fb5AbE245310FeCa2526F89667D4CAe', usdPlus.address, 'vAMM-YFX/USD+', dex, '0x9a0efa1968837474e23c73b60f29d705d2eb8789', 20, COMMON.rewardWallet));
 
         return items;
     }
