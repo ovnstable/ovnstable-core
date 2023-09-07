@@ -7,6 +7,7 @@ let {ARBITRUM} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 const {toE18, fromE18, toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
+const {greatLess} = require("@overnight-contracts/common/utils/tests");
 
 
 describe("OverflowICO", function () {
@@ -34,7 +35,7 @@ describe("OverflowICO", function () {
     let minCommit;
     let maxCommit;
 
-    const UserPresaleStates = {
+    const State = {
         WAITING_FOR_PRESALE_START: "0",
         COMMIT: "1",
         CLAIM_REFUND: "2",
@@ -116,190 +117,112 @@ describe("OverflowICO", function () {
     });
 
 
-    // describe("start", () => {
+    describe("start", () => {
 
-    //     beforeEach(async () => {
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //     });
+        beforeEach(async () => {
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
+            await overflowICO.start();
+        });
 
-    //     it("onlyOwner", async () => {
-    //         await expectRevert(overflowICO.connect(secondAccount).start(), "Ownable: caller is not the owner");
-    //     });
+        it("onlyOwner", async () => {
+            await expectRevert(overflowICO.connect(secondAccount).start(), "Ownable: caller is not the owner");
+        });
 
-    //     it("started = true", async () => {
-    //         expect(await overflowICO.started()).to.eq(true);
-    //     });
+        it("started = true", async () => {
+            expect(await overflowICO.started()).to.eq(true);
+        });
 
-    //     it("Error: Already started.", async () => {
-    //         await expectRevert(overflowICO.start(), "Already started.");
-    //     });
+        it("Error: Already started", async () => {
+            await expectRevert(overflowICO.start(), "Already started");
+        });
 
-    //     it("transfer correct", async () => {
-    //         expect(await salesToken.balanceOf(overflowICO.address)).to.eq(totalSales);
-    //     });
+        it("transfer correct", async () => {
+            await saleShould(overflowICO, totalSales, false);
+        });
 
-    // })
-
-
-    // describe('finish', () => {
-
-    //     let amount = toE6(1000);
-
-    //     beforeEach(async () => {
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //         await spendTime(startDate + addDays(1));
-
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //     });
-
-    //     it('Revert: Can only finish after the sale has ended', async () => {
-    //         await expectRevert(overflowICO.finish(), "Can only finish after the sale has ended");
-    //     })
-
-    //     it("onlyOwner", async () => {
-    //         await expectRevert(overflowICO.connect(secondAccount).finish(), "Ownable: caller is not the owner");
-    //     });
-
-    //     it('Revert: Already finished', async () => {
-    //         await spendTime(endDate + 1000);
-    //         await overflowICO.finish();
-    //         await expectRevert(overflowICO.finish(), "Already finished");
-    //     });
-
-    //     it('Participant return USD+ after fail precale', async () => {
-
-    //         let balanceBefore = await commitToken.balanceOf(firstAccount.address);
-
-    //         await overflowICO.connect(firstAccount).commit(amount);
-    //         await spendTimeWithPayoyt(endDate + 1000);
-    //         await overflowICO.finish();
-    //         await overflowICO.connect(firstAccount).claimRefund();
-
-    //         let balanceAfter = await commitToken.balanceOf(firstAccount.address);
-
-    //         expect(balanceBefore).eq(balanceAfter);
-    //     });
-
-    // });
+    })
 
 
-    // describe('commit', () => {
+    describe('finish', () => {
 
-    //     let minAmount = toE6(0.5);
-    //     let amount = toE6(1000);
+        let amount = toE6(1000);
 
-    //     beforeEach(async () => {
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //         await spendTime(startDate + addDays(1));
+        beforeEach(async () => {
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
+            await overflowICO.start();
+            await spendTime(startDate + addDays(1));
 
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //     });
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
+        });
 
-    //     it('Revert: Can only deposit USD+ during the sale period', async () => {
-    //         await spendTime(endDate + 1000);
-    //         await expectRevert(overflowICO.connect(firstAccount).commit(amount), 'Can only deposit USD+ during the sale period');
-    //     })
+        it('Revert: Can only finish after the sale has ended', async () => {
+            await expectRevert(overflowICO.finish(), "Can only finish after the sale has ended");
+        })
 
-    //     it('Revert: Commitment amount is outside the allowed range -> minCommit', async () => {
-    //         await expectRevert(overflowICO.connect(firstAccount).commit(minAmount), 'Commitment amount is outside the allowed range');
-    //     })
+        it("onlyOwner", async () => {
+            await expectRevert(overflowICO.connect(secondAccount).finish(), "Ownable: caller is not the owner");
+        });
 
-    //     it('commitments = amount', async () => {
-    //         await overflowICO.connect(firstAccount).commit(amount);
-    //         expect(await overflowICO.commitments(firstAccount.address)).to.eq(amount);
-    //     })
+        it('Revert: Already finished', async () => {
+            await spendTime(endDate + 1000);
+            await overflowICO.finish();
+            await expectRevert(overflowICO.finish(), "Already finished");
+        });
 
-    //     it('totalSales = amount', async () => {
-    //         await overflowICO.connect(firstAccount).commit(amount);
-    //         expect(await overflowICO.totalCommitments()).to.eq(amount);
-    //     })
+        it('Participant return USD+ after fail presale', async () => {
 
-    // })
+            await overflowICO.connect(firstAccount).commit(amount);
+            await spendTimeWithPayoyt(endDate + 1000);
+            await overflowICO.finish();
+            await overflowICO.connect(firstAccount).claimRefund();
+
+            await commitShould(firstAccount, 1000);
+        });
+
+    });
 
 
-    // describe("whitelist", () => {
-
-    //     let amount = toE6(200000);
-
-    //     beforeEach(async () => {
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //     })
-
-    //     it("commit && not whitelist", async function () {
-    //         await expectRevert(overflowICO.connect(firstAccount).commit(amount), '!whitelist');
-    //     });
-
-    //     it("commit && add whitelist", async function () {
-    //         await overflowICO.connect(firstAccount).commit(amount);
-    //     });
-
-    //     it("commit && add/remove whitelist", async function () {
-    //         await overflowICO.removeFromWhitelist([account.address]);
-    //         await expectRevert(overflowICO.commit(1000000), '!whitelist');
-    //     });
-
-    // })
-
-    //ok
     describe('[one participant], [less soft cap]', () => {
 
         let commitAmount = toE6(200000);
 
         beforeEach(async () => {
-            expect(await checkState(firstAccount, UserPresaleStates.WAITING_FOR_PRESALE_START)).to.eq(true);
-            await salesToken.mint(account.address, totalSales);
-            await salesToken.approve(overflowICO.address, totalSales);
-            await overflowICO.start();
-            expect(await checkState(firstAccount, UserPresaleStates.COMMIT)).to.eq(true);
-            await spendTime(startDate + addDays(1));
-
-            await commitToken.mint(firstAccount.address, commitAmount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
-            await overflowICO.connect(firstAccount).commit(commitAmount);
-            await spendTimeWithPayoyt(endDate + 1000);
-            expect(await checkState(firstAccount, UserPresaleStates.CLAIM_REFUND)).to.eq(true);
-            await overflowICO.finish();
+            await startFinishOneUser(commitAmount);
         });
 
         it('All USD+ should return to user', async () => {
             await overflowICO.connect(firstAccount).claimRefund();
-            expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
-            expect(await commitToken.balanceOf(firstAccount.address)).to.eq(commitAmount);
-            expect(await commitToken.balanceOf(overflowICO.address)).to.eq(0);
-            expect(await salesToken.balanceOf(overflowICO.address)).to.eq(0);
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
+
+
+            await commitShould(firstAccount, commitAmount, false);
+
+            await commitEmpty(overflowICO);
+            await saleEmpty(overflowICO);
         })
 
         it('All OVN should return to owner', async () => {
-            expect(await salesToken.balanceOf(account.address)).to.eq(totalSales);
+            await saleShould(account, totalSales, false);
         })
 
         it('USD+ rebase should return to owner', async () => {
-            expect(await commitToken.balanceOf(account.address)) > 0;
+            let balance = fromE6(await commitToken.balanceOf(account.address));
+            expect(balance > 0).to.eq(true);
         })
 
         it('Further getUserState is correct', async () => {
             await overflowICO.connect(firstAccount).claimRefund();
             await spendTime(claimBonusTime + 100);
-            expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
             await spendTime(claimSalesFirstPartTime + 100);
-            expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
             await spendTime(vestingBeginTime + 100);
-            expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
             await spendTime(vestingBeginTime + vestingDuration + 100);
-            expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
         })
 
     })
@@ -307,61 +230,53 @@ describe("OverflowICO", function () {
 
     describe('[one participant], [between soft and hard cap]', () => {
 
-        beforeEach(async () => {
-            let amount = toE6(250000);
-            expect(await checkState(firstAccount, UserPresaleStates.WAITING_FOR_PRESALE_START)).to.eq(true);
-            await salesToken.mint(account.address, totalSales);
-            await salesToken.approve(overflowICO.address, totalSales);
-            await overflowICO.start();
-            expect(await checkState(firstAccount, UserPresaleStates.COMMIT)).to.eq(true);;
-            await spendTime(startDate + addDays(1));
+        let commitAmount = toE6(250000);
 
-            await commitToken.mint(firstAccount.address, amount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-            await overflowICO.connect(firstAccount).commit(amount);
-            await spendTimeWithPayoyt(endDate + 1000);
-            expect(await checkState(firstAccount, UserPresaleStates.CLAIM_REFUND)).to.eq(true);
-            await overflowICO.finish();
+        beforeEach(async () => {
+            await startFinishOneUser(commitAmount);
         });
 
 
         describe('[full vest]', () => {
 
             it('all claims', async () => {
+
                 await overflowICO.connect(firstAccount).claimRefund();
 
-                expect(await checkState(firstAccount, UserPresaleStates.WAITING_FOR_CLAIM_BONUS)).to.eq(true);
-
-                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(0);
-                expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
-
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+                await commitEmpty(firstAccount);
+                await saleEmpty(firstAccount);
 
                 await spendTime(claimBonusTime + 100);
-                expect(await checkState(firstAccount, UserPresaleStates.CLAIM_BONUS)).to.eq(true);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
                 await overflowICO.connect(firstAccount).claimBonus();
-                expect(await checkState(firstAccount, UserPresaleStates.WAITING_FOR_CLAIM_SALES_FIRST_PART)).to.eq(true);
+
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
                 await spendTime(claimSalesFirstPartTime + 100);
-                expect(await checkState(firstAccount, UserPresaleStates.CLAIM_SALES_FIRST_PART)).to.eq(true);
+
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
                 await overflowICO.connect(firstAccount).claimSalesFirstPart();
-                expect(await checkState(firstAccount, UserPresaleStates.WAITING_FOR_CLAIM_VESTING)).to.eq(true);
 
-                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
 
-                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2083333333333333312500");
+                await commitShould(firstAccount, 50_000);
+                await saleShould(firstAccount, "2083333333333333312500", false);
 
                 await spendTime(vestingBeginTime + 100);
-                expect(await checkState(firstAccount, UserPresaleStates.CLAIM_VESTING)).to.eq(true);
+
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
                 await spendTime(vestingBeginTime + vestingDuration + 100);
-                expect(await checkState(firstAccount, UserPresaleStates.CLAIM_VESTING)).to.eq(true);
+
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
                 await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
-                expect(await checkState(firstAccount, UserPresaleStates.NOTHING_TO_DO)).to.eq(true);
 
-                expect(await commitToken.balanceOf(overflowICO.address)).to.eq(0);
-                expect(await salesToken.balanceOf(overflowICO.address)).to.eq(0);
+                await stateTrue(false, State.NOTHING_TO_DO);
 
-                expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                await commitEmpty(overflowICO);
+                await saleEmpty(overflowICO);
 
-                expect(await salesToken.balanceOf(firstAccount.address)).to.eq("8333333333333333250000");
+                await commitShould(firstAccount, 50_000);
+                await saleShould(firstAccount, "8333333333333333250000");
             })
         })
 
@@ -734,8 +649,58 @@ describe("OverflowICO", function () {
 
     // })
 
+
+    async function stateTrue(user, state){
+
+        let currentState = Number.parseInt(await overflowICO.connect(user).getUserState(user.address));
+        expect(currentState === Number.parseInt(state), `Current state: ${currentState}`).to.eq(true);
+    }
+
+    async function startFinishOneUser(commitAmount){
+        await stateTrue(firstAccount, State.WAITING_FOR_PRESALE_START)
+        await salesToken.mint(account.address, totalSales);
+        await salesToken.approve(overflowICO.address, totalSales);
+        await overflowICO.start();
+
+        await stateTrue(firstAccount, State.COMMIT);
+        await spendTime(startDate + addDays(1));
+
+        await commitToken.mint(firstAccount.address, commitAmount);
+        await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
+        await overflowICO.connect(firstAccount).commit(commitAmount);
+        await spendTimeWithPayoyt(endDate + 1000);
+
+        await stateTrue(firstAccount, State.CLAIM_REFUND)
+
+        await overflowICO.finish();
+    }
+
     function addDays(days) {
         return (days * 24 * 60 * 60 * 1000);
+    }
+
+    async function commitEmpty(user){
+        expect(await commitToken.balanceOf(user.address)).to.eq(0);
+    }
+
+    async function commitShould(user, amount, convert = true){
+        if (convert){
+            amount = toE6(amount);
+        }
+
+        expect(await commitToken.balanceOf(user.address)).to.eq(amount);
+    }
+
+    async function saleShould(user, amount, convert = true){
+
+        if (convert){
+            amount = toE18(amount);
+        }
+        expect(await salesToken.balanceOf(user.address)).to.eq(amount);
+    }
+
+    async function saleEmpty(user){
+        expect(await salesToken.balanceOf(user.address)).to.eq(0);
     }
 
     async function spendTimeWithPayoyt(value) {
@@ -753,9 +718,7 @@ describe("OverflowICO", function () {
     }
 
     async function checkState(account, value) {
-        let userState = await overflowICO.connect(account).getUserState(account.address);
-        console.log("userState", userState);
-        return userState.toString() === value;
+
     }
 
 });
