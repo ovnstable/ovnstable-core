@@ -312,144 +312,156 @@ describe("OverflowICO", function () {
             })
         })
 
-    //     describe('[zero vest]', () => {
+        describe('[zero vest]', () => {
 
-    //         it('all claims', async () => {
-    //             await overflowICO.connect(firstAccount).claimRefund();
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claimRefund();
 
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(0);
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+                await commitEmpty(firstAccount);
+                await saleEmpty(firstAccount);
 
-    //             await overflowICO.connect(firstAccount).claimBonus();
-    //             await overflowICO.connect(firstAccount).claimSalesFirstPart();
+                await spendTime(claimBonusTime + 100);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
+                await overflowICO.connect(firstAccount).claimBonus();
 
-    //             // Return extra USD+
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+                await spendTime(claimSalesFirstPartTime + 100);
 
-    //             //TODO Check correct value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2083333333333333312500");
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+                await overflowICO.connect(firstAccount).claimSalesFirstPart();
 
-    //             await spendTime(vestingBeginTime - 1000);
-    //             await expectRevert(overflowICO.connect(firstAccount).claimVesting(firstAccount.address), "not claimVesting yet");
+                await commitShould(firstAccount, 50_000);
+                await saleShould(firstAccount, "2083333333333333312500");
 
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
-
-    //             //TODO Check correct value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2083333333333333312500");
-    //         })
-    //     })
+                await spendTime(vestingBeginTime - 1000);
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+                await expectRevert(overflowICO.connect(firstAccount).claimVesting(firstAccount.address), "not claimVesting yet");
+            })
+        })
 
     })
 
 
-    // describe('[one participant], [more hard cap], [full vest]', () => {
+    describe('[one participant], [more hard cap]', () => {
 
-    //     beforeEach(async () => {
-    //         let amount = toE6(350000);
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //         await spendTime(startDate + addDays(1));
-
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //         await overflowICO.connect(firstAccount).commit(amount);
-    //         await spendTimeWithPayoyt(endDate + 1000);
-    //         await overflowICO.finish();
-    //     });
+        let commitAmount = toE6(350000);
+        beforeEach(async () => {
+            await startFinishOneUser(commitAmount);
+        });
 
 
-    //     describe('[full vest]', () => {
+        describe('[full vest]', () => {
 
-    //         it('all claims', async () => {
-    //             await overflowICO.connect(firstAccount).claimRefund();
+            it('all claims', async () => {
 
-    //             // Return extra USD+ to user
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
+                await commitEmpty(firstAccount);
+                await saleEmpty(firstAccount);
 
-    //             await overflowICO.logCommonInfo();
-    //             await overflowICO.connect(firstAccount).claimBonus();
-    //             await overflowICO.connect(firstAccount).claimSalesFirstPart();
+                await overflowICO.connect(firstAccount).claimRefund();
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
 
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
+                await commitShould(firstAccount, 50_000);
+                await saleEmpty(firstAccount);
 
-    //             await spendTime(vestingBeginTime + vestingDuration + 1000);
-    //             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+                await spendTime(claimBonusTime + 100);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
+                await overflowICO.connect(firstAccount).claimBonus();
+                await commitShould(firstAccount, 120_000);
 
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("9999999999999999900000");
-    //         })
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+                await spendTime(claimSalesFirstPartTime + 100);
 
-    //     })
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+                await overflowICO.connect(firstAccount).claimSalesFirstPart();
 
-    //     describe('[partial vest]', () => {
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+                await saleShould(firstAccount, "2499999999999999975000");
 
-    //         it('all claims', async () => {
-    //             await overflowICO.connect(firstAccount).claimRefund();
+                await spendTime(vestingBeginTime + 100);
 
-    //             // Return extra USD+ to user
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
+                await spendTime(vestingBeginTime + vestingDuration + 100);
 
-    //             await overflowICO.logCommonInfo();
-    //             await overflowICO.connect(firstAccount).claimBonus();
-    //             await overflowICO.connect(firstAccount).claimSalesFirstPart();
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
+                await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
 
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
+                await stateTrue(firstAccount, State.NOTHING_TO_DO);
 
-    //             await spendTime(vestingBeginTime + vestingDuration / 2);
+                await commitEmpty(overflowICO);
+                await saleEmpty(overflowICO);
 
-    //             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+                await commitShould(firstAccount, 120_000);
+                await saleShould(firstAccount, "9999999999999999900000");
+            })
 
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("6249999999999999937500");
-    //         })
+        })
 
-    //     })
+        describe('[partial vest]', () => {
 
-    //     describe('[zero vest]', () => {
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claimRefund();
 
-    //         it('all claims', async () => {
-    //             await overflowICO.connect(firstAccount).claimRefund();
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+                await commitShould(firstAccount, 50_000);
+                await saleEmpty(firstAccount);
 
-    //             // Return extra USD+ to user
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
-
-    //             await overflowICO.logCommonInfo();
-    //             await overflowICO.connect(firstAccount).claimBonus();
-    //             await overflowICO.connect(firstAccount).claimSalesFirstPart();
-
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
-
-    //             await spendTime(vestingBeginTime - 1000);
-
-    //             await expectRevert(overflowICO.connect(firstAccount).claimVesting(firstAccount.address), "not claimVesting yet");
-
-    //             //TODO Check value
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(120_000));
-    //             // TODO Check value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2499999999999999975000");
-    //         })
-
-    //     })
+                await spendTime(claimBonusTime + 100);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
+                await overflowICO.connect(firstAccount).claimBonus();
 
 
-    // })
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+                await spendTime(claimSalesFirstPartTime + 100);
+
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+                await overflowICO.connect(firstAccount).claimSalesFirstPart();
+
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+                await commitShould(firstAccount, 120_000);
+                await saleShould(firstAccount, "2499999999999999975000");
+
+                await spendTime(vestingBeginTime + vestingDuration / 2);
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
+                await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+
+                await commitShould(firstAccount, 120_000);
+                await saleShould(firstAccount, "6250000002893518456018");
+            })
+
+        })
+
+        describe('[zero vest]', () => {
+
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claimRefund();
+
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+                await commitShould(firstAccount, 50_000);
+                await saleEmpty(firstAccount);
+
+                await spendTime(claimBonusTime + 100);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
+                await overflowICO.connect(firstAccount).claimBonus();
+
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+                await spendTime(claimSalesFirstPartTime + 100);
+
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+                await overflowICO.connect(firstAccount).claimSalesFirstPart();
+
+                await commitShould(firstAccount, 120_000);
+                await saleShould(firstAccount, "2499999999999999975000");
+
+                await spendTime(vestingBeginTime - 1000);
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+                await expectRevert(overflowICO.connect(firstAccount).claimVesting(firstAccount.address), "not claimVesting yet");
+            })
+
+        })
+
+
+    })
 
 
     // describe('[one participant], [two times], [less soft cap]', () => {
