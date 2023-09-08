@@ -469,18 +469,7 @@ describe("OverflowICO", function () {
         let commitAmount = toE6(20_000);
 
         beforeEach(async () => {
-            await salesToken.mint(account.address, totalSales);
-            await salesToken.approve(overflowICO.address, totalSales);
-            await overflowICO.start();
-            await spendTime(startDate + addDays(1));
-
-            await commitToken.mint(firstAccount.address, commitAmount);
-            await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
-            await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
-            await spendTimeWithPayoyt(startDate + addDays(2));
-            await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
-            await spendTimeWithPayoyt2(endDate + 1000);
-            await overflowICO.finish();
+            await startFinishOneUserTwoTime(commitAmount);
         });
 
         it('All USD+ should return to user', async () => {
@@ -518,65 +507,109 @@ describe("OverflowICO", function () {
     })
 
 
-    // describe('[one participant], [two times], [between soft and hard cap], [full vest]', () => {
+    describe('[one participant], [two times], [between soft and hard cap], [full vest]', () => {
 
-    //     beforeEach(async () => {
-    //         let amount = toE6(250000);
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //         await spendTime(startDate + addDays(1));
+        let commitAmount = toE6(250_000);
 
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //         await overflowICO.connect(firstAccount).commit(amount / 2);
-    //         await spendTimeWithPayoyt(startDate + addDays(2));
-    //         await overflowICO.connect(firstAccount).commit(amount / 2);
-    //         await spendTimeWithPayoyt2(endDate + 1000);
-    //         await overflowICO.finish();
-    //     });
+        beforeEach(async () => {
+            await startFinishOneUserTwoTime(commitAmount);
+        });
 
-    //     it('all claims', async () => {
-    //         await overflowICO.connect(firstAccount).claimRefund();
-    //         await overflowICO.connect(firstAccount).claimBonus();
-    //         await overflowICO.connect(firstAccount).claimSalesFirstPart();
-    //         await spendTime(vestingBeginTime + vestingDuration + 1000);
-    //         await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
-    //         await overflowICO.logCommonInfo();
-    //     })
+        it('[full vest]', async () => {
+            await commitShould(firstAccount, '27083333333');
+            await saleEmpty(firstAccount);
 
-    // })
+            await overflowICO.connect(firstAccount).claimRefund();
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+
+            await commitShould(firstAccount, '27083333333');
+            await saleEmpty(firstAccount);
+
+            await spendTime(claimBonusTime + 100);
+            await stateTrue(firstAccount, State.CLAIM_BONUS);
+            await overflowICO.connect(firstAccount).claimBonus();
+            await commitShould(firstAccount, 75_000);
+
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+            await spendTime(claimSalesFirstPartTime + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+            await saleShould(firstAccount, "2083333333333333312500");
+
+            await spendTime(vestingBeginTime + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_VESTING);
+            await spendTime(vestingBeginTime + vestingDuration + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_VESTING);
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
+
+            await commitEmpty(overflowICO);
+            await saleEmpty(overflowICO);
+
+            await commitShould(firstAccount, 75_000);
+            await saleShould(firstAccount, "8333333333333333250000");
+        })
+
+    })
 
 
-    // describe('[one participant], [two times], [more hard cap], [full vest]', () => {
+    describe('[one participant], [two times], [more hard cap], [full vest]', () => {
 
-    //     beforeEach(async () => {
-    //         let amount = toE6(350000);
-    //         await salesToken.mint(account.address, totalSales);
-    //         await salesToken.approve(overflowICO.address, totalSales);
-    //         await overflowICO.start();
-    //         await spendTime(startDate + addDays(1));
+        let commitAmount = toE6(350_000);
 
-    //         await commitToken.mint(firstAccount.address, amount);
-    //         await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
-    //         await overflowICO.connect(firstAccount).commit(amount / 2);
-    //         await spendTimeWithPayoyt(startDate + addDays(2));
-    //         await overflowICO.connect(firstAccount).commit(amount / 2);
-    //         await spendTimeWithPayoyt2(endDate + 1000);
-    //         await overflowICO.finish();
-    //     });
 
-    //     it('all claims', async () => {
-    //         await overflowICO.connect(firstAccount).claimRefund();
-    //         await overflowICO.logCommonInfo();
-    //         await overflowICO.connect(firstAccount).claimBonus();
-    //         await overflowICO.connect(firstAccount).claimSalesFirstPart();
-    //         await spendTime(vestingBeginTime + vestingDuration + 1000);
-    //         await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
-    //         await overflowICO.logCommonInfo();
-    //     })
+        beforeEach(async () => {
+            await startFinishOneUserTwoTime(commitAmount);
+        });
 
-    // })
+        it('all claims', async () => {
+            await commitShould(firstAccount, '37916666667');
+            await saleEmpty(firstAccount);
+
+            await overflowICO.connect(firstAccount).claimRefund();
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+
+            await commitShould(firstAccount, '87916666667');
+            await saleEmpty(firstAccount);
+
+            await spendTime(claimBonusTime + 100);
+            await stateTrue(firstAccount, State.CLAIM_BONUS);
+            await overflowICO.connect(firstAccount).claimBonus();
+            await commitShould(firstAccount, 155_000);
+
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+            await spendTime(claimSalesFirstPartTime + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+
+            await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+            await saleShould(firstAccount, "2499999999999999975000");
+
+            await spendTime(vestingBeginTime + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_VESTING);
+            await spendTime(vestingBeginTime + vestingDuration + 100);
+
+            await stateTrue(firstAccount, State.CLAIM_VESTING);
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+
+            await stateTrue(firstAccount, State.NOTHING_TO_DO);
+
+            await commitEmpty(overflowICO);
+            await saleEmpty(overflowICO);
+
+            await commitShould(firstAccount, 155_000);
+            await saleShould(firstAccount, "9999999999999999900000");
+        })
+
+    })
 
 
     // describe('[two participants], [one time], [less soft cap]', () => {
@@ -708,6 +741,22 @@ describe("OverflowICO", function () {
             }
         }
         expect(currentState === Number.parseInt(state), `Current state: ${currentStateName}`).to.eq(true);
+    }
+
+    async function startFinishOneUserTwoTime(commitAmount){
+
+        await salesToken.mint(account.address, totalSales);
+        await salesToken.approve(overflowICO.address, totalSales);
+        await overflowICO.start();
+        await spendTime(startDate + addDays(1));
+
+        await commitToken.mint(firstAccount.address, commitAmount);
+        await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
+        await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
+        await spendTimeWithPayoyt(startDate + addDays(2));
+        await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
+        await spendTimeWithPayoyt2(endDate + 1000);
+        await overflowICO.finish();
     }
 
     async function startFinishOneUser(commitAmount){
