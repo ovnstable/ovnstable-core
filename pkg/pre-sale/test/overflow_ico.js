@@ -194,10 +194,10 @@ describe("OverflowICO", function () {
 
             await userInfo(firstAccount, {
                 userCommitments: commitAmount,
-                salesToReceive: '6666666666666666600000', // TODO Should be 0 because less soft cap
+                salesToReceive: 0,
                 commitToReceive: 0,
-                commitToRefund: 0,
-                lockedSales: '6666666666666666600000', // TODO Should be 0 because less soft cap
+                commitToRefund: commitAmount,
+                lockedSales: 0,
                 unlockedSales: 0,
             })
         });
@@ -255,10 +255,10 @@ describe("OverflowICO", function () {
 
             await userInfo(firstAccount, {
                 userCommitments: commitAmount,
-                salesToReceive: '6666666666666666600000',
-                commitToReceive: 0,
+                salesToReceive: '8333333333333333250000',
+                commitToReceive: '50000000000',
                 commitToRefund: 0,
-                lockedSales: '6666666666666666600000',
+                lockedSales: '8333333333333333250000',
                 unlockedSales: 0,
             })
         });
@@ -849,18 +849,30 @@ describe("OverflowICO", function () {
         await commitToken.mint(firstAccount.address, commitAmount);
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
         await overflowICO.connect(firstAccount).commit(commitAmount, 0, 0);
+        // await spendTime(startDate + addDays(1) + 3);
+        if (commitAmount >= softCap) {
 
-        //TODO Uncomment it - getUserInfo throw error: `reverted with panic code 18`
+            //todo здесь проблема в том, что userInfo делается на том же блоке что и был сделан commit, посэтому elapsedЕшьу нулевой. 
+            //Я пытаюсь скрутить немного, но опять не скручивается
 
-        // await userInfo(firstAccount, {
-        //     userCommitments: commitAmount,
-        //     salesToReceive: 0,
-        //     commitToReceive: 0,
-        //     commitToRefund: 0,
-        //     lockedSales: 0,
-        //     unlockedSales: 0,
-        // })
-
+            // await userInfo(firstAccount, {
+            //     userCommitments: commitAmount,
+            //     salesToReceive: 0,
+            //     commitToReceive: 0,
+            //     commitToRefund: 0,
+            //     lockedSales: 0,
+            //     unlockedSales: 0,
+            // })
+        } else {
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount,
+                salesToReceive: 0,
+                commitToReceive: 0,
+                commitToRefund: commitAmount,
+                lockedSales: 0,
+                unlockedSales: 0,
+            })
+        }
 
         await spendTimeWithPayoyt(endDate + 1000);
 

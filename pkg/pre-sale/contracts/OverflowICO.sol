@@ -95,7 +95,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     IWhitelist public whitelist;
 
     // will be deleted later
-    bool public constant consoleEnabled = true;
+    bool public constant consoleEnabled = false;
 
     event Commit(address indexed buyer, uint256 amount);
     event ClaimRefund(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
@@ -361,9 +361,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function _updateTimeStatic() internal view returns (uint256) {
         if (totalCommitments > 0) {
+            consolelog("block.timestamp", block.timestamp);
+            consolelog("lastUpdate", lastUpdate);
             uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
+            consolelog("elapsed", elapsed);
             uint256 share = totalTime * elapsed / (endTime - startTime);
-            return timeRatio + share / totalCommitments;
+            consolelog("share", share);
+            return timeRatio + share * 1e18 / totalCommitments;
         } else {
             return 0;
         }
@@ -444,6 +448,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         uint256 timeRatioStatic = _updateTimeStatic();
 
         UserPresaleState userState = getUserState(user);
+        consolelog("userState", uint256(userState));
 
         if (userState == UserPresaleState.WAITING_FOR_PRESALE_START) {
             return UserInfo(0, 0, 0, 0, 0, 0);
@@ -453,24 +458,38 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             if (commitments[user] == 0) {
                 return UserInfo(0, 0, 0, 0, 0, 0);
             } else {
+                if (totalCommitments >= softCap) {
+                    uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
+                    uint256 commitToRefund = commitments[user] - commitToSpend;
 
-                //TODO reverted with panic code 18 when state.COMMIT
-                uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
-                uint256 commitToRefund = commitments[user] - commitToSpend;
-                uint256 userShare = commitments[user] * timeRatioStatic - missedCommit[user];
-                uint256 totalShare = totalCommitments * timeRatioStatic - totalMissedCommit;
-                uint256 commitToBonus = commitToken.balanceOf(address(this)) - totalCommitments;
-                uint256 commitToReceive = userShare * commitToBonus / totalShare;
-                uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
+                    consolelog("commitToSpend", commitToSpend);
+                    consolelog("commitToRefund", commitToRefund);
+                    uint256 userShare = commitments[user] * timeRatioStatic - missedCommit[user];
+                    consolelog("userShare", userShare);
+                    uint256 totalShare = totalCommitments * timeRatioStatic - totalMissedCommit;
+                    consolelog("totalShare", totalShare);
+                    consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
+                    consolelog("totalCommitments", totalCommitments);
+                    consolelog("finished", finished);
 
-                return UserInfo(
-                    commitments[user],
-                    salesToReceive,
-                    commitToReceive,
-                    commitToRefund,
-                    salesToReceive,
-                    0
-                );
+                    uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
+                    consolelog("commitToBonus", commitToBonus);
+                    uint256 commitToReceive = userShare * commitToBonus / totalShare;
+                    consolelog("commitToReceive", commitToReceive);
+                    uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
+                    consolelog("salesToReceive", salesToReceive);
+
+                    return UserInfo(
+                        commitments[user],
+                        salesToReceive,
+                        commitToReceive,
+                        commitToRefund,
+                        salesToReceive,
+                        0
+                    );
+                } else {
+                    return UserInfo(commitments[user], 0, 0, commitments[user], 0, 0);
+                }
             }
         }
 
