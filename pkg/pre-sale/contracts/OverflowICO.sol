@@ -390,14 +390,14 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     }
 
     // will be deleted later
-    function consolelog(string memory text, uint256 value) public {
+    function consolelog(string memory text, uint256 value) public view {
         if (consoleEnabled) {
             console.log(text, value);
         }
     }
 
     // will be deleted later
-    function consolelog(string memory text) public {
+    function consolelog(string memory text) public view {
         if (consoleEnabled) {
             console.log(text);
         }
@@ -470,7 +470,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
                     consolelog("totalShare", totalShare);
                     consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
                     consolelog("totalCommitments", totalCommitments);
-                    consolelog("finished", finished);
 
                     uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
                     consolelog("commitToBonus", commitToBonus);
