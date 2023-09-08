@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 import "./IWhitelist.sol";
-import "./Whitelist.sol";
 
 contract OverflowICO is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -145,7 +144,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
-    function commit(uint256 amount, uint256 tokenId, Whitelist.TypeNft typeNft) external payable nonReentrant {
+    function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
         consolelog("---commit---");
         whitelist.verify(msg.sender, tokenId, typeNft);
 
