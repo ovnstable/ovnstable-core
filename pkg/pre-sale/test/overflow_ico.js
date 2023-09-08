@@ -742,8 +742,5 @@ describe("OverflowICO", function () {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
     }
 
-    async function checkState(account, value) {
-
-    }
 
 });
