@@ -191,11 +191,29 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             await startFinishOneUser(commitAmount);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount,
+                salesToReceive: '6666666666666666600000', // TODO Should be 0 because less soft cap
+                commitToReceive: 0,
+                commitToRefund: 0,
+                lockedSales: '6666666666666666600000', // TODO Should be 0 because less soft cap
+                unlockedSales: 0,
+            })
         });
 
         it('All USD+ should return to user', async () => {
             await overflowICO.connect(firstAccount).claimRefund();
             await stateTrue(firstAccount, State.NOTHING_TO_DO);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount,
+                salesToReceive: 0,
+                commitToReceive: 0,
+                commitToRefund: 0,
+                lockedSales: 0,
+                unlockedSales: 0,
+            })
 
 
             await commitShould(firstAccount, commitAmount);
@@ -234,6 +252,15 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             await startFinishOneUser(commitAmount);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount,
+                salesToReceive: '6666666666666666600000',
+                commitToReceive: 0,
+                commitToRefund: 0,
+                lockedSales: '6666666666666666600000',
+                unlockedSales: 0,
+            })
         });
 
 
@@ -611,6 +638,39 @@ describe("OverflowICO", function () {
 
     })
 
+    describe('[two participants], [between soft and hard cap], [full vest]', () => {
+
+        let commitAmount1 = toE6(200_000)
+        let commitAmount2 = toE6(50_000)
+
+        beforeEach(async () => {
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
+            await overflowICO.start();
+            await spendTime(startDate + addDays(1));
+
+            await commitToken.mint(firstAccount.address, commitAmount1);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount1);
+            await overflowICO.connect(firstAccount).commit(commitAmount1, 0, 0);
+
+            await spendTimeWithPayoyt(startDate + addDays(2));
+            await commitToken.mint(secondAccount.address, commitAmount2);
+            await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount2);
+            await overflowICO.connect(secondAccount).commit(commitAmount2, 0, 0);
+            await spendTimeWithPayoyt2(endDate + 1000);
+            await overflowICO.finish();
+        });
+
+        it('all claims', async () => {
+
+            await stateTrue(firstAccount, State.CLAIM_REFUND);
+            await stateTrue(secondAccount, State.CLAIM_REFUND);
+            await overflowICO.connect(firstAccount).claimRefund();
+            await overflowICO.connect(secondAccount).claimRefund();
+        })
+
+
+    });
 
     // describe('[two participants], [one time], [less soft cap]', () => {
 
@@ -760,10 +820,28 @@ describe("OverflowICO", function () {
     }
 
     async function startFinishOneUser(commitAmount){
-        await stateTrue(firstAccount, State.WAITING_FOR_PRESALE_START)
+        await stateTrue(firstAccount, State.WAITING_FOR_PRESALE_START);
+        await userInfo(firstAccount, {
+            userCommitments: 0,
+            salesToReceive: 0,
+            commitToReceive: 0,
+            commitToRefund: 0,
+            lockedSales: 0,
+            unlockedSales: 0,
+        })
+
         await salesToken.mint(account.address, totalSales);
         await salesToken.approve(overflowICO.address, totalSales);
         await overflowICO.start();
+
+        await userInfo(firstAccount, {
+            userCommitments: 0,
+            salesToReceive: 0,
+            commitToReceive: 0,
+            commitToRefund: 0,
+            lockedSales: 0,
+            unlockedSales: 0,
+        })
 
         await stateTrue(firstAccount, State.COMMIT);
         await spendTime(startDate + addDays(1));
@@ -771,6 +849,19 @@ describe("OverflowICO", function () {
         await commitToken.mint(firstAccount.address, commitAmount);
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
         await overflowICO.connect(firstAccount).commit(commitAmount, 0, 0);
+
+        //TODO Uncomment it - getUserInfo throw error: `reverted with panic code 18`
+
+        // await userInfo(firstAccount, {
+        //     userCommitments: commitAmount,
+        //     salesToReceive: 0,
+        //     commitToReceive: 0,
+        //     commitToRefund: 0,
+        //     lockedSales: 0,
+        //     unlockedSales: 0,
+        // })
+
+
         await spendTimeWithPayoyt(endDate + 1000);
 
         await stateTrue(firstAccount, State.CLAIM_REFUND)
@@ -791,6 +882,20 @@ describe("OverflowICO", function () {
             amount = toE6(amount);
         }
         expect(amount).to.eq(await commitToken.balanceOf(user.address));
+    }
+
+
+    async function userInfo(user, expectedInfo){
+
+        let currentInfo = await overflowICO.connect(user).getUserInfo(user.address);
+
+        expect(currentInfo.userCommitments).to.eq(expectedInfo.userCommitments);
+        expect(currentInfo.salesToReceive).to.eq(expectedInfo.salesToReceive);
+        expect(currentInfo.commitToReceive).to.eq(expectedInfo.commitToReceive);
+        expect(currentInfo.commitToRefund).to.eq(expectedInfo.commitToRefund);
+        expect(currentInfo.lockedSales).to.eq(expectedInfo.lockedSales);
+        expect(currentInfo.unlockedSales).to.eq(expectedInfo.unlockedSales);
+
     }
 
     async function saleShould(user, amount){

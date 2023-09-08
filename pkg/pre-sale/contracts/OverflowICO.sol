@@ -95,7 +95,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     IWhitelist public whitelist;
 
     // will be deleted later
-    bool public constant consoleEnabled = false;
+    bool public constant consoleEnabled = true;
 
     event Commit(address indexed buyer, uint256 amount);
     event ClaimRefund(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
@@ -325,7 +325,10 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             salesToken.safeTransfer(owner(), totalSales);
         }
 
+        // How much USD+ rebase distribute to users
         totalCommitToBonus = commitToken.balanceOf(address(this));
+
+        // Users should get theirs USD+ to back
         if (totalCommitments >= hardCap) {
             totalCommitToBonus -= (totalCommitments - hardCap);
         }
@@ -450,6 +453,8 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             if (commitments[user] == 0) {
                 return UserInfo(0, 0, 0, 0, 0, 0);
             } else {
+
+                //TODO reverted with panic code 18 when state.COMMIT
                 uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
                 uint256 commitToRefund = commitments[user] - commitToSpend;
                 uint256 userShare = commitments[user] * timeRatioStatic - missedCommit[user];
