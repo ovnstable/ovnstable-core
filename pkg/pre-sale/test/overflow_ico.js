@@ -275,7 +275,7 @@ describe("OverflowICO", function () {
                 await saleEmpty(overflowICO);
 
                 await commitShould(firstAccount, 50_000);
-                await saleShould(firstAccount, "8333333333333333250000");
+                await saleShould(firstAccount, "8333333333333333250000", false);
             })
         })
 
@@ -696,7 +696,7 @@ describe("OverflowICO", function () {
             amount = toE6(amount);
         }
 
-        expect(await commitToken.balanceOf(user.address)).to.eq(amount);
+        expect(amount).to.eq(await commitToken.balanceOf(user.address));
     }
 
     async function saleShould(user, amount, convert = true){
@@ -704,7 +704,7 @@ describe("OverflowICO", function () {
         if (convert){
             amount = toE18(amount);
         }
-        expect(await salesToken.balanceOf(user.address)).to.eq(amount);
+        expect(amount).to.eq(await salesToken.balanceOf(user.address));
     }
 
     async function saleEmpty(user){
