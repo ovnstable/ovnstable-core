@@ -246,7 +246,6 @@ describe("OverflowICO", function () {
                 await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
                 await commitEmpty(firstAccount);
                 await saleEmpty(firstAccount);
-
                 await spendTime(claimBonusTime + 100);
                 await stateTrue(firstAccount, State.CLAIM_BONUS);
                 await overflowICO.connect(firstAccount).claimBonus();
@@ -270,7 +269,7 @@ describe("OverflowICO", function () {
                 await stateTrue(firstAccount, State.CLAIM_VESTING);
                 await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
 
-                await stateTrue(false, State.NOTHING_TO_DO);
+                await stateTrue(firstAccount, State.NOTHING_TO_DO);
 
                 await commitEmpty(overflowICO);
                 await saleEmpty(overflowICO);
@@ -652,8 +651,17 @@ describe("OverflowICO", function () {
 
     async function stateTrue(user, state){
 
+        await hre.network.provider.send('hardhat_mine');
         let currentState = Number.parseInt(await overflowICO.connect(user).getUserState(user.address));
-        expect(currentState === Number.parseInt(state), `Current state: ${currentState}`).to.eq(true);
+
+
+        let currentStateName;
+        for (const [key, value] of Object.entries(State)) {
+            if (currentState === Number.parseInt(value)){
+                currentStateName = key;
+            }
+        }
+        expect(currentState === Number.parseInt(state), `Current state: ${currentStateName}`).to.eq(true);
     }
 
     async function startFinishOneUser(commitAmount){
