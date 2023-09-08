@@ -40,6 +40,19 @@ describe("Whitelist", function () {
         console.log('SetParams done()')
     });
 
+    describe("safeMint && safeMints", () => {
+
+        it("mint one NFT", async () => {
+            await partnerNft.safeMint(account.address);
+            expect(1).to.eq(await partnerNft.totalSupply());
+        });
+
+        it("mint 10 NFT", async () => {
+            await partnerNft.safeMints(account.address, 10);
+            expect(10).to.eq(await partnerNft.totalSupply());
+        });
+
+    })
 
     describe("isWhitelist", () => {
 
