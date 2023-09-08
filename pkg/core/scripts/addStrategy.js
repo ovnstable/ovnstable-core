@@ -3,24 +3,16 @@ const {createProposal, testProposal} = require("@overnight-contracts/common/util
 
 async function main() {
 
-    let pm = await getContract('PortfolioManager');
+    let PortfolioManager = await getContract('PortfolioManager', 'linea');
+    let PortfolioManagerUsdt = await getContract('PortfolioManager', 'linea_usdt');
+    let StrategyMendiUsdc = await getContract('StrategyMendiUsdc', 'linea');
+    let StrategyMendiUsdt = await getContract('StrategyMendiUsdt', 'linea_usdt');
 
-    let addresses = [];
-    let values = [];
-    let abis = [];
+    let price = await getPrice();
+    await (await PortfolioManager.addStrategy(StrategyMendiUsdc.address, price)).wait();
+    await (await PortfolioManagerUsdt.addStrategy(StrategyMendiUsdt.address, price)).wait();
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x48d49a208BA0239198083E274836Ba1B9Bef8722']));
-
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x48d49a208BA0239198083E274836Ba1B9Bef8722']));
-
-    // await showM2M();
-    // await testProposal(addresses, values, abis);
-    // await showM2M();
-    await createProposal(addresses, values, abis);
+    console.log("Strategies added");
 }
 
 

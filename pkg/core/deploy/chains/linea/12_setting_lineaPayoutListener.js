@@ -12,14 +12,24 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
     let items = [];
+    items.push(...velocore());
 
-    // await (await pl.addItems(items)).wait();
-   await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'linea')).address)).wait();
-   // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'linea_usdt')).address)).wait();
+    let price = await getPrice();
+    await (await pl.addItems(items, price)).wait();
 
     console.log('LineaPayoutListener setting done');
 
 
+    function velocore() {
+
+        let dex = 'Velocore';
+
+        let items = [];
+        items.push(createSkim('0x3F006B0493ff32B33be2809367F5F6722CB84a7b', usdPlus.address, 'USDC/USD+/USDT+', dex));
+        items.push(createSkim('0xB30e7A2E6f7389cA5dDc714Da4c991b7A1dCC88e', usdtPlus.address, 'USDC/USD+/USDT+', dex));
+
+        return items;
+    }
 
 };
 
