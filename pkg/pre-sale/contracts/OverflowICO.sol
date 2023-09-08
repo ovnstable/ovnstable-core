@@ -276,7 +276,9 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
 
         uint256 vested = 0;
-        if (block.timestamp >= vestingBeginTime + vestingDuration) {
+        if (block.timestamp < vestingBeginTime) {
+            vested = 0;
+        } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
             consolelog("block.timestamp >= vestBeginning + vestDuration");
             vested = claimableTotal[addr];
         } else {
@@ -438,11 +440,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         uint256 timeRatioStatic = _updateTimeStatic();
 
-        if (getUserState(user) == UserPresaleState.WAITING_FOR_PRESALE_START) {
+        UserPresaleState userState = getUserState(user); 
+
+        if (userState == UserPresaleState.WAITING_FOR_PRESALE_START) {
             return UserInfo(0, 0, 0, 0, 0, 0);
         }
 
-        if (getUserState(user) == UserPresaleState.COMMIT || getUserState(user) == UserPresaleState.CLAIM_REFUND) {
+        if (userState == UserPresaleState.COMMIT || userState == UserPresaleState.CLAIM_REFUND) {
             if (commitments[user] == 0) {
                 return UserInfo(0, 0, 0, 0, 0, 0);
             } else {
@@ -465,7 +469,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             }
         }
 
-        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_BONUS || getUserState(user) == UserPresaleState.CLAIM_BONUS) {
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_BONUS || userState == UserPresaleState.CLAIM_BONUS) {
             return UserInfo(
                 immutableCommitments[user],
                 finalSales[user],
@@ -476,7 +480,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             );
         }
 
-        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART) {
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART) {
             return UserInfo(
                 immutableCommitments[user],
                 finalSales[user],
@@ -487,7 +491,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             );
         }
 
-        if (getUserState(user) == UserPresaleState.CLAIM_SALES_FIRST_PART) {
+        if (userState == UserPresaleState.CLAIM_SALES_FIRST_PART) {
             uint256 vesting = finalSales[user] * vestingProportion / vestingProportionDm;
             return UserInfo(
                 immutableCommitments[user],
@@ -499,7 +503,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             );
         }
 
-        if (getUserState(user) == UserPresaleState.WAITING_FOR_CLAIM_VESTING) {
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_VESTING) {
             return UserInfo(
                 immutableCommitments[user],
                 claimableTotal[user],
@@ -510,9 +514,11 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             );
         }
 
-        if (getUserState(user) == UserPresaleState.CLAIM_VESTING) {
+        if (userState == UserPresaleState.CLAIM_VESTING) {
             uint256 vested;
-            if (block.timestamp >= vestingBeginTime + vestingDuration) {
+            if (block.timestamp < vestingBeginTime) {
+                vested = 0;
+            } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
                 vested = claimableTotal[user];
             } else {
                 vested = Math.mulDiv(claimableTotal[user], block.timestamp - vestingBeginTime, vestingDuration);
@@ -528,7 +534,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             );
         }
 
-        if (getUserState(user) == UserPresaleState.NOTHING_TO_DO) {
+        if (userState == UserPresaleState.NOTHING_TO_DO) {
             return UserInfo(immutableCommitments[user], 0, 0, 0, 0, 0);
         }
 
