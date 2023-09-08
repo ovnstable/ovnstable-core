@@ -20,7 +20,7 @@ contract WhitelistNFT is Initializable, ERC721Upgradeable, ERC721EnumerableUpgra
     }
 
     function initialize() initializer public {
-        __ERC721_init("Whitelist NFT", "preSaleOVN");
+        __ERC721_init("OVN Presale NFT", "OVN Presale");
         __ERC721Enumerable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
