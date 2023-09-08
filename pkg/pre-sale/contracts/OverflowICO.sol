@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 import "./IWhitelist.sol";
+import "./Whitelist.sol";
 
 contract OverflowICO is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -144,9 +145,9 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
-    function commit(uint256 amount) external payable nonReentrant {
+    function commit(uint256 amount, uint256 tokenId, Whitelist.TypeNft typeNft) external payable nonReentrant {
         consolelog("---commit---");
-        whitelist.verify(msg.sender);
+        whitelist.verify(msg.sender, tokenId, typeNft);
 
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
@@ -440,7 +441,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         uint256 timeRatioStatic = _updateTimeStatic();
 
-        UserPresaleState userState = getUserState(user); 
+        UserPresaleState userState = getUserState(user);
 
         if (userState == UserPresaleState.WAITING_FOR_PRESALE_START) {
             return UserInfo(0, 0, 0, 0, 0, 0);

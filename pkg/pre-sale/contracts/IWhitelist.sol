@@ -3,7 +3,15 @@ pragma solidity ^0.8.0;
 
 interface IWhitelist {
 
-    function isWhitelist(address user) external view returns (bool);
+    enum TypeNft{
+        SERVICE,
+        PARTNER
+    }
 
-    function verify(address user) external;
+    function isWhitelist(
+        address user,
+        uint256[] calldata serviceIds,
+        uint256[] calldata partnersIds) external view returns (bool[] memory serviceFlags, bool[] memory partnerFlags);
+
+    function verify(address user, uint256 tokenId, TypeNft typeNft) external;
 }

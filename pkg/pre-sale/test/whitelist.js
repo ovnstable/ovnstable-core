@@ -9,6 +9,11 @@ const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 const {toE18, fromE18, toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
 
 
+const TypeNFT = {
+    SERVICE : 0,
+    PARTNER: 1,
+}
+
 describe("Whitelist", function () {
 
     let account;
@@ -56,14 +61,58 @@ describe("Whitelist", function () {
 
     describe("isWhitelist", () => {
 
-        it("account is !whitelist", async () => {
-            expect(await whitelist.isWhitelist(account.address)).to.eq(false);
+        it("[partner NFT][1 NFT] should account is whitelist", async () => {
+
+            await partnerNft.safeMint(account.address);
+            let items = await whitelist.isWhitelist(account.address, [], [0]);
+            expect(items[1][0]).to.eq(true);
         });
 
-        it("account is whitelist [partnerNft]", async () => {
+        it("[partner NFT][2 NFT] should account is whitelist", async () => {
+
             await partnerNft.safeMint(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(true);
+            await partnerNft.safeMint(account.address);
+            let items = await whitelist.isWhitelist(account.address, [], [0,1 ]);
+            expect(items[1][0]).to.eq(true);
+            expect(items[1][1]).to.eq(true);
         });
+
+        it("[partner NFT][3 NFT] should account is whitelist", async () => {
+
+            await partnerNft.safeMint(account.address);
+            await partnerNft.safeMint(account.address);
+            await partnerNft.safeMint(account.address);
+
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+            let items = await whitelist.isWhitelist(account.address, [], [0,1,2]);
+            expect(items[1][0]).to.eq(false);
+            expect(items[1][1]).to.eq(true);
+            expect(items[1][2]).to.eq(true);
+        });
+
+        it("[partner NFT][3 NFT] should account is not whitelist", async () => {
+
+            await partnerNft.safeMint(account.address);
+            await partnerNft.safeMint(account.address);
+            await partnerNft.safeMint(account.address);
+
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+            await whitelist.verify(account.address, 1, TypeNFT.PARTNER);
+            await whitelist.verify(account.address, 2, TypeNFT.PARTNER);
+            let items = await whitelist.isWhitelist(account.address, [], [0,1,2]);
+            expect(items[1][0]).to.eq(false);
+            expect(items[1][1]).to.eq(false);
+            expect(items[1][2]).to.eq(false);
+        });
+
+        it("[partner NFT][3 NFT] not exist NFT", async () => {
+
+            await partnerNft.safeMint(account.address);
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+
+            await expectRevert(whitelist.isWhitelist(account.address, [], [0,100,200]), 'ERC721: invalid token ID');
+        });
+
 
     })
 
@@ -71,36 +120,35 @@ describe("Whitelist", function () {
 
         it("reset whitelist", async () => {
             await partnerNft.safeMint(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(true);
-            await whitelist.verify(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(false);
+            expect((await whitelist.isWhitelist(account.address, [], [0]))[1][0]).to.eq(true);
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+            expect((await whitelist.isWhitelist(account.address, [], [0]))[1][0]).to.eq(false);
         });
 
         it("partner.tokenId is used", async () => {
             await partnerNft.safeMint(account.address);
 
-            let number = await partnerNft.tokenByIndex(0);
-            expect(await whitelist.usedPartnerNftIds(number)).to.eq(false);
-            await whitelist.verify(account.address);
-            expect(await whitelist.usedPartnerNftIds(number)).to.eq(true);
+            let tokenId = await partnerNft.tokenByIndex(0);
+            expect(await whitelist.usedPartnerNftIds(tokenId)).to.eq(false);
+            await whitelist.verify(account.address, tokenId, TypeNFT.PARTNER);
+            expect(await whitelist.usedPartnerNftIds(tokenId)).to.eq(true);
         });
 
         it("multy whitelist", async () => {
             await partnerNft.safeMint(account.address);
             await partnerNft.safeMint(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(true);
-            await whitelist.verify(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(true);
-            await whitelist.verify(account.address);
-            expect(await whitelist.isWhitelist(account.address)).to.eq(false);
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+            await whitelist.verify(account.address, 1, TypeNFT.PARTNER);
         });
 
-        it("!whitelist", async () => {
-            await expectRevert(whitelist.verify(account.address),'!whitelist');
+        it("already not !whitelist", async () => {
+            await partnerNft.safeMint(account.address);
+            await whitelist.verify(account.address, 0, TypeNFT.PARTNER);
+            await expectRevert(whitelist.verify(account.address, 0, TypeNFT.PARTNER),'!whitelist');
         });
 
         it("only guarded", async () => {
-            await expectRevert(whitelist.connect(firstAccount).verify(account.address),'only guarded');
+            await expectRevert(whitelist.connect(firstAccount).verify(account.address, 0, TypeNFT.PARTNER),'only guarded');
         });
     })
 

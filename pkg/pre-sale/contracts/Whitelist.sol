@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./IWhitelist.sol";
 
-contract Whitelist is IWhitelist, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract Whitelist is IWhitelist, Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     IERC721Enumerable public serviceNft;
     IERC721Enumerable public partnerNft;
@@ -19,6 +19,9 @@ contract Whitelist is IWhitelist, Initializable, AccessControlUpgradeable, UUPSU
     mapping(uint256 => bool) public usedPartnerNftIds; // Own OVN NFT
 
     address public guarded;
+
+
+
 
     struct SetUpParams {
         address serviceNft;
@@ -33,12 +36,11 @@ contract Whitelist is IWhitelist, Initializable, AccessControlUpgradeable, UUPSU
 
     function initialize() initializer public {
         __UUPSUpgradeable_init();
-        __AccessControl_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        __Ownable_init();
     }
 
 
-    function setParams(SetUpParams memory params) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setParams(SetUpParams memory params) external onlyOwner {
         serviceNft = IERC721Enumerable(params.serviceNft);
         partnerNft = IERC721Enumerable(params.partnerNft);
         guarded = params.guarded;
@@ -46,84 +48,46 @@ contract Whitelist is IWhitelist, Initializable, AccessControlUpgradeable, UUPSU
 
     function _authorizeUpgrade(address newImplementation)
     internal
-    onlyRole(DEFAULT_ADMIN_ROLE)
+    onlyOwner
     override
     {}
 
 
-    function verify(address user) external override {
+    function verify(address user, uint256 tokenId, TypeNft typeNft) external override {
         require(msg.sender == guarded, 'only guarded');
 
-        (bool check, uint256 tokenId) = _checkPartnerNft(user);
-
-        if (check) {
+        if (typeNft == TypeNft.SERVICE) {
+            require(verifyServiceNft(user, tokenId), '!whitelist');
+            usedServiceNftIds[tokenId] = true;
+        } else {
+            require(verifyPartnerNft(user, tokenId), '!whitelist');
             usedPartnerNftIds[tokenId] = true;
-        } else {
-            (check, tokenId) = _checkServiceNft(user);
-
-            if (check) {
-                usedServiceNftIds[tokenId] = true;
-            } else {
-                revert('!whitelist');
-            }
         }
+
     }
 
-    function isWhitelist(address user) external override view returns (bool){
+    function isWhitelist(address user,
+        uint256[] calldata serviceIds,
+        uint256[] calldata partnersIds) external override view returns (bool[] memory, bool[] memory){
 
-        (bool check,) = _checkPartnerNft(user);
-
-        if (check) {
-            return true;
-        } else {
-            (check,) = _checkServiceNft(user);
-            return check;
+        bool[] memory serviceFlags = new bool[](serviceIds.length);
+        for (uint256 i = 0; i < serviceIds.length; ++i) {
+            serviceFlags[i] = verifyServiceNft(user, serviceIds[i]);
         }
+
+        bool[] memory partnerFlags = new bool[](partnersIds.length);
+        for (uint256 i = 0; i < partnersIds.length; ++i) {
+            partnerFlags[i] = verifyPartnerNft(user, partnersIds[i]);
+        }
+
+        return (serviceFlags, partnerFlags);
     }
 
-    function _checkServiceNft(address user) internal view returns (bool, uint256){
-
-        uint256 balance = serviceNft.balanceOf(user);
-        if (balance > 0) {
-
-            for (uint256 i = 0; i < balance; i++) {
-
-                uint256 tokenId = serviceNft.tokenOfOwnerByIndex(user, i);
-
-                bool isUsed = usedServiceNftIds[tokenId];
-                if (isUsed) {
-                    continue;
-                } else {
-                    return (true, tokenId);
-                }
-            }
-
-            return (false, 0);
-        } else {
-            return (false, 0);
-        }
+    function verifyServiceNft(address user, uint256 tokenId) public view returns (bool){
+        return serviceNft.ownerOf(tokenId) == user && !usedServiceNftIds[tokenId];
     }
 
-    function _checkPartnerNft(address user) internal view returns (bool, uint256){
-
-        uint256 balance = partnerNft.balanceOf(user);
-        if (balance > 0) {
-
-            for (uint256 i = 0; i < balance; i++) {
-
-                uint256 tokenId = partnerNft.tokenOfOwnerByIndex(user, i);
-
-                bool isUsed = usedPartnerNftIds[tokenId];
-                if (isUsed) {
-                    continue;
-                } else {
-                    return (true, tokenId);
-                }
-            }
-
-            return (false, 0);
-        } else {
-            return (false, 0);
-        }
+    function verifyPartnerNft(address user, uint256 tokenId) public view returns (bool){
+        return partnerNft.ownerOf(tokenId) == user && !usedPartnerNftIds[tokenId];
     }
 }

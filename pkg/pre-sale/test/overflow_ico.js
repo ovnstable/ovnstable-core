@@ -174,7 +174,7 @@ describe("OverflowICO", function () {
 
         it('Participant return USD+ after fail presale', async () => {
 
-            await overflowICO.connect(firstAccount).commit(amount);
+            await overflowICO.connect(firstAccount).commit(amount, 0, 0);
             await spendTimeWithPayoyt(endDate + 1000);
             await overflowICO.finish();
             await overflowICO.connect(firstAccount).claimRefund();
@@ -681,7 +681,7 @@ describe("OverflowICO", function () {
 
         await commitToken.mint(firstAccount.address, commitAmount);
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
-        await overflowICO.connect(firstAccount).commit(commitAmount);
+        await overflowICO.connect(firstAccount).commit(commitAmount, 0, 0);
         await spendTimeWithPayoyt(endDate + 1000);
 
         await stateTrue(firstAccount, State.CLAIM_REFUND)
