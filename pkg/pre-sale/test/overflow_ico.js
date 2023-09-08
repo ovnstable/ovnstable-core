@@ -138,7 +138,7 @@ describe("OverflowICO", function () {
         });
 
         it("transfer correct", async () => {
-            await saleShould(overflowICO, totalSales, false);
+            await saleShould(overflowICO, totalSales);
         });
 
     })
@@ -187,7 +187,7 @@ describe("OverflowICO", function () {
 
     describe('[one participant], [less soft cap]', () => {
 
-        let commitAmount = toE6(200000);
+        let commitAmount = toE6(200000) + "";
 
         beforeEach(async () => {
             await startFinishOneUser(commitAmount);
@@ -198,14 +198,14 @@ describe("OverflowICO", function () {
             await stateTrue(firstAccount, State.NOTHING_TO_DO);
 
 
-            await commitShould(firstAccount, commitAmount, false);
+            await commitShould(firstAccount, commitAmount);
 
             await commitEmpty(overflowICO);
             await saleEmpty(overflowICO);
         })
 
         it('All OVN should return to owner', async () => {
-            await saleShould(account, totalSales, false);
+            await saleShould(account, totalSales);
         })
 
         it('USD+ rebase should return to owner', async () => {
@@ -242,10 +242,10 @@ describe("OverflowICO", function () {
             it('all claims', async () => {
 
                 await overflowICO.connect(firstAccount).claimRefund();
-
                 await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
                 await commitEmpty(firstAccount);
                 await saleEmpty(firstAccount);
+
                 await spendTime(claimBonusTime + 100);
                 await stateTrue(firstAccount, State.CLAIM_BONUS);
                 await overflowICO.connect(firstAccount).claimBonus();
@@ -257,9 +257,8 @@ describe("OverflowICO", function () {
                 await overflowICO.connect(firstAccount).claimSalesFirstPart();
 
                 await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
-
                 await commitShould(firstAccount, 50_000);
-                await saleShould(firstAccount, "2083333333333333312500", false);
+                await saleShould(firstAccount, "2083333333333333312500");
 
                 await spendTime(vestingBeginTime + 100);
 
@@ -275,36 +274,43 @@ describe("OverflowICO", function () {
                 await saleEmpty(overflowICO);
 
                 await commitShould(firstAccount, 50_000);
-                await saleShould(firstAccount, "8333333333333333250000", false);
+                await saleShould(firstAccount, "8333333333333333250000");
             })
         })
 
-    //     describe('[partial vest]', () => {
+        describe('[partial vest]', () => {
 
-    //         it('all claims', async () => {
-    //             await overflowICO.connect(firstAccount).claimRefund();
+            it('all claims', async () => {
+                await overflowICO.connect(firstAccount).claimRefund();
 
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(0);
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq(0);
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+                await commitEmpty(firstAccount);
+                await saleEmpty(firstAccount);
 
-    //             await overflowICO.connect(firstAccount).claimBonus();
-    //             await overflowICO.connect(firstAccount).claimSalesFirstPart();
+                await spendTime(claimBonusTime + 100);
+                await stateTrue(firstAccount, State.CLAIM_BONUS);
+                await overflowICO.connect(firstAccount).claimBonus();
 
-    //             // Return extra USD+
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
 
-    //             //TODO Check correct value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("2083333333333333312500");
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+                await spendTime(claimSalesFirstPartTime + 100);
 
-    //             await spendTime(vestingBeginTime + vestingDuration / 2);
-    //             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+                await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+                await overflowICO.connect(firstAccount).claimSalesFirstPart();
 
-    //             expect(await commitToken.balanceOf(firstAccount.address)).to.eq(toE6(50_000));
+                await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+                await commitShould(firstAccount, 50_000);
+                await saleShould(firstAccount, "2083333333333333312500");
 
-    //             //TODO Check correct value
-    //             expect(await salesToken.balanceOf(firstAccount.address)).to.eq("5208333333333333281250");
-    //         })
-    //     })
+                await spendTime(vestingBeginTime + vestingDuration / 2);
+                await stateTrue(firstAccount, State.CLAIM_VESTING);
+                await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+
+                await commitShould(firstAccount, 50_000);
+                await saleShould(firstAccount, "5208333335744598713348");
+
+            })
+        })
 
     //     describe('[zero vest]', () => {
 
@@ -691,17 +697,16 @@ describe("OverflowICO", function () {
         expect(await commitToken.balanceOf(user.address)).to.eq(0);
     }
 
-    async function commitShould(user, amount, convert = true){
-        if (convert){
+    async function commitShould(user, amount){
+        if (typeof amount === 'number' || amount instanceof Number ){
             amount = toE6(amount);
         }
-
         expect(amount).to.eq(await commitToken.balanceOf(user.address));
     }
 
-    async function saleShould(user, amount, convert = true){
+    async function saleShould(user, amount){
 
-        if (convert){
+        if (typeof amount === 'number' || amount instanceof Number ){
             amount = toE18(amount);
         }
         expect(amount).to.eq(await salesToken.balanceOf(user.address));
