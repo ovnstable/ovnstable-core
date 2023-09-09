@@ -340,6 +340,12 @@ async function getStrategyMapping(){
         case "base_dai":
             url = "https://api.overnight.fi/base/dai+/dict/strategies";
             break;
+        case "linea":
+            url = "https://api.overnight.fi/linea/usd+/dict/strategies";
+            break;
+        case "linea_usdt":
+            url = "https://api.overnight.fi/linea/usdt+/dict/strategies";
+            break;
         default:
             console.error('Unknown STAND: ' + process.env.STAND);
     }

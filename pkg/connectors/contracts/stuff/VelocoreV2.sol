@@ -105,6 +105,10 @@ interface IBribe is IPool {
     function bribeRates(IGauge gauge) external view returns (uint256[] memory);
 }
 
+interface IRebaseWrapper {
+    function skim() external;
+}
+
 library VelocoreV2Library {
 
     function toToken(IERC20 tok) internal pure returns (Token) {
