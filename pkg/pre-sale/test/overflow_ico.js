@@ -648,6 +648,24 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             await startFinishTwoUsers(commitAmount1, commitAmount2);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount1,
+                salesToReceive: '0',
+                commitToReceive: '0',
+                commitToRefund: commitAmount1,
+                lockedSales: '0',
+                unlockedSales: 0,
+            })
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '0',
+                commitToReceive: '0',
+                commitToRefund: commitAmount2,
+                lockedSales: '0',
+                unlockedSales: 0,
+            })
         });
 
         it('all claims', async () => {
@@ -684,6 +702,24 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             await startFinishTwoUsers(commitAmount1, commitAmount2);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount1,
+                salesToReceive: '6666666666666666600000',
+                commitToReceive: '55000000015',
+                commitToRefund: "0",
+                lockedSales: '6666666666666666600000',
+                unlockedSales: "0",
+            })
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1666666666666666650000',
+                commitToReceive: '9166666651',
+                commitToRefund: 0,
+                lockedSales: '1666666666666666650000',
+                unlockedSales: 0,
+            })
         });
 
         it('all states', async () => {
@@ -945,6 +981,25 @@ describe("OverflowICO", function () {
 
         beforeEach(async () => {
             await startFinishTwoUsers(commitAmount1, commitAmount2);
+
+            await userInfo(firstAccount, {
+                userCommitments: commitAmount1,
+                salesToReceive: '4999999999999999950000',
+                commitToReceive: '46000000035',
+                commitToRefund: "50000000000",
+                lockedSales: '4999999999999999950000',
+                unlockedSales: "0",
+            })
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '4999999999999999950000',
+                commitToReceive: '30666666631',
+                commitToRefund: 50000000000,
+                lockedSales: '4999999999999999950000',
+                unlockedSales: 0,
+            })
+
         });
 
         it('all states', async () => {
@@ -1091,21 +1146,8 @@ describe("OverflowICO", function () {
         await commitToken.mint(firstAccount.address, commitAmount);
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
         await overflowICO.connect(firstAccount).commit(commitAmount, 0, 0);
-        // await spendTime(startDate + addDays(1) + 3);
-        if (commitAmount >= softCap) {
-
-            //todo здесь проблема в том, что userInfo делается на том же блоке что и был сделан commit, посэтому elapsedЕшьу нулевой.
-            //Я пытаюсь скрутить немного, но опять не скручивается
-
-            // await userInfo(firstAccount, {
-            //     userCommitments: commitAmount,
-            //     salesToReceive: 0,
-            //     commitToReceive: 0,
-            //     commitToRefund: 0,
-            //     lockedSales: 0,
-            //     unlockedSales: 0,
-            // })
-        } else {
+        await spendTime(startDate + addDays(1) + 30);
+        if (commitAmount < softCap) {
             await userInfo(firstAccount, {
                 userCommitments: commitAmount,
                 salesToReceive: 0,
@@ -1131,6 +1173,24 @@ describe("OverflowICO", function () {
         await salesToken.approve(overflowICO.address, totalSales);
         await overflowICO.start();
         await spendTime(startDate + addDays(1));
+
+        await userInfo(firstAccount, {
+            userCommitments: 0,
+            salesToReceive: 0,
+            commitToReceive: 0,
+            commitToRefund: 0,
+            lockedSales: 0,
+            unlockedSales: 0,
+        })
+
+        await userInfo(secondAccount, {
+            userCommitments: 0,
+            salesToReceive: 0,
+            commitToReceive: 0,
+            commitToRefund: 0,
+            lockedSales: 0,
+            unlockedSales: 0,
+        })
 
         await stateTrue(firstAccount, State.COMMIT);
         await stateTrue(secondAccount, State.COMMIT);
