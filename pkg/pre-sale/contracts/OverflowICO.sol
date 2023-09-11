@@ -132,11 +132,27 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         whitelist = IWhitelist(params.whitelist);
     }
 
+    /**
+     * @dev Run Pre Sale
+     * Execute only by Owner
+     * Owner should have amount "totalSales" on balance
+     */
+
     function start() external onlyOwner {
         require(!started, "Already started");
         started = true;
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
+
+    /**
+     * @dev Buy SalesTokens (OVN) for commitTokens (USD+)
+     *
+     * Execute only by User
+     * User should to have Whitelist NFT other transaction revert by error: `!whitelist`
+     * @param amount - amount USD+ for buy OVN
+     * @param tokenId - Whitelist NFT ID
+     * @param typeNft - NFT from Galxe(Service) or OVN Partners (Partner)
+     */
 
     function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
         consolelog("---commit---");
@@ -169,6 +185,16 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
+
+   /**
+     * @dev Claim extra USD+ if total_commit > hard_cap
+     * Executing only after end pre-sale.
+     *
+     * Transfer extra USD+ to user.
+     * Calculating also next params:
+     * - finalSales (total OVN user should to get)
+     * - finalCommit  (total rebase of USD+ user should to get)
+     */
 
     function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claimRefund---");
@@ -216,6 +242,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev Claim bonus (rebase) USD+
+     * Executing only after "claimRefund"
+     * Transfer bonus USD+ to user.
+     */
+
     function claimBonus() external nonReentrant {
         consolelog("---claimBonus---");
         require(block.timestamp >= claimBonusTime, "not bonus yet");
@@ -231,6 +263,14 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("---claimBonus end---\n");
         emit ClaimBonus(msg.sender, userCommit);
     }
+
+
+    /**
+     * @dev Claim 1 first part of OVN (25% depends from vestingProportion)
+     * Executing only after "claimBonus"
+     * Transfer OVN to user.
+     */
+
 
     function claimSalesFirstPart() external nonReentrant {
         consolelog("---claimSalesFirstPart---");
@@ -252,6 +292,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("---claimSalesFirstPart end---\n");
         emit ClaimSalesFirstPart(msg.sender, userSales);
     }
+
+
+    /**
+     * @dev Claim unlock OVN tokens by time (vesting)
+     * Transfer OVN to user.
+     */
 
     function claimVesting(address addr) public nonReentrant returns (uint256) {
         consolelog("---claimVesting---");
