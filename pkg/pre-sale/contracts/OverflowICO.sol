@@ -44,12 +44,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     }
 
     struct UserInfo {
-        uint256 userCommitments;
-        uint256 salesToReceive;
-        uint256 commitToReceive;
-        uint256 commitToRefund;
-        uint256 lockedSales;
-        uint256 unlockedSales;
+        uint256 userCommitments;  // How much total user commit in USD+
+        uint256 salesToReceive;   // How much user to get OVN in future (dynamic changed by overflow) (decrease when user claim OVN)
+        uint256 commitToReceive;  // How much user to get bonus from USD+ (dynamic from rebase USD+)
+        uint256 commitToRefund;   // How much user to get USD+ if total_commit > hard cap
+        uint256 lockedSales;      // How much user has locked OVN (decrease when user claim OVN)
+        uint256 unlockedSales;    // How much user available for claim OVN (decrease to zero when user claim OVN) (unlock by vesting time)
     }
 
     IERC20 public immutable commitToken; // USD+ token
@@ -58,10 +58,8 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public immutable softCap;
     uint256 public immutable totalSales;
     uint256 public immutable vestingProportion;
-    uint256 public immutable vestingProportionDm;
     uint256 public immutable salesPerCommit;
     uint256 public immutable commitDm;
-    uint256 public immutable totalTime;
 
     uint256 public immutable startTime;
     uint256 public immutable endTime;
@@ -76,8 +74,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     bool public started;
     bool public finished;
 
-    uint256 public timeRatio;
-    uint256 public lastUpdate;
     uint256 public totalCommitments;
     uint256 public totalShare;
     uint256 public totalCommitToBonus;
@@ -87,13 +83,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
-
     mapping(address => uint256) public claimableTotal;
     mapping(address => uint256) public claimed;
     mapping(address => bool) public registered;
 
     IWhitelist public whitelist;
 
+    uint256 public constant VESTING_DISTRIBUTION_DM = 1e18;
     // will be deleted later
     bool public constant consoleEnabled = false;
 
@@ -130,13 +126,17 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         totalSales = params.totalSales;
         vestingProportion = params.vestingProportion;
         commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
-        vestingProportionDm = 1e18;
-        totalTime = 1e18;
-        salesPerCommit = params.totalSales * 1e6 / params.hardCap;
+        salesPerCommit = params.totalSales * 10 ** IERC20Metadata(params.commitToken).decimals() / params.hardCap;
         consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
 
         whitelist = IWhitelist(params.whitelist);
     }
+
+    /**
+     * @dev Run Pre Sale
+     * Execute only by Owner
+     * Owner should have amount "totalSales" on balance
+     */
 
     function start() external onlyOwner {
         require(!started, "Already started");
@@ -144,8 +144,19 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
+    /**
+     * @dev Buy SalesTokens (OVN) for commitTokens (USD+)
+     *
+     * Execute only by User
+     * User should to have Whitelist NFT other transaction revert by error: `!whitelist`
+     * @param amount - amount USD+ for buy OVN
+     * @param tokenId - Whitelist NFT ID
+     * @param typeNft - NFT from Galxe(Service) or OVN Partners (Partner)
+     */
+
     function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
         consolelog("---commit---");
+        require(commitToken.balanceOf(msg.sender) >= amount, "Insufficient user USD+ balance");
         whitelist.verify(msg.sender, tokenId, typeNft);
 
         require(
@@ -175,6 +186,16 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
+
+   /**
+     * @dev Claim extra USD+ if total_commit > hard_cap
+     * Executing only after end pre-sale.
+     *
+     * Transfer extra USD+ to user.
+     * Calculating also next params:
+     * - finalSales (total OVN user should to get)
+     * - finalCommit  (total rebase of USD+ user should to get)
+     */
 
     function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
         consolelog("---claimRefund---");
@@ -222,6 +243,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev Claim bonus (rebase) USD+
+     * Executing only after "claimRefund"
+     * Transfer bonus USD+ to user.
+     */
+
     function claimBonus() external nonReentrant {
         consolelog("---claimBonus---");
         require(block.timestamp >= claimBonusTime, "not bonus yet");
@@ -238,6 +265,14 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         emit ClaimBonus(msg.sender, userCommit);
     }
 
+
+    /**
+     * @dev Claim 1 first part of OVN (25% depends from vestingProportion)
+     * Executing only after "claimBonus"
+     * Transfer OVN to user.
+     */
+
+
     function claimSalesFirstPart() external nonReentrant {
         consolelog("---claimSalesFirstPart---");
         require(block.timestamp >= claimSalesFirstPartTime, "not claimSalesFirstPart yet");
@@ -248,7 +283,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(userSales != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
-        uint256 vesting = userSales * vestingProportion / vestingProportionDm;
+        uint256 vesting = userSales * vestingProportion / VESTING_DISTRIBUTION_DM;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
@@ -259,6 +294,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         emit ClaimSalesFirstPart(msg.sender, userSales);
     }
 
+
+    /**
+     * @dev Claim unlock OVN tokens by time (vesting)
+     * Transfer OVN to user.
+     */
+
     function claimVesting(address addr) public nonReentrant returns (uint256) {
         consolelog("---claimVesting---");
         require(registered[addr]);
@@ -266,9 +307,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
 
         uint256 vested = 0;
-        if (block.timestamp < vestingBeginTime) {
-            vested = 0;
-        } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
+        if (block.timestamp >= vestingBeginTime + vestingDuration) {
             consolelog("block.timestamp >= vestBeginning + vestDuration");
             vested = claimableTotal[addr];
         } else {
@@ -418,7 +457,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
                     consolelog("commitToSpend", commitToSpend);
                     consolelog("commitToRefund", commitToRefund);
-                    
+
                     consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
                     consolelog("totalCommitments", totalCommitments);
 
@@ -466,7 +505,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
 
         if (userState == UserPresaleState.CLAIM_SALES_FIRST_PART) {
-            uint256 vesting = finalSales[user] * vestingProportion / vestingProportionDm;
+            uint256 vesting = finalSales[user] * vestingProportion / VESTING_DISTRIBUTION_DM;
             return UserInfo(
                 immutableCommitments[user],
                 finalSales[user],
@@ -490,9 +529,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         if (userState == UserPresaleState.CLAIM_VESTING) {
             uint256 vested;
-            if (block.timestamp < vestingBeginTime) {
-                vested = 0;
-            } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
+            if (block.timestamp >= vestingBeginTime + vestingDuration) {
                 vested = claimableTotal[user];
             } else {
                 vested = Math.mulDiv(claimableTotal[user], block.timestamp - vestingBeginTime, vestingDuration);
