@@ -266,9 +266,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
 
         uint256 vested = 0;
-        if (block.timestamp < vestingBeginTime) {
-            vested = 0;
-        } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
+        if (block.timestamp >= vestingBeginTime + vestingDuration) {
             consolelog("block.timestamp >= vestBeginning + vestDuration");
             vested = claimableTotal[addr];
         } else {
@@ -490,9 +488,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         if (userState == UserPresaleState.CLAIM_VESTING) {
             uint256 vested;
-            if (block.timestamp < vestingBeginTime) {
-                vested = 0;
-            } else if (block.timestamp >= vestingBeginTime + vestingDuration) {
+            if (block.timestamp >= vestingBeginTime + vestingDuration) {
                 vested = claimableTotal[user];
             } else {
                 vested = Math.mulDiv(claimableTotal[user], block.timestamp - vestingBeginTime, vestingDuration);
