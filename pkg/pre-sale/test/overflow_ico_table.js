@@ -18,6 +18,7 @@ describe("OverflowICO", function () {
     let salesToken;
     let firstAccount;
     let secondAccount;
+    let thirdAccount;
     let allSigners;
     let whitelist;
 
@@ -56,10 +57,12 @@ describe("OverflowICO", function () {
         account = signers[0];
         firstAccount = signers[1];
         secondAccount = signers[2];
+        thirdAccount = signers[3];
         allSigners = signers;
         console.log("account address:", account.address);
         console.log("firstAccount address:", firstAccount.address);
         console.log("secondAccount address:", secondAccount.address);
+        console.log("thirdAccount address:", thirdAccount.address);
 
         await deployments.fixture(['CommitToken', 'SalesToken', 'MockWhitelist']);
 
@@ -271,6 +274,93 @@ describe("OverflowICO", function () {
     });
 
 
+    describe('[three participants], [one time], [between soft and hard cap], [full vest]', () => {
+
+        let commitAmount1 = toE6(150_000);
+        let commitAmount2 = toE6(150_000);
+        let commitAmount3 = toE6(100_000);
+
+        beforeEach(async () => {
+            await startFinishThreeUsers(commitAmount1, commitAmount2, commitAmount3);
+        });
+
+        it('all states', async () => {
+            await allStatesThreeUsers();
+        })
+
+        it('all claims', async () => {
+            await commitShould(firstAccount, 0);
+            await commitShould(secondAccount, 0);
+            await commitShould(thirdAccount, 0);
+
+            await overflowICO.connect(firstAccount).claimRefund();
+            await overflowICO.connect(secondAccount).claimRefund();
+            await overflowICO.connect(thirdAccount).claimRefund();
+            await commitShould(firstAccount, 0);
+            await commitShould(secondAccount, 0);
+            await commitShould(thirdAccount, 0);
+            await spendTime(claimBonusTime + 1000);
+
+            await overflowICO.connect(firstAccount).claimBonus();
+            await overflowICO.connect(secondAccount).claimBonus();
+            await overflowICO.connect(thirdAccount).claimBonus();
+            await commitShould(firstAccount, "63529411620");
+            await commitShould(secondAccount, "42352941407");
+            await commitShould(thirdAccount, "14117646972");
+            await spendTime(claimSalesFirstPartTime + 1000);
+            await saleShould(firstAccount, 0);
+            await saleShould(secondAccount, 0);
+            await saleShould(thirdAccount, 0);
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+            await overflowICO.connect(secondAccount).claimSalesFirstPart();
+            await overflowICO.connect(thirdAccount).claimSalesFirstPart();
+            await saleShould(firstAccount, "1875000000000000000000");
+            await saleShould(secondAccount, "1875000000000000000000");
+            await saleShould(thirdAccount, "1250000000000000000000");
+            await spendTime(vestingBeginTime + addDays(1));
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+            await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
+            await overflowICO.logCommonInfo();
+            await spendTime(vestingBeginTime + addDays(15));
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+            await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
+            await overflowICO.logCommonInfo();
+            await spendTime(vestingBeginTime + vestingDuration + 1000);
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+            await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
+            await userInfo(firstAccount, {
+                userCommitments: 150000000000,
+                salesToReceive: "0",
+                commitToReceive: "0",
+                commitToRefund: 0,
+                lockedSales: "0",
+                unlockedSales: "0",
+            })
+            await userInfo(secondAccount, {
+                userCommitments: 150000000000,
+                salesToReceive: "0",
+                commitToReceive: "0",
+                commitToRefund: 0,
+                lockedSales: "0",
+                unlockedSales: "0",
+            })
+            await userInfo(thirdAccount, {
+                userCommitments: 100000000000,
+                salesToReceive: "0",
+                commitToReceive: "0",
+                commitToRefund: 0,
+                lockedSales: "0",
+                unlockedSales: "0",
+            })
+            await overflowICO.logCommonInfo();
+        })
+
+    });
+
+
     async function stateTrue(user, state) {
 
         await hre.network.provider.send('hardhat_mine');
@@ -393,6 +483,104 @@ describe("OverflowICO", function () {
         await overflowICO.finish();
     }
 
+    async function startFinishThreeUsers(commitAmount1, commitAmount2, commitAmount3) {
+
+
+        await stateTrue(firstAccount, State.WAITING_FOR_PRESALE_START);
+        await stateTrue(secondAccount, State.WAITING_FOR_PRESALE_START);
+        await stateTrue(thirdAccount, State.WAITING_FOR_PRESALE_START);
+        await salesToken.mint(account.address, totalSales);
+        await salesToken.approve(overflowICO.address, totalSales);
+        await overflowICO.start();
+        await spendTime(startDate + addDays(1));
+
+        await stateTrue(firstAccount, State.COMMIT);
+        await stateTrue(secondAccount, State.COMMIT);
+        await stateTrue(thirdAccount, State.COMMIT);
+
+        await commitToken.mint(firstAccount.address, commitAmount1);
+        await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount1);
+        await overflowICO.connect(firstAccount).commit(commitAmount1, 0, 0);
+
+        await spendTime(startDate + addDays(2));
+        await commitToken.mint(secondAccount.address, commitAmount2);
+        await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount2);
+        await overflowICO.connect(secondAccount).commit(commitAmount2, 0, 0);
+
+
+        await spendTime(startDate + addDays(3));
+        await commitToken.mint(thirdAccount.address, commitAmount3);
+        await commitToken.connect(thirdAccount).approve(overflowICO.address, commitAmount3);
+        await overflowICO.connect(thirdAccount).commit(commitAmount3, 0, 0);
+
+        await stateTrue(firstAccount, State.COMMIT);
+        await stateTrue(secondAccount, State.COMMIT);
+        await stateTrue(thirdAccount, State.COMMIT);
+
+        await spendTimeWithPayoyt2(endDate + 1000);
+        await overflowICO.finish();
+    }
+
+    async function allStatesThreeUsers() {
+
+        await stateTrue(firstAccount, State.CLAIM_REFUND);
+        await stateTrue(secondAccount, State.CLAIM_REFUND);
+        await stateTrue(thirdAccount, State.CLAIM_REFUND);
+
+        await overflowICO.connect(firstAccount).claimRefund();
+        await overflowICO.connect(secondAccount).claimRefund();
+        await overflowICO.connect(thirdAccount).claimRefund();
+
+        await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_BONUS);
+        await stateTrue(secondAccount, State.WAITING_FOR_CLAIM_BONUS);
+        await stateTrue(thirdAccount, State.WAITING_FOR_CLAIM_BONUS);
+        await spendTime(claimBonusTime + 1000);
+        await stateTrue(firstAccount, State.CLAIM_BONUS);
+        await stateTrue(secondAccount, State.CLAIM_BONUS);
+        await stateTrue(thirdAccount, State.CLAIM_BONUS);
+
+        await overflowICO.connect(firstAccount).claimBonus();
+        await overflowICO.connect(secondAccount).claimBonus();
+        await overflowICO.connect(thirdAccount).claimBonus();
+
+        await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+        await stateTrue(secondAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+        await stateTrue(thirdAccount, State.WAITING_FOR_CLAIM_SALES_FIRST_PART);
+        await spendTime(claimSalesFirstPartTime + 1000);
+        await stateTrue(firstAccount, State.CLAIM_SALES_FIRST_PART);
+        await stateTrue(secondAccount, State.CLAIM_SALES_FIRST_PART);
+        await stateTrue(thirdAccount, State.CLAIM_SALES_FIRST_PART);
+
+        await overflowICO.connect(firstAccount).claimSalesFirstPart();
+        await overflowICO.connect(secondAccount).claimSalesFirstPart();
+        await overflowICO.connect(thirdAccount).claimSalesFirstPart();
+
+        await stateTrue(firstAccount, State.WAITING_FOR_CLAIM_VESTING);
+        await stateTrue(secondAccount, State.WAITING_FOR_CLAIM_VESTING);
+        await stateTrue(thirdAccount, State.WAITING_FOR_CLAIM_VESTING);
+        await spendTime(vestingBeginTime + 1000);
+        await stateTrue(firstAccount, State.CLAIM_VESTING);
+        await stateTrue(secondAccount, State.CLAIM_VESTING);
+        await stateTrue(thirdAccount, State.CLAIM_VESTING);
+        await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+        await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+        await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
+        await stateTrue(firstAccount, State.CLAIM_VESTING);
+        await stateTrue(secondAccount, State.CLAIM_VESTING);
+        await stateTrue(thirdAccount, State.CLAIM_VESTING);
+        await overflowICO.logCommonInfo();
+        await spendTime(vestingBeginTime + vestingDuration + 1000);
+        await stateTrue(firstAccount, State.CLAIM_VESTING);
+        await stateTrue(secondAccount, State.CLAIM_VESTING);
+        await stateTrue(thirdAccount, State.CLAIM_VESTING);
+        await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+        await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+        await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
+        await stateTrue(firstAccount, State.NOTHING_TO_DO);
+        await stateTrue(secondAccount, State.NOTHING_TO_DO);
+        await stateTrue(thirdAccount, State.NOTHING_TO_DO);
+        await overflowICO.logCommonInfo();
+    }
     async function allStatesTwoUsers() {
 
         await stateTrue(firstAccount, State.CLAIM_REFUND);
