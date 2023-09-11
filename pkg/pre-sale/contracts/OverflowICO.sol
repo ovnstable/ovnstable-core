@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
 import "./IWhitelist.sol";
 
 contract OverflowICO is Ownable, ReentrancyGuard {
@@ -90,8 +89,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     IWhitelist public whitelist;
 
     uint256 public constant VESTING_DISTRIBUTION_DM = 1e18;
-    // will be deleted later
-    bool public constant consoleEnabled = false;
 
     event Commit(address indexed buyer, uint256 amount);
     event ClaimRefund(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
@@ -127,7 +124,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         vestingProportion = params.vestingProportion;
         commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
         salesPerCommit = params.totalSales * 10 ** IERC20Metadata(params.commitToken).decimals() / params.hardCap;
-        consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
 
         whitelist = IWhitelist(params.whitelist);
     }
@@ -155,7 +151,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
      */
 
     function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
-        consolelog("---commit---");
         require(commitToken.balanceOf(msg.sender) >= amount, "Insufficient user USD+ balance");
         whitelist.verify(msg.sender, tokenId, typeNft);
 
@@ -177,13 +172,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         totalShares += amount * (endTime - block.timestamp);
         immutableCommitments[msg.sender] += amount;
         totalCommitments += amount;
-        consolelog("amount", amount);
-        consolelog("usd+ balanceOf", commitToken.balanceOf(address(this)));
-        consolelog("commitments[msg.sender]", commitments[msg.sender]);
-        consolelog("totalCommitments", totalCommitments);
-        consolelog("shares[msg.sender]", shares[msg.sender]);
-        consolelog("totalShares", totalShares);
-        consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
 
@@ -198,8 +186,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
      */
 
     function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
-        consolelog("---claimRefund---");
-
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
@@ -209,17 +195,10 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
 
         if (totalCommitments >= softCap) {
-            consolelog("totalCommitments >= softCap");
             uint256 commitToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * hardCap) / totalCommitments);
             uint256 commitToRefund = commitments[msg.sender] - commitToSpend;
-            consolelog("commitToSpend", commitToSpend);
-            consolelog("commitToRefund", commitToRefund);
-            consolelog("totalCommitToBonus", totalCommitToBonus);
-
             uint256 commitToReceive = shares[msg.sender] * totalCommitToBonus / totalShares;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
-            consolelog("commitToReceive", commitToReceive);
-            consolelog("salesToReceive", salesToReceive);
 
             commitments[msg.sender] = 0;
 
@@ -229,16 +208,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             commitToken.safeTransfer(msg.sender, commitToRefund);
 
             emit ClaimRefund(msg.sender, commitToRefund, salesToReceive, commitToReceive);
-            consolelog("---claimRefundCommit end---\n");
             return (commitToRefund, salesToReceive, commitToReceive);
         } else {
-            consolelog("totalCommitments < softCap");
             uint256 userCommitments = commitments[msg.sender];
             commitments[msg.sender] = 0;
             commitToken.safeTransfer(msg.sender, userCommitments);
-            consolelog("usd+ refund", userCommitments);
             emit ClaimRefund(msg.sender, userCommitments, 0, 0);
-            consolelog("---claim end---\n");
             return (userCommitments, 0, 0);
         }
     }
@@ -250,18 +225,14 @@ contract OverflowICO is Ownable, ReentrancyGuard {
      */
 
     function claimBonus() external nonReentrant {
-        consolelog("---claimBonus---");
         require(block.timestamp >= claimBonusTime, "not bonus yet");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
 
         uint256 userCommit = finalCommit[msg.sender];
-        consolelog("userCommit", userCommit);
         require(userCommit != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
 
-        consolelog("send USD+ to participant", userCommit);
         commitToken.safeTransfer(msg.sender, userCommit);
-        consolelog("---claimBonus end---\n");
         emit ClaimBonus(msg.sender, userCommit);
     }
 
@@ -274,25 +245,20 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
 
     function claimSalesFirstPart() external nonReentrant {
-        consolelog("---claimSalesFirstPart---");
         require(block.timestamp >= claimSalesFirstPartTime, "not claimSalesFirstPart yet");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_SALES_FIRST_PART, "Inappropriate user's state");
 
         uint256 userSales = finalSales[msg.sender];
-        consolelog("userSales", userSales);
         require(userSales != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
         uint256 vesting = userSales * vestingProportion / VESTING_DISTRIBUTION_DM;
-        consolelog("vesting", vesting);
         require(!registered[msg.sender], "already registered");
         claimableTotal[msg.sender] = vesting;
         registered[msg.sender] = true;
 
-        consolelog("send OVN to participant", userSales - vesting);
         salesToken.safeTransfer(msg.sender, userSales - vesting);
 
-        consolelog("---claimSalesFirstPart end---\n");
         emit ClaimSalesFirstPart(msg.sender, userSales);
     }
 
@@ -303,53 +269,37 @@ contract OverflowICO is Ownable, ReentrancyGuard {
      */
 
     function claimVesting(address addr) public nonReentrant returns (uint256) {
-        consolelog("---claimVesting---");
         require(registered[addr]);
         require(block.timestamp >= vestingBeginTime, "not claimVesting yet");
         require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
 
         uint256 vested = 0;
         if (block.timestamp >= vestingBeginTime + vestingDuration) {
-            consolelog("block.timestamp >= vestBeginning + vestDuration");
             vested = claimableTotal[addr];
         } else {
-            consolelog("block.timestamp >= vestBeginning && block.timestamp < vestBeginning + vestDuration");
             vested = Math.mulDiv(claimableTotal[addr], block.timestamp - vestingBeginTime, vestingDuration);
         }
 
-        consolelog("vested", vested);
 
         uint256 delta = vested - claimed[addr];
         claimed[addr] = vested;
 
         salesToken.safeTransfer(addr, delta);
         emit ClaimVesting(addr, delta);
-        consolelog("---claimVesting end---\n");
         return delta;
     }
 
     function _finish() private {
-        consolelog("---finish---");
         require(block.timestamp > endTime, "Can only finish after the sale has ended");
         require(!finished, "Already finished");
 
         finished = true;
 
         if (totalCommitments >= softCap) {
-            consolelog("totalCommitments >= softCap");
-            consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
-            consolelog("totalCommitments", totalCommitments);
-            consolelog("hardCap", hardCap);
             uint256 usingCommitToken = Math.min(hardCap, totalCommitments);
-            consolelog("send usd+ to owner", usingCommitToken);
             commitToken.safeTransfer(owner(), usingCommitToken);
-            consolelog("send ovn to owner", totalSales - (usingCommitToken * salesPerCommit) / commitDm);
             salesToken.safeTransfer(owner(), totalSales - (usingCommitToken * salesPerCommit) / commitDm);
         } else {
-            consolelog("totalCommitments < softCap");
-            consolelog("usd+ .balanceOf", commitToken.balanceOf(address(this)));
-            consolelog("totalCommitments", totalCommitments);
-            consolelog("send usd+ to owner", commitToken.balanceOf(address(this)) - totalCommitments);
             commitToken.safeTransfer(owner(), commitToken.balanceOf(address(this)) - totalCommitments);
             salesToken.safeTransfer(owner(), totalSales);
         }
@@ -362,37 +312,14 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             totalCommitToBonus -= (totalCommitments - hardCap);
         }
 
-        consolelog("totalCommitToBonus", totalCommitToBonus);
-        consolelog("---finish end---\n");
     }
 
     function finish() public onlyOwner {
         _finish();
     }
 
-    // will be deleted later
-    function logCommonInfo() public {
-        consolelog("---logCommonInfo---");
-        consolelog("|usdpBalance(contract)", commitToken.balanceOf(address(this)));
-        consolelog("|ovnBalance(contract) ", salesToken.balanceOf(address(this)));
-        consolelog("|usdpBalance(owner)   ", commitToken.balanceOf(address(owner())));
-        consolelog("|ovnBalance(owner)    ", salesToken.balanceOf(address(owner())));
-        consolelog("---logCommonInfo---");
-    }
 
-    // will be deleted later
-    function consolelog(string memory text, uint256 value) public view {
-        if (consoleEnabled) {
-            console.log(text, value);
-        }
-    }
 
-    // will be deleted later
-    function consolelog(string memory text) public view {
-        if (consoleEnabled) {
-            console.log(text);
-        }
-    }
 
     function getUserState(address user) public view returns (UserPresaleState) {
         if (!started || block.timestamp < startTime) {
@@ -437,7 +364,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     function getUserInfo(address user) external view returns (UserInfo memory userInfo) {
 
         UserPresaleState userState = getUserState(user);
-        consolelog("userState", uint256(userState));
 
         if (userState == UserPresaleState.WAITING_FOR_PRESALE_START) {
             return UserInfo(0, 0, 0, 0, 0, 0);
@@ -450,19 +376,9 @@ contract OverflowICO is Ownable, ReentrancyGuard {
                 if (totalCommitments >= softCap) {
                     uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
                     uint256 commitToRefund = commitments[user] - commitToSpend;
-
-                    consolelog("commitToSpend", commitToSpend);
-                    consolelog("commitToRefund", commitToRefund);
-
-                    consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
-                    consolelog("totalCommitments", totalCommitments);
-
                     uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
-                    consolelog("commitToBonus", commitToBonus);
                     uint256 commitToReceive = shares[user] * commitToBonus / totalShares;
-                    consolelog("commitToReceive", commitToReceive);
                     uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
-                    consolelog("salesToReceive", salesToReceive);
 
                     return UserInfo(
                         commitments[user],
