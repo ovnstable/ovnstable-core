@@ -675,7 +675,6 @@ describe("OverflowICO", function () {
             await overflowICO.connect(secondAccount).claimRefund();
             await stateTrue(firstAccount, State.NOTHING_TO_DO);
             await stateTrue(secondAccount, State.NOTHING_TO_DO);
-            await overflowICO.logCommonInfo();
         })
 
         it('USD+ should return to user[1]', async () => {
@@ -748,11 +747,9 @@ describe("OverflowICO", function () {
             await spendTime(vestingBeginTime + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
-            await overflowICO.logCommonInfo();
         })
 
         it('user 2 state', async ()=>{
@@ -1028,11 +1025,9 @@ describe("OverflowICO", function () {
             await spendTime(vestingBeginTime + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
-            await overflowICO.logCommonInfo();
         })
 
     })
@@ -1080,7 +1075,6 @@ describe("OverflowICO", function () {
             await overflowICO.connect(allSigners[4]).claimRefund();
             await overflowICO.connect(allSigners[5]).claimRefund();
             await overflowICO.connect(allSigners[6]).claimRefund();
-            await overflowICO.logCommonInfo();
         })
 
     })
@@ -1104,7 +1098,6 @@ describe("OverflowICO", function () {
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(firstAccount).claimSalesFirstPart();
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
-            await overflowICO.logCommonInfo();
         })
 
     })
@@ -1136,28 +1129,27 @@ describe("OverflowICO", function () {
             await overflowICO.connect(firstAccount).claimRefund();
             await overflowICO.connect(secondAccount).claimRefund();
             await overflowICO.connect(allSigners[3]).claimRefund();
-    
+
             await spendTime(claimBonusTime + 1000);
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
             await overflowICO.connect(allSigners[3]).claimBonus();
-          
+
             await spendTime(claimSalesFirstPartTime + 1000);
             await overflowICO.connect(firstAccount).claimSalesFirstPart();
             await overflowICO.connect(secondAccount).claimSalesFirstPart();
             await overflowICO.connect(allSigners[3]).claimSalesFirstPart();
-          
+
             await spendTime(vestingBeginTime + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
             await overflowICO.connect(allSigners[3]).claimVesting(allSigners[3].address);
-          
+
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
             await overflowICO.connect(allSigners[3]).claimVesting(allSigners[3].address);
-          
-            await overflowICO.logCommonInfo();
+
         })
 
     })
@@ -1323,7 +1315,6 @@ describe("OverflowICO", function () {
         await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
-        await overflowICO.logCommonInfo();
         await spendTime(vestingBeginTime + vestingDuration + 1000);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
@@ -1331,7 +1322,6 @@ describe("OverflowICO", function () {
         await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
         await stateTrue(firstAccount, State.NOTHING_TO_DO);
         await stateTrue(firstAccount, State.NOTHING_TO_DO);
-        await overflowICO.logCommonInfo();
     }
 
     function addDays(days) {

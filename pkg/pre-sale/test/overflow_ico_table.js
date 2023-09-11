@@ -244,11 +244,9 @@ describe("OverflowICO", function () {
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
 
 
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + addDays(15));
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
@@ -268,7 +266,6 @@ describe("OverflowICO", function () {
                 lockedSales: "0",
                 unlockedSales: "0",
             })
-            await overflowICO.logCommonInfo();
         })
 
     });
@@ -321,12 +318,10 @@ describe("OverflowICO", function () {
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
             await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + addDays(15));
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
             await overflowICO.connect(thirdAccount).claimVesting(thirdAccount.address);
-            await overflowICO.logCommonInfo();
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
             await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
@@ -355,7 +350,6 @@ describe("OverflowICO", function () {
                 lockedSales: "0",
                 unlockedSales: "0",
             })
-            await overflowICO.logCommonInfo();
         })
 
     });
@@ -425,7 +419,7 @@ describe("OverflowICO", function () {
         // await spendTime(startDate + addDays(1) + 3);
         if (commitAmount >= softCap) {
 
-            //todo здесь проблема в том, что userInfo делается на том же блоке что и был сделан commit, посэтому elapsedЕшьу нулевой. 
+            //todo здесь проблема в том, что userInfo делается на том же блоке что и был сделан commit, посэтому elapsedЕшьу нулевой.
             //Я пытаюсь скрутить немного, но опять не скручивается
 
             // await userInfo(firstAccount, {
@@ -568,7 +562,6 @@ describe("OverflowICO", function () {
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(secondAccount, State.CLAIM_VESTING);
         await stateTrue(thirdAccount, State.CLAIM_VESTING);
-        await overflowICO.logCommonInfo();
         await spendTime(vestingBeginTime + vestingDuration + 1000);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(secondAccount, State.CLAIM_VESTING);
@@ -579,7 +572,6 @@ describe("OverflowICO", function () {
         await stateTrue(firstAccount, State.NOTHING_TO_DO);
         await stateTrue(secondAccount, State.NOTHING_TO_DO);
         await stateTrue(thirdAccount, State.NOTHING_TO_DO);
-        await overflowICO.logCommonInfo();
     }
     async function allStatesTwoUsers() {
 
@@ -616,7 +608,6 @@ describe("OverflowICO", function () {
         await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
-        await overflowICO.logCommonInfo();
         await spendTime(vestingBeginTime + vestingDuration + 1000);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
         await stateTrue(firstAccount, State.CLAIM_VESTING);
@@ -624,7 +615,6 @@ describe("OverflowICO", function () {
         await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
         await stateTrue(firstAccount, State.NOTHING_TO_DO);
         await stateTrue(firstAccount, State.NOTHING_TO_DO);
-        await overflowICO.logCommonInfo();
     }
 
     function addDays(days) {
