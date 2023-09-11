@@ -89,7 +89,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     IWhitelist public whitelist;
 
-    uint256 public constant VESTING_PROPOGATION_DM = 1e18;
+    uint256 public constant VESTING_DISTRIBUTION_DM = 1e18;
     // will be deleted later
     bool public constant consoleEnabled = false;
 
@@ -282,7 +282,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(userSales != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
-        uint256 vesting = userSales * vestingProportion / VESTING_PROPOGATION_DM;
+        uint256 vesting = userSales * vestingProportion / VESTING_DISTRIBUTION_DM;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
@@ -504,7 +504,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
 
         if (userState == UserPresaleState.CLAIM_SALES_FIRST_PART) {
-            uint256 vesting = finalSales[user] * vestingProportion / VESTING_PROPOGATION_DM;
+            uint256 vesting = finalSales[user] * vestingProportion / VESTING_DISTRIBUTION_DM;
             return UserInfo(
                 immutableCommitments[user],
                 finalSales[user],
