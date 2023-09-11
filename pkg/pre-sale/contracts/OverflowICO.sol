@@ -75,10 +75,10 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     bool public finished;
 
     uint256 public totalCommitments;
-    uint256 public totalShare;
+    uint256 public totalShares;
     uint256 public totalCommitToBonus;
     mapping(address => uint256) public commitments;
-    mapping(address => uint256) public share;
+    mapping(address => uint256) public shares;
     mapping(address => uint256) public immutableCommitments;
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
@@ -173,16 +173,16 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         commitments[msg.sender] += amount;
-        share[msg.sender] += amount * (endTime - block.timestamp);
-        totalShare += amount * (endTime - block.timestamp);
+        shares[msg.sender] += amount * (endTime - block.timestamp);
+        totalShares += amount * (endTime - block.timestamp);
         immutableCommitments[msg.sender] += amount;
         totalCommitments += amount;
         consolelog("amount", amount);
         consolelog("usd+ balanceOf", commitToken.balanceOf(address(this)));
         consolelog("commitments[msg.sender]", commitments[msg.sender]);
         consolelog("totalCommitments", totalCommitments);
-        consolelog("share[msg.sender]", share[msg.sender]);
-        consolelog("totalShare", totalShare);
+        consolelog("shares[msg.sender]", shares[msg.sender]);
+        consolelog("totalShares", totalShares);
         consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
@@ -216,7 +216,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             consolelog("commitToRefund", commitToRefund);
             consolelog("totalCommitToBonus", totalCommitToBonus);
 
-            uint256 commitToReceive = share[msg.sender] * totalCommitToBonus / totalShare;
+            uint256 commitToReceive = shares[msg.sender] * totalCommitToBonus / totalShares;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
             consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
@@ -285,7 +285,9 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         uint256 vesting = userSales * vestingProportion / VESTING_DISTRIBUTION_DM;
         consolelog("vesting", vesting);
-        _grantVestedReward(msg.sender, vesting);
+        require(!registered[msg.sender], "already registered");
+        claimableTotal[msg.sender] = vesting;
+        registered[msg.sender] = true;
 
         consolelog("send OVN to participant", userSales - vesting);
         salesToken.safeTransfer(msg.sender, userSales - vesting);
@@ -366,12 +368,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function finish() public onlyOwner {
         _finish();
-    }
-
-    function _grantVestedReward(address addr, uint256 amount) internal {
-        require(!registered[addr], "already registered");
-        claimableTotal[addr] = amount;
-        registered[addr] = true;
     }
 
     // will be deleted later
@@ -463,7 +459,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
                     uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
                     consolelog("commitToBonus", commitToBonus);
-                    uint256 commitToReceive = share[user] * commitToBonus / totalShare;
+                    uint256 commitToReceive = shares[user] * commitToBonus / totalShares;
                     consolelog("commitToReceive", commitToReceive);
                     uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
                     consolelog("salesToReceive", salesToReceive);
