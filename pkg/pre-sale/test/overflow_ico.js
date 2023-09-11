@@ -719,6 +719,114 @@ describe("OverflowICO", function () {
             await overflowICO.logCommonInfo();
         })
 
+        it('user 2 state', async ()=>{
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1666666666666666650000',
+                commitToReceive: '9166666651',
+                commitToRefund: 0,
+                lockedSales: '1666666666666666650000',
+                unlockedSales: 0,
+            })
+
+            await overflowICO.connect(secondAccount).claimRefund();
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1666666666666666650000',
+                commitToReceive: '9166666651',
+                commitToRefund: 0,
+                lockedSales: '1666666666666666650000',
+                unlockedSales: 0,
+            })
+
+            await spendTimeMine(claimBonusTime + 1000);
+            await overflowICO.connect(secondAccount).claimBonus();
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1666666666666666650000',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '1666666666666666650000',
+                unlockedSales: 0,
+            })
+
+            await spendTimeMine(claimSalesFirstPartTime + 1000);
+            await overflowICO.connect(secondAccount).claimSalesFirstPart();
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1249999999999999987500',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '1249999999999999987500',
+                unlockedSales: 0,
+            })
+
+            await spendTimeMine(vestingBeginTime + 1000);
+            await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1249999517264660481328',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '1249999517264660481328',
+                unlockedSales: 0,
+            })
+
+            await spendTimeMine(vestingBeginTime + 10000);
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1249999517264660481328',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '1249995177469135789970',
+                unlockedSales: '4339795524691358',
+            })
+
+            await spendTimeMine(vestingBeginTime + 20000);
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1249999517264660481328',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '1249990354938271592439',
+                unlockedSales: '9162326388888889',
+            })
+
+            await spendTimeMine(vestingBeginTime + vestingDuration + 1000);
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '1249999517264660481328',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '0',
+                unlockedSales: '1249999517264660481328',
+            })
+
+            await overflowICO.connect(secondAccount).claimVesting(secondAccount.address);
+
+            await userInfo(secondAccount, {
+                userCommitments: commitAmount2,
+                salesToReceive: '0',
+                commitToReceive: '0',
+                commitToRefund: 0,
+                lockedSales: '0',
+                unlockedSales: '0',
+            })
+
+
+            await saleShould(secondAccount, '1666666666666666650000');
+            await commitShould(secondAccount, '9166666651');
+
+        })
+
         it('user1 state', async () => {
 
             await userInfo(firstAccount, {
