@@ -700,8 +700,8 @@ describe("OverflowICO", function () {
             await spendTime(claimBonusTime + 1000);
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
-            await commitShould(firstAccount, "55611111127");
-            await commitShould(secondAccount, "8555555539");
+            await commitShould(firstAccount, "55000000015");
+            await commitShould(secondAccount, "9166666651");
             await spendTime(claimSalesFirstPartTime + 1000);
             await saleShould(firstAccount, 0);
             await saleShould(secondAccount, 0);
@@ -745,8 +745,8 @@ describe("OverflowICO", function () {
             await spendTime(claimBonusTime + 1000);
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
-            await commitShould(firstAccount, "101111111160");
-            await commitShould(secondAccount, "75555555506");
+            await commitShould(firstAccount, "96000000035");
+            await commitShould(secondAccount, "80666666631");
             await spendTime(claimSalesFirstPartTime + 1000);
             await saleShould(firstAccount, 0);
             await saleShould(secondAccount, 0);

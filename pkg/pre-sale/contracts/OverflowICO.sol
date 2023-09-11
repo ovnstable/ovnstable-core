@@ -79,11 +79,11 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public timeRatio;
     uint256 public lastUpdate;
     uint256 public totalCommitments;
-    uint256 public totalMissedCommit;
+    uint256 public totalShare;
     uint256 public totalCommitToBonus;
     mapping(address => uint256) public commitments;
+    mapping(address => uint256) public share;
     mapping(address => uint256) public immutableCommitments;
-    mapping(address => uint256) public missedCommit;
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
@@ -159,21 +159,19 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         require(getUserState(msg.sender) == UserPresaleState.COMMIT, "Inappropriate user's state");
 
-        _updateTime();
-
         commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         commitments[msg.sender] += amount;
+        share[msg.sender] += amount * (endTime - block.timestamp);
+        totalShare += amount * (endTime - block.timestamp);
         immutableCommitments[msg.sender] += amount;
         totalCommitments += amount;
-        missedCommit[msg.sender] += _calculateCommit(amount);
-        totalMissedCommit += _calculateCommit(amount);
         consolelog("amount", amount);
         consolelog("usd+ balanceOf", commitToken.balanceOf(address(this)));
         consolelog("commitments[msg.sender]", commitments[msg.sender]);
         consolelog("totalCommitments", totalCommitments);
-        consolelog("_calculateCommit(amount)", _calculateCommit(amount));
-        consolelog("missedCommit[msg.sender]", missedCommit[msg.sender]);
+        consolelog("share[msg.sender]", share[msg.sender]);
+        consolelog("totalShare", totalShare);
         consolelog("---commit end---\n");
         emit Commit(msg.sender, amount);
     }
@@ -184,8 +182,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(block.timestamp > endTime, "Can only claim tokens after the sale has ended");
         require(commitments[msg.sender] > 0, "You have not deposited any USD+");
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
-
-        _updateTime();
 
         if (!finished) {
             _finish();
@@ -199,17 +195,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             consolelog("commitToRefund", commitToRefund);
             consolelog("totalCommitToBonus", totalCommitToBonus);
 
-            consolelog("-_calculateCommit(commitments[msg.sender])", _calculateCommit(commitments[msg.sender]));
-            consolelog("-missedCommit[msg.sender]", missedCommit[msg.sender]);
-            consolelog("-_calculateCommit(totalCommitments)", _calculateCommit(totalCommitments));
-            consolelog("-totalMissedCommit", totalMissedCommit);
-
-            uint256 userShare = _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender];
-            uint256 totalShare = _calculateCommit(totalCommitments) - totalMissedCommit;
-            consolelog("userShare", userShare);
-            consolelog("totalShare", totalShare);
-
-            uint256 commitToReceive = userShare * totalCommitToBonus / totalShare;
+            uint256 commitToReceive = share[msg.sender] * totalCommitToBonus / totalShare;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
             consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
@@ -306,8 +292,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(block.timestamp > endTime, "Can only finish after the sale has ended");
         require(!finished, "Already finished");
 
-        _updateTime();
-
         finished = true;
 
         if (totalCommitments >= softCap) {
@@ -343,42 +327,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function finish() public onlyOwner {
         _finish();
-    }
-
-    function _calculateCommit(uint256 value) internal view returns (uint256) {
-        return value * timeRatio / 1e18;
-    }
-
-    function _updateTime() internal {
-        consolelog("---_updateTime---");
-
-        require(block.timestamp >= startTime, "not started");
-        if (totalCommitments > 0) {
-            uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
-            consolelog("elapsed", elapsed);
-            consolelog("duration", endTime - startTime);
-            consolelog("totalSales", totalSales);
-            uint256 share = totalTime * elapsed / (endTime - startTime);
-            consolelog("share", share);
-            timeRatio += share * 1e18 / totalCommitments;
-            consolelog("timeRatio", timeRatio);
-        }
-        lastUpdate = block.timestamp;
-        consolelog("---_updateTime end---\n");
-    }
-
-    function _updateTimeStatic() internal view returns (uint256) {
-        if (totalCommitments > 0) {
-            consolelog("block.timestamp", block.timestamp);
-            consolelog("lastUpdate", lastUpdate);
-            uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
-            consolelog("elapsed", elapsed);
-            uint256 share = totalTime * elapsed / (endTime - startTime);
-            consolelog("share", share);
-            return timeRatio + share * 1e18 / totalCommitments;
-        } else {
-            return 0;
-        }
     }
 
     function _grantVestedReward(address addr, uint256 amount) internal {
@@ -453,8 +401,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function getUserInfo(address user) external view returns (UserInfo memory userInfo) {
 
-        uint256 timeRatioStatic = _updateTimeStatic();
-
         UserPresaleState userState = getUserState(user);
         consolelog("userState", uint256(userState));
 
@@ -472,16 +418,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
                     consolelog("commitToSpend", commitToSpend);
                     consolelog("commitToRefund", commitToRefund);
-                    uint256 userShare = commitments[user] * timeRatioStatic - missedCommit[user];
-                    consolelog("userShare", userShare);
-                    uint256 totalShare = totalCommitments * timeRatioStatic - totalMissedCommit;
-                    consolelog("totalShare", totalShare);
+                    
                     consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
                     consolelog("totalCommitments", totalCommitments);
 
                     uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
                     consolelog("commitToBonus", commitToBonus);
-                    uint256 commitToReceive = userShare * commitToBonus / totalShare;
+                    uint256 commitToReceive = share[user] * commitToBonus / totalShare;
                     consolelog("commitToReceive", commitToReceive);
                     uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
                     consolelog("salesToReceive", salesToReceive);
