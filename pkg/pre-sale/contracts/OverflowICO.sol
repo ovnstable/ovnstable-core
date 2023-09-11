@@ -58,7 +58,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public immutable softCap;
     uint256 public immutable totalSales;
     uint256 public immutable vestingProportion;
-    uint256 public immutable vestingProportionDm;
     uint256 public immutable salesPerCommit;
     uint256 public immutable commitDm;
 
@@ -84,13 +83,13 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     mapping(address => uint256) public finalSales;
     mapping(address => uint256) public finalCommit;
 
-
     mapping(address => uint256) public claimableTotal;
     mapping(address => uint256) public claimed;
     mapping(address => bool) public registered;
 
     IWhitelist public whitelist;
 
+    uint256 public constant VESTING_PROPOGATION_DM = 1e18;
     // will be deleted later
     bool public constant consoleEnabled = false;
 
@@ -127,8 +126,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         totalSales = params.totalSales;
         vestingProportion = params.vestingProportion;
         commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
-        vestingProportionDm = 1e18;
-        salesPerCommit = params.totalSales * 1e6 / params.hardCap;
+        salesPerCommit = params.totalSales * 10 ** IERC20Metadata(params.commitToken).decimals() / params.hardCap;
         consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
 
         whitelist = IWhitelist(params.whitelist);
@@ -244,7 +242,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(userSales != 0, "not zero final values");
         finalSales[msg.sender] = 0;
 
-        uint256 vesting = userSales * vestingProportion / vestingProportionDm;
+        uint256 vesting = userSales * vestingProportion / VESTING_PROPOGATION_DM;
         consolelog("vesting", vesting);
         _grantVestedReward(msg.sender, vesting);
 
@@ -460,7 +458,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         }
 
         if (userState == UserPresaleState.CLAIM_SALES_FIRST_PART) {
-            uint256 vesting = finalSales[user] * vestingProportion / vestingProportionDm;
+            uint256 vesting = finalSales[user] * vestingProportion / VESTING_PROPOGATION_DM;
             return UserInfo(
                 immutableCommitments[user],
                 finalSales[user],
