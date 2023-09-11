@@ -156,6 +156,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
         consolelog("---commit---");
+        require(commitToken.balanceOf(msg.sender) >= amount, "Insufficient user USD+ balance");
         whitelist.verify(msg.sender, tokenId, typeNft);
 
         require(
