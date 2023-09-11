@@ -197,16 +197,20 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             uint256 commitToRefund = commitments[msg.sender] - commitToSpend;
             consolelog("commitToSpend", commitToSpend);
             consolelog("commitToRefund", commitToRefund);
-
-            consolelog("partiCommWoMissed", _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender]);
             consolelog("totalCommitToBonus", totalCommitToBonus);
-            consolelog("totalSales", totalSales);
+
+            consolelog("-_calculateCommit(commitments[msg.sender])", _calculateCommit(commitments[msg.sender]));
+            consolelog("-missedCommit[msg.sender]", missedCommit[msg.sender]);
+            consolelog("-_calculateCommit(totalCommitments)", _calculateCommit(totalCommitments));
+            consolelog("-totalMissedCommit", totalMissedCommit);
 
             uint256 userShare = _calculateCommit(commitments[msg.sender]) - missedCommit[msg.sender];
             uint256 totalShare = _calculateCommit(totalCommitments) - totalMissedCommit;
+            consolelog("userShare", userShare);
+            consolelog("totalShare", totalShare);
+
             uint256 commitToReceive = userShare * totalCommitToBonus / totalShare;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
-
             consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
 
