@@ -61,7 +61,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public immutable vestingProportionDm;
     uint256 public immutable salesPerCommit;
     uint256 public immutable commitDm;
-    uint256 public immutable totalTime;
 
     uint256 public immutable startTime;
     uint256 public immutable endTime;
@@ -76,8 +75,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     bool public started;
     bool public finished;
 
-    uint256 public timeRatio;
-    uint256 public lastUpdate;
     uint256 public totalCommitments;
     uint256 public totalShare;
     uint256 public totalCommitToBonus;
@@ -131,7 +128,6 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         vestingProportion = params.vestingProportion;
         commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
         vestingProportionDm = 1e18;
-        totalTime = 1e18;
         salesPerCommit = params.totalSales * 1e6 / params.hardCap;
         consolelog("salesPerCommit", params.totalSales * 1e6 / params.hardCap);
 
