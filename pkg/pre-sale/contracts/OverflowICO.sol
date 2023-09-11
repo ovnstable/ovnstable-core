@@ -1,26 +1,71 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IWhitelist.sol";
 
-import "./LinearVesting.sol";
-
-contract OverflowICO is Ownable, LinearVesting {
+contract OverflowICO is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable salesToken;
-    IERC20 public immutable emissionToken;
-    uint256 public immutable tokensToSell;
-    uint256 public immutable ethersToRaise;
-    uint256 public immutable refundThreshold;
-    uint256 public immutable totalEmission;
+    enum UserPresaleState {
+        WAITING_FOR_PRESALE_START,
+        COMMIT,
+        CLAIM_REFUND,
+        WAITING_FOR_CLAIM_BONUS,
+        CLAIM_BONUS,
+        WAITING_FOR_CLAIM_SALES_FIRST_PART,
+        CLAIM_SALES_FIRST_PART,
+        WAITING_FOR_CLAIM_VESTING,
+        CLAIM_VESTING,
+        NOTHING_TO_DO
+    }
+
+    struct SetUpParams {
+        address commitToken;
+        address salesToken;
+        uint256 hardCap;
+        uint256 softCap;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 claimBonusTime;
+        uint256 claimSalesFirstPartTime;
+        uint256 vestingBeginTime;
+        uint256 vestingDuration;
+        uint256 vestingProportion;
+        uint256 minCommit;
+        uint256 maxCommit;
+        uint256 totalSales;
+        address whitelist;
+    }
+
+    struct UserInfo {
+        uint256 userCommitments;  // How much total user commit in USD+
+        uint256 salesToReceive;   // How much user to get OVN in future (dynamic changed by overflow) (decrease when user claim OVN)
+        uint256 commitToReceive;  // How much user to get bonus from USD+ (dynamic from rebase USD+)
+        uint256 commitToRefund;   // How much user to get USD+ if total_commit > hard cap
+        uint256 lockedSales;      // How much user has locked OVN (decrease when user claim OVN)
+        uint256 unlockedSales;    // How much user available for claim OVN (decrease to zero when user claim OVN) (unlock by vesting time)
+    }
+
+    IERC20 public immutable commitToken; // USD+ token
+    IERC20 public immutable salesToken;  // OVN token
+    uint256 public immutable hardCap;
+    uint256 public immutable softCap;
+    uint256 public immutable totalSales;
+    uint256 public immutable vestingProportion;
+    uint256 public immutable salesPerCommit;
+    uint256 public immutable commitDm;
+
     uint256 public immutable startTime;
     uint256 public immutable endTime;
-    uint256 public immutable receiveTime;
-    address public immutable burnAddress;
-    uint256 public immutable vestingProportion;
+    uint256 public immutable claimBonusTime;
+    uint256 public immutable claimSalesFirstPartTime;
+    uint256 public immutable vestingBeginTime;
+    uint256 public immutable vestingDuration;
 
     uint256 public immutable minCommit;
     uint256 public immutable maxCommit;
@@ -28,218 +73,394 @@ contract OverflowICO is Ownable, LinearVesting {
     bool public started;
     bool public finished;
 
-    uint256 emissionPerEther;
-    uint256 lastUpdate;
     uint256 public totalCommitments;
+    uint256 public totalShares;
+    uint256 public totalCommitToBonus;
     mapping(address => uint256) public commitments;
-    mapping(address => uint256) public missedEmissions;
-    mapping(address => uint256) public finalEmissions;
-    mapping(address => uint256) public finalTokens;
+    mapping(address => uint256) public shares;
+    mapping(address => uint256) public immutableCommitments;
+    mapping(address => uint256) public finalSales;
+    mapping(address => uint256) public finalCommit;
 
-    mapping(address => bool) public whitelist;
+    mapping(address => uint256) public claimableTotal;
+    mapping(address => uint256) public claimed;
+    mapping(address => bool) public registered;
+
+    IWhitelist public whitelist;
+
+    uint256 public constant VESTING_DISTRIBUTION_DM = 1e18;
 
     event Commit(address indexed buyer, uint256 amount);
-    event Claim(address indexed buyer, uint256 eth, uint256 token, uint256 emission);
-    event Claim2(address indexed buyer, uint256 token, uint256 emission);
+    event ClaimRefund(address indexed buyer, uint256 refund, uint256 sales, uint256 commit);
+    event ClaimBonus(address indexed buyer, uint256 commit);
+    event ClaimSalesFirstPart(address indexed buyer, uint256 sales);
+    event ClaimVesting(address addr, uint256 amount);
 
 
-    modifier onlyWhitelist() {
-        require(whitelist[msg.sender], "!whitelist");
-        _;
-    }
-
-    function calculateEmission(uint256 value) internal view returns (uint256) {
-        return (value * emissionPerEther) / 10 ** 18;
-    }
-
-    function _updateEmission() internal {
-        require(block.timestamp >= startTime, "not started");
-        if (totalCommitments > 0) {
-            uint256 elapsed = Math.min(block.timestamp, endTime) - Math.max(Math.min(lastUpdate, endTime), startTime);
-            uint256 emission = (totalEmission * elapsed) / (endTime - startTime);
-            emissionPerEther += (emission * 10 ** 18) / totalCommitments;
-        }
-        lastUpdate = block.timestamp;
-    }
-
-    struct SetUpParams {
-        IERC20 salesToken;
-        uint256 tokensToSell;
-        uint256 ethersToRaise;
-        uint256 refundThreshold;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 receiveTime;
-        uint256 vestingBegin;
-        uint256 vestingDuration;
-        uint256 vestingProportion;
-        uint256 minCommit;
-        uint256 maxCommit;
-        IERC20 emissionToken;
-        uint256 totalEmission;
-        address burnAddress;
-    }
-
-    constructor(
-        SetUpParams memory params
-    ) LinearVesting(params.salesToken, params.vestingBegin, params.vestingDuration) {
-        require(params.startTime >= block.timestamp, "Start time must be in the future.");
-        require(params.endTime > params.startTime, "End time must be greater than start time.");
-        require(params.ethersToRaise > 0, "Ethers to raise should be greater than 0");
-        require(params.ethersToRaise > params.refundThreshold, "Ethers to raise should be greater than refund threshold");
+    constructor(SetUpParams memory params) {
+        require(params.startTime >= block.timestamp, "Start time must be in the future");
+        require(params.endTime > params.startTime, "End time must be greater than start time");
+        require(params.hardCap > 0, "hardCap should be greater than 0");
+        require(params.hardCap > params.softCap, "hardCap should be greater than softCap");
         require(params.minCommit > 0, "Minimum commitment should be greater than 0");
         require(params.maxCommit >= params.minCommit, "Maximum commitment should be greater or equal to minimum commitment");
+        require(params.claimBonusTime > params.endTime, "claimBonusTime must be greater than endTime");
+        require(params.claimSalesFirstPartTime > params.claimBonusTime, "claimSalesFirstPartTime must be greater than claimBonusTime");
+        require(params.vestingBeginTime > params.claimSalesFirstPartTime, "vestingBeginTime must be greater than claimSalesFirstPartTime");
 
-        salesToken = params.salesToken;
-        tokensToSell = params.tokensToSell;
-        ethersToRaise = params.ethersToRaise;
-        refundThreshold = params.refundThreshold;
+        commitToken = IERC20(params.commitToken);
+        salesToken = IERC20(params.salesToken);
+        hardCap = params.hardCap;
+        softCap = params.softCap;
         startTime = params.startTime;
         endTime = params.endTime;
-        receiveTime = params.receiveTime;
+        claimBonusTime = params.claimBonusTime;
+        claimSalesFirstPartTime = params.claimSalesFirstPartTime;
+        vestingBeginTime = params.vestingBeginTime;
+        vestingDuration = params.vestingDuration;
         minCommit = params.minCommit;
         maxCommit = params.maxCommit;
-        emissionToken = params.emissionToken;
-        totalEmission = params.totalEmission;
-        burnAddress = params.burnAddress;
+        totalSales = params.totalSales;
         vestingProportion = params.vestingProportion;
+        commitDm = 10 ** IERC20Metadata(params.commitToken).decimals();
+        salesPerCommit = params.totalSales * 10 ** IERC20Metadata(params.commitToken).decimals() / params.hardCap;
+
+        whitelist = IWhitelist(params.whitelist);
     }
 
-
+    /**
+     * @dev Run Pre Sale
+     * Execute only by Owner
+     * Owner should have amount "totalSales" on balance
+     */
 
     function start() external onlyOwner {
-        require(!started, "Already started.");
+        require(!started, "Already started");
         started = true;
-        salesToken.safeTransferFrom(msg.sender, address(this), tokensToSell);
-        emissionToken.safeTransferFrom(msg.sender, address(this), totalEmission);
+        salesToken.safeTransferFrom(msg.sender, address(this), totalSales);
     }
 
+    /**
+     * @dev Buy SalesTokens (OVN) for commitTokens (USD+)
+     *
+     * Execute only by User
+     * User should to have Whitelist NFT other transaction revert by error: `!whitelist`
+     * @param amount - amount USD+ for buy OVN
+     * @param tokenId - Whitelist NFT ID
+     * @param typeNft - NFT from Galxe(Service) or OVN Partners (Partner)
+     */
 
-    function commit() external payable nonReentrant onlyWhitelist {
-        _updateEmission();
+    function commit(uint256 amount, uint256 tokenId, IWhitelist.TypeNft typeNft) external payable nonReentrant {
+        require(commitToken.balanceOf(msg.sender) >= amount, "Insufficient user USD+ balance");
+        whitelist.verify(msg.sender, tokenId, typeNft);
+
         require(
             started && block.timestamp >= startTime && block.timestamp < endTime,
-            "Can only deposit Ether during the sale period."
+            "Can only deposit USD+ during the sale period"
         );
         require(
-            minCommit <= commitments[msg.sender] + msg.value && commitments[msg.sender] + msg.value <= maxCommit,
-            "Commitment amount is outside the allowed range."
+            minCommit <= commitments[msg.sender] + amount && commitments[msg.sender] + amount <= maxCommit,
+            "Commitment amount is outside the allowed range"
         );
-        commitments[msg.sender] += msg.value;
-        totalCommitments += msg.value;
-        missedEmissions[msg.sender] += calculateEmission(msg.value);
-        emit Commit(msg.sender, msg.value);
+
+        require(getUserState(msg.sender) == UserPresaleState.COMMIT, "Inappropriate user's state");
+
+        commitToken.safeTransferFrom(msg.sender, address(this), amount);
+
+        commitments[msg.sender] += amount;
+        shares[msg.sender] += amount * (endTime - block.timestamp);
+        totalShares += amount * (endTime - block.timestamp);
+        immutableCommitments[msg.sender] += amount;
+        totalCommitments += amount;
+        emit Commit(msg.sender, amount);
     }
 
-    function simulateClaim(address user) external returns (uint256, uint256, uint256) {
-        _updateEmission();
-        if (finalTokens[user] > 0) {
-            return (0, finalTokens[user], finalEmissions[user]);
+   /**
+     * @dev Claim extra USD+ if total_commit > hard_cap
+     * Executing only after end pre-sale.
+     *
+     * Transfer extra USD+ to user.
+     * Calculating also next params:
+     * - finalSales (total OVN user should to get)
+     * - finalCommit  (total rebase of USD+ user should to get)
+     */
+
+    function claimRefund() external nonReentrant returns (uint256, uint256, uint256) {
+        require(block.timestamp > endTime, "Can only claim tokens after the sale has ended");
+        require(commitments[msg.sender] > 0, "You have not deposited any USD+");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_REFUND, "Inappropriate user's state");
+
+        if (!finished) {
+            _finish();
         }
 
-        if (commitments[user] == 0) return (0, 0, 0);
-
-        if (totalCommitments >= refundThreshold) {
-            uint256 ethersToSpend = Math.min(commitments[user], (commitments[user] * ethersToRaise) / totalCommitments);
-            uint256 ethersToRefund = commitments[user] - ethersToSpend;
-            uint256 tokensToReceive = (tokensToSell * ethersToSpend) / ethersToRaise;
-            uint256 emission = calculateEmission(commitments[user]) - missedEmissions[user];
-
-            return (ethersToRefund, tokensToReceive, emission);
-        } else {
-            uint256 amt = commitments[user];
-            return (amt, 0, 0);
-        }
-    }
-
-    function claim() external nonReentrant returns (uint256, uint256, uint256) {
-        _updateEmission();
-        require(block.timestamp > endTime, "Can only claim tokens after the sale has ended.");
-        require(commitments[msg.sender] > 0, "You have not deposited any Ether.");
-
-        if (totalCommitments >= refundThreshold) {
-            uint256 ethersToSpend =
-            Math.min(commitments[msg.sender], (commitments[msg.sender] * ethersToRaise) / totalCommitments);
-            uint256 ethersToRefund = commitments[msg.sender] - ethersToSpend;
-            uint256 tokensToReceive = (tokensToSell * ethersToSpend) / ethersToRaise;
-            uint256 emission = calculateEmission(commitments[msg.sender]) - missedEmissions[msg.sender];
-            missedEmissions[msg.sender] += emission;
+        if (totalCommitments >= softCap) {
+            uint256 commitToSpend = Math.min(commitments[msg.sender], (commitments[msg.sender] * hardCap) / totalCommitments);
+            uint256 commitToRefund = commitments[msg.sender] - commitToSpend;
+            uint256 commitToReceive = shares[msg.sender] * totalCommitToBonus / totalShares;
+            uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
 
             commitments[msg.sender] = 0;
 
-            finalEmissions[msg.sender] = emission;
-            finalTokens[msg.sender] = tokensToReceive;
+            finalSales[msg.sender] = salesToReceive;
+            finalCommit[msg.sender] = commitToReceive;
 
-            (bool success,) = msg.sender.call{value: ethersToRefund}("");
-            require(success, "Failed to transfer ether");
-            emit Claim(msg.sender, ethersToRefund, tokensToReceive, emission);
-            return (ethersToRefund, tokensToReceive, emission);
+            commitToken.safeTransfer(msg.sender, commitToRefund);
+
+            emit ClaimRefund(msg.sender, commitToRefund, salesToReceive, commitToReceive);
+            return (commitToRefund, salesToReceive, commitToReceive);
         } else {
-            uint256 amt = commitments[msg.sender];
+            uint256 userCommitments = commitments[msg.sender];
             commitments[msg.sender] = 0;
-            (bool success,) = msg.sender.call{value: amt}("");
-            require(success, "Failed to transfer ether");
-            emit Claim(msg.sender, amt, 0, 0);
-            return (amt, 0, 0);
-        }
-    }
-
-    function claim2() external nonReentrant {
-        require(block.timestamp >= receiveTime, "not claimable yet");
-        uint256 a1 = finalTokens[msg.sender];
-        uint256 a2 = finalEmissions[msg.sender];
-        require(a1 != 0 || a2 != 0);
-        finalTokens[msg.sender] = 0;
-        finalEmissions[msg.sender] = 0;
-
-        uint256 vesting = a1 * vestingProportion / 1e18;
-        _grantVestedReward(msg.sender, vesting);
-
-        salesToken.safeTransfer(msg.sender, a1 - vesting);
-        emissionToken.safeTransfer(msg.sender, a2);
-        emit Claim2(msg.sender, a1, a2);
-    }
-
-    function finish() external onlyOwner {
-        require(block.timestamp > endTime, "Can only finish after the sale has ended.");
-        require(!finished, "Already finished.");
-        finished = true;
-
-        if (totalCommitments >= refundThreshold) {
-            (bool success,) = owner().call{value: Math.min(ethersToRaise, totalCommitments)}("");
-            require(success, "Failed to transfer ether");
-            if (ethersToRaise > totalCommitments) {
-                uint256 tokensToBurn = (tokensToSell * (ethersToRaise - totalCommitments)) / ethersToRaise;
-                salesToken.safeTransfer(burnAddress, tokensToBurn);
-            }
-        } else {
-            salesToken.safeTransfer(owner(), tokensToSell);
-            emissionToken.safeTransfer(owner(), totalEmission);
-        }
-    }
-
-    function donate() external payable {
-        // Anyone can donate a few gwei to fix integer division accuracy issues.
-        // Typically, the deployer will call this.
-    }
-
-    function addToWhitelist(address[] calldata toAddAddresses)
-    external onlyOwner
-    {
-        for (uint i = 0; i < toAddAddresses.length; i++) {
-            whitelist[toAddAddresses[i]] = true;
+            commitToken.safeTransfer(msg.sender, userCommitments);
+            emit ClaimRefund(msg.sender, userCommitments, 0, 0);
+            return (userCommitments, 0, 0);
         }
     }
 
     /**
-     * @notice Remove from whitelist
+     * @dev Claim bonus (rebase) USD+
+     * Executing only after "claimRefund"
+     * Transfer bonus USD+ to user.
      */
-    function removeFromWhitelist(address[] calldata toRemoveAddresses)
-    external onlyOwner
-    {
-        for (uint i = 0; i < toRemoveAddresses.length; i++) {
-            delete whitelist[toRemoveAddresses[i]];
+
+    function claimBonus() external nonReentrant {
+        require(block.timestamp >= claimBonusTime, "not bonus yet");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
+
+        uint256 userCommit = finalCommit[msg.sender];
+        require(userCommit != 0, "not zero final values");
+        finalCommit[msg.sender] = 0;
+
+        commitToken.safeTransfer(msg.sender, userCommit);
+        emit ClaimBonus(msg.sender, userCommit);
+    }
+
+
+    /**
+     * @dev Claim 1 first part of OVN (25% depends from vestingProportion)
+     * Executing only after "claimBonus"
+     * Transfer OVN to user.
+     */
+
+
+    function claimSalesFirstPart() external nonReentrant {
+        require(block.timestamp >= claimSalesFirstPartTime, "not claimSalesFirstPart yet");
+        require(getUserState(msg.sender) == UserPresaleState.CLAIM_SALES_FIRST_PART, "Inappropriate user's state");
+
+        uint256 userSales = finalSales[msg.sender];
+        require(userSales != 0, "not zero final values");
+        finalSales[msg.sender] = 0;
+
+        uint256 vesting = userSales * vestingProportion / VESTING_DISTRIBUTION_DM;
+        require(!registered[msg.sender], "already registered");
+        claimableTotal[msg.sender] = vesting;
+        registered[msg.sender] = true;
+
+        salesToken.safeTransfer(msg.sender, userSales - vesting);
+
+        emit ClaimSalesFirstPart(msg.sender, userSales);
+    }
+
+
+    /**
+     * @dev Claim unlock OVN tokens by time (vesting)
+     * Transfer OVN to user.
+     */
+
+    function claimVesting(address addr) public nonReentrant returns (uint256) {
+        require(registered[addr]);
+        require(block.timestamp >= vestingBeginTime, "not claimVesting yet");
+        require(getUserState(addr) == UserPresaleState.CLAIM_VESTING, "Inappropriate user's state");
+
+        uint256 vested = 0;
+        if (block.timestamp >= vestingBeginTime + vestingDuration) {
+            vested = claimableTotal[addr];
+        } else {
+            vested = Math.mulDiv(claimableTotal[addr], block.timestamp - vestingBeginTime, vestingDuration);
         }
+
+
+        uint256 delta = vested - claimed[addr];
+        claimed[addr] = vested;
+
+        salesToken.safeTransfer(addr, delta);
+        emit ClaimVesting(addr, delta);
+        return delta;
+    }
+
+    function _finish() private {
+        require(block.timestamp > endTime, "Can only finish after the sale has ended");
+        require(!finished, "Already finished");
+
+        finished = true;
+
+        if (totalCommitments >= softCap) {
+            uint256 usingCommitToken = Math.min(hardCap, totalCommitments);
+            commitToken.safeTransfer(owner(), usingCommitToken);
+            salesToken.safeTransfer(owner(), totalSales - (usingCommitToken * salesPerCommit) / commitDm);
+        } else {
+            commitToken.safeTransfer(owner(), commitToken.balanceOf(address(this)) - totalCommitments);
+            salesToken.safeTransfer(owner(), totalSales);
+        }
+
+        // How much USD+ rebase distribute to users
+        totalCommitToBonus = commitToken.balanceOf(address(this));
+
+        // Users should get theirs USD+ to back
+        if (totalCommitments >= hardCap) {
+            totalCommitToBonus -= (totalCommitments - hardCap);
+        }
+
+    }
+
+    function finish() public onlyOwner {
+        _finish();
+    }
+
+
+
+
+    function getUserState(address user) public view returns (UserPresaleState) {
+        if (!started || block.timestamp < startTime) {
+            return UserPresaleState.WAITING_FOR_PRESALE_START;
+        }
+
+        if (block.timestamp >= startTime && block.timestamp < endTime) {
+            return UserPresaleState.COMMIT;
+        }
+
+        if (block.timestamp >= endTime && commitments[user] > 0) {
+            return UserPresaleState.CLAIM_REFUND;
+        }
+
+        if (block.timestamp >= endTime && block.timestamp < claimBonusTime && commitments[user] == 0 && finalSales[user] != 0) {
+            return UserPresaleState.WAITING_FOR_CLAIM_BONUS;
+        }
+
+        if (block.timestamp >= claimBonusTime && finalCommit[user] != 0) {
+            return UserPresaleState.CLAIM_BONUS;
+        }
+
+        if (block.timestamp >= claimBonusTime && block.timestamp < claimSalesFirstPartTime && finalCommit[user] == 0 && finalSales[user] != 0) {
+            return UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART;
+        }
+
+        if (block.timestamp >= claimSalesFirstPartTime && finalSales[user] != 0) {
+            return UserPresaleState.CLAIM_SALES_FIRST_PART;
+        }
+
+        if (block.timestamp >= claimSalesFirstPartTime && block.timestamp < vestingBeginTime && registered[user]) {
+            return UserPresaleState.WAITING_FOR_CLAIM_VESTING;
+        }
+
+        if (block.timestamp > vestingBeginTime && registered[user] && claimableTotal[user] != claimed[user]) {
+            return UserPresaleState.CLAIM_VESTING;
+        }
+
+        return UserPresaleState.NOTHING_TO_DO;
+    }
+
+    function getUserInfo(address user) external view returns (UserInfo memory userInfo) {
+
+        UserPresaleState userState = getUserState(user);
+
+        if (userState == UserPresaleState.WAITING_FOR_PRESALE_START) {
+            return UserInfo(0, 0, 0, 0, 0, 0);
+        }
+
+        if (userState == UserPresaleState.COMMIT || userState == UserPresaleState.CLAIM_REFUND) {
+            if (commitments[user] == 0) {
+                return UserInfo(0, 0, 0, 0, 0, 0);
+            } else {
+                if (totalCommitments >= softCap) {
+                    uint256 commitToSpend = Math.min(commitments[user], (commitments[user] * hardCap) / totalCommitments);
+                    uint256 commitToRefund = commitments[user] - commitToSpend;
+                    uint256 commitToBonus = !finished ? (commitToken.balanceOf(address(this)) - totalCommitments) : totalCommitToBonus;
+                    uint256 commitToReceive = shares[user] * commitToBonus / totalShares;
+                    uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
+
+                    return UserInfo(
+                        commitments[user],
+                        salesToReceive,
+                        commitToReceive,
+                        commitToRefund,
+                        salesToReceive,
+                        0
+                    );
+                } else {
+                    return UserInfo(commitments[user], 0, 0, commitments[user], 0, 0);
+                }
+            }
+        }
+
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_BONUS || userState == UserPresaleState.CLAIM_BONUS) {
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                finalCommit[user],
+                0,
+                finalSales[user],
+                0
+            );
+        }
+
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_SALES_FIRST_PART) {
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                0,
+                0,
+                finalSales[user],
+                0
+            );
+        }
+
+        if (userState == UserPresaleState.CLAIM_SALES_FIRST_PART) {
+            uint256 vesting = finalSales[user] * vestingProportion / VESTING_DISTRIBUTION_DM;
+            return UserInfo(
+                immutableCommitments[user],
+                finalSales[user],
+                0,
+                0,
+                vesting,
+                finalSales[user] - vesting
+            );
+        }
+
+        if (userState == UserPresaleState.WAITING_FOR_CLAIM_VESTING) {
+            return UserInfo(
+                immutableCommitments[user],
+                claimableTotal[user],
+                0,
+                0,
+                claimableTotal[user],
+                0
+            );
+        }
+
+        if (userState == UserPresaleState.CLAIM_VESTING) {
+            uint256 vested;
+            if (block.timestamp >= vestingBeginTime + vestingDuration) {
+                vested = claimableTotal[user];
+            } else {
+                vested = Math.mulDiv(claimableTotal[user], block.timestamp - vestingBeginTime, vestingDuration);
+            }
+            uint256 delta = vested - claimed[user];
+            return UserInfo(
+                immutableCommitments[user],
+                claimableTotal[user] - claimed[user],
+                0,
+                0,
+                claimableTotal[user] - claimed[user] - delta,
+                delta
+            );
+        }
+
+        if (userState == UserPresaleState.NOTHING_TO_DO) {
+            return UserInfo(immutableCommitments[user], 0, 0, 0, 0, 0);
+        }
+
     }
 
 }
