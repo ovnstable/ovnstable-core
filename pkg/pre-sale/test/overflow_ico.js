@@ -177,7 +177,7 @@ describe("OverflowICO", function () {
         it('Participant return USD+ after fail presale', async () => {
 
             await overflowICO.connect(firstAccount).commit(amount, 0, 0);
-            await spendTimeWithPayoyt(endDate + 1000);
+            await spendTimeWithPayout(endDate + 1000);
             await overflowICO.finish();
             await overflowICO.connect(firstAccount).claimRefund();
 
@@ -1055,9 +1055,9 @@ describe("OverflowICO", function () {
         await commitToken.mint(firstAccount.address, commitAmount);
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount);
         await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
-        await spendTimeWithPayoyt(startDate + addDays(2));
+        await spendTimeWithPayout(startDate + addDays(2));
         await overflowICO.connect(firstAccount).commit(commitAmount / 2, 0, 0);
-        await spendTimeWithPayoyt2(endDate + 1000);
+        await spendTimeWithPayout2(endDate + 1000);
         await overflowICO.finish();
     }
 
@@ -1116,7 +1116,7 @@ describe("OverflowICO", function () {
             })
         }
 
-        await spendTimeWithPayoyt(endDate + 1000);
+        await spendTimeWithPayout(endDate + 1000);
 
         await stateTrue(firstAccount, State.CLAIM_REFUND)
 
@@ -1139,7 +1139,7 @@ describe("OverflowICO", function () {
         await commitToken.connect(firstAccount).approve(overflowICO.address, commitAmount1);
         await overflowICO.connect(firstAccount).commit(commitAmount1, 0, 0);
 
-        await spendTimeWithPayoyt(startDate + addDays(2));
+        await spendTimeWithPayout(startDate + addDays(2));
         await commitToken.mint(secondAccount.address, commitAmount2);
         await commitToken.connect(secondAccount).approve(overflowICO.address, commitAmount2);
         await overflowICO.connect(secondAccount).commit(commitAmount2, 0, 0);
@@ -1147,7 +1147,7 @@ describe("OverflowICO", function () {
         await stateTrue(firstAccount, State.COMMIT);
         await stateTrue(secondAccount, State.COMMIT);
 
-        await spendTimeWithPayoyt2(endDate + 1000);
+        await spendTimeWithPayout2(endDate + 1000);
         await overflowICO.finish();
     }
 
@@ -1238,12 +1238,12 @@ describe("OverflowICO", function () {
         expect(await salesToken.balanceOf(user.address)).to.eq(0);
     }
 
-    async function spendTimeWithPayoyt(value) {
+    async function spendTimeWithPayout(value) {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
         await commitToken.setLiquidityIndex("1200000000000000000000000000");
     }
 
-    async function spendTimeWithPayoyt2(value) {
+    async function spendTimeWithPayout2(value) {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
         await commitToken.setLiquidityIndex("1300000000000000000000000000");
     }
