@@ -44,12 +44,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     }
 
     struct UserInfo {
-        uint256 userCommitments;
-        uint256 salesToReceive;
-        uint256 commitToReceive;
-        uint256 commitToRefund;
-        uint256 lockedSales;
-        uint256 unlockedSales;
+        uint256 userCommitments;  // How much total user commit in USD+
+        uint256 salesToReceive;   // How much user to get OVN in future (dynamic changed by overflow) (decrease when user claim OVN)
+        uint256 commitToReceive;  // How much user to get bonus from USD+ (dynamic from rebase USD+)
+        uint256 commitToRefund;   // How much user to get USD+ if total_commit > hard cap
+        uint256 lockedSales;      // How much user has locked OVN (decrease when user claim OVN)
+        uint256 unlockedSales;    // How much user available for claim OVN (decrease to zero when user claim OVN) (unlock by vesting time)
     }
 
     IERC20 public immutable commitToken; // USD+ token
@@ -418,7 +418,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
                     consolelog("commitToSpend", commitToSpend);
                     consolelog("commitToRefund", commitToRefund);
-                    
+
                     consolelog("commitToken.balanceOf(address(this))", commitToken.balanceOf(address(this)));
                     consolelog("totalCommitments", totalCommitments);
 
