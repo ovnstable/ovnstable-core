@@ -779,15 +779,17 @@ describe("OverflowICO", function () {
             await spendTimeWithPayoyt(startDate + addDays(2));
             await overflowICO.connect(secondAccount).commit(amount, 0, 0);
             await spendTimeWithPayoyt2(endDate + 1000);
-            // await overflowICO.finish(); fail 'Ownable: caller is not the owner'
         });
 
         it('all claims', async () => {
+            await spendTime(endDate + 2000);
             await overflowICO.connect(firstAccount).claimRefund();
-            await overflowICO.connect(firstAccount).claimBonus();
-            await overflowICO.connect(firstAccount).claimSalesFirstPart();
             await overflowICO.connect(secondAccount).claimRefund();
+            await spendTime(claimBonusTime + 1000);
+            await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
+            await spendTime(claimSalesFirstPartTime + 1000);
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
             await overflowICO.connect(secondAccount).claimSalesFirstPart();
             await spendTime(vestingBeginTime + vestingDuration + 1000);
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);

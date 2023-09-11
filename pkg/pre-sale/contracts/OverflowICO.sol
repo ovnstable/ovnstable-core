@@ -188,7 +188,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         _updateTime();
 
         if (!finished) {
-            finish();
+            _finish();
         }
 
         if (totalCommitments >= softCap) {
@@ -297,7 +297,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         return delta;
     }
 
-    function finish() public onlyOwner {
+    function _finish() private {
         consolelog("---finish---");
         require(block.timestamp > endTime, "Can only finish after the sale has ended");
         require(!finished, "Already finished");
@@ -335,6 +335,10 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
         consolelog("totalCommitToBonus", totalCommitToBonus);
         consolelog("---finish end---\n");
+    }
+
+    function finish() public onlyOwner {
+        _finish();
     }
 
     function _calculateCommit(uint256 value) internal view returns (uint256) {
