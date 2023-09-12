@@ -25,6 +25,11 @@ enum AmountType {
     ALL
 }
 
+interface IWETH {
+    function deposit() external payable;
+    function withdraw(uint wad) external;
+}
+
 interface IVault {
     function notifyInitialSupply(Token, uint128, uint128) external;
     function attachBribe(IGauge gauge, IBribe bribe) external;
@@ -43,8 +48,18 @@ interface IVault {
     function inspect(address lens, bytes memory data) external;
 }
 
-interface IPool {
+interface IPool is ISwap, IERC20Metadata {
     function poolParams() external view returns (bytes memory);
+}
+
+interface ISwap is IPool {
+    function velocore__execute(address user, Token[] calldata tokens, int128[] memory amounts, bytes calldata data)
+    external
+    returns (int128[] memory, int128[] memory);
+    function swapType() external view returns (string memory);
+    function listedTokens() external view returns (Token[] memory);
+    function lpTokens() external view returns (Token[] memory);
+    function underlyingTokens(Token lp) external view returns (Token[] memory);
 }
 
 /**
