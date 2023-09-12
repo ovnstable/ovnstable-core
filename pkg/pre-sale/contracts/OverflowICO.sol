@@ -77,6 +77,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public totalCommitments;
     uint256 public totalShares;
     uint256 public totalCommitToBonus;
+    uint256 public commitTakenAway;
     mapping(address => uint256) public commitments;
     mapping(address => uint256) public shares;
     mapping(address => uint256) public immutableCommitments;
@@ -218,6 +219,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
             uint256 commitToReceive = shares[msg.sender] * totalCommitToBonus / totalShares;
             uint256 salesToReceive = (commitToSpend * salesPerCommit) / commitDm;
+
             consolelog("commitToReceive", commitToReceive);
             consolelog("salesToReceive", salesToReceive);
 
@@ -255,6 +257,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
 
         uint256 userCommit = finalCommit[msg.sender];
+        commitTakenAway += userCommit;
         consolelog("userCommit", userCommit);
         require(userCommit != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
@@ -368,6 +371,12 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function finish() public onlyOwner {
         _finish();
+    }
+
+    function getCommitExcess() public onlyOwner {
+        require(finished, "Not finished yet");
+        uint256 commitToOwner = commitToken.balanceOf(address(this)) - (totalCommitToBonus - commitTakenAway);
+        commitToken.safeTransfer(owner(), commitToOwner);
     }
 
     // will be deleted later
