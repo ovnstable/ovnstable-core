@@ -323,7 +323,11 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function getCommitExcess() public onlyOwner {
         require(finished, "Not finished yet");
-        uint256 remainingRefundOrBonus = totalCommitToBonus + (totalCommitments - hardCap) - commitTakenAway;
+        uint256 remainingRefundOrBonus = totalCommitToBonus;
+        if (totalCommitments >= hardCap) {
+            remainingRefundOrBonus += (totalCommitments - hardCap);
+        }
+        remainingRefundOrBonus -= commitTakenAway;
         uint256 commitToOwner = commitToken.balanceOf(address(this)) - remainingRefundOrBonus;
         commitToken.safeTransfer(owner(), commitToOwner);
     }
