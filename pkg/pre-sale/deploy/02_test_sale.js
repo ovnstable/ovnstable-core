@@ -1,24 +1,24 @@
 const {ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 const {ethers, deployments} = require("hardhat");
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {toE18, toE6, fromE18, fromE6} = require("@overnight-contracts/common/utils/decimals");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const moment = require("moment");
+const BigNumber = require("bignumber.js");
+const hre = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
     const {deployer} = await getNamedAccounts();
     const {save} = deployments;
 
-    let startDate = Math.floor((new Date().getTime()) / 1000);
-    let endDate = startDate + addHours(2);
+    let startDate = moment().add(30, 'minutes');
+    let endDate = moment(startDate).add(2, 'hours');
 
-    console.log('startDate: ' + startDate);
-    console.log('endDate: ' + endDate);
-
-    let claimBonusTime = endDate + addHours(1);
-    let claimSalesFirstPartTime = endDate + addHours(1.1);
-    let vestingBeginTime = endDate + addHours(1.2);
-    let vestingDuration = addHours(1.3);
+    let claimBonusTime = moment(endDate).add(10, 'minutes');
+    let claimSalesFirstPartTime = moment(endDate).add(1, 'hours');
+    let vestingBeginTime = moment(endDate).add(1, 'hours').add(10, 'minutes');
+    let vestingDuration = moment(endDate).add(2, 'hours');
 
     let vestingProportion = toE18(0.75);
     let totalSales = toE18(10000);
@@ -28,55 +28,75 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let maxCommit = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
     let usdPlus = await getContract('UsdPlusToken', 'base');
-    let whitelist = await ethers.getContract('Whitelist', 'base');
-    let saleToken = "";
+    let whitelist = await ethers.getContract('Whitelist');
+    let saleToken = {
+        address: "0x2a40Eab5dC171924937F242c5D73E1cd5A19e160"
+    }
 
 
     let items = [
         {
+            name: 'USD+',
+            value: usdPlus.address
+        },
+        {
+            name: 'OVN',
+            value: saleToken.address
+        },
+        {
+            name: 'Whitelist',
+            value: whitelist.address
+        },
+        {
             name: 'startDate',
-            value: startDate.toString()
+            value: startDate.toISOString(),
+            comment: startDate.unix()
         },
         {
             name: 'endDate',
-            value: endDate.toString()
+            value: endDate.toISOString(),
+            comment: endDate.unix()
         },
         {
             name: 'claimBonusTime',
-            value: claimBonusTime.toString()
+            value: claimBonusTime.toISOString(),
+            comment: claimBonusTime.unix()
         },
         {
             name: 'claimSalesFirstPartTime',
-            value: claimSalesFirstPartTime.toString()
+            value: claimSalesFirstPartTime.toISOString(),
+            comment: claimSalesFirstPartTime.unix()
         },
         {
             name: 'vestingBeginTime',
-            value: vestingBeginTime.toString()
+            value: vestingBeginTime.toISOString(),
+            comment: vestingBeginTime.unix()
         },
         {
             name: 'vestingDuration',
-            value: vestingDuration.toString()
+            value: vestingDuration.toISOString(),
+            comment: vestingDuration.unix()
         },
         {
             name: 'vestingProportion',
-            value: vestingProportion.toString()
+            value: fromE18(vestingProportion)
         },
         {
             name: 'totalSales',
-            value: totalSales.toString()
+            value: fromE18(totalSales.toString())
         },
         {
             name: 'hardCap',
-            value: hardCap.toString()
+            value: fromE6(hardCap.toString())
         },
         {
             name: 'softCap',
-            value: softCap.toString()
+            value: fromE6(softCap.toString())
         },
 
         {
             name: 'minCommit',
-            value: minCommit.toString()
+            value: fromE6(minCommit.toString())
         },
 
         {
@@ -89,15 +109,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     let params = {
         commitToken: usdPlus.address,
-        salesToken: salesToken.address,
+        salesToken: saleToken.address,
         hardCap: hardCap,
         softCap: softCap,
-        startTime: startDate,
-        endTime: endDate,
-        claimBonusTime: claimBonusTime,
-        claimSalesFirstPartTime: claimSalesFirstPartTime,
-        vestingBeginTime: vestingBeginTime,
-        vestingDuration: vestingDuration,
+        startTime: startDate.unix(),
+        endTime: endDate.unix(),
+        claimBonusTime: claimBonusTime.unix(),
+        claimSalesFirstPartTime: claimSalesFirstPartTime.unix(),
+        vestingBeginTime: vestingBeginTime.unix(),
+        vestingDuration: vestingDuration.unix(),
         vestingProportion: vestingProportion,
         minCommit: minCommit,
         maxCommit: maxCommit,
@@ -106,22 +126,20 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     }
 
     let overflowICO = await deployments.deploy("OverflowICO", {
-        from: deployer.address,
+        from: deployer,
         args: [
             params
         ],
         log: true,
         skipIfAlreadyDeployed: false
     });
-
     console.log("OverflowICO created at " + overflowICO.address);
 
+    await hre.run("verify:verify", {
+        address: overflowICO.address,
+        constructorArguments: [params],
+    });
 };
-
-
-function addHours(hours) {
-    return hours * 60 * 60 * 1000;
-}
 
 
 module.exports.tags = ['TestSale'];
