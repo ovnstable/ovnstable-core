@@ -1162,6 +1162,38 @@ describe("OverflowICO", function () {
 
     })
 
+    describe('[Get commit excess]', () => {
+
+        beforeEach(async () => {
+            let amount = toE6(350_000);
+            await salesToken.mint(account.address, totalSales);
+            await salesToken.approve(overflowICO.address, totalSales);
+            await overflowICO.start();
+
+            await commitToken.mint(firstAccount.address, amount);
+            await commitToken.connect(firstAccount).approve(overflowICO.address, amount);
+            await overflowICO.connect(firstAccount).commit(amount, 0, 0);
+            await spendTimeWithPayout(endDate + 1000);
+            await overflowICO.finish();
+        });
+
+        it('all actions', async () => {
+            await spendTimeWithPayout2(vestingBeginTime + vestingDuration + 1000);
+            await overflowICO.logCommonInfo();
+            await overflowICO.connect(account).getCommitExcess();
+            await overflowICO.logCommonInfo();
+            await overflowICO.connect(firstAccount).claimRefund();
+            await overflowICO.logCommonInfo();
+            await overflowICO.connect(firstAccount).claimBonus();
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await overflowICO.logCommonInfo();
+            await overflowICO.connect(account).getCommitExcess();
+            await overflowICO.logCommonInfo();
+        })
+
+    })
+
     async function stateTrue(user, state) {
 
         await hre.network.provider.send('hardhat_mine');

@@ -227,7 +227,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
             finalSales[msg.sender] = salesToReceive;
             finalCommit[msg.sender] = commitToReceive;
-
+            commitTakenAway += commitToRefund;
             commitToken.safeTransfer(msg.sender, commitToRefund);
 
             emit ClaimRefund(msg.sender, commitToRefund, salesToReceive, commitToReceive);
@@ -237,6 +237,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
             consolelog("totalCommitments < softCap");
             uint256 userCommitments = commitments[msg.sender];
             commitments[msg.sender] = 0;
+            commitTakenAway += userCommitments;
             commitToken.safeTransfer(msg.sender, userCommitments);
             consolelog("usd+ refund", userCommitments);
             emit ClaimRefund(msg.sender, userCommitments, 0, 0);
@@ -360,7 +361,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         // How much USD+ rebase distribute to users
         totalCommitToBonus = commitToken.balanceOf(address(this));
 
-        // Users should get theirs USD+ to back
+        // Decrease refund money from totalCommitToBonus
         if (totalCommitments >= hardCap) {
             totalCommitToBonus -= (totalCommitments - hardCap);
         }
@@ -375,7 +376,8 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     function getCommitExcess() public onlyOwner {
         require(finished, "Not finished yet");
-        uint256 commitToOwner = commitToken.balanceOf(address(this)) - (totalCommitToBonus - commitTakenAway);
+        uint256 remainingRefundOrBonus = totalCommitToBonus + (totalCommitments - hardCap) - commitTakenAway;
+        uint256 commitToOwner = commitToken.balanceOf(address(this)) - remainingRefundOrBonus;
         commitToken.safeTransfer(owner(), commitToOwner);
     }
 
