@@ -76,6 +76,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
     uint256 public totalCommitments;
     uint256 public totalShares;
     uint256 public totalCommitToBonus;
+    uint256 public commitTakenAway;
     mapping(address => uint256) public commitments;
     mapping(address => uint256) public shares;
     mapping(address => uint256) public immutableCommitments;
@@ -204,7 +205,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
             finalSales[msg.sender] = salesToReceive;
             finalCommit[msg.sender] = commitToReceive;
-
+            commitTakenAway += commitToRefund;
             commitToken.safeTransfer(msg.sender, commitToRefund);
 
             emit ClaimRefund(msg.sender, commitToRefund, salesToReceive, commitToReceive);
@@ -212,6 +213,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         } else {
             uint256 userCommitments = commitments[msg.sender];
             commitments[msg.sender] = 0;
+            commitTakenAway += userCommitments;
             commitToken.safeTransfer(msg.sender, userCommitments);
             emit ClaimRefund(msg.sender, userCommitments, 0, 0);
             return (userCommitments, 0, 0);
@@ -229,6 +231,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         require(getUserState(msg.sender) == UserPresaleState.CLAIM_BONUS, "Inappropriate user's state");
 
         uint256 userCommit = finalCommit[msg.sender];
+        commitTakenAway += userCommit;
         require(userCommit != 0, "not zero final values");
         finalCommit[msg.sender] = 0;
 
@@ -307,7 +310,7 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         // How much USD+ rebase distribute to users
         totalCommitToBonus = commitToken.balanceOf(address(this));
 
-        // Users should get theirs USD+ to back
+        // Decrease refund money from totalCommitToBonus
         if (totalCommitments >= hardCap) {
             totalCommitToBonus -= (totalCommitments - hardCap);
         }
@@ -318,8 +321,16 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         _finish();
     }
 
-
-
+    function getCommitExcess() public onlyOwner {
+        require(finished, "Not finished yet");
+        uint256 remainingRefundOrBonus = totalCommitToBonus;
+        if (totalCommitments >= hardCap) {
+            remainingRefundOrBonus += (totalCommitments - hardCap);
+        }
+        remainingRefundOrBonus -= commitTakenAway;
+        uint256 commitToOwner = commitToken.balanceOf(address(this)) - remainingRefundOrBonus;
+        commitToken.safeTransfer(owner(), commitToOwner);
+    }
 
     function getUserState(address user) public view returns (UserPresaleState) {
         if (!started || block.timestamp < startTime) {
