@@ -12,8 +12,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
     const {save} = deployments;
 
-    let startDate = moment().add(30, 'minutes');
-    let endDate = moment(startDate).add(2, 'hours');
+    let startDate = moment().add(5, 'minutes');
+    let endDate = moment(startDate).add(1, 'hours');
 
     let claimBonusTime = moment(endDate).add(10, 'minutes');
     let claimSalesFirstPartTime = moment(endDate).add(1, 'hours');
