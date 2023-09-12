@@ -1169,14 +1169,37 @@ describe("OverflowICO", function () {
             await overflowICO.finish();
         });
 
-        it('all actions', async () => {
+        it('take after finish', async () => {
             await spendTimeWithPayout2(vestingBeginTime + vestingDuration + 1000);
+            await commitShould(overflowICO, "130000000000");
             await overflowICO.connect(account).getCommitExcess();
             await overflowICO.connect(firstAccount).claimRefund();
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(firstAccount).claimSalesFirstPart();
             await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await commitShould(overflowICO, "0");
+        })
+
+        it('take after refund', async () => {
+            await spendTimeWithPayout2(vestingBeginTime + vestingDuration + 1000);
+            await overflowICO.connect(firstAccount).claimRefund();
+            await commitShould(overflowICO, "80000000000");
             await overflowICO.connect(account).getCommitExcess();
+            await overflowICO.connect(firstAccount).claimBonus();
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await commitShould(overflowICO, "0");
+        })
+
+        it('take after vesting', async () => {
+            await spendTimeWithPayout2(vestingBeginTime + vestingDuration + 1000);
+            await overflowICO.connect(firstAccount).claimRefund();
+            await overflowICO.connect(firstAccount).claimBonus();
+            await overflowICO.connect(firstAccount).claimSalesFirstPart();
+            await overflowICO.connect(firstAccount).claimVesting(firstAccount.address);
+            await commitShould(overflowICO, "10000000000");
+            await overflowICO.connect(account).getCommitExcess();
+            await commitShould(overflowICO, "0");
         })
 
     })
