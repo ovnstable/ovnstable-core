@@ -317,9 +317,22 @@ contract OverflowICO is Ownable, ReentrancyGuard {
 
     }
 
+    /**
+     * @dev Finish PRE-SALE
+     *  Can execute by Owner in end pre sale
+     *  Can execute by user when call claimRefund
+     */
+
     function finish() public onlyOwner {
         _finish();
     }
+
+
+    /**
+     * @dev Claim excess USD+ after finished pre-sale
+     * excess USD+ appear due to rebase
+     * NOT AFFECT USERS BONUS
+     */
 
     function getCommitExcess() public onlyOwner {
         require(finished, "Not finished yet");
