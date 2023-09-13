@@ -774,18 +774,6 @@ async function transferAsset(assetAddress, to, amount) {
                     throw new Error('Unknown asset address');
             }
             break;
-        case "LINEA":
-            switch (assetAddress) {
-                case LINEA.usdc:
-                    from = '0x555ce236c0220695b68341bc48c68d52210cc35b';
-                    break;
-                case LINEA.usdt:
-                    from = '0xfaf2d55952647f378fe478bf2064dd7b19ac189b';
-                    break;
-                default:
-                    throw new Error('Unknown asset address');
-            }
-            break;
         case "BSC":
             switch (assetAddress) {
                 case BSC.usdc:
@@ -793,6 +781,18 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case BSC.usdt:
                     from = '0x4b16c5de96eb2117bbe5fd171e4d203624b014aa';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
+            break;
+        case "LINEA":
+            switch (assetAddress) {
+                case LINEA.usdc:
+                    from = '0x555ce236c0220695b68341bc48c68d52210cc35b';
+                    break;
+                case LINEA.usdt:
+                    from = '0x6c3b07b432ac154a29cd4c74b4d09d12d4a8fbda';
                     break;
                 default:
                     throw new Error('Unknown asset address');

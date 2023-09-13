@@ -13,7 +13,7 @@ struct VelocoreOperation {
 
 enum OperationType {
     SWAP,
-    STAKE,
+    GAUGE,
     CONVERT,
     VOTE,
     USER
@@ -31,6 +31,11 @@ interface IWETH {
 }
 
 interface IVault {
+    struct Facet {
+        address facetAddress;
+        bytes4[] functionSelectors;
+    }
+
     function notifyInitialSupply(Token, uint128, uint128) external;
     function attachBribe(IGauge gauge, IBribe bribe) external;
     function killBribe(IGauge gauge, IBribe bribe) external;
@@ -41,18 +46,128 @@ interface IVault {
     external
     payable;
 
+    function facets() external view returns (Facet[] memory facets_);
+    function facetFunctionSelectors(address _facet) external view returns (bytes4[] memory facetFunctionSelectors_);
+    function facetAddresses() external view returns (address[] memory facetAddresses_);
+    function facetAddress(bytes4 _functionSelector) external view returns (address facetAddress_);
+
     function query(address user, Token[] calldata tokenRef, int128[] memory deposit, VelocoreOperation[] calldata ops)
     external
     returns (int128[] memory);
 
-    function inspect(address lens, bytes memory data) external;
+
+    function swapExactTokensForTokens(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+    function swapTokensForExactTokens(
+        uint256 amountOut,
+        uint256 amountInMax,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+    function swapExactETHForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline)
+    external
+    payable
+    returns (uint256[] memory amounts);
+    function swapTokensForExactETH(
+        uint256 amountOut,
+        uint256 amountInMax,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+    function swapExactTokensForETH(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
+    function swapETHForExactTokens(uint256 amountOut, address[] calldata path, address to, uint256 deadline)
+    external
+    payable
+    returns (uint256[] memory amounts);
+
+    function getAmountsOut(uint256 amountIn, address[] calldata path) external returns (uint256[] memory amounts);
+    function getAmountsIn(uint256 amountOut, address[] calldata path) external returns (uint256[] memory amounts);
+
+    function execute1(address pool, uint8 method, address t1, uint8 m1, int128 a1, bytes memory data)
+    external
+    payable
+    returns (int128[] memory);
+
+    function query1(address pool, uint8 method, address t1, uint8 m1, int128 a1, bytes memory data)
+    external
+    returns (int128[] memory);
+
+    function execute2(
+        address pool,
+        uint8 method,
+        address t1,
+        uint8 m1,
+        int128 a1,
+        address t2,
+        uint8 m2,
+        int128 a2,
+        bytes memory data
+    ) external payable returns (int128[] memory);
+
+    function query2(
+        address pool,
+        uint8 method,
+        address t1,
+        uint8 m1,
+        int128 a1,
+        address t2,
+        uint8 m2,
+        int128 a2,
+        bytes memory data
+    ) external returns (int128[] memory);
+
+    function execute3(
+        address pool,
+        uint8 method,
+        address t1,
+        uint8 m1,
+        int128 a1,
+        address t2,
+        uint8 m2,
+        int128 a2,
+        address t3,
+        uint8 m3,
+        int128 a3,
+        bytes memory data
+    ) external payable returns (int128[] memory);
+
+    function query3(
+        address pool,
+        uint8 method,
+        address t1,
+        uint8 m1,
+        int128 a1,
+        address t2,
+        uint8 m2,
+        int128 a2,
+        address t3,
+        uint8 m3,
+        int128 a3,
+        bytes memory data
+    ) external returns (int128[] memory);
+
+
+    function getPair(address t0, address t1) external view returns (address);
+
+    function allPairs(uint256 i) external view returns (address);
+
+    function allPairsLength() external view returns (uint256);
 }
 
-interface IPool is ISwap, IERC20Metadata {
-    function poolParams() external view returns (bytes memory);
-}
-
-interface ISwap is IPool {
+interface ISwap {
     function velocore__execute(address user, Token[] calldata tokens, int128[] memory amounts, bytes calldata data)
     external
     returns (int128[] memory, int128[] memory);
@@ -68,7 +183,7 @@ interface ISwap is IPool {
  * (un)staking is done by putting/extracting staking token (usually LP token) from/into the pool with velocore__gauge.
  * harvesting is done by setting the staking amount to zero.
  */
-interface IGauge is IPool {
+interface IGauge {
     /**
      * @dev This method is called by Vault.execute().
      * the parameters and return values are the same as velocore__execute.
@@ -94,7 +209,7 @@ interface IGauge is IPool {
     function naturalBribes() external view returns (Token[] memory);
 }
 
-interface IBribe is IPool {
+interface IBribe {
     /**
      * @dev This method is called when someone vote/harvest from/to a @param gauge,
      * and when this IBribe happens to be attached to the gauge.
@@ -120,14 +235,51 @@ interface IBribe is IPool {
     function bribeRates(IGauge gauge) external view returns (uint256[] memory);
 }
 
+interface IPool is ISwap, IGauge, IBribe, IERC20Metadata {
+    function poolBalances() external view returns (uint256[] memory);
+    function poolParams() external view returns (bytes memory);
+}
+
 interface IRebaseWrapper {
     function skim() external;
 }
 
 library VelocoreV2Library {
 
-    function toToken(IERC20 tok) internal pure returns (Token) {
-        return Token.wrap(bytes32(uint256(uint160(address(tok)))));
+    bytes32 constant TOKEN_MASK = 0x000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+    function toToken(address token) internal pure returns (Token) {
+        return Token.wrap(bytes32(uint256(uint160(token))));
+    }
+
+    function toAddress(Token token) internal pure returns (address) {
+        return address(uint160(uint256(Token.unwrap(token) & TOKEN_MASK)));
+    }
+
+    function run1(
+        address vault,
+        uint256 value,
+        address pool,
+        OperationType operationType,
+        address token0,
+        AmountType amountType0,
+        uint256 amount0
+    ) internal returns (uint256) {
+
+        if (token0 != address(0)) {
+            IERC20(token0).approve(vault, amount0);
+        }
+
+        int128[] memory amountOut = IVault(vault).execute1{value: value}(
+            pool,
+            uint8(operationType),
+            token0,
+            uint8(amountType0),
+            int128(uint128(amount0)),
+            ""
+        );
+
+        return uint256(uint128(amountOut[0]));
     }
 
     function run2(
@@ -135,29 +287,31 @@ library VelocoreV2Library {
         uint256 value,
         address pool,
         OperationType operationType,
-        IERC20 token0,
+        address token0,
         AmountType amountType0,
         uint256 amount0,
-        IERC20 token1,
+        address token1,
         AmountType amountType1,
         uint256 amount1
-    ) internal {
+    ) internal returns (uint256) {
 
-        token0.approve(vault, amount0);
+        if (token0 != address(0)) {
+            IERC20(token0).approve(vault, amount0);
+        }
 
-        Token[] memory tokens = new Token[](2);
-        tokens[0] = toToken(token0);
-        tokens[1] = toToken(token1);
+        int128[] memory amountOut = IVault(vault).execute2{value: value}(
+            pool,
+            uint8(operationType),
+            token0,
+            uint8(amountType0),
+            int128(uint128(amount0)),
+            token1,
+            uint8(amountType1),
+            int128(uint128(amount1)),
+            ""
+        );
 
-        VelocoreOperation[] memory ops = new VelocoreOperation[](1);
-        ops[0].poolId = bytes32(bytes1(uint8(operationType))) | bytes32(uint256(uint160(pool)));
-        ops[0].tokenInformations = new bytes32[](2);
-        ops[0].data = "";
-
-        ops[0].tokenInformations[0] = bytes32(bytes1(0x00)) | bytes32(bytes2(uint16(amountType0))) | bytes32(amount0);
-        ops[0].tokenInformations[1] = bytes32(bytes1(0x01)) | bytes32(bytes2(uint16(amountType1))) | bytes32(amount1);
-
-        IVault(vault).execute{value: value}(tokens, new int128[](2), ops);
+        return uint256(uint128(amountOut[1]));
     }
 
     function run3(
@@ -165,33 +319,39 @@ library VelocoreV2Library {
         uint256 value,
         address pool,
         OperationType operationType,
-        IERC20 token0,
+        address token0,
         AmountType amountType0,
         uint256 amount0,
-        IERC20 token1,
+        address token1,
         AmountType amountType1,
         uint256 amount1,
-        IERC20 token2,
+        address token2,
         AmountType amountType2,
         uint256 amount2
-    ) internal {
+    ) internal returns (uint256) {
 
-        token0.approve(vault, amount0);
+        if (token0 != address(0)) {
+            IERC20(token0).approve(vault, amount0);
+        }
+        if (token1 != address(0)) {
+            IERC20(token1).approve(vault, amount1);
+        }
 
-        Token[] memory tokens = new Token[](3);
-        tokens[0] = toToken(token0);
-        tokens[1] = toToken(token1);
-        tokens[2] = toToken(token2);
+        int128[] memory amountOut = IVault(vault).execute3{value: value}(
+            pool,
+            uint8(operationType),
+            token0,
+            uint8(amountType0),
+            int128(uint128(amount0)),
+            token1,
+            uint8(amountType1),
+            int128(uint128(amount1)),
+            token2,
+            uint8(amountType2),
+            int128(uint128(amount2)),
+            ""
+        );
 
-        VelocoreOperation[] memory ops = new VelocoreOperation[](1);
-        ops[0].poolId = bytes32(bytes1(uint8(operationType))) | bytes32(uint256(uint160(pool)));
-        ops[0].tokenInformations = new bytes32[](3);
-        ops[0].data = "";
-
-        ops[0].tokenInformations[0] = bytes32(bytes1(0x00)) | bytes32(bytes2(uint16(amountType0))) | bytes32(amount0);
-        ops[0].tokenInformations[1] = bytes32(bytes1(0x01)) | bytes32(bytes2(uint16(amountType1))) | bytes32(amount1);
-        ops[0].tokenInformations[2] = bytes32(bytes1(0x02)) | bytes32(bytes2(uint16(amountType2))) | bytes32(amount2);
-
-        IVault(vault).execute{value: value}(tokens, new int128[](3), ops);
+        return uint256(uint128(amountOut[2]));
     }
 }

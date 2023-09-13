@@ -118,10 +118,10 @@ contract StrategyMendiUsdc is Strategy {
                 0,
                 poolMendiUsdc,
                 OperationType.SWAP,
-                mendi,
+                address(mendi),
                 AmountType.EXACTLY,
                 mendiBalance,
-                usdc,
+                address(usdc),
                 AmountType.AT_MOST,
                 0
             );
