@@ -29,6 +29,14 @@ let zaps = [
         token1In: 'dai',
     },
     {
+        name: 'CurveZap',
+        gauge: '0xce5f24b7a95e9cba7df4b54e911b4a3dc8cdaf6f',
+        token0Out: 'usdc',
+        token1Out: 'usdt',
+        token0In: 'usdPlus',
+        token1In: 'dai',
+    },
+    {
         name: 'AlienBaseZap',
         gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
         poolId: 7,
@@ -527,6 +535,29 @@ async function setUp() {
 
     await transferAsset(usdc.address, account.address);
     await transferAsset(dai.address, account.address);
+    try {
+        let token = await getERC20(params.token0In);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+    }
+    try {
+
+        let token = await getERC20(params.token1In);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+    }
+    try {
+
+        let token = await getERC20(params.token0Out);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+    }
+    try {
+        let token = await getERC20(params.token1Out);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+
+    }
 
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
