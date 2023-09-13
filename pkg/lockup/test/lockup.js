@@ -3,7 +3,9 @@ const {deployments, ethers} = require("hardhat");
 const hre = require("hardhat");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 
+const LOCKUP_ABI = (require("./Lockup_ABI.json"));
 
 describe("Lockup", function () {
 
@@ -50,7 +52,7 @@ describe("Lockup", function () {
 
         console.log("Lockup created at " + lockup.address);
 
-        lockup = await ethers.getContract("Lockup");
+        lockup = await ethers.getContractAt(LOCKUP_ABI, lockup.address);
     });
 
 
