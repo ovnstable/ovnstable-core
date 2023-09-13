@@ -1,0 +1,16 @@
+{
+  "name": "@overnight-contracts/lockup",
+  "version": "0.0.4",
+  "description": "lockup",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+    "moment": "^2.29.4"
+  }
+}
