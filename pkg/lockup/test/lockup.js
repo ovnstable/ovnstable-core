@@ -4,6 +4,7 @@ const hre = require("hardhat");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const BigNumber = require('bignumber.js');
 
 const LOCKUP_ABI = (require("./Lockup_ABI.json"));
 
@@ -71,16 +72,28 @@ describe("Lockup", function () {
             await lockupEmpty(beneficiary);
         })
 
-        it('try to release after start', async () => {
-            await spendTime(startTimestamp + 100);
+        it('try to release after start, 1/2', async () => {
+            await spendTime(startTimestamp + durationSeconds / 2);
             await lockup.connect(beneficiary).release(lockupToken.address);
-            // await lockupShould(amountToLockup);
+            await lockupShould(beneficiary, (new BigNumber(amountToLockup)).div(2).toFixed(0));
+        })
+
+        it('try to release after start, 1/3', async () => {
+            await spendTime(startTimestamp + durationSeconds / 3);
+            await lockup.connect(beneficiary).release(lockupToken.address);
+            await lockupShould(beneficiary, (new BigNumber(amountToLockup)).div(3).toFixed(0));
+        })
+
+        it('try to release after start, 1/100', async () => {
+            await spendTime(startTimestamp + durationSeconds / 100);
+            await lockup.connect(beneficiary).release(lockupToken.address);
+            await lockupShould(beneficiary, (new BigNumber(amountToLockup)).div(100).toFixed(0));
         })
 
         it('try to release after start + duration', async () => {
             await spendTime(startTimestamp + durationSeconds + 100);
             await lockup.connect(beneficiary).release(lockupToken.address);
-            await lockupShould(amountToLockup);
+            await lockupShould(beneficiary, amountToLockup);
         })
     })
 
