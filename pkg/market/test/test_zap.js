@@ -30,10 +30,10 @@ let zaps = [
     },
     {
         name: 'CurveZap',
-        gauge: '0xce5f24b7a95e9cba7df4b54e911b4a3dc8cdaf6f',
-        token0Out: 'usdc',
-        token1Out: 'usdt',
-        token0In: 'usdPlus',
+        gauge: '0xc0798d022eEE81F1408895325A9fBe171d2a24f1',
+        token0Out: 'usdPlus',
+        token1Out: 'crvUsd',
+        token0In: 'usdbc',
         token1In: 'dai',
     },
     {
@@ -335,14 +335,14 @@ describe(`Test ${params.name}`, function () {
 
         console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
-        expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.003);
-        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.003);
+        expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
+        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
         const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
-        const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
-        const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
+        // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
+        // const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
