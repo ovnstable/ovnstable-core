@@ -11,7 +11,7 @@ async function main() {
     ]
 
     let startTimestamp = (new Date("Sep-13-2023 05:46:59 AM")).getTime() / 1000;
-    let durationSeconds = 2 * 12 * 30 * 24 * 60 * 60; // ~two years
+    let durationSeconds = 2 * 365 * 24 * 60 * 60; // ~two years
     
     for (const lockupAddress of addresses) {
         let params = {
