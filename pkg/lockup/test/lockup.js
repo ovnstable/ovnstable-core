@@ -1,13 +1,8 @@
-const { expect } = require("chai");
-const { deployments, ethers, getNamedAccounts } = require("hardhat");
-const BN = require("bn.js");
+const {expect} = require("chai");
+const {deployments, ethers} = require("hardhat");
 const hre = require("hardhat");
-const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
-let { OPTIMISM } = require('@overnight-contracts/common/utils/assets');
-const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
-const { toE18, fromE18, toE6, fromE6 } = require("@overnight-contracts/common/utils/decimals");
-const { greatLess } = require("@overnight-contracts/common/utils/tests");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 
 
 describe("Lockup", function () {
@@ -28,7 +23,7 @@ describe("Lockup", function () {
         const signers = await ethers.getSigners();
         account = signers[0];
         beneficiary = signers[1];
-        
+
         console.log("account address:", account.address);
         console.log("beneficiary address:", beneficiary.address);
 
@@ -91,9 +86,6 @@ describe("Lockup", function () {
         return (days * 24 * 60 * 60);
     }
 
-    async function commitEmpty(user) {
-        expect(await commitToken.balanceOf(user.address)).to.eq(0);
-    }
 
     async function lockupShould(user, amount) {
         if (typeof amount === 'number' || amount instanceof Number) {
@@ -108,11 +100,6 @@ describe("Lockup", function () {
 
     async function spendTime(value) {
         await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
-    }
-
-    async function spendTimeMine(value) {
-        await ethers.provider.send("evm_setNextBlockTimestamp", [value]);
-        await hre.network.provider.send('hardhat_mine');
     }
 
 });
