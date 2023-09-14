@@ -1,17 +1,17 @@
-const {fromE18, fromE6, toE18, toE6, fromE8} = require("@overnight-contracts/common/utils/decimals");
+const { fromE18, fromE6, toE18, toE6, fromE8 } = require("@overnight-contracts/common/utils/decimals");
 const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const {DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA} = require("./assets");
-const {evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const { DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA } = require("./assets");
+const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
-const {fromAsset, toAsset } = require("./decimals");
-const {Wallet, Provider} = require("zksync-web3");
-const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
-const {BigNumber} = require("ethers");
-const {isZkSync} = require("./network");
-const {updateFeeData} = require("./hardhat-ovn");
+const { fromAsset, toAsset } = require("./decimals");
+const { Wallet, Provider } = require("zksync-web3");
+const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
+const { BigNumber } = require("ethers");
+const { isZkSync } = require("./network");
+const { updateFeeData } = require("./hardhat-ovn");
 
 let ethers = require('hardhat').ethers;
 
@@ -20,16 +20,16 @@ async function initWallet() {
 
     updateFeeData(hre);
 
-    if (wallet){
+    if (wallet) {
         return wallet;
     }
 
     let provider = ethers.provider;
 
-    if(process.env.STAND === 'zksync'){
+    if (process.env.STAND === 'zksync') {
         wallet = new Wallet(process.env.PK_POLYGON);
         wallet = (new Deployer(hre, wallet)).zkWallet;
-    }else {
+    } else {
         wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
     }
 
@@ -42,7 +42,7 @@ async function initWallet() {
 }
 
 
-async function getWalletAddress(){
+async function getWalletAddress() {
 
     let wallet = await initWallet();
 
@@ -52,12 +52,12 @@ async function getWalletAddress(){
         throw new Error('Wallet not found');
 }
 
-async function deploySection(exec){
+async function deploySection(exec) {
 
     if (hre.ovn === undefined)
         hre.ovn = {};
 
-    if (!hre.ovn.noDeploy){
+    if (!hre.ovn.noDeploy) {
 
         let strategyName = hre.ovn.tags;
 
@@ -70,12 +70,12 @@ async function deploySection(exec){
     }
 }
 
-async function settingSection(exec){
+async function settingSection(exec) {
 
     if (hre.ovn === undefined)
         hre.ovn = {};
 
-    if (hre.ovn.setting){
+    if (hre.ovn.setting) {
 
         let strategyName = hre.ovn.tags;
         try {
@@ -84,7 +84,7 @@ async function settingSection(exec){
             // Ethers by default connect default wallet
             // For ZkSync we should use special zkSync wallet object
             // ZkWallet by default return from initWallet()
-            if (isZkSync()){
+            if (isZkSync()) {
                 strategy = strategy.connect(await initWallet())
             }
 
@@ -117,7 +117,7 @@ async function settingSection(exec){
  *
  */
 
-async function isContract(address){
+async function isContract(address) {
 
     try {
         const code = await ethers.provider.getCode(address);
@@ -127,7 +127,7 @@ async function isContract(address){
     }
 }
 
-async function getContract(name, network){
+async function getContract(name, network) {
 
     if (!network)
         network = process.env.STAND;
@@ -146,7 +146,7 @@ async function getContract(name, network){
 
 }
 
-async function getContractByAddress(name, address, network){
+async function getContractByAddress(name, address, network) {
 
     if (!network)
         network = process.env.STAND;
@@ -182,7 +182,7 @@ async function getBytecode(name, network) {
 }
 
 
-async function getImplementation(name, network){
+async function getImplementation(name, network) {
 
     if (!network)
         network = process.env.STAND;
@@ -199,12 +199,12 @@ async function getImplementation(name, network){
     if (contractJson.implementation) {
         console.log(`Found implementation: ${contractJson.implementation} for contract: ${name} in network: ${network}`);
         return contractJson.implementation;
-    }else {
+    } else {
         throw new Error(`Error: Could not find a implementation for contract [${name}] in network: [${network}]`);
     }
 }
 
-async function getAbi(name, network){
+async function getAbi(name, network) {
 
     if (!network)
         network = process.env.STAND;
@@ -214,7 +214,7 @@ async function getAbi(name, network){
 
 }
 
-async function getStrategy(address){
+async function getStrategy(address) {
 
     let ethers = hre.ethers;
     let wallet = await initWallet();
@@ -224,11 +224,11 @@ async function getStrategy(address){
 
 }
 
-async function getERC20(name, wallet){
+async function getERC20(name, wallet) {
 
     let ethers = hre.ethers;
 
-    if (!wallet){
+    if (!wallet) {
         wallet = await initWallet();
     }
 
@@ -238,11 +238,11 @@ async function getERC20(name, wallet){
 
 }
 
-async function getERC20ByAddress(address, wallet){
+async function getERC20ByAddress(address, wallet) {
 
     let ethers = hre.ethers;
 
-    if (!wallet){
+    if (!wallet) {
         wallet = await initWallet();
     }
 
@@ -299,11 +299,11 @@ function fromDir(startPath, filter) {
 
 
 
-async function getStrategyMapping(){
+async function getStrategyMapping() {
 
     let url;
     let fromAsset = fromE6;
-    switch(process.env.STAND){
+    switch (process.env.STAND) {
         case "avalanche":
             url = "https://avax.overnight.fi/api/dict/strategies";
             break;
@@ -365,9 +365,9 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     let m2m = await getContract('Mark2Market', stand);
 
     let usdPlus;
-    if (stand.includes('_ins')){
+    if (stand.includes('_ins')) {
         usdPlus = await getContract('InsuranceToken', stand);
-    }else {
+    } else {
         usdPlus = await getContract('UsdPlusToken', stand);
     }
     let pm = await getContract('PortfolioManager', stand);
@@ -375,11 +375,11 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     let strategyAssets;
     let totalNetAssets;
     let strategyWeights;
-    if (blocknumber){
-        strategyAssets = await m2m.strategyAssets({blockTag: blocknumber});
-        totalNetAssets = await m2m.totalNetAssets({blockTag: blocknumber});
+    if (blocknumber) {
+        strategyAssets = await m2m.strategyAssets({ blockTag: blocknumber });
+        totalNetAssets = await m2m.totalNetAssets({ blockTag: blocknumber });
         strategyWeights = await pm.getAllStrategyWeights({ blockTag: blocknumber });
-    }else {
+    } else {
         strategyAssets = await m2m.strategyAssets();
         totalNetAssets = await m2m.totalNetAssets();
         strategyWeights = await pm.getAllStrategyWeights();
@@ -395,7 +395,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
         let asset = strategyAssets[i];
         let weight = strategyWeights[i];
 
-        if (weight === undefined){
+        if (weight === undefined) {
             continue;
         }
 
@@ -406,7 +406,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
                 name: mapping ? mapping.name : asset.strategy,
                 netAssetValue: fromAsset(asset.netAssetValue.toString(), stand),
                 liquidationValue: fromAsset(asset.liquidationValue.toString(), stand),
-                targetWeight:  weight.targetWeight.toNumber() / 1000,
+                targetWeight: weight.targetWeight.toNumber() / 1000,
                 maxWeight: weight.maxWeight.toNumber() / 1000,
                 enabled: weight.enabled,
                 enabledReward: weight.enabledReward
@@ -421,8 +421,8 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     console.table(items);
     console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString(), stand));
 
-    if (usdPlus){
-        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({blockTag: blocknumber}), stand);
+    if (usdPlus) {
+        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
     }
 
@@ -433,7 +433,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 async function getPrice() {
     let value = process.env.GAS_PRICE.toString() + "000000000";
 
-    let params = {maxFeePerGas: value, maxPriorityFeePerGas: value};
+    let params = { maxFeePerGas: value, maxPriorityFeePerGas: value };
 
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params.gasLimit = 15000000;
@@ -447,22 +447,22 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
         params.gasLimit = 8000000;
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
-        params = {gasLimit: 25000000}; // gasPrice always 0.1 GWEI
+        params = { gasLimit: 25000000 }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
-        params = {gasPrice: "3000000000", gasLimit: 15000000}; // gasPrice always 3 GWEI
+        params = { gasPrice: "3000000000", gasLimit: 15000000 }; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
-        params = {gasPrice: "1000000000", gasLimit: 10000000}; // gasPrice always 0.001 GWEI
+        params = { gasPrice: "1000000000", gasLimit: 10000000 }; // gasPrice always 0.001 GWEI
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         // provider.getGasprice + 5%
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return {gasPrice: gasPrice, gasLimit: 20000000}
-    }else if (process.env.ETH_NETWORK === 'BASE'){
+        return { gasPrice: gasPrice, gasLimit: 20000000 }
+    } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return {gasPrice: gasPrice, gasLimit: 20000000}
+        return { gasPrice: gasPrice, gasLimit: 20000000 }
     }
 
     return params;
@@ -533,7 +533,7 @@ async function upgradeStrategy(strategy, newImplAddress) {
 
 }
 
-async function impersonateAccount(address){
+async function impersonateAccount(address) {
 
     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
@@ -546,13 +546,13 @@ async function impersonateAccount(address){
     return await hre.ethers.getSigner(address);
 }
 
-async function execTimelock(exec){
+async function execTimelock(exec) {
 
 
-    let timelock = await getContract('OvnTimelockController' );
+    let timelock = await getContract('OvnTimelockController');
 
 
-    if (hre.network.name === 'localhost'){
+    if (hre.network.name === 'localhost') {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
@@ -576,7 +576,7 @@ async function execTimelock(exec){
 
 }
 
-async function convertWeights(weights){
+async function convertWeights(weights) {
 
 
     let totalWeight = 0;
@@ -602,15 +602,15 @@ async function convertWeights(weights){
     return weights;
 }
 
-async function changeWeightsAndBalance(weights){
+async function changeWeightsAndBalance(weights) {
 
 
     await evmCheckpoint('Before');
 
-    let timelock = await getContract('OvnTimelockController' );
-    let pm = await getContract('PortfolioManager' );
-    let usdPlus = await getContract('UsdPlusToken' );
-    let usdc = await getERC20('usdc' );
+    let timelock = await getContract('OvnTimelockController');
+    let pm = await getContract('PortfolioManager');
+    let usdPlus = await getContract('UsdPlusToken');
+    let usdc = await getERC20('usdc');
     let exchange = await getContract('Exchange');
 
     console.log('M2M before:')
@@ -642,7 +642,7 @@ async function changeWeightsAndBalance(weights){
     });
 
 
-    if (fromE6(await usdc.balanceOf(wallet.address)) > 10){
+    if (fromE6(await usdc.balanceOf(wallet.address)) > 10) {
         await usdc.approve(exchange.address, toE6(10));
         await exchange.buy(usdc.address, toE6(10));
 
@@ -657,21 +657,21 @@ async function changeWeightsAndBalance(weights){
 
 }
 
-async function checkTimeLockBalance(){
+async function checkTimeLockBalance() {
 
-    let timelock = await getContract('OvnTimelockController' );
+    let timelock = await getContract('OvnTimelockController');
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
-    if (new BN(balance.toString()).lt(new BN("10000000000000000000"))){
+    if (new BN(balance.toString()).lt(new BN("10000000000000000000"))) {
         await transferETH(10, timelock.address);
     }
 
 }
 
-async function getChainId(){
+async function getChainId() {
 
-    switch (process.env.ETH_NETWORK){
+    switch (process.env.ETH_NETWORK) {
         case "ARBITRUM":
             return 42161;
         case "AVALANCHE":
@@ -694,7 +694,7 @@ async function getChainId(){
 }
 
 
-async function getDevWallet(){
+async function getDevWallet() {
 
     let provider = ethers.provider;
     return await new ethers.Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
@@ -709,9 +709,9 @@ async function transferETH(amount, to) {
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 
         await wallet.transfer({
-          to: to,
-          token: '0x0000000000000000000000000000000000000000',
-          amount: ethers.utils.parseEther(amount+""),
+            to: to,
+            token: '0x0000000000000000000000000000000000000000',
+            amount: ethers.utils.parseEther(amount + ""),
         });
     } else {
         let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
@@ -720,7 +720,7 @@ async function transferETH(amount, to) {
         // вернул как было. у меня не работала почему-то твоя версия
         await walletWithProvider.sendTransaction({
             to: to,
-            value: ethers.utils.parseEther(amount+"")
+            value: ethers.utils.parseEther(amount + "")
         });
     }
 
@@ -728,11 +728,11 @@ async function transferETH(amount, to) {
 }
 
 
-async function transferUSDPlus(amount, to){
+async function transferUSDPlus(amount, to) {
 
     let usdPlus = await getContract('UsdPlusToken');
 
-    await execTimelock(async (timelock)=>{
+    await execTimelock(async (timelock) => {
         let exchange = await usdPlus.exchange();
 
         await usdPlus.connect(timelock).setExchanger(timelock.address);
@@ -768,7 +768,10 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x20f03e26968b179025f65c1f4afadfd3959c8d03';
                     break;
                 case BASE.dai:
-                    from = '0x0664faf5afecde5958d8b32258e012c3788006a3';
+                    from = '0xc68a33de9CEAC7BdaED242aE1DC40D673eD4f643';
+                    break;
+                case BASE.crvUsd:
+                    from = '0xFC88e456b3a5620E63A449cE429dCcF2687cac26';
                     break;
                 default:
                     throw new Error('Unknown asset address');
@@ -836,7 +839,7 @@ async function transferAsset(assetAddress, to, amount) {
 
     let asset = await getERC20ByAddress(assetAddress);
 
-    if (hre.network.name === 'localhost'){
+    if (hre.network.name === 'localhost') {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
@@ -847,7 +850,7 @@ async function transferAsset(assetAddress, to, amount) {
 
     let account = await hre.ethers.getSigner(from);
 
-    if (!amount){
+    if (!amount) {
         amount = await asset.balanceOf(from);
     }
     await asset.connect(account).transfer(to, amount);
@@ -859,19 +862,19 @@ async function transferAsset(assetAddress, to, amount) {
     let balance = await asset.balanceOf(to);
 
     let symbol = await asset.symbol();
-    let fromAsset = (await asset.decimals()) === 18 ? fromE18: fromE6;
+    let fromAsset = (await asset.decimals()) === 18 ? fromE18 : fromE6;
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
-async function showRewardsFromPayout(receipt){
+async function showRewardsFromPayout(receipt) {
 
     let strategy = await getContract('StrategyEtsEta', 'arbitrum');
     const rewardsItems = [];
-    receipt.logs.forEach((value, index)=>{
+    receipt.logs.forEach((value, index) => {
 
         try {
             let log = strategy.interface.parseLog(value);
-            if (log.name === 'Reward'){
+            if (log.name === 'Reward') {
                 rewardsItems.push({
                     address: value.address,
                     amount: fromAsset(log.args[0].toString())
@@ -887,7 +890,7 @@ async function showRewardsFromPayout(receipt){
 async function transferDAI(to) {
 
     let address;
-    switch (process.env.ETH_NETWORK){
+    switch (process.env.ETH_NETWORK) {
         case "OPTIMISM":
             address = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
             break
@@ -923,7 +926,7 @@ async function transferDAI(to) {
 async function transferWBTC(amount, to) {
 
     let address;
-    switch (process.env.STAND){
+    switch (process.env.STAND) {
         case "optimism":
             address = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
             break
@@ -959,13 +962,13 @@ async function transferUSDC(amount, to) {
 
 
     let address;
-    if (process.env.STAND == 'polygon'){
+    if (process.env.STAND == 'polygon') {
         //work only for Polygon
         // This address has USDC
         address = '0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245';
-    }else if (process.env.STAND == 'optimism'){
+    } else if (process.env.STAND == 'optimism') {
         address = '0xd6216fc19db775df9774a6e33526131da7d19a2c';
-    }else {
+    } else {
         throw new Error(`Unknown holder for chain: [${process.env.STAND}]`);
     }
 
