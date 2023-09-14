@@ -13,12 +13,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {save} = deployments;
 
     let startDate = moment().add(5, 'minutes');
-    let endDate = moment(startDate).add(30, 'minutes');
+    let endDate = moment(startDate).add(10, 'minutes');
 
     let claimBonusTime = moment(endDate).add(1, 'minutes');
     let claimSalesFirstPartTime = moment(endDate).add(2, 'minutes');
     let vestingBeginTime = moment(endDate).add(3, 'minutes');
-    let vestingDuration = moment(endDate).add(10, 'minutes');
+    let vestingDuration = 600; // 10 minutes in seconds
 
     let vestingProportion = toE18(0.75);
     let totalSales = toE18(10000);
@@ -74,8 +74,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         },
         {
             name: 'vestingDuration',
-            value: vestingDuration.toISOString(),
-            comment: vestingDuration.unix()
+            value: vestingDuration,
+            comment: vestingDuration
         },
         {
             name: 'vestingProportion',
@@ -117,7 +117,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         claimBonusTime: claimBonusTime.unix(),
         claimSalesFirstPartTime: claimSalesFirstPartTime.unix(),
         vestingBeginTime: vestingBeginTime.unix(),
-        vestingDuration: vestingDuration.unix(),
+        vestingDuration: vestingDuration,
         vestingProportion: vestingProportion,
         minCommit: minCommit,
         maxCommit: maxCommit,
