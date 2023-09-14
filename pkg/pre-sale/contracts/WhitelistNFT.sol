@@ -38,6 +38,13 @@ contract WhitelistNFT is Initializable, ERC721Upgradeable, ERC721EnumerableUpgra
         }
     }
 
+    function multiMints(address[] memory users, uint256 count) public onlyOwner {
+        for (uint256 i = 0; i < users.length; i++) {
+            safeMints(users[i], count);
+        }
+    }
+
+
     function _authorizeUpgrade(address newImplementation)
     internal
     onlyOwner

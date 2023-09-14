@@ -6,7 +6,7 @@ const {getContract, showM2M, getCoreAsset, transferETH, initWallet, getWalletAdd
 async function main() {
 
     let nft = await getContract('WhitelistNFT');
-    await (await nft.safeMints('0x4473D652fb0b40b36d549545e5fF6A363c9cd686', 10)).wait();
+    await (await nft.safeMints('0xAE72a2B9d906634816744a8f8bC9848cF990E2ba', 1)).wait();
 }
 
 

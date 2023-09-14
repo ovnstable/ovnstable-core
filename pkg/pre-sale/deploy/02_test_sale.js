@@ -13,12 +13,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {save} = deployments;
 
     let startDate = moment().add(5, 'minutes');
-    let endDate = moment(startDate).add(1, 'hours');
+    let endDate = moment(startDate).add(30, 'minutes');
 
-    let claimBonusTime = moment(endDate).add(10, 'minutes');
-    let claimSalesFirstPartTime = moment(endDate).add(1, 'hours');
-    let vestingBeginTime = moment(endDate).add(1, 'hours').add(10, 'minutes');
-    let vestingDuration = moment(endDate).add(2, 'hours');
+    let claimBonusTime = moment(endDate).add(1, 'minutes');
+    let claimSalesFirstPartTime = moment(endDate).add(2, 'minutes');
+    let vestingBeginTime = moment(endDate).add(3, 'minutes');
+    let vestingDuration = moment(endDate).add(10, 'minutes');
 
     let vestingProportion = toE18(0.75);
     let totalSales = toE18(10000);
