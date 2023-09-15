@@ -204,6 +204,19 @@ describe("OvnGovernor", function () {
             await expect(await exchange.buyFee()).to.eq(25);
         });
 
+
+        it('execute revert -> cancel', async function (){
+
+            let proposalId = await createMockProposal();
+            await castForVote(account, proposalId);
+            await waitToEnd();
+            await queue(proposalId);
+
+            await expectRevert(governator.execute(proposalId), 'TimelockController: underlying transaction reverted');
+            await governator.cancel(proposalId);
+            await stateShould(proposalId, State.CANCELED);
+        })
+
         it("Multi calls in propose", async function () {
 
             await exchange.grantRole(await ovnToken.DEFAULT_ADMIN_ROLE(), timeLock.address);
