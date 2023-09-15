@@ -42,7 +42,7 @@ async function main() {
 
 }
 
-async function moveRulesAll(names){
+async function moveRulesAll(names) {
     let wallet = await initWallet();
     let timeLock = await getContract('OvnTimelockController');
 
@@ -62,14 +62,28 @@ async function moveRules(name, oldAddress, newAddress) {
 
     let price = await getPrice();
 
-    await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress, price)).wait();
-    await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress, price)).wait();
+    let hasUpgradeRole = true;
 
-    await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress, price)).wait();
+    try {
+        await contract.UPGRADER_ROLE();
+    } catch (e) {
+        hasUpgradeRole = false;
+    }
+
+    await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress, price)).wait();
+
+    if (hasUpgradeRole) {
+        await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress, price)).wait();
+    }
+
+    if (hasUpgradeRole) {
+        await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress, price)).wait();
+    }
+
     await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAddress, price)).wait();
 }
 
-async function showRules(names){
+async function showRules(names) {
     let wallet = await initWallet();
     let timeLock = await getContract('OvnTimelockController');
 
@@ -78,15 +92,25 @@ async function showRules(names){
 
         let contract = await getContract(name);
 
+        let roleUpgradeWallet = '-';
+        let roleUpgradeTimelock = '-';
+
+        try {
+            roleUpgradeWallet = (await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address))
+            roleUpgradeTimelock = (await contract.hasRole(await contract.UPGRADER_ROLE(), timeLock.address))
+        } catch (e) {
+        }
+
         try {
             items.push({
                 name: name,
                 address: contract.address,
+                timelock: timeLock.address,
                 roleAdminWallet: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), wallet.address)),
                 roleAdminTimelock: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), timeLock.address)),
 
-                roleUpgradeWallet: (await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address)),
-                roleUpgradeTimelock: (await contract.hasRole(await contract.UPGRADER_ROLE(), timeLock.address)),
+                roleUpgradeWallet: roleUpgradeWallet,
+                roleUpgradeTimelock: roleUpgradeTimelock
             });
         } catch (e) {
             console.log('Error get hasRole: ' + e);
@@ -95,7 +119,6 @@ async function showRules(names){
 
     console.table(items);
 }
-
 
 
 
