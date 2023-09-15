@@ -4,7 +4,7 @@ pragma solidity ^0.8.8;
 import "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract MotherTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
+contract OvnTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -21,9 +21,11 @@ contract MotherTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         _setRoleAdmin(CANCELLER_ROLE, DEFAULT_ADMIN_ROLE);
 
         // self administration
+        // Timelock must be self admin
         _setupRole(DEFAULT_ADMIN_ROLE, address(this));
 
         // deployer administrator
+        // Revoke role after test on real chain
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
     }

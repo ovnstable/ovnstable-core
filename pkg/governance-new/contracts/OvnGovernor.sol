@@ -1,39 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
-import "@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/governance/Governor.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
+import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBravo.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgradeable, GovernorCountingSimpleUpgradeable, GovernorVotesUpgradeable, GovernorVotesQuorumFractionUpgradeable, GovernorTimelockControlUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(IVotesUpgradeable _token, TimelockControllerUpgradeable _timelock)
-    initializer public
-    {
-        __Governor_init("OvnGovernor");
-        __GovernorSettings_init(1, 50, 10e18);
-        __GovernorCountingSimple_init();
-        __GovernorVotes_init(_token);
-        __GovernorVotesQuorumFraction_init(51);
-        __GovernorTimelockControl_init(_timelock);
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-    }
-
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyOwner
-    override
+contract OvnGovernor is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
+    constructor(IVotes _token, TimelockController _timelock)
+    Governor("OvnGovernor")
+    GovernorSettings(1, 50, 10e18)
+    GovernorVotes(_token)
+    GovernorVotesQuorumFraction(51)
+    GovernorTimelockControl(_timelock)
     {}
 
     // The following functions are overrides required by Solidity.
@@ -41,7 +22,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function votingDelay()
     public
     view
-    override(IGovernorUpgradeable, GovernorSettingsUpgradeable)
+    override(IGovernor, GovernorSettings)
     returns (uint256)
     {
         return super.votingDelay();
@@ -50,7 +31,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function votingPeriod()
     public
     view
-    override(IGovernorUpgradeable, GovernorSettingsUpgradeable)
+    override(IGovernor, GovernorSettings)
     returns (uint256)
     {
         return super.votingPeriod();
@@ -59,7 +40,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function quorum(uint256 blockNumber)
     public
     view
-    override(IGovernorUpgradeable, GovernorVotesQuorumFractionUpgradeable)
+    override(IGovernor, GovernorVotesQuorumFraction)
     returns (uint256)
     {
         return super.quorum(blockNumber);
@@ -68,7 +49,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function state(uint256 proposalId)
     public
     view
-    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    override(Governor, IGovernor, GovernorTimelockControl)
     returns (ProposalState)
     {
         return super.state(proposalId);
@@ -76,7 +57,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
 
     function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
     public
-    override(GovernorUpgradeable, IGovernorUpgradeable)
+    override(Governor, GovernorCompatibilityBravo, IGovernor)
     returns (uint256)
     {
         return super.propose(targets, values, calldatas, description);
@@ -85,7 +66,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function proposalThreshold()
     public
     view
-    override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+    override(Governor, GovernorSettings)
     returns (uint256)
     {
         return super.proposalThreshold();
@@ -93,14 +74,14 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
 
     function _execute(uint256 proposalId, address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
     internal
-    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    override(Governor, GovernorTimelockControl)
     {
         super._execute(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     function _cancel(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
     internal
-    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    override(Governor, GovernorTimelockControl)
     returns (uint256)
     {
         return super._cancel(targets, values, calldatas, descriptionHash);
@@ -109,7 +90,7 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function _executor()
     internal
     view
-    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    override(Governor, GovernorTimelockControl)
     returns (address)
     {
         return super._executor();
@@ -118,9 +99,17 @@ contract OvnGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgr
     function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    override(Governor, IERC165, GovernorTimelockControl)
     returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function cancel(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, bytes32 descriptionHash)
+    public
+    override(Governor, IGovernor, GovernorCompatibilityBravo)
+    returns (uint256)
+    {
+        return super.cancel(targets, values, calldatas, descriptionHash);
     }
 }
