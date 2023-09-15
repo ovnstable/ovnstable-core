@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "./interfaces/IGnosisSafe.sol";
 
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
 import { IAxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarExecutable.sol';
@@ -122,7 +123,7 @@ contract AgentTimelock is Initializable, AccessControlUpgradeable, IERC721Receiv
         bool exist = msg.sender == ovnAgent;
         address[] memory members = IGnosisSafe(ovnAgent).getOwners();
         for (uint256 i = 0; i < members.length; i++) {
-            exist |= msg.sender == members[i];
+            exist = exist || msg.sender == members[i];
         }
         require(exist, "msg.sender is not ovn agent or multisig member");
         _;

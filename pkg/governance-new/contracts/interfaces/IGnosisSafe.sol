@@ -3,5 +3,5 @@ pragma solidity ^0.8.0;
 
 interface IGnosisSafe {
 
-    function getOwners() public view returns (address[] memory);
+    function getOwners() external view returns (address[] memory);
 }
