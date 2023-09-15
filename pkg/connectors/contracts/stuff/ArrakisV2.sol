@@ -142,12 +142,6 @@ interface IArrakisV2Router {
 /// @dev DO NOT ADD STATE VARIABLES - APPEND THEM TO ArrakisV2Storage
 interface IArrakisV2 is IERC20Metadata {
 
-    struct Range {
-        int24 lowerTick;
-        int24 upperTick;
-        uint24 feeTier;
-    }
-
     /// @notice will send manager fees to manager
     /// @dev anyone can call this function
     function withdrawManagerBalance() external;
