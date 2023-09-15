@@ -16,8 +16,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let endDate = moment(1695639600 * 1000);   // 2023/09/25 11:00 UTC
 
     let claimBonusTime = moment(endDate).add(10, 'seconds');
-    let claimSalesFirstPartTime = moment(endDate).add(20, 'seconds');
-    let vestingBeginTime = moment(endDate).add(7, 'days');
+    let claimSalesFirstPartTime = moment(endDate).add(7, 'days');
+    let vestingBeginTime = moment(endDate).add(7, 'days').add(1, 'seconds');
     let vestingDuration = 604800 * 4; // 1 week in seconds * 4 = 4 weeks
 
     let vestingProportion = toE18(0.75);
@@ -125,20 +125,20 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         whitelist: whitelist.address,
     }
 
-    // let overflowICO = await deployments.deploy("OverflowICO", {
-    //     from: deployer,
-    //     args: [
-    //         params
-    //     ],
-    //     log: true,
-    //     skipIfAlreadyDeployed: false
-    // });
-    // console.log("OverflowICO created at " + overflowICO.address);
-    //
-    // await hre.run("verify:verify", {
-    //     address: overflowICO.address,
-    //     constructorArguments: [params],
-    // });
+    let overflowICO = await deployments.deploy("OverflowICO", {
+        from: deployer,
+        args: [
+            params
+        ],
+        log: true,
+        skipIfAlreadyDeployed: false
+    });
+    console.log("OverflowICO created at " + overflowICO.address);
+
+    await hre.run("verify:verify", {
+        address: overflowICO.address,
+        constructorArguments: [params],
+    });
 };
 
 
