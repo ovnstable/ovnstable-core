@@ -16,7 +16,16 @@ contract MotherTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         __UUPSUpgradeable_init();
         __AccessControl_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setRoleAdmin(PROPOSER_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(EXECUTOR_ROLE, DEFAULT_ADMIN_ROLE);
+        _setRoleAdmin(CANCELLER_ROLE, DEFAULT_ADMIN_ROLE);
+
+        // self administration
+        _setupRole(DEFAULT_ADMIN_ROLE, address(this));
+
+        // deployer administrator
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
     }
 
 
