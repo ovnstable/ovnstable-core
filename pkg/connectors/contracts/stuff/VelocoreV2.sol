@@ -12,16 +12,16 @@ struct VelocoreOperation {
 }
 
 enum OperationType {
-    SWAP,
-    GAUGE,
+    SWAP, // add/remove/swap
+    GAUGE, // stake/unstake/claim rewards
     CONVERT,
     VOTE,
     USER
 }
 
 enum AmountType {
-    EXACTLY,
-    AT_MOST,
+    EXACTLY, // exact amount
+    AT_MOST, // min amount
     ALL
 }
 
