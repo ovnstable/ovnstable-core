@@ -2,25 +2,10 @@
 # yarn lockfile v1
 
 
-"@axelar-network/axelar-cgp-solidity@^5.0.0":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@axelar-network/axelar-cgp-solidity/-/axelar-cgp-solidity-5.0.1.tgz#dd4f63cb5b87dcdf879d64cce17633077ebedd4e"
-  integrity sha512-B7jnNKzV32ZpmIcfX8SYLqaeU8wbDBha5yttWkeEjfSaZe5z1ypABRsLDCSNXAKeR437j6D4AE3MulJriEhIHQ==
-  dependencies:
-    "@axelar-network/axelar-gmp-sdk-solidity" "^4.0.2"
-
-"@axelar-network/axelar-gmp-sdk-solidity@^4.0.0", "@axelar-network/axelar-gmp-sdk-solidity@^4.0.2":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@axelar-network/axelar-gmp-sdk-solidity/-/axelar-gmp-sdk-solidity-4.0.3.tgz#8430b1d7db26aa33bc4eef97ba6a1eac226bf012"
-  integrity sha512-7u1pGP66YXnBTRgYRb01ZCAewgYv7+0xjco5uxbG1Rj5S8Nv56GQU8zwE3Y4b424NWlajEiRyf4kmTzKrNORRA==
-
-"@axelar-network/interchain-token-service@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@axelar-network/interchain-token-service/-/interchain-token-service-0.3.0.tgz#da8e38736618f12375fea58999980c128296ef7b"
-  integrity sha512-oIUml4/FBs8zPg7hI7f7cOpo54m15mnUrPth/TlJDPNImRPbSzoN5SIsIF28W7Q2cN0wJ+idNhyQwmo7a2O0jQ==
-  dependencies:
-    "@axelar-network/axelar-cgp-solidity" "^5.0.0"
-    "@axelar-network/axelar-gmp-sdk-solidity" "^4.0.0"
+"@axelar-network/axelar-gmp-sdk-solidity@5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@axelar-network/axelar-gmp-sdk-solidity/-/axelar-gmp-sdk-solidity-5.3.1.tgz#66d46d6ff750a031d83f4f459007ebccd815f910"
+  integrity sha512-pwhSKbHjByavmJdETxf21lRekclAO5RBJkCYGVT/MmsfacNEAKbVFdOVbJ/JPLTIc5bPKWdp9ak4ET3GKrSjhg==
 
 "@babel/runtime@^7.4.4":
   version "7.21.0"

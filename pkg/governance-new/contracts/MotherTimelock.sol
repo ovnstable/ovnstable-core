@@ -2,10 +2,29 @@
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+contract MotherTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
 
 
-contract MotherTimelock {
-    constructor(){
-
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
+
+    function initialize() initializer public {
+        __UUPSUpgradeable_init();
+        __AccessControl_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(DEFAULT_ADMIN_ROLE)
+    override
+    {}
+
+
 }
