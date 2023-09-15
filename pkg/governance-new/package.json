@@ -13,6 +13,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "4.9.3",
     "@openzeppelin/contracts-upgradeable": "4.9.3",
-    "@axelar-network/interchain-token-service": "0.3.0"
+    "@axelar-network/axelar-gmp-sdk-solidity": "5.3.1"
   }
 }
