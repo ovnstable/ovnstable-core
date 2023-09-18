@@ -169,8 +169,8 @@ contract OverflowICO is Ownable, ReentrancyGuard {
         commitToken.safeTransferFrom(msg.sender, address(this), amount);
 
         commitments[msg.sender] += amount;
-        shares[msg.sender] += amount * (endTime - block.timestamp);
-        totalShares += amount * (endTime - block.timestamp);
+        shares[msg.sender] += amount * (endTime - block.timestamp) * (endTime - block.timestamp);
+        totalShares += amount * (endTime - block.timestamp) * (endTime - block.timestamp);
         immutableCommitments[msg.sender] += amount;
         totalCommitments += amount;
         emit Commit(msg.sender, amount);
