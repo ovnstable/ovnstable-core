@@ -1,29 +1,41 @@
-const { toE18 } = require("@overnight-contracts/common/utils/decimals");
+const { toE18, fromE18 } = require("@overnight-contracts/common/utils/decimals");
 const { ethers } = require('hardhat');
+const { initWallet } = require("@overnight-contracts/common/utils/script-utils");
+
+const OVN_ABI = (require("./interfaces/ovn.json"));
+
+const DEV_ADDRESSES_LOCKUP = {
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100), 
+    '': toE18(100)
+}
 
 async function main() {
 
-    let addresses = {
-        '0x1D84b3BE59EfE99D89bAc8D40B3E4a63c101aB0d': toE18(100),
-        '0x8A35a905321BD4FB54DCD330D1d26208879E3765': toE18(200),
-        '0xdee0d6708e1ba93F5a19dE6837dA1fEDdd28DE95': toE18(300),
-        '0x05d03970f72FDAf41c37bC233DdD3B4cF9614bE7': toE18(400),
-        '0x032928CC782F447cf646A2E0873F95Cb820e1aF8': toE18(500)
-    }
+    let addresses = DEV_ADDRESSES_LOCKUP;
     
-    const ovnAddress = '0x448e87779345cc2a4b3772DfD0f63200837B2615';
-    const tokenAbi = ['function transfer(address to, uint256 amount) returns (bool)'];
-    const token = new ethers.Contract(ovnAddress, tokenAbi);
+    let wallet = await initWallet();
+    const token = new ethers.Contract(OVN_ABI.address, OVN_ABI.abi, wallet);
+    console.log("Owner OVN amount:", fromE18((await token.balanceOf(wallet.address)).toString()));
 
     for (const [lockupAddress, amount] of Object.entries(addresses)) {
         try {
             const tx = await token.transfer(lockupAddress, amount);
             await tx.wait();
-            console.log(`Tokens sent to contract at address ${lockupAddress}`);
+            console.log(fromE18((await token.balanceOf(lockupAddress)).toString()), 'OVN were sent to', lockupAddress);
         } catch (error) {
             console.error(`Error sending tokens to contract at address ${lockupAddress}: ${error.message}`);
         }
     }
+
+    console.log("Owner OVN amount:", fromE18((await token.balanceOf(wallet.address)).toString()));
 
 }
 
