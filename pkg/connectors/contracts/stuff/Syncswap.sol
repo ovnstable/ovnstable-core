@@ -371,6 +371,10 @@ interface ICallback {
     function syncSwapBaseSwapCallback(BaseSwapCallbackParams calldata params) external;
 }
 
+interface ISyncSwapVault {
+    function deposit(address token, address to) external returns (uint amount);
+}
+
 library SyncswapLibrary {
 
     function getAmountOut(

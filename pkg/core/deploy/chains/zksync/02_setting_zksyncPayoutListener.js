@@ -13,9 +13,9 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
 //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'zksync')).address)).wait();
 
-    let plItems = await pl.getItems();
-    console.log('plItems before:');
-    console.log(plItems);
+//    let plItems = await pl.getItems();
+//    console.log('plItems before:');
+//    console.log(plItems);
 
     let items = [];
 
@@ -25,14 +25,15 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 //    items.push(...mute());
 //    items.push(...ezkalibur());
 //    items.push(...kyberswap());
+    items.push(...velocoreV2());
 
     await (await pl.addItems(items)).wait();
 
     console.log('ZksyncPayoutListener setting done');
 
-    plItems = await pl.getItems();
-    console.log('plItems after:');
-    console.log(plItems);
+//    plItems = await pl.getItems();
+//    console.log('plItems after:');
+//    console.log(plItems);
 
     function kyberswap(){
 
@@ -70,6 +71,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
         let items = [];
         items.push(createBribe('0x4b9f00860d7f42870addeb687fa4e47062df71d9', usdPlus.address, 'USDC/USD+', dex, '0x691e8644Efc7FDad4e502c9370eF5F43af34C647'));
+
+        return items;
+    }
+
+    function velocoreV2(){
+
+        let dex = 'VelocoreV2';
+
+        let items = [];
+        items.push(createCustom('0xd5F1cc935B3e7267a9fBfA250861672113AAEE40', usdPlus.address, 'USD+/USDC', dex));
 
         return items;
     }
