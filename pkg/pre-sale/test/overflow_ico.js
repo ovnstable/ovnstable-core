@@ -705,7 +705,7 @@ describe("OverflowICO", function () {
             await userInfo(firstAccount, {
                 userCommitments: commitAmount1,
                 salesToReceive: '6666666666666666600000',
-                commitToReceive: '55000000015',
+                commitToReceive: '57750000022',
                 commitToRefund: "0",
                 lockedSales: '6666666666666666600000',
                 unlockedSales: "0",
@@ -714,7 +714,7 @@ describe("OverflowICO", function () {
             await userInfo(secondAccount, {
                 userCommitments: commitAmount2,
                 salesToReceive: '1666666666666666650000',
-                commitToReceive: '9166666651',
+                commitToReceive: '6416666644',
                 commitToRefund: 0,
                 lockedSales: '1666666666666666650000',
                 unlockedSales: 0,
@@ -735,8 +735,8 @@ describe("OverflowICO", function () {
             await spendTime(claimBonusTime + 1000);
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
-            await commitShould(firstAccount, "55000000015");
-            await commitShould(secondAccount, "9166666651");
+            await commitShould(firstAccount, "57750000022");
+            await commitShould(secondAccount, "6416666644");
             await spendTime(claimSalesFirstPartTime + 1000);
             await saleShould(firstAccount, 0);
             await saleShould(secondAccount, 0);
@@ -757,7 +757,7 @@ describe("OverflowICO", function () {
             await userInfo(secondAccount, {
                 userCommitments: commitAmount2,
                 salesToReceive: '1666666666666666650000',
-                commitToReceive: '9166666651',
+                commitToReceive: '6416666644',
                 commitToRefund: 0,
                 lockedSales: '1666666666666666650000',
                 unlockedSales: 0,
@@ -768,7 +768,7 @@ describe("OverflowICO", function () {
             await userInfo(secondAccount, {
                 userCommitments: commitAmount2,
                 salesToReceive: '1666666666666666650000',
-                commitToReceive: '9166666651',
+                commitToReceive: '6416666644',
                 commitToRefund: 0,
                 lockedSales: '1666666666666666650000',
                 unlockedSales: 0,
@@ -856,7 +856,7 @@ describe("OverflowICO", function () {
 
 
             await saleShould(secondAccount, '1666666666666666650000');
-            await commitShould(secondAccount, '9166666651');
+            await commitShould(secondAccount, '6416666644');
 
         })
 
@@ -865,7 +865,7 @@ describe("OverflowICO", function () {
             await userInfo(firstAccount, {
                 userCommitments: commitAmount1,
                 salesToReceive: '6666666666666666600000',
-                commitToReceive: '55000000015',
+                commitToReceive: '57750000022',
                 commitToRefund: 0,
                 lockedSales: '6666666666666666600000',
                 unlockedSales: 0,
@@ -876,7 +876,7 @@ describe("OverflowICO", function () {
             await userInfo(firstAccount, {
                 userCommitments: commitAmount1,
                 salesToReceive: '6666666666666666600000',
-                commitToReceive: '55000000015',
+                commitToReceive: '57750000022',
                 commitToRefund: 0,
                 lockedSales: '6666666666666666600000',
                 unlockedSales: 0,
@@ -964,7 +964,7 @@ describe("OverflowICO", function () {
 
 
             await saleShould(firstAccount, '6666666666666666600000');
-            await commitShould(firstAccount, '55000000015');
+            await commitShould(firstAccount, '57750000022');
         })
 
 
@@ -982,7 +982,7 @@ describe("OverflowICO", function () {
             await userInfo(firstAccount, {
                 userCommitments: commitAmount1,
                 salesToReceive: '4999999999999999950000',
-                commitToReceive: '46000000035',
+                commitToReceive: '53076923140',
                 commitToRefund: "50000000000",
                 lockedSales: '4999999999999999950000',
                 unlockedSales: "0",
@@ -991,7 +991,7 @@ describe("OverflowICO", function () {
             await userInfo(secondAccount, {
                 userCommitments: commitAmount2,
                 salesToReceive: '4999999999999999950000',
-                commitToReceive: '30666666631',
+                commitToReceive: '23589743526',
                 commitToRefund: 50000000000,
                 lockedSales: '4999999999999999950000',
                 unlockedSales: 0,
@@ -1013,8 +1013,8 @@ describe("OverflowICO", function () {
             await spendTime(claimBonusTime + 1000);
             await overflowICO.connect(firstAccount).claimBonus();
             await overflowICO.connect(secondAccount).claimBonus();
-            await commitShould(firstAccount, "96000000035");
-            await commitShould(secondAccount, "80666666631");
+            await commitShould(firstAccount, "103076923140");
+            await commitShould(secondAccount, "73589743526");
             await spendTime(claimSalesFirstPartTime + 1000);
             await saleShould(firstAccount, 0);
             await saleShould(secondAccount, 0);
