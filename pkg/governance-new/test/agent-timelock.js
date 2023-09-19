@@ -5,99 +5,203 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
 const hre = require("hardhat");
 chai.use(require('chai-bignumber')());
-const { solidity } =  require("ethereum-waffle");
+const {solidity} = require("ethereum-waffle");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 chai.use(solidity);
-let againstVotes = 0;
-let forVotes = 1;
-let abstainVotes = 2;
 
-const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+const TIMELOCK_ABI = require("./abi/TIMELOCK_ABI.json");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 describe("AgentTimelock", function () {
 
 
-    let ovnToken;
     let account;
-    let governator;
-    let timeLock;
+    let secondUser;
+    let timelock;
+    let gateway;
+    let gnosisSafe;
     let exchange;
-    let governorRole;
-    let user1;
-    let waitBlock = 200;
 
     beforeEach(async () => {
         await hre.run("compile");
 
-        await deployments.fixture(['Ovn', 'OvnTimelock', 'OvnGovernor', 'AgentTimelock']);
-
-        const {deployer } = await getNamedAccounts();
-        account = deployer;
-
-
-        ovnToken = await ethers.getContract('Ovn');
-        governator = await ethers.getContract('OvnGovernor');
-        ovnTimeLock = await ethers.getContract('OvnTimelock');
-        agentTimeLock = await ethers.getContract('AgentTimelock');
-
-        governorRole = await timeLock.GOVERNOR_ROLE();
+        await deployments.fixture(['MockGateway', 'MockGnosisSafe']);
 
         let addresses = await ethers.getSigners();
-        user1 = addresses[1];
+        account = addresses[0];
+        secondUser = addresses[1];
+
+
+        await deployments.deploy('MockGateway', {
+            from: account.address,
+            args: [],
+            log: true,
+        });
+
+        await deployments.deploy('MockGnosisSafe', {
+            from: account.address,
+            args: [account.address],
+            log: true,
+        });
+
+        await deployments.deploy('MockContract', {
+            from: account.address,
+            args: [],
+            log: true,
+        });
+
+
+        gateway = await ethers.getContract('MockGateway');
+        gnosisSafe = await ethers.getContract('MockGnosisSafe');
+        exchange = await ethers.getContract('MockContract')
+
+
     });
 
-    it("setGovernor -> revert is missing role", async function () {
-        // await expectRevert(timeLock.connect(user1).setGovernor(user1.address), 'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x0000000000000000000000000000000000000000000000000000000000000000');
+
+    describe('initialize', () => {
+
+        beforeEach(async () => {
+            await deployTimelock(gateway.address, account.address, account.address);
+        })
+
+        it('ovnAgent', async () => {
+            expect(account.address).to.eq(await timelock.ovnAgent());
+        })
+
+        it('motherTimelock', async () => {
+            expect(account.address).to.eq(await timelock.motherTimelock());
+        })
+
+        it('gateway', async () => {
+            expect(gateway.address).to.eq(await timelock.gateway());
+        })
+
+        it('newImplementation is not zero', async () => {
+            expect(await timelock.newImplementation()).to.not.empty;
+        })
+    })
+
+
+    describe('onlyAgent', () => {
+
+        beforeEach(async () => {
+            await deployTimelock(gateway.address, account.address, account.address);
+        })
+
+        it('success', async () => {
+            await timelock._onlyAgent();
+        });
+
+        it('revert', async () => {
+            await expectRevert(timelock.connect(secondUser)._onlyAgent(), 'only ovnAgent');
+        });
+
+    })
+
+
+    describe('_onlyAgentMembers', () => {
+
+        it('ovnAgent: success', async () => {
+            await deployTimelock(gateway.address, account.address, account.address);
+
+            await timelock._onlyAgentMembers();
+        });
+
+        it('ovnAgentMembers: success', async () => {
+            await deployTimelock(gateway.address, account.address, gnosisSafe.address);
+
+            await gnosisSafe.addOwner(secondUser.address);
+            await timelock.connect(secondUser)._onlyAgentMembers();
+        });
+
+        it('revert', async () => {
+            await deployTimelock(gateway.address, account.address, gnosisSafe.address);
+
+            await expectRevert(timelock.connect(secondUser)._onlyAgentMembers(), 'only ovnAgent or ovnAgentMember');
+        });
+
+    })
+
+
+    describe('axelar: execute', () => {
+
+
+        it('revert: only gateway', async () => {
+
+            await deployTimelock(gateway.address, account.address, account.address);
+            timelock = await ethers.getContractAt(TIMELOCK_ABI, timelock.address);
+
+            let commandId = ethers.utils.formatBytes32String('test');
+            let sourceChain = "10";
+            let sourceAddress = secondUser.address;
+            let payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
+
+            await expectRevert(timelock.connect(secondUser).execute(commandId, sourceChain, sourceAddress, payload), 'only gateway')
+
+        })
+
+
+        it('revert: gateway.validateContractCall', async () => {
+
+            await deployTimelock(gateway.address, account.address, account.address);
+            timelock = await ethers.getContractAt(TIMELOCK_ABI, timelock.address);
+
+            let commandId = ethers.utils.formatBytes32String('test');
+            let sourceChain = "10";
+            let sourceAddress = secondUser.address;
+            let payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
+
+            await expectRevert(gateway.send(commandId, sourceChain, sourceAddress, payload, timelock.address), 'VM Exception while processing transaction: reverted with custom error NotApprovedByGateway()')
+
+        })
+
     });
 
-    // it("UpdateDelay -> caller must be timelock", async function () {
-    //     await expectRevert(timeLock.connect(user1).updateDelay(1), 'TimelockController: caller must be timelock');
-    //     await expectRevert(timeLock.updateDelay(1), 'TimelockController: caller must be timelock');
-    // });
+    describe('schedule', () => {
 
-    // it("Execute governor methods -> revert is missing role", async function () {
+        beforeEach(async () => {
+            await deployTimelock(gateway.address, account.address, account.address);
+        })
 
-    //     let target = user1.address;
-    //     let value = 0;
-    //     let data = 0;
-    //     let predecessor = ethers.utils.formatBytes32String("12");
-    //     let salt = ethers.utils.formatBytes32String("32");
-    //     let delay = 0;
-
-    //     let error = `AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x7935bd0ae54bc31f548c14dba4d37c5c64b3f8ca900cb468fb8abd54d5894f55`;
-    //     await expectRevert(timeLock.connect(user1).schedule(target, value, data, predecessor, salt, delay), error);
-
-    //     await expectRevert(timeLock.connect(user1).scheduleBatch([target], [value], [data], predecessor, salt, delay), error);
-
-    //     await expectRevert(timeLock.connect(user1).execute(target, value, data, predecessor, salt), error);
-
-    //     await expectRevert(timeLock.connect(user1).executeBatch([target], [value], [data], predecessor, salt), error);
-
-    //     await expectRevert(timeLock.connect(user1).cancel(predecessor), error);
-    // });
-
-    // it("hasRole(GOVERNOR_ROLE, governor) = true", async function () {
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), governator.address)).to.true;
-    // });
-
-    // it("hasRole(GOVERNOR_ROLE, account) = false", async function () {
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), account)).to.false;
-    // });
+        let value = 0;
+        let data = 0;
+        let predecessor = ethers.utils.formatBytes32String("12");
+        let salt = ethers.utils.formatBytes32String("32");
+        let delay = 0;
 
 
+        it('success send', async () => {
+            await timelock.schedule(
+                account.address,
+                value,
+                data,
+                predecessor,
+                salt,
+                delay);
+        });
 
-    // it("setGovernor -> success", async function () {
-    //     await timeLock.setGovernor(user1.address);
-
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), user1.address)).to.true;
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), governator.address)).to.false;
-
-    //     await timeLock.setGovernor(governator.address);
-
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), user1.address)).to.false;
-    //     expect(await timeLock.hasRole(await timeLock.GOVERNOR_ROLE(), governator.address)).to.true;
-    // });
-
+        it('revert', async () => {
+            await expectRevert(timelock.connect(secondUser).schedule(
+                account.address,
+                value,
+                data,
+                predecessor,
+                salt,
+                delay), 'only ovnAgent');
+        });
+    })
 
 
+    async function deployTimelock(gateway, motherTimelock, ovnAgent) {
+
+        let params = {
+            args: [gateway, motherTimelock, ovnAgent]
+        }
+
+        await deployProxy('AgentTimelock', deployments, deployments.save, params);
+
+        timelock = await ethers.getContract('AgentTimelock')
+    }
 
 });

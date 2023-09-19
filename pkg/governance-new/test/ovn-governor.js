@@ -26,7 +26,7 @@ const State = {
     EXECUTED: "Executed",
 }
 
-const GOVERNOR_ABI = require("./GOVERNOR_ABI.json");
+const GOVERNOR_ABI = require("./abi/GOVERNOR_ABI.json");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 describe("OvnGovernor", function () {
 

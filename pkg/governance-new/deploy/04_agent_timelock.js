@@ -4,7 +4,12 @@ const {ethers} = require("hardhat");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    await deployProxy('AgentTimelock', deployments, save);
+
+    let params = [{
+        args: []
+    }]
+
+    await deployProxy('AgentTimelock', deployments, save, params);
 
 
 };

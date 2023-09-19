@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
-import "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IGnosisSafe.sol";
 import { IAxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarExecutable.sol';
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
+import "./TimelockControllerUpgradeable.sol";
 
 
 contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
@@ -36,42 +36,22 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
     event OvnAgentUpdated(address ovnAgent);
     event NewImplementationUpdate(address newImplementation);
 
-    modifier onlyAgent() {
-        require(msg.sender == ovnAgent);
-        _;
-    }
-
-    modifier onlyAgentMembers() {
-        bool exist = msg.sender == ovnAgent;
-
-        if(!exist){
-
-            address[] memory members = IGnosisSafe(ovnAgent).getOwners();
-            for (uint256 i = 0; i < members.length; i++) {
-                if(members[i] == msg.sender){
-                    exist = true;
-                    break;
-                }
-            }
-        }
-        require(exist, "only ovnAgent or ovnAgentMember");
-        _;
-    }
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address _gateway, address _motherTimelock) initializer public {
-        require(_gateway != address(0), "Gateway address shouldn't be zero");
-        require(_motherTimelock != address(0), "Mother timelock address shouldn't be zero");
-
-        __UUPSUpgradeable_init();
+    function initialize(address _gateway, address _motherTimelock, address _ovnAgent) initializer public {
+        require(_gateway != address(0), "gateway is zero");
+        require(_motherTimelock != address(0), "motherTimelock is zero");
+        require(_ovnAgent != address(0), "ovnAgent is zero");
 
         gateway = IAxelarGateway(_gateway);
         motherTimelock = _motherTimelock;
+        ovnAgent = _ovnAgent;
+
+        __UUPSUpgradeable_init();
 
     }
 
@@ -81,9 +61,14 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
     onlyAgentMembers
     override
     {
-        // Mother governance should set a new address newImplementation by proposal
-        // Agent Member execute upgradeTo on contract pass implementation address equal newImplementation
-        require(newImplementation == _newImplementation, 'New implementation not equal');
+
+        if(newImplementation == address(0)){
+            newImplementation = _newImplementation;
+        }else{
+            // Mother governance should set a new address newImplementation by proposal
+            // Agent Member execute upgradeTo on contract pass implementation address equal newImplementation
+            require(newImplementation == _newImplementation, 'New implementation not equal');
+        }
     }
 
 
@@ -105,7 +90,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
     ) external {
 
         // Copy checks from AxelarGateway contracts
-        require(msg.sender == address(gateway), "Sender should be only axelarGateway");
+        require(msg.sender == address(gateway), "only gateway");
         bytes32 payloadHash = keccak256(payload);
 
         if (!gateway.validateContractCall(commandId, sourceChain, sourceAddress, payloadHash))
@@ -116,7 +101,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         // - Set newImplementation for upgradable
 
         (ActionOnAgent action, address _address) = abi.decode(payload, (ActionOnAgent, address));
-        require(_address != address(0), '_address cannot be zero');
+        require(_address != address(0), '_address is zero');
 
         if (action == ActionOnAgent.SET_NEW_AGENT) {
             ovnAgent = _address;
@@ -125,7 +110,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
             newImplementation = _address;
             emit NewImplementationUpdate(_address);
         } else {
-            revert("Inappropriate action");
+            revert("Unknown action");
         }
     }
 
@@ -140,53 +125,24 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         // only accepts tokens
     }
 
-    // OpenZeppelin Timelock methods
-    // Change list:
-    // - Add onlyAgent or onlyAgentMembers modifiers
 
-    function schedule(
-        address target,
-        uint256 value,
-        bytes calldata data,
-        bytes32 predecessor,
-        bytes32 salt,
-        uint256 delay
-    ) public override onlyAgent {
-        super.schedule(target, value, data, predecessor, salt, delay);
+    function _onlyAgent() override public {
+        require(msg.sender == ovnAgent, "only ovnAgent");
     }
 
-    function scheduleBatch(
-        address[] calldata targets,
-        uint256[] calldata values,
-        bytes[] calldata payloads,
-        bytes32 predecessor,
-        bytes32 salt,
-        uint256 delay
-    ) public override onlyAgent {
-        super.scheduleBatch(targets, values, payloads, predecessor, salt, delay);
-    }
+    function _onlyAgentMembers() override public {
+        bool exist = msg.sender == ovnAgent;
 
-    function execute(
-        address target,
-        uint256 value,
-        bytes calldata payload,
-        bytes32 predecessor,
-        bytes32 salt
-    ) public payable override onlyAgentMembers {
-        super.execute(target, value, payload, predecessor, salt);
-    }
+        if(!exist){
 
-    function executeBatch(
-        address[] calldata targets,
-        uint256[] calldata values,
-        bytes[] calldata payloads,
-        bytes32 predecessor,
-        bytes32 salt
-    ) public payable override onlyAgentMembers {
-       super.executeBatch(targets, values, payloads, predecessor, salt);
-    }
-
-    function cancel(bytes32 id) public override onlyAgentMembers  {
-        super.cancel(id);
+            address[] memory members = IGnosisSafe(ovnAgent).getOwners();
+            for (uint256 i = 0; i < members.length; i++) {
+                if(members[i] == msg.sender){
+                    exist = true;
+                    break;
+                }
+            }
+        }
+        require(exist, "only ovnAgent or ovnAgentMember");
     }
 }
