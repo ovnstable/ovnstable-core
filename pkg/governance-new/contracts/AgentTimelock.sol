@@ -42,7 +42,9 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         _disableInitializers();
     }
 
-    function initialize(address _gateway, address _motherTimelock, address _ovnAgent) initializer public {
+    function initialize(address _gateway,
+                        address _motherTimelock,
+                        address _ovnAgent) initializer public {
         require(_gateway != address(0), "gateway is zero");
         require(_motherTimelock != address(0), "motherTimelock is zero");
         require(_ovnAgent != address(0), "ovnAgent is zero");
@@ -93,8 +95,13 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         require(msg.sender == address(gateway), "only gateway");
         bytes32 payloadHash = keccak256(payload);
 
-        if (!gateway.validateContractCall(commandId, sourceChain, sourceAddress, payloadHash))
+        if (!gateway.validateContractCall(commandId, sourceChain, sourceAddress, payloadHash)){
             revert IAxelarExecutable.NotApprovedByGateway();
+        }
+
+        address source = address(bytes20(bytes(sourceAddress)));
+        require(source == motherTimelock, 'only motherTimelock');
+        require(keccak256(bytes(sourceChain)) == keccak256(bytes(MOTHER_CHAIN_ID_STR)), 'only motherChainId');
 
         // Support only certain actions
         // - Set a new ovnAgent
@@ -112,17 +119,6 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         } else {
             revert("Unknown action");
         }
-    }
-
-    function executeWithToken(
-        bytes32 commandId,
-        string calldata sourceChain,
-        string calldata sourceAddress,
-        bytes calldata payload,
-        string calldata tokenSymbol,
-        uint256 amount
-    ) external {
-        // only accepts tokens
     }
 
 

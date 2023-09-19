@@ -126,33 +126,43 @@ describe("AgentTimelock", function () {
 
     describe('axelar: execute', () => {
 
+        let commandId;
+        let sourceChain;
+        let sourceAddress;
+        let payload;
 
-        it('revert: only gateway', async () => {
-
+        beforeEach(async ()=>{
             await deployTimelock(gateway.address, account.address, account.address);
             timelock = await ethers.getContractAt(TIMELOCK_ABI, timelock.address);
 
-            let commandId = ethers.utils.formatBytes32String('test');
-            let sourceChain = "10";
-            let sourceAddress = secondUser.address;
-            let payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
+            commandId = ethers.utils.formatBytes32String('test');
+            sourceChain = "10";
+            sourceAddress = secondUser.address;
+            payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
+        })
 
+        it('revert: only gateway', async () => {
             await expectRevert(timelock.connect(secondUser).execute(commandId, sourceChain, sourceAddress, payload), 'only gateway')
 
         })
 
 
         it('revert: gateway.validateContractCall', async () => {
-
-            await deployTimelock(gateway.address, account.address, account.address);
-            timelock = await ethers.getContractAt(TIMELOCK_ABI, timelock.address);
-
-            let commandId = ethers.utils.formatBytes32String('test');
-            let sourceChain = "10";
-            let sourceAddress = secondUser.address;
-            let payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
-
             await expectRevert(gateway.send(commandId, sourceChain, sourceAddress, payload, timelock.address), 'VM Exception while processing transaction: reverted with custom error NotApprovedByGateway()')
+
+        })
+
+        it('revert: only motherTimelock', async () => {
+            await gateway.setValidate(true);
+            await expectRevert(gateway.send(commandId, sourceChain, sourceAddress, payload, timelock.address), 'only motherTimelock')
+
+        })
+
+        it('revert: only motherChainId', async () => {
+
+            await gateway.setValidate(true);
+            let sourceChain = "11";
+            await expectRevert(gateway.send(commandId, sourceChain, sourceAddress, payload, timelock.address), 'only motherTimelock')
 
         })
 
