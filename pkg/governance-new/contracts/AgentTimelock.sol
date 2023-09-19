@@ -116,6 +116,8 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         // - Set newImplementation for upgradable
 
         (ActionOnAgent action, address _address) = abi.decode(payload, (ActionOnAgent, address));
+        require(_address != address(0), '_address cannot be zero');
+
         if (action == ActionOnAgent.SET_NEW_AGENT) {
             ovnAgent = _address;
             emit OvnAgentUpdated(_address);
