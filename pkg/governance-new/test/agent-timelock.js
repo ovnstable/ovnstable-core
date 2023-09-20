@@ -147,6 +147,67 @@ describe("AgentTimelock", function () {
 
     });
 
+
+
+    describe('setOvnAgent', ()=>{
+
+
+        it('revert: only motherChain', async () => {
+            await deployTimelock(gateway.address, account.address, gnosisSafe.address);
+            await expectRevert(timelock.setOvnAgent(account.address), 'only motherChain');
+        });
+
+        it('revert: only motherTimelock', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+            await expectRevert(timelock.connect(secondUser).setOvnAgent(account.address), 'only motherTimelock');
+        });
+
+        it('revert: setAddress is zero', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+            await expectRevert(timelock.setOvnAgent(ZERO_ADDRESS), 'setAddress is zero');
+        });
+
+
+        it('success', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+
+            let tx = await (await timelock.setOvnAgent(secondUser.address)).wait();
+            expect(secondUser.address).to.eq(await timelock.ovnAgent())
+            let event = await findEvent(tx, timelock, 'OvnAgentUpdated');
+            expect(secondUser.address).to.eq(event.args.ovnAgent);
+        });
+
+    });
+
+
+    describe('setNewImplementation', ()=>{
+
+        it('revert: only motherChain', async () => {
+            await deployTimelock(gateway.address, account.address, gnosisSafe.address);
+            await expectRevert(timelock.setNewImplementation(account.address), 'only motherChain');
+        });
+
+        it('revert: only motherTimelock', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+            await expectRevert(timelock.connect(secondUser).setNewImplementation(account.address), 'only motherTimelock');
+        });
+
+        it('revert: setAddress is zero', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+            await expectRevert(timelock.setNewImplementation(ZERO_ADDRESS), 'setAddress is zero');
+        });
+
+
+        it('success', async () => {
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+
+            let tx = await (await timelock.setNewImplementation(secondUser.address)).wait();
+            expect(secondUser.address).to.eq(await timelock.newImplementation())
+            let event = await findEvent(tx, timelock, 'NewImplementationUpdate');
+            expect(secondUser.address).to.eq(event.args.newImplementation);
+        });
+    })
+
     describe('axelar disabled: execute', ()=>{
 
 
@@ -264,6 +325,19 @@ describe("AgentTimelock", function () {
 
     describe('upgradeTo', ()=>{
 
+        it('upgrade by motherTimelock', async ()=>{
+
+            await deployTimelock(ZERO_ADDRESS, account.address, gnosisSafe.address);
+            timelock = await ethers.getContractAt(TIMELOCK_ABI, timelock.address);
+
+            let newImplementation = await getTestTimelockImpl();
+
+            await timelock.setNewImplementation(newImplementation);
+            await timelock.upgradeTo(newImplementation);
+
+            // TEST_VALUE should be exist after upgrade
+            expect(10).to.eq(await timelock.TEST_VALUE())
+        });
 
         it('upgrade by axelar', async ()=>{
 

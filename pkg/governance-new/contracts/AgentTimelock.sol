@@ -100,6 +100,33 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
         return address(gateway) == address(0);
     }
 
+    /**
+     * @dev Set a new OVN Agent
+     * Working only on MOTHER Chain
+     * Calling only MOTHER TIMELOCK
+     */
+
+    function setOvnAgent(address _ovnAgent) external {
+        require(isMotherChain(), 'only motherChain');
+        require(msg.sender == motherTimelock, 'only motherTimelock');
+
+        _executeAction(ActionOnAgent.SET_NEW_AGENT, _ovnAgent);
+    }
+
+
+    /**
+     * @dev Set a new implementation address
+     * Working only on MOTHER Chain
+     * Calling only MOTHER TIMELOCK
+     */
+
+    function setNewImplementation(address _newImplementation) external {
+        require(isMotherChain(), 'only motherChain');
+        require(msg.sender == motherTimelock, 'only motherTimelock');
+
+        _executeAction(ActionOnAgent.UPGRADE_TIMELOCK, _newImplementation);
+    }
+
 
     /**
      * @dev Allow to update ovnAgent or newImplementation by Axelar
@@ -146,6 +173,10 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
         // - Set newImplementation for upgradable
 
         (ActionOnAgent action, address setAddress) = abi.decode(payload, (ActionOnAgent, address));
+        _executeAction(action, setAddress);
+    }
+
+    function _executeAction(ActionOnAgent action, address setAddress) internal {
         require(setAddress != address(0), 'setAddress is zero');
 
         if (action == ActionOnAgent.SET_NEW_AGENT) {
