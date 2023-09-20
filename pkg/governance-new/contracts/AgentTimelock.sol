@@ -123,6 +123,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * [ONLY MOTHER CHAIN MODE]
      * @dev Set a new OVN Agent
      * Working only on MOTHER Chain
      * Calling only MOTHER TIMELOCK
@@ -137,6 +138,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
 
 
     /**
+     * [ONLY MOTHER CHAIN MODE]
      * @dev Set a new implementation address
      * Working only on MOTHER Chain
      * Calling only MOTHER TIMELOCK
@@ -151,6 +153,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
 
 
     /**
+     * [ONLY CHILD CHAIN MODE]
      * @dev Allow to update ovnAgent or newImplementation by Axelar
      * How is it working?
      * MotherTimelock (Optimism) > send translation to Axelar -> Axelar Gateway execute it
