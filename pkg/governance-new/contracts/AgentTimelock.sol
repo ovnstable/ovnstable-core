@@ -10,6 +10,28 @@ import "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol
 import "./TimelockControllerUpgradeable.sol";
 import "./interfaces/IGnosisSafe.sol";
 
+
+/**
+ * @dev Modified OpenZeppelin Timelock under requirements Overnight
+ * Support two mode:
+ * - MOTHER CHAIN
+ * - CHILD CHAIN
+
+ * In Mother Chain mode: MotherTimelock exist on same chain with AgentTimelock.
+ * MotherTimelock directly change ovnAgent or upgrade AgentTimelock
+ * Available methods:
+ * - setOvnAgent
+ * - setNewImplementation
+
+ * In Child Chain Mode: MotherTimelock exist on a different basic chain from AgentTimelock
+ * MotherTimelock send transaction to Axelar on Mother Chain
+ * Axelar send translation to Child Chain
+ * Axelar Gateway on Child Chain call method directly: execute
+ * Available methods:
+ * - execute
+ * [Not to be confused with methods Timelock: execute, executeBatch]
+ */
+
 contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
 
 
