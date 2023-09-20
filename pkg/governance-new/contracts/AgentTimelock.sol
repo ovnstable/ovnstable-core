@@ -2,34 +2,48 @@
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/IGnosisSafe.sol";
+
 import { IAxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarExecutable.sol';
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
+import "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
+
 import "./TimelockControllerUpgradeable.sol";
+import "./interfaces/IGnosisSafe.sol";
 
+contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
 
-contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
-
-    uint256 public constant MOTHER_CHAIN_ID = 10; // Optimism
-    string public constant MOTHER_CHAIN_ID_STR = "10"; // Optimism
 
     /**
      * @dev Confidant MultiSig - allow to change protocol USD+
      * Can execute methods:
+     * - schedule
+     * - scheduleBatch
+
+     * Members of MultiSig:
+     * Can execute methods:
+     * - cancel
      * - execute
      * - executeBatch
      */
 
     address public ovnAgent;
 
+    /**
+     * @dev Timelock to allow to change ovnAgent
+     * If is it mother chain (Optimism)
+     * then need to execute method: setOvnAgent()
+     * if is it child chain (!Optimism)
+     * then need to use Axelar Gateway
+     */
 
-    address public motherTimelock; // mother timelock address, exist only on motherChain
+    address public motherTimelock;
+    string public motherChainId;
     IAxelarGateway public gateway;
     address public newImplementation;
 
     enum ActionOnAgent {
-        UPGRADE_TIMELOCK,
-        SET_NEW_AGENT
+        SET_NEW_AGENT,
+        UPGRADE_TIMELOCK
     }
 
 
@@ -44,17 +58,25 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
 
     function initialize(address _gateway,
                         address _motherTimelock,
-                        address _ovnAgent) initializer public {
-        require(_gateway != address(0), "gateway is zero");
+                        address _ovnAgent,
+                        string memory _motherChainId
+    ) initializer public {
         require(_motherTimelock != address(0), "motherTimelock is zero");
         require(_ovnAgent != address(0), "ovnAgent is zero");
+        require(bytes(_motherChainId).length != 0, "_motherChainId is empty");
 
-        gateway = IAxelarGateway(_gateway);
+
+        // If gateway is null then it's MOTHER Chain (Axelar disabled)
+        // If gateway is defined then it's CHILD Chain (Axelar enabled)
+        if(_gateway != address(0)){
+            gateway = IAxelarGateway(_gateway);
+        }
+
         motherTimelock = _motherTimelock;
+        motherChainId = _motherChainId;
         ovnAgent = _ovnAgent;
 
         __UUPSUpgradeable_init();
-
     }
 
 
@@ -75,14 +97,26 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
 
 
     function isMotherChain() public view returns(bool) {
-        uint256 idChain;
-        assembly {
-            idChain := chainid()
-        }
-        return idChain == MOTHER_CHAIN_ID;
+        return address(gateway) == address(0);
     }
 
 
+    /**
+     * @dev Allow to update ovnAgent or newImplementation by Axelar
+     * How is it working?
+     * MotherTimelock (Optimism) > send translation to Axelar -> Axelar Gateway execute it
+     * Working only on CHILD Chain
+     * @param payload - ['ActionOnAgent(uint256)', 'setAddress(address)']
+     *
+     * Available params:
+     *
+     * ActionOnAgent:
+     *  0 - SET_NEW_AGENT
+     *  1 -  UPGRADE_TIMELOCK
+     * setAddress:
+     * - Address a new OvnAgent
+     * - Address a new implementation
+     */
 
     function execute(
         bytes32 commandId,
@@ -90,6 +124,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
         string calldata sourceAddress,
         bytes calldata payload
     ) external {
+        require(!isMotherChain(), 'not motherChain');
 
         // Copy checks from AxelarGateway contracts
         require(msg.sender == address(gateway), "only gateway");
@@ -99,46 +134,67 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable{
             revert IAxelarExecutable.NotApprovedByGateway();
         }
 
-        address source = address(bytes20(bytes(sourceAddress)));
+        // Use Axelar library for convert from string to address type
+        address source = StringToAddress.toAddress(sourceAddress);
         require(source == motherTimelock, 'only motherTimelock');
-        require(keccak256(bytes(sourceChain)) == keccak256(bytes(MOTHER_CHAIN_ID_STR)), 'only motherChainId');
+
+        // TODO How correct equal is it?
+        require(keccak256(bytes(sourceChain)) == keccak256(bytes(motherChainId)), 'only motherChainId');
 
         // Support only certain actions
         // - Set a new ovnAgent
         // - Set newImplementation for upgradable
 
-        (ActionOnAgent action, address _address) = abi.decode(payload, (ActionOnAgent, address));
-        require(_address != address(0), '_address is zero');
+        (ActionOnAgent action, address setAddress) = abi.decode(payload, (ActionOnAgent, address));
+        require(setAddress != address(0), 'setAddress is zero');
 
         if (action == ActionOnAgent.SET_NEW_AGENT) {
-            ovnAgent = _address;
-            emit OvnAgentUpdated(_address);
+            ovnAgent = setAddress;
+            emit OvnAgentUpdated(setAddress);
         } else if (action == ActionOnAgent.UPGRADE_TIMELOCK) {
-            newImplementation = _address;
-            emit NewImplementationUpdate(_address);
+            newImplementation = setAddress;
+            emit NewImplementationUpdate(setAddress);
         } else {
             revert("Unknown action");
         }
     }
 
 
+    /**
+     * @dev Calling in modifier onlyAgent (see TimelockControllerUpgradeable)
+     * Checks permissions for executing methods:
+     * - schedule
+     * - scheduleBatch
+     */
+
     function _onlyAgent() override public {
         require(msg.sender == ovnAgent, "only ovnAgent");
     }
 
-    function _onlyAgentMembers() override public {
-        bool exist = msg.sender == ovnAgent;
 
-        if(!exist){
+   /**
+     * @dev Calling in modifier onlyAgentMembers (see TimelockControllerUpgradeable)
+     * Checks permissions for executing methods:
+     * - cancel
+     * - execute
+     * - executeBatch
+     *
+     * Allow calling methods only ovnAgent or members of ovnAgent
+     */
+
+    function _onlyAgentMembers() override public {
+        bool isAllow = msg.sender == ovnAgent;
+
+        if(!isAllow){
 
             address[] memory members = IGnosisSafe(ovnAgent).getOwners();
             for (uint256 i = 0; i < members.length; i++) {
                 if(members[i] == msg.sender){
-                    exist = true;
+                    isAllow = true;
                     break;
                 }
             }
         }
-        require(exist, "only ovnAgent or ovnAgentMember");
+        require(isAllow, "only ovnAgent or ovnAgentMember");
     }
 }

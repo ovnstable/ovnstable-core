@@ -25,7 +25,7 @@ contract MockGateway {
         string calldata sourceChain,
         string calldata sourceAddress,
         bytes calldata payload,
-        address to) public{
+        address to) public {
 
         IAxelarExecutable(to).execute(commandId, sourceChain, sourceAddress, payload);
     }
