@@ -1,0 +1,165 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0xdE0ECfA3AA9bA8F7F1b2A833F811f07D5DC88c8c",
+      "txHash": "0x5402a0af828967490be5f6edc73070184137ed6782b0ac9dc89217b2cab66848",
+      "kind": "uups"
+    },
+    {
+      "address": "0xD299CDeb73C039f1C0cA122855BF5D707906E7C4",
+      "txHash": "0x79e54b7300f767fcc8ad0cb323f7daaf7cd84cefdc3033617df9aac8a31dabca",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "a38bdb10707c2ca23dfa0733658e10334d3449cd8d3ee51b3b6615066876459b": {
+      "address": "0xDaA9E7D0dc06C4bFaa3Cc5C7AD0254b9EB554DED",
+      "txHash": "0x84a3ce458c81ab2ca05ea361472f07c08e37c9c867a976acbb63c8ee01f64e29",
+      "layout": {
+        "solcVersion": "0.8.8",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "_timestamps",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "contract": "TimelockControllerUpgradeable",
+            "src": "contracts/openzeppelin/TimelockControllerUpgradeable.sol:28"
+          },
+          {
+            "label": "_minDelay",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "TimelockControllerUpgradeable",
+            "src": "contracts/openzeppelin/TimelockControllerUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_array(t_uint256)48_storage",
+            "contract": "TimelockControllerUpgradeable",
+            "src": "contracts/openzeppelin/TimelockControllerUpgradeable.sol:385"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "ovnAgent",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "AgentTimelock",
+            "src": "contracts/AgentTimelock.sol:52"
+          },
+          {
+            "label": "motherTimelock",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_address",
+            "contract": "AgentTimelock",
+            "src": "contracts/AgentTimelock.sol:62"
+          },
+          {
+            "label": "motherChainId",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_string_storage",
+            "contract": "AgentTimelock",
+            "src": "contracts/AgentTimelock.sol:63"
+          },
+          {
+            "label": "gateway",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_contract(IAxelarGateway)395",
+            "contract": "AgentTimelock",
+            "src": "contracts/AgentTimelock.sol:64"
+          },
+          {
+            "label": "newImplementation",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_address",
+            "contract": "AgentTimelock",
+            "src": "contracts/AgentTimelock.sol:65"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]",
+            "numberOfBytes": "1536"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IAxelarGateway)395": {
+            "label": "contract IAxelarGateway",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
