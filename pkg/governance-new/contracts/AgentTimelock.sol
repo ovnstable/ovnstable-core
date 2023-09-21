@@ -2,12 +2,13 @@
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IAxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarExecutable.sol';
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
 import "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
 
-import "./TimelockControllerUpgradeable.sol";
+import "./openzeppelin/TimelockControllerUpgradeable.sol";
 import "./interfaces/IGnosisSafe.sol";
 
 
@@ -32,7 +33,7 @@ import "./interfaces/IGnosisSafe.sol";
  * [Not to be confused with methods Timelock: execute, executeBatch]
  */
 
-contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
+contract AgentTimelock is Initializable, TimelockControllerUpgradeable, UUPSUpgradeable {
 
 
     /**
@@ -108,6 +109,7 @@ contract AgentTimelock is TimelockControllerUpgradeable, UUPSUpgradeable {
     override
     {
 
+        // First upgrade
         if(newImplementation == address(0)){
             newImplementation = _newImplementation;
         }else{

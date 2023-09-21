@@ -22,7 +22,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  *
  * _Available since v3.3._
  */
-abstract contract TimelockControllerUpgradeable is Initializable,  IERC721ReceiverUpgradeable, IERC1155ReceiverUpgradeable {
+abstract contract TimelockControllerUpgradeable is  IERC721ReceiverUpgradeable, IERC1155ReceiverUpgradeable {
     uint256 internal constant _DONE_TIMESTAMP = uint256(1);
 
     mapping(bytes32 => uint256) private _timestamps;
