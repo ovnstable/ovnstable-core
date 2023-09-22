@@ -181,9 +181,7 @@ contract AgentTimelock is Initializable, TimelockControllerUpgradeable, UUPSUpgr
         require(!isMotherChain(), 'not motherChain');
 
         // Copy checks from AxelarGateway contracts
-        require(msg.sender == address(gateway), "only gateway");
         bytes32 payloadHash = keccak256(payload);
-
         if (!gateway.validateContractCall(commandId, sourceChain, sourceAddress, payloadHash)){
             revert IAxelarExecutable.NotApprovedByGateway();
         }
@@ -192,7 +190,6 @@ contract AgentTimelock is Initializable, TimelockControllerUpgradeable, UUPSUpgr
         address source = StringToAddress.toAddress(sourceAddress);
         require(source == motherTimelock, 'only motherTimelock');
 
-        // TODO How correct equal is it?
         require(keccak256(bytes(sourceChain)) == keccak256(bytes(motherChainId)), 'only motherChainId');
 
         // Support only certain actions

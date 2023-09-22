@@ -254,10 +254,6 @@ describe("AgentTimelock", function () {
             payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, ZERO_ADDRESS]);
         });
 
-        it('revert: only gateway', async () => {
-            await expectRevert(timelock.connect(secondUser).execute(commandId, sourceChain, sourceAddress, payload), 'only gateway')
-
-        });
 
         // Can be fail if run in parallel because cannot parse custom error (NotApprovedByGateway)
         it('revert: gateway.validateContractCall', async () => {
