@@ -26,8 +26,9 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
     IERC20 public asset;
     IRebaseToken public rebase;
-    IPortfolioManager public pm;
-    IMark2Market public m2m;
+    address public odosRouter;
+    SwapData public swapData;
+    uint256 public swapSlippageBP;
 
     uint256 public mintFee;
     uint256 public mintFeeDenominator;
@@ -48,8 +49,14 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     struct SetUpParams {
         address asset;
         address rebase;
-        address pm;
-        address m2m;
+        address odosRouter;
+    }
+
+    struct SwapData {
+        address inputTokenAddress;
+        address outputTokenAddress;
+        uint256 amountIn;
+        bytes data;
     }
 
     struct InputMint {
@@ -144,12 +151,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         _;
     }
 
-
     function setUpParams(SetUpParams calldata params) external onlyAdmin {
         asset = IERC20(params.asset);
         rebase = IRebaseToken(params.rebase);
-        pm = IPortfolioManager(params.pm);
-        m2m = IMark2Market(params.m2m);
+        odosRouter = params.odosRouter;
     }
 
     function setPayoutTimes(
@@ -182,6 +187,14 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         withdrawPeriod = _withdrawPeriod;
     }
 
+    function setSwapSlippage(uint256 _swapSlippageBP) external onlyAdmin {
+        swapSlippageBP = _swapSlippageBP;
+    }
+
+    function setSwapData(SwapData memory _swapData) external onlyAdmin {
+        swapData = _swapData;
+    }
+
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
         _mint(input.amount);
     }
@@ -190,12 +203,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(_amount > 0, "Amount of asset is zero");
         require(asset.balanceOf(msg.sender) >= _amount, "Not enough tokens to mint");
 
-
-        uint256 _targetBalance = asset.balanceOf(address(pm)) + _amount;
-        asset.transferFrom(msg.sender, address(pm), _amount);
-        require(asset.balanceOf(address(pm)) == _targetBalance, 'pm balance != target');
-
-        pm.deposit();
+        asset.transferFrom(msg.sender, address(this), _amount);
 
         uint256 rebaseAmount = _assetToRebaseAmount(_amount);
         uint256 fee;
@@ -243,8 +251,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         uint256 assetAmount = _rebaseAmountToAsset(amountFee);
         require(assetAmount > 0, "Amount of asset is zero");
 
-        pm.withdraw(assetAmount);
-
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer");
 
         asset.transfer(msg.sender, assetAmount);
@@ -282,7 +288,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
     }
 
-
     function requestWithdraw() external whenNotPaused {
         withdrawRequests[msg.sender] = block.timestamp + requestWaitPeriod;
     }
@@ -303,18 +308,35 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(withdrawDate > currentDate, 'withdrawPeriod');
     }
 
-
-    function premium(uint256 _assetAmount) external onlyInsuranceHolder {
-        require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        asset.transfer(address(pm), _assetAmount);
+    function premium(uint256 _assetAmount)  external onlyInsuranceHolder {
+        require(swapData.outputTokenAddress == address(asset), "wrong output token");
+        _swap();
     }
 
     function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        pm.withdraw(_assetAmount);
-        require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        asset.transfer(_to, _assetAmount);
+        require(swapData.inputTokenAddress == address(asset), "wrong input token");
+        _swap();
+        require(IERC20(swapData.outputTokenAddress).balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
+        IERC20(swapData.outputTokenAddress).transfer(_to, _assetAmount);
     }
 
+    function _swap() internal {
+
+        require(swapData.inputTokenAddress == address(asset) || swapData.outputTokenAddress == address(asset), "need to work with ovn");
+
+        IERC20 inputAsset = IERC20(swapData.inputTokenAddress);
+        IERC20 outputAsset = IERC20(swapData.outputTokenAddress);
+
+        inputAsset.approve(odosRouter, swapData.amountIn);
+
+        uint256 balanceBefore = outputAsset.balanceOf(address(this));
+        inputAsset.approve(odosRouter, swapData.amountIn);
+        (bool success,) = odosRouter.call{value : 0}(swapData.data);
+        require(success, "router swap invalid");
+        uint256 balanceAfter = outputAsset.balanceOf(address(this));
+
+        // todo slippage check
+    }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
 
@@ -322,9 +344,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
             return;
         }
 
-        pm.claimAndBalance();
-
-        uint256 totalAsset = m2m.totalNetAssets();
+        uint256 totalAsset = asset.balanceOf(address(this));
         totalAsset = _assetToRebaseAmount(totalAsset);
 
         int256 profit = int256(totalAsset) - int256(rebase.totalSupply());
@@ -340,6 +360,5 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         }
         emit NextPayoutTime(nextPayoutTime);
     }
-
 
 }

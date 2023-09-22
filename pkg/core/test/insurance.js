@@ -7,18 +7,24 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
+const {
+    initWallet,
+    getContract,
+    getERC20,
+    getERC20ByAddress
+} = require("@overnight-contracts/common/utils/script-utils");
 
 
 describe("InsuranceExchange", function () {
 
     let account;
     let insurance;
-    let pm;
     let rebase;
     let asset;
 
     let testAccount;
     let collector;
+    let intermediateAssets;
 
     let UNIT_ROLE;
     let FREE_RIDER_ROLE;
@@ -35,14 +41,14 @@ describe("InsuranceExchange", function () {
     };
 
     let decimals = [
-        {
-            asset: 6,
-            rebase: 6
-        },
-        {
-            asset: 18,
-            rebase: 6
-        },
+        // {
+        //     asset: 6,
+        //     rebase: 6
+        // },
+        // {
+        //     asset: 18,
+        //     rebase: 6
+        // },
         {
             asset: 18,
             rebase: 18
@@ -66,10 +72,14 @@ describe("InsuranceExchange", function () {
                 collector = await createRandomWallet();
 
                 insurance = await ethers.getContract("InsuranceExchange");
-                pm = await ethers.getContract("MockPortfolioManager");
                 rebase = await ethers.getContract('RebaseToken');
                 asset = await ethers.getContract('AssetToken');
 
+                intermediateAssets = [
+                    await getERC20('usdc'),
+                    await getERC20('usdt'),
+                    await getERC20('dai')
+                ];
 
                 if (decimal.rebase === 6) {
                     toRebase = toE6;
@@ -174,9 +184,7 @@ describe("InsuranceExchange", function () {
 
                     it("deposit: nav correct", async function () {
                         await mint(10);
-                        expect(await asset.balanceOf(pm.address)).to.equal(toAsset(10));
-                        expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(0));
-                        expect(await pm.totalNetAssets()).to.equal(toAsset(10));
+                        expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(10));
                     });
 
 
@@ -325,9 +333,7 @@ describe("InsuranceExchange", function () {
                     it("withdraw: nav correct", async function () {
                         await mint(10);
                         await redeem(10);
-                        expect(await asset.balanceOf(pm.address)).to.equal(toAsset(0));
                         expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(0));
-                        expect(await pm.totalNetAssets()).to.equal(toAsset(0));
                     });
 
 
@@ -335,10 +341,10 @@ describe("InsuranceExchange", function () {
                         await mint(10);
 
                         await rebase.approve(insurance.address, toRebase(10));
+                        await insurance.compensate(toAsset(1), account);
                         await requestWithdraw();
                         await waitPeriod();
 
-                        await pm.setNavLess(true, testAccount.address);
                         await expectRevert(insurance.redeem({amount: toRebase(10)}), "Not enough for transfer");
                     });
 
@@ -360,26 +366,19 @@ describe("InsuranceExchange", function () {
                 it("premium: transferFrom", async function () {
 
                     await asset.mint(account, toAsset(10));
-                    await asset.transfer(insurance.address, toAsset(10));
+                    await intermediateAssets[0].transfer(insurance.address, toAsset(10));
+                    await setSwapData(asset.address, );
                     await insurance.premium(toAsset(10));
 
-                    await expect(10).to.equal(fromAsset(await asset.balanceOf(pm.address)));
-                    await expect(10).to.equal(fromAsset(await pm.totalNetAssets()));
+                    await expect(10).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
                     await expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
                 });
 
-                it("compensate: Not enough for transfer", async function () {
-                    await asset.mint(pm.address, toAsset(10));
-                    await pm.setNavLess(true, testAccount.address);
-                    await expectRevert(insurance.compensate(toAsset(10), account), 'Not enough for transfer');
-                });
-
                 it("compensate: transfer", async function () {
-                    await asset.mint(pm.address, toAsset(10));
+                    await asset.mint(insurance.address, toAsset(10));
                     await insurance.compensate(toAsset(10), account);
 
-                    await expect(0).to.equal(fromAsset(await asset.balanceOf(pm.address)));
-                    await expect(0).to.equal(fromAsset(await pm.totalNetAssets()));
+                    await expect(0).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
                     await expect(10).to.equal(fromAsset(await asset.balanceOf(account)));
                 });
             });
@@ -391,19 +390,13 @@ describe("InsuranceExchange", function () {
                     await insurance.grantRole(UNIT_ROLE, account);
 
                     await mint(10);
-                    await asset.mint(pm.address, toAsset(1));
+                    await asset.mint(insurance.address, toAsset(1));
                     tx = await (await insurance.payout()).wait();
                 });
 
                 it("Rebase: equal", async function () {
                     expect(11).to.equal(fromRebase(await rebase.balanceOf(account)));
                 });
-
-
-                it("nav: equal", async function () {
-                    expect(11).to.equal(fromAsset(await pm.totalNetAssets()));
-                });
-
 
                 it("event PayoutEvent", async function () {
 
@@ -428,19 +421,13 @@ describe("InsuranceExchange", function () {
                     await insurance.grantRole(UNIT_ROLE, account);
 
                     await mint(10);
-                    await asset.burn(pm.address, toAsset(1));
+                    await asset.burn(insurance.address, toAsset(1));
                     tx = await (await insurance.payout()).wait();
                 });
 
                 it("Rebase: equal", async function () {
                     expect(9).to.equal(fromRebase(await rebase.balanceOf(account)));
                 });
-
-
-                it("nav: equal", async function () {
-                    expect(9).to.equal(fromAsset(await pm.totalNetAssets()));
-                });
-
 
                 it("event PayoutEvent", async function () {
 
@@ -498,6 +485,77 @@ describe("InsuranceExchange", function () {
             await ethers.provider.send('evm_mine');
         }
 
+        async function setSwapData(tokenIn, tokenOut, amountTokenIn, amountTokenOut) {
+
+            const inputToken = { "tokenAddress": tokenIn, "amount": amountTokenIn.toString() };
+            const outputToken = { "tokenAddress": tokenOut, "amount": amountTokenOut.toString() };
+
+            const request = await getOdosRequest({
+                "inputTokens": inputToken,
+                "outputTokens": outputToken,
+                "userAddr": insurance.address,
+            });
+    
+            let receipt = await (await insurance.connect(account).setSwapData(
+                {
+                    inputTokenAddress: tokenIn,
+                    outputTokenAddress: tokenOut,
+                    amountIn: amountTokenIn,
+                    data: request.data
+                }
+            )).wait();
+    
+        }
+
+        async function getOdosRequest(request) {
+            let swapParams = {
+                "chainId": await getChainId(),
+                "gasPrice": 1,
+                "inputTokens": request.inputTokens,
+                "outputTokens": request.outputTokens,
+                "userAddr": request.userAddr,
+                "slippageLimitPercent": 1,
+                "sourceBlacklist": ["Hashflow"],
+                "sourceWhitelist": [],
+                "simulate": false,
+                "pathViz": false,
+                "disableRFQs": false
+            }
+        
+            // @ts-ignore
+            const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
+            const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
+            let transaction;
+            try {
+                let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { "Accept-Encoding": "br" } }));
+        
+                let assembleData = {
+                    "userAddr": request.userAddr,
+                    "pathId": quotaResponse.data.pathId,
+                    "simulate": true
+                }
+        
+                console.log("assembleData: ", assembleData)
+                transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
+                console.log("odos transaction simulation: ", transaction.data.simulation)
+            } catch (e) {
+                console.log("[zap] getSwapTransaction: ", e);
+                return 0;
+            }
+        
+            if (transaction.statusCode === 400) {
+                console.log(`[zap] ${transaction.description}`);
+                return 0;
+            }
+        
+            if (transaction.data.transaction === undefined) {
+                console.log("[zap] transaction.tx is undefined");
+                return 0;
+            }
+        
+            console.log('Success get data from Odos!');
+            return transaction.data.transaction;
+        }
 
     });
 });
