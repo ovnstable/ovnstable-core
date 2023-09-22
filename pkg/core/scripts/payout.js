@@ -14,7 +14,7 @@ async function main() {
 
     let exchange = await getContract('Exchange');
     let pm = await getContract('PortfolioManager');
-    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     let usdPlus = await getContract('UsdPlusToken');
 

@@ -11,6 +11,7 @@ chai.use(solidity);
 
 const TIMELOCK_ABI = require("./abi/TIMELOCK_ABI.json");
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
+const {findEvent} = require("@overnight-contracts/common/utils/script-utils");
 
 describe("AgentTimelock", function () {
 
@@ -415,21 +416,4 @@ describe("AgentTimelock", function () {
     }
 
 
-    async function findEvent(receipt, abi, eventName){
-
-
-        for (let value of receipt.logs) {
-            try {
-                let log = abi.interface.parseLog(value);
-
-                if (log.name === eventName) {
-                    return log;
-                }
-            } catch (e) {
-            }
-        }
-
-        return null;
-
-    }
 });

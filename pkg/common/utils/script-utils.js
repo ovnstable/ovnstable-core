@@ -42,6 +42,24 @@ async function initWallet() {
 }
 
 
+async function findEvent(receipt, abi, eventName){
+
+
+    for (let value of receipt.logs) {
+        try {
+            let log = abi.interface.parseLog(value);
+
+            if (log.name === eventName) {
+                return log;
+            }
+        } catch (e) {
+        }
+    }
+
+    return null;
+
+}
+
 async function getWalletAddress() {
 
     let wallet = await initWallet();
@@ -1015,6 +1033,7 @@ module.exports = {
     showM2M: showM2M,
     getPrice: getPrice,
     getContract: getContract,
+    findEvent: findEvent,
     getContractByAddress: getContractByAddress,
     getBytecode: getBytecode,
     isContract: isContract,
