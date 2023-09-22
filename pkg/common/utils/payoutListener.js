@@ -64,6 +64,22 @@ function createCustom(pool, token, poolName, dexName, to = COMMON.rewardWallet) 
     };
 }
 
+function createCustomBribe(pool, token, poolName, dexName, bribe, to = COMMON.rewardWallet, feePercent = 20, feeReceiver = COMMON.rewardWallet) {
+
+    return {
+        pool: pool,
+        token: token,
+        poolName: poolName,
+        bribe: bribe,
+        operation: OPERATIONS.CUSTOM,
+        to: to,
+        dexName: dexName,
+        feePercent: feePercent,
+        feeReceiver: feeReceiver,
+        __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+}
+
 
 function createSkimTo(pool, token, poolName, dexName, to){
 
@@ -170,5 +186,6 @@ module.exports = {
     createBribe: createBribe,
     createBribeWithFee: createBribeWithFee,
     createCustom: createCustom,
+    createCustomBribe: createCustomBribe,
     showPoolOperations: showPoolOperations,
 };

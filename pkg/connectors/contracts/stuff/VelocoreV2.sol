@@ -222,7 +222,7 @@ interface IBribe {
      * @param  gauge  the gauge to bribe for.
      * @param  elapsed  elapsed time after last call; can be used to save gas.
      */
-    function velocore__bribe(IGauge gauge, uint256 elapsed)
+    function velocore__bribe(address gauge, uint256 elapsed)
     external
     returns (
         Token[] memory bribeTokens,
@@ -231,8 +231,9 @@ interface IBribe {
         int128[] memory deltaExternal
     );
 
-    function bribeTokens(IGauge gauge) external view returns (Token[] memory);
-    function bribeRates(IGauge gauge) external view returns (uint256[] memory);
+    function bribeTokens(address gauge) external view returns (Token[] memory);
+    function bribeRates(address gauge) external view returns (uint256[] memory);
+    function totalBribes(address gauge) external view returns (uint256);
 }
 
 interface IPool is ISwap, IGauge, IBribe, IERC20Metadata {
@@ -240,8 +241,29 @@ interface IPool is ISwap, IGauge, IBribe, IERC20Metadata {
     function poolParams() external view returns (bytes memory);
 }
 
-interface IRebaseWrapper {
+interface IRebaseWrapper is IERC20Metadata {
     function skim() external;
+
+    function depositExactOut(uint256 amountOut) external;
+
+    function depositExactIn(uint256 amountIn) external;
+
+    function withdrawExactOut(uint256 amountOut) external;
+
+    function withdrawExactIn(uint256 amountIn) external;
+}
+
+interface ILinearBribeFactory {
+
+    function bribes(Token tok) external view returns (address bribe);
+
+    function listedTokens() external view returns (Token[] memory);
+
+    function swapType() external view returns (string memory);
+
+    function lpTokens() external view returns (Token[] memory ret);
+
+    function underlyingTokens(Token tok) external view returns (Token[] memory);
 }
 
 library VelocoreV2Library {
@@ -263,7 +285,8 @@ library VelocoreV2Library {
         OperationType operationType,
         address token0,
         AmountType amountType0,
-        uint256 amount0
+        uint256 amount0,
+        bytes memory data
     ) internal returns (uint256) {
 
         if (token0 != address(0)) {
@@ -276,10 +299,10 @@ library VelocoreV2Library {
             token0,
             uint8(amountType0),
             int128(uint128(amount0)),
-            ""
+            data
         );
 
-        return uint256(uint128(amountOut[0]));
+        return uint256(uint128(-amountOut[0]));
     }
 
     function run2(
