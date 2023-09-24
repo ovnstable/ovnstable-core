@@ -1,6 +1,8 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
-const {getContract} = require("@nomiclabs/hardhat-ethers/internal/helpers");
+const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const hre = require("hardhat");
+const {ethers} = require("hardhat");
 
 module.exports = async ({deployments, getNamedAccounts}) => {
     const {deployer} = await getNamedAccounts();
@@ -15,6 +17,13 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     });
 
     console.log(`WrappedUsdPlusRateProvider deployed at ${rateProvider.address}`);
+
+    if (hre.ovn.verify){
+        await hre.run("verify:verify", {
+            address: rateProvider.address,
+            constructorArguments: [wrappedUsdPus.address],
+        });
+    }
 };
 
 module.exports.tags = ['WrappedUsdPlusRateProvider'];
