@@ -37,6 +37,6 @@ interface IExchange {
      */
     function redeem(address _asset, uint256 _amount) external returns (uint256);
 
-    function payout(bool simulate) external returns (uint256 compensateAmount);
+    function payout(bool simulate) external returns (uint256 swapAmount);
 
 }

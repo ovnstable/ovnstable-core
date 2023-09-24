@@ -22,16 +22,29 @@ async function main() {
 
     let usdPlus = await getContract('UsdPlusToken');
     let zeroAddress = "0x0000000000000000000000000000000000000000";
+    let odosEmptyData = {
+        inputTokenAddress: zeroAddress,
+        outputTokenAddress: zeroAddress,
+        amountIn: 0,
+        data: ""
+    }
 
 
     while (true) {
         await showM2M();
         let swapInfo;
+        let odosSwapData = odosEmptyData;
         try {
             let opts = await getPrice();
 
+            // 1. simulate payout, get loss or premium
+            // 2.1. if premium generates data to swap usdc to ovn
+            // 2.2. if compensate calculate needed ovn and generate data to swap ovn to usdc
+            // 3. estimateGas payout
+            // 4. make real payout
+
             try {
-                swapInfo = await exchange.callStatic.payout(true, opts);
+                swapInfo = await exchange.callStatic.payout(true, odosEmptyData, opts);
                 console.log("swapInfo", swapInfo);
             } catch (e) {
                 console.log(e)
@@ -39,29 +52,33 @@ async function main() {
                 continue;
             }
 
-            if (swapInfo.compensateAmount !== 0) {
-                await makeSwap(ovn.address, exToken.address, swapInfo.compensateAmount);
-            } 
+            // 2.1. if premium generates data to swap usdc to ovn
+            if (swapInfo.swapAmount > 0) {
+                odosSwapData = await getOdosSwapData(exToken.address, ovn.address, swapInfo.swapAmount);
+            
+            // 2.2. if compensate calculate needed ovn and generate data to swap ovn to usdc
+            if (swapInfo.swapAmount < 0) {
+                let amountOut = await getOdosAmountOut(exToken.address, ovn.address, -swapInfo.swapAmount);
+                // +5% slippage
+                amountOut = amountOut;
+                odosSwapData = await getOdosSwapData(ovn.address, exToken.address, amountOut);
+            }
 
+            // 3. estimateGas payout
             try {
-                await exchange.estimateGas.payout(false, opts);
+                await exchange.estimateGas.payout(false, odosSwapData, opts);
             } catch (e) {
                 console.log(e)
                 await sleep(30000);
                 continue;
             }
 
+            // 4. make real payout
             console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
-            let tx = await exchange.payout(false, opts);
+            let tx = await exchange.payout(false, odosSwapData, opts);
             // let tx = await exchange.payout();
             console.log(`tx.hash: ${tx.hash}`);
             tx = await tx.wait();
-
-            let insuranceBalance = await exToken.balanceOf(insurance.address);
-
-            if (insuranceBalance != 0) {
-                await makeSwap(exToken.address, ovn.address, insuranceBalance);
-            }
 
             console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
 

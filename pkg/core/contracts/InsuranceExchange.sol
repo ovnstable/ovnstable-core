@@ -10,12 +10,13 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
+import "./interfaces/IInsuranceExchange.sol";
 
 import "./interfaces/IRebaseToken.sol";
 
 import "hardhat/console.sol";
 
-contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -49,21 +50,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         address asset;
         address rebase;
         address odosRouter;
-    }
-
-    struct SwapData {
-        address inputTokenAddress;
-        address outputTokenAddress;
-        uint256 amountIn;
-        bytes data;
-    }
-
-    struct InputMint {
-        uint256 amount;
-    }
-
-    struct InputRedeem {
-        uint256 amount;
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
@@ -303,13 +289,17 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(withdrawDate > currentDate, 'withdrawPeriod');
     }
 
-    function compensate(address _neededAsset, uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        require(IERC20(_neededAsset).balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        IERC20(_neededAsset).transfer(_to, _assetAmount);
+     function premium(SwapData memory swapData) external onlyInsuranceHolder {
+        _swap(swapData);
+
+        // todo check ostatok
     }
 
-    function makeSwap(SwapData memory swapData) external onlyAdmin {
+    function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsuranceHolder {
         _swap(swapData);
+        IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
+
+        // todo check ostatok
     }
 
     function _swap(SwapData memory swapData) internal {

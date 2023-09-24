@@ -471,7 +471,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
     }
 
-    function payout(bool simulate) external whenNotPaused onlyUnit returns (uint256 compensateAmount) {
+    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit returns (int256 swapAmount) {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }
@@ -511,18 +511,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
                 if (simulate) {
-                    return loss;
-                } else {
-                    IInsuranceExchange(insurance).compensate(address(usdc), loss, address(portfolioManager));
-                }                    
-                portfolioManager.deposit();
+                    return -int256(loss);
+                } 
+                if (swapData.amountIn != 0) {
+                    IInsuranceExchange(insurance).compensate(swapData, loss, address(portfolioManager));
+                    portfolioManager.deposit();
+                }
             }
 
         } else {
-
-            if (simulate) {
-                return 0;
-            }
 
             // Positive rebase
             // USD+ have profit and we need to execute next steps:
@@ -531,10 +528,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
-            if(premium > 0){
+            if (simulate) {
+                return int256(premium);
+            }
+
+            if(premium > 0 && swapData.amountIn != 0) {
                 portfolioManager.withdraw(premium);
                 usdc.transfer(insurance, premium);
 
+                IInsuranceExchange(insurance).premium(swapData);
                 totalNav = totalNav - _assetToRebase(premium);
             }
 

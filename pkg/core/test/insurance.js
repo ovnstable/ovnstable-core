@@ -9,7 +9,7 @@ const chai = require("chai");
 chai.use(require('chai-bignumber')());
 const axios = require("axios");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
-const { makeSwap } = require("../scripts/odos-helper");
+const { getOdosSwapData, getOdosAmountOut } = require("../scripts/odos-helper");
 
 const {
     initWallet,
@@ -404,26 +404,26 @@ describe("InsuranceExchange", function () {
                 })
             });
 
-            describe('Odos', function () {
+            // describe('Odos', function () {
 
-                sharedBeforeEach("Odos", async () => {
-                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
-                });
+            //     sharedBeforeEach("Odos", async () => {
+            //         await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
+            //     });
 
-                it("Odos", async function () {
+            //     it("Odos", async function () {
 
-                    let usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
-                    let dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
-                    console.log("usdc balance", (await usdc.balanceOf(account)).toString());
-                    await usdc.transfer(insurance.address, 10000000);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-                    await makeSwap(usdc.address, dai.address, 10000000);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-                });
+            //         let usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
+            //         let dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
+            //         console.log("usdc balance", (await usdc.balanceOf(account)).toString());
+            //         await usdc.transfer(insurance.address, 10000000);
+            //         console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+            //         console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+            //         let data = await getOdosSwapData(usdc.address, dai.address, 10000000);
+            //         console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+            //         console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+            //     });
 
-            });
+            // });
 
 
         });

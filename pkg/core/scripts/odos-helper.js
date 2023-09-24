@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-async function makeSwap(tokenIn, tokenOut, amountTokenIn) {
+async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
 
     let insurance = await ethers.getContract("InsuranceExchange");
 
@@ -13,15 +13,28 @@ async function makeSwap(tokenIn, tokenOut, amountTokenIn) {
         "userAddr": insurance.address,
     });
 
-    let receipt = await (await insurance.makeSwap(
-        {
+    return {
             inputTokenAddress: tokenIn,
             outputTokenAddress: tokenOut,
             amountIn: amountTokenIn,
-            data: request.data
+            data: request.transaction.data
         }
-    )).wait();
+}
 
+async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn) {
+
+    let insurance = await ethers.getContract("InsuranceExchange");
+
+    const inputToken = { "tokenAddress": tokenIn, "amount": amountTokenIn.toString() };
+    const outputToken = { "tokenAddress": tokenOut, "proportion": 1 };
+
+    const request = await getOdosRequest({
+        "inputTokens": inputToken,
+        "outputTokens": outputToken,
+        "userAddr": insurance.address,
+    });
+
+    return request.simulation.amountsOut[0];
 }
 
 async function getOdosRequest(request) {
@@ -56,7 +69,7 @@ async function getOdosRequest(request) {
 
         // console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
-        console.log("odos transaction simulation: ", transaction.data.simulation)
+        // console.log("odos transaction simulation: ", transaction.data.simulation)
     } catch (e) {
         console.log("[zap] getSwapTransaction: ", e);
         return 0;
@@ -73,10 +86,11 @@ async function getOdosRequest(request) {
     }
 
     console.log('Success get data from Odos!');
-    return transaction.data.transaction;
+    return transaction.data;
 }
 
 module.exports = {
-    makeSwap: makeSwap,
+    getOdosSwapData: getOdosSwapData,
+    getOdosAmountOut: getOdosAmountOut
     getOdosRequest: getOdosRequest
 }
