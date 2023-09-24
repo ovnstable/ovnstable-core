@@ -77,6 +77,20 @@ describe("WrappedUsdPlusRateProvider", function () {
             let rate = await rateProvider.getRate();
             expect('1115993874702156641').to.eq(rate);
         });
+
+        it("liquidity index 0.16", async function () {
+            await usdPlus.setLiquidityIndex("160301011478432744944521898");
+
+            let rate = await rateProvider.getRate();
+            expect('160301011478432744').to.eq(rate);
+        });
+
+        it("liquidity index 0.96", async function () {
+            await usdPlus.setLiquidityIndex("960301011478432745944521898");
+
+            let rate = await rateProvider.getRate();
+            expect('960301011478432745').to.eq(rate);
+        });
     });
 
 
