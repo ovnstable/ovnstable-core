@@ -6,7 +6,8 @@ const {ethers} = require("hardhat");
 
 async function main() {
 
-    const payload =  ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [0, "0x5cBb2167677c2259F421457542f6E5A805B1FF2F"]);
+    let timelock = await getContract('AgentTimelock')
+    const payload = timelock.interface.encodeFunctionData('updateDelay', [10]);
     console.log(payload);
 }
 
