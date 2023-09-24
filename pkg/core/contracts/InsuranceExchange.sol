@@ -27,7 +27,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     IERC20 public asset;
     IRebaseToken public rebase;
     address public odosRouter;
-    SwapData public swapData;
     uint256 public swapSlippageBP;
 
     uint256 public mintFee;
@@ -191,10 +190,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         swapSlippageBP = _swapSlippageBP;
     }
 
-    function setSwapData(SwapData memory _swapData) external onlyAdmin {
-        swapData = _swapData;
-    }
-
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
         _mint(input.amount);
     }
@@ -308,21 +303,16 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(withdrawDate > currentDate, 'withdrawPeriod');
     }
 
-    function premium(uint256 _assetAmount)  external onlyInsuranceHolder {
-        require(swapData.outputTokenAddress == address(asset), "wrong output token");
-        _swap();
+    function compensate(address _neededAsset, uint256 _assetAmount, address _to) external onlyInsuranceHolder {
+        require(IERC20(_neededAsset).balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
+        IERC20(_neededAsset).transfer(_to, _assetAmount);
     }
 
-    function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        require(swapData.inputTokenAddress == address(asset), "wrong input token");
-        _swap();
-        require(IERC20(swapData.outputTokenAddress).balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        IERC20(swapData.outputTokenAddress).transfer(_to, _assetAmount);
+    function makeSwap(SwapData memory swapData) external onlyAdmin {
+        _swap(swapData);
     }
 
-    function _swap() internal {
-
-        require(swapData.inputTokenAddress == address(asset) || swapData.outputTokenAddress == address(asset), "need to work with ovn");
+    function _swap(SwapData memory swapData) internal {
 
         IERC20 inputAsset = IERC20(swapData.inputTokenAddress);
         IERC20 outputAsset = IERC20(swapData.outputTokenAddress);

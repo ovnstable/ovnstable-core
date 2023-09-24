@@ -9,23 +9,42 @@ const {
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON, ARBITRUM} = require("@overnight-contracts/common/utils/assets");
+const { setSwapData } = require("../scripts/odos-helper");
 
 async function main() {
 
-    let exchange = await getContract('Exchange');
+    let exchange = await getContract('Exchange', 'localhost');
+    let exToken = await ethers.getContractAt("IERC20", await exchange.usdc());
+    let ovn = await getContract('Ovn');
     let pm = await getContract('PortfolioManager');
-    // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    let insurance = await ethers.getContract("InsuranceExchange");
+    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     let usdPlus = await getContract('UsdPlusToken');
+    let zeroAddress = "0x0000000000000000000000000000000000000000";
 
 
     while (true) {
         await showM2M();
+        let swapInfo;
         try {
             let opts = await getPrice();
 
             try {
-                await exchange.estimateGas.payout(opts);
+                swapInfo = await exchange.callStatic.payout(true, opts);
+                console.log("swapInfo", swapInfo);
+            } catch (e) {
+                console.log(e)
+                await sleep(30000);
+                continue;
+            }
+
+            if (swapInfo.compensateAmount !== 0) {
+                await makeSwap(ovn.address, exToken.address, swapInfo.compensateAmount);
+            } 
+
+            try {
+                await exchange.estimateGas.payout(false, opts);
             } catch (e) {
                 console.log(e)
                 await sleep(30000);
@@ -33,10 +52,17 @@ async function main() {
             }
 
             console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
-            let tx = await exchange.payout(opts);
+            let tx = await exchange.payout(false, opts);
             // let tx = await exchange.payout();
             console.log(`tx.hash: ${tx.hash}`);
             tx = await tx.wait();
+
+            let insuranceBalance = await exToken.balanceOf(insurance.address);
+
+            if (insuranceBalance != 0) {
+                await makeSwap(exToken.address, ovn.address, insuranceBalance);
+            }
+
             console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
 
             let event = tx.events.find((e) => e.event === 'PayoutEvent');

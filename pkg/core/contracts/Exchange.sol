@@ -471,9 +471,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
     }
 
-    function payout() external whenNotPaused onlyUnit {
+    function payout(bool simulate) external whenNotPaused onlyUnit returns (uint256 compensateAmount) {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
-            return;
+            return 0;
         }
 
         // 0. call claiming reward and balancing on PM
@@ -510,11 +510,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             }else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
-                IInsuranceExchange(insurance).compensate(loss, address(portfolioManager));
+                if (simulate) {
+                    return loss;
+                } else {
+                    IInsuranceExchange(insurance).compensate(address(usdc), loss, address(portfolioManager));
+                }                    
                 portfolioManager.deposit();
             }
 
         } else {
+
+            if (simulate) {
+                return 0;
+            }
 
             // Positive rebase
             // USD+ have profit and we need to execute next steps:
@@ -526,7 +534,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             if(premium > 0){
                 portfolioManager.withdraw(premium);
                 usdc.transfer(insurance, premium);
-                IInsuranceExchange(insurance).premium(premium);
 
                 totalNav = totalNav - _assetToRebase(premium);
             }
@@ -612,5 +619,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+        return 0;
     }
 }

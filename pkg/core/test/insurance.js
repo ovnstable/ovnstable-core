@@ -7,6 +7,10 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
+const axios = require("axios");
+const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
+const { makeSwap } = require("../scripts/odos-helper");
+
 const {
     initWallet,
     getContract,
@@ -64,7 +68,7 @@ describe("InsuranceExchange", function () {
                 await hre.run("compile");
                 await resetHardhat(process.env.STAND);
 
-                await deployments.fixture(['MockInsurance']);
+                await deployments.fixture(['MockInsurance', 'test']);
 
                 const {deployer} = await getNamedAccounts();
                 account = deployer;
@@ -336,50 +340,6 @@ describe("InsuranceExchange", function () {
                         expect(await asset.balanceOf(insurance.address)).to.equal(toAsset(0));
                     });
 
-
-                    it("withdraw: Not enough for transfer", async function () {
-                        await mint(10);
-
-                        await rebase.approve(insurance.address, toRebase(10));
-                        await insurance.compensate(toAsset(1), account);
-                        await requestWithdraw();
-                        await waitPeriod();
-
-                        await expectRevert(insurance.redeem({amount: toRebase(10)}), "Not enough for transfer");
-                    });
-
-
-                });
-            });
-
-            describe('Insurance Holder', function () {
-
-                sharedBeforeEach("Insurance Holder", async () => {
-                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
-                });
-
-                it("premium: Not enough for transfer", async function () {
-                    await expectRevert(insurance.premium(toAsset(10)), 'Not enough for transfer');
-                });
-
-
-                it("premium: transferFrom", async function () {
-
-                    await asset.mint(account, toAsset(10));
-                    await intermediateAssets[0].transfer(insurance.address, toAsset(10));
-                    await setSwapData(asset.address, );
-                    await insurance.premium(toAsset(10));
-
-                    await expect(10).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
-                    await expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
-                });
-
-                it("compensate: transfer", async function () {
-                    await asset.mint(insurance.address, toAsset(10));
-                    await insurance.compensate(toAsset(10), account);
-
-                    await expect(0).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
-                    await expect(10).to.equal(fromAsset(await asset.balanceOf(account)));
                 });
             });
 
@@ -444,6 +404,27 @@ describe("InsuranceExchange", function () {
                 })
             });
 
+            describe('Odos', function () {
+
+                sharedBeforeEach("Odos", async () => {
+                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
+                });
+
+                it("Odos", async function () {
+
+                    let usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
+                    let dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
+                    console.log("usdc balance", (await usdc.balanceOf(account)).toString());
+                    await usdc.transfer(insurance.address, 10000000);
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+                    await makeSwap(usdc.address, dai.address, 10000000);
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+                });
+
+            });
+
 
         });
 
@@ -484,79 +465,6 @@ describe("InsuranceExchange", function () {
             await ethers.provider.send("evm_increaseTime", [delay.toNumber() + withdrawPeriod.toNumber()]);
             await ethers.provider.send('evm_mine');
         }
-
-        async function setSwapData(tokenIn, tokenOut, amountTokenIn, amountTokenOut) {
-
-            const inputToken = { "tokenAddress": tokenIn, "amount": amountTokenIn.toString() };
-            const outputToken = { "tokenAddress": tokenOut, "amount": amountTokenOut.toString() };
-
-            const request = await getOdosRequest({
-                "inputTokens": inputToken,
-                "outputTokens": outputToken,
-                "userAddr": insurance.address,
-            });
-    
-            let receipt = await (await insurance.connect(account).setSwapData(
-                {
-                    inputTokenAddress: tokenIn,
-                    outputTokenAddress: tokenOut,
-                    amountIn: amountTokenIn,
-                    data: request.data
-                }
-            )).wait();
-    
-        }
-
-        async function getOdosRequest(request) {
-            let swapParams = {
-                "chainId": await getChainId(),
-                "gasPrice": 1,
-                "inputTokens": request.inputTokens,
-                "outputTokens": request.outputTokens,
-                "userAddr": request.userAddr,
-                "slippageLimitPercent": 1,
-                "sourceBlacklist": ["Hashflow"],
-                "sourceWhitelist": [],
-                "simulate": false,
-                "pathViz": false,
-                "disableRFQs": false
-            }
-        
-            // @ts-ignore
-            const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
-            const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
-            let transaction;
-            try {
-                let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { "Accept-Encoding": "br" } }));
-        
-                let assembleData = {
-                    "userAddr": request.userAddr,
-                    "pathId": quotaResponse.data.pathId,
-                    "simulate": true
-                }
-        
-                console.log("assembleData: ", assembleData)
-                transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
-                console.log("odos transaction simulation: ", transaction.data.simulation)
-            } catch (e) {
-                console.log("[zap] getSwapTransaction: ", e);
-                return 0;
-            }
-        
-            if (transaction.statusCode === 400) {
-                console.log(`[zap] ${transaction.description}`);
-                return 0;
-            }
-        
-            if (transaction.data.transaction === undefined) {
-                console.log("[zap] transaction.tx is undefined");
-                return 0;
-            }
-        
-            console.log('Success get data from Odos!');
-            return transaction.data.transaction;
-        }
-
     });
 });
 
