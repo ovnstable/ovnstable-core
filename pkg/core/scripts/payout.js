@@ -10,6 +10,7 @@ const {
 const {fromE6, fromAsset, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON, ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 const { setSwapData } = require("../scripts/odos-helper");
+const BigNumber = require('bignumber.js');
 
 async function main() {
 
@@ -57,16 +58,17 @@ async function main() {
                 let currentTokenAmount = await exToken.balanceOf(insurance.address);
                 let neededAmount = swapInfo.swapAmount + currentTokenAmount;
                 // -5% slippage
-                neededAmount = neededAmount;
+                neededAmount = neededAmount.mul(95).div(100);
                 odosSwapData = await getOdosSwapData(exToken.address, ovn.address, neededAmount);
             
             // 2.2. if compensate then calculate needed ovn and generate data to swap ovn to usdc
             if (swapInfo.swapAmount < 0) {
                 let currentTokenAmount = await exToken.balanceOf(insurance.address);
-                let neededAmount = await getOdosAmountOut(exToken.address, ovn.address, -swapInfo.swapAmount);
+                let outDecimals = await ovn.decimals();
+                let neededAmount = await getOdosAmountOut(exToken.address, ovn.address, -swapInfo.swapAmount, outDecimals);
                 neededAmount = neededAmount - currentTokenAmount;
                 // +5% slippage
-                neededAmount = neededAmount;
+                neededAmount = neededAmount.mul(105).div(100);
                 odosSwapData = await getOdosSwapData(ovn.address, exToken.address, neededAmount);
             }
 

@@ -404,26 +404,22 @@ describe("InsuranceExchange", function () {
                 })
             });
 
-            // describe('Odos', function () {
+            describe('Odos', function () {
 
-            //     sharedBeforeEach("Odos", async () => {
-            //         await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
-            //     });
+                sharedBeforeEach("Odos", async () => {
+                    let usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
+                    let dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
+                    let outDecimals = 18;
+                    let neededAmount = await getOdosAmountOut(usdc.address, dai.address, 10000000, outDecimals);
+                    console.log("neededAmount", neededAmount.toString());
+                    let swapData = await getOdosSwapData(usdc.address, dai.address, 10000000);
+                });
 
-            //     it("Odos", async function () {
+                it("Odos", async function () {
+                    
+                })
 
-            //         let usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
-            //         let dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
-            //         console.log("usdc balance", (await usdc.balanceOf(account)).toString());
-            //         await usdc.transfer(insurance.address, 10000000);
-            //         console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-            //         console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-            //         let data = await getOdosSwapData(usdc.address, dai.address, 10000000);
-            //         console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-            //         console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-            //     });
-
-            // });
+            });
 
 
         });

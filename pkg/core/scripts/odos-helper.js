@@ -1,4 +1,5 @@
 const axios = require("axios");
+const BigNumber = require('bignumber.js');
 
 async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
 
@@ -21,7 +22,7 @@ async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
         }
 }
 
-async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn) {
+async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn, outDecimals) {
 
     let insurance = await ethers.getContract("InsuranceExchange");
 
@@ -34,7 +35,9 @@ async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn) {
         "userAddr": insurance.address,
     });
 
-    return request.simulation.amountsOut[0];
+    let out = new BigNumber((parseFloat(request.outValues[0]) * 10**outDecimals).toFixed(0));
+
+    return out;
 }
 
 async function getOdosRequest(request) {
@@ -91,6 +94,6 @@ async function getOdosRequest(request) {
 
 module.exports = {
     getOdosSwapData: getOdosSwapData,
-    getOdosAmountOut: getOdosAmountOut
+    getOdosAmountOut: getOdosAmountOut,
     getOdosRequest: getOdosRequest
 }
