@@ -28,7 +28,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     IERC20 public asset;
     IRebaseToken public rebase;
     address public odosRouter;
-    uint256 public swapSlippageBP;
 
     uint256 public mintFee;
     uint256 public mintFeeDenominator;
@@ -170,10 +169,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function setWithdrawPeriod(uint256 _requestWaitPeriod, uint256 _withdrawPeriod) external onlyPortfolioAgent {
         requestWaitPeriod = _requestWaitPeriod;
         withdrawPeriod = _withdrawPeriod;
-    }
-
-    function setSwapSlippage(uint256 _swapSlippageBP) external onlyAdmin {
-        swapSlippageBP = _swapSlippageBP;
     }
 
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
