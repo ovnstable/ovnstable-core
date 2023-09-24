@@ -286,15 +286,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
      function premium(SwapData memory swapData) external onlyInsuranceHolder {
         _swap(swapData);
-
-        // todo check ostatok
     }
 
     function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsuranceHolder {
         _swap(swapData);
         IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
-
-        // todo check ostatok
     }
 
     function _swap(SwapData memory swapData) internal {
@@ -309,8 +305,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         (bool success,) = odosRouter.call{value : 0}(swapData.data);
         require(success, "router swap invalid");
         uint256 balanceAfter = outputAsset.balanceOf(address(this));
-
-        // todo slippage check
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {

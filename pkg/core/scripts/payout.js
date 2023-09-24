@@ -52,16 +52,22 @@ async function main() {
                 continue;
             }
 
-            // 2.1. if premium generates data to swap usdc to ovn
+            // 2.1. if premium then generates data to swap usdc to ovn
             if (swapInfo.swapAmount > 0) {
-                odosSwapData = await getOdosSwapData(exToken.address, ovn.address, swapInfo.swapAmount);
+                let currentTokenAmount = await exToken.balanceOf(insurance.address);
+                let neededAmount = swapInfo.swapAmount + currentTokenAmount;
+                // -5% slippage
+                neededAmount = neededAmount;
+                odosSwapData = await getOdosSwapData(exToken.address, ovn.address, neededAmount);
             
-            // 2.2. if compensate calculate needed ovn and generate data to swap ovn to usdc
+            // 2.2. if compensate then calculate needed ovn and generate data to swap ovn to usdc
             if (swapInfo.swapAmount < 0) {
-                let amountOut = await getOdosAmountOut(exToken.address, ovn.address, -swapInfo.swapAmount);
+                let currentTokenAmount = await exToken.balanceOf(insurance.address);
+                let neededAmount = await getOdosAmountOut(exToken.address, ovn.address, -swapInfo.swapAmount);
+                neededAmount = neededAmount - currentTokenAmount;
                 // +5% slippage
-                amountOut = amountOut;
-                odosSwapData = await getOdosSwapData(ovn.address, exToken.address, amountOut);
+                neededAmount = neededAmount;
+                odosSwapData = await getOdosSwapData(ovn.address, exToken.address, neededAmount);
             }
 
             // 3. estimateGas payout
