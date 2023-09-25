@@ -9,15 +9,24 @@ import "@overnight-contracts/connectors/contracts/stuff/Inch.sol";
 import "./interfaces/IControlRole.sol";
 import "./interfaces/IInchSwapper.sol";
 
+import "hardhat/console.sol";
+
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     IInchRouter public inchRouter;
-    
-    mapping(address => mapping(address => bytes)) private routePathsMap;
 
-    /// @notice Info of each path;
-    // RoutePath[] public routePaths;
+    struct Route {
+        uint256 updateBlock;
+        uint256 amount;
+        uint256 flags;
+        address srcReceiver;
+        bytes data;
+    }
+    
+    mapping(address => mapping(address => Route)) public routePathsMap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -43,40 +52,46 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _;
     }
 
+    
+    modifier onlyUnit(){
+        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        _;
+    }
 
-    function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {        
+
+    function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {  
+        require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
+
+        IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);        
+        IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
         IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
             srcToken: tokenIn,
             dstToken: tokenOut,
-            srcReceiver: payable(msg.sender),
+            srcReceiver: payable(routePathsMap[tokenIn][tokenOut].srcReceiver),
             dstReceiver: payable(recipient),
             amount: amountIn,
             minReturnAmount: amountMinOut,
-            flags: 0
+            flags: routePathsMap[tokenIn][tokenOut].flags
         });
 
         inchRouter.swap(
-            msg.sender,
+            address(this),
             desc,
             "0x",
-            routePathsMap[tokenIn][tokenOut]
+            routePathsMap[tokenIn][tokenOut].data
         );
-
-    }
-    
-    function getPath(address tokenIn, address tokenOut) public view returns(bytes memory) {
-        return routePathsMap[tokenIn][tokenOut];
-
     }
 
-    function updatePath(address tokenIn, address tokenOut, bytes calldata path) public onlyAdmin {
+    function updatePath(address tokenIn, address tokenOut, bytes memory path, uint256 amount, uint256 flags, address srcReceiver) public onlyUnit {
         require(tokenIn != tokenOut && tokenIn != address(0) && tokenOut != address(0), "not unique tokens");
-        routePathsMap[tokenIn][tokenOut] = path;
+        routePathsMap[tokenIn][tokenOut] = Route({
+            updateBlock: block.number,
+            amount: amount,
+            flags: flags,
+            srcReceiver: srcReceiver,
+            data: path
+        });
     }
 
-    
-
-
-    uint256[50] private __gap;
 }
