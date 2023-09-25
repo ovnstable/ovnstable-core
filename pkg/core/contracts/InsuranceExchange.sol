@@ -305,6 +305,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         (bool success,) = odosRouter.call{value : 0}(swapData.data);
         require(success, "router swap invalid");
         uint256 balanceAfter = outputAsset.balanceOf(address(this));
+        // TODO Need check amountMinOut
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {

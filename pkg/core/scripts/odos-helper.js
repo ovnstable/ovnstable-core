@@ -1,5 +1,6 @@
 const axios = require("axios");
 const BigNumber = require('bignumber.js');
+const {ethers} = require("hardhat");
 
 async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
 

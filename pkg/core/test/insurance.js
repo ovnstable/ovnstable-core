@@ -15,7 +15,7 @@ const {
     initWallet,
     getContract,
     getERC20,
-    getERC20ByAddress
+    getERC20ByAddress, transferAsset
 } = require("@overnight-contracts/common/utils/script-utils");
 
 
@@ -70,8 +70,9 @@ describe("InsuranceExchange", function () {
 
                 await deployments.fixture(['MockInsurance', 'test']);
 
-                const {deployer} = await getNamedAccounts();
-                account = deployer;
+                const signers = await ethers.getSigners();
+                account = signers[0];
+
                 testAccount = await createRandomWallet();
                 collector = await createRandomWallet();
 
@@ -113,7 +114,7 @@ describe("InsuranceExchange", function () {
             describe("PortfolioManager: role", function () {
 
                 sharedBeforeEach("PortfolioManager: role", async () => {
-                    await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), account);
+                    await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), account.address);
 
                 });
 
@@ -194,27 +195,27 @@ describe("InsuranceExchange", function () {
 
                     it("asset.transferFrom", async function () {
 
-                        await asset.mint(account, toAsset(10));
+                        await asset.mint(account.address, toAsset(10));
                         await asset.approve(insurance.address, toAsset(10));
-                        let assetBalanceBefore = await asset.balanceOf(account);
+                        let assetBalanceBefore = await asset.balanceOf(account.address);
                         await insurance.mint({amount: toAsset(10)})
-                        let assetBalanceAfter = await asset.balanceOf(account);
+                        let assetBalanceAfter = await asset.balanceOf(account.address);
                         expect(10).to.equal(fromAsset(assetBalanceBefore.sub(assetBalanceAfter)));
                     });
 
 
                     it("rebase.mint | fee 0", async function () {
-                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                         await mint(10);
-                        expect(10).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(10).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                     });
 
                     it("rebase.mint | fee 10%", async function () {
-                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account.address)));
 
                         await insurance.setMintFee(10000, 100000);
                         await mint(10);
-                        expect(9).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(9).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                     });
 
                     it("event MintBurn", async function () {
@@ -227,7 +228,7 @@ describe("InsuranceExchange", function () {
                         expect('mint').to.equal(event.args[0]);
                         expect(9).to.equal(fromRebase(event.args[1]));
                         expect(1).to.equal(fromRebase(event.args[2]));
-                        expect(account).to.equal(event.args[3]);
+                        expect(account.address).to.equal(event.args[3]);
                     });
 
 
@@ -282,39 +283,39 @@ describe("InsuranceExchange", function () {
                     it("checkWithdraw -> TRUST_ROLE -> ignore", async function () {
                         await mint(10);
 
-                        await insurance.grantRole(await insurance.TRUST_ROLE(), account);
+                        await insurance.grantRole(await insurance.TRUST_ROLE(), account.address);
                         await redeem(10);
                     });
 
 
                     it("rebase.burn | fee 0", async function () {
                         await mint(100);
-                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                         await redeem(100);
-                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                     });
 
                     it("rebase.burn | fee 10%", async function () {
                         await mint(100);
-                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(100).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                         await insurance.setRedeemFee(10000, 100000);
                         await redeem(100);
-                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account)));
+                        expect(0).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                     });
 
                     it("asset.transfer | fee 0", async function () {
                         await mint(100);
-                        expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
+                        expect(0).to.equal(fromAsset(await asset.balanceOf(account.address)));
                         await redeem(100);
-                        expect(100).to.equal(fromAsset(await asset.balanceOf(account)));
+                        expect(100).to.equal(fromAsset(await asset.balanceOf(account.address)));
                     });
 
                     it("asset.transfer | fee 10%", async function () {
                         await mint(100);
-                        expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
+                        expect(0).to.equal(fromAsset(await asset.balanceOf(account.address)));
                         await insurance.setRedeemFee(10000, 100000);
                         await redeem(100);
-                        expect(90).to.equal(fromAsset(await asset.balanceOf(account)));
+                        expect(90).to.equal(fromAsset(await asset.balanceOf(account.address)));
                     });
 
 
@@ -330,7 +331,7 @@ describe("InsuranceExchange", function () {
                         expect('redeem').to.equal(event.args[0]);
                         expect(100).to.equal(fromRebase(event.args[1]));
                         expect(10).to.equal(fromRebase(event.args[2]));
-                        expect(account).to.equal(event.args[3]);
+                        expect(account.address).to.equal(event.args[3]);
                     });
 
 
@@ -347,7 +348,7 @@ describe("InsuranceExchange", function () {
 
                 let tx;
                 sharedBeforeEach("Payout: Positive", async () => {
-                    await insurance.grantRole(UNIT_ROLE, account);
+                    await insurance.grantRole(UNIT_ROLE, account.address);
 
                     await mint(10);
                     await asset.mint(insurance.address, toAsset(1));
@@ -355,7 +356,7 @@ describe("InsuranceExchange", function () {
                 });
 
                 it("Rebase: equal", async function () {
-                    expect(11).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    expect(11).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                 });
 
                 it("event PayoutEvent", async function () {
@@ -378,7 +379,7 @@ describe("InsuranceExchange", function () {
 
                 let tx;
                 sharedBeforeEach("Payout: Negative", async () => {
-                    await insurance.grantRole(UNIT_ROLE, account);
+                    await insurance.grantRole(UNIT_ROLE, account.address);
 
                     await mint(10);
                     await asset.burn(insurance.address, toAsset(1));
@@ -386,7 +387,7 @@ describe("InsuranceExchange", function () {
                 });
 
                 it("Rebase: equal", async function () {
-                    expect(9).to.equal(fromRebase(await rebase.balanceOf(account)));
+                    expect(9).to.equal(fromRebase(await rebase.balanceOf(account.address)));
                 });
 
                 it("event PayoutEvent", async function () {
@@ -410,33 +411,35 @@ describe("InsuranceExchange", function () {
                 let dai;
 
                 sharedBeforeEach("Odos", async () => {
-                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account);
-                    usdc = await ethers.getContractAt("IERC20", OPTIMISM.usdc);
-                    dai = await ethers.getContractAt("IERC20", OPTIMISM.dai);
+                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account.address);
+                    usdc = (await getERC20ByAddress(OPTIMISM.usdc)).connect(account);
+                    dai = (await getERC20ByAddress(OPTIMISM.dai)).connect(account);
+
+                    await transferAsset(OPTIMISM.usdc, account.address);
                 });
 
                 it("Odos Premium", async function () {
-                    console.log("usdc balance", (await usdc.balanceOf(account)).toString());
+                    console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
                     await usdc.transfer(insurance.address, 10000000);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance)).toString());
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
                     let swapData = await getOdosSwapData(usdc.address, dai.address, 10000000);
                     console.log(swapData);
                     await insurance.premium(swapData);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance)).toString());
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
                 })
 
                 it("Odos Compensate", async function () {
-                    console.log("usdc balance", (await usdc.balanceOf(account)).toString());
+                    console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
                     await usdc.transfer(insurance.address, 10000000);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance)).toString());
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
                     let neededAmount = await getOdosAmountOut(dai.address, usdc.address, 9*1e18, 6);
                     let swapData = await getOdosSwapData(usdc.address, dai.address, neededAmount);
-                    await insurance.compensate(swapData, 9*1e18, account);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance)).toString());
+                    await insurance.compensate(swapData, 9*1e18, account.address);
+                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
                 })
             });
 
@@ -459,7 +462,7 @@ describe("InsuranceExchange", function () {
         async function mint(sum) {
             sum = toAsset(sum);
 
-            await asset.mint(account, sum);
+            await asset.mint(account.address, sum);
             await asset.approve(insurance.address, sum);
             return await insurance.mint({amount: sum});
         }
