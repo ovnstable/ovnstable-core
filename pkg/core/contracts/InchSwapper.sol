@@ -23,7 +23,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     mapping(address => mapping(address => bytes)) private routePathsMap;
 
     /// @notice Info of each path;
-    RoutePath[] public routePaths;
+    // RoutePath[] public routePaths;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
