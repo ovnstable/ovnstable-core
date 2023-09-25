@@ -59,25 +59,37 @@ describe("GlobalPayoutListener", function () {
 
             inchDataForSwapResponse0 = await getDataForSwap(
                 await getChainId(),
-                account,
+                testAccount.address,
                 BASE.usdbc,
                 BASE.dai,
                 amountIn0,
                 "",
                 "");
 
-            await inchSwapper.updatePath(BASE.usdbc, BASE.dai, inchDataForSwapResponse0.data, amountIn0, inchDataForSwapResponse0.flags, inchDataForSwapResponse0.srcReceiver);
+            await inchSwapper.updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: BASE.dai,
+                amount: amountIn0,
+                flags: inchDataForSwapResponse0.flags,
+                srcReceiver: inchDataForSwapResponse0.srcReceiver
+            }, inchDataForSwapResponse0.data,);
 
             inchDataForSwapResponse1 = await getDataForSwap(
                 await getChainId(),
-                account,
+                testAccount.address,
                 BASE.dai,
                 BASE.usdbc,
                 amountIn1,
                 "",
                 "");
 
-            await inchSwapper.updatePath(BASE.dai, BASE.usdbc, inchDataForSwapResponse1.data, amountIn1, inchDataForSwapResponse1.flags, inchDataForSwapResponse1.srcReceiver);
+            await inchSwapper.updatePath({
+                tokenIn: BASE.dai,
+                tokenOut: BASE.usdbc,
+                amount: amountIn1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,);
 
         });
 
@@ -112,7 +124,13 @@ describe("GlobalPayoutListener", function () {
             expect(pathBefore.data.toString()).to.be.equal(inchDataForSwapResponse0.data);
             expect(pathBefore.amount.toString()).to.be.equal(amountIn0.toString());
 
-            await inchSwapper.updatePath(BASE.usdbc, BASE.dai, inchDataForSwapResponse1.data, amountIn1, inchDataForSwapResponse1.flags, inchDataForSwapResponse1.srcReceiver);
+            await inchSwapper.updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: BASE.dai,
+                amount: amountIn1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,);
             const pathAfter = await inchSwapper.routePathsMap(BASE.usdbc, BASE.dai);
 
             expect(pathAfter.data.toString()).not.to.be.equal(pathBefore.data.toString());
@@ -183,6 +201,8 @@ function getArgs(transaction) {
     }
 
     let args;
+
+    console.log(decodedData);
 
     args = {
         flags: decodedData.args.desc.flags,

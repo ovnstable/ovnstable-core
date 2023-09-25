@@ -17,14 +17,6 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     IInchRouter public inchRouter;
-
-    struct Route {
-        uint256 updateBlock;
-        uint256 amount;
-        uint256 flags;
-        address srcReceiver;
-        bytes data;
-    }
     
     mapping(address => mapping(address => Route)) public routePathsMap;
 
@@ -62,7 +54,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {  
         require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
 
-        IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);        
+        IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
+        IERC20(tokenIn).approve(routePathsMap[tokenIn][tokenOut].srcReceiver, amountIn);   
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
         IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
@@ -76,20 +69,20 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         });
 
         inchRouter.swap(
-            address(this),
+            routePathsMap[tokenIn][tokenOut].srcReceiver,
             desc,
             "0x",
             routePathsMap[tokenIn][tokenOut].data
         );
     }
 
-    function updatePath(address tokenIn, address tokenOut, bytes memory path, uint256 amount, uint256 flags, address srcReceiver) public onlyUnit {
-        require(tokenIn != tokenOut && tokenIn != address(0) && tokenOut != address(0), "not unique tokens");
-        routePathsMap[tokenIn][tokenOut] = Route({
+    function updatePath(UpdateParams memory params, bytes memory path) public onlyUnit {
+        require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "not unique tokens");
+        routePathsMap[params.tokenIn][params.tokenOut] = Route({
             updateBlock: block.number,
-            amount: amount,
-            flags: flags,
-            srcReceiver: srcReceiver,
+            amount: params.amount,
+            flags: params.flags,
+            srcReceiver: params.srcReceiver,
             data: path
         });
     }
