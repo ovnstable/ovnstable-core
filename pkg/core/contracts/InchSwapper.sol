@@ -4,21 +4,15 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Inch.sol";
 
 import "./interfaces/IControlRole.sol";
 import "./interfaces/IInchSwapper.sol";
-import "./interfaces/IInchConversion.sol";
 
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
-    address public inchRouter;
-
-    struct RoutePath {
-        address from;
-        address to;
-        bytes data;
-    }
+    IInchRouter public inchRouter;
     
     mapping(address => mapping(address => bytes)) private routePathsMap;
 
@@ -28,13 +22,14 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address _inchRouter) public initializer {
+    function initialize() public initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
-
-        inchRouter = _inchRouter;
-
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function setRouter(address _inchRouter) public onlyAdmin {
+        inchRouter = IInchRouter(_inchRouter);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -48,36 +43,20 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _;
     }
 
-    // --- setters
 
-    function registerPath(address tokenIn, address tokenOut) public onlyAdmin {
-        require(tokenIn != address(0) && tokenOut != address(0), "Zero address not allowed");
-        // routePaths.push(
-        //     RoutePath({
-        //         from: tokenIn,
-        //         to: tokenOut,
-        //         data: ""
-        //     })
-        // );
-        routePathsMap[tokenIn][tokenOut] = "";
+    function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {        
 
-    }
-    
-    function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {        
-
-        IInchRouter router = IInchRouter(inchRouter);
-        // swap inch v5
         IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
             srcToken: tokenIn,
             dstToken: tokenOut,
             srcReceiver: payable(msg.sender),
-            dstReceiver: payable(msg.sender),
+            dstReceiver: payable(recipient),
             amount: amountIn,
             minReturnAmount: amountMinOut,
             flags: 0
         });
 
-        router.swap(
+        inchRouter.swap(
             msg.sender,
             desc,
             "0x",
@@ -92,11 +71,12 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     }
 
     function updatePath(address tokenIn, address tokenOut, bytes calldata path) public onlyAdmin {
+        require(tokenIn != tokenOut && tokenIn != address(0) && tokenOut != address(0), "not unique tokens");
         routePathsMap[tokenIn][tokenOut] = path;
     }
 
     
 
 
-    uint256[46] private __gap;
+    uint256[50] private __gap;
 }
