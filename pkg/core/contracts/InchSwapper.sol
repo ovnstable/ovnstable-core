@@ -73,6 +73,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             flags: routePathsMap[tokenIn][tokenOut].flags
         });
 
+        // do not need to pass "0x" to permit, 
+        // src receiver is same as caller, it's inch's executor
         inchRouter.swap(
             routePathsMap[tokenIn][tokenOut].srcReceiver,
             desc,
@@ -93,6 +95,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
 
         uint256 blockNumber;
+        // arbitrum blockGetter
         if (blockGetter != address(0)) {
             blockNumber = IBlockGetter(blockGetter).getNumber();
         } else {
