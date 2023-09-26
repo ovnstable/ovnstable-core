@@ -118,20 +118,23 @@ describe("InchSwapper", function () {
             const balanceAfterUsdbc = await usdbc.balanceOf(testAccount.address);
             const balanceAfterDai = await dai.balanceOf(testAccount.address);
 
+            const balanceAfterUsdbcContract = await usdbc.balanceOf(inchSwapper.address);
+            const balanceAfterDaiContract = await dai.balanceOf(inchSwapper.address);
             let tables = []
 
             tables.push({
                 name: 'usdbc',
                 before: fromE6(balanceBeforeUsdbc),
-                after: fromE6(balanceAfterUsdbc)
+                after: fromE6(balanceAfterUsdbc),
+                contract: fromE6(balanceAfterUsdbcContract)
             })
 
             tables.push({
                 name: 'dai',
                 before: fromE18(balanceBeforeDai),
-                after: fromE18(balanceAfterDai)
+                after: fromE18(balanceAfterDai),
+                contract: fromE18(balanceAfterDaiContract)
             })
-
 
             console.table(tables)
         });
@@ -183,18 +186,22 @@ describe("InchSwapper", function () {
             const balanceAfterUsdbc = await usdbc.balanceOf(testAccount.address);
             const balanceAfterDai = await dai.balanceOf(testAccount.address);
 
+            const balanceAfterUsdbcContract = await usdbc.balanceOf(inchSwapper.address);
+            const balanceAfterDaiContract = await dai.balanceOf(inchSwapper.address);
             let tables = []
 
             tables.push({
                 name: 'usdbc',
                 before: fromE6(balanceBeforeUsdbc),
-                after: fromE6(balanceAfterUsdbc)
+                after: fromE6(balanceAfterUsdbc),
+                contract: fromE6(balanceAfterUsdbcContract)
             })
 
             tables.push({
                 name: 'dai',
                 before: fromE18(balanceBeforeDai),
-                after: fromE18(balanceAfterDai)
+                after: fromE18(balanceAfterDai),
+                contract: fromE18(balanceAfterDaiContract)
             })
 
             console.table(tables)
