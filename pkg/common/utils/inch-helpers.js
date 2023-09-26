@@ -1,14 +1,14 @@
-const {default: axios} = require("axios");
-const {ethers} = require("hardhat");
+const { default: axios } = require("axios");
+const { ethers } = require("hardhat");
 const INCH_ROUTER_V5 = require("@overnight-contracts/core/test/abi/InchRouterV5.json");
 
 async function getDataForSwap(chainId,
-                              strategyAddress,
-                              tokenIn,
-                              tokenOut,
-                              amountIn,
-                              protocols = "",
-                              connectors = "") {
+    strategyAddress,
+    tokenIn,
+    tokenOut,
+    amountIn,
+    protocols = "",
+    connectors = "") {
 
 
     const swapParams = {
@@ -29,7 +29,7 @@ async function getDataForSwap(chainId,
 
     const url = `${baseUrl}/${chainId}/swap?` + (new URLSearchParams(swapParams)).toString();
 
-    console.log('[InchService] Request url: ' + url);
+    // console.log('[InchService] Request url: ' + url);
 
     const response = await axios.get(url, { headers: { "Accept-Encoding": "br" } });
 
@@ -50,8 +50,6 @@ function getArgs(transaction) {
     }
 
     let args;
-
-    console.log(decodedData);
 
     args = {
         flags: decodedData.args.desc.flags,

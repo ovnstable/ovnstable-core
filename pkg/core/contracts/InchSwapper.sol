@@ -55,7 +55,6 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
-        IERC20(tokenIn).approve(routePathsMap[tokenIn][tokenOut].srcReceiver, amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
         IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
