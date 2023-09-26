@@ -19,10 +19,10 @@ const OLD_DEV_ADDRESSES = {
     '0xa3a7739486aCe332F3BB307C6e5ee175Fa131839' : '0xF586C5047967DA9f62A8A308119F0811d4b356Be'  
 }
 
-const OVERNIGHT_ADDRESSES = [
-    '', // Treasure 
-    ''  // Insurance
-]
+const OVERNIGHT_ADDRESSES = {
+    '0xc0c4dd0e05d5e224e19eaf37eca5eafd8fe51a67' : '0x182fF2C75e0163CEF0b893D24716B4CD9111E926', // Treasure 
+    '0xc0c4dd0e05d5e224e19eaf37eca5eafd8fe51a67' : '0x90D3BF3681E18654D7F4ee046EDb24CD474E0734'  // Insurance
+}
 
 const INVESTORS_ADDRESSES = [
     '', 
@@ -35,6 +35,8 @@ async function main() {
 
     let startTimestamp = (new Date("Apr-02-2024 11:00:00 AM")).getTime() / 1000;
     let durationSeconds = 2 * 365 * 24 * 60 * 60; // ~two years
+    // let startTimestamp = (new Date("Oct-02-2023 11:00:00 AM")).getTime() / 1000;
+    // let durationSeconds = 182 * 24 * 60 * 60; // ~half year
 
     console.log("startTimestamp", startTimestamp.toString());
     console.log("durationSeconds", durationSeconds.toString());
