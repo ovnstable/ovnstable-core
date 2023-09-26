@@ -28,6 +28,10 @@ module.exports = async ({deployments}) => {
             ovnAgent = "0xdFdB46Af574Fa0EE183841f78554F7F07940065B";
             gateway = "0x304acf330bbE08d1e512eefaa92F6a57871fD895";
             break;
+        case "linea":
+            ovnAgent = "0x05A69d7Ac6aA5d1D8119c56c544f47A0984f2216";
+            gateway = "0xe432150cce91c13a887f7D836923d5597adD8E31";
+            break;
         default:
             throw new Error('Unknown chain');
     }
