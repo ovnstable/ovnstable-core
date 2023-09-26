@@ -13,11 +13,11 @@ import "hardhat/console.sol";
 
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    
+
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     IInchRouter public inchRouter;
-    
+
     mapping(address => mapping(address => Route)) public routePathsMap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -44,18 +44,18 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _;
     }
 
-    
+
     modifier onlyUnit(){
         require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
 
-    function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {  
+    function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {
         require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
-        IERC20(tokenIn).approve(routePathsMap[tokenIn][tokenOut].srcReceiver, amountIn);   
+        IERC20(tokenIn).approve(routePathsMap[tokenIn][tokenOut].srcReceiver, amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
         IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
@@ -71,9 +71,10 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         inchRouter.swap(
             routePathsMap[tokenIn][tokenOut].srcReceiver,
             desc,
-            "0x",
+            "",
             routePathsMap[tokenIn][tokenOut].data
         );
+
     }
 
     function updatePath(UpdateParams memory params, bytes memory path) public onlyUnit {

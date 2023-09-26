@@ -1,32 +1,32 @@
 const { expect } = require("chai");
 const chai = require("chai");
 const { deployments, ethers, getNamedAccounts, upgrades } = require("hardhat");
-const { resetHardhat, createRandomWallet } = require("@overnight-contracts/common/utils/tests");
+const {createRandomWallet } = require("@overnight-contracts/common/utils/tests");
 const hre = require("hardhat");
 let { BASE } = require('@overnight-contracts/common/utils/assets');
-const INCH_ROUTER_V5 = require("./InchRouterV5.json");
+const INCH_ROUTER_V5 = require("./abi/InchRouterV5.json");
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach")
 
 chai.use(require('chai-bignumber')());
 const { solidity } = require("ethereum-waffle");
 chai.use(solidity);
 
-const { waffle } = require("hardhat");
-const { transferETH, getChainId, transferAsset, getContract, getERC20, sleep } = require("@overnight-contracts/common/utils/script-utils");
-const { deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
-const { fromE6, toE6, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
+const {getChainId, transferAsset, getContract, getERC20, sleep } = require("@overnight-contracts/common/utils/script-utils");
+const {toE6, toE18 } = require("@overnight-contracts/common/utils/decimals");
 const { default: axios } = require("axios");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
-const { provider } = waffle;
+const {getDataForSwap} = require("@overnight-contracts/common/utils/inch-helpers");
 
-describe("GlobalPayoutListener", function () {
+describe("InchSwapper", function () {
 
-    let pl;
     let testAccount;
     let inchDataForSwapResponse0;
     let inchDataForSwapResponse1;
     let amountIn0;
     let amountIn1;
+    let inchSwapper;
+    let amountInMax0;
+    let amountInMax1;
 
     let account;
 
@@ -57,19 +57,22 @@ describe("GlobalPayoutListener", function () {
             amountIn0 = toE6(1000);
             amountIn1 = toE18(1000);
 
+            amountInMax0 = toE6(1_000_000);
+            amountInMax1 = toE18(1_000_000);
+
             inchDataForSwapResponse0 = await getDataForSwap(
                 await getChainId(),
                 testAccount.address,
                 BASE.usdbc,
                 BASE.dai,
-                amountIn0,
-                "",
+                amountInMax0,
+                "BASE_UNISWAP_V3",
                 "");
 
             await inchSwapper.updatePath({
                 tokenIn: BASE.usdbc,
                 tokenOut: BASE.dai,
-                amount: amountIn0,
+                amount: amountInMax0,
                 flags: inchDataForSwapResponse0.flags,
                 srcReceiver: inchDataForSwapResponse0.srcReceiver
             }, inchDataForSwapResponse0.data,);
@@ -79,8 +82,8 @@ describe("GlobalPayoutListener", function () {
                 testAccount.address,
                 BASE.dai,
                 BASE.usdbc,
-                amountIn1,
-                "",
+                amountInMax1,
+                "BASE_UNISWAP_V3",
                 "");
 
             await inchSwapper.updatePath({
@@ -97,7 +100,7 @@ describe("GlobalPayoutListener", function () {
             const path = await inchSwapper.routePathsMap(BASE.usdbc, BASE.dai);
 
             expect(path.data.toString()).to.be.equal(inchDataForSwapResponse0.data);
-            expect(path.amount.toString()).to.be.equal(amountIn0.toString());
+            expect(path.amount.toString()).to.be.equal(amountInMax0.toString());
 
             const usdbc = await getERC20("usdbc");
             const dai = await getERC20("dai");
@@ -109,7 +112,7 @@ describe("GlobalPayoutListener", function () {
 
             await (await usdbc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
 
-            await (await inchSwapper.connect(testAccount).swap(account, BASE.usdbc, BASE.dai, amountIn0, 0)).wait(); // reverted with an unrecognized custom error (return data: 0x0262dde4)
+            await (await inchSwapper.connect(testAccount).swap(account, BASE.usdbc, BASE.dai, amountIn0, 10)).wait(); // reverted with an unrecognized custom error (return data: 0x0262dde4)
 
             const balanceAfterUsdbc = await usdbc.balanceOf(account);
             const balanceAfterDai = await dai.balanceOf(account);
@@ -153,61 +156,3 @@ describe("GlobalPayoutListener", function () {
 
 });
 
-async function getDataForSwap(chainId,
-    strategyAddress,
-    tokenIn,
-    tokenOut,
-    amountIn,
-    protocols = "",
-    connectors = "") {
-
-
-    const swapParams = {
-        fromTokenAddress: tokenIn,
-        toTokenAddress: tokenOut,
-        amount: amountIn,
-        fromAddress: strategyAddress,
-        destReceiver: strategyAddress,
-        slippage: "15",
-        disableEstimate: "true",
-        allowPartialFill: "false",
-        protocols: protocols,
-        connectorTokens: connectors,
-        usePatching: "true"
-    };
-
-    let baseUrl = 'https://api-overnight.1inch.io/v5.0';
-
-    const url = `${baseUrl}/${chainId}/swap?` + (new URLSearchParams(swapParams)).toString();
-
-    // console.log('[InchService] Request url: ' + url);
-
-    const response = await axios.get(url, { headers: { "Accept-Encoding": "br" } });
-
-    return getArgs(response);
-}
-
-function getArgs(transaction) {
-
-    let decodedData;
-    try {
-
-        let iface = new ethers.utils.Interface(INCH_ROUTER_V5);
-
-        decodedData = iface.parseTransaction({ data: transaction.data.tx.data, value: transaction.data.tx.value });
-    } catch (e) {
-        console.error("[InchService] decodedData error: " + e);
-        return 0;
-    }
-
-    let args;
-
-    console.log(decodedData);
-
-    args = {
-        flags: decodedData.args.desc.flags,
-        data: decodedData.args.data,
-        srcReceiver: decodedData.args.desc.srcReceiver
-    }
-    return args;
-}
