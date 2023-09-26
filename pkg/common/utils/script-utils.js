@@ -683,6 +683,8 @@ async function getChainId() {
             return 137;
         case "ZKSYNC":
             return 324;
+        case "LINEA":
+            return 59144;
         default:
             throw new Error("Unknown chain");
     }
