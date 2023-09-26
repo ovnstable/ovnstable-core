@@ -225,53 +225,6 @@ describe("InchSwapper", function () {
 
             console.table(tables)
         });
-    });
-
-    describe('check requires', () => {
-
-        beforeEach(async () => {
-
-            amountIn0 = toE6(1000);
-            amountIn1 = toE18(1000);
-
-            amountInMax0 = toE6(1_000_000);
-            amountInMax1 = toE18(1_000_000);
-
-            inchDataForSwapResponse0 = await getDataForSwap(
-                await getChainId(),
-                testAccount.address,
-                BASE.usdbc,
-                BASE.dai,
-                amountInMax0,
-                "BASE_UNISWAP_V3",
-                "");
-
-            await inchSwapper.connect(testAccount).updatePath({
-                tokenIn: BASE.usdbc,
-                tokenOut: BASE.dai,
-                amount: amountInMax0,
-                flags: inchDataForSwapResponse0.flags,
-                srcReceiver: inchDataForSwapResponse0.srcReceiver
-            }, inchDataForSwapResponse0.data,);
-
-            inchDataForSwapResponse1 = await getDataForSwap(
-                await getChainId(),
-                account,
-                BASE.dai,
-                BASE.usdbc,
-                amountInMax1,
-                "BASE_UNISWAP_V3",
-                "");
-
-            await inchSwapper.updatePath({
-                tokenIn: BASE.dai,
-                tokenOut: BASE.usdbc,
-                amount: amountInMax1,
-                flags: inchDataForSwapResponse1.flags,
-                srcReceiver: inchDataForSwapResponse1.srcReceiver
-            }, inchDataForSwapResponse1.data,);
-
-        });
 
         it("unregistered user to update path", async function () {
 
@@ -317,6 +270,22 @@ describe("InchSwapper", function () {
 
         it("amount is more than allowed", async function () {
             await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, BASE.usdbc, BASE.dai, amountInMax0 * 100, 1), "amount is more than saved");
+
+        });
+
+        it("no path", async function () {
+            const noPath = await inchSwapper.getPath(BASE.usdbc, BASE.crvUsd,);
+
+            expect(noPath.updateBlock.toString()).to.be.equal("0");
+            expect(noPath.amount.toString()).to.be.equal("0");
+            expect(noPath.flags.toString()).to.be.equal("0");
+            expect(noPath.srcReceiver.toString()).to.be.equal("0x0000000000000000000000000000000000000000");
+            expect(noPath.data.toString()).to.be.equal("0x");
+
+        });
+
+        it("no path swap", async function () {
+            await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, BASE.usdbc, BASE.crvUsd, amountIn0, 1), "amount is more than saved");
 
         });
 

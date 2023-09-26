@@ -88,7 +88,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             blockNumber = block.number;
         }
         routePathsMap[params.tokenIn][params.tokenOut] = Route({
-            updateBlock: block.number,
+            updateBlock: blockNumber,
             amount: params.amount,
             flags: params.flags,
             srcReceiver: params.srcReceiver,
