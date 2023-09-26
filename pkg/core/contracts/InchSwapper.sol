@@ -29,6 +29,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // blockGetter for arbitrum block (to update)
+    // inchRouter is same for chain
     function setParams(address _inchRouter, address _blockGetter) public onlyAdmin {
         inchRouter = IInchRouter(_inchRouter);
         blockGetter = _blockGetter;
@@ -51,7 +53,10 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _;
     }
 
-
+    // swap by strategy/smm/ets
+    // only works if amount is lower (not on every rout we can increase it)
+    // changes that acceptable: recipient, payer, amount
+    // everyone can use it, however only unit users can see the path
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {
         require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
 
@@ -78,6 +83,12 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     }
 
 
+    // update path of rout 
+    // params: tokenIn/tokenOut 
+    // big amount (1 mln)
+    // flags (for patching/partial fill..)
+    // srcReceiver (executor of rout)
+    // path
     function updatePath(UpdateParams memory params, bytes memory path) external onlyUnit {
         require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
 
@@ -96,6 +107,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         });
     }
 
+    // check path for update
+    // only UnitUser can use it, whose is updating them
     function getPath(address tokenIn, address tokenOut) external onlyUnit view returns (Route memory) {
         return routePathsMap[tokenIn][tokenOut];
     }
