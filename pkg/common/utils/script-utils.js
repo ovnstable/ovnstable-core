@@ -107,7 +107,7 @@ async function settingSection(exec) {
             }
 
             if (hre.ovn.gov) {
-                let timelock = await getContract('OvnTimelockController');
+                let timelock = await getContract('AgentTimelock');
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
                 await hre.network.provider.request({
                     method: "hardhat_impersonateAccount",
@@ -528,29 +528,6 @@ async function gasPriceBlockNative() {
 }
 
 
-async function upgradeStrategy(strategy, newImplAddress) {
-
-    let timelock = await getContract('OvnTimelockController', 'polygon');
-
-
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [timelock.address],
-    });
-
-    await checkTimeLockBalance();
-
-    const timelockAccount = await hre.ethers.getSigner(timelock.address);
-    await strategy.connect(timelockAccount).upgradeTo(newImplAddress);
-
-    await hre.network.provider.request({
-        method: "hardhat_stopImpersonatingAccount",
-        params: [timelock.address],
-    });
-
-}
-
 async function impersonateAccount(address) {
 
     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -567,7 +544,7 @@ async function impersonateAccount(address) {
 async function execTimelock(exec) {
 
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
 
     if (hre.network.name === 'localhost') {
@@ -625,7 +602,7 @@ async function changeWeightsAndBalance(weights) {
 
     await evmCheckpoint('Before');
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
     let pm = await getContract('PortfolioManager');
     let usdPlus = await getContract('UsdPlusToken');
     let usdc = await getERC20('usdc');
@@ -677,7 +654,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
@@ -742,7 +719,7 @@ async function transferETH(amount, to) {
         });
     }
 
-    console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]:`);
+    console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]`);
 }
 
 
@@ -1043,7 +1020,6 @@ module.exports = {
     getCoreAsset: getCoreAsset,
     getStrategy: getStrategy,
     changeWeightsAndBalance: changeWeightsAndBalance,
-    upgradeStrategy: upgradeStrategy,
     execTimelock: execTimelock,
     getAbi: getAbi,
     deploySection: deploySection,

@@ -20,7 +20,7 @@ async function main() {
     let m2m = await getContract('Mark2Market');
     let pm = await getContract('PortfolioManager');
     let previousPm = await getContract('PortfolioManagerOld');
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
     let wallet = await initWallet();
 

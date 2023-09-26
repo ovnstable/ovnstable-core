@@ -226,7 +226,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     if (hre.ovn.gov){
 
 
-        let timelock = await getContract('OvnTimelockController');
+        let timelock = await getContract('AgentTimelock');
 
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         await hre.network.provider.request({
