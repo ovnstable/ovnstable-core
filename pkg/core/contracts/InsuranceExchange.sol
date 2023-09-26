@@ -25,6 +25,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     bytes32 public constant INSURANCE_HOLDER_ROLE = keccak256("INSURANCE_HOLDER_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
+    // OVN address
     IERC20 public asset;
     IRebaseToken public rebase;
     address public odosRouter;
@@ -284,10 +285,22 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         require(withdrawDate > currentDate, 'withdrawPeriod');
     }
 
-     function premium(SwapData memory swapData) external onlyInsuranceHolder {
+    /**
+     * @dev This function is calling when USD+ (or other plus) make payout and there are extra value.
+     * This method should convert this asset to OVN.
+     * @param swapData consist of odos data to make swap
+     */
+    function premium(SwapData memory swapData) external onlyInsuranceHolder {
         _swap(swapData);
     }
 
+    /**
+     * @dev This function is calling when USD+ (or other plus) make payout and there are some loss value.
+     * This method should convert some OVN to asset and transfer it to the Exchanger contract.
+     * @param swapData consist of odos data to make swap
+     * @param assetAmount needed amount of asset to cover the loss
+     * @param to recipient of assets
+     */
     function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsuranceHolder {
         _swap(swapData);
         IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);

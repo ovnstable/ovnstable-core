@@ -422,24 +422,26 @@ describe("InsuranceExchange", function () {
                     console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
                     await usdc.transfer(insurance.address, 10000000);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
                     let swapData = await getOdosSwapData(usdc.address, dai.address, 10000000);
                     console.log(swapData);
                     await insurance.premium(swapData);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
                 })
 
                 it("Odos Compensate", async function () {
                     console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
                     await usdc.transfer(insurance.address, 10000000);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
                     let neededAmount = await getOdosAmountOut(dai.address, usdc.address, 9*1e18, 6);
+                    console.log("neededAmount", neededAmount.toString());
                     let swapData = await getOdosSwapData(usdc.address, dai.address, neededAmount);
-                    await insurance.compensate(swapData, 9*1e18, account.address);
+                    console.log("lol", swapData);
+                    await insurance.compensate(swapData, "9000000000000000000", account.address);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await usdc.balanceOf(insurance.address)).toString());
+                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
                 })
             });
 

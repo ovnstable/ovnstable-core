@@ -29,11 +29,15 @@ async function main() {
         amountIn: 0,
         data: ""
     }
+    let swapInfoEmpty = {
+        swapAmount: 0
+    }
 
+    const exchangerWithInsurance = true;
 
     while (true) {
         await showM2M();
-        let swapInfo;
+        let swapInfo = swapInfoEmpty;
         let odosSwapData = odosEmptyData;
         try {
             let opts = await getPrice();
@@ -44,9 +48,15 @@ async function main() {
             // 3. estimateGas payout
             // 4. make real payout
 
+
+            // 1. simulate payout, get loss or premium
+            // This block of code is needed in order to find out in advance what amount of compensation or premium will be during the payout. 
+            // This information is needed to receive a route from Odos since Odos cannot generate data with dynamic substitution of volumes.
             try {
-                swapInfo = await exchange.callStatic.payout(true, odosEmptyData, opts);
-                console.log("swapInfo", swapInfo);
+                if (exchangerWithInsurance) {
+                    swapInfo = await exchange.callStatic.payout(true, odosEmptyData, opts);
+                    console.log("swapInfo", swapInfo);
+                }
             } catch (e) {
                 console.log(e)
                 await sleep(30000);
@@ -74,7 +84,11 @@ async function main() {
 
             // 3. estimateGas payout
             try {
-                await exchange.estimateGas.payout(false, odosSwapData, opts);
+                if (exchangerWithInsurance) {
+                    await exchange.estimateGas.payout(false, odosSwapData, opts);
+                } else {
+                    await exchange.estimateGas.payout(opts);
+                }
             } catch (e) {
                 console.log(e)
                 await sleep(30000);
@@ -83,8 +97,13 @@ async function main() {
 
             // 4. make real payout
             console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
-            let tx = await exchange.payout(false, odosSwapData, opts);
-            // let tx = await exchange.payout();
+            let tx;
+            if (exchangerWithInsurance) {
+                tx = await exchange.payout(false, odosSwapData, opts);
+            } else {
+                tx = await exchange.payout(opts);
+            }
+            
             console.log(`tx.hash: ${tx.hash}`);
             tx = await tx.wait();
 

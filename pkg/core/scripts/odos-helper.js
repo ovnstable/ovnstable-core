@@ -18,7 +18,7 @@ async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
     return {
             inputTokenAddress: tokenIn,
             outputTokenAddress: tokenOut,
-            amountIn: amountTokenIn,
+            amountIn: amountTokenIn.toString(),
             data: request.transaction.data
         }
 }
