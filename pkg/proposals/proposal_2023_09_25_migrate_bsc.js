@@ -1,0 +1,102 @@
+const { getContract, execTimelock, showM2M } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {ethers} = require("hardhat");
+const axios = require("axios");
+
+const fs = require('fs');
+const readline = require('readline');
+
+async function main() {
+
+    let addresses = [];
+    let values = [];
+    let abis = [];
+
+
+    let timelockNew =  await getContract('AgentTimelock', 'bsc');
+    let timelockOld =  await getContract('OvnTimelockController', 'bsc');
+
+    console.log('AgentTimelock: ' + timelockNew.address);
+    console.log('OldTimelock:   ' + timelockOld.address);
+
+    let coreNames = ['Exchange', 'PortfolioManager', 'UsdPlusToken', 'Mark2Market', 'Market', 'WrappedUsdPlusToken'];
+
+    let contracts = [];
+
+    for (const name of coreNames) {
+        let contractUsdPlus = await getContract(name, 'bsc');
+        contracts.push(contractUsdPlus.address);
+
+        try {
+            let contractDaiPlus = await getContract(name, 'bsc_usdt');
+            contracts.push(contractDaiPlus.address);
+        } catch (e) {
+            console.log(`Not found: ${name} for DAI+`)
+        }
+    }
+
+
+    const fileStream = fs.createReadStream('bsc_strategies.txt');
+
+    const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity
+    });
+
+
+    for await (const line of rl) {
+        // Each line in input.txt will be successively available here as `line`.
+        console.log(`Line from file: ${line}`);
+
+        if (line !== '')
+            contracts.push(line);
+    }
+
+
+    for (const address of contracts) {
+        grantRevoke(addresses, values, abis, address, timelockNew, timelockOld);
+    }
+
+    await testProposal(addresses, values, abis)
+    // await createProposal(addresses, values, abis);
+
+
+    let exchange = await getContract('Exchange');
+    let usdPlus = await getContract('UsdPlusToken');
+
+    console.log(`Exchange.hasRole(AgentTimelock): ${await exchange.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelockNew.address)}`);
+    console.log(`usdPlus.hasRole(AgentTimelock): ${await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelockNew.address)}`);
+
+    console.log(`Exchange.hasRole(TimelockOld): ${await exchange.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelockOld.address)}`);
+    console.log(`usdPlus.hasRole(TimelockOld): ${await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelockOld.address)}`);
+}
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+
+
+
+function grantRevoke(addresses, values, abis, address, timelockNew, timelockOld){
+
+    addresses.push(address);
+    values.push(0);
+    abis.push(timelockOld.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, timelockNew.address]));
+
+    addresses.push(address);
+    values.push(0);
+    abis.push(timelockOld.interface.encodeFunctionData('grantRole', [Roles.UPGRADER_ROLE, timelockNew.address]));
+
+    addresses.push(address);
+    values.push(0);
+    abis.push(timelockOld.interface.encodeFunctionData('revokeRole', [Roles.UPGRADER_ROLE, timelockOld.address]));
+
+    addresses.push(address);
+    values.push(0);
+    abis.push(timelockOld.interface.encodeFunctionData('revokeRole', [Roles.DEFAULT_ADMIN_ROLE, timelockOld.address]));
+
+}
