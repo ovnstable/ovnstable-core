@@ -16,6 +16,8 @@ const { toE6, toE18, fromE6, fromE18 } = require("@overnight-contracts/common/ut
 const { default: axios } = require("axios");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { getDataForSwap } = require("@overnight-contracts/common/utils/inch-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 
 describe("InchSwapper", function () {
 
@@ -42,16 +44,15 @@ describe("InchSwapper", function () {
 
         inchSwapper = await ethers.getContract('InchSwapper');
         testAccount = await createRandomWallet();
+        unregisteredAccount = await createRandomWallet();
 
-        await inchSwapper.setRouter(BASE.inchRouterV5);
+        await inchSwapper.setParams(BASE.inchRouterV5, ZERO_ADDRESS);
         await inchSwapper.grantRole(Roles.UNIT_ROLE, testAccount.address);
         await inchSwapper.grantRole(Roles.UNIT_ROLE, account);
     });
 
 
-    describe('add and swap and add and swap', () => {
-
-        let item;
+    describe('user flow', () => {
 
         beforeEach(async () => {
 
@@ -98,7 +99,7 @@ describe("InchSwapper", function () {
         });
 
         it("same user, smaller amount", async function () {
-            const path = await inchSwapper.routePathsMap(BASE.usdbc, BASE.dai);
+            const path = await inchSwapper.getPath(BASE.usdbc, BASE.dai);
 
             expect(path.data.toString()).to.be.equal(inchDataForSwapResponse0.data);
             expect(path.amount.toString()).to.be.equal(amountInMax0.toString());
@@ -111,6 +112,9 @@ describe("InchSwapper", function () {
             const balanceBeforeUsdbc = await usdbc.balanceOf(testAccount.address);
             const balanceBeforeDai = await dai.balanceOf(testAccount.address);
 
+            const balanceBeforeUsdbcAccount = await usdbc.balanceOf(account);
+            const balanceBeforeDaiAccount = await dai.balanceOf(account);
+
             await (await usdbc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
 
             await (await inchSwapper.connect(testAccount).swap(testAccount.address, BASE.usdbc, BASE.dai, amountIn0, 1)).wait();
@@ -120,27 +124,33 @@ describe("InchSwapper", function () {
 
             const balanceAfterUsdbcContract = await usdbc.balanceOf(inchSwapper.address);
             const balanceAfterDaiContract = await dai.balanceOf(inchSwapper.address);
+            const balanceAfterUsdbcAccount = await usdbc.balanceOf(account);
+            const balanceAfterDaiAccount = await dai.balanceOf(account);
             let tables = []
 
             tables.push({
                 name: 'usdbc',
                 before: fromE6(balanceBeforeUsdbc),
                 after: fromE6(balanceAfterUsdbc),
-                contract: fromE6(balanceAfterUsdbcContract)
+                contract: fromE6(balanceAfterUsdbcContract),
+                beforeAccount: fromE6(balanceBeforeUsdbcAccount),
+                afterAccount: fromE6(balanceAfterUsdbcAccount),
             })
 
             tables.push({
                 name: 'dai',
                 before: fromE18(balanceBeforeDai),
                 after: fromE18(balanceAfterDai),
-                contract: fromE18(balanceAfterDaiContract)
+                contract: fromE18(balanceAfterDaiContract),
+                beforeAccount: fromE18(balanceBeforeDaiAccount),
+                afterAccount: fromE18(balanceAfterDaiAccount),
             })
 
             console.table(tables)
         });
 
         it("update path and check", async function () {
-            const pathBefore = await inchSwapper.routePathsMap(BASE.usdbc, BASE.dai);
+            const pathBefore = await inchSwapper.getPath(BASE.usdbc, BASE.dai);
 
             expect(pathBefore.data.toString()).to.be.equal(inchDataForSwapResponse0.data);
             expect(pathBefore.amount.toString()).to.be.equal(amountInMax0.toString());
@@ -152,13 +162,13 @@ describe("InchSwapper", function () {
                 flags: inchDataForSwapResponse1.flags,
                 srcReceiver: inchDataForSwapResponse1.srcReceiver
             }, inchDataForSwapResponse1.data,);
-            const pathAfter = await inchSwapper.routePathsMap(BASE.usdbc, BASE.dai);
+            const pathAfter = await inchSwapper.getPath(BASE.usdbc, BASE.dai);
 
             expect(pathAfter.data.toString()).not.to.be.equal(pathBefore.data.toString());
             expect(pathAfter.amount.toString()).not.to.be.equal(pathBefore.amount.toString());
             expect(pathAfter.updateBlock.toString()).not.to.be.equal(pathBefore.updateBlock.toString());
 
-            const pathDifferent = await inchSwapper.routePathsMap(BASE.dai, BASE.usdbc);
+            const pathDifferent = await inchSwapper.getPath(BASE.dai, BASE.usdbc);
 
             expect(pathAfter.data.toString()).to.be.equal(pathDifferent.data.toString());
             expect(pathAfter.amount.toString()).to.be.equal(pathDifferent.amount.toString());
@@ -166,7 +176,7 @@ describe("InchSwapper", function () {
 
 
         it("diff user, smaller amount", async function () {
-            const path = await inchSwapper.routePathsMap(BASE.dai, BASE.usdbc);
+            const path = await inchSwapper.getPath(BASE.dai, BASE.usdbc);
 
             expect(path.data.toString()).to.be.equal(inchDataForSwapResponse1.data);
             expect(path.amount.toString()).to.be.equal(amountInMax1.toString());
@@ -179,6 +189,9 @@ describe("InchSwapper", function () {
             const balanceBeforeUsdbc = await usdbc.balanceOf(testAccount.address);
             const balanceBeforeDai = await dai.balanceOf(testAccount.address);
 
+            const balanceBeforeUsdbcAccount = await usdbc.balanceOf(account);
+            const balanceBeforeDaiAccount = await dai.balanceOf(account);
+
             await (await dai.connect(testAccount).approve(inchSwapper.address, amountIn1)).wait();
 
             await (await inchSwapper.connect(testAccount).swap(testAccount.address, BASE.dai, BASE.usdbc, amountIn1, 1)).wait();
@@ -188,27 +201,124 @@ describe("InchSwapper", function () {
 
             const balanceAfterUsdbcContract = await usdbc.balanceOf(inchSwapper.address);
             const balanceAfterDaiContract = await dai.balanceOf(inchSwapper.address);
+            const balanceAfterUsdbcAccount = await usdbc.balanceOf(account);
+            const balanceAfterDaiAccount = await dai.balanceOf(account);
             let tables = []
 
             tables.push({
                 name: 'usdbc',
                 before: fromE6(balanceBeforeUsdbc),
                 after: fromE6(balanceAfterUsdbc),
-                contract: fromE6(balanceAfterUsdbcContract)
+                contract: fromE6(balanceAfterUsdbcContract),
+                beforeAccount: fromE6(balanceBeforeUsdbcAccount),
+                afterAccount: fromE6(balanceAfterUsdbcAccount),
             })
 
             tables.push({
                 name: 'dai',
                 before: fromE18(balanceBeforeDai),
                 after: fromE18(balanceAfterDai),
-                contract: fromE18(balanceAfterDaiContract)
+                contract: fromE18(balanceAfterDaiContract),
+                beforeAccount: fromE18(balanceBeforeDaiAccount),
+                afterAccount: fromE18(balanceAfterDaiAccount),
             })
 
             console.table(tables)
         });
+    });
 
+    describe('check requires', () => {
 
+        beforeEach(async () => {
 
+            amountIn0 = toE6(1000);
+            amountIn1 = toE18(1000);
+
+            amountInMax0 = toE6(1_000_000);
+            amountInMax1 = toE18(1_000_000);
+
+            inchDataForSwapResponse0 = await getDataForSwap(
+                await getChainId(),
+                testAccount.address,
+                BASE.usdbc,
+                BASE.dai,
+                amountInMax0,
+                "BASE_UNISWAP_V3",
+                "");
+
+            await inchSwapper.connect(testAccount).updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: BASE.dai,
+                amount: amountInMax0,
+                flags: inchDataForSwapResponse0.flags,
+                srcReceiver: inchDataForSwapResponse0.srcReceiver
+            }, inchDataForSwapResponse0.data,);
+
+            inchDataForSwapResponse1 = await getDataForSwap(
+                await getChainId(),
+                account,
+                BASE.dai,
+                BASE.usdbc,
+                amountInMax1,
+                "BASE_UNISWAP_V3",
+                "");
+
+            await inchSwapper.updatePath({
+                tokenIn: BASE.dai,
+                tokenOut: BASE.usdbc,
+                amount: amountInMax1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,);
+
+        });
+
+        it("unregistered user to update path", async function () {
+
+            await expectRevert(inchSwapper.connect(unregisteredAccount).updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: BASE.dai,
+                amount: amountInMax1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,), "Restricted to Unit");
+
+        });
+
+        it("errors in update tokens", async function () {
+
+            await expectRevert(inchSwapper.updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: BASE.usdbc,
+                amount: amountInMax1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,), "wrong tokens");
+            await expectRevert(inchSwapper.updatePath({
+                tokenIn: ZERO_ADDRESS,
+                tokenOut: BASE.usdbc,
+                amount: amountInMax1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,), "wrong tokens");
+            await expectRevert(inchSwapper.updatePath({
+                tokenIn: BASE.usdbc,
+                tokenOut: ZERO_ADDRESS,
+                amount: amountInMax1,
+                flags: inchDataForSwapResponse1.flags,
+                srcReceiver: inchDataForSwapResponse1.srcReceiver
+            }, inchDataForSwapResponse1.data,), "wrong tokens");
+        });
+
+        it("unregistered user to get path", async function () {
+            await expectRevert(inchSwapper.connect(unregisteredAccount).getPath(BASE.usdbc, BASE.dai,), "Restricted to Unit");
+
+        });
+
+        it("amount is more than allowed", async function () {
+            await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, BASE.usdbc, BASE.dai, amountInMax0 * 100, 1), "amount is more than saved");
+
+        });
 
     });
 

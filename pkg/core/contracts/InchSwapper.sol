@@ -8,8 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Inch.sol";
 
 import "./interfaces/IControlRole.sol";
 import "./interfaces/IInchSwapper.sol";
-
-import "hardhat/console.sol";
+import "./interfaces/IBlockGetter.sol";
 
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -17,8 +16,9 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     IInchRouter public inchRouter;
+    address public blockGetter;
 
-    mapping(address => mapping(address => Route)) public routePathsMap;
+    mapping(address => mapping(address => Route)) private routePathsMap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -29,8 +29,9 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setRouter(address _inchRouter) public onlyAdmin {
+    function setParams(address _inchRouter, address _blockGetter) public onlyAdmin {
         inchRouter = IInchRouter(_inchRouter);
+        blockGetter = _blockGetter;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -76,8 +77,16 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
 
     }
 
-    function updatePath(UpdateParams memory params, bytes memory path) public onlyUnit {
-        require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "not unique tokens");
+
+    function updatePath(UpdateParams memory params, bytes memory path) external onlyUnit {
+        require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
+
+        uint256 blockNumber;
+        if (blockGetter != address(0)) {
+            blockNumber = IBlockGetter(blockGetter).getNumber();
+        } else {
+            blockNumber = block.number;
+        }
         routePathsMap[params.tokenIn][params.tokenOut] = Route({
             updateBlock: block.number,
             amount: params.amount,
@@ -85,6 +94,10 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             srcReceiver: params.srcReceiver,
             data: path
         });
+    }
+
+    function getPath(address tokenIn, address tokenOut) external onlyUnit view returns (Route memory) {
+        return routePathsMap[tokenIn][tokenOut];
     }
 
 }

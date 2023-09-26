@@ -22,5 +22,7 @@ interface IInchSwapper {
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) external;
 
     function updatePath(UpdateParams memory params, bytes memory path) external;
+    
+    function getPath(address tokenIn, address tokenOut) external view returns(Route memory);
 
 }
