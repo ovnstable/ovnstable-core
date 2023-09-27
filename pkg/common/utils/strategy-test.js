@@ -16,15 +16,15 @@ const { Roles } = require("./roles");
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        // },
-        // {
-        //     value: 0.2,
-        // },
-        // {
-        //     value: 2,
-        // },
+        {
+            value: 0.02,
+        },
+        {
+            value: 0.2,
+        },
+        {
+            value: 2,
+        },
         {
             value: 20,
         },

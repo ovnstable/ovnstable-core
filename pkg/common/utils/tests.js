@@ -91,7 +91,8 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     });
 }
 
-async function impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, devjunAddress, strategyAddress, ownerAddress, inchSwapperAddress, asset, underlyingAsset, amountInMax0, amountInMax1) {
+async function impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, strategyAddress, ownerAddress,
+    inchSwapperAddress, asset, underlyingAsset, amountInMax0, amountInMax1) {
 
     console.log('Execute: [impersonatingEtsGrantRoleWithInchSwapper]');
     await hre.network.provider.request({
@@ -100,20 +101,25 @@ async function impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, d
     });
     const owner = await ethers.getSigner(ownerAddress);
 
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [devjunAddress],
-    });
-    const devjun = await ethers.getSigner(devjunAddress);
-
     let inchSwapper = await ethers.getContractAt(InchSwapperABI, inchSwapperAddress);
     let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, hedgeExchangerAddress);
-    await hedgeExchanger.connect(devjun).grantRole(Roles.PORTFOLIO_AGENT_ROLE, ownerAddress);
-    await hedgeExchanger.connect(devjun).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
-    await hedgeExchanger.connect(devjun).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
+    let hedgeExchangeAdmin;
+    let DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    if (await hedgeExchanger.hasRole(DEFAULT_ADMIN_ROLE, owner.address)) {
+        hedgeExchangeAdmin = owner;
+    } else {
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: ["0x66BC0120b3287f08408BCC76ee791f0bad17Eeef"],
+        });
+        hedgeExchangeAdmin = await ethers.getSigner("0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
+    }
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.PORTFOLIO_AGENT_ROLE, ownerAddress);
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
     if (process.env.STAND.includes('arbitrum')) {
-        await inchSwapper.connect(devjun).setParams(DEFAULT.inchRouterV5, ZERO_ADDRESS);
-        await hedgeExchanger.connect(devjun).setBlockGetter(ZERO_ADDRESS);
+        await inchSwapper.connect(owner).setParams(DEFAULT.inchRouterV5, ZERO_ADDRESS);
+        await hedgeExchanger.connect(hedgeExchangeAdmin).setBlockGetter(ZERO_ADDRESS);
     }
 
     let inchDataForSwapResponse0 = await getDataForSwap(

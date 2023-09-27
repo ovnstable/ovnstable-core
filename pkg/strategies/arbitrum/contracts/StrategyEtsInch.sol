@@ -97,9 +97,9 @@ contract StrategyEtsInch is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
-        rebaseToken.approve(address(hedgeExchanger), _amount);
-        hedgeExchanger.redeem(_amount);
+        uint256 amountToRedeem = _oracleAssetToUnderlying(_amount);
+        rebaseToken.approve(address(hedgeExchanger), amountToRedeem);
+        hedgeExchanger.redeem(amountToRedeem);
 
         uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
         underlyingAsset.approve(address(inchSwapper), underlyingBalance);
@@ -136,7 +136,9 @@ contract StrategyEtsInch is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return asset.balanceOf(address(this)) + rebaseToken.balanceOf(address(this));
+        uint256 rebaseBalance = rebaseToken.balanceOf(address(this));
+        uint256 convertedBalance = _oracleUnderlyingToAsset(rebaseBalance);
+        return asset.balanceOf(address(this)) + convertedBalance;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
