@@ -45,14 +45,14 @@ describe("InsuranceExchange", function () {
     };
 
     let decimals = [
-        // {
-        //     asset: 6,
-        //     rebase: 6
-        // },
-        // {
-        //     asset: 18,
-        //     rebase: 6
-        // },
+        {
+            asset: 6,
+            rebase: 6
+        },
+        {
+            asset: 18,
+            rebase: 6
+        },
         {
             asset: 18,
             rebase: 18
@@ -79,12 +79,6 @@ describe("InsuranceExchange", function () {
                 insurance = await ethers.getContract("InsuranceExchange");
                 rebase = await ethers.getContract('RebaseToken');
                 asset = await ethers.getContract('AssetToken');
-
-                intermediateAssets = [
-                    await getERC20('usdc'),
-                    await getERC20('usdt'),
-                    await getERC20('dai')
-                ];
 
                 if (decimal.rebase === 6) {
                     toRebase = toE6;
@@ -395,59 +389,6 @@ describe("InsuranceExchange", function () {
                     let event = tx.events.find((e) => e.event == 'NextPayoutTime');
                     expect(event).to.not.be.null;
                 })
-            });
-
-            describe('Odos', function () {
-
-                let usdc;
-                let ovnAddress = "0x3b08fcd15280e7B5A6e404c4abb87F7C774D1B2e";
-
-                sharedBeforeEach("Odos", async () => {
-                    await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account.address);
-                    await mint("100");
-                    usdc = (await getERC20ByAddress(OPTIMISM.usdc)).connect(account);
-                    await transferAsset(OPTIMISM.usdc, account.address);
-                    console.log("usdc account balance", (await usdc.balanceOf(account.address)).toString());
-                    console.log("ovn insurance balance", (await asset.balanceOf(insurance.address)).toString());
-                    console.log("ovn address", asset.address);
-                });
-
-                it("Odos Premium", async function () {
-                    await usdc.transfer(insurance.address, 10000000);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("ovn balance", (await asset.balanceOf(insurance.address)).toString());
-                    let swapData = await getOdosSwapData(usdc.address, ovnAddress, 10000000);
-                    console.log(swapData);
-                    await insurance.premium(swapData);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("ovn balance", (await asset.balanceOf(insurance.address)).toString());
-                })
-
-                it("Odos Compensate", async function () {
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
-                    let neededAmount = await getOdosAmountOut(ovnAddress, usdc.address, 9*1e16, 6);
-                    console.log("neededAmount", neededAmount.toString());
-                    let swapData = await getOdosSwapData(usdc.address, ovnAddress, neededAmount);
-                    console.log(swapData);
-                    await insurance.compensate(swapData, "9000000000000000000", account.address);
-                    console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
-                })
-            });
-
-            describe('Twap', function () {
-
-                sharedBeforeEach("Twap", async () => {
-                   
-                });
-
-                it("Twap", async function () {
-                    let ovnPrice = await insurance.getTwapPrice();
-                    console.log("ovnPrice", ovnPrice.toString());
-                    
-                })
-
             });
 
         });

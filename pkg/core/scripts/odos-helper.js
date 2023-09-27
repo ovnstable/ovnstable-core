@@ -23,7 +23,7 @@ async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
         }
 }
 
-async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn, outDecimals) {
+async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn) {
 
     let insurance = await ethers.getContract("InsuranceExchange");
 
@@ -36,9 +36,7 @@ async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn, outDecimals) {
         "userAddr": insurance.address,
     });
 
-    let out = new BigNumber((parseFloat(request.outValues[0]) * 10**outDecimals).toFixed(0));
-
-    return out;
+    return request.outputTokens[0].amount;
 }
 
 async function getOdosRequest(request) {

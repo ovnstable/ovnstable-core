@@ -323,20 +323,19 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 amountOut = balanceOutAfter - balanceOutBefore;
 
         uint256 price = getTwapPrice(); // 1 ovn = price usd
+        uint256 decimals = 10**IERC20Metadata(address(asset)).decimals();
             
         if (address(inputAsset) == address(asset)) {
             // ovn --> usdc
-            uint256 sideDecimals = 10**IERC20Metadata(address(outputAsset)).decimals();
-            uint256 apprAmountOut = amountIn * price / sideDecimals;
+            uint256 apprAmountOut = amountIn * price / decimals;
             apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Lerge swap slippage (ovn --> usdc)');
+            require(amountOut > apprAmountOut, 'Large swap slippage (ovn --> usdc)');
             
         } else {
             // usdc --> ovn
-            uint256 sideDecimals = 10**IERC20Metadata(address(inputAsset)).decimals();
-            uint256 apprAmountOut = amountIn * sideDecimals / price;
+            uint256 apprAmountOut = amountIn * decimals / price;
             apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Lerge swap slippage (usdc --> ovn)');
+            require(amountOut > apprAmountOut, 'Large swap slippage (usdc --> ovn)');
         }
     }
 

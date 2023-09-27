@@ -348,7 +348,7 @@ describe("Exchange", function () {
                     odosEmptyData = {
                         inputTokenAddress: zeroAddress,
                         outputTokenAddress: zeroAddress,
-                        amountIn: 0,
+                        amountIn: 1,
                         data: "0x"
                     }
                 });
@@ -358,7 +358,6 @@ describe("Exchange", function () {
                     await mint(100);
                     await pm.withdraw(toAsset(1));
                     await exchange.setOracleLoss(5000, 100000); // 5%
-                    console.log("lol", odosEmptyData);
                     await expectRevert(exchange.payout(false, odosEmptyData), 'OracleLoss');
                 });
 
@@ -395,7 +394,7 @@ describe("Exchange", function () {
                     odosEmptyData = {
                         inputTokenAddress: zeroAddress,
                         outputTokenAddress: zeroAddress,
-                        amountIn: 0,
+                        amountIn: 1,
                         data: "0x"
                     }
                 });
