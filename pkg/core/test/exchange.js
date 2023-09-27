@@ -40,14 +40,14 @@ describe("Exchange", function () {
             asset: 6,
             rebase: 6
         },
-        // {
-        //     asset: 18,
-        //     rebase: 6
-        // },
-        // {
-        //     asset: 18,
-        //     rebase: 18
-        // }
+        {
+            asset: 18,
+            rebase: 6
+        },
+        {
+            asset: 18,
+            rebase: 18
+        }
     ];
 
 

@@ -28,7 +28,6 @@ describe("InsuranceExchange", function () {
 
     let testAccount;
     let collector;
-    let intermediateAssets;
 
     let UNIT_ROLE;
     let FREE_RIDER_ROLE;
