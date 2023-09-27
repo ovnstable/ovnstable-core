@@ -40,6 +40,10 @@ module.exports = async ({deployments}) => {
             motherTimelock = ovnAgent;
             motherChainId = "zksync"
             break
+        case "polygon":
+            ovnAgent = "0xe5d15506088f96252e0c8c80bF5Cf7E3b4121B33";
+            gateway = "0x6f015F16De9fC8791b234eF68D486d2bF203FBA8";
+            break
         default:
             throw new Error('Unknown chain');
     }

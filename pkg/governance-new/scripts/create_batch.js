@@ -19,9 +19,9 @@ async function main() {
     let abis = [];
 
 
-    addresses.push(pm.address);
+    addresses.push(timelock.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('revokeRole', [Roles.PORTFOLIO_AGENT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+    abis.push(timelock.interface.encodeFunctionData('updateDelay', [10]));
 
     let batch = {
         version: "1.0",
