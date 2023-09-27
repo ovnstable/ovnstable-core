@@ -11,6 +11,7 @@ async function main() {
     console.log('Timelock: gateway:        ' + await timelock.gateway());
     console.log('Timelock: ovnAgent:       ' + await timelock.ovnAgent());
     console.log('Timelock: motherTimelock: ' + await timelock.motherTimelock());
+    console.log('Timelock: motherChainId:  ' + await timelock.motherChainId());
 
 }
 
