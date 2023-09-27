@@ -20,7 +20,6 @@ async function createProposal(addresses, values, abis){
         values,
         abis,
         ethers.utils.id(new Date().toString()),
-        await getPrice()
     );
     let tx = await proposeTx.wait();
     const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;

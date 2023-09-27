@@ -3,10 +3,12 @@ const {createProposal} = require("@overnight-contracts/common/utils/governance")
 const {fromE18} = require("@overnight-contracts/common/utils/decimals");
 const {ethers} = require("hardhat");
 const fs = require("fs");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 async function main() {
 
     let timelock = await getContract('AgentTimelock');
+    let pm = await getContract('PortfolioManager');
 
 
     let ovnAgent = await timelock.ovnAgent();
@@ -17,9 +19,9 @@ async function main() {
     let abis = [];
 
 
-    addresses.push(timelock.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(timelock.interface.encodeFunctionData('updateDelay', [10]));
+    abis.push(pm.interface.encodeFunctionData('revokeRole', [Roles.PORTFOLIO_AGENT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
 
     let batch = {
         version: "1.0",

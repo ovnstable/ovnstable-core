@@ -5,6 +5,7 @@ const {ethers} = require("hardhat");
 const fs = require("fs");
 
 const AGENT_TIMELOCK_ABI = require("./abi/AGENT_TIMELOCK_ABI.json");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 const PREDECESSOR = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const SALT = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -29,13 +30,18 @@ async function main() {
     timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
     if (addresses.length === 1){
-        let hasOperation = await timelock.hashOperation(addresses[0], values[0], datas[0], PREDECESSOR, SALT);
-        console.log('HasOperation: ' + hasOperation);
+        let hash = await timelock.hashOperation(addresses[0], values[0], datas[0], PREDECESSOR, SALT);
+        console.log('HashOperation: ' + hash);
+
+        let timestamp = await timelock.getTimestamp(hash);
+        console.log(`Timestamp: ${timestamp}`)
 
         await (await timelock.execute(addresses[0], values[0], datas[0], PREDECESSOR, SALT)).wait();
     }else {
         await (await timelock.executeBatch(addresses, values, datas, PREDECESSOR, SALT)).wait();
     }
+
+
 }
 
 
