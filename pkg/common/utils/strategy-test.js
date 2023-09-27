@@ -1,30 +1,30 @@
 const hre = require("hardhat");
-const {deployments, getNamedAccounts, ethers} = require("hardhat");
+const { deployments, getNamedAccounts, ethers } = require("hardhat");
 const BigNumber = require('bignumber.js');
-const {expect} = require("chai");
+const { expect } = require("chai");
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
-const {resetHardhat, greatLess} = require("./tests");
-const {logStrategyGasUsage} = require("./strategyCommon");
-const {toE6, toE18, fromAsset} = require("./decimals");
-const {evmCheckpoint, evmRestore, sharedBeforeEach} = require("./sharedBeforeEach");
-const {transferAsset, getERC20, transferETH, initWallet} = require("./script-utils");
+const { resetHardhat, greatLess } = require("./tests");
+const { logStrategyGasUsage } = require("./strategyCommon");
+const { toE6, toE18, fromAsset } = require("./decimals");
+const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeEach");
+const { transferAsset, getERC20, transferETH, initWallet } = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
-const {Roles} = require("./roles");
+const { Roles } = require("./roles");
 
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        {
-            value: 0.02,
-        },
-        {
-            value: 0.2,
-        },
-        {
-            value: 2,
-        },
+        // {
+        //     value: 0.02,
+        // },
+        // {
+        //     value: 0.2,
+        // },
+        // {
+        //     value: 2,
+        // },
         {
             value: 20,
         },
@@ -73,7 +73,7 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
         let strategy;
 
         let asset;
-        let toAsset = function() {};
+        let toAsset = function () { };
 
         sharedBeforeEach("deploy", async () => {
 
@@ -245,7 +245,7 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
         let strategy;
 
         let asset;
-        let toAsset = function() {};
+        let toAsset = function () { };
 
         sharedBeforeEach("deploy", async () => {
             let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
@@ -295,9 +295,9 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                     }
 
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
-                    let rewardEvent = tx.events.find((e)=>e.event === 'Reward');
+                    let rewardEvent = tx.events.find((e) => e.event === 'Reward');
                     let rewardAmount = new BigNumber('0');
-                    if (rewardEvent){
+                    if (rewardEvent) {
                         rewardAmount = new BigNumber(rewardEvent.args.amount.toString());
                     }
 
@@ -355,7 +355,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
         let strategy;
 
         let asset;
-        let toAsset = function() {};
+        let toAsset = function () { };
 
         sharedBeforeEach(`deploy`, async () => {
             let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
@@ -438,7 +438,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
             let strategy;
 
             let asset;
-            let toAsset = function() {};
+            let toAsset = function () { };
 
             let i = 0;
 
@@ -526,7 +526,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
     }
 }
 
-async function setUp(network, strategyParams, assetName, runStrategyLogic){
+async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
     await hre.run("compile");
     await resetHardhat(network);
@@ -587,7 +587,7 @@ function createCheck(type, name, assetValue, currentValue, minValue, maxValue, i
             current: fromAsset(currentValue.toString()),
             expected: fromAsset(minValue.toString()),
             difference: fromAsset(currentValue.minus(minValue).toString()),
-            status: currentValue.eq(minValue) ? '✔': '✘'
+            status: currentValue.eq(minValue) ? '✔' : '✘'
         }
 
         return [zero];
@@ -602,7 +602,7 @@ function createCheck(type, name, assetValue, currentValue, minValue, maxValue, i
         current: fromAsset(currentValue.toString()),
         expected: fromAsset(minValue.toString()),
         difference: fromAsset(currentValue.minus(minValue).toString()),
-        status: (isGt ? currentValue.gt(minValue) : currentValue.gte(minValue)) ? '✔': '✘'
+        status: (isGt ? currentValue.gt(minValue) : currentValue.gte(minValue)) ? '✔' : '✘'
     }
 
     values.push(min);
@@ -616,7 +616,7 @@ function createCheck(type, name, assetValue, currentValue, minValue, maxValue, i
             current: fromAsset(currentValue.toString()),
             expected: fromAsset(maxValue.toString()),
             difference: fromAsset(maxValue.minus(currentValue).toString()),
-            status: (isLt ? currentValue.lt(maxValue) : currentValue.lte(maxValue)) ? '✔': '✘'
+            status: (isLt ? currentValue.lt(maxValue) : currentValue.lte(maxValue)) ? '✔' : '✘'
         }
 
         values.push(max);

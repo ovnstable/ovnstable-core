@@ -7,22 +7,22 @@ import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
 
-contract StrategyEtsWithInch is Strategy {
+contract StrategyEtsInch is Strategy {
 
     // --- params
+
+    IERC20 public rebaseToken;
+    IHedgeExchanger public hedgeExchanger;
 
     IERC20 public asset;
     IERC20 public underlyingAsset;
     IInchSwapper public inchSwapper;
+
     IPriceFeed public oracleAsset;
     IPriceFeed public oracleUnderlyingAsset;
     uint256 public assetDm;
     uint256 public underlyingAssetDm;
 
-    IERC20 public rebaseToken;
-    IHedgeExchanger public hedgeExchanger;
-
-    uint256 swapSlippageBp;
 
 
     // --- events
@@ -32,13 +32,13 @@ contract StrategyEtsWithInch is Strategy {
     // --- structs
 
     struct StrategyParams {
+        address rebaseToken;
+        address hedgeExchanger;
         address asset;
         address underlyingAsset;
         address oracleAsset;
         address oracleUnderlyingAsset;
         address inchSwapper;
-        address rebaseToken;
-        address hedgeExchanger;
     }
 
 
@@ -49,18 +49,21 @@ contract StrategyEtsWithInch is Strategy {
 
     function initialize() initializer public {
         __Strategy_init();
-        swapSlippageBp = 40;
+        swapSlippageBP = 40;
     }
 
 
     // --- setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
+
+        rebaseToken = IERC20(params.rebaseToken);
+        hedgeExchanger = IHedgeExchanger(params.hedgeExchanger);
+        
         asset = IERC20(params.asset);
         underlyingAsset = IERC20(params.underlyingAsset);
         inchSwapper = IInchSwapper(params.inchSwapper);
-        rebaseToken = IERC20(params.rebaseToken);
-        hedgeExchanger = IHedgeExchanger(params.hedgeExchanger);
+
         oracleAsset = IPriceFeed(params.oracleAsset);
         oracleUnderlyingAsset = IPriceFeed(params.oracleUnderlyingAsset);
 
@@ -73,44 +76,54 @@ contract StrategyEtsWithInch is Strategy {
 
     // --- logic
 
+    // convert asset to underlying and then buy
     function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
+
         asset.approve(address(inchSwapper), _amount);
-        uint256 underlyingBalanceWas = underlyingAsset.balanceOf(address(this));
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
         inchSwapper.swap(address(this), address(asset), address(underlyingAsset), _amount, amountOutMin);
-        uint256 underlyingBalanceNow = underlyingAsset.balanceOf(address(this));
-        underlyingAsset.approve(address(hedgeExchanger), underlyingBalanceNow - underlyingBalanceWas);
-        hedgeExchanger.buy(underlyingBalanceNow - underlyingBalanceWas, "");
+
+        uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
+        underlyingAsset.approve(address(hedgeExchanger), underlyingBalance);
+        hedgeExchanger.buy(underlyingBalance, "");
     }
 
+    // get underlying, convert to asset
     function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
+
         uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
         underlyingAsset.approve(address(inchSwapper), underlyingBalance);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(underlyingBalance), swapSlippageBP);
         inchSwapper.swap(address(this), address(underlyingAsset), address(asset), underlyingBalance, amountOutMin);
+
         return asset.balanceOf(address(this));
     }
 
+    // get all underlying, convert to asset
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
         hedgeExchanger.redeem(rebaseTokenAmount);
+
         uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
         underlyingAsset.approve(address(inchSwapper), underlyingBalance);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(underlyingBalance), swapSlippageBP);
         inchSwapper.swap(address(this), address(underlyingAsset), address(asset), underlyingBalance, amountOutMin);
+
         return asset.balanceOf(address(this));
     }
 

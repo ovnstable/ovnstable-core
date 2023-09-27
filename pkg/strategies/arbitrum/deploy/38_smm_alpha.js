@@ -9,7 +9,7 @@ module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEtsWithInch', deployments, save, null);
+        await deployProxyMulti(name, 'StrategyEtsInch', deployments, save, null);
     });
 
     await settingSection(async (strategy) => {
@@ -19,13 +19,13 @@ module.exports = async ({ deployments }) => {
 
 async function getParams() {
     return {
+        rebaseToken: rebaseToken,
+        hedgeExchanger: hedgeExchanger,
         asset: ARBITRUM.usdc,
         underlyingAsset: ARBITRUM.usdcCircle,
         oracleAsset: ARBITRUM.oracleUsdc,
         oracleUnderlyingAsset: ARBITRUM.oracleUsdc,
-        inchSwapper: "0x49398b8886d7708cF4BFDd305C4D622963d80F3d",
-        rebaseToken: rebaseToken,
-        hedgeExchanger: hedgeExchanger,
+        inchSwapper: ARBITRUM.inchSwapper,
     };
 }
 

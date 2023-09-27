@@ -28,13 +28,13 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
     if (strategyName.indexOf('StrategySmm') !== -1) {
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
-        let inchSwapperAddress = "0x49398b8886d7708cF4BFDd305C4D622963d80F3d";
+        let inchSwapperAddress = ARBITRUM.inchSwapper;
         let hedgeExchangerAddress = "0x42a6079C56258137a48D0EeA0c015ACB5e74D55E";
         let devjunAddress = "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef";
         let asset = ARBITRUM.usdc;
         let underlyingAsset = ARBITRUM.usdcCircle;
         await impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, devjunAddress, strategyAddress,
-            ownerAddress, inchSwapperAddress, asset, underlyingAsset, toE6(2_000_000), toE6(2_000_000))
+            ownerAddress, inchSwapperAddress, asset, underlyingAsset, toE6(1_000_000), toE6(1_000_000))
     }
 }
 

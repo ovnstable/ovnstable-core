@@ -50,6 +50,7 @@ let BASE = {
     swapBasedRouter: '0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066',
     aerodromeRouter: '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43',
     maverickRouter: '0x32AED3Bce901DA12ca8489788F3A99fCe1056e14',
+    inchSwapper: "0x99eE224252138CB8e20f2a74c01ca4D4749cF2D1",
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
@@ -167,6 +168,7 @@ let ARBITRUM = {
     arbidexRouter: "0x7238fb45146bd8fcb2c463dc119a53494be57aac",
     positionHelperCamelot: "0xe458018ad4283c90fb7f5460e24c4016f81b8175",
     sushiswapRouter: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
+    inchSwapper: "0x49398b8886d7708cF4BFDd305C4D622963d80F3d",
     // oracles
     oracleUsdc: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
     oracleUsdt: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
@@ -283,6 +285,7 @@ let OPTIMISM = {
     kyberSwapRouter: "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
     odosRouter: "0x69Dd38645f7457be13571a847FfD905f9acbaF6d",
     odosRouterV2: "0xCa423977156BB05b13A2BA3b76Bc5419E2fE9680",
+    inchSwapper: "0x42a6079C56258137a48D0EeA0c015ACB5e74D55E",
     // oracles
     oracleDai: "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6",
     oracleUsdt: "0xecef79e109e997bca29c1c0897ec9d7b03647f5e",
