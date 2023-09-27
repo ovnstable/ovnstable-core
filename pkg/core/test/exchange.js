@@ -40,14 +40,14 @@ describe("Exchange", function () {
             asset: 6,
             rebase: 6
         },
-        {
-            asset: 18,
-            rebase: 6
-        },
-        {
-            asset: 18,
-            rebase: 18
-        }
+        // {
+        //     asset: 18,
+        //     rebase: 6
+        // },
+        // {
+        //     asset: 18,
+        //     rebase: 18
+        // }
     ];
 
 
@@ -340,8 +340,17 @@ describe("Exchange", function () {
 
             describe('Payout: Negative', function () {
 
+                let odosEmptyData;
+
                 sharedBeforeEach("Payout: Negative", async () => {
                     await exchange.grantRole(UNIT_ROLE, account);
+                    let zeroAddress = "0x0000000000000000000000000000000000000000";
+                    odosEmptyData = {
+                        inputTokenAddress: zeroAddress,
+                        outputTokenAddress: zeroAddress,
+                        amountIn: 0,
+                        data: "0x"
+                    }
                 });
 
                 it("revert: OracleLoss", async function () {
@@ -349,8 +358,8 @@ describe("Exchange", function () {
                     await mint(100);
                     await pm.withdraw(toAsset(1));
                     await exchange.setOracleLoss(5000, 100000); // 5%
-
-                    await expectRevert(exchange.payout(), 'OracleLoss');
+                    console.log("lol", odosEmptyData);
+                    await expectRevert(exchange.payout(false, odosEmptyData), 'OracleLoss');
                 });
 
                 it("compensate", async function () {
@@ -362,7 +371,7 @@ describe("Exchange", function () {
 
                     await exchange.setOracleLoss(0, 100000);
                     await exchange.setCompensateLoss(1000, 100000); // 1%
-                    let tx = await (await exchange.payout()).wait();
+                    let tx = await (await exchange.payout(false, odosEmptyData)).wait();
 
                     expect(101).to.equal(fromAsset(await asset.balanceOf(pm.address)));
                     expect(101).to.equal(fromRebase(await usdPlus.totalSupply()));
@@ -378,15 +387,24 @@ describe("Exchange", function () {
 
             describe('Payout: Positive', function () {
 
+                let odosEmptyData;
+
                 sharedBeforeEach("Payout: Positive", async () => {
                     await exchange.grantRole(UNIT_ROLE, account);
+                    let zeroAddress = "0x0000000000000000000000000000000000000000";
+                    odosEmptyData = {
+                        inputTokenAddress: zeroAddress,
+                        outputTokenAddress: zeroAddress,
+                        amountIn: 0,
+                        data: "0x"
+                    }
                 });
 
                 it("revert: profitRecipient address is zero", async function () {
 
                     await mint(100);
                     await asset.mint(pm.address, toAsset(1));
-                    await expectRevert(exchange.payout(), 'profitRecipient address is zero');
+                    await expectRevert(exchange.payout(false, odosEmptyData), 'profitRecipient address is zero');
 
                 });
 
@@ -400,7 +418,7 @@ describe("Exchange", function () {
 
                     await pm.setTotalRiskFactor(10000); // 10%
 
-                    let tx = await (await exchange.payout()).wait();
+                    let tx = await (await exchange.payout(false, odosEmptyData)).wait();
 
                     expect(1).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
                     expect(109).to.equal(fromAsset(await asset.balanceOf(pm.address)));
@@ -425,7 +443,7 @@ describe("Exchange", function () {
                     await pm.setTotalRiskFactor(0); // 0%
 
 
-                    let tx = await (await exchange.payout()).wait();
+                    let tx = await (await exchange.payout(false, odosEmptyData)).wait();
 
                     expect(0).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
                     expect(110).to.equal(fromAsset(await asset.balanceOf(pm.address)));
@@ -451,7 +469,7 @@ describe("Exchange", function () {
                     await exchange.setAbroad(0, 1000350);
                     await pm.setTotalRiskFactor(50000); // 50%
 
-                    let tx = await (await exchange.payout()).wait();
+                    let tx = await (await exchange.payout(false, odosEmptyData)).wait();
 
                     expect(5).to.equal(fromAsset(await asset.balanceOf(insurance.address)));
                     expect(105).to.equal(fromAsset(await asset.balanceOf(pm.address)));

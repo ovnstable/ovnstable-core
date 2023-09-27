@@ -280,14 +280,6 @@ describe("InsuranceExchange", function () {
                         await expectRevert(insurance.redeem({amount: toRebase(5)}), 'need withdraw request');
                     });
 
-                    it("checkWithdraw -> TRUST_ROLE -> ignore", async function () {
-                        await mint(10);
-
-                        await insurance.grantRole(await insurance.TRUST_ROLE(), account.address);
-                        await redeem(10);
-                    });
-
-
                     it("rebase.burn | fee 0", async function () {
                         await mint(100);
                         expect(100).to.equal(fromRebase(await rebase.balanceOf(account.address)));
@@ -408,43 +400,54 @@ describe("InsuranceExchange", function () {
             describe('Odos', function () {
 
                 let usdc;
-                let dai;
 
                 sharedBeforeEach("Odos", async () => {
                     await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account.address);
+                    await mint("100");
                     usdc = (await getERC20ByAddress(OPTIMISM.usdc)).connect(account);
-                    dai = (await getERC20ByAddress(OPTIMISM.dai)).connect(account);
-
                     await transferAsset(OPTIMISM.usdc, account.address);
+                    console.log("usdc account balance", (await usdc.balanceOf(account.address)).toString());
+                    console.log("ovn insurance balance", (await asset.balanceOf(insurance.address)).toString());
+                    console.log("ovn address", asset.address);
                 });
 
                 it("Odos Premium", async function () {
-                    console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
                     await usdc.transfer(insurance.address, 10000000);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-                    let swapData = await getOdosSwapData(usdc.address, dai.address, 10000000);
+                    console.log("ovn balance", (await asset.balanceOf(insurance.address)).toString());
+                    let swapData = await getOdosSwapData(usdc.address, asset.address, 10000000);
                     console.log(swapData);
                     await insurance.premium(swapData);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+                    console.log("ovn balance", (await asset.balanceOf(insurance.address)).toString());
                 })
 
                 it("Odos Compensate", async function () {
-                    console.log("usdc balance", (await usdc.balanceOf(account.address)).toString());
-                    await usdc.transfer(insurance.address, 10000000);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
-                    let neededAmount = await getOdosAmountOut(dai.address, usdc.address, 9*1e18, 6);
+                    console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
+                    let neededAmount = await getOdosAmountOut(asset.address, usdc.address, 9*1e18, 6);
                     console.log("neededAmount", neededAmount.toString());
-                    let swapData = await getOdosSwapData(usdc.address, dai.address, neededAmount);
+                    let swapData = await getOdosSwapData(usdc.address, asset.address, neededAmount);
                     console.log("lol", swapData);
                     await insurance.compensate(swapData, "9000000000000000000", account.address);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
-                    console.log("dai balance", (await dai.balanceOf(insurance.address)).toString());
+                    console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
                 })
             });
 
+            describe('Twap', function () {
+
+                sharedBeforeEach("Twap", async () => {
+                   
+                });
+
+                it("Twap", async function () {
+                    let ovnPrice = await insurance.getTwapPrice();
+                    console.log("ovnPrice", ovnPrice.toString());
+                    
+                })
+
+            });
 
         });
 

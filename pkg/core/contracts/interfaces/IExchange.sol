@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "./IInsuranceExchange.sol";
+
 interface IExchange {
 
     struct MintParams {
@@ -37,6 +39,6 @@ interface IExchange {
      */
     function redeem(address _asset, uint256 _amount) external returns (uint256);
 
-    function payout(bool simulate) external returns (uint256 swapAmount);
+    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData)  external returns (uint256 swapAmount);
 
 }

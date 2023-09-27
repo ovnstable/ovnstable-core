@@ -11,6 +11,7 @@ import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IInsuranceExchange.sol";
+import "./interfaces/IVelodromeTwap.sol";
 
 import "./interfaces/IRebaseToken.sol";
 
@@ -20,13 +21,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
-    bytes32 public constant TRUST_ROLE = keccak256("TRUST_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant INSURANCE_HOLDER_ROLE = keccak256("INSURANCE_HOLDER_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
-    // OVN address
-    IERC20 public asset;
+    IERC20 public asset; // OVN address
     IRebaseToken public rebase;
     address public odosRouter;
 
@@ -37,6 +36,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     uint256 public redeemFeeDenominator;
 
     uint256 public lastBlockNumber;
+    uint256 public swapSlippage;
 
     uint256 public nextPayoutTime;
     uint256 public payoutPeriod;
@@ -87,6 +87,8 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         // 4 day in seconds
         withdrawPeriod = 345600;
 
+        swapSlippage = 500; // 5%
+
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
@@ -105,11 +107,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyTrust() {
-        require(hasRole(TRUST_ROLE, msg.sender), "Restricted to Trust");
         _;
     }
 
@@ -170,6 +167,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function setWithdrawPeriod(uint256 _requestWaitPeriod, uint256 _withdrawPeriod) external onlyPortfolioAgent {
         requestWaitPeriod = _requestWaitPeriod;
         withdrawPeriod = _withdrawPeriod;
+    }
+
+    function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
+        require(_swapSlippage != 0, "Zero swapSlippage not allowed");
+        swapSlippage = _swapSlippage;
     }
 
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
@@ -271,10 +273,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
     function checkWithdraw() public view {
 
-        if (hasRole(TRUST_ROLE, msg.sender)) {
-            return;
-        }
-
         uint256 date = withdrawRequests[msg.sender];
         uint256 currentDate = block.timestamp;
 
@@ -313,12 +311,33 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
         inputAsset.approve(odosRouter, swapData.amountIn);
 
-        uint256 balanceBefore = outputAsset.balanceOf(address(this));
+        uint256 balanceInBefore = inputAsset.balanceOf(address(this));
+        uint256 balanceOutBefore = outputAsset.balanceOf(address(this));
         inputAsset.approve(odosRouter, swapData.amountIn);
         (bool success,) = odosRouter.call{value : 0}(swapData.data);
         require(success, "router swap invalid");
-        uint256 balanceAfter = outputAsset.balanceOf(address(this));
-        // TODO Need check amountMinOut
+        uint256 balanceInAfter = inputAsset.balanceOf(address(this));
+        uint256 balanceOutAfter = outputAsset.balanceOf(address(this));
+
+        uint256 amountIn = balanceInBefore - balanceInAfter;
+        uint256 amountOut = balanceOutAfter - balanceOutBefore;
+
+        uint256 price = getTwapPrice(); // 1 ovn = price usd
+            
+        if (address(inputAsset) == address(asset)) {
+            // ovn --> usdc
+            uint256 sideDecimals = 10**IERC20Metadata(address(outputAsset)).decimals();
+            uint256 apprAmountOut = amountIn * price / sideDecimals;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Lerge swap slippage (ovn --> usdc)');
+            
+        } else {
+            // usdc --> ovn
+            uint256 sideDecimals = 10**IERC20Metadata(address(inputAsset)).decimals();
+            uint256 apprAmountOut = amountIn * sideDecimals / price;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Lerge swap slippage (usdc --> ovn)');
+        }
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
@@ -342,6 +361,23 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+    }
+
+    function getTwapPrice() public view returns (uint256) {
+        address poolAddress = 0x844D7d2fCa6786Be7De6721AabdfF6957ACE73a0;
+        IVelodromeTwap velodromeTwap = IVelodromeTwap(poolAddress);
+
+        uint256 lastIndex = velodromeTwap.observationLength() - 1;
+        uint256 firstIndex = 0;
+
+        IVelodromeTwap.Observation memory lastObservation = velodromeTwap.observations(lastIndex);
+        IVelodromeTwap.Observation memory firstObservation = velodromeTwap.observations(firstIndex);
+
+        uint256 timeElapsed = lastObservation.timestamp - firstObservation.timestamp;
+        uint256 reserve0 = (lastObservation.reserve0Cumulative - firstObservation.reserve0Cumulative) / timeElapsed;
+        uint256 reserve1 = (lastObservation.reserve1Cumulative - firstObservation.reserve1Cumulative) / timeElapsed;
+        uint256 ovnPrice = reserve1 * 10**IERC20Metadata(address(asset)).decimals() / reserve0;
+        return ovnPrice;
     }
 
 }
