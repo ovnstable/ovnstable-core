@@ -24,6 +24,7 @@ let BASE = {
     comp: '0x9e1028F5F1D5eDE59748FFceE5532509976840E0',
     sonne: '0x22a2488fE295047Ba13BD8cCCdBC8361DBD8cf7c',
     crvUsd: '0x417Ac0e078398C154EdFadD9Ef675d30Be60Af93',
+    moon: '0xeF0b2Ccb53A683fA48799245f376D6a60929f003',
     // aave
     aaveProvider: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D',
     // moonwell
@@ -50,6 +51,7 @@ let BASE = {
     swapBasedRouter: '0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066',
     aerodromeRouter: '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43',
     maverickRouter: '0x32AED3Bce901DA12ca8489788F3A99fCe1056e14',
+    moonbaseRouter: '0x4617695387bE48c3202a0A9165549c790C4A08Af',
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
