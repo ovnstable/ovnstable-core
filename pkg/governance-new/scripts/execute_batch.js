@@ -26,11 +26,10 @@ async function main() {
         console.log(transaction)
     }
 
-    timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address);
+    timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
     if (addresses.length === 1){
-
-        let hasOperation = await timelock.hasOperation(addresses[0], values[0], datas[0], PREDECESSOR, SALT);
+        let hasOperation = await timelock.hashOperation(addresses[0], values[0], datas[0], PREDECESSOR, SALT);
         console.log('HasOperation: ' + hasOperation);
 
         await (await timelock.execute(addresses[0], values[0], datas[0], PREDECESSOR, SALT)).wait();
