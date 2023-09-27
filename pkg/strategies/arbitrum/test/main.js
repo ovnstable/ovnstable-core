@@ -1,8 +1,12 @@
-const {strategyTest} = require('@overnight-contracts/common/utils/strategy-test');
+const { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
+const { toE6 } = require('@overnight-contracts/common/utils/decimals');
+const { getDataForSwap } = require('@overnight-contracts/common/utils/inch-helpers');
+const { strategyTest } = require('@overnight-contracts/common/utils/strategy-test');
 const {
     impersonatingEtsGrantRole,
     prepareEnvironment,
-    impersonatingStaker
+    impersonatingStaker,
+    impersonatingEtsGrantRoleWithInchSwapper
 } = require("@overnight-contracts/common/utils/tests");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
@@ -20,6 +24,17 @@ async function runStrategyLogic(strategyName, strategyAddress) {
         let gauge = '0x884c28296b6ec728ac27bfe7579419709514d154';
         let pair = '0x07d7F291e731A41D3F0EA4F1AE5b6d920ffb3Fe0';
         await impersonatingStaker(stakerAddress, ownerAddress, strategyAddress, pair, gauge)
+    }
+
+    if (strategyName.indexOf('StrategySmm') !== -1) {
+        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        let inchSwapperAddress = "0x49398b8886d7708cF4BFDd305C4D622963d80F3d";
+        let hedgeExchangerAddress = "0x42a6079C56258137a48D0EeA0c015ACB5e74D55E";
+        let devjunAddress = "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef";
+        let asset = ARBITRUM.usdc;
+        let underlyingAsset = ARBITRUM.usdcCircle;
+        await impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, devjunAddress, strategyAddress,
+            ownerAddress, inchSwapperAddress, asset, underlyingAsset, toE6(2_000_000), toE6(2_000_000))
     }
 }
 

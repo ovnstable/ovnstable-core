@@ -49,7 +49,7 @@ contract StrategyEtsWithInch is Strategy {
 
     function initialize() initializer public {
         __Strategy_init();
-        swapSlippageBp = 20;
+        swapSlippageBp = 40;
     }
 
 
