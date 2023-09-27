@@ -400,6 +400,7 @@ describe("InsuranceExchange", function () {
             describe('Odos', function () {
 
                 let usdc;
+                let ovnAddress = "0x3b08fcd15280e7B5A6e404c4abb87F7C774D1B2e";
 
                 sharedBeforeEach("Odos", async () => {
                     await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account.address);
@@ -415,7 +416,7 @@ describe("InsuranceExchange", function () {
                     await usdc.transfer(insurance.address, 10000000);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
                     console.log("ovn balance", (await asset.balanceOf(insurance.address)).toString());
-                    let swapData = await getOdosSwapData(usdc.address, asset.address, 10000000);
+                    let swapData = await getOdosSwapData(usdc.address, ovnAddress, 10000000);
                     console.log(swapData);
                     await insurance.premium(swapData);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
@@ -425,10 +426,10 @@ describe("InsuranceExchange", function () {
                 it("Odos Compensate", async function () {
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
                     console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
-                    let neededAmount = await getOdosAmountOut(asset.address, usdc.address, 9*1e18, 6);
+                    let neededAmount = await getOdosAmountOut(ovnAddress, usdc.address, 9*1e16, 6);
                     console.log("neededAmount", neededAmount.toString());
-                    let swapData = await getOdosSwapData(usdc.address, asset.address, neededAmount);
-                    console.log("lol", swapData);
+                    let swapData = await getOdosSwapData(usdc.address, ovnAddress, neededAmount);
+                    console.log(swapData);
                     await insurance.compensate(swapData, "9000000000000000000", account.address);
                     console.log("usdc balance", (await usdc.balanceOf(insurance.address)).toString());
                     console.log("asset balance", (await asset.balanceOf(insurance.address)).toString());
