@@ -10,24 +10,24 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
+import "./interfaces/IInsuranceExchange.sol";
+import "./interfaces/IVelodromeTwap.sol";
 
 import "./interfaces/IRebaseToken.sol";
 
 import "hardhat/console.sol";
 
-contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
-    bytes32 public constant TRUST_ROLE = keccak256("TRUST_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
-    bytes32 public constant INSURANCE_HOLDER_ROLE = keccak256("INSURANCE_HOLDER_ROLE");
+    bytes32 public constant INSURED_ROLE = keccak256("INSURED_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
-    IERC20 public asset;
+    IERC20 public asset; // OVN address
     IRebaseToken public rebase;
-    IPortfolioManager public pm;
-    IMark2Market public m2m;
+    address public odosRouter;
 
     uint256 public mintFee;
     uint256 public mintFeeDenominator;
@@ -36,6 +36,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     uint256 public redeemFeeDenominator;
 
     uint256 public lastBlockNumber;
+    uint256 public swapSlippage;
 
     uint256 public nextPayoutTime;
     uint256 public payoutPeriod;
@@ -48,16 +49,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
     struct SetUpParams {
         address asset;
         address rebase;
-        address pm;
-        address m2m;
-    }
-
-    struct InputMint {
-        uint256 amount;
-    }
-
-    struct InputRedeem {
-        uint256 amount;
+        address odosRouter;
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
@@ -95,6 +87,8 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         // 4 day in seconds
         withdrawPeriod = 345600;
 
+        swapSlippage = 500; // 5%
+
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
@@ -116,13 +110,8 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         _;
     }
 
-    modifier onlyTrust() {
-        require(hasRole(TRUST_ROLE, msg.sender), "Restricted to Trust");
-        _;
-    }
-
-    modifier onlyInsuranceHolder() {
-        require(hasRole(INSURANCE_HOLDER_ROLE, msg.sender), "Restricted to Insurance Holder");
+    modifier onlyInsured() {
+        require(hasRole(INSURED_ROLE, msg.sender), "Restricted to Insured");
         _;
     }
 
@@ -144,12 +133,10 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         _;
     }
 
-
     function setUpParams(SetUpParams calldata params) external onlyAdmin {
         asset = IERC20(params.asset);
         rebase = IRebaseToken(params.rebase);
-        pm = IPortfolioManager(params.pm);
-        m2m = IMark2Market(params.m2m);
+        odosRouter = params.odosRouter;
     }
 
     function setPayoutTimes(
@@ -182,6 +169,11 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         withdrawPeriod = _withdrawPeriod;
     }
 
+    function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
+        require(_swapSlippage != 0, "Zero swapSlippage not allowed");
+        swapSlippage = _swapSlippage;
+    }
+
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
         _mint(input.amount);
     }
@@ -190,12 +182,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(_amount > 0, "Amount of asset is zero");
         require(asset.balanceOf(msg.sender) >= _amount, "Not enough tokens to mint");
 
-
-        uint256 _targetBalance = asset.balanceOf(address(pm)) + _amount;
-        asset.transferFrom(msg.sender, address(pm), _amount);
-        require(asset.balanceOf(address(pm)) == _targetBalance, 'pm balance != target');
-
-        pm.deposit();
+        asset.transferFrom(msg.sender, address(this), _amount);
 
         uint256 rebaseAmount = _assetToRebaseAmount(_amount);
         uint256 fee;
@@ -243,8 +230,6 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         uint256 assetAmount = _rebaseAmountToAsset(amountFee);
         require(assetAmount > 0, "Amount of asset is zero");
 
-        pm.withdraw(assetAmount);
-
         require(asset.balanceOf(address(this)) >= assetAmount, "Not enough for transfer");
 
         asset.transfer(msg.sender, assetAmount);
@@ -282,16 +267,11 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
 
     }
 
-
     function requestWithdraw() external whenNotPaused {
         withdrawRequests[msg.sender] = block.timestamp + requestWaitPeriod;
     }
 
     function checkWithdraw() public view {
-
-        if (hasRole(TRUST_ROLE, msg.sender)) {
-            return;
-        }
 
         uint256 date = withdrawRequests[msg.sender];
         uint256 currentDate = block.timestamp;
@@ -303,18 +283,66 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
         require(withdrawDate > currentDate, 'withdrawPeriod');
     }
 
-
-    function premium(uint256 _assetAmount) external onlyInsuranceHolder {
-        require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        asset.transfer(address(pm), _assetAmount);
+    /**
+     * @dev This function is calling when USD+ (or other plus) make payout and there are extra value.
+     * This method should convert this asset to OVN.
+     * @param swapData consist of odos data to make swap
+     */
+    function premium(SwapData memory swapData) external onlyInsured {
+        _swap(swapData);
     }
 
-    function compensate(uint256 _assetAmount, address _to) external onlyInsuranceHolder {
-        pm.withdraw(_assetAmount);
-        require(asset.balanceOf(address(this)) >= _assetAmount, "Not enough for transfer");
-        asset.transfer(_to, _assetAmount);
+    /**
+     * @dev This function is calling when USD+ (or other plus) make payout and there are some loss value.
+     * This method should convert some OVN to asset and transfer it to the Exchanger contract.
+     * @param swapData consist of odos data to make swap
+     * @param assetAmount needed amount of asset to cover the loss
+     * @param to recipient of assets
+     */
+    function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsured {
+        _swap(swapData);
+        IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
     }
 
+    function _swap(SwapData memory swapData) internal {
+
+        IERC20 inputAsset = IERC20(swapData.inputTokenAddress);
+        IERC20 outputAsset = IERC20(swapData.outputTokenAddress);
+
+        IERC20 usdAsset = address(inputAsset) == address(asset) ? outputAsset : inputAsset;
+
+        inputAsset.approve(odosRouter, swapData.amountIn);
+
+        uint256 balanceInBefore = inputAsset.balanceOf(address(this));
+        uint256 balanceOutBefore = outputAsset.balanceOf(address(this));
+        inputAsset.approve(odosRouter, swapData.amountIn);
+        (bool success,) = odosRouter.call{value : 0}(swapData.data);
+        require(success, "router swap invalid");
+        uint256 balanceInAfter = inputAsset.balanceOf(address(this));
+        uint256 balanceOutAfter = outputAsset.balanceOf(address(this));
+
+        uint256 amountIn = balanceInBefore - balanceInAfter;
+        uint256 amountOut = balanceOutAfter - balanceOutBefore;
+
+        uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
+        uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
+
+        uint256 price = getTwapPrice(); // 1 ovn = price usd+
+        // price = price * getPlusTwapPrice(address(usdAsset)) / 1e6;
+
+        if (address(inputAsset) == address(asset)) {
+            // ovn --> usdc
+            uint256 apprAmountOut = amountIn * price / ovnDecimals;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Large swap slippage (ovn --> usdc)');
+
+        } else {
+            // usdc --> ovn
+            uint256 apprAmountOut = amountIn * ovnDecimals / price;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Large swap slippage (usdc --> ovn)');
+        }
+    }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
 
@@ -322,9 +350,7 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
             return;
         }
 
-        pm.claimAndBalance();
-
-        uint256 totalAsset = m2m.totalNetAssets();
+        uint256 totalAsset = asset.balanceOf(address(this));
         totalAsset = _assetToRebaseAmount(totalAsset);
 
         int256 profit = int256(totalAsset) - int256(rebase.totalSupply());
@@ -339,6 +365,23 @@ contract InsuranceExchange is Initializable, AccessControlUpgradeable, UUPSUpgra
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+    }
+
+    function getTwapPrice() public view returns (uint256) {
+        address poolAddress = 0x844D7d2fCa6786Be7De6721AabdfF6957ACE73a0;
+        IVelodromeTwap velodromeTwap = IVelodromeTwap(poolAddress);
+
+        uint256 lastIndex = velodromeTwap.observationLength() - 1;
+        uint256 firstIndex = lastIndex - 1;
+
+        IVelodromeTwap.Observation memory lastObservation = velodromeTwap.observations(lastIndex);
+        IVelodromeTwap.Observation memory firstObservation = velodromeTwap.observations(firstIndex);
+
+        uint256 timeElapsed = lastObservation.timestamp - firstObservation.timestamp;
+        uint256 reserve0 = (lastObservation.reserve0Cumulative - firstObservation.reserve0Cumulative) / timeElapsed;
+        uint256 reserve1 = (lastObservation.reserve1Cumulative - firstObservation.reserve1Cumulative) / timeElapsed;
+        uint256 ovnPrice = reserve1 * 10**IERC20Metadata(address(asset)).decimals() / reserve0; // 1 ovn = ovnPrice usd+
+        return ovnPrice;
     }
 
 

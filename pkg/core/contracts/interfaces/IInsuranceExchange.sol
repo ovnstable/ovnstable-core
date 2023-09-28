@@ -2,6 +2,13 @@ pragma solidity ^0.8.0;
 
 interface IInsuranceExchange {
 
+    struct SwapData {
+        address inputTokenAddress;
+        address outputTokenAddress;
+        uint256 amountIn;
+        bytes data;
+    }
+
     struct InputMint {
         uint256 amount;
     }
@@ -16,9 +23,9 @@ interface IInsuranceExchange {
 
     function payout() external;
 
-    function premium(uint256 amount) external;
+    function premium(SwapData memory swapData) external;
 
-    function compensate(uint256 assetAmount, address to) external;
+    function compensate(SwapData memory swapData, uint256 assetAmount, address to) external;
 
     function requestWithdraw() external;
 

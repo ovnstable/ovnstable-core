@@ -6,7 +6,7 @@ const {getCoreAsset} = require("@overnight-contracts/common/utils/script-utils")
 module.exports = async ({getNamedAccounts}) => {
     const {deployer} = await getNamedAccounts();
 
-    let asset = await getCoreAsset()
+    let asset = await ethers.getContract('Ovn');
 
     let insurance = await ethers.getContract('InsuranceExchange');
     let rebase = await ethers.getContract('InsuranceToken');
@@ -32,12 +32,10 @@ module.exports = async ({getNamedAccounts}) => {
     // await (await rebase.setDecimals(6)).wait();
     console.log('InsuranceToken setting done()');
 
-
     let params = {
         asset: asset.address,
         rebase: rebase.address,
-        pm: pm.address,
-        m2m: m2m.address,
+        odosRouter: OPTIMISM.odosRouterV2
     }
 
     await (await insurance.setUpParams(params)).wait();

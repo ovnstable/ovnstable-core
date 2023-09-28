@@ -1,4 +1,5 @@
 const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
+const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 
 module.exports = async ({deployments, getNamedAccounts}) => {
@@ -34,8 +35,7 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     let params = {
         asset: asset.address,
         rebase: rebase.address,
-        pm: pm.address,
-        m2m: pm.address,
+        odosRouter: OPTIMISM.odosRouterV2
     }
 
 
