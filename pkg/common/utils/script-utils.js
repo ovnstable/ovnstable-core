@@ -543,7 +543,7 @@ async function impersonateAccount(address) {
 async function execTimelock(exec) {
 
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
 
     if (hre.network.name === 'localhost') {
@@ -653,7 +653,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
