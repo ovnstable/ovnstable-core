@@ -339,7 +339,6 @@ async function getStrategyMapping() {
             fromAsset = fromE18;
             break;
         case "polygon":
-        case "polygon_ins":
             url = "https://app.overnight.fi/api/dict/strategies";
             break;
         case "polygon_dev":
