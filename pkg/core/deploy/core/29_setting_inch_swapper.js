@@ -19,6 +19,7 @@ module.exports = async ({ deployments }) => {
     await (await inchSwapper.setParams(inchRouter, blockGetter)).wait();
     await (await inchSwapper.grantRole(Roles.UNIT_ROLE, "0x5CB01385d3097b6a189d1ac8BA3364D900666445")).wait();
     await (await inchSwapper.grantRole(Roles.UNIT_ROLE, "0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055")).wait();
+    await (await inchSwapper.grantRole(Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait();
     console.log('InchSwapper setting done()');
 };
 

@@ -1,19 +1,21 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const {expect} = require('chai');
+const { expect } = require('chai');
 const hre = require("hardhat");
 
 const fs = require("fs-extra")
 
-const {node_url, blockNumber} = require("../utils/network");
-const {ethers} = require("hardhat");
-const {transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract} = require("./script-utils");
+const { node_url, blockNumber } = require("../utils/network");
+const { ethers } = require("hardhat");
+const { transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract, getChainId } = require("./script-utils");
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
+const InchSwapperABI = require("./abi/InchSwapper.json");
 const StakerABI = require("./abi/Staker.json");
-const {Roles} = require("./roles");
-const {ARBITRUM, OPTIMISM, BSC, DEFAULT} = require("./assets");
-const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
+const { Roles } = require("./roles");
+const { ARBITRUM, OPTIMISM, BSC, DEFAULT } = require("./assets");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { getDataForSwap } = require('./inch-helpers');
 
 let isTestAssetsCompleted = false;
 
@@ -89,6 +91,77 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     });
 }
 
+async function impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, strategyAddress, ownerAddress,
+    inchSwapperAddress, asset, underlyingAsset, amountInMax0, amountInMax1) {
+
+    console.log('Execute: [impersonatingEtsGrantRoleWithInchSwapper]');
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [ownerAddress],
+    });
+    const owner = await ethers.getSigner(ownerAddress);
+
+    let inchSwapper = await ethers.getContractAt(InchSwapperABI, inchSwapperAddress);
+    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, hedgeExchangerAddress);
+    let hedgeExchangeAdmin;
+    let DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    if (await hedgeExchanger.hasRole(DEFAULT_ADMIN_ROLE, owner.address)) {
+        hedgeExchangeAdmin = owner;
+    } else {
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: ["0x66BC0120b3287f08408BCC76ee791f0bad17Eeef"],
+        });
+        hedgeExchangeAdmin = await ethers.getSigner("0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
+    }
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.PORTFOLIO_AGENT_ROLE, ownerAddress);
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
+    await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
+    if (process.env.STAND.includes('arbitrum')) {
+        await inchSwapper.connect(owner).setParams(DEFAULT.inchRouterV5, ZERO_ADDRESS);
+        await hedgeExchanger.connect(hedgeExchangeAdmin).setBlockGetter(ZERO_ADDRESS);
+    }
+
+    let inchDataForSwapResponse0 = await getDataForSwap(
+        await getChainId(),
+        owner.address,
+        asset,
+        underlyingAsset,
+        amountInMax0,
+        "",
+        "");
+
+    await inchSwapper.connect(owner).updatePath({
+        tokenIn: asset,
+        tokenOut: underlyingAsset,
+        amount: amountInMax0,
+        flags: inchDataForSwapResponse0.flags,
+        srcReceiver: inchDataForSwapResponse0.srcReceiver
+    }, inchDataForSwapResponse0.data,);
+
+    let inchDataForSwapResponse1 = await getDataForSwap(
+        await getChainId(),
+        owner.address,
+        underlyingAsset,
+        asset,
+        amountInMax1,
+        "",
+        "");
+
+    await inchSwapper.connect(owner).updatePath({
+        tokenIn: underlyingAsset,
+        tokenOut: asset,
+        amount: amountInMax1,
+        flags: inchDataForSwapResponse1.flags,
+        srcReceiver: inchDataForSwapResponse1.srcReceiver
+    }, inchDataForSwapResponse1.data,);
+
+    await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ownerAddress],
+    });
+}
+
 async function impersonatingStaker(stakerAddress, ownerAddress, strategyAddress, pair, gauge) {
 
     console.log('Execute: [impersonatingStaker]');
@@ -149,11 +222,11 @@ async function getTestAssets(to) {
 
 }
 
-async function prepareEnvironment(){
+async function prepareEnvironment() {
 
-    if (process.env.STAND.includes('arbitrum')){
+    if (process.env.STAND.includes('arbitrum')) {
 
-        await execTimelock(async (timelock)=>{
+        await execTimelock(async (timelock) => {
             let exchange = await getContract('Exchange', 'arbitrum');
             await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
             console.log('[Test] exchange.setBlockGetter(zero)');
@@ -171,5 +244,6 @@ module.exports = {
     createRandomWallet: createRandomWallet,
     getTestAssets: getTestAssets,
     impersonatingEtsGrantRole: impersonatingEtsGrantRole,
-    impersonatingStaker: impersonatingStaker
+    impersonatingStaker: impersonatingStaker,
+    impersonatingEtsGrantRoleWithInchSwapper: impersonatingEtsGrantRoleWithInchSwapper
 }
