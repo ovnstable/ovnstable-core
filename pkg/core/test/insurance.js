@@ -9,7 +9,6 @@ const chai = require("chai");
 chai.use(require('chai-bignumber')());
 const axios = require("axios");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
-const { getOdosSwapData, getOdosAmountOut } = require("../scripts/odos-helper");
 
 const {
     initWallet,
