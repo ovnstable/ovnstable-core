@@ -58,17 +58,6 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
 
     // ---  setters
 
-    function setName(string memory name, string memory symbol) external onlyAdmin {
-        _name = name;
-        _symbol = symbol;
-
-    }
-
-    function setDecimals(uint8 decimals) external onlyAdmin {
-        require(_decimals == 0, 'Decimals already set');
-        _decimals = decimals;
-    }
-
     function setExchanger(address _exchanger) external onlyAdmin {
         if (exchange != address(0)) {
             revokeRole(EXCHANGER, exchange);
@@ -89,7 +78,7 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize() initializer public {
+    function initialize(string memory name, string memory symbol, uint8 decimals) initializer public {
         __Context_init_unchained();
 
         __AccessControl_init();
@@ -101,6 +90,10 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
         liquidityIndex = 10 ** 27;
         // 1 Ray
         liquidityIndexDenominator = 10 ** 27;
+
+        _name = name;
+        _symbol = symbol;
+        _decimals = decimals;
     }
 
     function _authorizeUpgrade(address newImplementation)
