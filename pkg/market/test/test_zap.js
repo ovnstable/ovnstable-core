@@ -29,6 +29,14 @@ let zaps = [
         token1In: 'dai',
     },
     {
+        name: 'BeefyAerodromeZap',
+        gauge: '0x661413c7baf43c53e6beff6567aad4b4f58bb10a',
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
         name: 'CurveZap',
         gauge: '0xc0798d022eEE81F1408895325A9fBe171d2a24f1',
         token0Out: 'usdPlus',
@@ -124,6 +132,14 @@ let zaps = [
     {
         name: 'VelodromeZap',
         gauge: '0xC263655114CdE848C73B899846FE7A2D219c10a8',
+        token0Out: 'usdPlus',
+        token1Out: 'usdc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'BeefyVelodromeZap',
+        gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
         token0Out: 'usdPlus',
         token1Out: 'usdc',
         token0In: 'daiPlus',
