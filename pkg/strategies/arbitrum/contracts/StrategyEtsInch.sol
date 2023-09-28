@@ -55,18 +55,17 @@ contract StrategyEtsInch is Strategy {
     // --- setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        
-        require(params.rebaseToken != address(0), "SetParams: rebase token could not be zero address");
-        require(params.hedgeExchanger != address(0), "SetParams: hedge exchanger could not be zero address");
-        require(params.asset != address(0), "SetParams: asset could not be zero address");
-        require(params.underlyingAsset != address(0), "SetParams: underlying asset could not be zero address");
-        require(params.oracleAsset != address(0), "SetParams: oracle asset could not be zero address");
-        require(params.oracleUnderlyingAsset != address(0), "SetParams: oracle underlying asset could not be zero address");
-        require(params.inchSwapper != address(0), "SetParams: inch swapper could not be zero address");
+        require(params.rebaseToken != address(0), "rebaseToken is zero");
+        require(params.hedgeExchanger != address(0), "hedgeExchanger is zero");
+        require(params.asset != address(0), "asset is zero");
+        require(params.underlyingAsset != address(0), "underlyingAsset is zero");
+        require(params.oracleAsset != address(0), "oracleAsset is zero");
+        require(params.oracleUnderlyingAsset != address(0), "oracleUnderlyingAsset is zero");
+        require(params.inchSwapper != address(0), "inchSwapper is zero");
 
         rebaseToken = IERC20(params.rebaseToken);
         hedgeExchanger = IHedgeExchanger(params.hedgeExchanger);
-        
+
         asset = IERC20(params.asset);
         underlyingAsset = IERC20(params.underlyingAsset);
         inchSwapper = IInchSwapper(params.inchSwapper);
@@ -103,7 +102,7 @@ contract StrategyEtsInch is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
         // convert asset to underlying with some addition
-        uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleAssetToUnderlying(_amount), stakeSlippageBP);
+        uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
 
         // redeem asset
         rebaseToken.approve(address(hedgeExchanger), amountToRedeem);

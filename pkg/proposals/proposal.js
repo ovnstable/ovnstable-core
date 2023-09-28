@@ -11,19 +11,14 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let exchange = await getContract('Exchange');
-    let insurance = await getContract('InsuranceExchange');
+    let pm = await getContract('PortfolioManager');
 
-    addresses.push(exchange.address);
+    addresses.push(pm.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xDB50c362044571AADead2e5F097f34287A894412']));
-
-    addresses.push(exchange.address);
-    values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('setInsurance', [insurance.address]));
+    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x4957653E0fdd3EA8a76577B81E12E89dD3e56F8E']));
 
     // await testProposal(addresses, values, abis);
-    await createProposal('2_set_insurance.js', addresses, values, abis);
+    await createProposal('3_add_alpha_smm.js', addresses, values, abis);
 
 }
 
