@@ -49,7 +49,6 @@ contract StrategyEtsInch is Strategy {
 
     function initialize() initializer public {
         __Strategy_init();
-        swapSlippageBP = 40;
     }
 
 
