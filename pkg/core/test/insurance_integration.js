@@ -55,11 +55,11 @@ describe("InsuranceExchangeIntegration", function () {
                 rebase: rebase.address,
                 odosRouter: OPTIMISM.odosRouterV2
             }
-            
+
             await (await rebase.setExchanger(insurance.address)).wait();
-            await (await rebase.setName('USD+ Insurance', 'USD+ INS')).wait(); 
+            await (await rebase.setName('USD+ Insurance', 'USD+ INS')).wait();
             await (await insurance.setUpParams(params)).wait();
-            await (await insurance.grantRole(await insurance.INSURANCE_HOLDER_ROLE(), account.address)).wait();
+            await (await insurance.grantRole(await insurance.INSURED_ROLE(), account.address)).wait();
 
             // insurance setting end
 
@@ -71,7 +71,7 @@ describe("InsuranceExchangeIntegration", function () {
 
         describe('Odos', function () {
 
-            sharedBeforeEach("Odos", async () => {    
+            sharedBeforeEach("Odos", async () => {
                 console.log("usdc account balance", (await usdc.balanceOf(account.address)).toString());
                 console.log("ovn insurance balance", (await asset.balanceOf(insurance.address)).toString());
             });
@@ -106,7 +106,7 @@ describe("InsuranceExchangeIntegration", function () {
                 let swapData = await getOdosSwapData(asset.address, usdc.address, neededAmount);
                 console.log(swapData);
                 await insurance.compensate(swapData, toE6(9), account.address);
-                
+
                 let insUsdcBalanceAfter = (await usdc.balanceOf(insurance.address));
                 let insOvnBalanceAfter = (await asset.balanceOf(insurance.address));
                 let accountUsdcBalanceAfter = (await usdc.balanceOf(account.address));
@@ -118,7 +118,7 @@ describe("InsuranceExchangeIntegration", function () {
         });
 
     });
-    
+
 });
 
 

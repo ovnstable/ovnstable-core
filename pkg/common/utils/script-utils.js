@@ -813,7 +813,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
                     break;
                 case OPTIMISM.ovn:
-                    from = '0x2b133847465Ce196015044Afbe675aFdda482e1B';
+                    from = '0xe4e83f7083d3f9260285691aaa47e8c57078e311';
                     break;
                 default:
                     throw new Error('Unknown asset address');
