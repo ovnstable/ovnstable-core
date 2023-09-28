@@ -39,7 +39,7 @@ describe("ARBITRUM", function () {
 
     let params = {
         name: process.env.TEST_STRATEGY,
-        enabledReward: false,
+        enabledReward: true,
         isRunStrategyLogic: true
     }
 
