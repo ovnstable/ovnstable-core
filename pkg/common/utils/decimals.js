@@ -42,6 +42,20 @@ function toAsset(value, stand = process.env.STAND) {
     }
 }
 
+
+function fromUsdPlus(value, stand = process.env.STAND){
+
+    let fromUsdPlus;
+    if (stand === "bsc"){
+        fromUsdPlus = fromE6(value, stand);
+    }else {
+        fromUsdPlus = fromAsset(value, stand);
+    }
+
+    return fromUsdPlus;
+
+}
+
 function fromAsset(value, stand = process.env.STAND) {
     if (stand === 'bsc' ||
         stand === 'bsc_usdt' ||
@@ -67,4 +81,6 @@ module.exports = {
 
     toAsset: toAsset,
     fromAsset: fromAsset,
+
+    fromUsdPlus: fromUsdPlus
 }

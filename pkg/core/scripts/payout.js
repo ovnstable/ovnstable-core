@@ -3,7 +3,7 @@ const {
     showM2M,
     showRewardsFromPayout
 } = require("@overnight-contracts/common/utils/script-utils");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
+const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 const {getOdosSwapData, getOdosAmountOut} = require("@overnight-contracts/common/utils/odos-helper");
@@ -112,20 +112,22 @@ async function getOdosParams(exchange) {
 
 }
 
-async function showPayoutData(tx, usdPlus) {
+async function showPayoutData(tx) {
+
+    let usdPlus = await getContract('UsdPlusToken');
 
     console.log(`tx.hash: ${tx.hash}`);
     tx = await tx.wait();
 
-    console.log("USD+: " + fromE6(await usdPlus.balanceOf(COMMON.rewardWallet)));
+
+    console.log("USD+: " + fromUsdPlus(await usdPlus.balanceOf(COMMON.rewardWallet)));
 
     let event = tx.events.find((e) => e.event === 'PayoutEvent');
 
-
-    console.log('Profit:       ' + fromE6(await event.args[0].toString()));
-    console.log('ExcessProfit: ' + fromE6(await event.args[2].toString()));
-    console.log('Premium:      ' + fromE6(await event.args[3].toString()));
-    console.log('Loss:         ' + fromE6(await event.args[4].toString()));
+    console.log('Profit:       ' + fromUsdPlus(await event.args[0].toString()));
+    console.log('ExcessProfit: ' + fromUsdPlus(await event.args[2].toString()));
+    console.log('Premium:      ' + fromUsdPlus(await event.args[3].toString()));
+    console.log('Loss:         ' + fromUsdPlus(await event.args[4].toString()));
 
     await showRewardsFromPayout(tx);
 
