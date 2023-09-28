@@ -11,14 +11,19 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let strategy = await getContract('StrategyPikaV4');
+    let exchange = await getContract('Exchange');
+    let insurance = await getContract('InsuranceExchange');
 
-    addresses.push(strategy.address);
+    addresses.push(exchange.address);
     values.push(0);
-    abis.push(strategy.interface.encodeFunctionData('upgradeTo', ['0xAF016E2C070bd93de2035cf029934cb303db618C']));
+    abis.push(exchange.interface.encodeFunctionData('upgradeTo', ['0xDB50c362044571AADead2e5F097f34287A894412']));
+
+    addresses.push(exchange.address);
+    values.push(0);
+    abis.push(exchange.interface.encodeFunctionData('setInsurance', [insurance.address]));
 
     // await testProposal(addresses, values, abis);
-    await createProposal('1_update_pika.js', addresses, values, abis);
+    await createProposal('2_set_insurance.js', addresses, values, abis);
 
 }
 
