@@ -6,7 +6,7 @@ const path = require('path'),
 const { DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA } = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
-const { fromAsset, toAsset } = require("./decimals");
+const { fromAsset, toAsset, fromUsdPlus} = require("./decimals");
 const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 const { BigNumber } = require("ethers");
@@ -339,7 +339,6 @@ async function getStrategyMapping() {
             fromAsset = fromE18;
             break;
         case "polygon":
-        case "polygon_ins":
             url = "https://app.overnight.fi/api/dict/strategies";
             break;
         case "polygon_dev":
@@ -440,7 +439,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     console.log('Total m2m:  ' + fromAsset(totalNetAssets.toString(), stand));
 
     if (usdPlus) {
-        let totalUsdPlus = fromAsset(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
+        let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
     }
 
@@ -455,13 +454,6 @@ async function getPrice() {
 
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params.gasLimit = 15000000;
-        if (process.env.BLOCK_NATIVE_ENABLED === "true") {
-            let value = await gasPriceBlockNative();
-            if (value !== 0) {
-                params.maxFeePerGas = value;
-                params.maxPriorityFeePerGas = value;
-            }
-        }
     } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
         params.gasLimit = 8000000;
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
@@ -486,47 +478,6 @@ async function getPrice() {
     return params;
 }
 
-function getGasPrice() {
-
-
-    let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
-
-    if (gasPrice === undefined || gasPrice === 0)
-        throw new Error("Unknown gasPpice");
-
-    let wei = gasPrice * 1e9;
-    console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
-
-    return wei;
-}
-
-async function gasPriceBlockNative() {
-
-    let API_KEY = process.env.BLOCK_NATIVE_API_KEY;
-
-    try {
-        let config = {
-            headers: {
-                Authorization: API_KEY
-            }
-        };
-
-        let response = await axios.get('https://api.blocknative.com/gasprices/blockprices?chainid=137', config);
-
-        // estimatedPrices[0] - confidence 99%
-        // estimatedPrices[1] - confidence 95%
-        let price = response.data.blockPrices[0].estimatedPrices[0].maxFeePerGas;
-        console.log('Get gasPrice from BlockNative: ' + price);
-        // convert to gwei
-        price = price * 1e9;
-        return price;
-    } catch (e) {
-        console.log('Error gasPrice from BlockNative: ' + e);
-        return 0;
-    }
-
-}
-
 
 async function impersonateAccount(address) {
 
@@ -544,7 +495,7 @@ async function impersonateAccount(address) {
 async function execTimelock(exec) {
 
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
 
     if (hre.network.name === 'localhost') {
@@ -654,7 +605,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('OvnTimelockController');
+    let timelock = await getContract('AgentTimelock');
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
@@ -811,6 +762,9 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case OPTIMISM.wbtc:
                     from = '0xa4cff481cd40e733650ea76f6f8008f067bf6ef3';
+                    break;
+                case OPTIMISM.ovn:
+                    from = '0xe4e83f7083d3f9260285691aaa47e8c57078e311';
                     break;
                 default:
                     throw new Error('Unknown asset address');

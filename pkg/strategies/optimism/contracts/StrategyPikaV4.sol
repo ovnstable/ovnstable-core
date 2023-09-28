@@ -110,7 +110,7 @@ contract StrategyPikaV4 is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return _total(true);
+        return _total(false);
     }
 
     function liquidationValue() external view override returns (uint256) {

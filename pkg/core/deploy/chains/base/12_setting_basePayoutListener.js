@@ -18,7 +18,7 @@ module.exports = async () => {
 //    items.push(...alienBase());
 //    items.push(...zyberSwap());
 //    items.push(...aerodrome());
-    items.push(...bassExchange());
+    items.push(...moonbase());
 
     let price = await getPrice();
 
@@ -113,12 +113,13 @@ module.exports = async () => {
         return items;
     }
 
-    function bassExchange() {
+    function moonbase() {
 
-        let dex = 'BassExchange';
+        let dex = 'Moonbase';
 
         let items = [];
-        items.push(createSkim('0x2BcAa79Ab66aF39a1D1d83749407845394EC0a6A', usdPlus.address, 'USD+-LP', dex));
+        items.push(createSkim('0xB2ED81175a0371D52499E6881cEA697dcC1BAA11', usdPlus.address, 'DAI+-USD+', dex));
+        items.push(createSkim('0xB2ED81175a0371D52499E6881cEA697dcC1BAA11', daiPlus.address, 'DAI+-USD+', dex));
 
         return items;
     }

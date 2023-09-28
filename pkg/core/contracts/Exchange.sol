@@ -471,9 +471,30 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
     }
 
-    function payout() external whenNotPaused onlyUnit {
+    /**
+     * @dev Payout
+     * The root method of protocol USD+
+     * Calculates delta total NAV - total supply USD+ and accrues profit or loss among all token holders
+     *
+     * What do method?
+     * - Claim rewards from all strategy
+     * - Increase liquidity index USD+ on amount of profit
+     * - Decrease liquidity index USD+ on amount of loss
+     *
+     * Support Insurance mode: Only if insurance is set
+     * What the Insurance to do?
+     * If USD+ has Loss then Exchange coverts the loss through Insurance
+     * if USD+ has profit then Exchange send premium amount to Insurance
+     *
+     * Explain params:
+     * @param simulate - allow to get amount loss/premium for prepare swapData (call.static)
+     * @param swapData - Odos swap data for swapping OVN->asset or asset->OVN in Insurance
+     */
+
+
+    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit returns (int256 swapAmount) {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
-            return;
+            return 0;
         }
 
         // 0. call claiming reward and balancing on PM
@@ -510,8 +531,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             }else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
-                IInsuranceExchange(insurance).compensate(loss, address(portfolioManager));
-                portfolioManager.deposit();
+                if (simulate) {
+                    return -int256(loss);
+                }
+                if (swapData.amountIn != 0) {
+                    IInsuranceExchange(insurance).compensate(swapData, loss, address(portfolioManager));
+                    portfolioManager.deposit();
+                }
             }
 
         } else {
@@ -523,11 +549,15 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
-            if(premium > 0){
+            if (simulate) {
+                return int256(premium);
+            }
+
+            if(premium > 0 && swapData.amountIn != 0) {
                 portfolioManager.withdraw(premium);
                 usdc.transfer(insurance, premium);
-                IInsuranceExchange(insurance).premium(premium);
 
+                IInsuranceExchange(insurance).premium(swapData);
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
@@ -612,5 +642,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+        return 0;
     }
 }

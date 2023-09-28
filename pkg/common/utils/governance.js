@@ -1,32 +1,110 @@
 const {fromE18, toE18, fromAsset, fromE6, toAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights,
+    getChainId
+} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets} = require("./tests");
 const {Roles} = require("./roles");
+const fs = require("fs");
 
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
+const appRoot = require('app-root-path');
 
-async function createProposal(addresses, values, abis){
+async function createProposal(name, addresses, values, abis){
 
-    let governor = await getContract('OvnGovernor');
+    let timelock = await getContract('AgentTimelock');
 
-    console.log('Creating a proposal...')
-    const proposeTx = await governor.proposeExec(
-        addresses,
-        values,
-        abis,
-        ethers.utils.id(new Date().toString()),
-    );
-    let tx = await proposeTx.wait();
-    const proposalId = tx.events.find((e) => e.event == 'ProposalCreated').args.proposalId;
-    console.log('Proposal id ' + proposalId)
+    let ovnAgent = await timelock.ovnAgent();
+    let minDelay = await timelock.getMinDelay();
 
-    return proposalId;
+
+    let batch = {
+        version: "1.0",
+        chainId: await getChainId(),
+        createdAt: new Date().getTime(),
+        meta: {
+            name: "Transactions Batch",
+            description: "",
+            txBuilderVersion: "1.16.2",
+            createdFromSafeAddress: ovnAgent,
+            createdFromOwnerAddress: "",
+            checksum: ""
+        },
+        transactions: [
+
+        ]
+    }
+
+    for (let i = 0; i < addresses.length; i++) {
+        batch.transactions.push(createTransaction(timelock, minDelay, addresses[i], values[i], abis[i]))
+    }
+
+    let batchName = `${appRoot}/pkg/proposals/batches/${name}.json`;
+    let data = JSON.stringify(batch);
+    console.log(data)
+    await fs.writeFileSync(batchName, data );
 }
+
+
+function createTransaction(timelock, delay, address, value, data){
+
+    return {
+        "to": timelock.address,
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "target",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "predecessor",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "salt",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "delay",
+                    "type": "uint256"
+                }
+            ],
+            "name": "schedule",
+            "payable": false
+        },
+        "contractInputsValues": {
+            "target": address,
+            "value": `${value}`,
+            "data": `${data}`,
+            "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "delay": `${delay}`
+        }
+    }
+
+}
+
+
 
 async function testUsdPlus(){
 

@@ -136,13 +136,6 @@ function getNetworkByName(network) {
             zksync: false,
         },
 
-        polygon_ins: {
-            url: forkingUrl,
-            accounts: accountsNetwork,
-            timeout: timeout,
-            gasPrice: gasPrice,
-            zksync: false,
-        },
 
         localhost: localhost,
 
