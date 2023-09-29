@@ -11,7 +11,7 @@ import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IInsuranceExchange.sol";
-import "./interfaces/IVelodromeTwap.sol";
+import "./interfaces/IOvnOracle.sol";
 
 import "./interfaces/IRebaseToken.sol";
 
@@ -46,10 +46,13 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     uint256 public requestWaitPeriod;
     uint256 public withdrawPeriod;
 
+    IOvnOracle ovnOracle;
+
     struct SetUpParams {
         address asset;
         address rebase;
         address odosRouter;
+        address ovnOracle;
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
@@ -137,6 +140,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         asset = IERC20(params.asset);
         rebase = IRebaseToken(params.rebase);
         odosRouter = params.odosRouter;
+        ovnOracle = IOvnOracle(params.ovnOracle);
     }
 
     function setPayoutTimes(
@@ -172,6 +176,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
         require(_swapSlippage != 0, "Zero swapSlippage not allowed");
         swapSlippage = _swapSlippage;
+    }
+
+    function setOvnOracle(address _ovnOracle) external onlyPortfolioAgent {
+        require(_ovnOracle != address(0), "Zero ovnOracle not allowed");
+        ovnOracle = IOvnOracle(_ovnOracle);
     }
 
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
@@ -327,21 +336,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
-        uint256 price = getTwapPrice(); // 1 ovn = price usd+
-        // price = price * getPlusTwapPrice(address(usdAsset)) / 1e6;
-
-        if (address(inputAsset) == address(asset)) {
-            // ovn --> usdc
-            uint256 apprAmountOut = amountIn * price / ovnDecimals;
-            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Large swap slippage (ovn --> usdc)');
-
-        } else {
-            // usdc --> ovn
-            uint256 apprAmountOut = amountIn * ovnDecimals / price;
-            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Large swap slippage (usdc --> ovn)');
-        }
+        uint256 apprAmountOut = address(inputAsset) == address(asset) ? 
+            ovnOracle.assetToOvn(amountIn, address(outputAsset)) :
+            ovnOracle.ovnToAsset(amountIn, address(outputAsset));
+        apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+        require(amountOut > apprAmountOut, 'Large swap slippage');
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
@@ -366,23 +365,5 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         }
         emit NextPayoutTime(nextPayoutTime);
     }
-
-    function getTwapPrice() public view returns (uint256) {
-        address poolAddress = 0x844D7d2fCa6786Be7De6721AabdfF6957ACE73a0;
-        IVelodromeTwap velodromeTwap = IVelodromeTwap(poolAddress);
-
-        uint256 lastIndex = velodromeTwap.observationLength() - 1;
-        uint256 firstIndex = lastIndex - 1;
-
-        IVelodromeTwap.Observation memory lastObservation = velodromeTwap.observations(lastIndex);
-        IVelodromeTwap.Observation memory firstObservation = velodromeTwap.observations(firstIndex);
-
-        uint256 timeElapsed = lastObservation.timestamp - firstObservation.timestamp;
-        uint256 reserve0 = (lastObservation.reserve0Cumulative - firstObservation.reserve0Cumulative) / timeElapsed;
-        uint256 reserve1 = (lastObservation.reserve1Cumulative - firstObservation.reserve1Cumulative) / timeElapsed;
-        uint256 ovnPrice = reserve1 * 10**IERC20Metadata(address(asset)).decimals() / reserve0; // 1 ovn = ovnPrice usd+
-        return ovnPrice;
-    }
-
 
 }
