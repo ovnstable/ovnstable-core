@@ -13,4 +13,9 @@ interface IVelodromeTwap {
 
     function observations(uint index) external view returns (Observation memory observation);
 
+    function stable() external view returns (bool);
+
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
 }
