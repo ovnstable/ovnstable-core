@@ -43,7 +43,7 @@ async function createProposal(name, addresses, values, abis){
         batch.transactions.push(createTransaction(timelock, minDelay, addresses[i], values[i], abis[i]))
     }
 
-    let batchName = `${appRoot}/pkg/proposals/batches/${name}.json`;
+    let batchName = `${appRoot}/pkg/proposals/batches/${process.env.STAND}/${name}.json`;
     let data = JSON.stringify(batch);
     console.log(data)
     await fs.writeFileSync(batchName, data );
