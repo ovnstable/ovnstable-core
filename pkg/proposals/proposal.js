@@ -15,10 +15,10 @@ async function main() {
 
     addresses.push(pm.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('addStrategy', ['0x4957653E0fdd3EA8a76577B81E12E89dD3e56F8E']));
+    abis.push(pm.interface.encodeFunctionData('upgradeTo', ['0x8892031220FF16B15d436bd7634c85cCF9dab739']));
 
     // await testProposal(addresses, values, abis);
-    await createProposal('3_add_alpha_smm.js', addresses, values, abis);
+    await createProposal('3_update_pm.js', addresses, values, abis);
 
 }
 
