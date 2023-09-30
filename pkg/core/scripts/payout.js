@@ -33,9 +33,14 @@ async function main() {
         await showM2M();
         try {
 
+            let odosParams;
+            if (isInsurance) {
+                odosParams = await getOdosParams(exchange);
+            }
+
             try {
                 if (isInsurance) {
-                    await exchange.estimateGas.payout(false, await getOdosParams(exchange));
+                    await exchange.estimateGas.payout(false, odosParams);
                 } else {
                     await exchange.estimateGas.payout();
                 }
@@ -48,12 +53,13 @@ async function main() {
             // 4. make real payout
             let tx;
             if (isInsurance) {
-                tx = await (await exchange.payout(false, await getOdosParams(exchange))).wait();
+                tx = await (await exchange.payout(false, odosParams)).wait();
             } else {
                 tx = (await exchange.payout()).wait();
             }
 
             await showPayoutData(tx, exchange);
+            break;
 
         } catch (e) {
             console.log(e)
@@ -97,21 +103,23 @@ async function getOdosParams(exchange) {
     // 2.1. if premium then generates data to swap usdc to ovn
     if (swapAmount > 0) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
-        let neededAmount = swapAmount + currentTokenAmount;
+        currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
+        let neededAmount = swapAmount - currentTokenAmount;
         // -5% slippage
-        neededAmount = neededAmount.mul(95).div(100);
+        neededAmount = (neededAmount * 95 / 100).toFixed(0);
         odosSwapData = await getOdosSwapData(asset.address, ovn.address, neededAmount);
-
-        // 2.2. if compensate then calculate needed ovn and generate data to swap ovn to usdc
-        if (swapAmount < 0) {
-            let currentTokenAmount = await asset.balanceOf(insurance.address);
-            let outDecimals = await ovn.decimals();
-            let neededAmount = await getOdosAmountOut(asset.address, ovn.address, -swapAmount, outDecimals);
-            neededAmount = neededAmount - currentTokenAmount;
-            // +5% slippage
-            neededAmount = neededAmount.mul(105).div(100);
-            odosSwapData = await getOdosSwapData(ovn.address, asset.address, neededAmount);
-        }
+    } else 
+    
+    // 2.2. if compensate then calculate needed ovn and generate data to swap ovn to usdc
+    if (swapAmount < 0) {
+        let currentTokenAmount = await asset.balanceOf(insurance.address);
+        currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
+        let outDecimals = await ovn.decimals();
+        let neededAmount = await getOdosAmountOut(asset.address, ovn.address, -swapAmount, outDecimals);
+        neededAmount = neededAmount - currentTokenAmount;
+        // +5% slippage
+        neededAmount = (neededAmount * 105 / 100).toFixed(0);
+        odosSwapData = await getOdosSwapData(ovn.address, asset.address, neededAmount);
     }
 
     return odosSwapData;
