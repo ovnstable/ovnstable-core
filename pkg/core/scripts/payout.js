@@ -20,22 +20,21 @@ let odosEmptyData = {
 async function main() {
 
     let exchange = await getContract('Exchange');
-
-    await execTimelock(async (timelock)=>{
-        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
-
-    })
     let isInsurance = await isEnableInsurance();
+//    await execTimelock(async (timelock)=>{
+//        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+//        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+//    })
 
+    await showM2M();
 
     while (true) {
-        await showM2M();
-        try {
 
+        try {
             let odosParams;
             if (isInsurance) {
                 odosParams = await getOdosParams(exchange);
+                console.log("Get odos params");
             }
 
             try {
@@ -44,21 +43,23 @@ async function main() {
                 } else {
                     await exchange.estimateGas.payout();
                 }
+                console.log("Test success");
             } catch (e) {
                 console.log(e)
                 await sleep(30000);
                 continue;
             }
 
-            // 4. make real payout
             let tx;
             if (isInsurance) {
                 tx = await (await exchange.payout(false, odosParams)).wait();
             } else {
-                tx = (await exchange.payout()).wait();
+                tx = await (await exchange.payout()).wait();
             }
+            console.log("Payout success");
 
             await showPayoutData(tx, exchange);
+
             break;
 
         } catch (e) {
@@ -67,6 +68,7 @@ async function main() {
         }
     }
 
+    await showM2M();
 
 }
 
@@ -141,10 +143,7 @@ async function showPayoutData(tx, exchange) {
     console.log('Loss:         ' + fromUsdPlus(await event.args[4].toString()));
 
     await showRewardsFromPayout(tx);
-
-    await showM2M();
 }
-
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
