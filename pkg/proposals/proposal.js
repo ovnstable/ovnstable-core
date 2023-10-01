@@ -1,9 +1,7 @@
 const hre = require("hardhat");
 const {getContract, showM2M, execTimelock, initWallet, convertWeights} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
-let {BSC} = require('@overnight-contracts/common/utils/assets');
 const {Roles} = require("@overnight-contracts/common/utils/roles");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
@@ -11,14 +9,18 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let pm = await getContract('PortfolioManager');
+    let exchange = await getContract('Exchange', 'optimism');
+    let timelock =  await getContract('AgentTimelock', 'optimism');
 
-    addresses.push(pm.address);
+    addresses.push(exchange.address);
     values.push(0);
-    abis.push(pm.interface.encodeFunctionData('upgradeTo', ['0x8892031220FF16B15d436bd7634c85cCF9dab739']));
+    abis.push(exchange.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
 
-    // await testProposal(addresses, values, abis);
-    await createProposal('3_update_pm.js', addresses, values, abis);
+    addresses.push(exchange.address);
+    values.push(0);
+    abis.push(exchange.interface.encodeFunctionData('revokeRole', [Roles.DEFAULT_ADMIN_ROLE, timelock.address]));
+
+    await createProposal('4_move_exchange_to_dev.js', addresses, values, abis);
 
 }
 
