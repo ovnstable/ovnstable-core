@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/governance-new",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "New governance contracts",
   "main": "hardhat.config",
   "directories": {
@@ -10,7 +10,7 @@
     "build": "hardhat compile",
     "test": "hardhat test"
   },
-  "dependencies": {
+  "devDependencies": {
     "@openzeppelin/contracts": "4.9.3",
     "@openzeppelin/contracts-upgradeable": "4.9.3",
     "@axelar-network/axelar-gmp-sdk-solidity": "5.3.1"
