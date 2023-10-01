@@ -54,7 +54,7 @@ async function getOdosRequest(request) {
         "disableRFQs": false
     }
 
-    // console.log("swapParams", swapParams);
+    console.log("swapParams", swapParams);
 
     // @ts-ignore
     const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
