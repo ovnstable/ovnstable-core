@@ -7457,7 +7457,7 @@
             "label": "asset",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IERC20)2892",
+            "type": "t_contract(IERC20)2789",
             "contract": "InsuranceExchange",
             "src": "contracts/InsuranceExchange.sol:28"
           },
@@ -7465,7 +7465,7 @@
             "label": "rebase",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IRebaseToken)12203",
+            "type": "t_contract(IRebaseToken)5094",
             "contract": "InsuranceExchange",
             "src": "contracts/InsuranceExchange.sol:29"
           },
@@ -7595,11 +7595,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)2892": {
+          "t_contract(IERC20)2789": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IRebaseToken)12203": {
+          "t_contract(IRebaseToken)5094": {
             "label": "contract IRebaseToken",
             "numberOfBytes": "20"
           },
@@ -8828,6 +8828,284 @@
               }
             ],
             "numberOfBytes": "192"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f1ea8ad07df0b69a09f1156f01c46c55c859decaecbd321a93ca310c4043e8c6": {
+      "address": "0x85bd0A230A539f0043BA112bb51789e665063018",
+      "txHash": "0xd4382ea3425ae8e19c91db78ba7c96a84de63e1ec13411870e67109640f5b7ad",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "asset",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_contract(IERC20)2789",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:28"
+          },
+          {
+            "label": "rebase",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_contract(IRebaseToken)5090",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:29"
+          },
+          {
+            "label": "odosRouter",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_address",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:30"
+          },
+          {
+            "label": "mintFee",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:32"
+          },
+          {
+            "label": "mintFeeDenominator",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:33"
+          },
+          {
+            "label": "redeemFee",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:35"
+          },
+          {
+            "label": "redeemFeeDenominator",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:36"
+          },
+          {
+            "label": "lastBlockNumber",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:38"
+          },
+          {
+            "label": "swapSlippage",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:39"
+          },
+          {
+            "label": "nextPayoutTime",
+            "offset": 0,
+            "slot": "310",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:41"
+          },
+          {
+            "label": "payoutPeriod",
+            "offset": 0,
+            "slot": "311",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:42"
+          },
+          {
+            "label": "payoutTimeRange",
+            "offset": 0,
+            "slot": "312",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:43"
+          },
+          {
+            "label": "withdrawRequests",
+            "offset": 0,
+            "slot": "313",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:45"
+          },
+          {
+            "label": "requestWaitPeriod",
+            "offset": 0,
+            "slot": "314",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:46"
+          },
+          {
+            "label": "withdrawPeriod",
+            "offset": 0,
+            "slot": "315",
+            "type": "t_uint256",
+            "contract": "InsuranceExchange",
+            "src": "contracts/InsuranceExchange.sol:47"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)2789": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRebaseToken)5090": {
+            "label": "contract IRebaseToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
           },
           "t_uint256": {
             "label": "uint256",
