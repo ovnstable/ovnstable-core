@@ -116,8 +116,7 @@ async function getOdosParams(exchange) {
     if (swapAmount < 0) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
         currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
-        let outDecimals = await ovn.decimals();
-        let neededAmount = await getOdosAmountOut(asset.address, ovn.address, -swapAmount, outDecimals);
+        let neededAmount = await getOdosAmountOut(asset.address, ovn.address, -swapAmount);
         neededAmount = currentTokenAmount >= neededAmount ? 0 : neededAmount - currentTokenAmount;
         // +5% slippage
         neededAmount = (neededAmount * 105 / 100).toFixed(0);
