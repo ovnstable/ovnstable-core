@@ -98,6 +98,10 @@ async function getOdosParams(exchange) {
     let asset = await ethers.getContractAt("IERC20", await exchange.usdc());
     let ovn = await getContract('Ovn');
     let insurance = await ethers.getContract("InsuranceExchange");
+
+    console.log("ovnBefore", (await ovn.balanceOf(insurance.address)).toString());
+    console.log("usdcBefore", (await asset.balanceOf(insurance.address)).toString());
+
     let odosSwapData = odosEmptyData;
     let swapAmount = await exchange.callStatic.payout(true, odosEmptyData);
     console.log("[getOdosParams] SwapAmount", swapAmount.toString());
