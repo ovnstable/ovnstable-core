@@ -353,6 +353,155 @@ interface IMasterChefV2 {
 
 }
 
+/*
+ * xBSX is Baseswaps's escrowed governance token obtainable by converting token to it
+ * It's non-transferable, except from/to whitelisted addresses
+ * It can be converted back to token through a vesting process
+ * This contract is made to receive xToken deposits from users in order to allocate them to Usages (plugins) contracts
+ */
+interface IXBSX is IERC20Metadata {
+
+    struct RedeemInfo {
+        uint256 amount; // token amount to receive when vesting has ended
+        uint256 xTokenAmount; // xToken amount to redeem
+        uint256 endTime;
+        address dividendsAddress;
+        uint256 dividendsAllocation; // Share of redeeming xToken to allocate to the Dividends Usage contract
+    }
+
+    function minRedeemRatio() external view returns (uint256);
+
+    function maxRedeemRatio() external view returns (uint256);
+
+    function minRedeemDuration() external view returns (uint256);
+
+    function maxRedeemDuration() external view returns (uint256);
+
+    /*
+     * @dev Returns user's xToken balances
+     */
+    function getxTokenBalance(address userAddress) external view returns (uint256 allocatedAmount, uint256 redeemingAmount);
+
+    /*
+     * @dev returns redeemable token for "amount" of xToken vested for "duration" seconds
+     */
+    function getAmountByVestingDuration(uint256 amount, uint256 duration) external view returns (uint256);
+
+    /**
+     * @dev returns quantity of "userAddress" pending redeems
+     */
+    function getUserRedeemsLength(address userAddress) external view returns (uint256);
+
+    /**
+     * @dev returns "userAddress" info for a pending redeem identified by "redeemIndex"
+     */
+    function getUserRedeem(
+        address userAddress,
+        uint256 redeemIndex
+    )
+    external
+    view
+    returns (RedeemInfo memory);
+
+    /**
+     * @dev returns approved xToken to allocate from "userAddress" to "usageAddress"
+     */
+    function getUsageApproval(address userAddress, address usageAddress) external view returns (uint256);
+
+    /**
+     * @dev returns allocated xToken from "userAddress" to "usageAddress"
+     */
+    function getUsageAllocation(address userAddress, address usageAddress) external view returns (uint256);
+
+    /**
+     * @dev returns length of transferWhitelist array
+     */
+    function transferWhitelistLength() external view returns (uint256);
+
+    /**
+     * @dev returns transferWhitelist array item's address for "index"
+     */
+    function transferWhitelist(uint256 index) external view returns (address);
+
+    /**
+     * @dev returns if "account" is allowed to send/receive xToken
+     */
+    function isTransferWhitelisted(address account) external view returns (bool);
+
+    /**
+     * @dev Approves "usage" address to get allocations up to "amount" of xToken from msg.sender
+     * IXTokenUsageenUsage is the systems plugin interface.
+     */
+    function approveUsage(address usage, uint256 amount) external;
+
+    /**
+     * @dev Convert caller's "amount" of token to xToken
+     */
+    function convert(uint256 amount) external;
+
+    /**
+     * @dev Convert caller's "amount" of token to xToken to "to" address
+     */
+    function convertTo(uint256 amount, address to) external;
+
+    /**
+     * @dev Initiates redeem process (xToken to token)
+     *
+     * Handles dividends' compensation allocation during the vesting process if needed
+     */
+    function redeem(uint256 xTokenAmount, uint256 duration) external;
+
+    /**
+     * @dev Finalizes redeem process when vesting duration has been reached
+     *
+     * Can only be called by the redeem entry owner
+     */
+    function finalizeRedeem(uint256 redeemIndex) external;
+
+    /**
+     * @dev Updates dividends address for an existing active redeeming process
+     *
+     * Can only be called by the involved user
+     * Should only be used if dividends contract was to be migrated
+     */
+    function updateRedeemDividendsAddress(uint256 redeemIndex) external;
+
+    /**
+     * @dev Cancels an ongoing redeem entry
+     *
+     * Can only be called by its owner
+     */
+    function cancelRedeem(uint256 redeemIndex) external;
+
+    /**
+     * @dev Allocates caller's "amount" of available xToken to "usageAddress" contract
+     *
+     * args specific to usage contract must be passed into "usageData"
+     */
+    function allocate(address usageAddress, uint256 amount, bytes calldata usageData) external;
+
+    /**
+     * @dev Allocates "amount" of available xToken from "userAddress" to caller (ie usage contract)
+     *
+     * Caller must have an allocation approval for the required xToken from "userAddress"
+     */
+    function allocateFromUsage(address userAddress, uint256 amount) external;
+
+    /**
+     * @dev Deallocates caller's "amount" of available xToken from "usageAddress" contract
+     *
+     * args specific to usage contract must be passed into "usageData"
+     */
+    function deallocate(address usageAddress, uint256 amount, bytes calldata usageData) external;
+
+    /**
+     * @dev Deallocates "amount" of allocated xToken belonging to "userAddress" from caller (ie usage contract)
+     *
+     * Caller can only deallocate xToken from itself
+     */
+    function deallocateFromUsage(address userAddress, uint256 amount) external;
+}
+
 library BaseSwapLibrary {
 
     function getAmountOut(
