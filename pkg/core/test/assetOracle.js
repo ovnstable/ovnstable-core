@@ -19,11 +19,11 @@ const {
 const {getOdosSwapData, getOdosAmountOut} = require("@overnight-contracts/common/utils/odos-helper");
 
 
-describe("OvnOracle", function () {
+describe("AssetOracle", function () {
 
     let account;
-    let ovnOracle;
-    let ovn;
+    let assetOracle;
+    let asset;
     let usdc;
 
     describe(`Name`, async function () {
@@ -32,31 +32,29 @@ describe("OvnOracle", function () {
             await hre.run("compile");
             await resetHardhat(process.env.STAND);
 
-            await deployments.fixture(['OvnOracle']);
+            await deployments.fixture(['AssetOracleVelodrome']);
 
             const signers = await ethers.getSigners();
             account = signers[0];
 
-            ovnOracle = (await ethers.getContract("OvnOracle")).connect(account);
-            ovn = (await getContract('Ovn')).connect(account);
+            assetOracle = (await ethers.getContract("AssetOracleVelodrome")).connect(account);
+            asset = (await getContract('Ovn')).connect(account);
             usdc = (await getERC20ByAddress(OPTIMISM.usdc)).connect(account);
-
-            await (await ovnOracle.setUpParams({ovn: ovn.address})).wait();
         });
 
         describe('Ovn/Usdc Oracle', function () {
 
             sharedBeforeEach("Name", async () => {
-                console.log("lol");
+                console.log("sharedBeforeEach");
             });
 
             it("Ovn To Usdc", async function () {
-                let result = await ovnOracle.ovnToAsset(toE18(1), usdc.address);
+                let result = await assetOracle.convert(asset.address, usdc.address, toE18(1));
                 console.log("result", result.toString());
             })
 
             it("Usdc To Ovn", async function () {
-                let result = await ovnOracle.assetToOvn(toE6(1), usdc.address);
+                let result = await assetOracle.convert(usdc.address, asset.address, toE6(1));
                 console.log("result", result.toString());
             })
         });

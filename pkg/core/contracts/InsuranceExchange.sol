@@ -11,7 +11,7 @@ import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IInsuranceExchange.sol";
-import "./interfaces/IOvnOracle.sol";
+import "./interfaces/IAssetOracle.sol";
 
 import "./interfaces/IRebaseToken.sol";
 
@@ -46,13 +46,13 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     uint256 public requestWaitPeriod;
     uint256 public withdrawPeriod;
 
-    IOvnOracle ovnOracle;
+    IAssetOracle assetOracle;
 
     struct SetUpParams {
         address asset;
         address rebase;
         address odosRouter;
-        address ovnOracle;
+        address assetOracle;
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
@@ -140,7 +140,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         asset = IERC20(params.asset);
         rebase = IRebaseToken(params.rebase);
         odosRouter = params.odosRouter;
-        ovnOracle = IOvnOracle(params.ovnOracle);
+        assetOracle = IAssetOracle(params.assetOracle);
     }
 
     function setPayoutTimes(
@@ -178,9 +178,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         swapSlippage = _swapSlippage;
     }
 
-    function setOvnOracle(address _ovnOracle) external onlyPortfolioAgent {
-        require(_ovnOracle != address(0), "Zero ovnOracle not allowed");
-        ovnOracle = IOvnOracle(_ovnOracle);
+    function setAssetOracle(address _assetOracle) external onlyPortfolioAgent {
+        require(_assetOracle != address(0), "Zero assetOracle not allowed");
+        assetOracle = IAssetOracle(_assetOracle);
     }
 
     function mint(InputMint calldata input) external whenNotPaused oncePerBlock {
@@ -337,8 +337,8 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
         uint256 apprAmountOut = address(inputAsset) == address(asset) ? 
-            ovnOracle.assetToOvn(amountIn, address(outputAsset)) :
-            ovnOracle.ovnToAsset(amountIn, address(outputAsset));
+            assetOracle.convert(address(outputAsset), address(asset), amountIn) :
+            assetOracle.convert(address(asset), address(outputAsset), amountIn);
         apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
         require(amountOut > apprAmountOut, 'Large swap slippage');
     }
