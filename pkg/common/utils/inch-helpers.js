@@ -1,15 +1,45 @@
 const { default: axios } = require("axios");
 const { ethers } = require("hardhat");
+const {getContract, getWalletAddress, getChainId} = require("./script-utils");
 const INCH_ROUTER_V5 = require("@overnight-contracts/core/test/abi/InchRouterV5.json");
 
-async function getDataForSwap(chainId,
+async function inchSwapperUpdatePath(token0, token1, amountToken0) {
+
+    let inchSwapper = await getContract('InchSwapper');
+
+    let inchDataForSwapResponse0 = await getDataForSwap(
+        await getChainId(),
+        await getWalletAddress(),
+        token0,
+        token1,
+        amountToken0,
+        "",
+        ""
+    );
+
+    await (await inchSwapper.updatePath(
+        {
+            tokenIn: token0,
+            tokenOut: token1,
+            amount: amountToken0,
+            flags: inchDataForSwapResponse0.flags,
+            srcReceiver: inchDataForSwapResponse0.srcReceiver
+        },
+        inchDataForSwapResponse0.data
+    )).wait();
+
+    console.log(`Update path from ${token0} to ${token1} with ${amountToken0}`)
+}
+
+async function getDataForSwap(
+    chainId,
     strategyAddress,
     tokenIn,
     tokenOut,
     amountIn,
     protocols = "",
-    connectors = "") {
-
+    connectors = ""
+) {
 
     const swapParams = {
         fromTokenAddress: tokenIn,
@@ -60,6 +90,7 @@ function getArgs(transaction) {
 }
 
 module.exports = {
+    inchSwapperUpdatePath: inchSwapperUpdatePath,
     getDataForSwap: getDataForSwap,
     getArgs: getArgs
 }
