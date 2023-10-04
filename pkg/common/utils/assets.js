@@ -39,6 +39,7 @@ let BASE = {
     // sonne
     sonneUnitroller: '0x1DB2466d9F5e10D7090E7152B68d62703a2245F0',
     sonneUsdbc: '0x225886C9beb5eeE254F79d58bbD80cf9F200D4d0',
+    sonneUsdc: '0xfd68F92B45b633bbe0f475294C1A86aecD62985A',
     sonneDai: '0xb864BA2aab1f53BC3af7AE49a318202dD3fd54C2',
     sonneWeth: '0x5F5c479fe590cD4442A05aE4a941dd991A633B8E',
     // routers
