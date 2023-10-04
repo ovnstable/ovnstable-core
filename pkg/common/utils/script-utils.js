@@ -283,6 +283,8 @@ async function getCoreAsset() {
         return await getERC20('usdt');
     } else if (process.env.STAND === 'linea_usdt') {
         return await getERC20('usdt');
+    } else if (process.env.STAND === 'base') {
+        return await getERC20('usdbc');
     } else {
         return await getERC20('usdc');
     }
@@ -714,6 +716,9 @@ async function transferAsset(assetAddress, to, amount) {
             switch (assetAddress) {
                 case BASE.usdbc:
                     from = '0x20f03e26968b179025f65c1f4afadfd3959c8d03';
+                    break;
+                case BASE.usdc:
+                    from = '0x57C68a4A857d2572FbB381c0942bd0Ce76913002';
                     break;
                 case BASE.dai:
                     from = '0xc68a33de9CEAC7BdaED242aE1DC40D673eD4f643';
