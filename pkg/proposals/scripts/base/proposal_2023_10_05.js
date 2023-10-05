@@ -15,10 +15,15 @@ async function main() {
 
     let pm = await getContract('PortfolioManager', 'base');
     let StrategyEtsOmicron = await getContract('StrategyEtsOmicron', 'base');
+    let StrategyEtsXi = await getContract('StrategyEtsXi', 'base');
 
     addresses.push(pm.address);
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', [StrategyEtsOmicron.address]));
+
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('addStrategy', [StrategyEtsXi.address]));
 
     await createProposal(filename, addresses, values, abis);
 }
