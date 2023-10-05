@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const {getContract, showM2M, execTimelock, initWallet, convertWeights} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, showM2M, execTimelock, initWallet, convertWeights, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 let {BSC} = require('@overnight-contracts/common/utils/assets');
 const {Roles} = require("@overnight-contracts/common/utils/roles");
@@ -15,7 +15,7 @@ async function main() {
 
     let timelock = await getContract('AgentTimelock');
 
-    let batch = JSON.parse(await fs.readFileSync("./batches/arbitrum/1_add_alpha_smm.js.json"));
+    let batch = JSON.parse(await fs.readFileSync("./batches/$INPUT_YOUR_PATH$"));
 
     let addresses = [];
     let values = [];
@@ -30,16 +30,14 @@ async function main() {
 
     timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
-    if (addresses.length === 1){
-        let hash = await timelock.hashOperation(addresses[0], values[0], datas[0], PREDECESSOR, SALT);
+    for (let i = 0; i < addresses.length; i++) {
+        let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, SALT);
         console.log('HashOperation: ' + hash);
 
         let timestamp = await timelock.getTimestamp(hash);
         console.log(`Timestamp: ${timestamp}`)
 
-        await (await timelock.execute(addresses[0], values[0], datas[0], PREDECESSOR, SALT)).wait();
-    }else {
-        await (await timelock.executeBatch(addresses, values, datas, PREDECESSOR, SALT)).wait();
+        await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, SALT)).wait();
     }
 
 
