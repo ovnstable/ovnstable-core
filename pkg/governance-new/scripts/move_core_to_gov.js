@@ -1,4 +1,7 @@
 const {initWallet, getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
+const {ethers} = require("hardhat");
+const GRANT_ROLE = require("./abi/GRANT_ROLE.json");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 /**
  * Что делает скрипт?
@@ -62,7 +65,6 @@ async function moveRules(name, oldAddress, newAddress) {
     let contract = await getContract(name);
     console.log(`Move ${name}: ${contract.address}: oldAddress: ${oldAddress} => newAddress: ${newAddress}`);
 
-
     let hasUpgradeRole = true;
 
     try {
@@ -71,17 +73,27 @@ async function moveRules(name, oldAddress, newAddress) {
         hasUpgradeRole = false;
     }
 
-    await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newAddress)).wait();
+    await (await contract.grantRole(Roles.DEFAULT_ADMIN_ROLE, newAddress)).wait();
 
     if (hasUpgradeRole) {
-        await (await contract.grantRole(await contract.UPGRADER_ROLE(), newAddress)).wait();
+        await (await contract.grantRole(Roles.UPGRADER_ROLE, newAddress)).wait();
     }
 
     if (hasUpgradeRole) {
-        await (await contract.revokeRole(await contract.UPGRADER_ROLE(), oldAddress)).wait();
+
+        if (await contract.hasRole(Roles.UPGRADER_ROLE, newAddress)){
+            await (await contract.revokeRole(Roles.UPGRADER_ROLE, oldAddress)).wait();
+        }else {
+            throw new Error(`${newAddress} not has UPGRADER_ROLE`);
+        }
+
     }
 
-    await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), oldAddress)).wait();
+    if (await contract.hasRole(Roles.DEFAULT_ADMIN_ROLE, newAddress)){
+        await (await contract.revokeRole(Roles.DEFAULT_ADMIN_ROLE, oldAddress)).wait();
+    }else {
+        throw new Error(`${newAddress} not has DEFAULT_ADMIN_ROLE`);
+    }
 }
 
 async function showRules(names){
