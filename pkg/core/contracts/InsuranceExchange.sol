@@ -289,7 +289,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
      * @param swapData consist of odos data to make swap
      */
     function premium(SwapData memory swapData) external onlyInsured {
-       _swap(swapData);
+        _swap(swapData);
     }
 
     /**
@@ -385,4 +385,4 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
 
-}
+} 
