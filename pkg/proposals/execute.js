@@ -15,7 +15,7 @@ async function main() {
 
     let timelock = await getContract('AgentTimelock');
 
-    let batch = JSON.parse(await fs.readFileSync("./batches/$INPUT_YOUR_PATH$"));
+    let batch = JSON.parse(await fs.readFileSync(`./batches/${hre.network.name}/03_strategy_ets_xi_omicron.json`));
 
     let addresses = [];
     let values = [];
