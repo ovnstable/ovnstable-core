@@ -28,4 +28,4 @@ async function getParams() {
 }
 
 module.exports.tags = ['StrategyEtsXi'];
-module.exports.strategySmmAlphaParams = getParams;
+module.exports.strategyEtsXiParams = getParams;

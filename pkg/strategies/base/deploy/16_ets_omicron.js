@@ -26,4 +26,4 @@ async function getParams() {
 }
 
 module.exports.tags = ['StrategyEtsOmicron'];
-module.exports.strategyEtsNuParams = getParams;
+module.exports.strategyEtsOmicronParams = getParams;
