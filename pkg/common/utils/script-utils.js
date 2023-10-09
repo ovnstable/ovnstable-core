@@ -277,6 +277,8 @@ async function getCoreAsset() {
         return await getERC20('dai');
     } else if (process.env.STAND === 'arbitrum_dai') {
         return await getERC20('dai');
+    } else if (process.env.STAND === 'arbitrum_eth') {
+        return await getERC20('weth');
     } else if (process.env.STAND === 'base_dai') {
         return await getERC20('dai');
     } else if (process.env.STAND === 'bsc_usdt') {
@@ -701,6 +703,9 @@ async function transferAsset(assetAddress, to, amount) {
             switch (assetAddress) {
                 case ARBITRUM.dai:
                     from = "0x2d070ed1321871841245d8ee5b84bd2712644322";
+                    break;
+                case ARBITRUM.weth:
+                    from = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
                     break;
                 case ARBITRUM.usdc:
                     from = '0x62383739D68Dd0F844103Db8dFb05a7EdED5BBE6';

@@ -17,6 +17,8 @@ module.exports = async () => {
         asset = OPTIMISM.dai;
     } else if (hre.network.name === "arbitrum_dai") {
         asset = ARBITRUM.dai;
+    } else if (hre.network.name === "arbitrum_eth") {
+        asset = ARBITRUM.weth;
     } else if (hre.network.name === "bsc_usdt") {
         asset = BSC.usdt;
     } else if (hre.network.name === "base_dai") {

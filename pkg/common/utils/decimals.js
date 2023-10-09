@@ -34,6 +34,7 @@ function toAsset(value, stand = process.env.STAND) {
     if (stand === 'bsc' ||
         stand === 'bsc_usdt' ||
         stand === 'optimism_dai' ||
+        stand === 'arbitrum_eth' ||
         stand === "base_dai" ||
         stand === "arbitrum_dai") {
         return toE18(value);
@@ -60,6 +61,7 @@ function fromAsset(value, stand = process.env.STAND) {
     if (stand === 'bsc' ||
         stand === 'bsc_usdt' ||
         stand === 'optimism_dai' ||
+        stand === 'arbitrum_eth' ||
         stand === 'base_dai' ||
         stand === "arbitrum_dai") {
         return fromE18(value);

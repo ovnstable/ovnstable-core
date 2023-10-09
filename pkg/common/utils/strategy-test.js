@@ -555,6 +555,12 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     let mainAddress = (await initWallet()).address;
     await transferETH(100, mainAddress);
 
+
+    // Support ETH+
+    // Remove it -> throw error: ERC20 token not found.
+    if (assetName === 'eth'){
+        assetName = 'weth'
+    }
     const asset = await getERC20(assetName);
     await transferAsset(asset.address, mainAddress);
 

@@ -14,6 +14,8 @@ module.exports = async ({deployments}) => {
         params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
     } else if (hre.network.name === "arbitrum_dai") {
         params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
+    } else if (hre.network.name === "arbitrum_eth") {
+        params = {args: [usdPlusToken.address, "Wrapped ETH+", "wETH+", 18]};
     } else if (hre.network.name === "bsc_usdt") {
         params = {args: [usdPlusToken.address, "Wrapped USDT+", "wUSDT+", 18]};
     } else {

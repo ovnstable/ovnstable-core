@@ -79,6 +79,15 @@ function getNetworkByName(network) {
             zksync: false,
         },
 
+        arbitrum_eth: {
+            url: forkingUrl,
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+            zksync: false,
+        },
+
+
         arbitrum_dai: {
             url: forkingUrl,
             accounts: accountsNetwork,

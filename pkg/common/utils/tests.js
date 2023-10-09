@@ -212,6 +212,8 @@ async function getTestAssets(to) {
         await transferAsset(OPTIMISM.dai, to);
     } else if (stand === "arbitrum_dai") {
         await transferAsset(ARBITRUM.dai, to);
+    } else if (stand === "arbitrum_eth") {
+        await transferAsset(ARBITRUM.weth, to);
     } else if (stand === "bsc_usdt") {
         await transferAsset(BSC.usdt, to);
     } else {

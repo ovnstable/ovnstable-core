@@ -14,6 +14,14 @@ async function main() {
     let exchange = await getContract('Exchange');
     let pm = await getContract('PortfolioManager');
 
+    // Change to needed chain contracts
+    let blockGetter = await getContract('ArbitrumBlockGetter', 'arbitrum');
+    await (await exchange.setBlockGetter(blockGetter.address)).wait(); // BlockGetter
+
+    let pl = await getContract('ArbitrumPayoutListener', 'arbitrum');
+    await (await pl.grantRole(Roles.EXCHANGER, exchange.address)).wait();
+    await (await exchange.setPayoutListener(pl.address)).wait(); // PayoutListener
+
     await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
     await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D')).wait(); // pm
     await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xe497285e466227F4E8648209E34B465dAA1F90a0')).wait(); // ovn
@@ -22,7 +30,6 @@ async function main() {
     await (await exchange.grantRole(Roles.UNIT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait(); // dev
 
     await (await exchange.setProfitRecipient(COMMON.rewardWallet)).wait(); // ovn reward wallet
-    await (await exchange.setPayoutListener(undefined)).wait(); // PayoutListener
 
     await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
     await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D')).wait();       // pm
