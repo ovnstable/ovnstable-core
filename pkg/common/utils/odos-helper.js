@@ -91,8 +91,23 @@ async function getOdosRequest(request) {
     return transaction.data;
 }
 
+
+function getEmptyOdosData(){
+
+    let zeroAddress = "0x0000000000000000000000000000000000000000";
+    let odosEmptyData = {
+        inputTokenAddress: zeroAddress,
+        outputTokenAddress: zeroAddress,
+        amountIn: 0,
+        data: ethers.utils.formatBytes32String("")
+    }
+
+    return odosEmptyData;
+}
+
 module.exports = {
     getOdosSwapData: getOdosSwapData,
+    getEmptyOdosData: getEmptyOdosData,
     getOdosAmountOut: getOdosAmountOut,
     getOdosRequest: getOdosRequest
 }

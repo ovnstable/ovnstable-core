@@ -6,7 +6,7 @@ const {
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
-const {getOdosSwapData, getOdosAmountOut} = require("@overnight-contracts/common/utils/odos-helper");
+const {getOdosSwapData, getOdosAmountOut, getEmptyOdosData} = require("@overnight-contracts/common/utils/odos-helper");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 let zeroAddress = "0x0000000000000000000000000000000000000000";
@@ -17,10 +17,18 @@ let odosEmptyData = {
     data: ethers.utils.formatBytes32String("")
 }
 
+
+class TypePayout {
+    static get INSURANCE() { return "INSURANCE"};
+    static get ODOS_EXIST() { return "ODOS_EXISTS"};
+    static get OLD() { return "OLD"};
+}
+
 async function main() {
 
     let exchange = await getContract('Exchange');
-    let isInsurance = await isEnableInsurance();
+    let typePayout = getTypePayout();
+
 //    await execTimelock(async (timelock)=>{
 //        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
 //        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
@@ -32,13 +40,18 @@ async function main() {
 
         try {
             let odosParams;
-            if (isInsurance) {
-                odosParams = await getOdosParams(exchange);
+
+            if(typePayout === TypePayout.INSURANCE){
                 console.log("Get odos params");
+                odosParams = await getOdosParams(exchange);
+            }else if(typePayout === TypePayout.ODOS_EXIST){
+                console.log('Get odos empty params');
+                odosParams = getEmptyOdosData();
             }
 
+
             try {
-                if (isInsurance) {
+                if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
                     await exchange.estimateGas.payout(false, odosParams);
                 } else {
                     await exchange.estimateGas.payout();
@@ -51,7 +64,7 @@ async function main() {
             }
 
             let tx;
-            if (isInsurance) {
+            if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
                 tx = await (await exchange.payout(false, odosParams)).wait();
             } else {
                 tx = await (await exchange.payout()).wait();
@@ -72,15 +85,21 @@ async function main() {
 
 }
 
-async function isEnableInsurance() {
 
-    try {
-        await getContract('InsuranceExchange');
-        return true;
-    } catch (e) {
-        return false;
+
+
+function getTypePayout() {
+    let stand = process.env.STAND;
+
+    if (stand === "optimism"){
+        return TypePayout.INSURANCE;
     }
 
+    if (stand === 'arbitrum_eth'){
+        return TypePayout.ODOS_EXIST;
+    }
+
+    return TypePayout.OLD;
 }
 
 async function getOdosParams(exchange) {
@@ -114,8 +133,8 @@ async function getOdosParams(exchange) {
         // -5% slippage
         neededAmount = (neededAmount * 95 / 100).toFixed(0);
         odosSwapData = await getOdosSwapData(asset.address, ovn.address, neededAmount);
-    } else 
-    
+    } else
+
     // 2.2. if compensate then calculate needed ovn and generate data to swap ovn to usdc
     if (swapAmount < 0) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
