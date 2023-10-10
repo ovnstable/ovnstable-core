@@ -31,6 +31,7 @@ describe("InchSwapper", function () {
     let amountInMax1;
 
     let account;
+    let unregisteredAccount;
 
     sharedBeforeEach(async () => {
         // need to run inside IDEA via node script running

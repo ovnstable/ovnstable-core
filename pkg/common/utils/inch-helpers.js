@@ -55,13 +55,19 @@ async function getDataForSwap(
         usePatching: "true"
     };
 
-    let baseUrl = 'https://api-overnight.1inch.io/v5.0';
+    let baseUrl = "https://api.1inch.dev/swap/v5.2";
+    let API_KEY = process.env.INCH_API_KEY;
+    let headers = {
+        "Accept-Encoding": "br",
+        "accept": "application/json",
+        "Authorization": "Bearer " + API_KEY
+    };
 
     const url = `${baseUrl}/${chainId}/swap?` + (new URLSearchParams(swapParams)).toString();
 
     // console.log('[InchService] Request url: ' + url);
 
-    const response = await axios.get(url, { headers: { "Accept-Encoding": "br" } });
+    const response = await axios.get(url, { headers: headers });
 
     return getArgs(response);
 }
