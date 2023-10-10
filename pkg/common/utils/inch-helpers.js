@@ -55,6 +55,18 @@ async function getDataForSwap(
         usePatching: "true"
     };
 
+    if (swapParams.connectorTokens === "") {
+        delete swapParams["connectorTokens"];
+    }
+
+    if (swapParams.parts === "") {
+        delete swapParams["parts"];
+    }
+
+    if (swapParams.protocols === "") {
+        delete swapParams["protocols"];
+    }
+
     let baseUrl = "https://api.1inch.dev/swap/v5.2";
     let API_KEY = process.env.INCH_API_KEY;
     let headers = {
