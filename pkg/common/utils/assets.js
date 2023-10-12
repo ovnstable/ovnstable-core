@@ -414,11 +414,7 @@ let POLYGON = {
 
 let DEFAULT = POLYGON;
 
-setDefault(process.env.ETH_NETWORK);
-
 function setDefault(network) {
-    console.log(`[Node] Assets: [${network}]`)
-
     switch (network) {
         case 'ARBITRUM':
             DEFAULT = ARBITRUM;

@@ -11,6 +11,8 @@ const {
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 const {getNodeUrl, getBlockNumber, node_url} = require("./network");
 const {EthersProviderWrapper} = require("@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper");
+const {getChainFromNetwork} = require("./hardhat-config");
+const {setDefault} = require("./assets");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -18,6 +20,7 @@ task('deploy', 'deploy')
     .addFlag('impl', 'Deploy only implementation without upgradeTo')
     .addFlag('verify', 'Enable verify contracts')
     .addFlag('gov', 'Deploy to local by impression account')
+    .addFlag('stand', 'Override env STAND')
     .setAction(async (args, hre) => {
 
         hre.ovn = {
@@ -27,9 +30,11 @@ task('deploy', 'deploy')
             impl: args.impl,
             verify: args.verify,
             tags: args.tags,
-            gov: args.gov
+            gov: args.gov,
+            stand: args.stand
         }
 
+        settingNetwork(hre);
         updateFeedData(hre);
 
         await hre.run('deploy:main', args);
@@ -39,11 +44,20 @@ task('deploy', 'deploy')
 task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
     .addFlag('reset', 'Reset files')
     .addFlag('deploy', 'Run deploy')
+    .addOptionalParam('stand', 'Override env STAND')
     .addFlag('last', 'Use last block from RPC')
     .setAction(async (args, hre, runSuper) => {
 
 
+        if (args.stand) {
+            process.env.STAND = args.stand;
+        }
+
         const srcDir = `deployments/` + process.env.STAND;
+        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+
+        console.log(`[Node] STAND: ${process.env.STAND}`);
+        console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
 
         let chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
         chainId = (chainId+"").trim();
@@ -133,9 +147,9 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
 
 
 task(TASK_RUN, 'Run task')
-    .addFlag('reset', 'Reset ')
+    .addFlag('reset', 'Reset')
+    .addOptionalParam('stand', 'Override env STAND')
     .setAction(async (args, hre, runSuper) => {
-
         hre.ovn = {
             noDeploy: args.noDeploy,
             deploy: !args.noDeploy,
@@ -143,12 +157,15 @@ task(TASK_RUN, 'Run task')
             impl: args.impl,
             verify: args.verify,
             tags: args.tags,
+            stand: args.stand,
         }
 
 
         if (hre.network.name === 'localhost'){
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
+
+        settingNetwork(hre);
 
         if (args.reset)
             await evmCheckpoint('task', hre.network.provider);
@@ -173,6 +190,7 @@ task(TASK_COMPILE, 'Compile')
 
 
 task(TASK_TEST, 'test')
+    .addOptionalParam('stand', 'Override env STAND')
     .setAction(async (args, hre, runSuper) => {
 
 
@@ -182,11 +200,14 @@ task(TASK_TEST, 'test')
             setting: true,
             noDeploy: false,
             deploy: true,
+            stand: args.stand,
         }
 
         if (hre.network.name === 'localhost'){
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
         }
+
+        settingNetwork(hre);
 
         await evmCheckpoint('task', hre.network.provider);
 
@@ -293,6 +314,31 @@ async function transferETH(amount, to, hre) {
     });
 
     console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
+}
+
+function settingNetwork(hre){
+
+    if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat'){
+        process.env.STAND = hre.network.name;
+        process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
+
+    }else {
+
+        let standArg = hre.ovn.stand;
+
+        if (standArg){
+            process.env.STAND = standArg;
+        }else {
+            // Use STAND from process.env.STAND
+        }
+
+        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+    }
+
+    setDefault(process.env.ETH_NETWORK);
+
+    console.log(`[Node] STAND: ${process.env.STAND}`);
+    console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
 }
 
 function updateFeedData(hre){

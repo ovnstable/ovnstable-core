@@ -9,7 +9,7 @@ const config = require("@overnight-contracts/common/utils/hardhat-config");
 
 module.exports = {
     namedAccounts: config.namedAccounts,
-    networks: config.getNetwork('ZKSYNC'),
+    networks: config.getNetworks(),
     solidity: config.solidity,
     zksolc: config.zksolc,
     etherscan: config.etherscan(),

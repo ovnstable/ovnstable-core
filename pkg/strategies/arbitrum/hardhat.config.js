@@ -8,7 +8,7 @@ const config = require("@overnight-contracts/common/utils/hardhat-config");
 
 module.exports = {
     namedAccounts: config.namedAccounts,
-    networks: config.getNetwork('ARBITRUM'),
+    networks: config.getNetworks(),
     solidity: config.solidity,
     etherscan: config.etherscan(),
     mocha: config.mocha,

@@ -9,12 +9,28 @@ let gasPrice = getGasPrice();
 
 let timeout = 362000000;
 
-function getNetworkByName(network) {
 
-    let forkingUrl = node_url(network);
-    let accountsNetwork = accounts(network);
-    let blockNumberValue = blockNumber(network);
-    console.log(`[Node] Forking url: [${forkingUrl}:${blockNumberValue}]`);
+class Chain {
+
+    static get ARBITRUM() { return 'ARBITRUM'; }
+    static get BASE() { return 'BASE'; }
+    static get POLYGON() { return 'POLYGON'; }
+    static get OPTIMISM() { return 'OPTIMISM'; }
+    static get BSC() { return 'BSC'; }
+    static get ZKSYNC() { return 'ZKSYNC'; }
+    static get LINEA() { return 'LINEA'; }
+
+
+    static get list() {
+        return ['ARBITRUM', 'BASE', 'POLYGON', 'OPTIMISM', 'BSC', 'ZKSYNC', 'LINEA']
+    }
+}
+
+
+
+function getNetworks() {
+
+    let accountsNetwork = accounts('polygon');
 
     let zkSync = isZkSync();
 
@@ -39,7 +55,7 @@ function getNetworkByName(network) {
     return {
 
         base: {
-            url: forkingUrl,
+            url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -47,7 +63,7 @@ function getNetworkByName(network) {
         },
 
         base_dai: {
-            url: forkingUrl,
+            url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -55,7 +71,7 @@ function getNetworkByName(network) {
         },
 
         linea_usdt: {
-            url: forkingUrl,
+            url: node_url('linea'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: 'auto',
@@ -64,7 +80,7 @@ function getNetworkByName(network) {
 
 
         linea: {
-            url: forkingUrl,
+            url: node_url('linea'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: 'auto',
@@ -72,7 +88,7 @@ function getNetworkByName(network) {
         },
 
         arbitrum: {
-            url: forkingUrl,
+            url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -80,7 +96,7 @@ function getNetworkByName(network) {
         },
 
         arbitrum_eth: {
-            url: forkingUrl,
+            url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -89,7 +105,7 @@ function getNetworkByName(network) {
 
 
         arbitrum_dai: {
-            url: forkingUrl,
+            url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -97,7 +113,7 @@ function getNetworkByName(network) {
         },
 
         zksync: {
-            url: forkingUrl,
+            url: node_url('zksync'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -106,7 +122,7 @@ function getNetworkByName(network) {
         },
 
         optimism: {
-            url: forkingUrl,
+            url: node_url('optimism'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: 'auto',
@@ -114,7 +130,7 @@ function getNetworkByName(network) {
         },
 
         optimism_dai: {
-            url: forkingUrl,
+            url: node_url('optimism'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -122,7 +138,7 @@ function getNetworkByName(network) {
         },
 
         bsc: {
-            url: forkingUrl,
+            url: node_url('bsc'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -130,7 +146,7 @@ function getNetworkByName(network) {
         },
 
         bsc_usdt: {
-            url: forkingUrl,
+            url: node_url('bsc'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -138,7 +154,7 @@ function getNetworkByName(network) {
 
 
         polygon: {
-            url: forkingUrl,
+            url: node_url('polygon'),
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: gasPrice,
@@ -151,8 +167,7 @@ function getNetworkByName(network) {
         hardhat: {
             zksync: zkSync,
             forking: {
-                url: forkingUrl,
-                blockNumber: blockNumberValue,
+                url: node_url(process.env.STAND),
                 ignoreUnknownTxType: true,
             },
             accounts: {
@@ -163,10 +178,26 @@ function getNetworkByName(network) {
     }
 }
 
-function getNetwork(network) {
-    console.log(`[Node] Network: [${network}]`);
-    return getNetworkByName(network.toLowerCase());
+function getChainFromNetwork(network){
+
+    if (network) {
+
+        network = network.toLowerCase();
+        for (let chain of Chain.list) {
+
+            // network can be = arbitrum_dai | optimism | base_dai ...
+            // chain only = POLYGON|ARBITRUM|BASE ...
+
+            if (network.includes(chain.toLowerCase())){
+                return chain;
+            }
+        }
+    }
+
+    throw new Error(`Unknown network: ${network}`)
+
 }
+
 
 let namedAccounts = {
     deployer: {
@@ -201,7 +232,7 @@ let solidity = {
 }
 
 let mocha = require("./mocha-report-setting")
-const {setDefault} = require("./assets");
+const {ARBITRUM, BASE, POLYGON, OPTIMISM} = require("./assets");
 
 let gasReport = {
     enabled: false, // Gas Reporter hides unit-test-mocha report
@@ -210,10 +241,7 @@ let gasReport = {
     outputFile: 'gas-report'
 }
 
-function getEtherScan(chain){
-    if (!chain) {
-        chain = process.env.ETH_NETWORK
-    }
+function getEtherScan(){
 
     let object = {
 
@@ -254,19 +282,23 @@ function getEtherScan(chain){
 
     };
 
-    let api = process.env[`ETHERSCAN_API_${chain.toUpperCase()}`];
 
-    if (api){
-        object.apiKey = api;
-    }else {
-        throw new Error('Not defined env: ' + `ETHERSCAN_API_${chain.toUpperCase()}`);
+    // Run command to show support native chains: npx hardhat verify --list-networks
+    // if plugin not support chain then add chain to customChains section
+    object.apiKey = {
+        optimisticEthereum: process.env[`ETHERSCAN_API_OPTIMISM`],
+        polygon: process.env[`ETHERSCAN_API_POLYGON`],
+        bsc: process.env[`ETHERSCAN_API_BSC`],
+        arbitrumOne: process.env[`ETHERSCAN_API_ARBITRUM`],
     }
 
     return object;
 }
 
 module.exports = {
-    getNetwork: getNetwork,
+    Chain: Chain,
+    getChainFromNetwork: getChainFromNetwork,
+    getNetworks: getNetworks,
     namedAccounts: namedAccounts,
     solidity: solidity,
     zksolc: zksolc,

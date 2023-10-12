@@ -52,7 +52,6 @@ function isZkSync(){
 
 function getGasPrice() {
 
-
     let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
 
     if (gasPrice === undefined || gasPrice === 0)
