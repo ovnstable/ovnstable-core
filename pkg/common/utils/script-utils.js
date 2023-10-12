@@ -458,8 +458,6 @@ async function getPrice() {
 
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params.gasLimit = 15000000;
-    } else if (process.env.ETH_NETWORK === 'AVALANCHE') {
-        params.gasLimit = 8000000;
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
         params = { gasLimit: 25000000 }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
@@ -624,14 +622,10 @@ async function getChainId() {
     switch (process.env.ETH_NETWORK) {
         case "ARBITRUM":
             return 42161;
-        case "AVALANCHE":
-            return 43114;
         case "BASE":
             return 8453;
         case "BSC":
             return 56;
-        case "FANTOM":
-            return 250;
         case "OPTIMISM":
             return 10;
         case "POLYGON":
