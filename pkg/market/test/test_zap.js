@@ -12,7 +12,6 @@ const {
 const { resetHardhat, greatLess, resetHardhatToLastBlock } = require("@overnight-contracts/common/utils/tests");
 const BN = require("bn.js");
 const hre = require("hardhat");
-let { DEFAULT } = require('@overnight-contracts/common/utils/assets');
 const { sharedBeforeEach } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/common/utils/decimals");
 const axios = require("axios");

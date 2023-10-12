@@ -1,7 +1,7 @@
 const {ethers} = require("hardhat");
 
 const hre = require("hardhat");
-let {DEFAULT, BSC, OPTIMISM, COMMON, ARBITRUM, BASE, LINEA} = require('@overnight-contracts/common/utils/assets');
+let {BSC, OPTIMISM, COMMON, ARBITRUM, BASE, LINEA, getAsset} = require('@overnight-contracts/common/utils/assets');
 const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
 module.exports = async () => {
@@ -26,7 +26,7 @@ module.exports = async () => {
     } else if(hre.network.name === "linea_usdt"){
         asset = LINEA.usdt;
     } else {
-        asset = DEFAULT.usdc;
+        asset = getAsset('usdc');
     }
 
     console.log("exchange.setToken: usdPlus " + usdPlus.address + " asset: " + asset);

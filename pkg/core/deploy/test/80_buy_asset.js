@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 const {getERC20, getDevWallet, transferUSDC} = require("@overnight-contracts/common/utils/script-utils");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+let {getAsset} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -18,20 +18,14 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const buyonSwap = await ethers.getContract("BuyonSwap");
     switch (process.env.STAND) {
-        case 'avalanche':
-            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.traderJoeRouter, {value: value});
-            break;
         case 'bsc':
-            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.pancakeRouter, {value: value});
-            break;
-        case 'fantom':
-            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.spookySwapRouter, {value: value});
+            await buyonSwap.buy(getAsset('usdc'), getAsset('pancakeRouter'), {value: value});
             break;
         case 'polygon':
-            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.quickSwapRouter, {value: value});
+            await buyonSwap.buy(getAsset('usdc'), getAsset('quickSwapRouter'), {value: value});
             break;
         case 'polygon_dev':
-            await buyonSwap.buy(DEFAULT.usdc, DEFAULT.quickSwapRouter, {value: value});
+            await buyonSwap.buy(getAsset('usdc'), getAsset('quickSwapRouter'), {value: value});
             break;
         case 'optimism':
             await transferUSDC(1, deployer);

@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
+let {getAsset} = require('@overnight-contracts/common/utils/assets');
 
 module.exports = async ({getNamedAccounts, deployments}) => {
     const {deploy} = deployments;
@@ -9,7 +9,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const pm = await ethers.getContract("PortfolioManager");
     const exchange = await ethers.getContract("Exchange");
 
-    let asset = DEFAULT.usdc;
+    let asset = getAsset('usdc');
 
     let mockStrategy1 = await deploy("MockStrategy", {
         from: deployer,

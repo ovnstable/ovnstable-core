@@ -3,7 +3,6 @@ const chai = require("chai");
 const {deployments, ethers, getNamedAccounts, upgrades} = require("hardhat");
 const {resetHardhat, createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const hre = require("hardhat");
-let {DEFAULT} = require('@overnight-contracts/common/utils/assets');
 const {constants} = require("@openzeppelin/test-helpers");
 const {ZERO_ADDRESS} = constants;
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");

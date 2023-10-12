@@ -13,7 +13,7 @@ const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const InchSwapperABI = require("./abi/InchSwapper.json");
 const StakerABI = require("./abi/Staker.json");
 const { Roles } = require("./roles");
-const { ARBITRUM, OPTIMISM, BSC, DEFAULT } = require("./assets");
+const { ARBITRUM, OPTIMISM, BSC, getAsset} = require("./assets");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getDataForSwap } = require('./inch-helpers');
 
@@ -118,7 +118,7 @@ async function impersonatingEtsGrantRoleWithInchSwapper(hedgeExchangerAddress, s
     await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
     await hedgeExchanger.connect(hedgeExchangeAdmin).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
     if (process.env.STAND.includes('arbitrum')) {
-        await inchSwapper.connect(owner).setParams(DEFAULT.inchRouterV5, ZERO_ADDRESS);
+        await inchSwapper.connect(owner).setParams(ARBITRUM.inchRouterV5, ZERO_ADDRESS);
         await hedgeExchanger.connect(hedgeExchangeAdmin).setBlockGetter(ZERO_ADDRESS);
     }
 
@@ -217,7 +217,7 @@ async function getTestAssets(to) {
     } else if (stand === "bsc_usdt") {
         await transferAsset(BSC.usdt, to);
     } else {
-        await transferAsset(DEFAULT.usdc, to);
+        await transferAsset(getAsset('usdc'), to);
     }
 
     isTestAssetsCompleted = true;

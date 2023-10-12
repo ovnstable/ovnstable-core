@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 
-let {DEFAULT, BSC, OPTIMISM, ARBITRUM, BASE, LINEA} = require('@overnight-contracts/common/utils/assets');
+let { BSC, OPTIMISM, ARBITRUM, BASE, LINEA, getAsset} = require('@overnight-contracts/common/utils/assets');
 const hre = require("hardhat");
 const {initWallet} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -26,7 +26,7 @@ module.exports = async () => {
     } else if(hre.network.name === "linea_usdt"){
         asset = LINEA.usdt;
     } else {
-        asset = DEFAULT.usdc;
+        asset = getAsset('usdc');
     }
 
     await (await pm.setMark2Market(m2m.address)).wait();

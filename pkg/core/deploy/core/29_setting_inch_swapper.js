@@ -1,6 +1,6 @@
 const { deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
 const hre = require("hardhat");
-const { BASE, ARBITRUM, DEFAULT } = require("@overnight-contracts/common/utils/assets");
+const {  getAsset} = require("@overnight-contracts/common/utils/assets");
 const { ethers } = require("hardhat");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
@@ -8,7 +8,7 @@ const { Roles } = require("@overnight-contracts/common/utils/roles");
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
-    let inchRouter = DEFAULT.inchRouterV5;
+    let inchRouter = getAsset('inchRouterV5');
     let blockGetter = ZERO_ADDRESS;
 
     if (hre.network.name.toLowerCase() == "arbitrum") {

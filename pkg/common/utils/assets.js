@@ -356,34 +356,42 @@ let POLYGON = {
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
 }
 
-let DEFAULT = POLYGON;
 
-function setDefault(network) {
+function getAsset(name){
+    let assets = getAssets(process.env.ETH_NETWORK);
+    return assets[name];
+}
+
+function getAssets(network) {
+    let assets;
     switch (network) {
         case 'ARBITRUM':
-            DEFAULT = ARBITRUM;
+            assets = ARBITRUM;
             break;
         case 'BSC':
-            DEFAULT = BSC;
+            assets = BSC;
             break;
         case 'POLYGON':
-            DEFAULT = POLYGON;
+            assets = POLYGON;
             break;
         case "OPTIMISM":
-            DEFAULT = OPTIMISM;
+            assets = OPTIMISM;
             break
         case "ZKSYNC":
-            DEFAULT = ZKSYNC;
+            assets = ZKSYNC;
             break
         case "LINEA":
-            DEFAULT = LINEA;
+            assets = LINEA;
             break
         case "BASE":
-            DEFAULT = BASE;
+            assets = BASE;
             break
         default:
             throw new Error('Unknown network');
     }
+
+
+    return assets;
 }
 
 module.exports = {
@@ -394,7 +402,6 @@ module.exports = {
     BASE: BASE,
     LINEA: LINEA,
     OPTIMISM: OPTIMISM,
-    DEFAULT: DEFAULT,
     COMMON: COMMON,
-    setDefault: setDefault
+    getAsset: getAsset,
 }
