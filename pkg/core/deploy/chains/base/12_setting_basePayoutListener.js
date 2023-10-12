@@ -17,7 +17,8 @@ module.exports = async () => {
 //    items.push(...swapBased());
 //    items.push(...alienBase());
 //    items.push(...zyberSwap());
-    items.push(...aerodrome());
+//     items.push(...aerodrome());
+    items.push(...equalizer());
 //    items.push(...moonbase());
 
     let price = await getPrice();
@@ -111,6 +112,17 @@ module.exports = async () => {
         items.push(createBribeWithFee('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex, '0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0xc3B5ac236fb5AbE245310FeCa2526F89667D4CAe', usdPlus.address, 'vAMM-YFX/USD+', dex, '0x9a0efa1968837474e23c73b60f29d705d2eb8789', 20, COMMON.rewardWallet));
         items.push(createBribe('0x61366A4e6b1DB1b85DD701f2f4BFa275EF271197', usdPlus.address, 'vAMM-OVN/USD+', dex, '0xD8847438AaEA2dD395bF2652a526B1CDd1F4E44D'));
+
+        return items;
+    }
+
+    function equalizer(){
+
+        let dex = 'Equalizer';
+
+        let items = [];
+        items.push(createBribe('0xF6354383d0FbE31Da4089e23dD00CcDD3c92b6b8', usdPlus.address, 'WETH/USD+', dex, '0xc7Ca04072D1e7079AA1c686C4C7be8A7D4337ad4'));
+        items.push(createBribe('0x741292fFC0C40B466baE4AF261C64009198a3aB5', daiPlus.address, 'WETH/DAI+', dex, '0x0F46A841bB8dE9c34f82Fd0D2AbB5aCB3c21FD1F'));
 
         return items;
     }
