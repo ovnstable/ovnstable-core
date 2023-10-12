@@ -5,7 +5,6 @@ const { expect } = require("chai");
 const chai = require("chai");
 chai.use(require('chai-bignumber')());
 const { resetHardhat, greatLess } = require("./tests");
-const { logStrategyGasUsage } = require("./strategyCommon");
 const { toE6, toE18, fromAsset } = require("./decimals");
 const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeEach");
 const { transferAsset, getERC20, transferETH, initWallet } = require("./script-utils");
