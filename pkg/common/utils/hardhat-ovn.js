@@ -12,7 +12,6 @@ const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
 const {getNodeUrl, getBlockNumber, node_url} = require("./network");
 const {EthersProviderWrapper} = require("@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper");
 const {getChainFromNetwork} = require("./hardhat-config");
-const {setDefault} = require("./assets");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -334,8 +333,6 @@ function settingNetwork(hre){
 
         process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
     }
-
-    setDefault(process.env.ETH_NETWORK);
 
     console.log(`[Node] STAND: ${process.env.STAND}`);
     console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);

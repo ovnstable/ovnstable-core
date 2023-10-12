@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const { DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA } = require("./assets");
+const { DEFAULT, ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset} = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus} = require("./decimals");
@@ -252,7 +252,7 @@ async function getERC20(name, wallet) {
 
     const ERC20 = require("./abi/IERC20.json");
 
-    return await ethers.getContractAt(ERC20, DEFAULT[name], wallet);
+    return await ethers.getContractAt(ERC20, getAsset(name), wallet);
 
 }
 

@@ -5,7 +5,7 @@ const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, 
 } = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
-const {createRandomWallet, getTestAssets} = require("./tests");
+const {createRandomWallet, getTestAssets, prepareEnvironment} = require("./tests");
 const {Roles} = require("./roles");
 const fs = require("fs");
 
@@ -106,10 +106,12 @@ function createTransaction(timelock, delay, address, value, data){
 
 
 
-async function testUsdPlus(){
-
+async function testUsdPlus(id){
+    console.log(`Run tests USD+`);
 
     let tables = [];
+
+    await prepareEnvironment();
 
     let exchange = await getContract('Exchange');
     let asset = await getCoreAsset();
@@ -117,74 +119,106 @@ async function testUsdPlus(){
     let m2m = await getContract('Mark2Market');
 
     let walletAddress = await getWalletAddress();
-    let amountAsset = await asset.balanceOf(walletAddress);
-    let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
-
-    let fromUsdPlus = fromE6;
 
     tables.push({
-        name: 'before: mint',
-        asset: fromAsset(amountAsset),
-        usdPlus: fromUsdPlus(amountUsdPlus)
-    })
-
-    await (await asset.approve(exchange.address, amountAsset)).wait();
-    console.log('Asset approve done');
-    await (await exchange.buy(asset.address, amountAsset)).wait();
-    console.log('Exchange.buy done');
-
-    amountAsset = await asset.balanceOf(walletAddress);
-    amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
+        name: 'ID',
+        result: id
+    });
 
     tables.push({
-        name: 'after: mint',
-        asset: fromAsset(amountAsset),
-        usdPlus: fromUsdPlus(amountUsdPlus)
-    })
+        name: 'BlockNumber',
+        result: await ethers.provider.getBlockNumber()
+    });
 
     tables.push({
-        name: 'before: redeem',
-        asset: fromAsset(amountAsset),
-        usdPlus: fromUsdPlus(amountUsdPlus)
-    })
-
-    await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
-    console.log('UsdPlus approve done');
-    await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
-    console.log('Exchange.redeem done');
-
-    amountAsset = await asset.balanceOf(walletAddress);
-    amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
+        name: 'Date/Time',
+        result: new Date()
+    });
 
     tables.push({
-        name: 'after: redeem',
-        asset: fromAsset(amountAsset),
-        usdPlus: fromUsdPlus(amountUsdPlus)
-    })
+        name: 'Tests',
+        result: '------'
+    });
+
+    tables.push(await testCase(async ()=>{
+
+        let amountAsset = await asset.balanceOf(walletAddress);
+
+        await (await asset.approve(exchange.address, amountAsset)).wait();
+        console.log('Asset approve done');
+        await (await exchange.buy(asset.address, amountAsset)).wait();
+        console.log('Exchange.buy done');
+
+    }, 'exchange.mint'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
+        await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
+        console.log('UsdPlus approve done');
+        await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
+        console.log('Exchange.redeem done');
+
+    }, 'exchange.redeem'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        await execTimelock(async (timelock)=>{
+                let pm = await getContract('PortfolioManager');
+                await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+                await pm.connect(timelock).balance();
+        });
+
+    }, 'pm.balance'));
+
+
+
+    tables.push(await testCase(async ()=>{
+        await m2m.strategyAssets();
+    }, 'pm.strategyAssets'));
+
+
+    tables.push(await testCase(async ()=>{
+        await m2m.totalNetAssets();
+    }, 'pm.totalNetAssets'));
+
+    tables.push(await testCase(async ()=>{
+        await m2m.totalLiquidationAssets();
+    }, 'pm.totalLiquidationAssets'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        await execTimelock(async (timelock)=>{
+            await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+            await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address);
+            await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60);
+            await exchange.connect(timelock).payout();
+        });
+
+    }, 'exchange.payout'));
 
     console.table(tables);
 
+}
 
-    console.log('Execute pm.balance()');
-    await execTimelock(async (timelock)=>{
-        let pm = await getContract('PortfolioManager');
-        await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-        await pm.connect(timelock).balance();
-    });
+async function testCase(test, id){
 
-
-    console.log('strategyAssets: ' + await m2m.strategyAssets());
-    console.log('totalNetAssets: ' + fromAsset(await m2m.totalNetAssets()));
-    console.log('totalLiquidationAssets: ' + fromAsset(await m2m.totalLiquidationAssets()));
-
-    console.log('Execute exchange.payout()');
-    await execTimelock(async (timelock)=>{
-        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-        await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address);
-        await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60);
-        await exchange.connect(timelock).payout();
-    });
-
+        try {
+            await test()
+            return{
+                name: id,
+                result: 'SUCCESS'
+            }
+        } catch (e) {
+            console.error(`[Test] Fail test case: ${id}`);
+            return{
+                name: id,
+                result: 'FAIL'
+            }
+        }
 }
 
 async function testStrategy(strategy){
