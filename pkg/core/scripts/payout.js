@@ -95,7 +95,7 @@ function getTypePayout() {
         return TypePayout.INSURANCE;
     }
 
-    if (stand === 'arbitrum_eth'){
+    if (stand === 'arbitrum_eth' || stand === "arbitrum_usdt"){
         return TypePayout.ODOS_EXIST;
     }
 
