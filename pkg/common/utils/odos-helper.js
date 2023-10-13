@@ -9,11 +9,14 @@ async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
     const inputToken = { "tokenAddress": tokenIn, "amount": amountTokenIn.toString() };
     const outputToken = { "tokenAddress": tokenOut, "proportion": 1 };
 
-    const request = await getOdosRequest({
+    let params = {
         "inputTokens": inputToken,
         "outputTokens": outputToken,
         "userAddr": insurance.address,
-    });
+        "blackList": ["Overnight Exchange"] // for Insurance
+    }
+
+    const request = await getOdosRequest(params);
 
     return {
             inputTokenAddress: tokenIn,
@@ -40,6 +43,12 @@ async function getOdosAmountOut(tokenIn, tokenOut, amountTokenIn) {
 }
 
 async function getOdosRequest(request) {
+    let defaultBlackList = ["Hashflow"];
+
+    if (request.blackList){
+        defaultBlackList.push(...request.blackList);
+    }
+
     let swapParams = {
         "chainId": 10, //await getChainId(),
         "gasPrice": 20,
@@ -47,7 +56,7 @@ async function getOdosRequest(request) {
         "outputTokens": [request.outputTokens],
         "userAddr": request.userAddr,
         "slippageLimitPercent": 1,
-        "sourceBlacklist": ["Hashflow"],
+        "sourceBlacklist": defaultBlackList,
         "sourceWhitelist": [],
         "simulate": false,
         "pathViz": false,
