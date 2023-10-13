@@ -10,9 +10,9 @@ async function main() {
 
     await showM2M();
 
-    await (await asset.approve(exchange.address, toAsset(0.001))).wait();
+    await (await asset.approve(exchange.address, toAsset(1))).wait();
     console.log('Asset approve done');
-    await (await exchange.buy(asset.address, toAsset(0.001))).wait();
+    await (await exchange.buy(asset.address, toAsset(1))).wait();
     console.log('Exchange.buy done');
 
     await showM2M();

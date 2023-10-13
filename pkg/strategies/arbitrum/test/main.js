@@ -52,6 +52,9 @@ describe("ARBITRUM", function () {
         case 'arbitrum_eth':
             strategyTest(params, 'ARBITRUM', 'eth', runStrategyLogic);
             break;
+        case 'arbitrum_usdt':
+            strategyTest(params, 'ARBITRUM', 'usdt', runStrategyLogic);
+            break;
         default:
             strategyTest(params, 'ARBITRUM', 'usdc', runStrategyLogic);
             break;

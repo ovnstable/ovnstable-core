@@ -112,6 +112,14 @@ function getNetworks() {
             zksync: false,
         },
 
+        arbitrum_usdt: {
+            url: node_url('arbitrum'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: gasPrice,
+            zksync: false,
+        },
+
         zksync: {
             url: node_url('zksync'),
             accounts: accountsNetwork,
@@ -167,7 +175,7 @@ function getNetworks() {
         hardhat: {
             zksync: zkSync,
             forking: {
-                url: node_url(process.env.STAND),
+                url: 'https://rpc.ankr.com/eth',
                 ignoreUnknownTxType: true,
             },
             accounts: {

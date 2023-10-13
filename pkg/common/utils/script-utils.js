@@ -285,6 +285,8 @@ async function getCoreAsset() {
         return await getERC20('usdt');
     } else if (process.env.STAND === 'linea_usdt') {
         return await getERC20('usdt');
+    } else if (process.env.STAND === 'arbitrum_usdt') {
+        return await getERC20('usdt');
     } else if (process.env.STAND === 'base') {
         return await getERC20('usdbc');
     } else {

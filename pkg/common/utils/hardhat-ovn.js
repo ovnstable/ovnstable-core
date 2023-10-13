@@ -58,14 +58,14 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         console.log(`[Node] STAND: ${process.env.STAND}`);
         console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
 
-        let chainId = fs.readFileSync(srcDir + "/.chainId", { flag:'r'});
-        chainId = (chainId+"").trim();
+        let chainId = fs.readFileSync(srcDir + "/.chainId", {flag: 'r'});
+        chainId = (chainId + "").trim();
         let fileName;
-        if (Number.parseInt(chainId) === 137){
+        if (Number.parseInt(chainId) === 137) {
             fileName = 'polygon.json';
-        }else if (Number.parseInt(chainId) === 10) {
+        } else if (Number.parseInt(chainId) === 10) {
             fileName = 'optimism.json';
-        }else if (Number.parseInt(chainId) === 56){
+        } else if (Number.parseInt(chainId) === 56) {
             fileName = 'bsc.json';
         } else {
             fileName = `unknown-${chainId}.json`;
@@ -93,12 +93,12 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         let nodeUrl = getNodeUrl();
         const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
 
-        if (args.wait){
+        if (args.wait) {
 
             let currentBlock = await provider.getBlockNumber();
             let needBlock = getBlockNumber() + 30;
 
-            if (needBlock + 30 > currentBlock ){
+            if (needBlock + 30 > currentBlock) {
                 await sleep(3000);
                 currentBlock = await provider.getBlockNumber();
             }
@@ -160,7 +160,7 @@ task(TASK_RUN, 'Run task')
         }
 
 
-        if (hre.network.name === 'localhost'){
+        if (hre.network.name === 'localhost') {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
 
@@ -202,7 +202,7 @@ task(TASK_TEST, 'test')
             stand: args.stand,
         }
 
-        if (hre.network.name === 'localhost'){
+        if (hre.network.name === 'localhost') {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
         }
 
@@ -214,7 +214,6 @@ task(TASK_TEST, 'test')
 
         await evmRestore('task', hre.network.provider);
     });
-
 
 
 task('simulate', 'Simulate transaction on local node')
@@ -309,25 +308,25 @@ async function transferETH(amount, to, hre) {
 
     await walletWithProvider.sendTransaction({
         to: to,
-        value: hre.ethers.utils.parseEther(amount+"")
+        value: hre.ethers.utils.parseEther(amount + "")
     });
 
     console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
 }
 
-function settingNetwork(hre){
+function settingNetwork(hre) {
 
-    if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat'){
+    if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
         process.env.STAND = hre.network.name;
         process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
 
-    }else {
+    } else {
 
         let standArg = hre.ovn.stand;
 
-        if (standArg){
+        if (standArg) {
             process.env.STAND = standArg;
-        }else {
+        } else {
             // Use STAND from process.env.STAND
         }
 
@@ -338,14 +337,14 @@ function settingNetwork(hre){
     console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
 }
 
-function updateFeedData(hre){
+function updateFeedData(hre) {
 
     // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
-    if (hre.network.name !== 'localhost'){
+    if (hre.network.name !== 'localhost') {
         let url = node_url(process.env.ETH_NETWORK);
         let provider = new hre.ethers.providers.StaticJsonRpcProvider(url);
 
-        let getFeeData = async function (){
+        let getFeeData = async function () {
             let gasPrice = await provider.getGasPrice();
             console.log(`Get gasPrice: ${gasPrice.toString()}`);
             return {

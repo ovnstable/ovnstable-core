@@ -23,6 +23,8 @@ module.exports = async () => {
         asset = BASE.dai;
     } else if (hre.network.name === "bsc_usdt") {
         asset = BSC.usdt;
+    } else if (hre.network.name === "arbitrum_usdt") {
+        asset = ARBITRUM.usdt;
     } else if(hre.network.name === "linea_usdt"){
         asset = LINEA.usdt;
     } else {

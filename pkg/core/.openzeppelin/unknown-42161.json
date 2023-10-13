@@ -95,6 +95,26 @@
       "address": "0x769B4EFA1560AF66D4FE338A5041cB5710352583",
       "txHash": "0x1f6d5f8ae2e2024bfad955699da5495a10fdd61d46b15fdee886d5e5e4b58afd",
       "kind": "uups"
+    },
+    {
+      "address": "0xb1084db8D3C05CEbd5FA9335dF95EE4b8a0edc30",
+      "txHash": "0x05d301293696f68a1527773a884ef15e735245f3de857b5d94bf841080cdc39f",
+      "kind": "uups"
+    },
+    {
+      "address": "0x8b80Da76AAb8798Fd537A9A83f462CDA69eC1EE4",
+      "txHash": "0x2fe40d1b4c984bbad98fb969bdeca465c4a197e70225a09f8de51264b2d10b97",
+      "kind": "uups"
+    },
+    {
+      "address": "0xf3607bB88738c3388b543d390a90B6ABF4046E3b",
+      "txHash": "0x638ec141bf6df420ad544236d55eff62dc881dd73281de8ffa2bbe7753ad126a",
+      "kind": "uups"
+    },
+    {
+      "address": "0x9aa95b5e2E3ecFAb56fB6b955Ad7Fc59bDB94264",
+      "txHash": "0x80769df1e6bc88b5b2ddf97761bd71d6ec43461f0db0f6f6240a92d29ab614c2",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -6361,7 +6381,7 @@
             "label": "_owners",
             "offset": 0,
             "slot": "261",
-            "type": "t_struct(AddressSet)3243_storage",
+            "type": "t_struct(AddressSet)5672_storage",
             "contract": "UsdPlusToken",
             "src": "contracts/UsdPlusToken.sol:41"
           },
@@ -6439,12 +6459,12 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(AddressSet)3243_storage": {
+          "t_struct(AddressSet)5672_storage": {
             "label": "struct EnumerableSet.AddressSet",
             "members": [
               {
                 "label": "_inner",
-                "type": "t_struct(Set)2928_storage",
+                "type": "t_struct(Set)5357_storage",
                 "offset": 0,
                 "slot": "0"
               }
@@ -6469,7 +6489,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(Set)2928_storage": {
+          "t_struct(Set)5357_storage": {
             "label": "struct EnumerableSet.Set",
             "members": [
               {
@@ -6589,7 +6609,7 @@
             "label": "usdPlus",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(UsdPlusToken)6577",
+            "type": "t_contract(UsdPlusToken)23456",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:32"
           },
@@ -6597,7 +6617,7 @@
             "label": "usdc",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)2892",
+            "type": "t_contract(IERC20)3869",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:33"
           },
@@ -6605,7 +6625,7 @@
             "label": "portfolioManager",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IPortfolioManager)6745",
+            "type": "t_contract(IPortfolioManager)24975",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:35"
           },
@@ -6613,7 +6633,7 @@
             "label": "mark2market",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IMark2Market)6680",
+            "type": "t_contract(IMark2Market)24904",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:36"
           },
@@ -6677,7 +6697,7 @@
             "label": "payoutListener",
             "offset": 0,
             "slot": "312",
-            "type": "t_contract(IGlobalPayoutListener)6598",
+            "type": "t_contract(IGlobalPayoutListener)24747",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:57"
           },
@@ -6783,23 +6803,23 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)2892": {
+          "t_contract(IERC20)3869": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IGlobalPayoutListener)6598": {
+          "t_contract(IGlobalPayoutListener)24747": {
             "label": "contract IGlobalPayoutListener",
             "numberOfBytes": "20"
           },
-          "t_contract(IMark2Market)6680": {
+          "t_contract(IMark2Market)24904": {
             "label": "contract IMark2Market",
             "numberOfBytes": "20"
           },
-          "t_contract(IPortfolioManager)6745": {
+          "t_contract(IPortfolioManager)24975": {
             "label": "contract IPortfolioManager",
             "numberOfBytes": "20"
           },
-          "t_contract(UsdPlusToken)6577": {
+          "t_contract(UsdPlusToken)23456": {
             "label": "contract UsdPlusToken",
             "numberOfBytes": "20"
           },

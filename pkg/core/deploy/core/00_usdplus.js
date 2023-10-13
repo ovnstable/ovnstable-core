@@ -19,6 +19,8 @@ module.exports = async ({deployments}) => {
         params = {args: ["DAI+", "DAI+", 18]}
     } else if (hre.network.name === 'linea_usdt') {
         params = {args: ["USDT+", "USDT+", 6]}
+    } else if (hre.network.name === 'arbitrum_usdt') {
+        params = {args: ["USDT+", "USDT+", 6]}
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }

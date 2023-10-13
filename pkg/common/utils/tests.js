@@ -29,8 +29,9 @@ function greatLess(value, expected, delta) {
 
 async function resetHardhat(network) {
     let block = blockNumber(network);
+    let url = node_url(network);
     if (block == 0) {
-        const provider = new ethers.providers.JsonRpcProvider(node_url(network));
+        const provider = new ethers.providers.JsonRpcProvider(url);
         block = await provider.getBlockNumber() - 31;
     }
 
@@ -39,7 +40,7 @@ async function resetHardhat(network) {
         params: [
             {
                 forking: {
-                    jsonRpcUrl: node_url(network),
+                    jsonRpcUrl: url,
                     blockNumber: block,
                 },
             },
@@ -216,6 +217,8 @@ async function getTestAssets(to) {
         await transferAsset(ARBITRUM.weth, to);
     } else if (stand === "bsc_usdt") {
         await transferAsset(BSC.usdt, to);
+    } else if (stand === "arbitrum_usdt") {
+        await transferAsset(ARBITRUM.usdt, to);
     } else {
         await transferAsset(getAsset('usdc'), to);
     }

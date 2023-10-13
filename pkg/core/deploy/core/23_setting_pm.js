@@ -21,6 +21,8 @@ module.exports = async () => {
         asset = ARBITRUM.weth;
     } else if (hre.network.name === "bsc_usdt") {
         asset = BSC.usdt;
+    } else if (hre.network.name === "arbitrum_usdt") {
+        asset = ARBITRUM.usdt;
     } else if (hre.network.name === "base_dai") {
         asset = BASE.dai;
     } else if(hre.network.name === "linea_usdt"){
