@@ -65,7 +65,7 @@ async function main() {
 
             let tx;
             if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-                tx = await (await exchange.payout(false, odosParams)).wait();
+                tx = await (await exchange.payout(false, odosParams, {gasLimit: 15_000_000})).wait();
             } else {
                 tx = await (await exchange.payout()).wait();
             }
