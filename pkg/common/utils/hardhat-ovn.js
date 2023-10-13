@@ -19,7 +19,7 @@ task('deploy', 'deploy')
     .addFlag('impl', 'Deploy only implementation without upgradeTo')
     .addFlag('verify', 'Enable verify contracts')
     .addFlag('gov', 'Deploy to local by impression account')
-    .addFlag('stand', 'Override env STAND')
+    .addOptionalParam('stand', 'Override env STAND')
     .setAction(async (args, hre) => {
 
         hre.ovn = {
