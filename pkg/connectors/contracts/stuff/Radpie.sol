@@ -41,9 +41,75 @@ interface IRadiantStaking {
     }
 
     function pools(address _asset) external view returns (Pool memory);
+
+    /// @dev to update RDNT reward from chefIncentivesController for all rToken and vdToken of Radpie
+    /// Radpie vest Clamable RDNT from Radiant every other 10 days, so shares of RDNT distributed to user
+    /// should be calculated based on diff of chefIncentivesController.userBaseClaimable before and after summing pending reward into
+    /// userBaseClaimable on Radiant side.
+    function batchHarvestEntitledRDNT(address[] memory _assets, bool _force) external;
 }
 
 interface IRadpieReceiptToken {
-
     function assetPerShare() external view returns (uint256);
+}
+
+/// @title A contract for managing entitled RDNT and vestable RDNT for users
+/// Entitled RDNT are the RDNT amount that Radiant Staking claim from Radiant Capital, waiting to vest
+/// Vestable RDNT are the RDNT amount that Radiant Staking has started claiming
+
+/// The flow of RDNT vesting flow.
+/// 1. RDNTVestManager.nextVestedTime is the RDNT vested time for all Radpie user they start vesting their Entitled RDNT at anytime.  (timestamp: T1 - x, 0 days < x < 10 days)
+/// 2. RDNTRewardManager.startVestingAll call to make RadianStaking request vesting all current claimable RDNT on Radiant.            (timestamp: T1)
+/// 3. RDNTRewardManager.collectVestedRDNTAll to make RadianStaking claim all vesterd RDNT and trasnfer to RDNTVestManager            (timestamp: T1 + 90)
+/// 4. User can claim their vested RDNT from RDNTVestManager                                                                          (after timestamp: T1 + 90 )
+/// vesting day of RDNT for Radpie user will be:   90 < RDNT vest time < 90 + x, (0 days < x < 10 days)
+
+/// @author Radpie Team
+interface IRDNTRewardManager {
+
+    /// @dev Returns current amount of staked tokens
+    function totalStaked(address _receiptToken) external view virtual returns (uint256);
+
+    /// @dev Returns amount of staked tokens in master Radpie by account
+    /// @param _receiptToken The address of the receipt
+    /// @param _account The address of the account
+    function balanceOf(
+        address _account,
+        address _receiptToken
+    ) external view virtual returns (uint256);
+
+    /// @dev Returns the entitled RDNT per token for a specific receipt
+    /// @param _receipt The address of the receipt
+    function entitledPerToken(address _receipt) external view returns (uint256);
+
+    /// @dev Returns the total entitled RDNT for a specific account
+    /// @param _account The address of the account
+    /// @return The total entitled RDNT for the account
+    function entitledRDNT(address _account) external view returns (uint256);
+
+    /// @dev Returns the entitled RDNT for a specific account and receipt
+    /// @param _account The address of the account
+    /// @param _receipt The address of the receipt
+    /// @return The entitled RDNT for the account and receipt and Balance of ReceiptToken
+    function entitledRDNTByReceipt(
+        address _account,
+        address _receipt
+    ) external view returns (uint256);
+
+    function nextVestedTime() external view returns (uint256);
+
+    /// @dev Updates the entitled RDNTs for a specific account and receipt
+    /// @param _account The address of the account
+    /// @param _receipt The address of the receipt
+    function updateFor(address _account, address _receipt) external;
+
+    /// @dev Start vesting the RDNT tokens for the calling account
+    function vestRDNT() external;
+
+    /// @notice Vest a specified amount of esRDNT tokens for the calling account.
+    /// @param _amount The amount of esRDNT tokens to vest.
+    function vestEsRDNT(uint256 _amount) external;
+
+    ///  @notice Redeem entitled RDNT tokens to esRDNT Tokens for the calling account.
+    function redeemEntitledRDNT() external;
 }

@@ -17,8 +17,14 @@ module.exports = async ({deployments}) => {
 async function getParams() {
     return {
         usdc: BSC.usdc,
+        esRdnt: BSC.esRdnt,
+        rdnt: BSC.rdnt,
+        wBnb: BSC.wBnb,
+        usdt: BSC.usdt,
         radpiePoolHelper: '0xEdAb351C299eAe8E06E4f97a3f262Bb4E364612C',
         radiantStaking: '0xe05157aA8D14b8ED1d816D505b3D5DEEB83ca131',
+        radiantRewardManager: '0x91DD506e1f27f50dd40d0E8634013b1F2393DCa0',
+        pancakeSwapV3Router: BSC.pancakeSwapV3Router,
     }
 }
 
