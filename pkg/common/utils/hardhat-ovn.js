@@ -20,6 +20,7 @@ task('deploy', 'deploy')
     .addFlag('verify', 'Enable verify contracts')
     .addFlag('gov', 'Deploy to local by impression account')
     .addOptionalParam('stand', 'Override env STAND')
+    .addOptionalParam('id', 'ETS ID')
     .setAction(async (args, hre) => {
 
         hre.ovn = {
@@ -30,10 +31,12 @@ task('deploy', 'deploy')
             verify: args.verify,
             tags: args.tags,
             gov: args.gov,
-            stand: args.stand
+            stand: args.stand,
+            id: args.id
         }
 
         settingNetwork(hre);
+        settingId(hre);
         updateFeedData(hre);
 
         await hre.run('deploy:main', args);
@@ -148,6 +151,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
 task(TASK_RUN, 'Run task')
     .addFlag('reset', 'Reset')
     .addOptionalParam('stand', 'Override env STAND')
+    .addOptionalParam('id', 'ETS ID')
     .setAction(async (args, hre, runSuper) => {
         hre.ovn = {
             noDeploy: args.noDeploy,
@@ -157,6 +161,7 @@ task(TASK_RUN, 'Run task')
             verify: args.verify,
             tags: args.tags,
             stand: args.stand,
+            id: args.id,
         }
 
 
@@ -165,6 +170,7 @@ task(TASK_RUN, 'Run task')
         }
 
         settingNetwork(hre);
+        settingId(hre);
 
         if (args.reset)
             await evmCheckpoint('task', hre.network.provider);
@@ -190,6 +196,7 @@ task(TASK_COMPILE, 'Compile')
 
 task(TASK_TEST, 'test')
     .addOptionalParam('stand', 'Override env STAND')
+    .addOptionalParam('id', 'ETS ID')
     .setAction(async (args, hre, runSuper) => {
 
 
@@ -200,6 +207,7 @@ task(TASK_TEST, 'test')
             noDeploy: false,
             deploy: true,
             stand: args.stand,
+            id: args.id,
         }
 
         if (hre.network.name === 'localhost') {
@@ -207,6 +215,7 @@ task(TASK_TEST, 'test')
         }
 
         settingNetwork(hre);
+        settingId(hre);
 
         await evmCheckpoint('task', hre.network.provider);
 
@@ -312,6 +321,14 @@ async function transferETH(amount, to, hre) {
     });
 
     console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
+}
+
+function settingId(hre){
+
+    if (hre.ovn.id){
+        process.env.ETS = hre.ovn.id;
+    }
+
 }
 
 function settingNetwork(hre) {
