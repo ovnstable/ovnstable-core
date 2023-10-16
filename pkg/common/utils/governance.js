@@ -221,185 +221,82 @@ async function testCase(test, id){
         }
 }
 
-async function testStrategy(strategy){
-
-    let testWallet = await createRandomWallet();
-    let asset = await getCoreAsset();
-    let mainWallet = await initWallet();
-
-    let nav = await strategy.netAssetValue();
-
-    await execTimelock(async (timelock)=>{
-
-        console.log('Test strategy: ' + strategy.address);
-
-        let operations = [];
-
-        await strategy.connect(timelock).setPortfolioManager(timelock.address);
-
-        let balanceBefore = 0;
-        let navBefore = 0;
-        let navAfter = 0;
-        let balanceAfter = 0;
-
-
-        await getTestAssets(mainWallet.address);
-
-        let amount = toAsset(50_000);
-        await asset.connect(mainWallet).transfer(testWallet.address, amount);
-
-        try {
-            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-            await asset.connect(testWallet).transfer(strategy.address, amount);
-            await strategy.connect(timelock).stake(asset.address, amount);
-            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-            operations.push({
-                name: 'Stake',
-                nav_delta: navAfter - navBefore,
-                balance_delta: balanceAfter - balanceBefore
-            });
-        } catch (e) {
-            console.error('Stake fail: ' + e);
-
-            operations.push({
-                name: 'Stake',
-                nav_delta: 'error',
-                balance_delta: 'error'
-            });
-        }
-
-        try {
-            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            await strategy.connect(timelock).claimRewards(testWallet.address);
-            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-            operations.push({
-                name: 'ClaimRewards',
-                nav_delta: navAfter - navBefore,
-                balance_delta: balanceAfter - balanceBefore
-            });
-        } catch (e) {
-            console.error('ClaimRewards fail: ' + e);
-
-            operations.push({
-                name: 'ClaimRewards',
-                nav_delta: 'error',
-                balance_delta: 'error'
-            });
-        }
-
-
-        try {
-            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-            await strategy.connect(timelock).unstake(asset.address, amount, testWallet.address, false);
-            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-            operations.push({
-                name: 'UnStake',
-                nav_delta: navAfter - navBefore,
-                balance_delta: balanceAfter - balanceBefore
-            });
-        } catch (e) {
-            console.error('Unstake fail: ' + e);
-
-            operations.push({
-                name: 'UnStake',
-                nav_delta: 'error',
-                balance_delta: 'error'
-            });
-        }
-
-        try {
-            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-            await strategy.connect(timelock).unstake(asset.address, 0, testWallet.address, true);
-            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-            operations.push({
-                name: 'UnStakeFull',
-                nav_delta: navAfter - navBefore,
-                balance_delta: balanceAfter - balanceBefore
-            });
-        } catch (e) {
-            console.error('UnstakeFull fail: ' + e);
-
-            operations.push({
-                name: 'UnStakeFull',
-                nav_delta: 'error',
-                balance_delta: 'error'
-            });
-        }
-
-        try {
-            navBefore = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceBefore = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-            await asset.connect(testWallet).transfer(strategy.address, nav);
-            await strategy.connect(timelock).stake(asset.address, nav);
-            navAfter = Number.parseInt(fromAsset(await strategy.netAssetValue()));
-            balanceAfter = Number.parseInt(fromAsset(await asset.balanceOf(testWallet.address)));
-
-            operations.push({
-                name: 'Stake Nav base',
-                nav_delta: navAfter - navBefore,
-                balance_delta: balanceAfter - balanceBefore
-            });
-        } catch (e) {
-            console.error('Stake Nav base fail: ' + e);
-
-            operations.push({
-                name: 'Stake Nav base',
-                nav_delta: 'error',
-                balance_delta: 'error'
-            });
-        }
-
-        console.table(operations);
-        console.log('Test strategy done: ' + strategy.address);
-    });
-
-}
-
-async function testInsurance(){
-
+async function testStrategy(id, strategy, stand = process.env.STAND){
 
     let tables = [];
 
-    let insurance = await getContract('InsuranceExchange');
+    tables.push({
+        name: 'ID',
+        result: id
+    });
+
+    tables.push({
+        name: 'BlockNumber',
+        result: await ethers.provider.getBlockNumber()
+    });
+
+    tables.push({
+        name: 'Date/Time',
+        result: new Date()
+    });
+
+    tables.push({
+        name: 'Tests',
+        result: '------'
+    });
+
     let asset = await getCoreAsset();
-    let insuranceToken = await getContract('InsuranceToken');
+    let mainWallet = await initWallet();
 
-    let amountAsset = await asset.balanceOf(await getWalletAddress());
-    let amountInsurance = await insuranceToken.balanceOf(await getWalletAddress());
+    tables.push(await testCase(async ()=>{
+        await strategy.netAssetValue();
+    }, 'strategy.netAssetValue'));
 
-    tables.push({
-        name: 'before: mint',
-        asset: fromAsset(amountAsset),
-        ins: fromAsset(amountInsurance)
-    })
+    tables.push(await testCase(async ()=>{
+        await strategy.netAssetValue();
+    }, 'strategy.liquidationValue'));
 
-    await (await asset.approve(insurance.address, amountAsset)).wait();
-    console.log('Asset approve done');
 
-    let mint = { amount: amountAsset};
-    await (await insurance.mint(mint)).wait();
-    console.log('Insurance.mint done');
+    tables.push(await testCase(async ()=>{
 
-    amountAsset = await asset.balanceOf(await getWalletAddress());
-    amountInsurance = await insuranceToken.balanceOf(await getWalletAddress());
+        await execTimelock(async (timelock)=> {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
 
-    tables.push({
-        name: 'after: mint',
-        asset: fromAsset(amountAsset),
-        ins: fromAsset(amountInsurance)
-    })
+            await getTestAssets(mainWallet.address);
+            let amount = toAsset(10_000);
+            await asset.connect(mainWallet).transfer(strategy.address, amount);
+            await strategy.connect(timelock).stake(asset.address, amount);
+        });
+    }, 'strategy.stake'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        await execTimelock(async (timelock)=> {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            let amount = toAsset(10_000);
+            await strategy.connect(timelock).unstake(asset.address, amount, mainWallet.address, false);
+        });
+    }, 'strategy.unstake'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        await execTimelock(async (timelock)=> {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            let amount = toAsset(10_000);
+            await strategy.connect(timelock).claimRewards(timelock.address);
+        });
+    }, 'strategy.claimRewards'));
+
+
+    tables.push(await testCase(async ()=>{
+
+        await execTimelock(async (timelock)=> {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).unstake(asset.address, 0, mainWallet.address, true);
+        });
+    }, 'strategy.unstakeFull'));
 
     console.table(tables);
 }
@@ -431,74 +328,6 @@ async function testProposal(addresses, values, abis){
     })
 }
 
-async function execProposal(id) {
-
-    let wallet = await initWallet(ethers)
-    let governator = await getContract('OvnGovernor' );
-    let ovn = await getContract('OvnToken');
-
-    let ovnOwner = await impersonateAccount('0xe497285e466227f4e8648209e34b465daa1f90a0');
-    await ovn.connect(ovnOwner).transfer(wallet.address, await ovn.balanceOf(ovnOwner.address));
-    await ovn.connect(wallet).delegate(wallet.address);
-
-    let quorum = fromE18((await governator.quorum(await ethers.provider.getBlockNumber() - 1)).toString());
-    console.log('Quorum: ' + quorum);
-    console.log('OVN balance user: ' + fromE18((await ovn.balanceOf(wallet.address)).toString()));
-
-    const proposalId = id;
-
-    let votes = ethers.utils.parseUnits("100000100", 9);
-
-    let state = proposalStates[await governator.state(proposalId)];
-    if (state === "Executed") {
-        return;
-    }
-    if (state === "Queued"){
-        const sevenDays = 6 * 60 * 1000; // 6 hours
-        await ethers.provider.send("evm_increaseTime", [sevenDays])
-        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-        await governator.connect(wallet).executeExec(proposalId);
-        return;
-    }
-
-    console.log('State status: ' + state)
-    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-
-    console.log('Votes: ' + votes);
-
-    let item = await governator.connect(wallet).proposals(proposalId);
-    console.log('Votes for: ' + item.forVotes / 10 ** 18);
-
-    await governator.connect(wallet).castVote(proposalId, 1);
-
-    item = await governator.connect(wallet).proposals(proposalId);
-    console.log('Votes for: ' + item.forVotes / 10 ** 18);
-
-    let total = fromE18((await ovn.getVotes(wallet.address)).toString());
-    console.log('Delegated ' + total);
-
-    console.log('State: ' + proposalStates[await governator.state(proposalId)]);
-
-    let waitBlock = 150;
-    for (let i = 0; i < waitBlock; i++) {
-        await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    }
-
-    state = proposalStates[await governator.state(proposalId)];
-    expect('Succeeded').to.eq(state);
-    await governator.connect(wallet).queueExec(proposalId);
-
-    const hours = 6 * 60 * 1000; // 6 hours
-    await ethers.provider.send("evm_increaseTime", [hours])
-    await ethers.provider.send('evm_mine'); // wait 1 block before opening voting
-    await governator.connect(wallet).executeExec(proposalId);
-
-
-    state = proposalStates[await governator.state(proposalId)];
-    console.log('State status: ' + state)
-    expect(state).to.eq('Executed');
-}
-
 async function getProposalState(proposalId){
     let governor = await getContract('OvnGovernor');
     let state = proposalStates[await governor.state(proposalId)];
@@ -515,11 +344,9 @@ async function getProposalState(proposalId){
 }
 
 module.exports = {
-    execProposal: execProposal,
     createProposal: createProposal,
     testProposal: testProposal,
     testUsdPlus: testUsdPlus,
-    testInsurance: testInsurance,
     testStrategy: testStrategy,
     getProposalState: getProposalState,
 }
