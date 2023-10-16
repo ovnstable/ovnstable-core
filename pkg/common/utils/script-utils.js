@@ -270,25 +270,26 @@ async function getERC20ByAddress(address, wallet) {
 
 }
 
-async function getCoreAsset() {
+async function getCoreAsset(stand = process.env.STAND) {
 
+    if (stand === 'arbitrum_dai'
+        || stand === 'base_dai'
+        || stand === 'optimism_dai'
+    ) {
+        return await getERC20('dai');
 
-    if (process.env.STAND === 'optimism_dai') {
-        return await getERC20('dai');
-    } else if (process.env.STAND === 'arbitrum_dai') {
-        return await getERC20('dai');
-    } else if (process.env.STAND === 'arbitrum_eth') {
-        return await getERC20('weth');
-    } else if (process.env.STAND === 'base_dai') {
-        return await getERC20('dai');
-    } else if (process.env.STAND === 'bsc_usdt') {
+    } else if (stand === 'arbitrum_usdt'
+        || stand === 'bsc_usdt'
+        || stand === 'linea_usdt'
+    ) {
         return await getERC20('usdt');
-    } else if (process.env.STAND === 'linea_usdt') {
-        return await getERC20('usdt');
-    } else if (process.env.STAND === 'arbitrum_usdt') {
-        return await getERC20('usdt');
-    } else if (process.env.STAND === 'base') {
+
+    } else if (stand === 'base') {
         return await getERC20('usdbc');
+
+    } else if (stand === 'arbitrum_eth') {
+        return await getERC20('weth');
+
     } else {
         return await getERC20('usdc');
     }

@@ -175,7 +175,8 @@ function getNetworks() {
         hardhat: {
             zksync: zkSync,
             forking: {
-                url: 'https://rpc.ankr.com/eth',
+                url: node_url(process.env.ETH_NETWORK),
+                blockNumber: blockNumber(process.env.ETH_NETWORK),
                 ignoreUnknownTxType: true,
             },
             accounts: {

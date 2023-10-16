@@ -4,7 +4,7 @@ const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, 
     getChainId
 } = require("./script-utils");
 const hre = require('hardhat');
-const {execTimelock, showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const {execTimelock, showM2M, sleep} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets, prepareEnvironment} = require("./tests");
 const {Roles} = require("./roles");
 const fs = require("fs");
@@ -106,17 +106,18 @@ function createTransaction(timelock, delay, address, value, data){
 
 
 
-async function testUsdPlus(id){
+async function testUsdPlus(id, stand = process.env.STAND){
     console.log(`Run tests USD+`);
 
     let tables = [];
 
     await prepareEnvironment();
 
-    let exchange = await getContract('Exchange');
-    let asset = await getCoreAsset();
-    let usdPlusToken = await getContract('UsdPlusToken');
-    let m2m = await getContract('Mark2Market');
+    let exchange = await getContract('Exchange', stand);
+    let pm = await getContract('PortfolioManager', stand);
+    let m2m = await getContract('Mark2Market', stand);
+    let usdPlusToken = await getContract('UsdPlusToken', stand);
+    let asset = await getCoreAsset(stand);
 
     let walletAddress = await getWalletAddress();
 
@@ -166,9 +167,8 @@ async function testUsdPlus(id){
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-                let pm = await getContract('PortfolioManager');
-                await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-                await pm.connect(timelock).balance();
+            await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+            await pm.connect(timelock).balance();
         });
 
     }, 'pm.balance'));
