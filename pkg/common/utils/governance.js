@@ -213,7 +213,7 @@ async function testCase(test, id){
                 result: 'SUCCESS'
             }
         } catch (e) {
-            console.error(`[Test] Fail test case: ${id}`);
+            console.error(`[Test] Fail test case: ${id}: ${e}`);
             return{
                 name: id,
                 result: 'FAIL'
