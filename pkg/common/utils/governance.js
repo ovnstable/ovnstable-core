@@ -1,14 +1,11 @@
 const {fromE18, toE18, fromAsset, fromE6, toAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights,
-    getChainId
-} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights, getChainId} = require("./script-utils");
 const hre = require('hardhat');
-const {execTimelock, showM2M, sleep} = require("@overnight-contracts/common/utils/script-utils");
+const {execTimelock, showM2M, transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets, prepareEnvironment} = require("./tests");
 const {Roles} = require("./roles");
 const fs = require("fs");
-
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 
@@ -48,7 +45,6 @@ async function createProposal(name, addresses, values, abis){
     console.log(data)
     await fs.writeFileSync(batchName, data);
 }
-
 
 function createTransaction(timelock, delay, address, value, data){
 
@@ -104,12 +100,8 @@ function createTransaction(timelock, delay, address, value, data){
 
 }
 
-
-
 async function testUsdPlus(id, stand = process.env.STAND){
     console.log(`Run tests USD+`);
-
-    let tables = [];
 
     await prepareEnvironment();
 
@@ -119,7 +111,12 @@ async function testUsdPlus(id, stand = process.env.STAND){
     let usdPlusToken = await getContract('UsdPlusToken', stand);
     let asset = await getCoreAsset(stand);
 
+    let params = await getPrice();
+
     let walletAddress = await getWalletAddress();
+    await transferETH(10, walletAddress);
+
+    let tables = [];
 
     tables.push({
         name: 'ID',
@@ -144,84 +141,79 @@ async function testUsdPlus(id, stand = process.env.STAND){
     tables.push(await testCase(async ()=>{
 
         let amountAsset = await asset.balanceOf(walletAddress);
-
-        await (await asset.approve(exchange.address, amountAsset)).wait();
-        console.log('Asset approve done');
-        await (await exchange.buy(asset.address, amountAsset)).wait();
-        console.log('Exchange.buy done');
+        await (await asset.approve(exchange.address, amountAsset, params)).wait();
+        await (await exchange.buy(asset.address, amountAsset, params)).wait();
 
     }, 'exchange.mint'));
-
 
     tables.push(await testCase(async ()=>{
 
         let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
-        await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
-        console.log('UsdPlus approve done');
-        await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
-        console.log('Exchange.redeem done');
+        await (await usdPlusToken.approve(exchange.address, amountUsdPlus, params)).wait();
+        await (await exchange.redeem(asset.address, amountUsdPlus, params)).wait();
 
     }, 'exchange.redeem'));
-
 
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-            await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await pm.connect(timelock).balance();
+            await (await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, params)).wait();
+            await (await pm.connect(timelock).balance(params)).wait();
         });
 
     }, 'pm.balance'));
 
-
-
     tables.push(await testCase(async ()=>{
         await m2m.strategyAssets();
-    }, 'pm.strategyAssets'));
-
+    }, 'm2m.strategyAssets'));
 
     tables.push(await testCase(async ()=>{
         await m2m.totalNetAssets();
-    }, 'pm.totalNetAssets'));
+    }, 'm2m.totalNetAssets'));
 
     tables.push(await testCase(async ()=>{
         await m2m.totalLiquidationAssets();
-    }, 'pm.totalLiquidationAssets'));
-
+    }, 'm2m.totalLiquidationAssets'));
 
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-            await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address);
-            await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60);
-            await exchange.connect(timelock).payout();
+            await (await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, params)).wait();
+            await (await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, params)).wait();
+            await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, params)).wait();
+            await (await exchange.connect(timelock).payout(params)).wait();
         });
 
     }, 'exchange.payout'));
 
     console.table(tables);
-
 }
 
-async function testCase(test, id){
+async function testCase(test, id) {
 
-        try {
-            await test()
-            return{
-                name: id,
-                result: 'SUCCESS'
-            }
-        } catch (e) {
-            console.error(`[Test] Fail test case: ${id}: ${e}`);
-            return{
-                name: id,
-                result: 'FAIL'
-            }
+    try {
+        await test();
+        return{
+            name: id,
+            result: 'SUCCESS'
         }
+    } catch (e) {
+        console.error(`[Test] Fail test case: ${id}: ${e}`);
+        return{
+            name: id,
+            result: 'FAIL'
+        }
+    }
 }
 
-async function testStrategy(id, strategy, stand = process.env.STAND){
+async function testStrategy(id, strategy, stand = process.env.STAND) {
+
+    let asset = await getCoreAsset();
+
+    let walletAddress = await getWalletAddress();
+    await transferETH(10, walletAddress);
+
+    let params = await getPrice();
 
     let tables = [];
 
@@ -245,9 +237,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND){
         result: '------'
     });
 
-    let asset = await getCoreAsset();
-    let mainWallet = await initWallet();
-
     tables.push(await testCase(async ()=>{
         await strategy.netAssetValue();
     }, 'strategy.netAssetValue'));
@@ -256,51 +245,46 @@ async function testStrategy(id, strategy, stand = process.env.STAND){
         await strategy.netAssetValue();
     }, 'strategy.liquidationValue'));
 
-
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
 
-            await getTestAssets(mainWallet.address);
+            await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
-            await asset.connect(mainWallet).transfer(strategy.address, amount);
-            await strategy.connect(timelock).stake(asset.address, amount);
+            await asset.transfer(strategy.address, amount, params);
+            await strategy.connect(timelock).stake(asset.address, amount, params);
         });
     }, 'strategy.stake'));
 
-
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
             let amount = toAsset(10_000);
-            await strategy.connect(timelock).unstake(asset.address, amount, mainWallet.address, false);
+            await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, params);
         });
     }, 'strategy.unstake'));
 
-
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
             let amount = toAsset(10_000);
-            await strategy.connect(timelock).claimRewards(timelock.address);
+            await strategy.connect(timelock).claimRewards(timelock.address, params);
         });
     }, 'strategy.claimRewards'));
 
-
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
-            await strategy.connect(timelock).unstake(asset.address, 0, mainWallet.address, true);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
+            await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, params);
         });
     }, 'strategy.unstakeFull'));
 
     console.table(tables);
 }
-
 
 async function testProposal(addresses, values, abis){
 
@@ -322,7 +306,7 @@ async function testProposal(addresses, values, abis){
             }
 
             console.log(`Transaction: index: [${i}] address: [${address}]`)
-            await timelock.sendTransaction(tx)
+            await (await timelock.sendTransaction(tx)).wait();
 
         }
     })

@@ -27,10 +27,10 @@ async function main() {
     values.push(0);
     abis.push(pmUsdt.interface.encodeFunctionData('addStrategy', [StrategyRadpieUsdt.address]));
 
-    await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'bsc');
-    await testUsdPlus(filename, 'bsc_usdt');
-//    await createProposal(filename, addresses, values, abis);
+//    await testProposal(addresses, values, abis);
+//    await testUsdPlus(filename, 'bsc');
+//    await testUsdPlus(filename, 'bsc_usdt');
+    await createProposal(filename, addresses, values, abis);
 }
 
 main()
