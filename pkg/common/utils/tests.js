@@ -73,6 +73,7 @@ async function resetHardhatToLastBlock() {
 
 async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress) {
 
+    await transferETH(1, ownerAddress);
     console.log('Execute: [impersonatingEtsGrantRole]');
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",

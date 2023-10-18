@@ -13,8 +13,8 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
     await prepareEnvironment();
 
-    if (strategyName.indexOf('StrategyEts') !== -1) {
-        let hedgeExchangerAddress = "0xe2fe8783CdC724EC021FF9052eE8EbEd00e6248e";
+    if (strategyName.indexOf('StrategyEts') !== -1 || strategyName.indexOf('StrategySmm') !== -1) {
+        let hedgeExchangerAddress = "0xDADD248Ee91e6034F46eaa26aE5fC52482B42888";
         let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
         await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
 
