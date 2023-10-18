@@ -25,5 +25,5 @@ async function getParams() {
     };
 }
 
-module.exports.tags = ['StrategySmmAlphaEth'];
-module.exports.strategySmmAlphaEthParams = getParams;
+module.exports.tags = ['StrategySmmAlpha'];
+module.exports.strategySmmAlphaParams = getParams;
