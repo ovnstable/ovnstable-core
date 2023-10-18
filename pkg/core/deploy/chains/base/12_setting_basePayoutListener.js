@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
@@ -18,8 +18,9 @@ module.exports = async () => {
 //    items.push(...alienBase());
 //    items.push(...zyberSwap());
 //     items.push(...aerodrome());
-    items.push(...equalizer());
+//    items.push(...equalizer());
 //    items.push(...moonbase());
+    items.push(...defiEdge());
 
     let price = await getPrice();
 
@@ -134,6 +135,17 @@ module.exports = async () => {
         let items = [];
         items.push(createSkim('0xB2ED81175a0371D52499E6881cEA697dcC1BAA11', usdPlus.address, 'DAI+-USD+', dex));
         items.push(createSkim('0xB2ED81175a0371D52499E6881cEA697dcC1BAA11', daiPlus.address, 'DAI+-USD+', dex));
+
+        return items;
+    }
+
+    function defiEdge() {
+
+        let dex = 'DefiEdge';
+        let to = '0xAF1823bACd8EDDA3b815180a61F8741fA4aBc6Dd';
+
+        let items = [];
+        items.push(createCustom('0x075c2d4f7404727f48c5d617ef0a195e0b4623a0', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }

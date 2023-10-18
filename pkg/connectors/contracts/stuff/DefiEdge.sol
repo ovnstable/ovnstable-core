@@ -72,6 +72,26 @@ interface IDefiEdgeTwapStrategy is IERC20Metadata {
     ) external;
 
     /**
+     * @notice Rebalances the strategy
+     * @param _zeroToOne swap direction - true if swapping token0 to token1 else false
+     * @param _amountIn amount of token to swap
+     * @param _isOneInchSwap true if swap is happening from one inch
+     * @param _swapData Swap data to perform exchange from 1inch
+     * @param _existingTicks Array of existing ticks to rebalance
+     * @param _newTicks New ticks in case there are any
+     * @param _burnAll When burning into new ticks, should we burn all liquidity?
+     */
+    function rebalance(
+        bool _zeroToOne,
+        uint256 _amountIn,
+        bool _isOneInchSwap,
+        bytes calldata _swapData,
+        PartialTick[] calldata _existingTicks,
+        NewTick[] calldata _newTicks,
+        bool _burnAll
+    ) external;
+
+    /**
      * @notice Withdraws funds from the contract in case of emergency
      * @dev only governance can withdraw the funds, it can be frozen from the factory permenently
      * @param _token Token to transfer
@@ -143,6 +163,8 @@ interface IDefiEdgeTwapStrategy is IERC20Metadata {
      * @notice Returns the current ticks
      */
     function getTicks() external view returns (Tick[] memory);
+
+    function skim(address to) external;
 }
 
 interface IMigratorChef {
