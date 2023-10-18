@@ -5,34 +5,15 @@ const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
 async function main() {
 
-    let pm = await getContract('PortfolioManager', 'arbitrum_usdt');
-    let strategy = await getContract('StrategyUsdt');
+    await showM2M();
+
+    let pm = await getContract('PortfolioManager', 'arbitrum_eth');
+    let strategy = await getContract('StrategySmmAlpha', 'arbitrum_eth');
 
     await (await pm.addStrategy(strategy.address)).wait();
-    await (await pm.setCashStrategy(strategy.address)).wait();
+    console.log("Strategy added");
 
-
-    let weights = [
-        {
-            "strategy": strategy.address,
-            "name": "Cash",
-            "minWeight": 0,
-            "targetWeight": 100,
-            "riskFactor": 0,
-            "maxWeight": 100,
-            "enabled": true,
-            "enabledReward": false
-        },
-
-    ]
-
-    weights = await convertWeights(weights);
-
-    await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, Wallets.DEV)).wait();
-    await (await pm.setStrategyWeights(weights)).wait();
-
-
-    console.log("Strategies added");
+    await showM2M();
 }
 
 
