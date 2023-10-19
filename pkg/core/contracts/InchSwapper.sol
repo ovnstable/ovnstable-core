@@ -62,7 +62,6 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         Route memory rout = routePathsMap[tokenIn][tokenOut];
 
         require(rout.amount >= amountIn, "amount is more than saved");
-        require(rout.isNew, "route already used");
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
@@ -93,9 +92,6 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
                 rout.data
             );
         }
-    
-
-        routePathsMap[tokenIn][tokenOut].isNew = false;
 
     }
 
@@ -126,8 +122,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             srcReceiver: params.srcReceiver,
             data: path,
             isUniV3: params.isUniV3,
-            pools: params.pools,
-            isNew: true
+            pools: params.pools
         });
     }
 

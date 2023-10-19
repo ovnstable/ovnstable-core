@@ -261,7 +261,6 @@ describe("InchSwapper", function () {
             expect(path.data.toString()).to.be.equal(inchDataForSwapResponse1.data);
             expect(path.amount.toString()).to.be.equal(amountInMax1.toString());
             expect(path.isUniV3).to.be.equal(true);
-            expect(path.isNew).to.be.equal(true);
             expect(path.pools).not.to.be.equal([0]);
 
             const usdc = await getERC20("usdc");
@@ -377,52 +376,6 @@ describe("InchSwapper", function () {
 
         it("no path swap", async function () {
             await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.aDai, amountIn0, 1), "amount is more than saved");
-
-        });
-
-        it("is already used", async function () {
-            const usdc = await getERC20("usdc");
-
-            await transferAsset(ARBITRUM.usdc, testAccount.address);
-
-            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
-            await inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1)
-            await sleep(1000);
-            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
-            await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1), "route already used");
-
-        });
-
-
-        it("with new route", async function () {
-            const usdc = await getERC20("usdc");
-
-            await transferAsset(ARBITRUM.usdc, testAccount.address);
-
-            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
-            await inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1)
-            inchDataForSwapResponse0 = await getDataForSwap(
-                await getChainId(),
-                testAccount.address,
-                ARBITRUM.usdc,
-                ARBITRUM.dai,
-                amountInMax0,
-                "",
-                "");
-
-            await inchSwapper.connect(testAccount).updatePath({
-                tokenIn: ARBITRUM.usdc,
-                tokenOut: ARBITRUM.dai,
-                amount: amountInMax0,
-                flags: inchDataForSwapResponse0.flags,
-                srcReceiver: inchDataForSwapResponse0.srcReceiver,
-                pools: inchDataForSwapResponse0.pools,
-                isUniV3: inchDataForSwapResponse0.isUniV3
-            }, inchDataForSwapResponse0.data,);
-
-            await sleep(1000);
-            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
-            await inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1);
 
         });
 
