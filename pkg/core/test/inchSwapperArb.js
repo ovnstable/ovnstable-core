@@ -60,8 +60,8 @@ describe("InchSwapper", function () {
             amountIn0 = toE6(1000);
             amountIn1 = toE18(1000);
 
-            amountInMax0 = toE6(10_000);
-            amountInMax1 = toE18(10_000);
+            amountInMax0 = toE6(100_000);
+            amountInMax1 = toE18(100_000);
 
             inchDataForSwapResponse0 = await getDataForSwap(
                 await getChainId(),
@@ -390,6 +390,39 @@ describe("InchSwapper", function () {
             await sleep(1000);
             await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
             await expectRevert(inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1), "route already used");
+
+        });
+
+
+        it("with new route", async function () {
+            const usdc = await getERC20("usdc");
+
+            await transferAsset(ARBITRUM.usdc, testAccount.address);
+
+            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
+            await inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1)
+            inchDataForSwapResponse0 = await getDataForSwap(
+                await getChainId(),
+                testAccount.address,
+                ARBITRUM.usdc,
+                ARBITRUM.dai,
+                amountInMax0,
+                "",
+                "");
+
+            await inchSwapper.connect(testAccount).updatePath({
+                tokenIn: ARBITRUM.usdc,
+                tokenOut: ARBITRUM.dai,
+                amount: amountInMax0,
+                flags: inchDataForSwapResponse0.flags,
+                srcReceiver: inchDataForSwapResponse0.srcReceiver,
+                pools: inchDataForSwapResponse0.pools,
+                isUniV3: inchDataForSwapResponse0.isUniV3
+            }, inchDataForSwapResponse0.data,);
+
+            await sleep(1000);
+            await (await usdc.connect(testAccount).approve(inchSwapper.address, amountIn0)).wait();
+            await inchSwapper.connect(testAccount).swap(testAccount.address, ARBITRUM.usdc, ARBITRUM.dai, amountIn0, 1);
 
         });
 
