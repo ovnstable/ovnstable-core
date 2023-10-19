@@ -4,14 +4,14 @@ pragma solidity >=0.5.0 <0.9.0;
 interface IInchSwapper {
 
     struct Route {
-        uint256 updateBlock;
-        uint256 amount;
-        uint256 flags;
-        address srcReceiver;
-        bytes data;
-        uint256[] pools;
-        bool isUniV3;
-        bool isNew;
+        uint256 updateBlock; // last updated block
+        uint256 amount; // amount
+        uint256 flags; // flags for swap
+        address srcReceiver; // receiver
+        bytes data; // data for swap
+        uint256[] pools; // pools for univ3swap
+        bool isUniV3; // delimiter for uni or inch
+        bool isNew; // is used route
     }
 
     struct UpdateParams {
