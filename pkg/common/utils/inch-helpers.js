@@ -81,19 +81,26 @@ async function getDataForSwap(
 
     // console.log('[InchService] Request url: ' + url);
 
-    let attempt = 0;
+    let attempts = 0;
     let response;
-    while (attempt < 10) {
+    while (attempts < 10) {
 
         try {
             response = await axios.get(url, { headers: headers });
             break;
         } catch (e) {
-            attempt += 1;
+            this.logger.error('Get data from INCH: ' + e);
+
+            if (e.response && e.response.status === 429 && 5 >= attempts) {
+                attempts = attempts++;
+            } else {
+                throw new Error(e);
+            }
         }
         await sleep(2000);
-
     }
+
+
 
 
     return getArgs(response);
