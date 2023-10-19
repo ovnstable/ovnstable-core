@@ -1,7 +1,8 @@
 const { default: axios } = require("axios");
 const { ethers } = require("hardhat");
-const {getContract, getWalletAddress, getChainId} = require("./script-utils");
+const { getContract, getWalletAddress, getChainId, sleep } = require("./script-utils");
 const INCH_ROUTER_V5 = require("@overnight-contracts/core/test/abi/InchRouterV5.json");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 async function inchSwapperUpdatePath(token0, token1, amountToken0) {
 
@@ -52,7 +53,8 @@ async function getDataForSwap(
         allowPartialFill: "false",
         protocols: protocols,
         connectorTokens: connectors,
-        usePatching: "true"
+        usePatching: "true",
+        includeProtocols: "true"
     };
 
     if (swapParams.connectorTokens === "") {
@@ -79,7 +81,27 @@ async function getDataForSwap(
 
     // console.log('[InchService] Request url: ' + url);
 
-    const response = await axios.get(url, { headers: headers });
+    let attempts = 0;
+    let response;
+    while (attempts < 10) {
+
+        try {
+            response = await axios.get(url, { headers: headers });
+            break;
+        } catch (e) {
+            this.logger.error('Get data from INCH: ' + e);
+
+            if (e.response && e.response.status === 429 && 5 >= attempts) {
+                attempts = attempts++;
+            } else {
+                throw new Error(e);
+            }
+        }
+        await sleep(2000);
+    }
+
+
+
 
     return getArgs(response);
 }
@@ -98,12 +120,24 @@ function getArgs(transaction) {
     }
 
     let args;
-
-    args = {
-        flags: decodedData.args.desc.flags,
-        data: decodedData.args.data,
-        srcReceiver: decodedData.args.desc.srcReceiver
+    if (decodedData.name !== "uniswapV3Swap") {
+        args = {
+            flags: decodedData.args.desc.flags,
+            data: decodedData.args.data,
+            srcReceiver: decodedData.args.desc.srcReceiver,
+            pools: [0],
+            isUniV3: false
+        }
+    } else {
+        args = {
+            flags: 0,
+            data: "0x",
+            srcReceiver: ZERO_ADDRESS,
+            pools: decodedData.args.pools,
+            isUniV3: true
+        }
     }
+
     return args;
 }
 
