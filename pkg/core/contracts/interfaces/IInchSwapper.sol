@@ -9,6 +9,9 @@ interface IInchSwapper {
         uint256 flags;
         address srcReceiver;
         bytes data;
+        uint256[] pools;
+        bool isUniV3;
+        bool isNew;
     }
 
     struct UpdateParams {
@@ -16,7 +19,9 @@ interface IInchSwapper {
         address tokenOut; 
         uint256 amount; 
         uint256 flags; 
+        uint256[] pools;
         address srcReceiver;
+        bool isUniV3;
     }
 
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) external;

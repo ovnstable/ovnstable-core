@@ -58,29 +58,44 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // changes that acceptable: recipient, payer, amount
     // everyone can use it, however only unit users can see the path
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {
-        require(routePathsMap[tokenIn][tokenOut].amount >= amountIn, "amount is more than saved");
+        
+        Route memory rout = routePathsMap[tokenIn][tokenOut];
+
+        require(rout.amount >= amountIn, "amount is more than saved");
+        require(rout.isNew, "route already used");
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
-        IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
-            srcToken: tokenIn,
-            dstToken: tokenOut,
-            srcReceiver: payable(routePathsMap[tokenIn][tokenOut].srcReceiver),
-            dstReceiver: payable(recipient),
-            amount: amountIn,
-            minReturnAmount: amountMinOut,
-            flags: routePathsMap[tokenIn][tokenOut].flags
-        });
+        if(rout.isUniV3) {
+            inchRouter.uniswapV3Swap(
+                amountIn,
+                amountMinOut,
+                rout.pools
+            );
+        } else {
+            IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
+                srcToken: tokenIn,
+                dstToken: tokenOut,
+                srcReceiver: payable(rout.srcReceiver),
+                dstReceiver: payable(recipient),
+                amount: amountIn,
+                minReturnAmount: amountMinOut,
+                flags: rout.flags
+            });
 
-        // do not need to pass "0x" to permit, 
-        // src receiver is same as caller, it's inch's executor
-        inchRouter.swap(
-            routePathsMap[tokenIn][tokenOut].srcReceiver,
-            desc,
-            "",
-            routePathsMap[tokenIn][tokenOut].data
-        );
+            // do not need to pass "0x" to permit, 
+            // src receiver is same as caller, it's inch's executor
+            inchRouter.swap(
+                rout.srcReceiver,
+                desc,
+                "",
+                rout.data
+            );
+        }
+    
+
+        routePathsMap[tokenIn][tokenOut].isNew = false;
 
     }
 
@@ -91,6 +106,9 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // flags (for patching/partial fill..)
     // srcReceiver (executor of rout)
     // path
+    // pools for univ3
+    // isUniv3 for difference between univ3swap and inchswap
+    // isNew for neediness for update (used route)
     function updatePath(UpdateParams memory params, bytes memory path) external onlyUnit {
         require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
 
@@ -106,12 +124,15 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             amount: params.amount,
             flags: params.flags,
             srcReceiver: params.srcReceiver,
-            data: path
+            data: path,
+            isUniV3: params.isUniV3,
+            pools: params.pools,
+            isNew: true
         });
     }
 
     // check path for update
-    // only UnitUser can use it, whose is updating them
+    // only UnitUser can use it, whose are updating it
     function getPath(address tokenIn, address tokenOut) external onlyUnit view returns (Route memory) {
         return routePathsMap[tokenIn][tokenOut];
     }
