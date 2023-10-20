@@ -24,7 +24,9 @@ async function inchSwapperUpdatePath(token0, token1, amountToken0) {
             tokenOut: token1,
             amount: amountToken0,
             flags: inchDataForSwapResponse0.flags,
-            srcReceiver: inchDataForSwapResponse0.srcReceiver
+            pools: inchDataForSwapResponse0.pools,
+            srcReceiver: inchDataForSwapResponse0.srcReceiver,
+            isUniV3: inchDataForSwapResponse0.isUniV3
         },
         inchDataForSwapResponse0.data
     )).wait();
