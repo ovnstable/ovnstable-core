@@ -18,9 +18,9 @@ module.exports = async () => {
 //    items.push(...alienBase());
 //    items.push(...zyberSwap());
 //     items.push(...aerodrome());
-//    items.push(...equalizer());
+    items.push(...equalizer());
 //    items.push(...moonbase());
-    items.push(...defiEdge());
+//    items.push(...defiEdge());
 
     let price = await getPrice();
 
@@ -124,6 +124,7 @@ module.exports = async () => {
         let items = [];
         items.push(createBribe('0xF6354383d0FbE31Da4089e23dD00CcDD3c92b6b8', usdPlus.address, 'WETH/USD+', dex, '0xc7Ca04072D1e7079AA1c686C4C7be8A7D4337ad4'));
         items.push(createBribe('0x741292fFC0C40B466baE4AF261C64009198a3aB5', daiPlus.address, 'WETH/DAI+', dex, '0x0F46A841bB8dE9c34f82Fd0D2AbB5aCB3c21FD1F'));
+        items.push(createBribe('0xe9a5452aC188079cE00707C2b1076A1a58e80b18', usdPlus.address, 'USD+/USDbC', dex, '0x9820A0df5b2396D7e9aF58977166F6062F9c7Ce3'));
 
         return items;
     }
