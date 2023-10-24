@@ -91,14 +91,13 @@ async function getDataForSwap(
             response = await axios.get(url, { headers: headers });
             break;
         } catch (e) {
-            this.logger.error('Get data from INCH: ' + e);
-
             if (e.response && e.response.status === 429 && 5 >= attempts) {
                 attempts = attempts++;
             } else {
                 throw new Error(e);
             }
         }
+
         await sleep(2000);
     }
 
