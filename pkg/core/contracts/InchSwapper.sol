@@ -66,12 +66,14 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
 
-        if(rout.isUniV3) {
-            inchRouter.uniswapV3Swap(
+        if (rout.isUniV3) {
+            uint256 returnAmount = inchRouter.uniswapV3Swap(
                 amountIn,
                 amountMinOut,
                 rout.pools
             );
+            IERC20(tokenOut).transfer(recipient, returnAmount);
+
         } else {
             IInchRouter.SwapDescriptionV5 memory desc = IInchRouter.SwapDescriptionV5({
                 srcToken: tokenIn,
