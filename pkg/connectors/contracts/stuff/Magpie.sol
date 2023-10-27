@@ -48,4 +48,6 @@ interface PendleMarketDepositHelper {
     function withdrawMarket(address _market, uint256 _amount) external;
 
     function harvest(address _market) external;
+
+    function harvest(address _market, uint256 _minEthToRecieve) external;
 }

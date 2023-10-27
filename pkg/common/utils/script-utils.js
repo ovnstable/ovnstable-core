@@ -702,7 +702,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = "0x2d070ed1321871841245d8ee5b84bd2712644322";
                     break;
                 case ARBITRUM.weth:
-                    from = "0xf584f8728b874a6a5c7a8d4d387c9aae9172d621";
+                    from = "0x1eed63efba5f81d95bfe37d82c8e736b974f477b";
                     break;
                 case ARBITRUM.usdc:
                     from = '0x62383739D68Dd0F844103Db8dFb05a7EdED5BBE6';
@@ -711,7 +711,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x8f9c79b9de8b0713dcac3e535fc5a1a92db6ea2d';
                     break;
                 case ARBITRUM.wstEth:
-                    from = "0x12723917e1437a5a08f887f8765130db8814ecb3";
+                    from = "0x916792f7734089470de27297903bed8a4630b26d";
                     break;
                 default:
                     throw new Error('Unknown asset address');
@@ -723,7 +723,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x20f03e26968b179025f65c1f4afadfd3959c8d03';
                     break;
                 case BASE.usdc:
-                    from = '0x57C68a4A857d2572FbB381c0942bd0Ce76913002';
+                    from = '0x20fe51a9229eef2cf8ad9e89d91cab9312cf3b7a';
                     break;
                 case BASE.dai:
                     from = '0xc68a33de9CEAC7BdaED242aE1DC40D673eD4f643';
