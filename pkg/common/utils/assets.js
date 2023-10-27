@@ -185,6 +185,8 @@ let ARBITRUM = {
     oracleEur: "0xA14d53bC1F1c0F31B4aA3BD109344E5009051a84",
     oracleArb: "0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6",
     oracleOhm: "0x761aaeBf021F19F198D325D7979965D0c7C9e53b",
+    oracleWstEthEth: "0xb523AE262D20A936BC152e6023996e46FDC2A95D",
+    oracleWstEth: "0x5bDae5aE7cb82BFF02D27B013051F9f2a55efd24", // custom chainlink price = oracleWstEthEth * oracleWeth
     // pools
     zyber3Pool: "0x969f7699fbB9C79d8B61315630CDeED95977Cfb8",
     wombatBasePool: "0xc6bc781E20f9323012F6e422bdf552Ff06bA6CD1",

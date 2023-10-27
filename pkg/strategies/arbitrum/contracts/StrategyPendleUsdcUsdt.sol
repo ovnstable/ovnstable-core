@@ -395,7 +395,7 @@ contract StrategyPendleUsdcUsdt is Strategy {
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        depositHelperMgp.harvest(address(lp));
+        depositHelperMgp.harvest(address(lp), 0);
 
         PendleRewardUsdcUsdtLibrary.claimSpecPnp();
 
