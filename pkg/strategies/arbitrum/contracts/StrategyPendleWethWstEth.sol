@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
-import "hardhat/console.sol";
 
 contract StrategyPendleWethWstEth is Strategy {
 
@@ -116,7 +115,6 @@ contract StrategyPendleWethWstEth is Strategy {
 
         // 1. Swap weth to wstEth
         uint256 wethBalance = weth.balanceOf(address(this));
-        console.log("wethBalance: %s", wethBalance);
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(weth),
@@ -129,42 +127,26 @@ contract StrategyPendleWethWstEth is Strategy {
 
         // 2. Calculate wstEth we should swap to SY
         uint256 wstEthAmount = wstEth.balanceOf(address(this));
-        console.log("wstEthAmount: %s", wstEthAmount);
         uint256 syAmount = sy.balanceOf(address(this));
-        console.log("syAmount: %s", syAmount);
         MarketStorage memory marketStorage = lp._storage();
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
-        console.log("syReserves: %s", syReserves);
         uint256 ptReserves = _oracleWethToWstEth(_ptInWeth(uint256(uint128(marketStorage.totalPt))));
-        console.log("ptReserves: %s", ptReserves);
         uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
         uint256 amountWstEthToSy = wstEthAmount * syReserves * ptRate / (syReserves * ptRate + ptReserves * 1e18);
-        console.log("amountWstEthToSy: %s", amountWstEthToSy);
 
         // 3. Deposit wstEth to SY
-        console.log("wstEth.balanceOf(address(this))): %s", wstEth.balanceOf(address(this)));
         sy.deposit(address(this), address(wstEth), amountWstEthToSy, 0);
-        console.log("sy.balanceOf(address(this))): %s", sy.balanceOf(address(this)));
 
         // 4. Mint from wstEth to PT+YT
-        console.log("wstEth.balanceOf(address(this))): %s", wstEth.balanceOf(address(this)));
         SwapData memory swapData;
         TokenInput memory input = TokenInput(address(wstEth), wstEth.balanceOf(address(this)), address(wstEth), address(0), address(0), swapData);
         pendleRouter.mintPyFromToken(address(this), address(yt), 0, input);
-        console.log("wstEth.balanceOf(address(this))) after: %s", wstEth.balanceOf(address(this)));
-        console.log("pt.balanceOf(address(this))): %s", pt.balanceOf(address(this)));
-        console.log("yt.balanceOf(address(this))): %s", yt.balanceOf(address(this)));
 
         // 5. Add Liquidity in PT+SY
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
 
-        console.log("sy.balanceOf(address(this)) after: %s", sy.balanceOf(address(this)));
-        console.log("pt.balanceOf(address(this)) after: %s", pt.balanceOf(address(this)));
-        console.log("yt.balanceOf(address(this)) after: %s", yt.balanceOf(address(this)));
-        console.log("lp.balanceOf(address(this)) after: %s", lp.balanceOf(address(this)));
         // 6. Stake lp to Magpie
         depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
-        console.log("lp.balanceOf(address(this)) after: %s", lp.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -195,74 +177,51 @@ contract StrategyPendleWethWstEth is Strategy {
 
     function _calcLpByAmount(uint256 amount) internal returns(uint256 lpAmount) {
 
-        console.log("amount: %s", amount);
         MarketStorage memory marketStorage = lp._storage();
         uint256 syReserves = _oracleWstEthToWeth(uint256(uint128(marketStorage.totalSy)));
         uint256 ptReserves = _ptInWeth(uint256(uint128(marketStorage.totalPt)));
-        console.log("syReserves: %s", syReserves);
-        console.log("ptReserves: %s", ptReserves);
 
         uint256 totalLpBalance = lp.totalSupply();
-        console.log("totalLpBalance: %s", totalLpBalance);
 
         uint256 lpAmount1 = amount * totalLpBalance / (syReserves + ptReserves);
-        console.log("lpAmount1: %s", lpAmount1);
         uint256 ytBalance = _ytInWeth(yt.balanceOf(address(this)));
-        console.log("ytBalance: %s", ytBalance);
         if (amount > ytBalance) {
             uint256 lpAmount2 = (amount - ytBalance) * totalLpBalance / syReserves;
-            console.log("lpAmount2: %s", lpAmount2);
             lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
         } else {
             lpAmount = lpAmount1;
         }
-        console.log("lpAmount: %s", lpAmount);
     }
 
     function _unstakeExactLp(uint256 lpAmount, bool clearDiff) internal {
 
-        console.log("wstEthBalance before all: %s", wstEth.balanceOf(address(this)));
         // 1. Unstake lp from Magpie
         depositHelperMgp.withdrawMarket(address(lp), lpAmount);
 
-        console.log("wstEthBalance before 0: %s", wstEth.balanceOf(address(this)));
-        console.log("lp.balanceOf(address(this)): %s", lp.balanceOf(address(this)));
         // 2. Remove liquidity from main pool
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
-        console.log("wstEthBalance before 1: %s", wstEth.balanceOf(address(this)));
         // 3. Redeem from (pt+yt) to wstEth
         uint256 ptBalance = _ptInWeth(pt.balanceOf(address(this)));
         uint256 ytBalance = _ytInWeth(yt.balanceOf(address(this)));
-        console.log("ptBalance: %s", ptBalance);
-        console.log("ytBalance: %s", ytBalance);
         uint256 minAmount = (ptBalance < ytBalance) ? ptBalance : ytBalance;
-        console.log("minAmount: %s", minAmount);
         if (minAmount > 0) {
             SwapData memory swapData;
             TokenOutput memory output = TokenOutput(address(wstEth), 0, address(wstEth), address(0), address(0), swapData);
             pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
         }
-        console.log("ptBalance after: %s", pt.balanceOf(address(this)));
-        console.log("ytBalance after: %s", yt.balanceOf(address(this)));
 
-        console.log("wstEthBalance before 2: %s", wstEth.balanceOf(address(this)));
         // 4. Clear diff
         if (clearDiff) {
             _movePtToSy(pt.balanceOf(address(this)));
             _moveYtToSy(yt.balanceOf(address(this)));
         }
 
-        console.log("wstEthBalance before 3: %s", wstEth.balanceOf(address(this)));
         // 5. Redeem from SY to wstEth
-        console.log("sy balance: %s", sy.balanceOf(address(this)));
         sy.redeem(address(this), sy.balanceOf(address(this)), address(wstEth), 0, false);
-        console.log("sy balance after: %s", sy.balanceOf(address(this)));
 
         // 6. Swap wstEth to weth
         uint256 wstEthBalance = wstEth.balanceOf(address(this));
-        console.log("wstEthBalance: %s", wstEthBalance);
-        console.log("weth: %s", weth.balanceOf(address(this)));
         UniswapV3Library.singleSwap(
             uniswapV3Router,
             address(wstEth),
@@ -272,8 +231,6 @@ contract StrategyPendleWethWstEth is Strategy {
             wstEthBalance,
             OvnMath.subBasisPoints(_oracleWstEthToWeth(wstEthBalance), swapSlippageBP)
         );
-        console.log("wstEthBalance after: %s", wstEth.balanceOf(address(this)));
-        console.log("weth after: %s", weth.balanceOf(address(this)));
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
@@ -370,7 +327,6 @@ contract StrategyPendleWethWstEth is Strategy {
 
         uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
         lpTokenBalance += lp.balanceOf(address(this));
-        console.log("lpTokenBalance: %s", lpTokenBalance);
 
         uint256 totalLpBalance = lp.totalSupply();
         syAmount = syReserves * lpTokenBalance / totalLpBalance;
@@ -420,29 +376,18 @@ contract StrategyPendleWethWstEth is Strategy {
     function _totalValue(bool nav) internal view returns (uint256) {
 
         uint256 wethAmount = weth.balanceOf(address(this));
-        console.log("wethAmount: %s", wethAmount);
         uint256 wstEthAmount = wstEth.balanceOf(address(this));
-        console.log("wstEthAmount: %s", wstEthAmount);
 
         (uint256 syAmount, uint256 ptAmount) = _getAmountsByLp();
-        console.log("syAmount: %s", syAmount);
-        console.log("ptAmount: %s", ptAmount);
         syAmount += sy.balanceOf(address(this));
         ptAmount += pt.balanceOf(address(this));
-        console.log("syAmount: %s", syAmount);
-        console.log("ptAmount: %s", ptAmount);
         uint256 ytAmount = yt.balanceOf(address(this));
-        console.log("ytAmount: %s", ytAmount);
 
         wstEthAmount += syAmount;
-        console.log("wstEthAmount: %s", wstEthAmount);
 
         uint256 ptInWeth = _ptInWeth(ptAmount);
         uint256 ytInWeth = _ytInWeth(ytAmount);
-        console.log("ptInWeth: %s", ptInWeth);
-        console.log("ytInWeth: %s", ytInWeth);
         wethAmount += ptInWeth + ytInWeth;
-        console.log("wstEthAmount: %s", wstEthAmount);
 
         if (wstEthAmount > 0) {
             if (nav) {
@@ -451,7 +396,6 @@ contract StrategyPendleWethWstEth is Strategy {
                 wethAmount += OvnMath.subBasisPoints(_oracleWstEthToWeth(wstEthAmount), swapSlippageBP);
             }
         }
-        console.log("wethAmount: %s", wethAmount);
 
         return wethAmount;
     }
