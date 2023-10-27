@@ -236,7 +236,7 @@ contract StrategyPendleWethWstEth is Strategy {
         uint256 ytBalance = _ytInWeth(yt.balanceOf(address(this)));
         console.log("ptBalance: %s", ptBalance);
         console.log("ytBalance: %s", ytBalance);
-        uint256 minAmount = _oracleWethToWstEth((ptBalance < ytBalance) ? ptBalance : ytBalance);
+        uint256 minAmount = (ptBalance < ytBalance) ? ptBalance : ytBalance;
         console.log("minAmount: %s", minAmount);
         if (minAmount > 0) {
             SwapData memory swapData;
