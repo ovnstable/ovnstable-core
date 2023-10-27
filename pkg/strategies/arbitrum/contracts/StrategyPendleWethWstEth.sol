@@ -137,7 +137,8 @@ contract StrategyPendleWethWstEth is Strategy {
         console.log("syReserves: %s", syReserves);
         uint256 ptReserves = _oracleWethToWstEth(_ptInWeth(uint256(uint128(marketStorage.totalPt))));
         console.log("ptReserves: %s", ptReserves);
-        uint256 amountWstEthToSy = (syReserves * wstEthAmount - ptReserves * syAmount) / (syReserves + ptReserves);
+        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
+        uint256 amountWstEthToSy = wstEthAmount * syReserves * ptRate / (syReserves * ptRate + ptReserves * 1e18);
         console.log("amountWstEthToSy: %s", amountWstEthToSy);
 
         // 3. Deposit wstEth to SY
