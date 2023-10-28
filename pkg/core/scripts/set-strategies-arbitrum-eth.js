@@ -14,7 +14,7 @@ async function main() {
             "strategy": "0x4973d06A64640fe8a288D1E28aa17881FF333A48",
             "name": "Aave ETH",
             "minWeight": 0,
-            "targetWeight": 5,
+            "targetWeight": 4,
             "riskFactor": 0,
             "maxWeight": 100,
             "enabled": true,
@@ -39,6 +39,16 @@ async function main() {
             "maxWeight": 100,
             "enabled": true,
             "enabledReward": false
+        },
+        {
+            "strategy": "0xd3Cc82085F34D9C500fcbcDb176Edde17a82335C",
+            "name": "Pendle wstEth",
+            "minWeight": 0,
+            "targetWeight": 1,
+            "riskFactor": 0,
+            "maxWeight": 100,
+            "enabled": true,
+            "enabledReward": true
         },
 
     ]
