@@ -14,7 +14,7 @@ const { Roles } = require("./roles");
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
-    let values = [/*
+    let values = [
         {
             value: 0.02,
         },
@@ -23,10 +23,10 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         },
         {
             value: 2,
-        },*/
+        },
         {
             value: 20,
-        },/*
+        },
         {
             value: 200,
         },
@@ -47,19 +47,19 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         },
         {
             value: 2000000,
-        },*/
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
 
         stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
-/*
+
         unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
             claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
         }
-*/
+
     });
 }
 
