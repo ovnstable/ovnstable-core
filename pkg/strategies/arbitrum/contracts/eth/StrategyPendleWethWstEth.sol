@@ -125,24 +125,23 @@ contract StrategyPendleWethWstEth is Strategy {
             OvnMath.subBasisPoints(_oracleWethToWstEth(wethBalance), swapSlippageBP)
         );
 
-        // 2. Calculate wstEth we should swap to SY
+        // 2. Calculate wstEth we should wrap to SY
         uint256 wstEthAmount = wstEth.balanceOf(address(this));
-        uint256 syAmount = sy.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
         uint256 ptReserves = _oracleWethToWstEth(_ptInWeth(uint256(uint128(marketStorage.totalPt))));
         uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
         uint256 amountWstEthToSy = wstEthAmount * syReserves * ptRate / (syReserves * ptRate + ptReserves * 1e18);
 
-        // 3. Deposit wstEth to SY
+        // 3. Wrap wstEth to SY
         sy.deposit(address(this), address(wstEth), amountWstEthToSy, 0);
 
-        // 4. Mint from wstEth to PT+YT
+        // 4. Mint PT+YT from wstEth
         SwapData memory swapData;
         TokenInput memory input = TokenInput(address(wstEth), wstEth.balanceOf(address(this)), address(wstEth), address(0), address(0), swapData);
         pendleRouter.mintPyFromToken(address(this), address(yt), 0, input);
 
-        // 5. Add Liquidity in PT+SY
+        // 5. Add Liquidity in SY+PT pool
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
 
         // 6. Stake lp to Magpie
@@ -155,8 +154,10 @@ contract StrategyPendleWethWstEth is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        // 1. Calculate lp we should remove from main pool
-        uint256 lpAmount = _calcLpByAmount(OvnMath.addBasisPoints(_amount, stakeSlippageBP));
+        // 1. Calculate lp we should remove from pool
+        uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
+        uint256 nav = _totalValue(true);
+        uint256 lpAmount = OvnMath.addBasisPoints(_amount, stakeSlippageBP) * lpTokenBalance / nav;
 
         // 2. Unstake exact Lp
         _unstakeExactLp(lpAmount, false);
@@ -169,41 +170,26 @@ contract StrategyPendleWethWstEth is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        // 1. Unstake all Lp
-        _unstakeExactLp(depositHelperMgp.balance(address(lp), address(this)), true);
+        // 1. Get all lp
+        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this));
+
+        // 2. Unstake all Lp
+        _unstakeExactLp(lpAmount, true);
 
         return weth.balanceOf(address(this));
     }
 
-    function _calcLpByAmount(uint256 amount) internal returns(uint256 lpAmount) {
-
-        MarketStorage memory marketStorage = lp._storage();
-        uint256 syReserves = _oracleWstEthToWeth(uint256(uint128(marketStorage.totalSy)));
-        uint256 ptReserves = _ptInWeth(uint256(uint128(marketStorage.totalPt)));
-
-        uint256 totalLpBalance = lp.totalSupply();
-
-        uint256 lpAmount1 = amount * totalLpBalance / (syReserves + ptReserves);
-        uint256 ytBalance = _ytInWeth(yt.balanceOf(address(this)));
-        if (amount > ytBalance) {
-            uint256 lpAmount2 = (amount - ytBalance) * totalLpBalance / syReserves;
-            lpAmount = lpAmount1 > lpAmount2 ? lpAmount1 : lpAmount2;
-        } else {
-            lpAmount = lpAmount1;
-        }
-    }
-
-    function _unstakeExactLp(uint256 lpAmount, bool clearDiff) internal {
+    function _unstakeExactLp(uint256 lpAmount, bool unstakeFull) internal {
 
         // 1. Unstake lp from Magpie
         depositHelperMgp.withdrawMarket(address(lp), lpAmount);
 
-        // 2. Remove liquidity from main pool
+        // 2. Remove liquidity from pool
         pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
-        // 3. Redeem from (pt+yt) to wstEth
-        uint256 ptBalance = _ptInWeth(pt.balanceOf(address(this)));
-        uint256 ytBalance = _ytInWeth(yt.balanceOf(address(this)));
+        // 3. Redeem PT+YT to wstEth
+        uint256 ptBalance = pt.balanceOf(address(this));
+        uint256 ytBalance = yt.balanceOf(address(this));
         uint256 minAmount = (ptBalance < ytBalance) ? ptBalance : ytBalance;
         if (minAmount > 0) {
             SwapData memory swapData;
@@ -211,13 +197,13 @@ contract StrategyPendleWethWstEth is Strategy {
             pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
         }
 
-        // 4. Clear diff
-        if (clearDiff) {
+        // 4. Swap all rest PT adn YT to SY
+        if (unstakeFull) {
             _movePtToSy(pt.balanceOf(address(this)));
             _moveYtToSy(yt.balanceOf(address(this)));
         }
 
-        // 5. Redeem from SY to wstEth
+        // 5. Redeem SY to wstEth
         sy.redeem(address(this), sy.balanceOf(address(this)), address(wstEth), 0, false);
 
         // 6. Swap wstEth to weth
@@ -241,7 +227,7 @@ contract StrategyPendleWethWstEth is Strategy {
         // 2. Claim rewards
         _claimSpecPnp();
 
-        // 3. Check and make pt and yt amounts equal
+        // 3. Check and make PT and YT amounts equal
         _equPtYt();
 
         // 4. Sell rewards
@@ -299,22 +285,20 @@ contract StrategyPendleWethWstEth is Strategy {
     function _equPtYt() internal {
 
         uint256 nav = _totalValue(true);
-        
+
         (,uint256 ptAmount) = _getAmountsByLp();
         ptAmount += pt.balanceOf(address(this));
         uint256 ytAmount = yt.balanceOf(address(this));
-        uint256 ptInWeth = _ptInWeth(ptAmount);
-        uint256 ytInWeth = _ytInWeth(ytAmount);
 
-        if (ptInWeth > ytInWeth) {
-            uint256 delta = ptInWeth - ytInWeth;
-            if (delta > nav * thresholdBalancePercent / 100) {
-                _movePtToSy(_wethInPt(delta));
+        if (ptAmount > ytAmount) {
+            uint256 delta = ptAmount - ytAmount;
+            if (_ptInWeth(delta) > nav * thresholdBalancePercent / 100) {
+                _movePtToSy(delta);
             }
         } else {
-            uint256 delta = ytInWeth - ptInWeth;
-            if (delta > nav * thresholdBalancePercent / 100) {
-                _moveYtToSy(_wethInYt(delta));
+            uint256 delta = ytAmount - ptAmount;
+            if (_ytInWeth(delta) > nav * thresholdBalancePercent / 100) {
+                _moveYtToSy(delta);
             }
         }
     }
@@ -324,15 +308,12 @@ contract StrategyPendleWethWstEth is Strategy {
         MarketStorage memory marketStorage = lp._storage();
         uint256 syReserves = uint256(uint128(marketStorage.totalSy));
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
-
         uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
-        lpTokenBalance += lp.balanceOf(address(this));
-
         uint256 totalLpBalance = lp.totalSupply();
         syAmount = syReserves * lpTokenBalance / totalLpBalance;
         ptAmount = ptReserves * lpTokenBalance / totalLpBalance;
     }
-    
+
     function _ptInWeth(uint256 amount) internal view returns (uint256) {
         uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
         return ptRate * amount / 1e18;
@@ -343,24 +324,14 @@ contract StrategyPendleWethWstEth is Strategy {
         return (1e18 - ptRate) * amount / 1e18;
     }
 
-    function _wethInPt(uint256 amount) internal view returns (uint256) {
-        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
-        return amount * 1e18 / ptRate;
-    }
-
-    function _wethInYt(uint256 amount) internal view returns (uint256) {
-        uint256 ptRate = ptOracle.getPtToAssetRate(address(lp), 50);
-        return amount * 1e18 / (1e18 - ptRate);
-    }
-
     function _movePtToSy(uint256 ptBalance) internal {
-        if (ptBalance > 0 && ptBalance <= pt.balanceOf(address(this))) {
+        if (ptBalance > 0) {
             pendleRouter.swapExactPtForSy(address(this), address(lp), ptBalance, 0);
         }
     }
 
     function _moveYtToSy(uint256 ytBalance) internal {
-        if (ytBalance > 0 && ytBalance <= yt.balanceOf(address(this))) {
+        if (ytBalance > 0) {
             pendleRouter.swapExactYtForSy(address(this), address(lp), ytBalance, 0);
         }
     }
@@ -383,12 +354,11 @@ contract StrategyPendleWethWstEth is Strategy {
         ptAmount += pt.balanceOf(address(this));
         uint256 ytAmount = yt.balanceOf(address(this));
 
-        wstEthAmount += syAmount;
-
         uint256 ptInWeth = _ptInWeth(ptAmount);
         uint256 ytInWeth = _ytInWeth(ytAmount);
         wethAmount += ptInWeth + ytInWeth;
 
+        wstEthAmount += syAmount;
         if (wstEthAmount > 0) {
             if (nav) {
                 wethAmount += _oracleWstEthToWeth(wstEthAmount);
@@ -400,12 +370,14 @@ contract StrategyPendleWethWstEth is Strategy {
         return wethAmount;
     }
 
+    // amount * price / wstEth decimals
     function _oracleWstEthToWeth(uint256 amount) internal view returns (uint256) {
-        return amount * ChainlinkLibrary.getPrice(oracleWstEthEth) / 1e18; // amount * price / wstEth decimals
+        return amount * ChainlinkLibrary.getPrice(oracleWstEthEth) / 1e18;
     }
 
+    // amount * wstEth decimals / price
     function _oracleWethToWstEth(uint256 amount) internal view returns (uint256) {
         uint256 price = ChainlinkLibrary.getPrice(oracleWstEthEth);
-        return amount * 1e18 / price; // amount * wstEth decimals / price
+        return amount * 1e18 / price;
     }
 }
