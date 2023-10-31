@@ -24,6 +24,8 @@ contract BscPayoutListener is GlobalPayoutListener {
         }
     }
 
+    // Skim all pools on Thena and bribe OVN/USDT+ pool by USDT+
+    // USD+ convert to USDT+, because we can only bribe in USDT+, OVN, and whitelisted tokens
     function _customThena(Item memory item) internal {
         IERC20 token = IERC20(item.token);
         uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
