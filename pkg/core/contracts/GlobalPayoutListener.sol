@@ -325,7 +325,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
 
-    uint256[49] private __gap;
+    uint256[50] private __gap;
 
 }
 
