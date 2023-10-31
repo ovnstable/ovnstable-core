@@ -13,20 +13,7 @@ contract StrategyDForceUsdt is Strategy {
         address usdt;
         address iUsdt;
         address dForceRewardDistributor;
-        address dodoApprove;
-        address dodoProxy;
-        address dfToken;
-        address usxToken;
-        address usdcToken;
-        address dfUsxAdapter;
-        address usxUsdcAdapter;
-        address usdcUsdtAdapter;
-        address dfUsxPair;
-        address usxUsdcPair;
-        address usdcUsdtPair;
-        address feeProxy;
-        address broker;
-        uint256 usxBrokerFee;
+        address df;
     }
 
     // --- params
@@ -34,20 +21,7 @@ contract StrategyDForceUsdt is Strategy {
     IERC20 public usdt;
     IToken public iUsdt;
     IRewardDistributor public dForceRewardDistributor;
-    address public dodoApprove;
-    address public dodoProxy;
-    address public dfToken;
-    address public usxToken;
-    address public usdcToken;
-    address public dfUsxAdapter;
-    address public usxUsdcAdapter;
-    address public usdcUsdtAdapter;
-    address public dfUsxPair;
-    address public usxUsdcPair;
-    address public usdcUsdtPair;
-    address public feeProxy;
-    address public broker;
-    uint256 public usxBrokerFee;
+    IERC20 public df;
 
     // --- events
 
@@ -68,37 +42,12 @@ contract StrategyDForceUsdt is Strategy {
         require(params.usdt != address(0), 'usdt is empty');
         require(params.iUsdt != address(0), 'iUsdt is empty');
         require(params.dForceRewardDistributor != address(0), 'dForceRewardDistributor is empty');
-        require(params.dodoApprove != address(0), 'dodoApprove is empty');
-        require(params.dodoProxy != address(0), 'dodoProxy is empty');
-        require(params.dfToken != address(0), 'dfToken is empty');
-        require(params.usxToken != address(0), 'usxToken is empty');
-        require(params.usdcToken != address(0), 'usdcToken is empty');
-        require(params.dfUsxAdapter != address(0), 'dfUsxAdapter is empty');
-        require(params.usxUsdcAdapter != address(0), 'usxUsdcAdapter is empty');
-        require(params.usdcUsdtAdapter != address(0), 'usdcUsdtAdapter is empty');
-        require(params.dfUsxPair != address(0), 'dfUsxPair is empty');
-        require(params.usxUsdcPair != address(0), 'usxUsdcPair is empty');
-        require(params.usdcUsdtPair != address(0), 'usdcUsdtPair is empty');
-        require(params.feeProxy != address(0), 'feeProxy is empty');
-        require(params.broker != address(0), 'broker is empty');
+        require(params.df != address(0), 'df is empty');
 
         usdt = IERC20(params.usdt);
         iUsdt = IToken(params.iUsdt);
         dForceRewardDistributor = IRewardDistributor(params.dForceRewardDistributor);
-        dodoApprove = params.dodoApprove;
-        dodoProxy = params.dodoProxy;
-        dfToken = params.dfToken;
-        usxToken = params.usxToken;
-        usdcToken = params.usdcToken;
-        dfUsxAdapter = params.dfUsxAdapter;
-        usxUsdcAdapter = params.usxUsdcAdapter;
-        usdcUsdtAdapter = params.usdcUsdtAdapter;
-        dfUsxPair = params.dfUsxPair;
-        usxUsdcPair = params.usxUsdcPair;
-        usdcUsdtPair = params.usdcUsdtPair;
-        feeProxy = params.feeProxy;
-        broker = params.broker;
-        usxBrokerFee = params.usxBrokerFee;
+        df = IERC20(params.df);
 
         emit StrategyUpdatedParams();
     }
@@ -161,55 +110,55 @@ contract StrategyDForceUsdt is Strategy {
         // sell rewards
         uint256 totalUsdt;
 
-        uint256 dfBalance = IERC20(dfToken).balanceOf(address(this));
+        uint256 dfBalance = df.balanceOf(address(this));
         if (dfBalance > 0) {
             bytes[] memory sequence = new bytes[](1);
             sequence[0] = "0x00";
 
             DodoLibrary.SingleSwapStruct memory dfUsxSwapParams = DodoLibrary.SingleSwapStruct(
-                dodoApprove,
-                dodoProxy,
-                dfToken,
-                usxToken,
+                address(0xA867241cDC8d3b0C07C85cC06F25a0cD3b5474d8),
+                address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
+                address(df),
+                address(0x641441c631e2F909700d2f41FD87F0aA6A6b4EDb),
                 dfBalance,
-                dfUsxAdapter,
-                dfUsxPair,
-                feeProxy,
+                address(0x8aB2D334cE64B50BE9Ab04184f7ccBa2A6bb6391),
+                address(0x19E5910F61882Ff6605b576922507F1E1A0302FE),
+                address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
                 0,
                 sequence,
-                abi.encode(broker, usxBrokerFee)
+                abi.encode(address(0x6c1c420C04F4D563d6588a97693aF902b87Be5f1), 10000000000000000)
             );
 
             uint256 usxAmount = DodoLibrary.singleSwap(dfUsxSwapParams);
             if (usxAmount > 0) {
                 DodoLibrary.SingleSwapStruct memory usxUsdcSwapParams = DodoLibrary.SingleSwapStruct(
-                    dodoApprove,
-                    dodoProxy,
-                    usxToken,
-                    usdcToken,
+                    address(0xA867241cDC8d3b0C07C85cC06F25a0cD3b5474d8),
+                    address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
+                    address(0x641441c631e2F909700d2f41FD87F0aA6A6b4EDb),
+                    address(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8),
                     usxAmount,
-                    usxUsdcAdapter,
-                    usxUsdcPair,
-                    feeProxy,
+                    address(0x8aB2D334cE64B50BE9Ab04184f7ccBa2A6bb6391),
+                    address(0x9340e3296121507318874ce9C04AFb4492aF0284),
+                    address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
                     0,
                     sequence,
-                    abi.encode(broker, 0)
+                    abi.encode(address(0x6c1c420C04F4D563d6588a97693aF902b87Be5f1), 0)
                 );
 
                 uint256 usdcAmount = DodoLibrary.singleSwap(usxUsdcSwapParams);
                 if (usdcAmount > 0) {
                     DodoLibrary.SingleSwapStruct memory usdcUsdtSwapParams = DodoLibrary.SingleSwapStruct(
-                        dodoApprove,
-                        dodoProxy,
-                        usdcToken,
+                        address(0xA867241cDC8d3b0C07C85cC06F25a0cD3b5474d8),
+                        address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
+                        address(0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8),
                         address(usdt),
                         usdcAmount,
-                        usdcUsdtAdapter,
-                        usdcUsdtPair,
-                        feeProxy,
+                        address(0xd5a7E197bacE1F3B26E2760321d6ce06Ad07281a),
+                        address(0xe4B2Dfc82977dd2DCE7E8d37895a6A8F50CbB4fB),
+                        address(0xe05dd51e4eB5636f4f0E8e7Fbe82eA31a2ecef16),
                         1,
                         sequence,
-                        abi.encode(broker, 0)
+                        abi.encode(address(0x6c1c420C04F4D563d6588a97693aF902b87Be5f1), 0)
                     );
 
                     totalUsdt += DodoLibrary.singleSwap(usdcUsdtSwapParams);
