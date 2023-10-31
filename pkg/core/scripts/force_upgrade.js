@@ -5,7 +5,7 @@ const {getContract, transferETH, getWalletAddress} = require("@overnight-contrac
 
 async function main() {
 
-    await transferETH(10, await getWalletAddress());
+//    await transferETH(10, await getWalletAddress());
 
     const {save} = deployments;
 
@@ -33,12 +33,6 @@ async function main() {
     let contract = await getContract(name);
     await contract.upgradeTo(implAddress);
     console.log('upgradeTo done')
-
-    // Force import
-    await upgrades.forceImport(proxyAddress, contractFactory, {
-        kind: 'uups',
-    });
-    console.log('forceImport done')
 
 }
 
