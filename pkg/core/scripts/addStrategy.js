@@ -7,11 +7,14 @@ async function main() {
 
     await showM2M();
 
-    let pm = await getContract('PortfolioManager', 'arbitrum_eth');
-    let strategy = await getContract('StrategySmmAlpha', 'arbitrum_eth');
+    let pm = await getContract('PortfolioManager', 'arbitrum_usdt');
+    let strategy = await getContract('StrategyDForceUsdt', 'arbitrum_usdt');
 
     await (await pm.addStrategy(strategy.address)).wait();
     console.log("Strategy added");
+
+    await (await pm.setCashStrategy(strategy.address)).wait();
+    console.log("Cash strategy set");
 
     await showM2M();
 }
