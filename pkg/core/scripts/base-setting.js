@@ -14,7 +14,7 @@ async function main() {
     let exchange = await getContract('Exchange');
     let pm = await getContract('PortfolioManager');
 
-    Change to needed chain contracts
+    // Change to needed chain contracts
     let blockGetter = await getContract('ArbitrumBlockGetter', 'arbitrum');
     await (await exchange.setBlockGetter(blockGetter.address)).wait(); // BlockGetter
 
