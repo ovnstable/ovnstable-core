@@ -338,6 +338,12 @@ async function getStrategyMapping() {
         case "arbitrum_dai":
             url = "https://api.overnight.fi/arbitrum/dai+/dict/strategies";
             break;
+        case "arbitrum_eth":
+            url = "https://api.overnight.fi/arbitrum/eth+/dict/strategies";
+            break;
+        case "arbitrum_usdt":
+            url = "https://api.overnight.fi/arbitrum/usdt+/dict/strategies";
+            break;
         case "bsc":
             url = "https://api.overnight.fi/bsc/usd+/dict/strategies";
             break;
@@ -347,9 +353,6 @@ async function getStrategyMapping() {
             break;
         case "polygon":
             url = "https://app.overnight.fi/api/dict/strategies";
-            break;
-        case "polygon_dev":
-            url = "https://dev.overnight.fi/api/dict/strategies";
             break;
         case "optimism":
         case "optimism_dai":
