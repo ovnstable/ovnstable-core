@@ -168,6 +168,23 @@ library CamelotLibrary {
         return router.getAmountsOut(amountInput, path)[2];
     }
 
+    function getAmountsOutMulti(
+        ICamelotRouter router,
+        address inputToken,
+        address middleToken,
+        address outputToken,
+        uint256 amountInput
+    ) internal view returns (uint256) {
+
+        address[] memory path = new address[](3);
+        path[0] = inputToken;
+        path[1] = middleToken;
+        path[2] = outputToken;
+
+        return router.getAmountsOut(amountInput, path)[2];
+    }
+
+
     function singleSwap(
         ICamelotRouter router,
         address inputToken,
