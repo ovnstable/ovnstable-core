@@ -8,6 +8,7 @@ const {Roles} = require("./roles");
 const fs = require("fs");
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
+const { platform } = process;
 
 const appRoot = require('app-root-path').path;
 
@@ -40,7 +41,13 @@ async function createProposal(name, addresses, values, abis){
         batch.transactions.push(createTransaction(timelock, minDelay, addresses[i], values[i], abis[i]))
     }
 
-    let batchName = `${appRoot}\\pkg\\proposals\\batches\\${process.env.STAND}\\${name}.json`;
+    let batchName;
+    if (platform === 'win32'){
+        batchName = `${appRoot}\\pkg\\proposals\\batches\\${process.env.STAND}\\${name}.json`;
+    }else {
+        batchName = `${appRoot}/pkg/proposals/batches/${process.env.STAND}/${name}.json`;
+    }
+
     let data = JSON.stringify(batch);
     console.log(data)
     await fs.writeFileSync(batchName, data);
