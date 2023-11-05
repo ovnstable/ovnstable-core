@@ -355,8 +355,10 @@ async function getStrategyMapping() {
             url = "https://app.overnight.fi/api/dict/strategies";
             break;
         case "optimism":
+            url = "https://api.overnight.fi/optimism/usd+/dict/strategies";
+            break;
         case "optimism_dai":
-            url = "https://op.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/optimism/dai+/dict/strategies";
             break;
         case "zksync":
             url = "https://zksync.overnight.fi/api/dict/strategies";
