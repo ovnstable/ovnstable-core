@@ -25,7 +25,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 //    items.push(...mute());
 //    items.push(...ezkalibur());
 //    items.push(...kyberswap());
-    items.push(...velocoreV2());
+//     items.push(...velocoreV2());
+    items.push(...defiEdge());
 
     await (await pl.addItems(items)).wait();
 
@@ -34,6 +35,19 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 //    plItems = await pl.getItems();
 //    console.log('plItems after:');
 //    console.log(plItems);
+
+
+    function defiEdge() {
+
+        let dex = 'DefiEdge';
+        let to = '0xf1B6dB18f263F341697D8b7F26b7C63012E2C10d';
+
+        let items = [];
+        items.push(createCustom('0x0772a1119bbd71532baf45a611825d27b0869fd3', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+    }
+
 
     function kyberswap(){
 
