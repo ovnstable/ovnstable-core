@@ -15,7 +15,12 @@ async function main() {
 
     let timelock = await getContract('AgentTimelock');
 
-    let batch = JSON.parse(await fs.readFileSync(`./batches/${hre.network.name}/04_grant_strategy_ets_xi_omicron.json`));
+    let network = hre.network.name;
+    if (network === 'localhost'){
+        network = process.env.STAND;
+    }
+
+    let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/02_set_cash_silo_usdc.json`));
 
     let addresses = [];
     let values = [];
@@ -39,7 +44,6 @@ async function main() {
 
         await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, SALT)).wait();
     }
-
 
 }
 
