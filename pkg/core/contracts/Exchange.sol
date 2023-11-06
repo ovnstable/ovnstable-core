@@ -73,6 +73,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     address public profitRecipient;
 
     address public blockGetter;
+    address public roleManager;
 
     // ---  events
 
