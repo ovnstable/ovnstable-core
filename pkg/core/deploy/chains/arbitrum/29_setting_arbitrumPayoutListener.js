@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync} = require("@overnight-contracts/common/utils/payoutListener");
+const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustom} = require("@overnight-contracts/common/utils/payoutListener");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
@@ -11,33 +11,28 @@ module.exports = async () => {
 
     let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
     let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
-    let etsGamma = '0x813fFCC4Af3e810E6b447235cC88A02f00454453';
+    let ethPlus = await getContract('UsdPlusToken', 'arbitrum_eth');
 
     let items = [];
 
-    // items.push(...solidlizard());
-    // items.push(...sterling());
-    // items.push(...ramses());
-//     items.push(...arbidex());
-//    items.push(...wombat());
-    items.push(...chronos());
-//    items.push(...magicFox());
-//    items.push(...camelot());
-
-//    await (await pl.removeItem(usdPlus.address, '0xBbD7fF1728963A5Eb582d26ea90290F84E89bd66')).wait();
-//    await (await pl.removeItem(usdPlus.address, '0xcd78e225E36E724c9FB4Bd8287296557D728cda7')).wait();
-//    await (await pl.removeItem(usdPlus.address, '0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33')).wait();
-//    await (await pl.removeItem(usdPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
-//    await (await pl.removeItem(daiPlus.address, '0xB260163158311596Ea88a700C5a30f101D072326')).wait();
-
     // await (await pl.removeItems()).wait();
-    await (await pl.addItems(items)).wait();
+    // await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
-    // await (await pl.grantRole(Roles.EXCHANGER, '0xc2c84ca763572c6aF596B703Df9232b4313AD4e3')); // ETS Gamma
+    // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_eth')).address));
 
     console.log('ArbitrumPayoutListener setting done');
+
+    function defiEdge() {
+
+        let dex = 'DefiEdge';
+        let items = [];
+        items.push(createCustom('0x4784be205996d53d7a40bdb4e1d7b84e551d71d4', ethPlus.address, 'WETH/ETH+', dex, COMMON.rewardWallet));
+
+        return items;
+    }
+
 
     function auragi(){
 
