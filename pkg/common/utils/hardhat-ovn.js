@@ -166,7 +166,12 @@ task(TASK_RUN, 'Run task')
 
 
         if (hre.network.name === 'localhost') {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+
+            if (hre.ovn.stand === 'zksync'){
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+            }else {
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+            }
         }
 
         settingNetwork(hre);
