@@ -233,7 +233,7 @@ async function prepareEnvironment() {
     if (process.env.STAND.includes('arbitrum')) {
 
         await execTimelock(async (timelock) => {
-            let exchange = await getContract('Exchange', 'arbitrum');
+            let exchange = await getContract('Exchange', process.env.STAND);
             await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
             console.log('[Test] exchange.setBlockGetter(zero)');
         });
