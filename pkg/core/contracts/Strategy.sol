@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "./interfaces/IStrategy.sol";
-import "./interfaces/IControlRole.sol";
+import "./interfaces/IRoleManager.sol";
 
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -16,11 +16,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     address public portfolioManager;
-
     uint256 public swapSlippageBP;
     uint256 public navSlippageBP;
     uint256 public stakeSlippageBP;
-
+    IRoleManager public roleManager;
 
     function __Strategy_init() internal initializer {
         __AccessControl_init();
@@ -43,7 +42,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     // ---  modifiers
 
     modifier onlyPortfolioManager() {
-        require(hasRole(PORTFOLIO_MANAGER, msg.sender), "Restricted to PORTFOLIO_MANAGER");
+        require(portfolioManager == msg.sender, "Restricted to PORTFOLIO_MANAGER");
         _;
     }
 
@@ -53,21 +52,17 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender) ||
-            IControlRole(portfolioManager).hasRole(PORTFOLIO_AGENT_ROLE, msg.sender) , "Restricted to PORTFOLIO_AGENT_ROLE");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
     // --- setters
 
-    function setPortfolioManager(address _value) public onlyAdmin {
-        require(_value != address(0), "Zero address not allowed");
-
-        revokeRole(PORTFOLIO_MANAGER, portfolioManager);
-        grantRole(PORTFOLIO_MANAGER, _value);
-
-        portfolioManager = _value;
-        emit PortfolioManagerUpdated(_value);
+    function setStrategyParams(address _portfolioManager, address _roleManager) public onlyAdmin {
+        require(_portfolioManager != address(0), "Zero address not allowed");
+        require(_roleManager != address(0), "Zero address not allowed");
+        portfolioManager = _portfolioManager;
+        roleManager = IRoleManager(_roleManager);
     }
 
     function setSlippages(

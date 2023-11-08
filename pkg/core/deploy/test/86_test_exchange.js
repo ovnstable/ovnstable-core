@@ -1,6 +1,7 @@
 const {ethers} = require("hardhat");
 const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 
 module.exports = async ({getNamedAccounts, deployments}) => {
@@ -9,6 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {save} = deployments;
 
     await deployProxy('Exchange', deployments, save);
+    await deployProxy('RoleManager', deployments, save);
     await deployProxy('UsdPlusToken', deployments, save, {args: ["USD+", "USD+", 0]});
 
     await deployProxyMulti('AssetToken', 'UsdPlusToken', deployments, save, {args: ["MockBUSD", "MockBUSD", 0]});
@@ -31,6 +33,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     let insurance = await ethers.getContract('MockInsuranceExchange');
     let pm = await ethers.getContract('MockPortfolioManager');
     let exchange = await ethers.getContract('Exchange');
+    let roleManager = await ethers.getContract('RoleManager');
 
 
     await usdPlus.setExchanger(exchange.address);
@@ -40,11 +43,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     await exchange.setPortfolioManager(pm.address);
     await exchange.setMark2Market(pm.address);
     await exchange.setInsurance(insurance.address);
+    await exchange.setRoleManager(roleManager.address)
 
     await pm.setAsset(asset.address);
     await insurance.setAsset(asset.address);
 
-    await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), deployer);
+    await roleManager.grantRole(Roles.PORTFOLIO_AGENT_ROLE, deployer);
 
     await exchange.setBuyFee(0, 100000);
     await exchange.setRedeemFee(0, 100000);
