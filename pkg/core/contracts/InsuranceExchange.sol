@@ -14,8 +14,7 @@ import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IVelodromeTwap.sol";
 
 import "./interfaces/IRebaseToken.sol";
-
-import "hardhat/console.sol";
+import "./interfaces/IRoleManager.sol";
 
 contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -45,6 +44,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     mapping(address => uint256) public withdrawRequests;
     uint256 public requestWaitPeriod;
     uint256 public withdrawPeriod;
+    IRoleManager public roleManager;
 
     struct SetUpParams {
         address asset;
@@ -69,11 +69,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         mintFee = 0;
-        // ~ 100 %
         mintFeeDenominator = 100000;
 
         redeemFee = 0;
-        // ~ 100 %
         redeemFeeDenominator = 100000;
 
         // 1637193600 = 2021-11-18T00:00:00Z
@@ -88,14 +86,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         withdrawPeriod = 345600;
 
         swapSlippage = 500; // 5%
-
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
-    }
-
-    function changeAdminRoles() external onlyAdmin {
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
 
 
@@ -116,12 +106,13 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
+
     modifier onlyUnit(){
-        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -167,6 +158,12 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function setWithdrawPeriod(uint256 _requestWaitPeriod, uint256 _withdrawPeriod) external onlyPortfolioAgent {
         requestWaitPeriod = _requestWaitPeriod;
         withdrawPeriod = _withdrawPeriod;
+    }
+
+    function setRoleManager(address _roleManager) external onlyAdmin {
+        require(_roleManager != address(0), "Zero address not allowed");
+        roleManager = IRoleManager(_roleManager);
+        emit RoleManagerUpdated(_roleManager);
     }
 
     function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {

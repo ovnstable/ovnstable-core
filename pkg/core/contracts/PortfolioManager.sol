@@ -15,8 +15,6 @@ import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
 
-import "hardhat/console.sol";
-
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");

@@ -37,7 +37,6 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
 
     bool public disabled; // Admin can disable to executing PayoutDone
     bool public undoneDisabled; // Admin can disable to executing PayoutUndone
-    IRoleManager public roleManager;
 
     function __PayoutListener_init() internal initializer {
         __AccessControl_init();
@@ -56,7 +55,6 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
 
     event AddItem(address token, address pool);
     event RemoveItem(address token, address pool);
-    event RoleManagerUpdated(address roleManager);
     event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
     event DisabledUpdated(bool disabled, bool undoneDisabled);
     event PayoutDoneDisabled();
@@ -82,11 +80,6 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
         emit DisabledUpdated(disabled, undoneDisabled);
     }
 
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
-        roleManager = IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
-    }
 
     // --- logic
 
@@ -334,7 +327,7 @@ abstract contract GlobalPayoutListener is IGlobalPayoutListener, Initializable, 
     }
 
 
-    uint256[48] private __gap;
+    uint256[49] private __gap;
 
 }
 

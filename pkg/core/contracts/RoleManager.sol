@@ -31,7 +31,6 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
 
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
-
     }
 
     function _authorizeUpgrade(address newImplementation)

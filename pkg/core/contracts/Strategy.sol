@@ -159,5 +159,5 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
 
-    uint256[46] private __gap;
+    uint256[45] private __gap;
 }

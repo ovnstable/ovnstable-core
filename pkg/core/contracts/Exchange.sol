@@ -16,7 +16,6 @@ import "./interfaces/IRoleManager.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 
-import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
