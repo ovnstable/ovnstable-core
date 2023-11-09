@@ -200,7 +200,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
         uint256 feeAmount;
         uint256 resultAmount;
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             feeAmount = (_amount * fee) / feeDenominator;
             resultAmount = _amount - feeAmount;
         } else {
