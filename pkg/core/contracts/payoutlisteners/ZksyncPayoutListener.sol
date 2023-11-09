@@ -48,6 +48,39 @@ contract ZksyncPayoutListener is GlobalPayoutListener {
         }
     }
 
+    function positionKey(int24 tickLower, int24 tickUpper) external view returns (bytes32){
+
+        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
+
+        return PositionKey.compute(address(strategy), tickLower, tickUpper);
+    }
+
+    function liquidityData(int24 tickLower, int24 tickUpper) external view returns (uint128){
+
+        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
+        IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
+
+        (uint128 liquidity,,,,) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
+        return liquidity;
+    }
+
+    function amounts(int24 tickLower, int24 tickUpper) external view returns(uint256, uint256){
+
+        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
+        IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
+
+        (uint128 liquidity,,,,) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            liquidity
+        );
+
+        return (amount0, amount1);
+    }
+
     function _customUndoneDefiEdge(Item memory item) internal {
 
         IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(item.pool);

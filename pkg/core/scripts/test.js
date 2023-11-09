@@ -20,9 +20,17 @@ async function main() {
     let ticks = await strategy.getTicks();
     console.log(ticks.toString())
 
+    let tickLower = ticks[0].tickLower;
+    let tickUpper = ticks[0].tickUpper;
+
+    console.log(tickLower)
+    console.log(tickUpper)
 
     let pl = await getContract('ZksyncPayoutListener');
-    console.log(await pl.testFunction());
+
+    console.log(await pl.positionKey(tickLower, tickUpper))
+    console.log((await pl.liquidityData(tickLower, tickUpper)).toString())
+    console.log(await pl.amounts(tickLower, tickUpper))
 }
 
 
