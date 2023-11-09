@@ -8,6 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Inch.sol";
 
 import "./interfaces/IInchSwapper.sol";
 import "./interfaces/IBlockGetter.sol";
+import "./interfaces/IRoleManager.sol";
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -16,6 +17,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     IInchRouter public inchRouter;
     address public blockGetter;
     mapping(address => mapping(address => Route)) private routePathsMap;
+    IRoleManager public roleManager;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -29,9 +31,10 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // blockGetter for arbitrum block (to update)
     // inchRouter is same for chain
     // roleManager is control role models
-    function setParams(address _inchRouter, address _blockGetter) public onlyAdmin {
+    function setParams(address _inchRouter, address _blockGetter, address _roleManager) public onlyAdmin {
         inchRouter = IInchRouter(_inchRouter);
         blockGetter = _blockGetter;
+        roleManager = IRoleManager(_roleManager);
     }
 
     function _authorizeUpgrade(address newImplementation)
