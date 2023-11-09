@@ -211,7 +211,7 @@ function getChainFromNetwork(network){
 let namedAccounts = {
     deployer: {
         default: 0,
-        polygon: "0x5CB01385d3097b6a189d1ac8BA3364D900666445",
+        polygon: Wallets.DEV,
         ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
     },
 
@@ -242,6 +242,7 @@ let solidity = {
 
 let mocha = require("./mocha-report-setting")
 const {ARBITRUM, BASE, POLYGON, OPTIMISM} = require("./assets");
+const {Wallets} = require("./wallets");
 
 let gasReport = {
     enabled: false, // Gas Reporter hides unit-test-mocha report

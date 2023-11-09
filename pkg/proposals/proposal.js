@@ -2,6 +2,7 @@ const hre = require("hardhat");
 const {getContract, showM2M, execTimelock, initWallet, convertWeights} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
+const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
 async function main() {
 
@@ -14,7 +15,7 @@ async function main() {
 
     addresses.push(exchange.address);
     values.push(0);
-    abis.push(exchange.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445']));
+    abis.push(exchange.interface.encodeFunctionData('grantRole', [Roles.DEFAULT_ADMIN_ROLE, Wallets.DEV]));
 
     addresses.push(exchange.address);
     values.push(0);
