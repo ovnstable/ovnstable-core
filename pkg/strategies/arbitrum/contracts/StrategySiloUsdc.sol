@@ -144,23 +144,28 @@ contract StrategySiloUsdc is Strategy {
             address(this)
         );
 
-        uint256 siloBalance = siloToken.balanceOf(address(this));
-        if (siloBalance > 0) {
-            uint256 siloAmount = CamelotLibrary.getAmountsOutMulti(
+
+        IERC20 arbToken = IERC20(address(0x912CE59144191C1204E64559FE8253a0e49E6548));
+        uint256 arbBalance = arbToken.balanceOf(address(this));
+
+        if (arbBalance > 0) {
+
+            uint256 arbAmount = CamelotLibrary.getAmountsOut(
                 camelotRouter,
-                address(siloToken),
+                address(arbToken),
                 address(wethToken),
                 address(usdc),
-                siloBalance
+                arbBalance
             );
-            if (siloAmount > 0) {
+
+            if (arbAmount > 0) {
                 CamelotLibrary.multiSwap(
                     camelotRouter,
-                    address(siloToken),
+                    address(arbToken),
                     address(wethToken),
                     address(usdc),
-                    siloBalance,
-                    siloAmount * 99 / 100,
+                    arbBalance,
+                    arbAmount * 99 / 100,
                     address(this)
                 );
             }
