@@ -53,6 +53,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
+    event RoleManagerUpdated(address roleManager);
     event MintBurn(string label, uint256 amount, uint256 fee, address sender);
     event NextPayoutTime(uint256 nextPayoutTime);
 
@@ -117,7 +118,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     modifier oncePerBlock() {
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             require(lastBlockNumber < block.number, "Only once in block");
         }
         lastBlockNumber = block.number;
