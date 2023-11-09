@@ -17,6 +17,7 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
+    bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
 
     // ---  constructor
 
