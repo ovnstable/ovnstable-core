@@ -20,7 +20,8 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/02_set_cash_silo_usdc.json`));
+    let name = '09_revert_pika.json'
+    let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/${name}.json`));
 
     let addresses = [];
     let values = [];
@@ -42,7 +43,9 @@ async function main() {
         let timestamp = await timelock.getTimestamp(hash);
         console.log(`Timestamp: ${timestamp}`)
 
-        await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, SALT)).wait();
+        if (timestamp > 1){
+            await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, SALT)).wait();
+        }
     }
 
 }
