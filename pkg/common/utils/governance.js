@@ -43,10 +43,14 @@ async function createProposal(name, addresses, values, abis){
     }
 
     let batchName;
+    let stand = process.env.STAND;
+
+    stand = stand.split("_")[0]
+
     if (platform === 'win32'){
-        batchName = `${appRoot}\\pkg\\proposals\\batches\\${process.env.STAND}\\${name}.json`;
+        batchName = `${appRoot}\\pkg\\proposals\\batches\\${stand}\\${name}.json`;
     }else {
-        batchName = `${appRoot}/pkg/proposals/batches/${process.env.STAND}/${name}.json`;
+        batchName = `${appRoot}/pkg/proposals/batches/${stand}/${name}.json`;
     }
 
     let data = JSON.stringify(batch);
