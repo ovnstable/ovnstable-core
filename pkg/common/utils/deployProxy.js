@@ -177,9 +177,11 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
 
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
+        console.log('Try to deploy impl ...');
         impl = await sampleModule.deployProxyImpl(hre, contractFactory, {
             kind: 'uups',
-            unsafeAllow: unsafeAllow
+            unsafeAllow: unsafeAllow,
+            ...(await getPrice())
         }, proxy.address);
 
         implAddress = impl.impl;
