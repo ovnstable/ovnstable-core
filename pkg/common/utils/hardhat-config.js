@@ -211,7 +211,7 @@ function getChainFromNetwork(network){
 let namedAccounts = {
     deployer: {
         default: 0,
-        polygon: Wallets.DEV,
+        polygon: '0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD',
         ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
     },
 
