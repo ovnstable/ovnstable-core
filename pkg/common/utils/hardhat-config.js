@@ -296,6 +296,10 @@ function getEtherScan(){
     // Run command to show support native chains: npx hardhat verify --list-networks
     // if plugin not support chain then add chain to customChains section
     object.apiKey = {
+        base: process.env[`ETHERSCAN_API_BASE`],
+        base_dai: process.env[`ETHERSCAN_API_BASE`],
+        linea: process.env[`ETHERSCAN_API_LINEA`],
+        linea_usdt: process.env[`ETHERSCAN_API_LINEA`],
         optimisticEthereum: process.env[`ETHERSCAN_API_OPTIMISM`],
         polygon: process.env[`ETHERSCAN_API_POLYGON`],
         bsc: process.env[`ETHERSCAN_API_BSC`],

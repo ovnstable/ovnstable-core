@@ -1,6 +1,8 @@
 const {fromE18, toE18, fromAsset, fromE6, toAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights, getChainId} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights, getChainId,
+    transferAsset
+} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M, transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets, prepareEnvironment} = require("./tests");
@@ -126,8 +128,11 @@ async function testUsdPlus(id, stand = process.env.STAND){
 
     let params = await getPrice();
 
+
+
     let walletAddress = await getWalletAddress();
     await transferETH(10, walletAddress);
+    await transferAsset(await exchange.usdc(), walletAddress);
 
     let tables = [];
 

@@ -30,6 +30,10 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
+
+        _grantRole(UNIT_ROLE, 0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055); // Payout
+        _grantRole(UNIT_ROLE, 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD); // Dev
+
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
 
