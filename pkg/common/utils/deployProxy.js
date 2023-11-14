@@ -51,6 +51,9 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
 
 async function deployProxyZkSync(contractName, factoryName, deployments, save, params){
 
+    if (hre.ovn === undefined)
+        hre.ovn = {};
+
     const deployer = new Deployer(hre, await initWallet());
 
 
@@ -77,9 +80,13 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
         proxy = proxy.connect(wallet);
         // let price = await getPrice();
         // Execute this method can be not working when test it on local node
-        await (await proxy.upgradeTo(implContract.address)).wait();
 
-        console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
+
+        if (!hre.ovn.impl){
+            await (await proxy.upgradeTo(implContract.address)).wait();
+            console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
+        }
+
 
         await save(contractName, {
             address: proxy.address,

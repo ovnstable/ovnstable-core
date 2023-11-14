@@ -479,6 +479,19 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "address",
+          "name": "roleManager",
+          "type": "address"
+        }
+      ],
+      "name": "RoleManagerUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "internalType": "bytes32",
           "name": "role",
@@ -710,13 +723,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "changeAdminRoles",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -961,9 +967,48 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "simulate",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "inputTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "outputTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct IInsuranceExchange.SwapData",
+          "name": "swapData",
+          "type": "tuple"
+        }
+      ],
       "name": "payout",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "swapAmount",
+          "type": "int256"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -1129,6 +1174,19 @@
       "name": "revokeRole",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "roleManager",
+      "outputs": [
+        {
+          "internalType": "contract IRoleManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -1318,6 +1376,19 @@
         }
       ],
       "name": "setRedeemFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_roleManager",
+          "type": "address"
+        }
+      ],
+      "name": "setRoleManager",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
