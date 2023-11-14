@@ -16,6 +16,7 @@ chai.use(solidity);
 
 const {waffle} = require("hardhat");
 const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {provider} = waffle;
 
 let assetAddress = getAsset('usdc');
@@ -51,10 +52,14 @@ describe("PortfolioManager set new cash strategy", function () {
             skipIfAlreadyDeployed: false
         });
 
+        let roleManager = await ethers.getContract('RoleManager');
 
 
         pm = await deployContract("PortfolioManager")
         await pm.setAsset(asset.address);
+
+        await roleManager.grantRole(Roles.PORTFOLIO_AGENT_ROLE, deployer);
+        await pm.setRoleManager(roleManager.address);
     });
 
 
@@ -251,7 +256,9 @@ describe("PortfolioManager: removeStrategy", function () {
         await transferETH(1, notAdminUser.address);
 
         pm = await deployContract("PortfolioManager");
-        await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), account);
+        let roleManager = await deployContract('RoleManager');
+        await roleManager.grantRole(Roles.PORTFOLIO_AGENT_ROLE, deployer);
+        await pm.setRoleManager(roleManager.address);
 
         strategy1 = await deploy("MockStrategy", {
             from: deployer,
@@ -424,7 +431,9 @@ describe("PortfolioManager: setStrategyWeights", function () {
         await transferETH(1, notAdminUser.address);
 
         pm = await deployContract("PortfolioManager");
-        await pm.grantRole(await pm.PORTFOLIO_AGENT_ROLE(), account);
+        let roleManager = await deployContract('RoleManager');
+        await roleManager.grantRole(Roles.PORTFOLIO_AGENT_ROLE, account);
+        await pm.setRoleManager(roleManager.address);
 
         strategy1 = await deploy("MockStrategy", {
             from: deployer,
@@ -800,6 +809,10 @@ describe("PortfolioManager: Deposit/Withdraw", function () {
         nonCashStrategy = await ethers.getContractAt('MockStrategy', nonCashStrategy.address, signers[0]);
 
         pm = await deployContract("PortfolioManager");
+        let roleManager = await deployContract('RoleManager');
+        await roleManager.grantRole(Roles.PORTFOLIO_AGENT_ROLE, deployer);
+        await pm.setRoleManager(roleManager.address);
+
         let m2m = await deployContract('Mark2Market');
 
         await m2m.setPortfolioManager(pm.address);

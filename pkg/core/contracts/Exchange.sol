@@ -12,10 +12,10 @@ import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IGlobalPayoutListener.sol";
+import "./interfaces/IRoleManager.sol";
 import "./UsdPlusToken.sol";
 import "./libraries/WadRayMath.sol";
 
-import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -73,11 +73,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     address public profitRecipient;
 
     address public blockGetter;
+    IRoleManager public roleManager;
 
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
     event Mark2MarketUpdated(address mark2market);
+    event RoleManagerUpdated(address roleManager);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -112,13 +114,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
 
     modifier onlyUnit(){
-        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -152,9 +154,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         abroadMin = 1000100;
         abroadMax = 1000350;
 
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
-
         oracleLossDenominator = 100000;
         compensateLossDenominator = 100000;
     }
@@ -164,13 +163,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     onlyRole(DEFAULT_ADMIN_ROLE)
     override
     {}
-
-    // Support old version - need call after update
-
-    function changeAdminRoles() external onlyAdmin {
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
-    }
 
 
     // ---  setters Admin
@@ -193,6 +185,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_mark2market != address(0), "Zero address not allowed");
         mark2market = IMark2Market(_mark2market);
         emit Mark2MarketUpdated(_mark2market);
+    }
+
+    function setRoleManager(address _roleManager) external onlyAdmin {
+        require(_roleManager != address(0), "Zero address not allowed");
+        roleManager = IRoleManager(_roleManager);
+        emit RoleManagerUpdated(_roleManager);
     }
 
     function setPayoutListener(address _payoutListener) external onlyAdmin {
@@ -401,7 +399,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // Flag isBalanced take about:
         // PortfolioManager run balance function and unstake liquidity from non cash strategies
         // Check is not actual if stake/unstake will be only from cash strategy (for example Aave or Venus)
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender) && isBalanced) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender) && isBalanced) {
             require(lastBlockNumber < blockNumber, "Only once in block");
         }
 
@@ -415,7 +413,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 feeAmount;
         uint256 resultAmount;
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             feeAmount = (_amount * fee) / feeDenominator;
             resultAmount = _amount - feeAmount;
         } else {

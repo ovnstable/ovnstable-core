@@ -6,6 +6,7 @@ const {resetHardhat, createRandomWallet} = require("@overnight-contracts/common/
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach")
 const chai = require("chai");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 chai.use(require('chai-bignumber')());
 describe("Exchange", function () {
 
@@ -16,12 +17,10 @@ describe("Exchange", function () {
     let insurance;
     let testAccount;
     let asset;
+    let roleManager;
 
     let multiCallWrapper;
 
-    let UNIT_ROLE;
-    let FREE_RIDER_ROLE;
-    let PORTFOLIO_AGENT_ROLE;
 
     let toAsset = function () {
     };
@@ -67,12 +66,12 @@ describe("Exchange", function () {
                 testAccount = await createRandomWallet();
 
                 exchange = await ethers.getContract("Exchange");
-                await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), account);
 
                 usdPlus = await ethers.getContract("UsdPlusToken");
                 pm = await ethers.getContract('MockPortfolioManager');
                 insurance = await ethers.getContract('MockInsuranceExchange');
                 asset = await ethers.getContract('AssetToken');
+                roleManager = await ethers.getContract('RoleManager');
 
                 multiCallWrapper = await ethers.getContract('ExchangeMultiCallWrapper');
 
@@ -94,75 +93,9 @@ describe("Exchange", function () {
 
                 await asset.setDecimals(decimal.asset);
                 await usdPlus.setDecimals(decimal.rebase);
-
-                UNIT_ROLE = await exchange.UNIT_ROLE();
-                FREE_RIDER_ROLE = await exchange.FREE_RIDER_ROLE();
-                PORTFOLIO_AGENT_ROLE = await exchange.PORTFOLIO_AGENT_ROLE();
-
             });
 
 
-            describe("PortfolioManager: role", function () {
-
-                sharedBeforeEach("PortfolioManager: role", async () => {
-                    await exchange.grantRole(await exchange.PORTFOLIO_AGENT_ROLE(), account);
-
-                });
-
-                it("grantRole: UNIT_ROLE [success]", async function () {
-                    await exchange.grantRole(UNIT_ROLE, testAccount.address);
-                    expect(await exchange.hasRole(UNIT_ROLE, testAccount.address)).to.be.true;
-                });
-
-                it("grantRole: UNIT_ROLE [revert]", async function () {
-                    let error = false;
-                    try {
-                        await exchange.connect(testAccount).grantRole(UNIT_ROLE, testAccount.address)
-                    } catch (e) {
-                        error = true;
-                    }
-                    expect(error).to.be.true;
-                });
-
-
-                it("grantRole: FREE_RIDER_ROLE [success]", async function () {
-                    await exchange.grantRole(FREE_RIDER_ROLE, testAccount.address);
-                    expect(await exchange.hasRole(FREE_RIDER_ROLE, testAccount.address)).to.be.true;
-                });
-
-                it("grantRole: FREE_RIDER_ROLE [revert]", async function () {
-                    let error = false;
-                    try {
-                        await exchange.connect(testAccount).grantRole(FREE_RIDER_ROLE, testAccount.address)
-                    } catch (e) {
-                        error = true;
-                    }
-                    expect(error).to.be.true;
-                });
-
-                it("grantRole: PORTFOLIO_AGENT_ROLE [revert]", async function () {
-                    let error = false;
-                    try {
-                        await exchange.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
-                        await exchange.connect(collector).grantRole(PORTFOLIO_AGENT_ROLE, testAccount.address)
-                    } catch (e) {
-                        error = true;
-                    }
-                    expect(error).to.be.true;
-                });
-
-                it("grantRole: DEFAULT_ADMIN_ROLE [revert]", async function () {
-                    let error = false;
-                    try {
-                        await exchange.grantRole(PORTFOLIO_AGENT_ROLE, collector.address);
-                        await exchange.connect(collector).grantRole(await exchange.DEFAULT_ADMIN_ROLE(), testAccount.address)
-                    } catch (e) {
-                        error = true;
-                    }
-                    expect(error).to.be.true;
-                });
-
-            });
 
             describe('Mint/Redeem', function () {
 
@@ -230,7 +163,7 @@ describe("Exchange", function () {
                         expect(0).to.equal(fromRebase(await usdPlus.balanceOf(account)));
 
                         await exchange.setBuyFee(10000, 100000);
-                        await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), account);
+                        await roleManager.grantRole(Roles.FREE_RIDER_ROLE, account);
 
                         await mint(10);
                         expect(10).to.equal(fromRebase(await usdPlus.balanceOf(account)));
@@ -296,7 +229,7 @@ describe("Exchange", function () {
                         await mint(100);
                         expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
                         await exchange.setRedeemFee(10000, 100000);
-                        await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), account);
+                        await roleManager.grantRole(await Roles.FREE_RIDER_ROLE, account);
                         await redeem(100);
                         expect(100).to.equal(fromAsset(await asset.balanceOf(account)));
                     });
@@ -343,7 +276,7 @@ describe("Exchange", function () {
                 let odosEmptyData;
 
                 sharedBeforeEach("Payout: Negative", async () => {
-                    await exchange.grantRole(UNIT_ROLE, account);
+                    await roleManager.grantRole(Roles.UNIT_ROLE, account);
                     let zeroAddress = "0x0000000000000000000000000000000000000000";
                     odosEmptyData = {
                         inputTokenAddress: zeroAddress,
@@ -389,7 +322,7 @@ describe("Exchange", function () {
                 let odosEmptyData;
 
                 sharedBeforeEach("Payout: Positive", async () => {
-                    await exchange.grantRole(UNIT_ROLE, account);
+                    await roleManager.grantRole(Roles.UNIT_ROLE, account);
                     let zeroAddress = "0x0000000000000000000000000000000000000000";
                     odosEmptyData = {
                         inputTokenAddress: zeroAddress,
@@ -529,19 +462,19 @@ describe("Exchange", function () {
                 });
 
                 it("buy into redeem&balance should pass with FREE_RIDER_ROLE", async function () {
-                    await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
                     await pm.setIsBalanced(true);
                     await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toRebase(1));
                 });
 
                 it("two redeems&balance should pass with FREE_RIDER_ROLE", async function () {
-                    await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
                     await pm.setIsBalanced(true);
                     await multiCallWrapper.redeem2(asset.address, usdPlus.address, toRebase(1), toRebase(1));
                 });
 
                 it("redeem&balance into buy should pass with FREE_RIDER_ROLE", async function () {
-                    await exchange.grantRole(await exchange.FREE_RIDER_ROLE(), multiCallWrapper.address);
+                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
                     await pm.setIsBalanced(true);
                     await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1));
                 });

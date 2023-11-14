@@ -8,12 +8,13 @@ const ReaperSonneDai = require("./abi/reaper/ReaperSonneDai.json");
 const ReaperSonneUsdt = require("./abi/reaper/ReaperSonneUsdt.json");
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
 const {ethers} = require("hardhat");
+const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
 
     if (strategyName.indexOf('StrategyEts') !== -1) {
         let hedgeExchangerAddress = "0x77020E5b2F9a77667DB39712408cb86c172aeAe9";
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        let ownerAddress = Wallets.DEV;
         await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
 
     } else if (strategyName.indexOf('StrategyReaperSonne') !== -1) {
