@@ -16,10 +16,9 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let exchange = await getContract('Exchange', 'optimism');
-    let pm = await getContract('PortfolioManager', 'optimism');
-    let insurance = await getContract('InsuranceExchange', 'optimism');
-    let roleManager = await getContract('RoleManager', 'optimism');
+    let exchange = await getContract('Exchange', 'optimism_dai');
+    let pm = await getContract('PortfolioManager', 'optimism_dai');
+    let roleManager = await getContract('RoleManager', 'optimism_dai');
 
     addresses.push(exchange.address);
     values.push(0);
@@ -37,15 +36,6 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setRoleManager', [roleManager.address]));
 
-    addresses.push(insurance.address);
-    values.push(0);
-    abis.push(insurance.interface.encodeFunctionData('upgradeTo', ['0xc1fBe4ceB41551467e3F22fFb22D52da21A9bfBE']));
-
-    addresses.push(insurance.address);
-    values.push(0);
-    abis.push(insurance.interface.encodeFunctionData('setRoleManager', [roleManager.address]));
-
-
     let strategies = await pm.getAllStrategyWeights();
     for (const strategy of strategies) {
 
@@ -59,7 +49,7 @@ async function main() {
     }
 
     await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'optimism');
+    await testUsdPlus(filename, 'optimism_dai');
 
     await createProposal(filename, addresses, values, abis);
 }
