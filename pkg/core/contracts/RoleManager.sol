@@ -39,6 +39,7 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
 
         _grantRole(PORTFOLIO_AGENT_ROLE, 0x0bE3f37201699F00C21dCba18861ed4F60288E1D); // PM Agent
         _grantRole(PORTFOLIO_AGENT_ROLE, 0xe497285e466227F4E8648209E34B465dAA1F90a0); // OVN Treasure
+        _grantRole(PORTFOLIO_AGENT_ROLE, 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD); // Dev
     }
 
     function _authorizeUpgrade(address newImplementation)
