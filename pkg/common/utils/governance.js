@@ -257,6 +257,20 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         result: '------'
     });
 
+
+    let isNewStrategy = strategy.setStrategyParams !== undefined;
+
+    await execTimelock(async (timelock)=>{
+
+        if (isNewStrategy){
+            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
+        }else {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+        }
+
+    })
+
+
     tables.push(await testCase(async ()=>{
         await strategy.netAssetValue();
     }, 'strategy.netAssetValue'));
@@ -268,7 +282,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
 
             await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
@@ -280,7 +293,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
             let amount = toAsset(10_000);
             await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, params);
         });
@@ -289,7 +301,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
             let amount = toAsset(10_000);
             await strategy.connect(timelock).claimRewards(timelock.address, params);
         });
@@ -298,7 +309,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
             await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, params);
         });
     }, 'strategy.unstakeFull'));
