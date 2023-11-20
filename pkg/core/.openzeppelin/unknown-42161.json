@@ -8104,7 +8104,7 @@
             "label": "usdPlus",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(UsdPlusToken)20286",
+            "type": "t_contract(UsdPlusToken)25800",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:32"
           },
@@ -8112,7 +8112,7 @@
             "label": "usdc",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)3675",
+            "type": "t_contract(IERC20)4652",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:33"
           },
@@ -8120,7 +8120,7 @@
             "label": "portfolioManager",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IPortfolioManager)20520",
+            "type": "t_contract(IPortfolioManager)27317",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:35"
           },
@@ -8128,7 +8128,7 @@
             "label": "mark2market",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IMark2Market)20455",
+            "type": "t_contract(IMark2Market)27246",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:36"
           },
@@ -8192,7 +8192,7 @@
             "label": "payoutListener",
             "offset": 0,
             "slot": "312",
-            "type": "t_contract(IGlobalPayoutListener)20307",
+            "type": "t_contract(IGlobalPayoutListener)27079",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:57"
           },
@@ -8280,7 +8280,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "323",
-            "type": "t_contract(IRoleManager)20695",
+            "type": "t_contract(IRoleManager)27492",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:76"
           }
@@ -8306,27 +8306,27 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)3675": {
+          "t_contract(IERC20)4652": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IGlobalPayoutListener)20307": {
+          "t_contract(IGlobalPayoutListener)27079": {
             "label": "contract IGlobalPayoutListener",
             "numberOfBytes": "20"
           },
-          "t_contract(IMark2Market)20455": {
+          "t_contract(IMark2Market)27246": {
             "label": "contract IMark2Market",
             "numberOfBytes": "20"
           },
-          "t_contract(IPortfolioManager)20520": {
+          "t_contract(IPortfolioManager)27317": {
             "label": "contract IPortfolioManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)20695": {
+          "t_contract(IRoleManager)27492": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(UsdPlusToken)20286": {
+          "t_contract(UsdPlusToken)25800": {
             "label": "contract UsdPlusToken",
             "numberOfBytes": "20"
           },
@@ -8410,7 +8410,7 @@
             "label": "_roles",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)179_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
             "contract": "AccessControlUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
           },
@@ -8450,7 +8450,7 @@
             "label": "asset",
             "offset": 0,
             "slot": "252",
-            "type": "t_contract(IERC20)4652",
+            "type": "t_contract(IERC20)2662",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:26"
           },
@@ -8466,7 +8466,7 @@
             "label": "strategyWeights",
             "offset": 0,
             "slot": "254",
-            "type": "t_array(t_struct(StrategyWeight)27257_storage)dyn_storage",
+            "type": "t_array(t_struct(StrategyWeight)5362_storage)dyn_storage",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:28"
           },
@@ -8474,7 +8474,7 @@
             "label": "cashStrategy",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IStrategy)27568",
+            "type": "t_contract(IStrategy)5481",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:29"
           },
@@ -8482,7 +8482,7 @@
             "label": "m2m",
             "offset": 0,
             "slot": "256",
-            "type": "t_contract(IMark2Market)27226",
+            "type": "t_contract(IMark2Market)5337",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:30"
           },
@@ -8506,7 +8506,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "259",
-            "type": "t_contract(IRoleManager)27472",
+            "type": "t_contract(IRoleManager)5414",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:33"
           }
@@ -8516,7 +8516,7 @@
             "label": "address",
             "numberOfBytes": "20"
           },
-          "t_array(t_struct(StrategyWeight)27257_storage)dyn_storage": {
+          "t_array(t_struct(StrategyWeight)5362_storage)dyn_storage": {
             "label": "struct IPortfolioManager.StrategyWeight[]",
             "numberOfBytes": "32"
           },
@@ -8536,19 +8536,19 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)4652": {
+          "t_contract(IERC20)2662": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IMark2Market)27226": {
+          "t_contract(IMark2Market)5337": {
             "label": "contract IMark2Market",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)27472": {
+          "t_contract(IRoleManager)5414": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IStrategy)27568": {
+          "t_contract(IStrategy)5481": {
             "label": "contract IStrategy",
             "numberOfBytes": "20"
           },
@@ -8560,11 +8560,11 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)179_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
-          "t_struct(RoleData)179_storage": {
+          "t_struct(RoleData)34_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {
@@ -8582,7 +8582,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(StrategyWeight)27257_storage": {
+          "t_struct(StrategyWeight)5362_storage": {
             "label": "struct IPortfolioManager.StrategyWeight",
             "members": [
               {
