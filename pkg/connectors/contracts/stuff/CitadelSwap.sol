@@ -200,3 +200,22 @@ interface CitadelSwapGauge {
     // View function to see pending MMF on frontend.
     function pendingMeerkat(uint256 _pid, address _user) external view returns (uint256);
 }
+
+interface FORTStake {
+    struct LockInfo { 
+        uint256 amount;
+        uint256 prevReward;
+        uint256 unlockTime;
+        uint256 day;
+        uint256 rewardAmount;
+    }
+ 
+    // mapping(address => LockInfo[]) public userLock;
+    function userLock(address user) external returns (LockInfo[] memory);
+ 
+    function initializeRedeem(uint256 _amount, uint256 _days) external ;
+ 
+    function finalizeRedeem(uint256 index) external;
+ 
+    function getUserRedeem(address user, uint256 index) external view returns (uint256 amount, uint256 rewardAmount, uint256 endTime);
+}
