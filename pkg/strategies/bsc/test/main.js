@@ -6,12 +6,13 @@ const hre = require('hardhat');
 const ethers = hre.ethers;
 
 const HedgeExchanger = require("./abi/ets/HedgeExchanger.json");
+const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
 
     if (strategyName.indexOf('StrategyEts') !== -1) {
         let hedgeExchangerAddress = "0x65AfD05fbc4413948ffaaD8bCb13f71b6f79332D";
-        let ownerAddress = "0x5CB01385d3097b6a189d1ac8BA3364D900666445";
+        let ownerAddress = Wallets.DEV;
         await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
 
     } else if (strategyName == 'StrategyUsdPlusUsdt') {

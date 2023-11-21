@@ -21,24 +21,7 @@ async function main() {
     let pl = await getContract('ArbitrumPayoutListener', 'arbitrum');
     await (await pl.grantRole(Roles.EXCHANGER, exchange.address)).wait();
     await (await exchange.setPayoutListener(pl.address)).wait(); // PayoutListener
-
-    await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
-    await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D')).wait(); // pm 1
-    await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xdf5D41F42f5E4571b35A6A3cdaB994e9B433Fe66')).wait(); // pm 2
-    await (await exchange.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xe497285e466227F4E8648209E34B465dAA1F90a0')).wait(); // ovn
-
-    await (await exchange.grantRole(Roles.UNIT_ROLE, '0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055')).wait(); // payout
-    await (await exchange.grantRole(Roles.UNIT_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait(); // dev
-
     await (await exchange.setProfitRecipient(COMMON.rewardWallet)).wait(); // ovn reward wallet
-
-    await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)).wait(); // dev
-    await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0x0bE3f37201699F00C21dCba18861ed4F60288E1D')).wait();       // pm 1
-    await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xdf5D41F42f5E4571b35A6A3cdaB994e9B433Fe66')).wait();       // pm 2
-    await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xe497285e466227F4E8648209E34B465dAA1F90a0')).wait();       // ovn
-
-    // If we plan to deploy DAI+|USDT+ and we will have run the rebalancer bot then grantRole below
-    // await (await pm.grantRole(Roles.PORTFOLIO_AGENT_ROLE, "0x6d2aed058bc4b24faa3397c00f2af6bef4849fe6")).wait();  // Rebalance bot
 
     await (await exchange.setAbroad(1000100, 1000360)).wait();
     await (await exchange.setOracleLoss(100, 100000)).wait();

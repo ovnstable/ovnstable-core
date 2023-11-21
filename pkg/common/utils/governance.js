@@ -1,11 +1,14 @@
 const {fromE18, toE18, fromAsset, fromE6, toAsset} = require("./decimals");
 const {expect} = require("chai");
-const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights, getChainId} = require("./script-utils");
+const {getContract, initWallet, getPrice, impersonateAccount, getWalletAddress, getCoreAsset, convertWeights, getChainId,
+    transferAsset
+} = require("./script-utils");
 const hre = require('hardhat');
 const {execTimelock, showM2M, transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {createRandomWallet, getTestAssets, prepareEnvironment} = require("./tests");
 const {Roles} = require("./roles");
 const fs = require("fs");
+const {getEmptyOdosData} = require("./odos-helper");
 const ethers= hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 const { platform } = process;
@@ -42,10 +45,14 @@ async function createProposal(name, addresses, values, abis){
     }
 
     let batchName;
+    let stand = process.env.STAND;
+
+    stand = stand.split("_")[0]
+
     if (platform === 'win32'){
-        batchName = `${appRoot}\\pkg\\proposals\\batches\\${process.env.STAND}\\${name}.json`;
+        batchName = `${appRoot}\\pkg\\proposals\\batches\\${stand}\\${name}.json`;
     }else {
-        batchName = `${appRoot}/pkg/proposals/batches/${process.env.STAND}/${name}.json`;
+        batchName = `${appRoot}/pkg/proposals/batches/${stand}/${name}.json`;
     }
 
     let data = JSON.stringify(batch);
@@ -54,6 +61,9 @@ async function createProposal(name, addresses, values, abis){
 }
 
 function createTransaction(timelock, delay, address, value, data){
+
+
+    let salt = ethers.utils.solidityKeccak256(['uint256'], [(new Date().getTime())]);
 
     return {
         "to": timelock.address,
@@ -100,7 +110,7 @@ function createTransaction(timelock, delay, address, value, data){
             "value": `${value}`,
             "data": `${data}`,
             "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "salt": salt,
             "delay": `${delay}`
         }
     }
@@ -116,12 +126,16 @@ async function testUsdPlus(id, stand = process.env.STAND){
     let pm = await getContract('PortfolioManager', stand);
     let m2m = await getContract('Mark2Market', stand);
     let usdPlusToken = await getContract('UsdPlusToken', stand);
+    let roleManager = await getContract('RoleManager', stand);
     let asset = await getCoreAsset(stand);
 
     let params = await getPrice();
 
+
+
     let walletAddress = await getWalletAddress();
     await transferETH(10, walletAddress);
+    await transferAsset(await exchange.usdc(), walletAddress);
 
     let tables = [];
 
@@ -164,8 +178,8 @@ async function testUsdPlus(id, stand = process.env.STAND){
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-            await (await pm.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, params)).wait();
-            await (await pm.connect(timelock).balance(params)).wait();
+            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+            await pm.connect(timelock).balance(params);
         });
 
     }, 'pm.balance'));
@@ -185,10 +199,9 @@ async function testUsdPlus(id, stand = process.env.STAND){
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-            await (await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, params)).wait();
-            await (await exchange.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, params)).wait();
+            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
             await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, params)).wait();
-            await (await exchange.connect(timelock).payout(params)).wait();
+            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData(), params)).wait();
         });
 
     }, 'exchange.payout'));
@@ -220,6 +233,9 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     let walletAddress = await getWalletAddress();
     await transferETH(10, walletAddress);
 
+    let roleManager = await getContract('RoleManager', stand);
+
+
     let params = await getPrice();
 
     let tables = [];
@@ -244,6 +260,20 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         result: '------'
     });
 
+
+    let isNewStrategy = strategy.setStrategyParams !== undefined;
+
+    await execTimelock(async (timelock)=>{
+
+        if (isNewStrategy){
+            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, params);
+        }else {
+            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+        }
+
+    })
+
+
     tables.push(await testCase(async ()=>{
         await strategy.netAssetValue();
     }, 'strategy.netAssetValue'));
@@ -255,7 +285,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
 
             await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
@@ -267,7 +296,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
             let amount = toAsset(10_000);
             await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, params);
         });
@@ -276,7 +304,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
             let amount = toAsset(10_000);
             await strategy.connect(timelock).claimRewards(timelock.address, params);
         });
@@ -285,7 +312,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address, params);
             await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, params);
         });
     }, 'strategy.unstakeFull'));

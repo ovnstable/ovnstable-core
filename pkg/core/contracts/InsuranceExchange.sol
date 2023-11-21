@@ -14,8 +14,7 @@ import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IVelodromeTwap.sol";
 
 import "./interfaces/IRebaseToken.sol";
-
-import "hardhat/console.sol";
+import "./interfaces/IRoleManager.sol";
 
 contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
@@ -45,6 +44,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     mapping(address => uint256) public withdrawRequests;
     uint256 public requestWaitPeriod;
     uint256 public withdrawPeriod;
+    IRoleManager public roleManager;
 
     struct SetUpParams {
         address asset;
@@ -53,6 +53,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
+    event RoleManagerUpdated(address roleManager);
     event MintBurn(string label, uint256 amount, uint256 fee, address sender);
     event NextPayoutTime(uint256 nextPayoutTime);
 
@@ -69,11 +70,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         mintFee = 0;
-        // ~ 100 %
         mintFeeDenominator = 100000;
 
         redeemFee = 0;
-        // ~ 100 %
         redeemFeeDenominator = 100000;
 
         // 1637193600 = 2021-11-18T00:00:00Z
@@ -88,14 +87,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         withdrawPeriod = 345600;
 
         swapSlippage = 500; // 5%
-
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
-    }
-
-    function changeAdminRoles() external onlyAdmin {
-        _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
-        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
 
 
@@ -116,17 +107,18 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
+
     modifier onlyUnit(){
-        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
     modifier oncePerBlock() {
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             require(lastBlockNumber < block.number, "Only once in block");
         }
         lastBlockNumber = block.number;
@@ -169,6 +161,12 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         withdrawPeriod = _withdrawPeriod;
     }
 
+    function setRoleManager(address _roleManager) external onlyAdmin {
+        require(_roleManager != address(0), "Zero address not allowed");
+        roleManager = IRoleManager(_roleManager);
+        emit RoleManagerUpdated(_roleManager);
+    }
+
     function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
         require(_swapSlippage != 0, "Zero swapSlippage not allowed");
         swapSlippage = _swapSlippage;
@@ -202,7 +200,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
         uint256 feeAmount;
         uint256 resultAmount;
-        if (!hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             feeAmount = (_amount * fee) / feeDenominator;
             resultAmount = _amount - feeAmount;
         } else {

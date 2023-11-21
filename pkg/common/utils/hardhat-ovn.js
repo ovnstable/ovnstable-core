@@ -362,7 +362,7 @@ function settingNetwork(hre) {
 function updateFeedData(hre) {
 
     // TODO network: 'localhost' should use default hardhat ether provider for support reset/snapshot functions
-    if (hre.network.name !== 'localhost') {
+    if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
         let url = node_url(process.env.ETH_NETWORK);
         let provider = new hre.ethers.providers.StaticJsonRpcProvider(url);
 

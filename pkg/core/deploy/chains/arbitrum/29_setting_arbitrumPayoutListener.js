@@ -15,8 +15,9 @@ module.exports = async () => {
 
     let items = [];
 
+    items.push(...defiEdge());
     // await (await pl.removeItems()).wait();
-    // await (await pl.addItems(items)).wait();
+    await (await pl.addItems(items)).wait();
 
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum')).address));
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_dai')).address));
@@ -28,7 +29,8 @@ module.exports = async () => {
 
         let dex = 'DefiEdge';
         let items = [];
-        items.push(createCustom('0x4784be205996d53d7a40bdb4e1d7b84e551d71d4', ethPlus.address, 'WETH/ETH+', dex, COMMON.rewardWallet));
+        items.push(createCustom('0xe0d0b500a074b39f1c669866ffe36b3266da314d', ethPlus.address, 'WETH/ETH+', dex, COMMON.rewardWallet));
+        items.push(createCustom('0x88f0f29c3e4daf068b602dd2f17f5784c714af23', usdPlus.address, 'USD+/USDC', dex, COMMON.rewardWallet));
 
         return items;
     }

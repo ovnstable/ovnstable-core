@@ -13,8 +13,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
-
-import "hardhat/console.sol";
+import "./interfaces/IRoleManager.sol";
 
 contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -31,11 +30,13 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     IMark2Market public m2m;
     uint256 public totalRiskFactor;
     uint256 public navSlippageBp;
+    IRoleManager public roleManager;
 
     // ---  events
 
     event ExchangerUpdated(address value);
     event Mark2MarketUpdated(address value);
+    event RoleManagerUpdated(address roleManager);
     event AssetUpdated(address value);
     event CashStrategyAlreadySet(address value);
     event CashStrategyUpdated(address value);
@@ -74,7 +75,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     }
 
     modifier onlyPortfolioAgent() {
-        require(hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
@@ -115,6 +116,12 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         m2m = IMark2Market(_m2m);
         emit Mark2MarketUpdated(_m2m);
+    }
+
+    function setRoleManager(address _roleManager) external onlyAdmin {
+        require(_roleManager != address(0), "Zero address not allowed");
+        roleManager= IRoleManager(_roleManager);
+        emit RoleManagerUpdated(_roleManager);
     }
 
     function setNavSlippageBp(uint256 _navSlippageBp) public onlyPortfolioAgent {

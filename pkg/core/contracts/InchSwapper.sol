@@ -6,10 +6,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Inch.sol";
 
-import "./interfaces/IControlRole.sol";
 import "./interfaces/IInchSwapper.sol";
 import "./interfaces/IBlockGetter.sol";
-
+import "./interfaces/IRoleManager.sol";
 
 contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -17,8 +16,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
 
     IInchRouter public inchRouter;
     address public blockGetter;
-
     mapping(address => mapping(address => Route)) private routePathsMap;
+    IRoleManager public roleManager;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -31,9 +30,11 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
 
     // blockGetter for arbitrum block (to update)
     // inchRouter is same for chain
-    function setParams(address _inchRouter, address _blockGetter) public onlyAdmin {
+    // roleManager is control role models
+    function setParams(address _inchRouter, address _blockGetter, address _roleManager) public onlyAdmin {
         inchRouter = IInchRouter(_inchRouter);
         blockGetter = _blockGetter;
+        roleManager = IRoleManager(_roleManager);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -49,7 +50,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
 
 
     modifier onlyUnit(){
-        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -58,7 +59,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // changes that acceptable: recipient, payer, amount
     // everyone can use it, however only unit users can see the path
     function swap(address recipient, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountMinOut) public {
-        
+
         Route memory rout = routePathsMap[tokenIn][tokenOut];
 
         require(rout.amount >= amountIn, "amount is more than saved");
@@ -85,7 +86,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
                 flags: rout.flags
             });
 
-            // do not need to pass "0x" to permit, 
+            // do not need to pass "0x" to permit,
             // src receiver is same as caller, it's inch's executor
             inchRouter.swap(
                 rout.srcReceiver,
@@ -98,8 +99,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     }
 
 
-    // update path of rout 
-    // params: tokenIn/tokenOut 
+    // update path of rout
+    // params: tokenIn/tokenOut
     // big amount (1 mln)
     // flags (for patching/partial fill..)
     // srcReceiver (executor of rout)

@@ -33,6 +33,7 @@ async function main() {
     let names = [
         'Exchange',
         'UsdPlusToken',
+        'RoleManager',
         'PortfolioManager',
         'Mark2Market',
     ];

@@ -36,12 +36,6 @@ async function setWeights(weights) {
     let pm = await getContract('PortfolioManager');
     let strategy = await getContract('StrategyUsdPlusDai');
 
-    // await execTimelock(async (timelock)=>{
-    //   await pm.connect(timelock).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), '0x6D2AEd058bc4B24FAa3397c00f2Af6Bef4849fe6');
-    //   await strategy.connect(timelock).grantRole(await strategy.PORTFOLIO_AGENT_ROLE(), '0x5CB01385d3097b6a189d1ac8BA3364D900666445');
-    //     await (await pm.balance()).wait();
-    //
-    // })
 
     await showM2M();
     await (await pm.setStrategyWeights(weights)).wait();

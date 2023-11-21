@@ -3,7 +3,7 @@ const { deploySection, settingSection } = require("@overnight-contracts/common/u
 const { BASE } = require("@overnight-contracts/common/utils/assets");
 
 let rebaseToken = '0x3356D631eD62329b387a3dd19Ee07061A4d711Ad';
-let hedgeExchanger = '0x4a1c89c30DA16F0B298FfE3697390Cd39BFC9ba0';
+let hedgeExchanger = '0x36C1BAe5924613C9c1387FF1d27a54bd19420F50';
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;

@@ -16,8 +16,6 @@ module.exports = async ({ deployments }) => {
     }
 
     let zap = await ethers.getContract('ChronosZap');
-    await (await zap.grantRole(Roles.DEFAULT_ADMIN_ROLE, '0x5CB01385d3097b6a189d1ac8BA3364D900666445')).wait();
-
     await (await zap.setParams(params)).wait();
     console.log('ChronosZap setParams done()');
 };

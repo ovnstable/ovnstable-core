@@ -11,6 +11,7 @@ module.exports = async () => {
     const usdPlus = await ethers.getContract("UsdPlusToken", wallet);
     const m2m = await ethers.getContract("Mark2Market", wallet);
     const pm = await ethers.getContract("PortfolioManager", wallet);
+    const roleManager = await ethers.getContract("RoleManager", wallet);
 
     let asset;
     if (hre.network.name === "optimism_dai") {
@@ -50,6 +51,10 @@ module.exports = async () => {
     tx = await exchange.setInsurance(COMMON.rewardWallet);
     await tx.wait();
     console.log("exchange.setInsurance done");
+
+    tx = await exchange.setRoleManager(roleManager.address);
+    await tx.wait();
+    console.log("exchange.setRoleManager done");
 
 };
 
