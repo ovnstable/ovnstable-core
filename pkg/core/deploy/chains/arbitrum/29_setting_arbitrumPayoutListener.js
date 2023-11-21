@@ -15,7 +15,7 @@ module.exports = async () => {
 
     let items = [];
 
-    items.push(...defiEdge());
+    items.push(...shekelswap());
     // await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
 
@@ -24,6 +24,19 @@ module.exports = async () => {
     // await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'arbitrum_eth')).address));
 
     console.log('ArbitrumPayoutListener setting done');
+
+    function shekelswap(){
+
+        let dex = 'ShekelSwap';
+        let to = '0xa8866C8E6B0aC5EB38137371aADC4Fa9aeE5d08a';
+
+        let items = [];
+        items.push(createSkimToWithFee('0x77cA2ddfd61D1D5E5d709cF07549FEC3E2d80315', daiPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x77cA2ddfd61D1D5E5d709cF07549FEC3E2d80315', usdPlus.address, 'USD+/DAI+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x0627DCDCA49d749583c6a00327eb5E3846E265D3', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+    }
 
     function defiEdge() {
 
