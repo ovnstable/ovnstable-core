@@ -34,6 +34,8 @@ function getNetworks() {
 
     let zkSync = isZkSync();
 
+
+
     let localhost;
     if (zkSync){
         localhost = {
@@ -58,7 +60,7 @@ function getNetworks() {
             url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -66,7 +68,7 @@ function getNetworks() {
             url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -91,7 +93,7 @@ function getNetworks() {
             url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -99,7 +101,7 @@ function getNetworks() {
             url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -108,7 +110,7 @@ function getNetworks() {
             url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -116,7 +118,7 @@ function getNetworks() {
             url: node_url('arbitrum'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -124,7 +126,7 @@ function getNetworks() {
             url: node_url('zksync'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             ethNetwork: "mainnet",
             zksync: true,
         },
@@ -141,7 +143,7 @@ function getNetworks() {
             url: node_url('optimism'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -149,7 +151,7 @@ function getNetworks() {
             url: node_url('bsc'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 
@@ -157,7 +159,7 @@ function getNetworks() {
             url: node_url('bsc'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
         },
 
 
@@ -165,7 +167,7 @@ function getNetworks() {
             url: node_url('polygon'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: gasPrice,
+            gasPrice: "auto",
             zksync: false,
         },
 

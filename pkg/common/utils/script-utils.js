@@ -118,7 +118,8 @@ async function settingSection(exec) {
             }
 
             let pm = await getContract('PortfolioManager', process.env.STAND);
-            await (await strategy.setPortfolioManager(pm.address)).wait();
+            let roleManager = await getContract('RoleManager', process.env.STAND);
+            await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
 
             await exec(strategy);
             console.log(`[${strategyName}] setting done`)
