@@ -9,7 +9,6 @@ const {ethers} = require("hardhat");
 const AGENT_TIMELOCK_ABI = require("@overnight-contracts/governance-new/scripts/abi/AGENT_TIMELOCK_ABI.json");
 
 const PREDECESSOR = "0x0000000000000000000000000000000000000000000000000000000000000000";
-const SALT = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 async function main() {
 
@@ -20,31 +19,33 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let name = '09_revert_pika.json'
+    let name = '12_update_pika'
     let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/${name}.json`));
 
     let addresses = [];
     let values = [];
     let datas = [];
+    let salt = [];
 
     for (let transaction of batch.transactions) {
         addresses.push(transaction.contractInputsValues.target);
         values.push(Number.parseInt(transaction.contractInputsValues.value));
         datas.push(transaction.contractInputsValues.data);
+        salt.push(transaction.contractInputsValues.salt);
         console.log(transaction)
     }
 
     timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
     for (let i = 0; i < addresses.length; i++) {
-        let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, SALT);
+        let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, salt[i]);
         console.log('HashOperation: ' + hash);
 
         let timestamp = await timelock.getTimestamp(hash);
         console.log(`Timestamp: ${timestamp}`)
 
         if (timestamp > 1){
-            await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, SALT)).wait();
+            await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, salt[i])).wait();
         }
     }
 
