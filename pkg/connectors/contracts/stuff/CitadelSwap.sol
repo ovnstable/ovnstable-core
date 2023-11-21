@@ -73,7 +73,7 @@ interface IUniswapV2Router01 {
 
 }
 
-interface CitadelRouter is IUniswapV2Router01 {
+interface CitadelSwapRouter is IUniswapV2Router01 {
   function removeLiquidityETHSupportingFeeOnTransferTokens(
     address token,
     uint liquidity,
@@ -121,7 +121,7 @@ interface CitadelRouter is IUniswapV2Router01 {
 }
 
 
-interface CitadelPair {
+interface CitadelSwapPair {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
@@ -173,7 +173,7 @@ interface CitadelPair {
     function initialize(address, address) external;
 }
 
-interface CitadelGauge {
+interface CitadelSwapGauge {
 
     // Info of each user.
     struct UserInfo {
@@ -196,4 +196,7 @@ interface CitadelGauge {
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) external;
+
+    // View function to see pending MMF on frontend.
+    function pendingMeerkat(uint256 _pid, address _user) external view returns (uint256);
 }
