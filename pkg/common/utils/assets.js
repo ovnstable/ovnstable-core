@@ -56,6 +56,7 @@ let BASE = {
     inchSwapper: "0x99eE224252138CB8e20f2a74c01ca4D4749cF2D1",
     moonbaseRouter: '0x4617695387bE48c3202a0A9165549c790C4A08Af',
     baseSwapV3Router: '0x1B8eea9315bE495187D873DA7773a874545D9D48',
+    citadelRouter: "0x112f3f5CE89a46B9d7e18131e8E7CDdE313e4234",
     // oracles
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
@@ -362,7 +363,7 @@ let POLYGON = {
 }
 
 
-function getAsset(name){
+function getAsset(name) {
     let assets = getAssets(process.env.ETH_NETWORK);
     return assets[name];
 }
