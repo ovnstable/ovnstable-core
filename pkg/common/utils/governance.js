@@ -62,6 +62,9 @@ async function createProposal(name, addresses, values, abis){
 
 function createTransaction(timelock, delay, address, value, data){
 
+
+    let salt = ethers.utils.solidityKeccak256(['uint256'], [(new Date().getTime())]);
+
     return {
         "to": timelock.address,
         "value": "0",
@@ -107,7 +110,7 @@ function createTransaction(timelock, delay, address, value, data){
             "value": `${value}`,
             "data": `${data}`,
             "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "salt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "salt": salt,
             "delay": `${delay}`
         }
     }
