@@ -139,17 +139,6 @@ contract StrategyPikaV4 is Strategy {
             return 0;
         }
 
-        // claim esPika if esPika > 1000
-        if (pikaTokenReward.earned(address(this)) > 1e21) {
-            pikaTokenReward.getReward();
-            uint256 esPikaBalance = esPika.balanceOf(address(this));
-            if (esPikaBalance > 0) {
-                // deposit esPika for treasureWallet
-                esPika.approve(address(pikaVester), esPikaBalance);
-                pikaVester.depositFor(esPikaBalance, treasureWallet);
-            }
-        }
-
         uint256 balanceUsdc = usdc.balanceOf(address(this));
 
         // claim USDC
@@ -164,16 +153,5 @@ contract StrategyPikaV4 is Strategy {
         return totalUsdc;
     }
 
-    // added if we unstakeFull and not claim all pika rewards
-    function claimAndDepositEsPika() external onlyPortfolioAgent {
-        // claim esPika
-        pikaTokenReward.getReward();
-        uint256 esPikaBalance = esPika.balanceOf(address(this));
-        if (esPikaBalance > 0) {
-            // deposit esPika for treasureWallet
-            esPika.approve(address(pikaVester), esPikaBalance);
-            pikaVester.depositFor(esPikaBalance, treasureWallet);
-        }
-    }
 
 }
