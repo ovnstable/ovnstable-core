@@ -458,10 +458,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(totalUsdPlus > totalNav, 'supply > nav');
 
         if(newLiquidityIndex == 0){
-           newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+        //    newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
         }
 
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
+        // usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         // notify listener about payout done
         if (address(payoutListener) != address(0)) {
@@ -559,7 +559,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
-            newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+            // newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
             delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
 
             if (abroadMax < delta) {
@@ -576,7 +576,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
                 uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / LIQ_DELTA_DM;
                 uint256 targetUsdPlusSupplyRay = totalNav.wadToRay().rayDiv(targetLiquidityIndex);
-                uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - usdPlus.scaledTotalSupply();
+                uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - 0;//usdPlus.scaledTotalSupply();
                 excessProfit = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
 
                 // Mint USD+ to OVN wallet
@@ -595,7 +595,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         totalUsdPlus = usdPlus.totalSupply();
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
-        newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
+        // newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
         delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
 
         // Calculating how much users profit after excess fee
@@ -609,7 +609,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         // set newLiquidityIndex
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
+        // usdPlus.setLiquidityIndex(newLiquidityIndex);
 
         require(usdPlus.totalSupply() == totalNav,'total != nav');
         require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');

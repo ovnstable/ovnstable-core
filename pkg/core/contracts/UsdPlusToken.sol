@@ -7,79 +7,94 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import { StableMath } from "./libraries/StableMath.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import "./libraries/WadRayMath.sol";
 
 contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    using WadRayMath for uint256;
+    using WadRayMath for uint256; // после переезда это надо удалить, но пока не переехали нельзя
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeMath for uint256;
+    using StableMath for uint256;
 
-    uint256 public constant MAX_UINT_VALUE = type(uint256).max;
+    uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
 
+    /// @custom:oz-renamed-from _balances
+    mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
 
-    // --- ERC20 fields
+    mapping(address => mapping(address => uint256)) private _allowances; // сматчили без переименовывания, полное совпадение
 
-    mapping(address => uint256) private _balances;
+    uint256 public _totalSupply; // сматчили без переименовывания и поменяли private на public
 
-    mapping(address => mapping(address => uint256)) private _allowances;
-
-    uint256 private _totalSupply;
-
-    string private _name;
-    string private _symbol;
-
-    // ---  fields
+    string private _name; // сматчили без переименовывания, полное совпадение
+    string private _symbol; // сматчили без переименовывания, полное совпадение
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
 
-    uint256 private _totalMint;
-    uint256 private _totalBurn;
+    /// @custom:oz-renamed-from _totalMint
+    uint256 private _rebasingCredits; // сматчили с изменением смыла переменной, была _totalMint
+    /// @custom:oz-renamed-from _totalBurn
+    uint256 private _rebasingCreditsPerToken; // сматчили с изменением смыла переменной, была _totalBurn
 
-    uint256 public liquidityIndexChangeTime;
-    uint256 public liquidityIndex;
-    uint256 public liquidityIndexDenominator;
+    /// @custom:oz-renamed-from liquidityIndexChangeTime
+    uint256 public nonRebasingSupply; // сматчили с изменением смыла переменной, была liquidityIndexChangeTime
+    uint256 public liquidityIndex; // не будет использоваться
+    uint256 public liquidityIndexDenominator; // не будет использоваться
 
-    EnumerableSet.AddressSet _owners;
+    EnumerableSet.AddressSet _owners; // этой логики нет в ousd, но она будет присутствовать в новой версии usd+
 
     uint256[50] private __gap;
 
-    address public exchange;
-    uint8 private _decimals;
+    address public exchange; // в ousd есть аналог vaultAddress, но я его переименовал в эксченджер везде
+    uint8 private _decimals; // сматчили без переименовывания, полное совпадение
 
-    // ---  events
+    mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
+    mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
+    
+    uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
+    
+
+
+    event TotalSupplyUpdatedHighres(
+        uint256 totalSupply,
+        uint256 rebasingCredits,
+        uint256 rebasingCreditsPerToken
+    );
+
+    enum RebaseOptions {
+        NotSet,
+        OptOut,
+        OptIn
+    }
 
     event ExchangerUpdated(address exchanger);
     event LiquidityIndexUpdated(uint256 changeTime, uint256 liquidityIndex);
 
-    // ---  modifiers
 
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
-        _;
+    function migrationInit() public {
+        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
+        require(devAddress == msg.sender, "Caller is not the Dev");
+        // todo
     }
 
-    modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, _msgSender()), "Caller is not the EXCHANGER");
-        _;
+    function migrationBatchLength(uint256 size) public returns (uint256) {
+        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
+        require(devAddress == msg.sender, "Caller is not the Dev");
+        uint256 len = _owners.length();
+        return (len / size * size == len) ? len / size : len / size + 1;
     }
 
-    // ---  setters
-
-    function setExchanger(address _exchanger) external onlyAdmin {
-        if (exchange != address(0)) {
-            revokeRole(EXCHANGER, exchange);
+    function migrationBatch(uint256 size, uint256 iter) public {
+        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
+        require(devAddress == msg.sender, "Caller is not the Dev");
+        uint256 len = _owners.length();
+        uint256 startIter = iter * size;
+        uint256 finishIter = 0;
+        for (uint256 i = startIter; i < finishIter; i++) {
+            // todo
         }
-        grantRole(EXCHANGER, _exchanger);
-        exchange = _exchanger;
-        emit ExchangerUpdated(_exchanger);
     }
-
-    function setLiquidityIndex(uint256 _liquidityIndex) external onlyExchanger {
-        require(_liquidityIndex > 0, "Zero liquidity index not allowed");
-        liquidityIndex = _liquidityIndex;
-        liquidityIndexChangeTime = block.timestamp;
-        emit LiquidityIndexUpdated(liquidityIndexChangeTime, liquidityIndex);
-    }
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -95,11 +110,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
-        // as Ray
-        liquidityIndex = 10 ** 27;
-        // 1 Ray
-        liquidityIndexDenominator = 10 ** 27;
-
         _decimals = decimals;
     }
 
@@ -109,376 +119,63 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     override
     {}
 
-
     /**
-    * Support method for old version tokens which not has field _decimals at deploy
-    */
+     * @dev Verifies that the caller is the Exchanger contract
+     */
+    modifier onlyExchanger() {
+        require(hasRole(EXCHANGER, _msgSender()), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
+        _;
+    }
+
+    function setExchanger(address _exchanger) external onlyAdmin {
+        if (exchange != address(0)) {
+            revokeRole(EXCHANGER, exchange);
+        }
+        grantRole(EXCHANGER, _exchanger);
+        exchange = _exchanger;
+        emit ExchangerUpdated(_exchanger);
+    }
 
     function setDecimals(uint8 decimals) external onlyAdmin {
         require(_decimals == 0, 'Decimals already set');
         _decimals = decimals;
     }
 
-
-    // ---  logic
-
-
-    function mint(address _sender, uint256 _amount) external onlyExchanger {
-        // up to ray
-        uint256 mintAmount = _amount.wadToRay();
-        mintAmount = mintAmount.rayDiv(liquidityIndex);
-        _mint(_sender, mintAmount);
-        _totalMint += mintAmount;
-        emit Transfer(address(0), _sender, _amount);
-    }
-
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
-     * the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
+        /**
+     * @notice Returns the name of the token.
      */
-    function _mint(address account, uint256 amount) internal {
-        require(account != address(0), "ERC20: mint to the zero address");
-
-        _beforeTokenTransfer(address(0), account, amount);
-
-        _totalSupply += amount;
-        _balances[account] += amount;
-
-        _afterTokenTransfer(address(0), account, amount);
-    }
-
-    function burn(address _sender, uint256 _amount) external onlyExchanger {
-        uint256 burnAmount;
-        if (_amount == balanceOf(_sender)) {
-            // burn all
-            burnAmount = _balances[_sender];
-        } else {
-            // up to ray
-            burnAmount = _amount.wadToRay();
-            burnAmount = burnAmount.rayDiv(liquidityIndex);
-        }
-
-        _burn(_sender, burnAmount);
-        _totalBurn += burnAmount;
-        emit Transfer(_sender, address(0), _amount);
+    function name() public view returns (string memory) {
+        return _name;
     }
 
     /**
-    * @dev Destroys `amount` tokens from `account`, reducing the
-     * total supply.
-     *
-     * Emits a {Transfer} event with `to` set to the zero address.
-     *
-     * Requirements:
-     *
-     * - `account` cannot be the zero address.
-     * - `account` must have at least `amount` tokens.
+     * @notice Returns the symbol of the token, usually a shorter version of the
+     * name.
      */
-    function _burn(address account, uint256 amount) internal {
-        require(account != address(0), "ERC20: burn from the zero address");
-
-        _beforeTokenTransfer(account, address(0), amount);
-
-        uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
-        unchecked {
-            _balances[account] = accountBalance - amount;
-        }
-        _totalSupply -= amount;
-
-        _afterTokenTransfer(account, address(0), amount);
+    function symbol() public view returns (string memory) {
+        return _symbol;
     }
 
-
-
     /**
-       * @dev Moves `amount` of tokens from `sender` to `recipient`.
+     * @notice Returns the number of decimals used to get its user representation.
+     * For example, if `decimals` equals `2`, a balance of `505` tokens should
+     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
      *
-     * This internal function is equivalent to {transfer}, and can be used to
-     * e.g. implement automatic token fees, slashing mechanisms, etc.
+     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Ether and Wei.
      *
-     * Emits a {Transfer} event.
-     *
-     * Requirements:
-     *
-     * - `sender` cannot be the zero address.
-     * - `recipient` cannot be the zero address.
-     * - `sender` must have a balance of at least `amount`.
+     * NOTE: This information is only used for _display_ purposes: it in
+     * no way affects any of the arithmetic of the contract, including
+     * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function _transfer(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) internal {
-        require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
-
-        _beforeTokenTransfer(sender, recipient, amount);
-
-        uint256 senderBalance = _balances[sender];
-        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
-        unchecked {
-            _balances[sender] = senderBalance - amount;
-        }
-        _balances[recipient] += amount;
-
-        _afterTokenTransfer(sender, recipient, amount);
+    function decimals() public view returns (uint8) {
+        return _decimals;
     }
-
-
-    /**
-     * @dev See {IERC20-transfer}.
-     */
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        uint256 transferAmount;
-        if (amount == balanceOf(_msgSender())) {
-            // transfer all
-            transferAmount = _balances[_msgSender()];
-        } else {
-            // up to ray
-            transferAmount = amount.wadToRay();
-            transferAmount = transferAmount.rayDiv(liquidityIndex);
-        }
-
-        _transfer(_msgSender(), recipient, transferAmount);
-        emit Transfer(_msgSender(), recipient, amount);
-        return true;
-    }
-
-
-    /**
-     * @dev See {IERC20-allowance}.
-     */
-    function allowance(address owner, address spender) public view override returns (uint256) {
-        uint256 allowanceRay = _allowance(owner, spender);
-        if (allowanceRay > (MAX_UINT_VALUE / liquidityIndex)) {
-            return MAX_UINT_VALUE;
-        }
-        allowanceRay = allowanceRay.rayMul(liquidityIndex);
-
-        // ray -> wad
-        return allowanceRay.rayToWad();
-    }
-
-    /**
-    * @dev See {IERC20-allowance}.
-     */
-    function _allowance(address owner, address spender) internal view returns (uint256) {
-        return _allowances[owner][spender];
-    }
-
-
-    /**
-     * @dev See {IERC20-approve}.
-     */
-    function approve(address spender, uint256 amount) external override returns (bool){
-        uint256 scaledAmount;
-
-        // We reduce the maximum allowable value and setup MAX_UINT_VALUE
-        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
-        if (amount > (MAX_UINT_VALUE / liquidityIndex / 10 ** 9)) {
-            scaledAmount = MAX_UINT_VALUE;
-        } else {
-            // up to ray
-            scaledAmount = amount.wadToRay();
-            scaledAmount = scaledAmount.rayDiv(liquidityIndex);
-        }
-        _approve(_msgSender(), spender, scaledAmount);
-        return true;
-    }
-
-    /**
-    * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
-     *
-     * This internal function is equivalent to `approve`, and can be used to
-     * e.g. set automatic allowances for certain subsystems, etc.
-     *
-     * Emits an {Approval} event.
-     *
-     * Requirements:
-     *
-     * - `owner` cannot be the zero address.
-     * - `spender` cannot be the zero address.
-     */
-    function _approve(
-        address owner,
-        address spender,
-        uint256 amount
-    ) internal virtual {
-        require(owner != address(0), "ERC20: approve from the zero address");
-        require(spender != address(0), "ERC20: approve to the zero address");
-
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
-    }
-
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public override returns (bool) {
-        uint256 transferAmount;
-        if (amount == balanceOf(sender)) {
-            // transfer all
-            transferAmount = _balances[sender];
-        } else {
-            // up to ray
-            transferAmount = amount.wadToRay();
-            transferAmount = transferAmount.rayDiv(liquidityIndex);
-        }
-
-        _transfer(sender, recipient, transferAmount);
-
-        uint256 currentAllowance;
-
-        if(amount == allowance(sender, _msgSender())){
-            currentAllowance = transferAmount;
-        }else{
-            currentAllowance = _allowance(sender, _msgSender());
-        }
-
-        require(currentAllowance >= transferAmount, "UsdPlusToken: transfer amount exceeds allowance");
-        unchecked {
-            _approve(sender, _msgSender(), currentAllowance - transferAmount);
-        }
-        emit Transfer(sender, recipient, amount);
-
-        return true;
-    }
-
-
-    /**
-     * @dev Calculates the balance of the user: principal balance + interest generated by the principal
-     * @param user The user whose balance is calculated
-     * @return The balance of the user
-     **/
-    function balanceOf(address user)
-    public
-    view
-    override
-    returns (uint256)
-    {
-        // stored balance is ray (27)
-        uint256 balanceInMapping = _balanceOf(user);
-        // ray -> ray
-        uint256 balanceRay = balanceInMapping.rayMul(liquidityIndex);
-        // ray -> wad
-        return balanceRay.rayToWad();
-    }
-
-    /**
-    * @dev See {IERC20-balanceOf}.
-     */
-    function _balanceOf(address account) internal view returns (uint256) {
-        return _balances[account];
-    }
-
-    /**
-     * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the
-     * updated stored balance divided by the reserve's liquidity index at the moment of the update
-     * @param user The user whose balance is calculated
-     * @return The scaled balance of the user
-     **/
-    function scaledBalanceOf(address user) external view returns (uint256) {
-        return _balanceOf(user);
-    }
-
-
-    /**
-     * @dev calculates the total supply of the specific aToken
-     * since the balance of every single user increases over time, the total supply
-     * does that too.
-     * @return the current total supply
-     **/
-    function totalSupply() public view override returns (uint256) {
-        // stored totalSupply is ray (27)
-        uint256 currentSupply = _totalSupply;
-        // ray -> ray
-        uint256 currentSupplyRay = currentSupply.rayMul(liquidityIndex);
-        // ray -> wad
-        return currentSupplyRay.rayToWad();
-    }
-
-    function totalMint() external view returns (uint256) {
-        uint256 totalMintRay = _totalMint.rayMul(liquidityIndex);
-        return totalMintRay.rayToWad();
-    }
-
-    function totalBurn() external view returns (uint256) {
-        uint256 totalBurnRay = _totalBurn.rayMul(liquidityIndex);
-        return totalBurnRay.rayToWad();
-    }
-
-
-
-    /**
-     * @dev Atomically increases the allowance granted to `spender` by the caller.
-     *
-     * This is an alternative to {approve} that can be used as a mitigation for
-     * problems described in {IERC20-approve}.
-     *
-     * Emits an {Approval} event indicating the updated allowance.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     */
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-        // up to ray
-        uint256 scaledAmount = addedValue.wadToRay();
-        scaledAmount = scaledAmount.rayDiv(liquidityIndex);
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + scaledAmount);
-        return true;
-    }
-
-    /**
-     * @dev Atomically decreases the allowance granted to `spender` by the caller.
-     *
-     * This is an alternative to {approve} that can be used as a mitigation for
-     * problems described in {IERC20-approve}.
-     *
-     * Emits an {Approval} event indicating the updated allowance.
-     *
-     * Requirements:
-     *
-     * - `spender` cannot be the zero address.
-     * - `spender` must have allowance for the caller of at least
-     * `subtractedValue`.
-     */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        uint256 scaledAmount;
-        if (subtractedValue == allowance(_msgSender(), spender)) {
-            // transfer all
-            scaledAmount = _allowances[_msgSender()][spender];
-        } else {
-            // up to ray
-            scaledAmount = subtractedValue.wadToRay();
-            scaledAmount = scaledAmount.rayDiv(liquidityIndex);
-        }
-
-        uint256 currentAllowance = _allowances[_msgSender()][spender];
-        require(currentAllowance >= scaledAmount, "ERC20: decreased allowance below zero");
-        unchecked {
-            _approve(_msgSender(), spender, currentAllowance - scaledAmount);
-        }
-
-        return true;
-    }
-
-    /**
-     * @dev Returns the scaled total supply of the variable debt token
-     * @return the scaled total supply
-     **/
-    function scaledTotalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
 
     function ownerLength() external view returns (uint256) {
         return _owners.length();
@@ -492,84 +189,506 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return balanceOf(_owners.at(index));
     }
 
+
     /**
-   * @dev Returns the name of the token.
+     * @return The total supply of OUSD.
      */
-    function name() public view override returns (string memory) {
-        return _name;
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
     }
 
     /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
-     * name.
+     * @return Low resolution rebasingCreditsPerToken
      */
-    function symbol() public view override returns (string memory) {
-        return _symbol;
+    function rebasingCreditsPerToken() public view returns (uint256) {
+        return _rebasingCreditsPerToken / RESOLUTION_INCREASE;
     }
-
 
     /**
-   * @dev Returns the number of decimals used to get its user representation.
-     * For example, if `decimals` equals `2`, a balance of `505` tokens should
-     * be displayed to a user as `5.05` (`505 / 10 ** 2`).
-     *
-     * Tokens usually opt for a value of 18, imitating the relationship between
-     * Ether and Wei. This is the value {ERC20} uses, unless this function is
-     * overridden;
-     *
-     * NOTE: This information is only used for _display_ purposes: it in
-     * no way affects any of the arithmetic of the contract, including
-     * {IERC20-balanceOf} and {IERC20-transfer}.
+     * @return Low resolution total number of rebasing credits
      */
-    function decimals() public view override returns (uint8) {
-        return _decimals == 0 ? 6 : _decimals;
+    function rebasingCredits() public view returns (uint256) {
+        return _rebasingCredits / RESOLUTION_INCREASE;
     }
-
 
     /**
-    * @dev Hook that is called before any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * will be transferred to `to`.
-     * - when `from` is zero, `amount` tokens will be minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+     * @return High resolution rebasingCreditsPerToken
      */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
-
+    function rebasingCreditsPerTokenHighres() public view returns (uint256) {
+        return _rebasingCreditsPerToken;
     }
 
+    /**
+     * @return High resolution total number of rebasing credits
+     */
+    function rebasingCreditsHighres() public view returns (uint256) {
+        return _rebasingCredits;
+    }
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
+    /**
+     * @dev Gets the balance of the specified address.
+     * @param _account Address to query the balance of.
+     * @return A uint256 representing the amount of base units owned by the
+     *         specified address.
+     */
+    function balanceOf(address _account)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        if (_creditBalances[_account] == 0) return 0;
+        return
+            _creditBalances[_account].divPrecisely(_creditsPerToken(_account));
+    }
 
-        if (from == address(0)) {
-            // mint
-            _owners.add(to);
-        } else if (to == address(0)) {
-            // burn
-            if (balanceOf(from) == 0) {
-                _owners.remove(from);
-            }
+    /**
+     * @dev Gets the credits balance of the specified address.
+     * @dev Backwards compatible with old low res credits per token.
+     * @param _account The address to query the balance of.
+     * @return (uint256, uint256) Credit balance and credits per token of the
+     *         address
+     */
+    function creditsBalanceOf(address _account)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        uint256 cpt = _creditsPerToken(_account);
+        if (cpt == 1e27) {
+            // For a period before the resolution upgrade, we created all new
+            // contract accounts at high resolution. Since they are not changing
+            // as a result of this upgrade, we will return their true values
+            return (_creditBalances[_account], cpt);
         } else {
-            // transfer
-            if (balanceOf(from) == 0) {
-                _owners.remove(from);
-            }
-            _owners.add(to);
+            return (
+                _creditBalances[_account] / RESOLUTION_INCREASE,
+                cpt / RESOLUTION_INCREASE
+            );
         }
+    }
+
+    /**
+     * @dev Gets the credits balance of the specified address.
+     * @param _account The address to query the balance of.
+     * @return (uint256, uint256) Credit balance, credits per token of the address
+     */
+    function creditsBalanceOfHighres(address _account)
+        public
+        view
+        returns (
+            uint256,
+            uint256
+        )
+    {
+        return (
+            _creditBalances[_account],
+            _creditsPerToken(_account)
+        );
+    }
+
+    /**
+     * @dev Transfer tokens to a specified address.
+     * @param _to the address to transfer to.
+     * @param _value the amount to be transferred.
+     * @return true on success.
+     */
+    function transfer(address _to, uint256 _value)
+        public
+        override
+        returns (bool)
+    {
+        require(_to != address(0), "Transfer to zero address");
+        require(
+            _value <= balanceOf(msg.sender),
+            "Transfer greater than balance"
+        );
+
+        _executeTransfer(msg.sender, _to, _value);
+
+        emit Transfer(msg.sender, _to, _value);
+
+        return true;
+    }
+
+    /**
+     * @dev Transfer tokens from one address to another.
+     * @param _from The address you want to send tokens from.
+     * @param _to The address you want to transfer to.
+     * @param _value The amount of tokens to be transferred.
+     */
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public override returns (bool) {
+        require(_to != address(0), "Transfer to zero address");
+        require(_value <= balanceOf(_from), "Transfer greater than balance");
+
+        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(
+            _value
+        );
+
+        _executeTransfer(_from, _to, _value);
+
+        emit Transfer(_from, _to, _value);
+
+        return true;
+    }
+
+    /**
+     * @dev Update the count of non rebasing credits in response to a transfer
+     * @param _from The address you want to send tokens from.
+     * @param _to The address you want to transfer to.
+     * @param _value Amount of OUSD to transfer
+     */
+    function _executeTransfer(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal {
+        bool isNonRebasingTo = _isNonRebasingAccount(_to);
+        bool isNonRebasingFrom = _isNonRebasingAccount(_from);
+
+        // Credits deducted and credited might be different due to the
+        // differing creditsPerToken used by each account
+        uint256 creditsCredited = _value.mulTruncate(_creditsPerToken(_to));
+        uint256 creditsDeducted = _value.mulTruncate(_creditsPerToken(_from));
+
+        _creditBalances[_from] = _creditBalances[_from].sub(
+            creditsDeducted,
+            "Transfer amount exceeds balance"
+        );
+        _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
+
+        if (isNonRebasingTo && !isNonRebasingFrom) {
+            // Transfer to non-rebasing account from rebasing account, credits
+            // are removed from the non rebasing tally
+            nonRebasingSupply = nonRebasingSupply.add(_value);
+            // Update rebasingCredits by subtracting the deducted amount
+            _rebasingCredits = _rebasingCredits.sub(creditsDeducted);
+        } else if (!isNonRebasingTo && isNonRebasingFrom) {
+            // Transfer to rebasing account from non-rebasing account
+            // Decreasing non-rebasing credits by the amount that was sent
+            nonRebasingSupply = nonRebasingSupply.sub(_value);
+            // Update rebasingCredits by adding the credited amount
+            _rebasingCredits = _rebasingCredits.add(creditsCredited);
+        }
+    }
+
+    /**
+     * @dev Function to check the amount of tokens that _owner has allowed to
+     *      `_spender`.
+     * @param _owner The address which owns the funds.
+     * @param _spender The address which will spend the funds.
+     * @return The number of tokens still available for the _spender.
+     */
+    function allowance(address _owner, address _spender)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _allowances[_owner][_spender];
+    }
+
+    /**
+     * @dev Approve the passed address to spend the specified amount of tokens
+     *      on behalf of msg.sender. This method is included for ERC20
+     *      compatibility. `increaseAllowance` and `decreaseAllowance` should be
+     *      used instead.
+     *
+     *      Changing an allowance with this method brings the risk that someone
+     *      may transfer both the old and the new allowance - if they are both
+     *      greater than zero - if a transfer transaction is mined before the
+     *      later approve() call is mined.
+     * @param _spender The address which will spend the funds.
+     * @param _value The amount of tokens to be spent.
+     */
+    function approve(address _spender, uint256 _value)
+        public
+        override
+        returns (bool)
+    {
+        _allowances[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    /**
+     * @dev Increase the amount of tokens that an owner has allowed to
+     *      `_spender`.
+     *      This method should be used instead of approve() to avoid the double
+     *      approval vulnerability described above.
+     * @param _spender The address which will spend the funds.
+     * @param _addedValue The amount of tokens to increase the allowance by.
+     */
+    function increaseAllowance(address _spender, uint256 _addedValue)
+        public
+        returns (bool)
+    {
+        _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
+            .add(_addedValue);
+        emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+     * @dev Decrease the amount of tokens that an owner has allowed to
+            `_spender`.
+     * @param _spender The address which will spend the funds.
+     * @param _subtractedValue The amount of tokens to decrease the allowance
+     *        by.
+     */
+    function decreaseAllowance(address _spender, uint256 _subtractedValue)
+        public
+        returns (bool)
+    {
+        uint256 oldValue = _allowances[msg.sender][_spender];
+        if (_subtractedValue >= oldValue) {
+            _allowances[msg.sender][_spender] = 0;
+        } else {
+            _allowances[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        }
+        emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+     * @dev Mints new tokens, increasing totalSupply.
+     */
+    function mint(address _account, uint256 _amount) external onlyExchanger {
+        _mint(_account, _amount);
+    }
+
+    /**
+     * @dev Creates `_amount` tokens and assigns them to `_account`, increasing
+     * the total supply.
+     *
+     * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * Requirements
+     *
+     * - `to` cannot be the zero address.
+     */
+    function _mint(address _account, uint256 _amount) internal {
+        require(_account != address(0), "Mint to the zero address");
+
+        bool isNonRebasingAccount = _isNonRebasingAccount(_account);
+
+        uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
+        _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
+
+        // If the account is non rebasing and doesn't have a set creditsPerToken
+        // then set it i.e. this is a mint from a fresh contract
+        if (isNonRebasingAccount) {
+            nonRebasingSupply = nonRebasingSupply.add(_amount);
+        } else {
+            _rebasingCredits = _rebasingCredits.add(creditAmount);
+        }
+
+        _totalSupply = _totalSupply.add(_amount);
+
+        require(_totalSupply < MAX_SUPPLY, "Max supply");
+
+        emit Transfer(address(0), _account, _amount);
+    }
+
+    /**
+     * @dev Burns tokens, decreasing totalSupply.
+     */
+    function burn(address account, uint256 amount) external onlyExchanger {
+        _burn(account, amount);
+    }
+
+    /**
+     * @dev Destroys `_amount` tokens from `_account`, reducing the
+     * total supply.
+     *
+     * Emits a {Transfer} event with `to` set to the zero address.
+     *
+     * Requirements
+     *
+     * - `_account` cannot be the zero address.
+     * - `_account` must have at least `_amount` tokens.
+     */
+    function _burn(address _account, uint256 _amount) internal {
+        require(_account != address(0), "Burn from the zero address");
+        if (_amount == 0) {
+            return;
+        }
+
+        bool isNonRebasingAccount = _isNonRebasingAccount(_account);
+        uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
+        uint256 currentCredits = _creditBalances[_account];
+
+        // Remove the credits, burning rounding errors
+        if (
+            currentCredits == creditAmount || currentCredits - 1 == creditAmount
+        ) {
+            // Handle dust from rounding
+            _creditBalances[_account] = 0;
+        } else if (currentCredits > creditAmount) {
+            _creditBalances[_account] = _creditBalances[_account].sub(
+                creditAmount
+            );
+        } else {
+            revert("Remove exceeds balance");
+        }
+
+        // Remove from the credit tallies and non-rebasing supply
+        if (isNonRebasingAccount) {
+            nonRebasingSupply = nonRebasingSupply.sub(_amount);
+        } else {
+            _rebasingCredits = _rebasingCredits.sub(creditAmount);
+        }
+
+        _totalSupply = _totalSupply.sub(_amount);
+
+        emit Transfer(_account, address(0), _amount);
+    }
+
+    /**
+     * @dev Get the credits per token for an account. Returns a fixed amount
+     *      if the account is non-rebasing.
+     * @param _account Address of the account.
+     */
+    function _creditsPerToken(address _account)
+        internal
+        view
+        returns (uint256)
+    {
+        if (nonRebasingCreditsPerToken[_account] != 0) {
+            return nonRebasingCreditsPerToken[_account];
+        } else {
+            return _rebasingCreditsPerToken;
+        }
+    }
+
+    /**
+     * @dev Is an account using rebasing accounting or non-rebasing accounting?
+     *      Also, ensure contracts are non-rebasing if they have not opted in.
+     * @param _account Address of the account.
+     */
+    function _isNonRebasingAccount(address _account) internal returns (bool) {
+        bool isContract = Address.isContract(_account);
+        if (isContract && rebaseState[_account] == RebaseOptions.NotSet) {
+            _ensureRebasingMigration(_account);
+        }
+        return nonRebasingCreditsPerToken[_account] > 0;
+    }
+
+    /**
+     * @dev Ensures internal account for rebasing and non-rebasing credits and
+     *      supply is updated following deployment of frozen yield change.
+     */
+    function _ensureRebasingMigration(address _account) internal {
+        if (nonRebasingCreditsPerToken[_account] == 0) {
+            if (_creditBalances[_account] == 0) {
+                // Since there is no existing balance, we can directly set to
+                // high resolution, and do not have to do any other bookkeeping
+                nonRebasingCreditsPerToken[_account] = 1e27;
+            } else {
+                // Migrate an existing account:
+
+                // Set fixed credits per token for this account
+                nonRebasingCreditsPerToken[_account] = _rebasingCreditsPerToken;
+                // Update non rebasing supply
+                nonRebasingSupply = nonRebasingSupply.add(balanceOf(_account));
+                // Update credit tallies
+                _rebasingCredits = _rebasingCredits.sub(
+                    _creditBalances[_account]
+                );
+            }
+        }
+    }
+
+    /**
+     * @dev Add a contract address to the non-rebasing exception list. The
+     * address's balance will be part of rebases and the account will be exposed
+     * to upside and downside.
+     */
+    function rebaseOptIn() public {
+        require(_isNonRebasingAccount(msg.sender), "Account has not opted out");
+
+        // Convert balance into the same amount at the current exchange rate
+        uint256 newCreditBalance = _creditBalances[msg.sender]
+            .mul(_rebasingCreditsPerToken)
+            .div(_creditsPerToken(msg.sender));
+
+        // Decreasing non rebasing supply
+        nonRebasingSupply = nonRebasingSupply.sub(balanceOf(msg.sender));
+
+        _creditBalances[msg.sender] = newCreditBalance;
+
+        // Increase rebasing credits, totalSupply remains unchanged so no
+        // adjustment necessary
+        _rebasingCredits = _rebasingCredits.add(_creditBalances[msg.sender]);
+
+        rebaseState[msg.sender] = RebaseOptions.OptIn;
+
+        // Delete any fixed credits per token
+        delete nonRebasingCreditsPerToken[msg.sender];
+    }
+
+    /**
+     * @dev Explicitly mark that an address is non-rebasing.
+     */
+    function rebaseOptOut() public {
+        require(!_isNonRebasingAccount(msg.sender), "Account has not opted in");
+
+        // Increase non rebasing supply
+        nonRebasingSupply = nonRebasingSupply.add(balanceOf(msg.sender));
+        // Set fixed credits per token
+        nonRebasingCreditsPerToken[msg.sender] = _rebasingCreditsPerToken;
+
+        // Decrease rebasing credits, total supply remains unchanged so no
+        // adjustment necessary
+        _rebasingCredits = _rebasingCredits.sub(_creditBalances[msg.sender]);
+
+        // Mark explicitly opted out of rebasing
+        rebaseState[msg.sender] = RebaseOptions.OptOut;
+    }
+
+    /**
+     * @dev Modify the supply without minting new tokens. This uses a change in
+     *      the exchange rate between "credits" and OUSD tokens to change balances.
+     * @param _newTotalSupply New total supply of OUSD.
+     */
+    function changeSupply(uint256 _newTotalSupply)
+        external
+        onlyExchanger
+    {
+        require(_totalSupply > 0, "Cannot increase 0 supply");
+
+        if (_totalSupply == _newTotalSupply) {
+            emit TotalSupplyUpdatedHighres(
+                _totalSupply,
+                _rebasingCredits,
+                _rebasingCreditsPerToken
+            );
+            return;
+        }
+
+        _totalSupply = _newTotalSupply > MAX_SUPPLY
+            ? MAX_SUPPLY
+            : _newTotalSupply;
+
+        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(
+            _totalSupply.sub(nonRebasingSupply)
+        );
+
+        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
+
+        _totalSupply = _rebasingCredits
+            .divPrecisely(_rebasingCreditsPerToken)
+            .add(nonRebasingSupply);
+
+        emit TotalSupplyUpdatedHighres(
+            _totalSupply,
+            _rebasingCredits,
+            _rebasingCreditsPerToken
+        );
     }
 
 }
