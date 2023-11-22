@@ -216,6 +216,8 @@ interface FORTStake {
     function initializeRedeem(uint256 _amount, uint256 _days) external ;
  
     function finalizeRedeem(uint256 index) external;
+
+    function getUserRedeemLength (address user) external view returns(uint256) ;
  
     function getUserRedeem(address user, uint256 index) external view returns (uint256 amount, uint256 rewardAmount, uint256 endTime);
 }
