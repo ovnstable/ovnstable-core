@@ -22,8 +22,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     /// @custom:oz-renamed-from _balances
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
-
-    mapping(address => mapping(address => uint256)) private _allowances; // сматчили без переименовывания, полное совпадение
+    
+    /// @custom:oz-renamed-from _allowances
+    mapping(address => mapping(address => uint256)) private _allowances_not_used; // его надо както обнулить, но не понятно как, 
+                                                                                  // пришлось переименовать и вместо него новый пустой сделать
 
     uint256 public _totalSupply; // сматчили без переименовывания и поменяли private на public
 
@@ -51,6 +53,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
+    mapping(address => mapping(address => uint256)) private _allowances; // завели новый маппинг так как не понятно как очистить весь старый
     
     uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
     
@@ -75,7 +78,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function migrationInit() public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
-        // todo
+        
+        _rebasingCreditsPerToken = 10 ** 27;
+        nonRebasingSupply = 0;
+        _totalSupply = _totalSupply.rayMul(liquidityIndex).rayToWad();
+        _rebasingCredits = _totalSupply;
     }
 
     function migrationBatchLength(uint256 size) public returns (uint256) {
@@ -90,9 +97,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(devAddress == msg.sender, "Caller is not the Dev");
         uint256 len = _owners.length();
         uint256 startIter = iter * size;
-        uint256 finishIter = 0;
-        for (uint256 i = startIter; i < finishIter; i++) {
-            // todo
+        uint256 finishIter = (iter + 1) * size  > len ? len : (iter + 1) * size;
+        
+        for (uint256 index = startIter; index < finishIter; index++) {
+            address user = _owners.at(index);
+            _creditBalances[user] = _creditBalances[user].rayMul(liquidityIndex).rayToWad();
+            rebaseState[user] = RebaseOptions.OptIn;
         }
     }
 
