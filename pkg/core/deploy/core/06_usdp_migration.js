@@ -46,7 +46,7 @@ module.exports = async ({deployments}) => {
     usdPlus = await ethers.getContractAt('UsdPlusToken', usdPlus.address, wallet);
 
     await usdPlus.migrationInit();
-    let size = 10;
+    let size = 100;
     let length = await usdPlus.migrationBatchLength(size);
     console.log("length", length.toString());
     for(let i = 0; i < length; i++) {
@@ -60,4 +60,4 @@ module.exports = async ({deployments}) => {
 
 };
 
-module.exports.tags = ['base', 'Migration'];
+module.exports.tags = ['Migration'];
