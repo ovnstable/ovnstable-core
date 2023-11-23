@@ -18,45 +18,47 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     using SafeMath for uint256;
     using StableMath for uint256;
 
+    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
     uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
+    uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
 
-    /// @custom:oz-renamed-from _balances
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
     
-    /// @custom:oz-renamed-from _allowances
-    mapping(address => mapping(address => uint256)) private _allowances_not_used; // его надо както обнулить, но не понятно как, 
-                                                                                  // пришлось переименовать и вместо него новый пустой сделать
+    mapping(address => mapping(address => uint256)) private _allowances; // сматчили без переименования
 
-    uint256 public _totalSupply; // сматчили без переименовывания и поменяли private на public
+    uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
 
     string private _name; // сматчили без переименовывания, полное совпадение
     string private _symbol; // сматчили без переименовывания, полное совпадение
 
-    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-
-    /// @custom:oz-renamed-from _totalMint
     uint256 private _rebasingCredits; // сматчили с изменением смыла переменной, была _totalMint
-    /// @custom:oz-renamed-from _totalBurn
     uint256 private _rebasingCreditsPerToken; // сматчили с изменением смыла переменной, была _totalBurn
 
-    /// @custom:oz-renamed-from liquidityIndexChangeTime
     uint256 public nonRebasingSupply; // сматчили с изменением смыла переменной, была liquidityIndexChangeTime
-    uint256 public liquidityIndex; // не будет использоваться
-    uint256 public liquidityIndexDenominator; // не будет использоваться
+    uint256 public DELETED_0; // не будет использоваться, был liquidityIndex
+    uint256 public DELETED_1; // не будет использоваться, был liquidityIndexDenominator
 
     EnumerableSet.AddressSet _owners; // этой логики нет в ousd, но она будет присутствовать в новой версии usd+
-
-    uint256[50] private __gap;
 
     address public exchange; // в ousd есть аналог vaultAddress, но я его переименовал в эксченджер везде
     uint8 private _decimals; // сматчили без переименовывания, полное совпадение
 
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
-    mapping(address => mapping(address => uint256)) private _allowances; // завели новый маппинг так как не понятно как очистить весь старый
-    
-    uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
-    
+
+    // ReentrancyGuard logic
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    modifier nonReentrant() {
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
+    }
+    // ReentrancyGuard logic end
 
 
     event TotalSupplyUpdatedHighres(
@@ -72,20 +74,23 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     event ExchangerUpdated(address exchanger);
-    event LiquidityIndexUpdated(uint256 changeTime, uint256 liquidityIndex);
-
 
     function migrationInit() public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
         
+        uint256 liquidityIndex = DELETED_0;
+
         _rebasingCreditsPerToken = 10 ** 27;
         nonRebasingSupply = 0;
         _totalSupply = _totalSupply.rayMul(liquidityIndex).rayToWad();
         _rebasingCredits = _totalSupply;
+        _decimals = 6;
+        exchange = 0x73cb180bf0521828d8849bc8CF2B920918e23032;
+        _status = _NOT_ENTERED;
     }
 
-    function migrationBatchLength(uint256 size) public returns (uint256) {
+    function migrationBatchLength(uint256 size) public view returns (uint256) {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
         uint256 len = _owners.length();
@@ -95,6 +100,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function migrationBatch(uint256 size, uint256 iter) public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
+        uint256 liquidityIndex = DELETED_0;
         uint256 len = _owners.length();
         uint256 startIter = iter * size;
         uint256 finishIter = (iter + 1) * size  > len ? len : (iter + 1) * size;
@@ -102,6 +108,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         for (uint256 index = startIter; index < finishIter; index++) {
             address user = _owners.at(index);
             _creditBalances[user] = _creditBalances[user].rayMul(liquidityIndex).rayToWad();
+            _creditBalances[user] = _creditBalances[user].mulTruncate(_rebasingCreditsPerToken);
             rebaseState[user] = RebaseOptions.OptIn;
         }
     }
@@ -357,6 +364,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address _to,
         uint256 _value
     ) internal {
+
+        _beforeTokenTransfer(_from, _to, _value);
+
         bool isNonRebasingTo = _isNonRebasingAccount(_to);
         bool isNonRebasingFrom = _isNonRebasingAccount(_from);
 
@@ -384,6 +394,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             // Update rebasingCredits by adding the credited amount
             _rebasingCredits = _rebasingCredits.add(creditsCredited);
         }
+
+        _afterTokenTransfer(_from, _to, _value);
     }
 
     /**
@@ -481,8 +493,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      *
      * - `to` cannot be the zero address.
      */
-    function _mint(address _account, uint256 _amount) internal {
+    function _mint(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Mint to the zero address");
+
+        _beforeTokenTransfer(address(0), _account, _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
 
@@ -500,6 +514,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _totalSupply = _totalSupply.add(_amount);
 
         require(_totalSupply < MAX_SUPPLY, "Max supply");
+
+        _afterTokenTransfer(address(0), _account, _amount);
 
         emit Transfer(address(0), _account, _amount);
     }
@@ -522,11 +538,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `_account` cannot be the zero address.
      * - `_account` must have at least `_amount` tokens.
      */
-    function _burn(address _account, uint256 _amount) internal {
+    function _burn(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Burn from the zero address");
         if (_amount == 0) {
             return;
         }
+
+        _beforeTokenTransfer(address(0), _account, _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
@@ -554,6 +572,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
 
         _totalSupply = _totalSupply.sub(_amount);
+
+        _afterTokenTransfer(address(0), _account, _amount);
 
         emit Transfer(_account, address(0), _amount);
     }
@@ -618,7 +638,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * address's balance will be part of rebases and the account will be exposed
      * to upside and downside.
      */
-    function rebaseOptIn() public {
+    function rebaseOptIn() public nonReentrant {
         require(_isNonRebasingAccount(msg.sender), "Account has not opted out");
 
         // Convert balance into the same amount at the current exchange rate
@@ -644,7 +664,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Explicitly mark that an address is non-rebasing.
      */
-    function rebaseOptOut() public {
+    function rebaseOptOut() public nonReentrant {
         require(!_isNonRebasingAccount(msg.sender), "Account has not opted in");
 
         // Increase non rebasing supply
@@ -668,6 +688,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function changeSupply(uint256 _newTotalSupply)
         external
         onlyExchanger
+        nonReentrant
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
 
@@ -699,6 +720,38 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             _rebasingCredits,
             _rebasingCreditsPerToken
         );
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+
+    }
+
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+
+        if (from == address(0)) {
+            // mint
+            _owners.add(to);
+        } else if (to == address(0)) {
+            // burn
+            if (balanceOf(from) == 0) {
+                _owners.remove(from);
+            }
+        } else {
+            // transfer
+            if (balanceOf(from) == 0) {
+                _owners.remove(from);
+            }
+            _owners.add(to);
+        }
     }
 
 }

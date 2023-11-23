@@ -560,7 +560,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             }
 
             // newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-            delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
+            delta = (newLiquidityIndex * LIQ_DELTA_DM) / 1;//usdPlus.liquidityIndex();
 
             if (abroadMax < delta) {
 
@@ -573,7 +573,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
                 // 4. Convert delta USD+ from scaled to normal amount
 
-                uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
+                uint256 currentLiquidityIndex = 1;//usdPlus.liquidityIndex();
                 uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / LIQ_DELTA_DM;
                 uint256 targetUsdPlusSupplyRay = totalNav.wadToRay().rayDiv(targetLiquidityIndex);
                 uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - 0;//usdPlus.scaledTotalSupply();
@@ -596,7 +596,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
         // newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-        delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
+        delta = (newLiquidityIndex * LIQ_DELTA_DM) / 1;//usdPlus.liquidityIndex();
 
         // Calculating how much users profit after excess fee
         uint256 profit = totalNav - totalUsdPlus;

@@ -15,6 +15,10 @@ module.exports = async ({deployments}) => {
 
     console.log(`Deployer: ${wallet.address}`);
 
+    console.log('UsdPlusToken params before');
+    console.log('Some Balance: ' + await usdPlus.balanceOf(wallet.address));
+    console.log('Total Supply: ' + await usdPlus.totalSupply());
+
     console.log('Grant ADMIN role to DEV')
     await execTimelock(async (timelock) => {
         await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, wallet.address);
@@ -27,6 +31,8 @@ module.exports = async ({deployments}) => {
     let factory = await ethers.getContractFactory('UsdPlusToken');
     let impl = await sampleModule.deployProxyImpl(hre, factory, {
         kind: 'uups',
+        unsafeSkipStorageCheck: true,
+        unsafeAllowRenames: true
     }, usdPlus.address);
 
     let implAddress = impl.impl;
@@ -39,10 +45,18 @@ module.exports = async ({deployments}) => {
 
     usdPlus = await ethers.getContractAt('UsdPlusToken', usdPlus.address, wallet);
 
-    console.log('UsdPlusToken deploy done()');
-    console.log('Symbol:   ' + await usdPlus.symbol());
-    console.log('Name:     ' + await usdPlus.name());
-    console.log('Decimals: ' + await usdPlus.decimals());
+    await usdPlus.migrationInit();
+    let size = 10;
+    let length = await usdPlus.migrationBatchLength(size);
+    console.log("length", length.toString());
+    for(let i = 0; i < length; i++) {
+        console.log("i", i);
+        await (await usdPlus.migrationBatch(size, i)).wait();
+    }
+
+    console.log('UsdPlusToken params after');
+    console.log('Some Balance: ' + await usdPlus.balanceOf(wallet.address));
+    console.log('Total Supply: ' + await usdPlus.totalSupply());
 
 };
 
