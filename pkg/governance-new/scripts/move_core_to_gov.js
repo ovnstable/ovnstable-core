@@ -36,6 +36,8 @@ async function main() {
         'RoleManager',
         'PortfolioManager',
         'Mark2Market',
+        'WrappedUsdPlusToken',
+        'Market'
     ];
 
 
