@@ -3,10 +3,9 @@ const { toE6 } = require('@overnight-contracts/common/utils/decimals');
 const { getDataForSwap } = require('@overnight-contracts/common/utils/inch-helpers');
 const { strategyTest } = require('@overnight-contracts/common/utils/strategy-test');
 const {
-    impersonatingEtsGrantRole,
     prepareEnvironment,
     impersonatingStaker,
-    impersonatingEtsGrantRoleWithInchSwapper
+    impersonatingEtsGrantRoleWithInchSwapper, setStrategyAsDepositor
 } = require("@overnight-contracts/common/utils/tests");
 const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
@@ -15,10 +14,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
     await prepareEnvironment();
 
     if (strategyName.indexOf('StrategyEts') !== -1 || strategyName.indexOf('StrategySmm') !== -1) {
-        let hedgeExchangerAddress = "0xDADD248Ee91e6034F46eaa26aE5fC52482B42888";
-        let ownerAddress = Wallets.DEV;
-        await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
-
+        await setStrategyAsDepositor(strategyAddress);
     } else if (strategyName === 'StrategySolidlizardUsdcDai') {
         let stakerAddress = '0x8c851D48D9CE7c8A78cF633ED2b153960282B49D';
         let ownerAddress = Wallets.DEV;

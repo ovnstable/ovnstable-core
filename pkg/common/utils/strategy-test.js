@@ -7,7 +7,7 @@ chai.use(require('chai-bignumber')());
 const { resetHardhat, greatLess } = require("./tests");
 const { toE6, toE18, fromAsset } = require("./decimals");
 const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeEach");
-const { transferAsset, getERC20, transferETH, initWallet } = require("./script-utils");
+const { transferAsset, getERC20, transferETH, initWallet, execTimelock} = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
 const { Roles } = require("./roles");
 
@@ -540,12 +540,11 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     await deployments.fixture([strategyName]);
 
     const signers = await ethers.getSigners();
-    const account = signers[0];
     const recipient = signers[1];
 
     const strategy = await ethers.getContract(strategyName);
-    await strategy.setPortfolioManager(recipient.address);
-    await strategy.grantRole(Roles.PORTFOLIO_AGENT_ROLE, recipient.address);
+    await strategy.setStrategyParams(recipient.address, recipient.address);
+
 
     if (strategyParams.isRunStrategyLogic) {
         await runStrategyLogic(strategyName, strategy.address);

@@ -1,0 +1,1318 @@
+[
+  {
+    "type": "function",
+    "name": "getRoleAdmin",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "role"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "grantRole",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "role"
+      },
+      {
+        "type": "address",
+        "name": "account"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "hasRole",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "role"
+      },
+      {
+        "type": "address",
+        "name": "account"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "revokeRole",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes32",
+        "name": "role"
+      },
+      {
+        "type": "address",
+        "name": "account"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Reward",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Stake",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Unstake",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "balance",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "balanceSlippageBp",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "baseDecimals",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "baseOracle",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "baseToken",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "claimRewards",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address",
+        "name": "to"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getStrategyInfo",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "strategyInfo",
+        "components": [
+          {
+            "type": "bool",
+            "name": "needToBalance"
+          },
+          {
+            "type": "uint256",
+            "name": "nav"
+          },
+          {
+            "type": "uint256",
+            "name": "mainBase"
+          },
+          {
+            "type": "uint256",
+            "name": "mainSide"
+          },
+          {
+            "type": "uint256",
+            "name": "extraBase"
+          },
+          {
+            "type": "uint256",
+            "name": "extraSide"
+          },
+          {
+            "type": "uint256",
+            "name": "freeBase"
+          },
+          {
+            "type": "uint256",
+            "name": "freeSide"
+          },
+          {
+            "type": "uint256",
+            "name": "mainSideInBase"
+          },
+          {
+            "type": "uint256",
+            "name": "extraSideInBase"
+          },
+          {
+            "type": "uint256",
+            "name": "freeSideInBase"
+          },
+          {
+            "type": "uint256",
+            "name": "sideInBase"
+          },
+          {
+            "type": "uint256",
+            "name": "oraclePrice"
+          },
+          {
+            "type": "uint256",
+            "name": "poolPrice"
+          },
+          {
+            "type": "uint256",
+            "name": "staticPrice"
+          },
+          {
+            "type": "uint256",
+            "name": "lowerPriceBorder"
+          },
+          {
+            "type": "uint256",
+            "name": "upperPriceBorder"
+          },
+          {
+            "type": "uint256",
+            "name": "lowerPriceMain"
+          },
+          {
+            "type": "uint256",
+            "name": "upperPriceMain"
+          },
+          {
+            "type": "uint256",
+            "name": "lowerPriceExtra"
+          },
+          {
+            "type": "uint256",
+            "name": "upperPriceExtra"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "netAssetValue",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "setCoreParams",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "args",
+        "components": [
+          {
+            "type": "address",
+            "name": "baseToken"
+          },
+          {
+            "type": "address",
+            "name": "sideToken"
+          },
+          {
+            "type": "address",
+            "name": "baseOracle"
+          },
+          {
+            "type": "address",
+            "name": "sideOracle"
+          },
+          {
+            "type": "address",
+            "name": "depositor"
+          },
+          {
+            "type": "address",
+            "name": "roleManager"
+          }
+        ]
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setDepositor",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_depositor"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setSlippages",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "balanceSlippageBp"
+      },
+      {
+        "type": "uint256",
+        "name": "stakeSlippageBp"
+      },
+      {
+        "type": "uint256",
+        "name": "swapSlippageBp"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "sideDecimals",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "sideOracle",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "sideToken",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "stake",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "_amount"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "stakeSlippageBp",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "swapSlippageBp",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "unstake",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "_amount"
+      },
+      {
+        "type": "address",
+        "name": "_to"
+      },
+      {
+        "type": "bool",
+        "name": "_onlyBase"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "addLiquidity",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "borderPrices",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "lowerPriceBorder"
+      },
+      {
+        "type": "uint256",
+        "name": "upperPriceBorder"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "claimStakeRewards",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "extraPrices",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getExtraStakeLiquidity",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getMainStakeLiquidity",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getStakeLiquidity",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "getStakeParams",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "params",
+        "components": [
+          {
+            "type": "uint256",
+            "name": "tokenIdMain"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenIdExtra"
+          },
+          {
+            "type": "address",
+            "name": "npm"
+          },
+          {
+            "type": "address",
+            "name": "pool"
+          },
+          {
+            "type": "int24",
+            "name": "tickWidth"
+          },
+          {
+            "type": "uint256",
+            "name": "lowerPercent"
+          },
+          {
+            "type": "uint256",
+            "name": "upperPercent"
+          },
+          {
+            "type": "address",
+            "name": "oracle"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "isNeedToBalance",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "mainPrices",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "onERC721Received",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address"
+      },
+      {
+        "type": "address"
+      },
+      {
+        "type": "uint256"
+      },
+      {
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bytes4"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "poolPrice",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "removeLiquidity",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setStakeParams",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "args",
+        "components": [
+          {
+            "type": "uint256",
+            "name": "tokenIdMain"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenIdExtra"
+          },
+          {
+            "type": "address",
+            "name": "npm"
+          },
+          {
+            "type": "address",
+            "name": "pool"
+          },
+          {
+            "type": "int24",
+            "name": "tickWidth"
+          },
+          {
+            "type": "uint256",
+            "name": "lowerPercent"
+          },
+          {
+            "type": "uint256",
+            "name": "upperPercent"
+          },
+          {
+            "type": "address",
+            "name": "oracle"
+          }
+        ]
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setTokenIds",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "tokenIdMain"
+      },
+      {
+        "type": "uint256",
+        "name": "tokenIdExtra"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "staticPrice",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Sell",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "assetFrom",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "assetTo",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amountIn",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amountOut",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "sellRewards",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "setSellParams",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "args",
+        "components": [
+          {
+            "type": "address",
+            "name": "uniswapV3Router"
+          },
+          {
+            "type": "address",
+            "name": "arbToken"
+          },
+          {
+            "type": "uint24",
+            "name": "poolFeeArbWeth"
+          }
+        ]
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Swap",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "assetFrom",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "assetTo",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amountIn",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amountOut",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "setSwapParams",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple",
+        "name": "args",
+        "components": [
+          {
+            "type": "address",
+            "name": "inchSwapper"
+          }
+        ]
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "swapSideToBase",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "baseNeedToRemain"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "Abroad",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "min",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "max",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "CollectorUpdated",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "collector",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "DepositorUpdated",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "depositor",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "EventExchange",
+    "inputs": [
+      {
+        "type": "string",
+        "name": "label",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "MintRedeemSlippageBpUpdated",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "value",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "PayoutEvent",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "profitFee",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "profit",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "loss",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "collectorAmount",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "ProfitFeeUpdated",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "fee",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "DENOMINATOR",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "initExchange",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "mint",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "payout",
+    "constant": false,
+    "payable": false,
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "redeem",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "amount"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setAbroad",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "_min"
+      },
+      {
+        "type": "uint256",
+        "name": "_max"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setCollector",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_collector"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setMintRedeemSlippageBp",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "_value"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setProfitFee",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "_fee"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "totalSupply",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InitializationFunctionReverted",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_initializationContractAddress"
+      },
+      {
+        "type": "bytes",
+        "name": "_calldata"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "DiamondCut",
+    "inputs": [
+      {
+        "type": "tuple[]",
+        "name": "_diamondCut",
+        "indexed": false,
+        "components": [
+          {
+            "type": "address",
+            "name": "facetAddress"
+          },
+          {
+            "type": "uint8",
+            "name": "action"
+          },
+          {
+            "type": "bytes4[]",
+            "name": "functionSelectors"
+          }
+        ]
+      },
+      {
+        "type": "address",
+        "name": "_init",
+        "indexed": false
+      },
+      {
+        "type": "bytes",
+        "name": "_calldata",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "diamondCut",
+    "constant": false,
+    "payable": false,
+    "inputs": [
+      {
+        "type": "tuple[]",
+        "name": "_diamondCut",
+        "components": [
+          {
+            "type": "address",
+            "name": "facetAddress"
+          },
+          {
+            "type": "uint8",
+            "name": "action"
+          },
+          {
+            "type": "bytes4[]",
+            "name": "functionSelectors"
+          }
+        ]
+      },
+      {
+        "type": "address",
+        "name": "_init"
+      },
+      {
+        "type": "bytes",
+        "name": "_calldata"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "facetAddress",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes4",
+        "name": "_functionSelector"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "address",
+        "name": "facetAddress_"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "facetAddresses",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "address[]",
+        "name": "facetAddresses_"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "facetFunctionSelectors",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_facet"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bytes4[]",
+        "name": "facetFunctionSelectors_"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "facets",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "tuple[]",
+        "name": "facets_",
+        "components": [
+          {
+            "type": "address",
+            "name": "facetAddress"
+          },
+          {
+            "type": "bytes4[]",
+            "name": "functionSelectors"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "supportsInterface",
+    "constant": true,
+    "stateMutability": "view",
+    "payable": false,
+    "inputs": [
+      {
+        "type": "bytes4",
+        "name": "_interfaceId"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "bool"
+      }
+    ]
+  }
+]

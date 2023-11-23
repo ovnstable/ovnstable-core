@@ -8,7 +8,7 @@ const fs = require("fs-extra")
 
 const { node_url, blockNumber } = require("../utils/network");
 const { ethers } = require("hardhat");
-const { transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract, getChainId } = require("./script-utils");
+const { transferETH, getDevWallet, getERC20, transferAsset, execTimelock, getContract, getChainId, initWallet} = require("./script-utils");
 const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const InchSwapperABI = require("./abi/InchSwapper.json");
 const StakerABI = require("./abi/Staker.json");
@@ -16,6 +16,10 @@ const { Roles } = require("./roles");
 const { ARBITRUM, OPTIMISM, BSC, getAsset} = require("./assets");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getDataForSwap } = require('./inch-helpers');
+
+
+const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
+const WRAPPER_DIAMOND_STRATEGY = require('./abi/WrapperDiamondStrategy.json');
 
 let isTestAssetsCompleted = false;
 
@@ -70,6 +74,30 @@ async function resetHardhatToLastBlock() {
     console.log(`[Hardhat]: hardhat_reset -> ${block.toString()}`);
 }
 
+
+async function setStrategyAsDepositor(strategyAddress){
+    console.log(`Set depositor: ${strategyAddress}`);
+    let wallet = await initWallet();
+
+    await transferETH(1, wallet.address);
+
+    let wrapperStrategy = await ethers.getContractAt(WRAPPER_DIAMOND_STRATEGY, strategyAddress, wallet);
+
+    let diamondStrategyAddress = await wrapperStrategy.strategy();
+    let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, diamondStrategyAddress , wallet);
+
+    await execTimelock(async (timelock)=>{
+
+        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
+            await diamondStrategy.connect(wallet).setDepositor(strategyAddress);
+        }else {
+            await diamondStrategy.connect(timelock).setDepositor(strategyAddress);
+        }
+
+    })
+
+    console.log('Set depositor done()');
+}
 
 async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress) {
 
@@ -243,6 +271,7 @@ async function prepareEnvironment() {
 
 module.exports = {
     greatLess: greatLess,
+    setStrategyAsDepositor: setStrategyAsDepositor,
     resetHardhat: resetHardhat,
     resetHardhatToLastBlock: resetHardhatToLastBlock,
     prepareEnvironment: prepareEnvironment,
