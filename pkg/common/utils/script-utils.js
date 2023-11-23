@@ -3,10 +3,10 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const {ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset} = require("./assets");
+const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset } = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
-const { fromAsset, toAsset, fromUsdPlus} = require("./decimals");
+const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
 const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 const { BigNumber } = require("ethers");
@@ -42,7 +42,7 @@ async function initWallet() {
 }
 
 
-async function findEvent(receipt, abi, eventName){
+async function findEvent(receipt, abi, eventName) {
 
 
     for (let value of receipt.logs) {
@@ -712,6 +712,9 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case ARBITRUM.usdc:
                     from = '0x62383739D68Dd0F844103Db8dFb05a7EdED5BBE6';
+                    break;
+                case ARBITRUM.usdcCircle:
+                    from = '0xe68ee8a12c611fd043fb05d65e1548dc1383f2b9';
                     break;
                 case ARBITRUM.usdt:
                     from = '0x8f9c79b9de8b0713dcac3e535fc5a1a92db6ea2d';
