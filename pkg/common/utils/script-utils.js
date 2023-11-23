@@ -15,6 +15,9 @@ const { updateFeeData } = require("./hardhat-ovn");
 
 let ethers = require('hardhat').ethers;
 
+const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
+const {Roles} = require("./roles");
+
 let wallet = undefined;
 async function initWallet() {
 
@@ -117,9 +120,24 @@ async function settingSection(exec) {
                 strategy = strategy.connect(timelockAccount);
             }
 
+            console.log('Try to SetStrategyParams');
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
+
+            if (strategyName.includes('Smm') || strategyName.includes('Ets')){
+                console.log('Try to setDepositor');
+                let wallet = await initWallet();
+                let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
+
+                if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
+                    await (await diamondStrategy.setDepositor(strategy.address));
+                    console.log(`diamondStrategy.setDepository(${strategy.address})`);
+                }else {
+                    console.warn(`Cannot setDepositor -> wallet: ${wallet.address} not has ADMIN role on DiamondStrategy: ${diamondStrategy.address}`);
+                }
+            }
+
 
             await exec(strategy);
             console.log(`[${strategyName}] setting done`)
