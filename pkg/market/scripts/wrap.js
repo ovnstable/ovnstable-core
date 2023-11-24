@@ -9,8 +9,7 @@ async function main() {
     let wUsdPlus = await getContract('WrappedUsdPlusToken');
 
     let address = await getWalletAddress();
-    let amount = toAsset(2);
-
+    let amount = await usdPlus.balanceOf(address);
 
     console.log('USD+:  ' + fromAsset(await usdPlus.balanceOf(address)));
     console.log('wUSD+: ' + fromAsset(await wUsdPlus.balanceOf(address)));
