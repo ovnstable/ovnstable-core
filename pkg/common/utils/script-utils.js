@@ -91,7 +91,7 @@ async function deploySection(exec) {
     }
 }
 
-async function settingSection(exec) {
+async function settingSection(id, exec) {
 
     if (hre.ovn === undefined)
         hre.ovn = {};
@@ -124,27 +124,107 @@ async function settingSection(exec) {
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
-
-            if (strategyName.includes('Smm') || strategyName.includes('Ets')){
-                console.log('Try to setDepositor');
-                let wallet = await initWallet();
-                let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
-
-                if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
-                    await (await diamondStrategy.setDepositor(strategy.address));
-                    console.log(`diamondStrategy.setDepository(${strategy.address})`);
-                }else {
-                    console.warn(`Cannot setDepositor -> wallet: ${wallet.address} not has ADMIN role on DiamondStrategy: ${diamondStrategy.address}`);
-                }
-            }
-
-
+            await setDepositor(strategyName, strategy);
+            await addStrategyToApi(strategy, id);
             await exec(strategy);
             console.log(`[${strategyName}] setting done`)
         } catch (e) {
             console.error(`[${strategyName}] setting fail: ` + e);
         }
 
+    }
+}
+
+
+async function setDepositor(strategyName, strategy){
+
+    if (strategyName.includes('Smm') || strategyName.includes('Ets')){
+        console.log('Try to setDepositor');
+        let wallet = await initWallet();
+        let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
+
+        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
+            await (await diamondStrategy.setDepositor(strategy.address));
+            console.log(`diamondStrategy.setDepository(${strategy.address})`);
+        }else {
+            console.warn(`Cannot setDepositor -> wallet: ${wallet.address} not has ADMIN role on DiamondStrategy: ${diamondStrategy.address}`);
+        }
+    }
+}
+
+async function addStrategyToApi(strategy, id){
+    console.log(`Try to add strategy [${id}] to API`);
+
+    if (hre.network.name === 'localhost'){
+        console.log('Ignore add strategy to API for localhost network');
+        return;
+    }
+
+
+    let explorerAddress;
+    if (strategy.strategy){
+        explorerAddress = await strategy.strategy();
+    }
+
+    let type;
+    if (id.includes('SMM') || name.includes('ETS')){
+        type = 'ETS'
+    }else {
+        type = 'CORE';
+    }
+
+
+    let usdPlus = await getContract('UsdPlusToken');
+
+    let request = {
+        id: id,
+        chain: process.env.ETH_NETWORK.toUpperCase(),
+        strategyAddress: strategy.address,
+        explorerAddress: explorerAddress,
+        type: type,
+        token: await usdPlus.symbol(),
+    }
+
+    console.log(`Request to DEV API: ${JSON.stringify(request)}`);
+
+    let url = getDevApiUrl() + "/dev/strategy";
+
+    console.log(`URL: ${url}`);
+
+    try {
+        await axios.post(url, request, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getDevAuthApiKey()
+            },
+        });
+        console.log(`Strategy ${id} success added to API`);
+    } catch (e) {
+        console.error(`Cannot add strategy to API: ${e}`);
+    }
+
+}
+
+
+function getDevApiUrl(){
+
+    let devApiUrl = process.env.DEV_API_URL;
+
+    if (devApiUrl){
+        return devApiUrl;
+    }else {
+        throw new Error('DEV_API_URL is not defined');
+    }
+}
+
+function getDevAuthApiKey(){
+
+    let devApiKey = process.env.DEV_AUTH_API_KEY;
+
+    if (devApiKey){
+        return devApiKey;
+    }else {
+        throw new Error('DEV_AUTH_API_KEY is not defined');
     }
 }
 
@@ -990,6 +1070,7 @@ module.exports = {
     getStrategyMapping: getStrategyMapping,
     getChainId: getChainId,
     convertWeights: convertWeights,
+    addStrategyToApi: addStrategyToApi,
     initWallet: initWallet,
     getWalletAddress: getWalletAddress,
     getDevWallet: getDevWallet,

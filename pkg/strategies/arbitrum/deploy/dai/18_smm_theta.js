@@ -2,7 +2,6 @@ const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployPr
 const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
 const { ARBITRUM} = require("@overnight-contracts/common/utils/assets");
 
-
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
@@ -10,7 +9,7 @@ module.exports = async ({ deployments }) => {
         await deployProxyMulti(name, 'StrategyWrapperDiamond', deployments, save, null);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('SMM Theta', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
