@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
+import "./IPayoutManager.sol";
+
 interface IUsdPlusToken {
 
     function liquidityIndex() external view returns (uint256);
@@ -124,5 +126,11 @@ interface IUsdPlusToken {
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
     function decimals() external pure returns (uint8);
+
+    function rebaseOptIn(address _address) external;
+
+    function rebaseOptOut(address _address) external;
+
+    function changeSupply(uint256 _newTotalSupply) external returns (NonRebaseInfo [] memory, uint256);
 
 }

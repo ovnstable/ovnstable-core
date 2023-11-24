@@ -1,0 +1,231 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.0 <0.9.0;
+
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./interfaces/IPayoutManager.sol";
+import "./interfaces/IRoleManager.sol";
+import "./interfaces/IUsdPlusToken.sol";
+
+
+abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+
+    struct Item {
+        // Unique ID = pool + token
+        address pool;
+        address token;
+        string poolName;
+        address bribe;
+        Operation operation;
+        address to;
+        string dexName;
+        uint24 feePercent;
+        address feeReceiver;
+        uint256[10] __gap;
+    }
+
+    enum Operation {
+        SKIM,
+        SYNC,
+        BRIBE,
+        CUSTOM
+    }
+
+    Item[] public items;
+
+    bool public disabled; // Admin can disable to executing PayoutDone
+
+    address overnightVault;
+
+    function __PayoutListener_init() internal initializer {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+    internal
+    onlyRole(DEFAULT_ADMIN_ROLE)
+    override
+    {}
+
+    // ---  events
+
+    event AddItem(address token, address pool);
+    event RemoveItem(address token, address pool);
+    event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
+    event DisabledUpdated(bool disabled);
+    event PayoutDoneDisabled();
+
+    // ---  modifiers
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        _;
+    }
+
+    modifier onlyExchanger() {
+        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    // --- setters
+
+    function setDisabled(bool _disabled) external onlyAdmin {
+        disabled = _disabled;
+        emit DisabledUpdated(disabled);
+    }
+
+
+    // --- logic
+
+    /**
+     * Get items
+     */
+    function getItems() external view returns (Item[] memory) {
+        return items;
+    }
+
+    /**
+     * Get items length
+     */
+    function getItemsLength() external view returns (uint256) {
+        return items.length;
+    }
+
+    /**
+     * Find items by pool address
+     */
+    function findItemsByPool(address pool) external view returns (Item[] memory) {
+        uint256 j;
+        for (uint256 x = 0; x < items.length; x++) {
+            if (items[x].pool == pool) {
+                j++;
+            }
+        }
+
+        Item[] memory foundItems = new Item[](j);
+        uint256 p = 0;
+        for (uint256 i = 0; i < items.length; i++) {
+            if (items[i].pool == pool) {
+                Item memory item = items[i];
+                foundItems[p] = item;
+                p++;
+            }
+        }
+
+        return foundItems;
+    }
+
+    /**
+     * Add new item to list or update exist item
+     */
+    function addItem(Item memory item) public onlyAdmin {
+        require(item.token != address(0), 'token is zero');
+        require(item.pool != address(0), 'pool is zero');
+
+        if (item.operation == Operation.SKIM) {
+            require(item.to != address(0), 'to is zero');
+        } else if (item.operation == Operation.BRIBE) {
+            require(item.bribe != address(0), 'bribe is zero');
+        }
+
+        bool isNew = true;
+        for (uint256 x = 0; x < items.length; x++) {
+            Item memory exitItem = items[x];
+
+            if (exitItem.token == item.token && exitItem.pool == item.pool) {
+                items[x] = item;
+                isNew = false;
+            }
+        }
+
+        if (isNew) {
+            items.push(item);
+            IUsdPlusToken(item.token).rebaseOptOut(item.pool);
+        }
+
+        emit AddItem(item.token, item.pool);
+    }
+
+    /**
+     * Add new items to list or update exist items
+     */
+    function addItems(Item[] memory items) external onlyAdmin {
+        for (uint256 x = 0; x < items.length; x++) {
+            Item memory item = items[x];
+            addItem(item);
+        }
+    }
+
+    /**
+     * Remove item from items
+     */
+    function removeItem(address token, address pool) external onlyAdmin {
+        require(token != address(0), 'token is zero');
+        require(pool != address(0), 'pool is zero');
+
+        for (uint256 x = 0; x < items.length; x++) {
+            Item memory exitItem = items[x];
+
+            if (exitItem.token == token && exitItem.pool == pool) {
+                for (uint i = x; i < items.length - 1; i++) {
+                    Item memory tempItem = items[i + 1];
+                    items[i] = tempItem;
+                }
+                items.pop();
+                IUsdPlusToken(token).rebaseOptIn(pool);
+                emit RemoveItem(token, pool);
+                return;
+            }
+        }
+
+        revert('item not found');
+    }
+
+    /**
+     * Remove items
+     */
+    function removeItems() external onlyAdmin {
+        uint256 length = items.length;
+        for (uint256 x = 0; x < length; x++) {
+            items.pop();
+        }
+    }
+
+    /**
+     * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
+     * see details: Exchange.sol | HedgeExchanger.sol
+     */
+    function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external override onlyExchanger {
+
+        if (disabled) {
+            emit PayoutDoneDisabled();
+            return;
+        }
+
+        for (uint256 i = 0; i < items.length; i++) {
+
+            if (items[i].token != token) {
+                continue;
+            }
+            // nned to refactor: two cycles are bad
+            for (uint256 j = 0; j < nonRebaseInfo.length; j++) {
+
+                if (items[i].pool != nonRebaseInfo[i].pool) {
+                    continue;
+                }
+                
+                IERC20 token = IERC20(items[i].token);
+                token.transfer(overnightVault, nonRebaseInfo[i].amount);
+            }
+        }
+    }
+
+    uint256[50] private __gap;
+
+}

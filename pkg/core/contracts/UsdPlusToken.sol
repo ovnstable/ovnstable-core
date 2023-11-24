@@ -11,6 +11,7 @@ import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import "./libraries/WadRayMath.sol";
+import "./interfaces/IPayoutManager.sol";
 
 contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256; // после переезда это надо удалить, но пока не переехали нельзя
@@ -19,6 +20,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     using StableMath for uint256;
 
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+    bytes32 public constant PAYOUT_MANAGER = keccak256("PAYOUT_MANAGER");
     uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
     uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
 
@@ -42,9 +44,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     address public exchange; // в ousd есть аналог vaultAddress, но я его переименовал в эксченджер везде
     uint8 private _decimals; // сматчили без переименовывания, полное совпадение
+    address public payoutManager;
+
 
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
+    EnumerableSet.AddressSet _nonRebaseOwners;
 
     // ReentrancyGuard logic
     uint256 private constant _NOT_ENTERED = 1;
@@ -68,12 +73,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     );
 
     enum RebaseOptions {
-        NotSet,
-        OptOut,
-        OptIn
+        OptIn,
+        OptOut
     }
 
     event ExchangerUpdated(address exchanger);
+    event PayoutManagerUpdated(address payoutManager);
 
     function migrationInit() public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
@@ -144,6 +149,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _;
     }
 
+    modifier onlyPayoutManager() {
+        require(hasRole(PAYOUT_MANAGER, _msgSender()), "Caller is not the PAYOUT_MANAGER");
+        _;
+    }
+
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
@@ -156,6 +166,15 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         grantRole(EXCHANGER, _exchanger);
         exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
+    }
+
+    function setPayoutManager(address _payoutManager) external onlyAdmin {
+        if (payoutManager != address(0)) {
+            revokeRole(EXCHANGER, payoutManager);
+        }
+        grantRole(EXCHANGER, _payoutManager);
+        payoutManager = _payoutManager;
+        emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setDecimals(uint8 decimals) external onlyAdmin {
@@ -595,42 +614,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
     }
 
-    /**
-     * @dev Is an account using rebasing accounting or non-rebasing accounting?
-     *      Also, ensure contracts are non-rebasing if they have not opted in.
-     * @param _account Address of the account.
-     */
     function _isNonRebasingAccount(address _account) internal returns (bool) {
-        bool isContract = Address.isContract(_account);
-        if (isContract && rebaseState[_account] == RebaseOptions.NotSet) {
-            _ensureRebasingMigration(_account);
-        }
-        return nonRebasingCreditsPerToken[_account] > 0;
-    }
-
-    /**
-     * @dev Ensures internal account for rebasing and non-rebasing credits and
-     *      supply is updated following deployment of frozen yield change.
-     */
-    function _ensureRebasingMigration(address _account) internal {
-        if (nonRebasingCreditsPerToken[_account] == 0) {
-            if (_creditBalances[_account] == 0) {
-                // Since there is no existing balance, we can directly set to
-                // high resolution, and do not have to do any other bookkeeping
-                nonRebasingCreditsPerToken[_account] = 1e27;
-            } else {
-                // Migrate an existing account:
-
-                // Set fixed credits per token for this account
-                nonRebasingCreditsPerToken[_account] = _rebasingCreditsPerToken;
-                // Update non rebasing supply
-                nonRebasingSupply = nonRebasingSupply.add(balanceOf(_account));
-                // Update credit tallies
-                _rebasingCredits = _rebasingCredits.sub(
-                    _creditBalances[_account]
-                );
-            }
-        }
+        return rebaseState[_account] == RebaseOptions.OptOut;
     }
 
     /**
@@ -638,46 +623,50 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * address's balance will be part of rebases and the account will be exposed
      * to upside and downside.
      */
-    function rebaseOptIn() public nonReentrant {
-        require(_isNonRebasingAccount(msg.sender), "Account has not opted out");
+    function rebaseOptIn(address _address) public nonReentrant onlyPayoutManager {
+        require(_isNonRebasingAccount(_address), "Account has not opted out");
 
         // Convert balance into the same amount at the current exchange rate
-        uint256 newCreditBalance = _creditBalances[msg.sender]
+        uint256 newCreditBalance = _creditBalances[_address]
             .mul(_rebasingCreditsPerToken)
-            .div(_creditsPerToken(msg.sender));
+            .div(_creditsPerToken(_address));
 
         // Decreasing non rebasing supply
-        nonRebasingSupply = nonRebasingSupply.sub(balanceOf(msg.sender));
+        nonRebasingSupply = nonRebasingSupply.sub(balanceOf(_address));
 
-        _creditBalances[msg.sender] = newCreditBalance;
+        _creditBalances[_address] = newCreditBalance;
 
         // Increase rebasing credits, totalSupply remains unchanged so no
         // adjustment necessary
-        _rebasingCredits = _rebasingCredits.add(_creditBalances[msg.sender]);
+        _rebasingCredits = _rebasingCredits.add(_creditBalances[_address]);
 
-        rebaseState[msg.sender] = RebaseOptions.OptIn;
+        rebaseState[_address] = RebaseOptions.OptIn;
 
         // Delete any fixed credits per token
-        delete nonRebasingCreditsPerToken[msg.sender];
+        delete nonRebasingCreditsPerToken[_address];
+
+        _nonRebaseOwners.remove(_address);
     }
 
     /**
      * @dev Explicitly mark that an address is non-rebasing.
      */
-    function rebaseOptOut() public nonReentrant {
-        require(!_isNonRebasingAccount(msg.sender), "Account has not opted in");
+    function rebaseOptOut(address _address) public nonReentrant onlyPayoutManager {
+        require(!_isNonRebasingAccount(_address), "Account has not opted in");
 
         // Increase non rebasing supply
-        nonRebasingSupply = nonRebasingSupply.add(balanceOf(msg.sender));
+        nonRebasingSupply = nonRebasingSupply.add(balanceOf(_address));
         // Set fixed credits per token
-        nonRebasingCreditsPerToken[msg.sender] = _rebasingCreditsPerToken;
+        nonRebasingCreditsPerToken[_address] = _rebasingCreditsPerToken;
 
         // Decrease rebasing credits, total supply remains unchanged so no
         // adjustment necessary
-        _rebasingCredits = _rebasingCredits.sub(_creditBalances[msg.sender]);
+        _rebasingCredits = _rebasingCredits.sub(_creditBalances[_address]);
 
         // Mark explicitly opted out of rebasing
-        rebaseState[msg.sender] = RebaseOptions.OptOut;
+        rebaseState[_address] = RebaseOptions.OptOut;
+
+        _nonRebaseOwners.add(_address);
     }
 
     /**
@@ -689,6 +678,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         external
         onlyExchanger
         nonReentrant
+        returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
 
@@ -698,12 +688,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
                 _rebasingCredits,
                 _rebasingCreditsPerToken
             );
-            return;
+            return (new NonRebaseInfo[](0), 0);
         }
 
-        _totalSupply = _newTotalSupply > MAX_SUPPLY
+        uint256 delta = _newTotalSupply - _totalSupply;
+        uint256 deltaNR = delta * nonRebasingSupply / _totalSupply;
+        uint256 deltaR = delta - deltaNR;
+
+        _totalSupply = _totalSupply + deltaR > MAX_SUPPLY
             ? MAX_SUPPLY
-            : _newTotalSupply;
+            : _totalSupply + deltaR;
 
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(
             _totalSupply.sub(nonRebasingSupply)
@@ -715,11 +709,21 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             .divPrecisely(_rebasingCreditsPerToken)
             .add(nonRebasingSupply);
 
+        NonRebaseInfo [] memory nonRebaseInfo = new NonRebaseInfo[](_nonRebaseOwners.length());
+        for (uint256 i = 0; i < nonRebaseInfo.length; i++) {
+            address userAddress = _nonRebaseOwners.at(i);
+            uint256 userBalance = balanceOf(userAddress);
+            uint256 userPart = userBalance * deltaNR / nonRebasingSupply;
+            nonRebaseInfo[i] = NonRebaseInfo(userAddress, userPart);
+        }
+
         emit TotalSupplyUpdatedHighres(
             _totalSupply,
             _rebasingCredits,
             _rebasingCreditsPerToken
         );
+
+        return (nonRebaseInfo, deltaNR);
     }
 
     function _beforeTokenTransfer(
