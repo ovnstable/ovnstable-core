@@ -9,7 +9,7 @@ module.exports = async ({ deployments }) => {
         await deployProxyMulti(name, 'StrategyWrapperDiamond', deployments, save, null);
     });
 
-    await settingSection('SMM Theta', async (strategy) => {
+    await settingSection('SmmThetaArb', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
