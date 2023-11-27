@@ -14,11 +14,9 @@ import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./UsdPlusToken.sol";
-import "./libraries/WadRayMath.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
-    using WadRayMath for uint256;
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
@@ -541,31 +539,20 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
-            // newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-            // delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
+            delta = totalNav * LIQ_DELTA_DM / usdPlus.totalSupply();
 
-            // if (abroadMax < delta) {
+            if (abroadMax < delta) {
 
                 // Calculate the amount of USD+ to hit the maximum delta.
                 // We send the difference to the OVN wallet.
 
-                // How it works?
-                // 1. Calculating target liquidity index
-                // 2. Calculating target usdPlus.totalSupply
-                // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
-                // 4. Convert delta USD+ from scaled to normal amount
+                uint256 newTotalSupply = totalNav * LIQ_DELTA_DM / abroadMax;
+                uint256 totalSupplyDelta = newTotalSupply - usdPlus.totalSupply();
 
-            //     uint256 currentLiquidityIndex = 1;//usdPlus.liquidityIndex();
-            //     uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / LIQ_DELTA_DM;
-            //     uint256 targetUsdPlusSupplyRay = totalNav.wadToRay().rayDiv(targetLiquidityIndex);
-            //     uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - 0;//usdPlus.scaledTotalSupply();
-            //     excessProfit = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
-
-            //     // Mint USD+ to OVN wallet
-            //     require(profitRecipient != address(0), 'profitRecipient address is zero');
-            //     usdPlus.mint(profitRecipient, excessProfit);
-
-            // }
+                // Mint USD+ to OVN wallet
+                require(profitRecipient != address(0), 'profitRecipient address is zero');
+                usdPlus.mint(profitRecipient, totalSupplyDelta);
+            }
 
         }
 
