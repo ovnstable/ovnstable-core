@@ -21,6 +21,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
     uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
 
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
 
@@ -50,9 +52,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте
 
     // ReentrancyGuard logic
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
-
     uint256 private _status;
 
     modifier nonReentrant() {
