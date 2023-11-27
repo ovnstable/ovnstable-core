@@ -44,6 +44,8 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
 
     address public exchange;
     uint8 private _decimals;
+    bool private _paused;
+
 
     // ---  events
 
@@ -62,7 +64,20 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
         _;
     }
 
+    modifier notPaused() {
+        require(_paused == false, "pause");
+        _;
+    }
+
     // ---  setters
+
+    function pause() public onlyAdmin {
+        _paused = true;
+    }
+
+    function unpause() public onlyAdmin {
+        _paused = false;
+    }
 
     function setExchanger(address _exchanger) external onlyAdmin {
         if (exchange != address(0)) {
@@ -123,7 +138,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
     // ---  logic
 
 
-    function mint(address _sender, uint256 _amount) external onlyExchanger {
+    function mint(address _sender, uint256 _amount) external onlyExchanger notPaused {
         // up to ray
         uint256 mintAmount = _amount.wadToRay();
         mintAmount = mintAmount.rayDiv(liquidityIndex);
@@ -152,7 +167,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
         _afterTokenTransfer(address(0), account, amount);
     }
 
-    function burn(address _sender, uint256 _amount) external onlyExchanger {
+    function burn(address _sender, uint256 _amount) external onlyExchanger notPaused {
         uint256 burnAmount;
         if (_amount == balanceOf(_sender)) {
             // burn all
@@ -234,7 +249,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
     /**
      * @dev See {IERC20-transfer}.
      */
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
+    function transfer(address recipient, uint256 amount) public notPaused override returns (bool) {
         uint256 transferAmount;
         if (amount == balanceOf(_msgSender())) {
             // transfer all
@@ -254,7 +269,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(address owner, address spender) public view override returns (uint256) {
+    function allowance(address owner, address spender) public notPaused view override returns (uint256) {
         uint256 allowanceRay = _allowance(owner, spender);
         if (allowanceRay > (MAX_UINT_VALUE / liquidityIndex)) {
             return MAX_UINT_VALUE;
@@ -276,7 +291,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
     /**
      * @dev See {IERC20-approve}.
      */
-    function approve(address spender, uint256 amount) external override returns (bool){
+    function approve(address spender, uint256 amount) external notPaused override returns (bool){
         uint256 scaledAmount;
 
         // We reduce the maximum allowable value and setup MAX_UINT_VALUE
@@ -317,12 +332,18 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
         emit Approval(owner, spender, amount);
     }
 
+    /**
+ * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view virtual returns (bool) {
+        return _paused;
+    }
 
     function transferFrom(
         address sender,
         address recipient,
         uint256 amount
-    ) public override returns (bool) {
+    ) public notPaused override returns (bool) {
         uint256 transferAmount;
         if (amount == balanceOf(sender)) {
             // transfer all
@@ -429,7 +450,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public notPaused returns (bool) {
         // up to ray
         uint256 scaledAmount = addedValue.wadToRay();
         scaledAmount = scaledAmount.rayDiv(liquidityIndex);
@@ -451,7 +472,7 @@ contract UsdPlusTokenOld is Initializable, ContextUpgradeable, IERC20Upgradeable
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public notPaused returns (bool) {
         uint256 scaledAmount;
         if (subtractedValue == allowance(_msgSender(), spender)) {
             // transfer all
