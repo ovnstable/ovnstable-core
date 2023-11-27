@@ -295,7 +295,6 @@ describe("Token", function () {
         );
 
         // Make rebase
-        // TODO VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)
         await changeTotalSupply(200);
 
         // Credits per token should be the same for the contract
@@ -385,7 +384,6 @@ describe("Token", function () {
         await rebaseOptIn(nonRebaseUser1);
         await balanceOf(nonRebaseUser1, 100);
 
-        // TODO Error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)
         expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
 
         // const rebasingCredits = await ousd.rebasingCreditsHighres();
@@ -568,14 +566,13 @@ describe("Token", function () {
         await mint(user1, 99);
         await mint(user2, 1);
 
-        //TODO VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)
         await changeTotalSupply(102);
 
         let balanceUser1 = fromAsset(await usdPlus.balanceOf(user1.address));
         let balanceUser2 = fromAsset(await usdPlus.balanceOf(user2.address));
 
-        expect(balanceUser1).to.eq("99.99");
-        expect(balanceUser2).to.eq("1.01");
+        expect(balanceUser1).to.eq(100.98);
+        expect(balanceUser2).to.eq(1.02);
     });
 
 

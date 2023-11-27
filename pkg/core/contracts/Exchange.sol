@@ -583,14 +583,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit + excessProfit;
 
         (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus.changeSupply(totalNav);
+        usdPlus.mint(address(payoutManager), nonRebaseDelta);
 
-        require(usdPlus.totalSupply() == totalNav - nonRebaseDelta,'total != nav');
-        require(usdPlus.totalSupply() == expectedTotalUsdPlus - nonRebaseDelta, 'total != expected');
+        require(usdPlus.totalSupply() == totalNav,'total != nav');
+        require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
 
         // notify listener about payout done
         if (address(payoutManager) != address(0)) {
-            portfolioManager.withdraw(nonRebaseDelta);
-            usdc.transfer(address(payoutManager), nonRebaseDelta);
             payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
         }
 

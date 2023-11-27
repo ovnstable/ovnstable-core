@@ -40,7 +40,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
     address overnightVault;
 
-    function __PayoutListener_init() internal initializer {
+    function __PayoutManager_init() internal initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
@@ -80,6 +80,9 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         emit DisabledUpdated(disabled);
     }
 
+    function setOvernightVault(address _overnightVault) external onlyAdmin {
+        overnightVault = _overnightVault;
+    }
 
     // --- logic
 

@@ -49,7 +49,19 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     EnumerableSet.AddressSet _nonRebaseOwners;
     mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте
 
+    // ReentrancyGuard logic
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
 
+    uint256 private _status;
+
+    modifier nonReentrant() {
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
+    }
+    // ReentrancyGuard logic end
 
     event TotalSupplyUpdatedHighres(
         uint256 totalSupply,
@@ -87,6 +99,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         payoutManager = _payoutManager;
         exchange = _exchange;
         _decimals = decimals;
+        _status = _NOT_ENTERED;
     }
 
     function migrationBatchLength(uint256 size) public view returns (uint256) {
@@ -496,7 +509,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      *
      * - `to` cannot be the zero address.
      */
-    function _mint(address _account, uint256 _amount) internal {
+    function _mint(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Mint to the zero address");
 
         _beforeTokenTransfer(address(0), _account, _amount);
@@ -541,7 +554,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `_account` cannot be the zero address.
      * - `_account` must have at least `_amount` tokens.
      */
-    function _burn(address _account, uint256 _amount) internal {
+    function _burn(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Burn from the zero address");
         if (_amount == 0) {
             return;
@@ -607,7 +620,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * address's balance will be part of rebases and the account will be exposed
      * to upside and downside.
      */
-    function rebaseOptIn(address _address) public onlyPayoutManager {
+    function rebaseOptIn(address _address) public onlyPayoutManager nonReentrant {
         require(_isNonRebasingAccount(_address), "Account has not opted out");
 
         // Convert balance into the same amount at the current exchange rate
@@ -635,7 +648,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Explicitly mark that an address is non-rebasing.
      */
-    function rebaseOptOut(address _address) public onlyPayoutManager {
+    function rebaseOptOut(address _address) public onlyPayoutManager nonReentrant {
         require(!_isNonRebasingAccount(_address), "Account has not opted in");
 
         // Increase non rebasing supply
@@ -661,6 +674,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function changeSupply(uint256 _newTotalSupply)
         external
         onlyExchanger
+        nonReentrant
         returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
@@ -682,9 +696,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             ? MAX_SUPPLY
             : _totalSupply + deltaR;
 
-        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(
-            _totalSupply.sub(nonRebasingSupply)
-        );
+        if (_totalSupply.sub(nonRebasingSupply) != 0) {
+            _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(
+                _totalSupply.sub(nonRebasingSupply)
+            );
+        }
 
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
 
@@ -696,7 +712,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         for (uint256 i = 0; i < nonRebaseInfo.length; i++) {
             address userAddress = _nonRebaseOwners.at(i);
             uint256 userBalance = balanceOf(userAddress);
-            uint256 userPart = userBalance * deltaNR / nonRebasingSupply;
+            uint256 userPart = (nonRebasingSupply != 0) ? userBalance * deltaNR / nonRebasingSupply : 0;
             nonRebaseInfo[i] = NonRebaseInfo(userAddress, userPart);
         }
 
