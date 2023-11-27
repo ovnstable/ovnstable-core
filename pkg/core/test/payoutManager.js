@@ -17,6 +17,7 @@ const {waffle} = require("hardhat");
 const {transferETH} = require("@overnight-contracts/common/utils/script-utils");
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {fromE6, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {provider} = waffle;
 
 
@@ -34,7 +35,6 @@ describe("PayoutManager", function () {
     let mockToken;
     let mockPool;
     let mockBribe;
-    let overnightVaultAddress;
 
     sharedBeforeEach(async () => {
         // need to run inside IDEA via node script running
@@ -51,8 +51,8 @@ describe("PayoutManager", function () {
 
         await mockPool.setToken(mockToken.address);
         await pm.grantRole(await pm.EXCHANGER(), deployer);
-        overnightVaultAddress = "0x0000000000000000000000000000000000000000";
-        await pm.setOvernightVault(overnightVaultAddress);
+        await pm.grantRole(Roles.UNIT_ROLE, deployer);
+        await pm.setRoleManager(pm.address);
     });
 
 
@@ -64,7 +64,7 @@ describe("PayoutManager", function () {
 
             item = {
                 pool: '0xeb9153afBAa3A6cFbd4fcE39988Cea786d3F62bb',
-                token: '0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8',
+                token: mockToken.address,
                 poolName: 'sAMM-USD+/DAI+',
                 bribe: ZERO_ADDRESS,
                 operation: OPERATIONS.SKIM,
@@ -294,17 +294,16 @@ describe("PayoutManager", function () {
             thirdItem.pool = '0xBd7568d25338940ba212e3F299D2cCC138fA35F0';
 
             let fourthItem = JSON.parse(JSON.stringify(item));
-            fourthItem.token = '0x51E073D92b0c226F7B0065909440b18A85769606';
+            fourthItem.token = mockToken.address;
 
             await (await pm.addItems([secondItem, thirdItem, fourthItem])).wait();
 
             length = await pm.getItemsLength();
-            expect(4).to.equal(length);
+            expect(3).to.equal(length);
 
             let items = await pm.findItemsByPool(item.pool);
-            expect(2).to.equal(items.length);
+            expect(1).to.equal(items.length);
             expect(item.pool).to.equal(items[0].pool);
-            expect(fourthItem.pool).to.equal(items[1].pool);
 
             items = await pm.findItemsByPool(secondItem.pool);
             expect(1).to.equal(items.length);
@@ -315,23 +314,27 @@ describe("PayoutManager", function () {
         describe('permissions', ()=>{
 
             it("[setDisabled] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).setDisabled(true, true),'Restricted to admins');
+                await expectRevert(pm.connect(testAccount).setDisabled(true),'Restricted to admins');
+            });
+
+            it("[setRoleManager] Restricted to admins", async function () {
+                await expectRevert(pm.connect(testAccount).setRoleManager(testAccount.address),'Restricted to admins');
             });
 
             it("[addItem] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).addItem(item),'Restricted to admins');
+                await expectRevert(pm.connect(testAccount).addItem(item),'Restricted to Unit');
             });
 
             it("[removeItem] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).removeItem(item.pool, item.pool),'Restricted to admins');
+                await expectRevert(pm.connect(testAccount).removeItem(item.pool, item.pool),'Restricted to Unit');
             });
 
             it("[addItems] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).addItems([item]),'Restricted to admins');
+                await expectRevert(pm.connect(testAccount).addItems([item]),'Restricted to Unit');
             });
 
             it("[removeItems] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).removeItems(),'Restricted to admins');
+                await expectRevert(pm.connect(testAccount).removeItems(),'Restricted to Unit');
             });
 
         })
@@ -342,8 +345,7 @@ describe("PayoutManager", function () {
     describe('[payoutDone]', ()=>{
 
         let item;
-
-
+        let nonRebaseInfoItem;
 
         describe('[skim]', ()=>{
 
@@ -364,7 +366,7 @@ describe("PayoutManager", function () {
 
                 nonRebaseInfoItem = {
                     pool: mockPool.address,
-                    amount: 1000000,
+                    amount: toE6(10),
                     __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
 
@@ -374,7 +376,7 @@ describe("PayoutManager", function () {
 
             it('[success] -> balance', async ()=> {
 
-                await mockToken.mint(mockPool.address, toE6(10));
+                await mockToken.mint(pm.address, toE6(10));
 
                 expect(0).to.equal(fromE6(await mockToken.balanceOf(testAccount.address)));
                 await pm.payoutDone(mockToken.address, [nonRebaseInfoItem]);
@@ -384,9 +386,9 @@ describe("PayoutManager", function () {
 
             it('[success] -> event', async ()=> {
 
-                await mockToken.mint(mockPool.address, toE6(10));
+                await mockToken.mint(pm.address, toE6(10));
 
-                let tx = await (await pm.payoutDone(mockToken.address)).wait();
+                let tx = await (await pm.payoutDone(mockToken.address, [nonRebaseInfoItem])).wait();
                 let event = tx.events.find((e) => e.event == 'PoolOperation');
 
                 expect(item.dexName).to.equal(event.args[0]);
@@ -420,33 +422,15 @@ describe("PayoutManager", function () {
                     __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
                 await pm.addItem(item);
-                await pm.setDisabled(true, true);
+                await pm.setDisabled(true);
 
             });
 
-            it('event exist: PayoutDoneDisabled', async ()=> {
-
-                let tx = await (await pm.payoutDone(mockToken.address)).wait();
-                let event = tx.events.find((e) => e.event == 'PayoutDoneDisabled');
-                expect(event).to.not.null;
+            it('Revert: PayoutManager disabled', async ()=> {
+                await expectRevert(pm.payoutDone(mockToken.address, []), 'PayoutManager disabled');
 
             });
 
-            it('event exist: PayoutUndoneDisabled', async ()=> {
-
-                let tx = await (await pm.payoutDone(mockToken.address)).wait();
-                let event = tx.events.find((e) => e.event == 'PayoutUndoneDisabled');
-                expect(event).to.not.null;
-
-            });
-
-            it('operations event is empty', async ()=> {
-
-                let tx = await (await pm.payoutDone(mockToken.address)).wait();
-                let event = tx.events.find((e) => e.event == 'PoolOperation');
-                expect(event).to.undefined;
-
-            });
 
         });
 

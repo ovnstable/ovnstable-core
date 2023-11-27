@@ -12,6 +12,7 @@ import "./interfaces/IUsdPlusToken.sol";
 
 abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     struct Item {
         // Unique ID = pool + token
@@ -37,8 +38,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     Item[] public items;
 
     bool public disabled; // Admin can disable to executing PayoutDone
-
-    address overnightVault;
+    IRoleManager public roleManager;
 
     function __PayoutManager_init() internal initializer {
         __AccessControl_init();
@@ -59,6 +59,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     event RemoveItem(address token, address pool);
     event PoolOperation(string dexName, string operation, string poolName, address pool, address token, uint256 amount, address to);
     event DisabledUpdated(bool disabled);
+    event RoleManagerUpdated(address roleManager);
     event PayoutDoneDisabled();
 
     // ---  modifiers
@@ -73,6 +74,11 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         _;
     }
 
+    modifier onlyUnit(){
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        _;
+    }
+
     // --- setters
 
     function setDisabled(bool _disabled) external onlyAdmin {
@@ -80,8 +86,10 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         emit DisabledUpdated(disabled);
     }
 
-    function setOvernightVault(address _overnightVault) external onlyAdmin {
-        overnightVault = _overnightVault;
+    function setRoleManager(address _roleManager) external onlyAdmin {
+        require(_roleManager != address(0), "Zero address not allowed");
+        roleManager = IRoleManager(_roleManager);
+        emit RoleManagerUpdated(_roleManager);
     }
 
     // --- logic
@@ -127,7 +135,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     /**
      * Add new item to list or update exist item
      */
-    function addItem(Item memory item) public onlyAdmin {
+    function addItem(Item memory item) public onlyUnit {
         require(item.token != address(0), 'token is zero');
         require(item.pool != address(0), 'pool is zero');
 
@@ -158,7 +166,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     /**
      * Add new items to list or update exist items
      */
-    function addItems(Item[] memory items) external onlyAdmin {
+    function addItems(Item[] memory items) external onlyUnit {
         for (uint256 x = 0; x < items.length; x++) {
             Item memory item = items[x];
             addItem(item);
@@ -168,7 +176,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     /**
      * Remove item from items
      */
-    function removeItem(address token, address pool) external onlyAdmin {
+    function removeItem(address token, address pool) external onlyUnit {
         require(token != address(0), 'token is zero');
         require(pool != address(0), 'pool is zero');
 
@@ -193,7 +201,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     /**
      * Remove items
      */
-    function removeItems() external onlyAdmin {
+    function removeItems() external onlyUnit {
         uint256 length = items.length;
         for (uint256 x = 0; x < length; x++) {
             Item memory item = items[length - x - 1];
@@ -209,26 +217,49 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external override onlyExchanger {
 
         if (disabled) {
-            emit PayoutDoneDisabled();
-            return;
+            revert('PayoutManager disabled');
         }
 
         for (uint256 i = 0; i < items.length; i++) {
 
-            if (items[i].token != token) {
+            Item memory item = items[i];
+            if (item.token != token) {
                 continue;
             }
-            // nned to refactor: two cycles are bad
+
             for (uint256 j = 0; j < nonRebaseInfo.length; j++) {
 
-                if (items[i].pool != nonRebaseInfo[i].pool) {
+                NonRebaseInfo memory info = nonRebaseInfo[j];
+                if (item.pool != info.pool) {
                     continue;
                 }
-                
-                IERC20 token = IERC20(items[i].token);
-                token.transfer(overnightVault, nonRebaseInfo[i].amount);
+
+                _distributeRebase(info, item);
             }
         }
+    }
+
+    function _distributeRebase(NonRebaseInfo memory info, Item memory item) internal {
+
+        uint256 amountToken = info.amount;
+        IERC20 token = IERC20(item.token);
+
+        if (amountToken > 0) {
+            if (item.feePercent > 0) {
+                uint256 feeAmount = amountToken * item.feePercent / 100;
+                amountToken -= feeAmount;
+                if (feeAmount > 0) {
+                    token.transfer(item.feeReceiver, feeAmount);
+                    emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, feeAmount, item.feeReceiver);
+                }
+            }
+            if (amountToken > 0) {
+                token.transfer(item.to, amountToken);
+                emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
+            }
+        }
+
+        require(token.balanceOf(address(this)) == 0, 'token balance is not zero');
     }
 
     uint256[50] private __gap;
