@@ -193,7 +193,9 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     function removeItems() external onlyAdmin {
         uint256 length = items.length;
         for (uint256 x = 0; x < length; x++) {
+            Item memory item = items[length - x - 1];
             items.pop();
+            IUsdPlusToken(item.token).rebaseOptIn(item.pool);
         }
     }
 

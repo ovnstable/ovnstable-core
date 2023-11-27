@@ -12,8 +12,9 @@ import { StableMath } from "./libraries/StableMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import "./libraries/WadRayMath.sol";
 import "./interfaces/IPayoutManager.sol";
+import "./interfaces/IRateProvider.sol";
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable, IRateProvider {
     using WadRayMath for uint256; // после переезда это надо удалить, но пока не переехали нельзя
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -756,6 +757,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             }
             _owners.add(to);
         }
+    }
+
+    function getRate() external view override returns (uint256) {
+        return 10 ** _decimals;
     }
 
 }

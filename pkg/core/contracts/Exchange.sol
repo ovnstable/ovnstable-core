@@ -451,18 +451,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     function negativeRebase(uint256 newLiquidityIndex) external onlyAdmin {
-
-        uint256 totalUsdPlus = usdPlus.totalSupply();
-        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
-
-        require(totalUsdPlus > totalNav, 'supply > nav');
-
-        (NonRebaseInfo [] memory nonRebaseInfo, ) = usdPlus.changeSupply(totalNav);
-
-        // notify listener about payout done
-        if (address(payoutManager) != address(0)) {
-            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
-        }
+        revert("Negative rebase not supported");
     }
 
     /**
