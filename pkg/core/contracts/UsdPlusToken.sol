@@ -24,7 +24,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
 
-    mapping(address => mapping(address => uint256)) private _allowances; // сматчили без переименования
+    address private DELETED_0; // тут был старый _allowances
 
     uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
 
@@ -35,8 +35,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private _rebasingCreditsPerToken; // сматчили с изменением смыла переменной, была _totalBurn
 
     uint256 public nonRebasingSupply; // сматчили с изменением смыла переменной, была liquidityIndexChangeTime
-    uint256 public DELETED_0; // не будет использоваться, был liquidityIndex
-    uint256 public DELETED_1; // не будет использоваться, был liquidityIndexDenominator
+    uint256 private DELETED_1; // не будет использоваться, был liquidityIndex
+    uint256 private DELETED_2; // не будет использоваться, был liquidityIndexDenominator
 
     EnumerableSet.AddressSet _owners; // этой логики нет в ousd, но она будет присутствовать в новой версии usd+
 
@@ -47,6 +47,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
     EnumerableSet.AddressSet _nonRebaseOwners;
+    mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте 
 
 
 
@@ -67,8 +68,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function migrationInit() public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
-
-        uint256 liquidityIndex = DELETED_0;
+        DELETED_0 = address(0);
+        uint256 liquidityIndex = DELETED_1;
 
         _rebasingCreditsPerToken = 10 ** 27;
         nonRebasingSupply = 0;
@@ -88,7 +89,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function migrationBatch(uint256 size, uint256 iter) public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
-        uint256 liquidityIndex = DELETED_0;
+        uint256 liquidityIndex = DELETED_1;
         uint256 len = _owners.length();
         uint256 startIter = iter * size;
         uint256 finishIter = (iter + 1) * size  > len ? len : (iter + 1) * size;
