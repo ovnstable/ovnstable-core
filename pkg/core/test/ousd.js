@@ -1,6 +1,11 @@
-const { expect } = require("chai");
-const { utils } = require("ethers");
-const { parseUnits } = require("ethers").utils;
+const {expect} = require("chai");
+const {utils} = require("ethers");
+const {parseUnits} = require("ethers").utils;
+const hre = require('hardhat');
+const {getNamedAccounts, deployments, ethers} = require("hardhat");
+const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
+const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
+const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 
 function ousdUnits(amount) {
     return parseUnits(amount, 6);
@@ -13,293 +18,297 @@ function usdcUnits(amount) {
 function daiUnits(amount) {
     return parseUnits(amount, 18);
 }
-  
+
 
 describe("Token", function () {
-  
-  this.timeout(0);
-  let usdPlus;
-  let account;
-  let user1;
-  let user2;
-  
-  beforeEach(async () => {
-    // need to run inside IDEA via node script running
-    await hre.run("compile");
 
-    await deployments.fixture(["UsdPlusToken"]);
+    let usdPlus;
+    let account;
 
-    const {deployer, other1, other2} = await getNamedAccounts();
-    account = deployer;
-    user1 = other1;
-    user2 = other2;
-    usdPlus = await ethers.getContract("UsdPlusToken");
-    await usdPlus.setExchanger(account);
-  });
+    let user1;
+    let user2;
 
-  it("Should return the token name and symbol", async () => {
-    expect(await usdPlus.name()).to.equal("USD+");
-    expect(await usdPlus.symbol()).to.equal("USD+");
-  });
+    let nonRebaseUser1;
+    let nonRebaseUser2;
 
-  it("Should have 6 decimals", async () => {
-    expect(await usdPlus.decimals()).to.equal(6);
-  });
+    let fromAsset;
+    let toAsset;
 
-  it("Should return 0 balance for the zero address", async () => {
-    expect(
-      await usdPlus.balanceOf("0x0000000000000000000000000000000000000000")
-    ).to.equal(0);
-  });
+    beforeEach(async () => {
+        // need to run inside IDEA via node script running
+        await hre.run("compile");
 
-//   it("Should not allow anyone to mint USD+ directly", async () => {
-//     await expect(
-//         usdPlus.connect(user).mint(user, ousdUnits("100"))
-//     ).to.be.revertedWith("Caller is not the EXCHANGER");
-//     await expect(user).has.a.balanceOf("100.00", usdPlus);
-//   });
+        await deployments.fixture(["UsdPlusToken"]);
 
-  it("Should allow a simple transfer of 1 USD+", async () => {
-    await expect(user1).has.a.balanceOf("0", usdPlus);
-    await expect(user2).has.a.balanceOf("100", usdPlus);
-    await usdPlus.connect(user2).transfer(user1, ousdUnits("1"));
-    await expect(user1).has.a.balanceOf("1", usdPlus);
-    await expect(user2s).has.a.balanceOf("99", usdPlus);
-  });
+        const {deployer} = await getNamedAccounts();
+        account = deployer;
+        user1 = await createRandomWallet();
+        user2 = await createRandomWallet();
+        nonRebaseUser1 = await createRandomWallet();
+        nonRebaseUser2 = await createRandomWallet();
+        usdPlus = await ethers.getContract("UsdPlusToken");
+        await usdPlus.setExchanger(account);
+        await usdPlus.setPayoutManager(account);
+        await usdPlus.rebaseOptOut(nonRebaseUser1.address);
+        await usdPlus.rebaseOptOut(nonRebaseUser2.address);
 
-//   it("Should allow a transferFrom with an allowance", async () => {
-//     const { ousd, anna, matt } = fixture;
-//     // Approve OUSD for transferFrom
-//     await ousd.connect(matt).approve(anna.getAddress(), ousdUnits("1000"));
-//     expect(
-//       await ousd.allowance(await matt.getAddress(), await anna.getAddress())
-//     ).to.equal(ousdUnits("1000"));
+        let decimals = await usdPlus.decimals();
+        fromAsset = decimals === 18 ? fromE18 : fromE6;
+        toAsset = decimals === 18 ? toE18 : toE6;
+    });
 
-//     // Do a transferFrom of OUSD
-//     await ousd
-//       .connect(anna)
-//       .transferFrom(
-//         await matt.getAddress(),
-//         await anna.getAddress(),
-//         ousdUnits("1")
-//       );
 
-//     // Anna should have the dollar
-//     await expect(anna).has.a.balanceOf("1", ousd);
+    async function transfer(from, to, amount) {
+        await usdPlus.connect(from).transfer(to.address, toAsset(amount));
+    }
 
-//     // Check if it has reflected in allowance
-//     expect(
-//       await ousd.allowance(await matt.getAddress(), await anna.getAddress())
-//     ).to.equal(ousdUnits("999"));
-//   });
+    async function mint(user, amount) {
+        await usdPlus.mint(user.address, toAsset(amount));
+    }
 
-//   it("Should transfer the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
-//     let { ousd, vault, matt, usdc, josh, mockNonRebasing } = fixture;
+    async function balanceOf(user, amount) {
+        let balanceValue = await usdPlus.balanceOf(user.address);
+        let balance = Math.ceil(fromAsset(balanceValue));
+        expect(balance).to.eq(amount);
+    }
 
-//     // Give contract 100 OUSD from Josh
-//     await ousd
-//       .connect(josh)
-//       .transfer(mockNonRebasing.address, ousdUnits("100"));
+    async function totalSupply(amount) {
+        let totalSupply = await usdPlus.totalSupply();
+        expect(fromAsset(totalSupply)).to.eq(amount);
+    }
 
-//     await expect(matt).has.an.approxBalanceOf("100.00", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("100.00", ousd);
+    async function changeTotalSupply(amount) {
+        await usdPlus.changeSupply(toAsset(amount));
+    }
 
-//     const contractCreditsPerToken = await ousd.creditsBalanceOf(
-//       mockNonRebasing.address
-//     );
+    async function validateTotalSupply() {
 
-//     // Transfer USDC into the Vault to simulate yield
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("200"));
-//     await vault.rebase();
+        // Validate rebasing and non rebasing credit accounting by calculating'
+        // total supply manually
+        const calculatedTotalSupply = (await usdPlus.rebasingCreditsHighres())
+            .mul(utils.parseUnits("1", 18))
+            .div(await usdPlus.rebasingCreditsPerTokenHighres())
+            .add(await usdPlus.nonRebasingSupply());
 
-//     // Credits per token should be the same for the contract
-//     contractCreditsPerToken ===
-//       (await ousd.creditsBalanceOf(mockNonRebasing.address));
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(await ousd.nonRebasingSupply());
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+        const totalSupply = Math.ceil(fromAsset(await usdPlus.totalSupply()));
+        await expect(Math.ceil(fromAsset(calculatedTotalSupply))).to.eq(totalSupply);
+    }
 
-//   it("Should transfer the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
-//     let { ousd, vault, matt, usdc, josh, mockNonRebasing } = fixture;
+    it("Should return the token name and symbol", async () => {
+        expect(await usdPlus.name()).to.equal("USD+");
+        expect(await usdPlus.symbol()).to.equal("USD+");
+    });
 
-//     await ousd
-//       .connect(josh)
-//       .transfer(mockNonRebasing.address, ousdUnits("100"));
-//     await expect(matt).has.an.approxBalanceOf("100.00", ousd);
-//     await expect(josh).has.an.approxBalanceOf("0", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("100.00", ousd);
-//     // Transfer USDC into the Vault to simulate yield
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("200"));
-//     await vault.rebase();
-//     // Matt received all the yield
-//     await expect(matt).has.an.approxBalanceOf("300.00", ousd);
-//     // Give contract 100 OUSD from Matt
-//     await ousd.connect(matt).transfer(mockNonRebasing.address, ousdUnits("50"));
-//     await expect(matt).has.an.approxBalanceOf("250", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("150.00", ousd);
+    it("Should have 6 decimals", async () => {
+        expect(await usdPlus.decimals()).to.equal(6);
+    });
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(await ousd.nonRebasingSupply());
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+    it("Should return 0 balance for the zero address", async () => {
+        expect(
+            await usdPlus.balanceOf("0x0000000000000000000000000000000000000000")
+        ).to.equal(0);
+    });
 
-//   it("Should transfer the correct amount from a non-rebasing account without previously set creditssPerToken to a rebasing account", async () => {
-//     let { ousd, matt, josh, mockNonRebasing } = fixture;
+    it("Should not allow anyone to mint USD+ directly", async () => {
+        await expectRevert(
+            usdPlus.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
+    });
 
-//     // Give contract 100 OUSD from Josh
-//     await ousd
-//       .connect(josh)
-//       .transfer(mockNonRebasing.address, ousdUnits("100"));
-//     await expect(matt).has.an.approxBalanceOf("100.00", ousd);
-//     await expect(josh).has.an.approxBalanceOf("0", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("100.00", ousd);
-//     await mockNonRebasing.transfer(await matt.getAddress(), ousdUnits("100"));
-//     await expect(matt).has.an.approxBalanceOf("200.00", ousd);
-//     await expect(josh).has.an.approxBalanceOf("0", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("0", ousd);
+    it("Should allow a simple transfer of 1 USD+", async () => {
+        await usdPlus.mint(user2.address, toAsset(100));
+        await balanceOf(user1, 0);
+        await balanceOf(user2, 100);
+        await usdPlus.connect(user2).transfer(user1.address, toAsset(1));
+        await balanceOf(user1, 1);
+        await balanceOf(user2, 99);
+    });
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(await ousd.nonRebasingSupply());
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+    it("Should allow a transferFrom with an allowance", async () => {
+        await usdPlus.mint(user1.address, toAsset(1000));
 
-//   it("Should transfer the correct amount from a non-rebasing account with previously set creditsPerToken to a rebasing account", async () => {
-//     let { ousd, vault, matt, usdc, josh, mockNonRebasing } = fixture;
+        await usdPlus.connect(user1).approve(user2.address, toAsset(1000));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(toAsset(1000));
 
-//     // Give contract 100 OUSD from Josh
-//     await ousd
-//       .connect(josh)
-//       .transfer(mockNonRebasing.address, ousdUnits("100"));
-//     await expect(matt).has.an.approxBalanceOf("100.00", ousd);
-//     await expect(josh).has.an.approxBalanceOf("0", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("100.00", ousd);
-//     // Transfer USDC into the Vault to simulate yield
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("200"));
-//     await vault.rebase();
-//     // Matt received all the yield
-//     await expect(matt).has.an.approxBalanceOf("300.00", ousd);
-//     // Give contract 100 OUSD from Matt
-//     await ousd.connect(matt).transfer(mockNonRebasing.address, ousdUnits("50"));
-//     await expect(matt).has.an.approxBalanceOf("250", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("150.00", ousd);
-//     // Transfer contract balance to Josh
-//     await mockNonRebasing.transfer(await josh.getAddress(), ousdUnits("150"));
-//     await expect(matt).has.an.approxBalanceOf("250", ousd);
-//     await expect(josh).has.an.approxBalanceOf("150", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("0", ousd);
+        await usdPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(1));
+        await balanceOf(user2, 1);
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(toAsset(999));
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(await ousd.nonRebasingSupply());
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+    });
 
-//   it("Should transfer the correct amount from a non-rebasing account to a non-rebasing account with different previously set creditsPerToken", async () => {
-//     let { ousd, vault, matt, usdc, josh, mockNonRebasing, mockNonRebasingTwo } =
-//       fixture;
-//     // Give contract 100 OUSD from Josh
-//     await ousd.connect(josh).transfer(mockNonRebasing.address, ousdUnits("50"));
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("50.00", ousd);
-//     // Transfer USDC into the Vault to simulate yield
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("200"));
-//     await vault.rebase();
-//     await ousd
-//       .connect(josh)
-//       .transfer(mockNonRebasingTwo.address, ousdUnits("50"));
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("100"));
-//     await vault.rebase();
-//     await mockNonRebasing.transfer(mockNonRebasingTwo.address, ousdUnits("10"));
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("40", ousd);
-//     await expect(mockNonRebasingTwo).has.an.approxBalanceOf("60", ousd);
+    it("Should transfer the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const creditBalanceMockNonRebasing = await ousd.creditsBalanceOf(
-//       mockNonRebasing.address
-//     );
-//     const balanceMockNonRebasing = creditBalanceMockNonRebasing[0]
-//       .mul(utils.parseUnits("1", 18))
-//       .div(creditBalanceMockNonRebasing[1]);
-//     const creditBalanceMockNonRebasingTwo = await ousd.creditsBalanceOf(
-//       mockNonRebasingTwo.address
-//     );
-//     const balanceMockNonRebasingTwo = creditBalanceMockNonRebasingTwo[0]
-//       .mul(utils.parseUnits("1", 18))
-//       .div(creditBalanceMockNonRebasingTwo[1]);
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
+        await usdPlus.mint(user1.address, toAsset(100));
 
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(balanceMockNonRebasing)
-//       .add(balanceMockNonRebasingTwo);
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 100);
 
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+        const creditsBalanceOf = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
 
-//   it("Should transferFrom the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
-//     let { ousd, vault, matt, usdc, josh, mockNonRebasing } = fixture;
+        // Make rebase
+        await usdPlus.changeSupply(toAsset(250));
 
-//     // Give Josh an allowance to move Matt's OUSD
-//     await ousd
-//       .connect(matt)
-//       .increaseAllowance(await josh.getAddress(), ousdUnits("100"));
-//     // Give contract 100 OUSD from Matt via Josh
-//     await ousd
-//       .connect(josh)
-//       .transferFrom(
-//         await matt.getAddress(),
-//         mockNonRebasing.address,
-//         ousdUnits("100")
-//       );
-//     await expect(matt).has.an.approxBalanceOf("0", ousd);
-//     await expect(mockNonRebasing).has.an.approxBalanceOf("100.00", ousd);
-//     const contractCreditsPerToken = await ousd.creditsBalanceOf(
-//       mockNonRebasing.address
-//     );
-//     // Transfer USDC into the Vault to simulate yield
-//     await usdc.connect(matt).transfer(vault.address, usdcUnits("200"));
-//     await vault.rebase();
-//     // Credits per token should be the same for the contract
-//     contractCreditsPerToken ===
-//       (await ousd.creditsBalanceOf(mockNonRebasing.address));
+        // Credits per token should be the same for the contract
+        let creditsBalanceOfNew = await usdPlus.creditsBalanceOf(nonRebaseUser1.address);
+        expect(creditsBalanceOf[0]).to.eq(creditsBalanceOfNew[0]);
+        expect(creditsBalanceOf[1]).to.eq(creditsBalanceOfNew[1]);
 
-//     // Validate rebasing and non rebasing credit accounting by calculating'
-//     // total supply manually
-//     const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-//       .mul(utils.parseUnits("1", 18))
-//       .div(await ousd.rebasingCreditsPerTokenHighres())
-//       .add(await ousd.nonRebasingSupply());
-//     await expect(calculatedTotalSupply).to.approxEqual(
-//       await ousd.totalSupply()
-//     );
-//   });
+        await validateTotalSupply();
+    });
+
+    it("Should transfer the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
+
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
+
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+        await totalSupply(200);
+
+        await usdPlus.changeSupply(toAsset(300));
+        await totalSupply(250);
+        await balanceOf(user1, 150);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+
+        // Give contract 100 USD+ from User1
+        await usdPlus.connect(user1).transfer(nonRebaseUser1.address, toAsset(50));
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 150);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should transfer the correct amount from a non-rebasing account without previously set creditssPerToken to a rebasing account", async () => {
+
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
+
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+        await totalSupply(200);
+
+        // Transfer from contract to user
+        await usdPlus.connect(nonRebaseUser1).transfer(user1.address, toAsset(100));
+        await balanceOf(user1, 200);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 0);
+
+        await validateTotalSupply();
+    });
+
+    it("Should transfer the correct amount from a non-rebasing account with previously set creditsPerToken to a rebasing account", async () => {
+
+
+        await mint(user1, 100);
+        await mint(nonRebaseUser1, 100);
+
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await changeTotalSupply(300);
+
+        await balanceOf(user1, 150);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await transfer(user1, nonRebaseUser1, 50);
+
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 150);
+
+        await transfer(nonRebaseUser1, user2, 150);
+
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 150);
+        await balanceOf(nonRebaseUser1, 0);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should transfer the correct amount from a non-rebasing account to a non-rebasing account with different previously set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+        await balanceOf(user1, 100);
+
+        await mint(nonRebaseUser1, 50);
+        await balanceOf(nonRebaseUser1, 50);
+
+        await changeTotalSupply(300);
+
+        await balanceOf(user1, 200);
+        await transfer(user1, nonRebaseUser2, 50);
+        await balanceOf(nonRebaseUser2, 50);
+
+        await changeTotalSupply(400);
+        await balanceOf(nonRebaseUser1, 50);
+        await balanceOf(nonRebaseUser2, 50);
+        await balanceOf(user1, 240);
+
+        await transfer(nonRebaseUser1, nonRebaseUser2, 10);
+        await balanceOf(nonRebaseUser2, 60);
+        await balanceOf(nonRebaseUser1, 40);
+
+        // Validate rebasing and non rebasing credit accounting by calculating'
+        // total supply manually
+        const creditBalanceMockNonRebasing = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
+        const balanceMockNonRebasing = creditBalanceMockNonRebasing[0]
+            .mul(utils.parseUnits("1", 18))
+            .div(creditBalanceMockNonRebasing[1]);
+
+        const creditBalanceMockNonRebasingTwo = await usdPlus.creditsBalanceOf(
+            nonRebaseUser2.address
+        );
+        const balanceMockNonRebasingTwo = creditBalanceMockNonRebasingTwo[0]
+            .mul(utils.parseUnits("1", 18))
+            .div(creditBalanceMockNonRebasingTwo[1]);
+
+        const calculatedTotalSupply = (await usdPlus.rebasingCreditsHighres())
+            .mul(utils.parseUnits("1", 18))
+            .div(await usdPlus.rebasingCreditsPerTokenHighres())
+            .add(balanceMockNonRebasing)
+            .add(balanceMockNonRebasingTwo);
+
+        await expect(calculatedTotalSupply).to.equal(
+            await usdPlus.totalSupply()
+        );
+    });
+
+    it("Should transferFrom the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+
+        await usdPlus.connect(user1).increaseAllowance(user2.address, toAsset(100));
+        await usdPlus.connect(user2).transferFrom(user1.address, nonRebaseUser1.address, toAsset(100));
+
+        await balanceOf(user1, 0);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+
+        const creditsBalanceOf = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
+
+        // Make rebase
+        // TODO VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)
+        await changeTotalSupply(200);
+
+        // Credits per token should be the same for the contract
+
+        let creditsBalanceOfNew = await usdPlus.creditsBalanceOf(nonRebaseUser1.address);
+        expect(creditsBalanceOf[0]).to.eq(creditsBalanceOfNew[0]);
+        expect(creditsBalanceOf[1]).to.eq(creditsBalanceOfNew[1]);
+        await validateTotalSupply();
+
+    });
 
 //   it("Should transferFrom the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
 //     let { ousd, vault, matt, usdc, josh, mockNonRebasing } = fixture;

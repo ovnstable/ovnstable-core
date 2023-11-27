@@ -116,6 +116,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _decimals = decimals;
+        _rebasingCreditsPerToken = 10 ** 27;
     }
 
     function _authorizeUpgrade(address newImplementation)
