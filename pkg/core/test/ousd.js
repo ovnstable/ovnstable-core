@@ -1,23 +1,10 @@
 const {expect} = require("chai");
 const {utils} = require("ethers");
-const {parseUnits} = require("ethers").utils;
 const hre = require('hardhat');
 const {getNamedAccounts, deployments, ethers} = require("hardhat");
 const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
-
-function ousdUnits(amount) {
-    return parseUnits(amount, 6);
-}
-
-function usdcUnits(amount) {
-    return parseUnits(amount, 6);
-}
-
-function daiUnits(amount) {
-    return parseUnits(amount, 18);
-}
 
 
 describe("Token", function () {

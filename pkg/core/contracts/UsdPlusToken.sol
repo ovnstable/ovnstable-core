@@ -47,7 +47,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
     EnumerableSet.AddressSet _nonRebaseOwners;
-    mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте 
+    mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте
 
 
 
@@ -65,9 +65,17 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     event ExchangerUpdated(address exchanger);
     event PayoutManagerUpdated(address payoutManager);
 
-    function migrationInit() public {
+
+    // ------ Migration section --------
+    // ------ Removed after upgrade ----
+
+    modifier onlyDev() {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
+        _;
+    }
+
+    function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public onlyDev{
         DELETED_0 = address(0);
         uint256 liquidityIndex = DELETED_1;
 
@@ -75,20 +83,18 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         nonRebasingSupply = 0;
         _totalSupply = _totalSupply.rayMul(liquidityIndex).rayToWad();
         _rebasingCredits = _totalSupply;
-        _decimals = 6;
-        exchange = 0x73cb180bf0521828d8849bc8CF2B920918e23032;
+
+        payoutManager = _payoutManager;
+        exchange = _exchange;
+        _decimals = decimals;
     }
 
     function migrationBatchLength(uint256 size) public view returns (uint256) {
-        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
-        require(devAddress == msg.sender, "Caller is not the Dev");
         uint256 len = _owners.length();
         return (len / size * size == len) ? len / size : len / size + 1;
     }
 
-    function migrationBatch(uint256 size, uint256 iter) public {
-        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
-        require(devAddress == msg.sender, "Caller is not the Dev");
+    function migrationBatch(uint256 size, uint256 iter) public onlyDev {
         uint256 liquidityIndex = DELETED_1;
         uint256 len = _owners.length();
         uint256 startIter = iter * size;
