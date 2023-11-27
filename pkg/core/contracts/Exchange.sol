@@ -450,9 +450,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function negativeRebase(uint256 newLiquidityIndex) external onlyAdmin {
-        revert("Negative rebase not supported");
-    }
 
     /**
      * @dev Payout
