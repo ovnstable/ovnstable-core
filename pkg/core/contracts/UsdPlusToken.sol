@@ -12,21 +12,18 @@ import { StableMath } from "./libraries/StableMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import "./libraries/WadRayMath.sol";
 import "./interfaces/IPayoutManager.sol";
-import "./interfaces/IRateProvider.sol";
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable, IRateProvider {
+contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256; // после переезда это надо удалить, но пока не переехали нельзя
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
     using StableMath for uint256;
 
-    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant PAYOUT_MANAGER = keccak256("PAYOUT_MANAGER");
     uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
     uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
 
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
-    
+
     mapping(address => mapping(address => uint256)) private _allowances; // сматчили без переименования
 
     uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
@@ -47,24 +44,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint8 private _decimals; // сматчили без переименовывания, полное совпадение
     address public payoutManager;
 
-
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
     EnumerableSet.AddressSet _nonRebaseOwners;
 
-    // ReentrancyGuard logic
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
-
-    uint256 private _status;
-
-    modifier nonReentrant() {
-        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
-        _status = _ENTERED;
-        _;
-        _status = _NOT_ENTERED;
-    }
-    // ReentrancyGuard logic end
 
 
     event TotalSupplyUpdatedHighres(
@@ -84,7 +67,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function migrationInit() public {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
-        
+
         uint256 liquidityIndex = DELETED_0;
 
         _rebasingCreditsPerToken = 10 ** 27;
@@ -93,7 +76,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _rebasingCredits = _totalSupply;
         _decimals = 6;
         exchange = 0x73cb180bf0521828d8849bc8CF2B920918e23032;
-        _status = _NOT_ENTERED;
     }
 
     function migrationBatchLength(uint256 size) public view returns (uint256) {
@@ -110,7 +92,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 len = _owners.length();
         uint256 startIter = iter * size;
         uint256 finishIter = (iter + 1) * size  > len ? len : (iter + 1) * size;
-        
+
         for (uint256 index = startIter; index < finishIter; index++) {
             address user = _owners.at(index);
             _creditBalances[user] = _creditBalances[user].rayMul(liquidityIndex).rayToWad();
@@ -124,7 +106,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     function initialize(string calldata name, string calldata symbol, uint8 decimals) initializer public {
         __Context_init_unchained();
-
         _name = name;
         _symbol = symbol;
 
@@ -146,12 +127,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Verifies that the caller is the Exchanger contract
      */
     modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, _msgSender()), "Caller is not the EXCHANGER");
+        require(exchange == _msgSender(), "Caller is not the EXCHANGER");
         _;
     }
 
     modifier onlyPayoutManager() {
-        require(hasRole(PAYOUT_MANAGER, _msgSender()), "Caller is not the PAYOUT_MANAGER");
+        require(payoutManager == _msgSender(), "Caller is not the PAYOUT_MANAGER");
         _;
     }
 
@@ -161,19 +142,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
-        if (exchange != address(0)) {
-            revokeRole(EXCHANGER, exchange);
-        }
-        grantRole(EXCHANGER, _exchanger);
+        require(_exchanger != address(this), 'exchange is zero');
         exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
     }
 
     function setPayoutManager(address _payoutManager) external onlyAdmin {
-        if (payoutManager != address(0)) {
-            revokeRole(EXCHANGER, payoutManager);
-        }
-        grantRole(EXCHANGER, _payoutManager);
+        require(_payoutManager != address(this), 'payoutManager is zero');
         payoutManager = _payoutManager;
         emit PayoutManagerUpdated(_payoutManager);
     }
@@ -513,7 +488,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      *
      * - `to` cannot be the zero address.
      */
-    function _mint(address _account, uint256 _amount) internal nonReentrant {
+    function _mint(address _account, uint256 _amount) internal {
         require(_account != address(0), "Mint to the zero address");
 
         _beforeTokenTransfer(address(0), _account, _amount);
@@ -558,7 +533,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `_account` cannot be the zero address.
      * - `_account` must have at least `_amount` tokens.
      */
-    function _burn(address _account, uint256 _amount) internal nonReentrant {
+    function _burn(address _account, uint256 _amount) internal {
         require(_account != address(0), "Burn from the zero address");
         if (_amount == 0) {
             return;
@@ -624,7 +599,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * address's balance will be part of rebases and the account will be exposed
      * to upside and downside.
      */
-    function rebaseOptIn(address _address) public nonReentrant onlyPayoutManager {
+    function rebaseOptIn(address _address) public onlyPayoutManager {
         require(_isNonRebasingAccount(_address), "Account has not opted out");
 
         // Convert balance into the same amount at the current exchange rate
@@ -652,7 +627,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Explicitly mark that an address is non-rebasing.
      */
-    function rebaseOptOut(address _address) public nonReentrant onlyPayoutManager {
+    function rebaseOptOut(address _address) public onlyPayoutManager {
         require(!_isNonRebasingAccount(_address), "Account has not opted in");
 
         // Increase non rebasing supply
@@ -678,7 +653,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function changeSupply(uint256 _newTotalSupply)
         external
         onlyExchanger
-        nonReentrant
         returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
@@ -759,8 +733,5 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
     }
 
-    function getRate() external view override returns (uint256) {
-        return 10 ** _decimals;
-    }
 
 }

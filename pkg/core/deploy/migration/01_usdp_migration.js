@@ -25,7 +25,6 @@ module.exports = async ({deployments}) => {
         await usdPlus.connect(timelock).grantRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address);
     });
 
-
     console.log('Try to deploy impl ...');
 
     let factory = await ethers.getContractFactory('UsdPlusToken');
