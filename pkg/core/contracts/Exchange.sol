@@ -15,6 +15,7 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./UsdPlusToken.sol";
 
+import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
@@ -491,7 +492,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 premium;
         uint256 loss;
 
-        uint256 newLiquidityIndex;
         uint256 delta;
 
         if (totalUsdPlus > totalNav) {
@@ -547,11 +547,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 // We send the difference to the OVN wallet.
 
                 uint256 newTotalSupply = totalNav * LIQ_DELTA_DM / abroadMax;
-                uint256 totalSupplyDelta = newTotalSupply - usdPlus.totalSupply();
+                excessProfit = newTotalSupply - usdPlus.totalSupply();
 
                 // Mint USD+ to OVN wallet
                 require(profitRecipient != address(0), 'profitRecipient address is zero');
-                usdPlus.mint(profitRecipient, totalSupplyDelta);
+                usdPlus.mint(profitRecipient, excessProfit);
             }
 
         }
@@ -582,7 +582,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         emit PayoutEvent(
             profit,
-            newLiquidityIndex,
+            0,
             excessProfit,
             premium,
             loss

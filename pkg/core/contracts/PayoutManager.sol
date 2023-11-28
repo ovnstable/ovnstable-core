@@ -214,7 +214,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
      * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
      * see details: Exchange.sol | HedgeExchanger.sol
      */
-    function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external override onlyExchanger {
+    function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external virtual override onlyExchanger {
 
         if (disabled) {
             revert('PayoutManager disabled');
