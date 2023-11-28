@@ -1,5 +1,5 @@
 const {expect} = require("chai");
-const {utils} = require("ethers");
+const {utils, BigNumber} = require("ethers");
 const hre = require('hardhat');
 const {getNamedAccounts, deployments, ethers} = require("hardhat");
 const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
@@ -386,31 +386,22 @@ describe("Token", function () {
 
         expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
 
-        // const rebasingCredits = await ousd.rebasingCreditsHighres();
-        // const rebasingCreditsPerTokenHighres =
-        //   await ousd.rebasingCreditsPerTokenHighres();
-        //
-        // const creditsAdded = ousdUnits("99.50")
-        //   .mul(rebasingCreditsPerTokenHighres)
-        //   .div(utils.parseUnits("1", 18));
-        //
-        // await expect(rebasingCredits).to.equal(
-        //   initialRebasingCredits.add(creditsAdded)
-        // );
-        //
-        // expect(await ousd.totalSupply()).to.approxEqual(
-        //   initialTotalSupply.add(utils.parseUnits("200", 18))
-        // );
-        //
-        // // Validate rebasing and non rebasing credit accounting by calculating'
-        // // total supply manually
-        // const calculatedTotalSupply = (await ousd.rebasingCreditsHighres())
-        //   .mul(utils.parseUnits("1", 18))
-        //   .div(await ousd.rebasingCreditsPerTokenHighres())
-        //   .add(await ousd.nonRebasingSupply());
-        // await expect(calculatedTotalSupply).to.approxEqual(
-        //   await ousd.totalSupply()
-        // );
+        const rebasingCredits = await usdPlus.rebasingCreditsHighres();
+        const rebasingCreditsPerTokenHighres =
+          await usdPlus.rebasingCreditsPerTokenHighres();
+
+        const creditsAdded = BigNumber.from(toAsset("100"))
+          .mul(rebasingCreditsPerTokenHighres)
+          .div(utils.parseUnits("1", 18));
+
+        await expect(rebasingCredits).to.equal(
+          initialRebasingCredits.add(creditsAdded)
+        );
+
+        expect(await usdPlus.totalSupply()).to.equal(initialTotalSupply);
+
+
+        await validateTotalSupply();
     });
 
     it("Should maintain the correct balance when rebaseOptOut is called from rebasing EOA", async () => {
@@ -431,17 +422,17 @@ describe("Token", function () {
         await balanceOf(user1, 200);
         await balanceOf(user2, 200);
 
-        // const rebasingCredits = await usdPlus.rebasingCreditsHighres();
-        //
-        // const creditsDeducted = ousdUnits("200")
-        //     .mul(initialrebasingCreditsPerTokenHighres)
-        //     .div(utils.parseUnits("1", 18));
-        //
-        // await expect(rebasingCredits).to.equal(
-        //     initialRebasingCredits.sub(creditsDeducted)
-        // );
-        //
-        // expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
+        const rebasingCredits = await usdPlus.rebasingCreditsHighres();
+
+        const creditsDeducted = BigNumber.from(toAsset("200"))
+            .mul(initialrebasingCreditsPerTokenHighres)
+            .div(utils.parseUnits("1", 18));
+
+        await expect(rebasingCredits).to.equal(
+            initialRebasingCredits.sub(creditsDeducted)
+        );
+
+        expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
     });
 
     it("Should not allow EOA to call rebaseOptIn when already opted in to rebasing", async () => {
