@@ -14,6 +14,7 @@ const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {getImplementationAddress} = require("@openzeppelin/upgrades-core");
 const {sharedBeforeEach, evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {fromAsset} = require("@overnight-contracts/common/utils/decimals");
+const {testUsdPlus} = require("@overnight-contracts/common/utils/governance");
 
 module.exports = async ({deployments}) => {
 
@@ -181,6 +182,14 @@ module.exports = async ({deployments}) => {
         )
 
         console.table(items);
+
+
+        if (hre.network.name === 'localhost'){
+            console.log(`TotalSupplyBefore: ${await usdPlus.totalSupply()}`);
+            await testUsdPlus('Migration');
+            console.log(`TotalSupplyAfter:  ${await usdPlus.totalSupply()}`);
+        }
+
     }
 };
 

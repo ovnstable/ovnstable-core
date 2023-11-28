@@ -130,8 +130,6 @@ async function testUsdPlus(id, stand = process.env.STAND){
     let asset = await getCoreAsset(stand);
 
 
-
-
     let walletAddress = await getWalletAddress();
     await transferETH(10, walletAddress);
     await transferAsset(await exchange.usdc(), walletAddress);
