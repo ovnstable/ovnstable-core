@@ -12,6 +12,8 @@ const {ethers, upgrades, getNamedAccounts} = require("hardhat");
 const sampleModule = require("@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {getImplementationAddress} = require("@openzeppelin/upgrades-core");
+const {sharedBeforeEach, evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {fromAsset} = require("@overnight-contracts/common/utils/decimals");
 
 module.exports = async ({deployments}) => {
 
@@ -29,23 +31,40 @@ module.exports = async ({deployments}) => {
     let ownerLength;
     let totalSupply;
     let exchange;
+    let userFirstBalance;
+    let userLastBalance;
+    let userMiddleBalance;
 
-    await prepareLocalTest();
-    await deployImplementation();
-    await makeUpgrade();
-    await migrationRun();
-    await checksum();
+    if (hre.network.name === 'localhost'){
+        await evmCheckpoint('task', hre.network.provider);
+    }
+
+    try {
+        await prepareLocalTest();
+        await deployImplementation();
+        await makeUpgrade();
+        await migrationRun();
+        await checksum();
+    } catch (e) {
+        console.log(`Error: ${e}`);
+    }
+
+    if (hre.network.name === 'localhost'){
+        await evmRestore('task', hre.network.provider);
+    }
 
     async function prepareLocalTest() {
-        console.log('[prepareLocalTest]');
-        console.log('Grant ADMIN role to DEV');
 
-        await transferETH(10, wallet.address);
+        if (hre.network.name === 'localhost'){
+            console.log('[prepareLocalTest]');
+            console.log('Grant ADMIN role to DEV');
+            await transferETH(10, wallet.address);
 
-        await execTimelock(async (timelock) => {
-            await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, wallet.address);
-            await usdPlus.connect(timelock).grantRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address);
-        });
+            await execTimelock(async (timelock) => {
+                await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, wallet.address);
+                await usdPlus.connect(timelock).grantRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address);
+            });
+        }
 
     }
 
@@ -61,7 +80,7 @@ module.exports = async ({deployments}) => {
         }, usdPlus.address);
 
         implAddress = impl.impl;
-        console.log(`NEW implementation: ${implAddress}`);
+        console.log(`NEW implementation:              ${implAddress}`);
     }
 
 
@@ -75,6 +94,10 @@ module.exports = async ({deployments}) => {
         totalSupply = await usdPlus.totalSupply();
         exchange = await usdPlus.exchange();
 
+        userFirstBalance = fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0)));
+        userLastBalance = fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1)));
+        userMiddleBalance = fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength / 2)));
+
         console.log(`Current implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
         await (await usdPlus.upgradeTo(implAddress)).wait();
         console.log(`New implementation address:     ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
@@ -87,14 +110,21 @@ module.exports = async ({deployments}) => {
 
         usdPlus = await ethers.getContractAt('UsdPlusToken', usdPlus.address, wallet);
 
+        console.log(`Owners: ${ownerLength}`);
+
         await (await usdPlus.migrationInit(exchange, decimals, wallet.address)).wait();
         let size = 500;
         let length = await usdPlus.migrationBatchLength(size);
         console.log("length", length.toString());
+
+        let gasUsed = [];
         for (let i = 0; i < length; i++) {
             console.log(`iterate: ${i}/${length}`);
-            await (await usdPlus.migrationBatch(size, i)).wait();
+            let tx = await (await usdPlus.migrationBatch(size, i)).wait();
+
+            gasUsed.push(tx.gasUsed);
         }
+
 
     }
 
@@ -102,7 +132,6 @@ module.exports = async ({deployments}) => {
     async function checksum(){
         console.log('[checksum]');
         let items = [];
-
         items.push(
             {
                 name: 'Decimals',
@@ -134,6 +163,21 @@ module.exports = async ({deployments}) => {
                 old: exchange,
                 new: (await usdPlus.exchange()).toString()
             },
+            {
+                name: 'user_first',
+                old: userFirstBalance,
+                new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0)))
+            },
+            {
+                name: 'user_middle',
+                old: userMiddleBalance,
+                new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength / 2)))
+            },
+            {
+                name: 'user_last',
+                old: userLastBalance,
+                new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1)))
+            }
         )
 
         console.table(items);
