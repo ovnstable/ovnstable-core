@@ -15,7 +15,6 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./UsdPlusToken.sol";
 
-import "hardhat/console.sol";
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
