@@ -81,7 +81,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
     // --- setters
 
-    function setDisabled(bool _disabled) external onlyAdmin {
+    function setDisabled(bool _disabled) external onlyUnit {
         disabled = _disabled;
         emit DisabledUpdated(disabled);
     }
