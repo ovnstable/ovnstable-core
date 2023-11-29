@@ -246,7 +246,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
 
     /**
-     * @return The total supply of OUSD.
+     * @return The total supply of USD+.
      */
     function totalSupply() public view override returns (uint256) {
         return _totalSupply;
@@ -395,7 +395,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Update the count of non rebasing credits in response to a transfer
      * @param _from The address you want to send tokens from.
      * @param _to The address you want to transfer to.
-     * @param _value Amount of OUSD to transfer
+     * @param _value Amount of USD+ to transfer
      */
     function _executeTransfer(
         address _from,
@@ -690,8 +690,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     /**
      * @dev Modify the supply without minting new tokens. This uses a change in
-     *      the exchange rate between "credits" and OUSD tokens to change balances.
-     * @param _newTotalSupply New total supply of OUSD.
+     *      the exchange rate between "credits" and USD+ tokens to change balances.
+     * @param _newTotalSupply New total supply of USD+.
      */
     function changeSupply(uint256 _newTotalSupply)
         external
