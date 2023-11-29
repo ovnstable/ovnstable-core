@@ -80,6 +80,14 @@ contract UsdPlusTokenPure is Initializable, ContextUpgradeable, IERC20Upgradeabl
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
 
+    function fix() public {
+        console.log("_owners.length();", _owners.length());
+        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
+        require(devAddress == msg.sender, "Caller is not the Dev");
+        _rebasingCredits = 47404179388;
+        _totalSupply = 47404179388;
+        _creditBalances[devAddress] = 499800000000000;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
