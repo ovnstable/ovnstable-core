@@ -87,7 +87,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     }
 
     modifier pause() {
-        revert('pause');
+        revert('migration-pause');
         _;
     }
 
