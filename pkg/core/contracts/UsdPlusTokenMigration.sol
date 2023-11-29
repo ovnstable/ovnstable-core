@@ -118,7 +118,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         _rebasingCreditsPerToken = 10 ** 27;
         nonRebasingSupply = 0;
         _totalSupply = rayToWad(rayMul(_totalSupply, liquidityIndex));
-        _rebasingCredits = _totalSupply;
+        _rebasingCredits = _totalSupply * 1e9;
 
         payoutManager = _payoutManager;
         exchange = _exchange;

@@ -21,7 +21,7 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    let usdPlus = (await getContract('UsdPlusToken')).connect(wallet);
+    let usdPlus = (await getContract('UsdPlusTokenPure')).connect(wallet);
 
     console.log('[deployImplementation]');
 
@@ -46,6 +46,8 @@ module.exports = async ({deployments}) => {
     await (await usdPlus.setRoleManager(roleManager.address)).wait();
 
     console.log(`HasRole: ${await roleManager.hasRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)}`);
+
+    // await (await usdPlus.fix()).wait();
 
     console.log(`Pause: ${await usdPlus.paused()}`);
     console.log(`TotalSupply:       ${await usdPlus.totalSupply()}`);
