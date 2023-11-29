@@ -86,6 +86,11 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         _;
     }
 
+    modifier pause() {
+        revert('pause');
+        _;
+    }
+
     function rayMul(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 RAY = 1e27;
         uint256 halfRAY = RAY / 2;
@@ -351,6 +356,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     function transfer(address _to, uint256 _value)
         public
         override
+        pause
         returns (bool)
     {
         require(_to != address(0), "Transfer to zero address");
@@ -376,7 +382,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         address _from,
         address _to,
         uint256 _value
-    ) public override returns (bool) {
+    ) public override pause returns (bool) {
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
@@ -468,6 +474,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     function approve(address _spender, uint256 _value)
         public
         override
+        pause
         returns (bool)
     {
         _allowances[msg.sender][_spender] = _value;
@@ -485,6 +492,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
      */
     function increaseAllowance(address _spender, uint256 _addedValue)
         public
+        pause
         returns (bool)
     {
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
@@ -502,6 +510,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
      */
     function decreaseAllowance(address _spender, uint256 _subtractedValue)
         public
+        pause
         returns (bool)
     {
         uint256 oldValue = _allowances[msg.sender][_spender];
@@ -517,7 +526,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external onlyExchanger {
+    function mint(address _account, uint256 _amount) external pause onlyExchanger {
         _mint(_account, _amount);
     }
 
@@ -561,7 +570,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
-    function burn(address account, uint256 amount) external onlyExchanger {
+    function burn(address account, uint256 amount) external pause onlyExchanger {
         _burn(account, amount);
     }
 
@@ -642,7 +651,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
      * address's balance will be part of rebases and the account will be exposed
      * to upside and downside.
      */
-    function rebaseOptIn(address _address) public onlyPayoutManager nonReentrant {
+    function rebaseOptIn(address _address) public onlyPayoutManager pause nonReentrant {
         require(_isNonRebasingAccount(_address), "Account has not opted out");
 
         // Convert balance into the same amount at the current exchange rate
@@ -670,7 +679,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     /**
      * @dev Explicitly mark that an address is non-rebasing.
      */
-    function rebaseOptOut(address _address) public onlyPayoutManager nonReentrant {
+    function rebaseOptOut(address _address) public onlyPayoutManager pause nonReentrant {
         require(!_isNonRebasingAccount(_address), "Account has not opted in");
 
         // Increase non rebasing supply
@@ -697,6 +706,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         external
         onlyExchanger
         nonReentrant
+        pause
         returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
