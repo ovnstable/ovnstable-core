@@ -7,50 +7,52 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 
 contract UsdPlusTokenPure is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
     using StableMath for uint256;
 
-    uint256 private constant MAX_SUPPLY = type(uint256).max; // сматчили переименовыванием MAX_UINT_VALUE и поменяли public на private
-    uint256 private constant RESOLUTION_INCREASE = 1e9; // это новая константа, ее не было в предыдущем usd+
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+
+    uint256 private constant MAX_SUPPLY = type(uint256).max;
+    uint256 private constant RESOLUTION_INCREASE = 1e9;
     uint256 private constant _NOT_ENTERED = 1;
     uint256 private constant _ENTERED = 2;
 
-    mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
+    mapping(address => uint256) private _creditBalances;
 
-    bytes32 private DELETED_0; // тут был старый _allowances
+    bytes32 private DELETED_0;  // not used (_allowances)
 
-    uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
+    uint256 private _totalSupply;
 
-    string private _name; // сматчили без переименовывания, полное совпадение
-    string private _symbol; // сматчили без переименовывания, полное совпадение
+    string private _name;
+    string private _symbol;
 
-    uint256 private _rebasingCredits; // сматчили с изменением смыла переменной, была _totalMint
-    uint256 private _rebasingCreditsPerToken; // сматчили с изменением смыла переменной, была _totalBurn
+    uint256 private _rebasingCredits;
+    uint256 private _rebasingCreditsPerToken;
 
-    uint256 public nonRebasingSupply; // сматчили с изменением смыла переменной, была liquidityIndexChangeTime
-    uint256 private DELETED_1; // не будет использоваться, был liquidityIndex
-    uint256 private DELETED_2; // не будет использоваться, был liquidityIndexDenominator
+    uint256 public nonRebasingSupply;
+    uint256 private DELETED_1; // not used (liquidityIndex)
+    uint256 private DELETED_2; // not used (liquidityIndexDenominator)
 
-    EnumerableSet.AddressSet _owners; // этой логики нет в ousd, но она будет присутствовать в новой версии usd+
+    EnumerableSet.AddressSet _owners;
 
-    address public exchange; // в ousd есть аналог vaultAddress, но я его переименовал в эксченджер везде
-    uint8 private _decimals; // сматчили без переименовывания, полное совпадение
+    address public exchange;
+    uint8 private _decimals;
     address public payoutManager;
 
-    mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
-    mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
+    mapping(address => uint256) public nonRebasingCreditsPerToken;
+    mapping(address => RebaseOptions) public rebaseState;
     EnumerableSet.AddressSet _nonRebaseOwners;
-    mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     // ReentrancyGuard logic
     uint256 private _status;
