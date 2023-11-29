@@ -20,7 +20,7 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    let usdPlus = (await getContract('UsdPlusToken')).connect(wallet);
+    let usdPlus = (await getContract('UsdPlusTokenOld')).connect(wallet);
 
     let implAddress;
 
@@ -41,10 +41,10 @@ module.exports = async ({deployments}) => {
     }
 
     try {
-        await prepareLocalTest();
-        await deployImplementation();
-        await makeUpgrade();
-        await migrationRun();
+        // await prepareLocalTest();
+        // await deployImplementation();
+        // await makeUpgrade();
+        // await migrationRun();
         await checksum();
     } catch (e) {
         console.log(`Error: ${e}`);
@@ -113,13 +113,13 @@ module.exports = async ({deployments}) => {
 
         console.log(`Owners: ${ownerLength}`);
 
-        await (await usdPlus.migrationInit(exchange, decimals, wallet.address)).wait();
+        // await (await usdPlus.migrationInit(exchange, decimals, wallet.address)).wait();
         let size = 500;
         let length = await usdPlus.migrationBatchLength(size);
         console.log("length", length.toString());
 
         let gasUsed = [];
-        for (let i = 0; i < length; i++) {
+        for (let i = 1; i < length; i++) {
             console.log(`iterate: ${i}/${length}`);
             let tx = await (await usdPlus.migrationBatch(size, i)).wait();
 
@@ -151,34 +151,34 @@ module.exports = async ({deployments}) => {
             },
             {
                 name: 'ownerLength',
-                old: ownerLength.toString(),
+                old: (await usdPlus.ownerLength({blockTag: 	1012017})).toString(),
                 new: (await usdPlus.ownerLength()).toString()
             },
             {
                 name: 'totalSupply',
-                old: totalSupply.toString(),
+                old: (await usdPlus.totalSupply({blockTag: 	1012017})).toString(),
                 new: (await usdPlus.totalSupply()).toString()
             },
             {
                 name: 'exchange',
-                old: exchange,
+                old: (await usdPlus.exchange({blockTag: 	1012017})).toString(),
                 new: (await usdPlus.exchange()).toString()
             },
             {
                 name: 'user_first',
-                old: userFirstBalance,
+                old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0, {blockTag: 	1012017}))),
                 new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0)))
             },
-            {
-                name: 'user_middle',
-                old: userMiddleBalance,
-                new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength / 2)))
-            },
-            {
-                name: 'user_last',
-                old: userLastBalance,
-                new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1)))
-            }
+            // {
+            //     name: 'user_middle',
+            //     old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength / 2,  {blockTag: 	1012023}))),
+            //     new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength / 2)))
+            // },
+            // {
+            //     name: 'user_last',
+            //     old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1, {blockTag: 	1012017}))),
+            //     new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1)))
+            // }
         )
 
         console.table(items);
