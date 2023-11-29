@@ -14,6 +14,16 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 
+/**
+ * @dev Fork of OUSD version
+ * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
+ *
+ * Different with OUSD:
+ * - changeSupply
+ * - PayoutManager: rebaseOptIn/rebaseOptOut
+ * - RoleManager
+ */
+
 contract UsdPlusTokenPure is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
