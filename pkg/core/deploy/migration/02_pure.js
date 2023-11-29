@@ -43,7 +43,9 @@ module.exports = async ({deployments}) => {
     usdPlus = await ethers.getContractAt('UsdPlusTokenPure', usdPlus.address);
 
     let roleManager = await getContract('RoleManager');
+    let payoutManager = await getContract('PayoutManager');
     await (await usdPlus.setRoleManager(roleManager.address)).wait();
+    await (await usdPlus.setPayoutManager(payoutManager.address)).wait();
 
     console.log(`HasRole: ${await roleManager.hasRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)}`);
 
