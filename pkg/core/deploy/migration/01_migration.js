@@ -15,12 +15,13 @@ const {getImplementationAddress} = require("@openzeppelin/upgrades-core");
 const {sharedBeforeEach, evmCheckpoint, evmRestore} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const {fromAsset} = require("@overnight-contracts/common/utils/decimals");
 const {testUsdPlus} = require("@overnight-contracts/common/utils/governance");
+const {BigNumber} = require("ethers");
 
 module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    let usdPlus = (await getContract('UsdPlusTokenOld')).connect(wallet);
+    let usdPlus = (await getContract('UsdPlusToken')).connect(wallet);
 
     let implAddress;
 
@@ -45,7 +46,8 @@ module.exports = async ({deployments}) => {
         // await deployImplementation();
         // await makeUpgrade();
         // await migrationRun();
-        await checksum();
+        // await checksum();
+        await balancesTotal();
     } catch (e) {
         console.log(`Error: ${e}`);
     }
@@ -127,6 +129,25 @@ module.exports = async ({deployments}) => {
         }
 
 
+    }
+
+
+    async function balancesTotal(){
+
+
+
+        let owners = await usdPlus.ownerLength();
+
+        let total = BigNumber.from(0);
+        for (let i = 0 ; i < owners; i++){
+
+            let index = await usdPlus.ownerAt(i);
+
+            total = total.add(await usdPlus.balanceOf(index));
+        }
+
+        console.log(`TotalSupply: ${total}`);
+        console.log(`TotalSupply: ${await usdPlus.totalSupply()}`);
     }
 
 

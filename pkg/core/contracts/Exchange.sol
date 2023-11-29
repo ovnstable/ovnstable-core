@@ -13,7 +13,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
-import "./UsdPlusToken.sol";
+import "./interfaces/IUsdPlusToken.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
@@ -27,7 +27,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  fields
 
-    UsdPlusToken public usdPlus;
+    IUsdPlusToken public usdPlus;
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
@@ -168,7 +168,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function setTokens(address _usdPlus, address _asset) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
-        usdPlus = UsdPlusToken(_usdPlus);
+        usdPlus = IUsdPlusToken(_usdPlus);
         usdc = IERC20(_asset);
         emit TokensUpdated(_usdPlus, _asset);
     }

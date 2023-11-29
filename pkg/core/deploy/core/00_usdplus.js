@@ -24,14 +24,15 @@ module.exports = async ({deployments}) => {
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }
-    await deployProxy('UsdPlusTokenOld', deployments, save, params);
+    await deployProxy('UsdPlusTokenPure', deployments, save, params);
 
-    let usdPlus = await ethers.getContract('UsdPlusToken');
+    let usdPlus = await ethers.getContract('UsdPlusTokenPure');
 
     console.log('UsdPlusToken deploy done()');
-    console.log('Symbol:   ' + await usdPlus.symbol());
-    console.log('Name:     ' + await usdPlus.name());
-    console.log('Decimals: ' + await usdPlus.decimals());
+    console.log('Symbol:      ' + await usdPlus.symbol());
+    console.log('Name:        ' + await usdPlus.name());
+    console.log('Decimals:    ' + await usdPlus.decimals());
+    console.log('totalSupply: ' + await usdPlus.totalSupply());
 
 };
 
