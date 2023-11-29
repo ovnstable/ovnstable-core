@@ -54,8 +54,7 @@ contract UsdPlusTokenPure is Initializable, ContextUpgradeable, IERC20Upgradeabl
     EnumerableSet.AddressSet _nonRebaseOwners;
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    // ReentrancyGuard logic
-    uint256 private _status;
+    uint256 private _status; // ReentrancyGuard
     bool public paused;
     IRoleManager public roleManager;
 
@@ -65,7 +64,6 @@ contract UsdPlusTokenPure is Initializable, ContextUpgradeable, IERC20Upgradeabl
         _;
         _status = _NOT_ENTERED;
     }
-    // ReentrancyGuard logic end
 
     event TotalSupplyUpdatedHighres(
         uint256 totalSupply,
