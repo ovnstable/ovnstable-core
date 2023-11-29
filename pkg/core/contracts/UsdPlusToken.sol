@@ -10,11 +10,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import "./libraries/WadRayMath.sol";
 import "./interfaces/IPayoutManager.sol";
 
 contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    using WadRayMath for uint256; // после переезда это надо удалить, но пока не переехали нельзя
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
     using StableMath for uint256;
@@ -26,7 +24,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
 
-    address private DELETED_0; // тут был старый _allowances
+    bytes32 private DELETED_0; // тут был старый _allowances
 
     uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
 
@@ -80,19 +78,41 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     // ------ Migration section --------
     // ------ Removed after upgrade ----
 
+    mapping(address => bool) public migrated;
+
     modifier onlyDev() {
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
         _;
     }
 
-    function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public onlyDev{
-        DELETED_0 = address(0);
+    function rayMul(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 RAY = 1e27;
+        uint256 halfRAY = RAY / 2;
+        if (a == 0 || b == 0) {
+            return 0;
+        }
+        require(a <= (type(uint256).max - halfRAY) / b, "Errors.MATH_MULTIPLICATION_OVERFLOW");
+        return (a * b + halfRAY) / RAY;
+    }
+
+    function rayToWad(uint256 a) internal pure returns (uint256) {
+        uint256 WAD_RAY_RATIO = 1e9;
+        uint256 halfRatio = WAD_RAY_RATIO / 2;
+        uint256 result = halfRatio + a;
+        require(result >= halfRatio, "Errors.MATH_ADDITION_OVERFLOW");
+        return result / WAD_RAY_RATIO;
+    }
+
+    function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public onlyDev {
+        require(nonRebasingSupply != 0, "already migrationInit");
+
+        DELETED_0 = bytes32(0);
         uint256 liquidityIndex = DELETED_1;
 
         _rebasingCreditsPerToken = 10 ** 27;
         nonRebasingSupply = 0;
-        _totalSupply = _totalSupply.rayMul(liquidityIndex).rayToWad();
+        _totalSupply = rayToWad(rayMul(_totalSupply, liquidityIndex));
         _rebasingCredits = _totalSupply;
 
         payoutManager = _payoutManager;
@@ -114,9 +134,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         for (uint256 index = startIter; index < finishIter; index++) {
             address user = _owners.at(index);
-            _creditBalances[user] = _creditBalances[user].rayMul(liquidityIndex).rayToWad();
-            _creditBalances[user] = _creditBalances[user].mulTruncate(_rebasingCreditsPerToken);
-            rebaseState[user] = RebaseOptions.OptIn;
+            if (!migrated[user]) {
+                _creditBalances[user] = rayToWad(rayMul(_creditBalances[user], liquidityIndex));
+                _creditBalances[user] = _creditBalances[user].mulTruncate(_rebasingCreditsPerToken);
+                rebaseState[user] = RebaseOptions.OptIn;
+                migrated[user] = true;
+            }
         }
     }
 
@@ -712,7 +735,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             address userAddress = _nonRebaseOwners.at(i);
             uint256 userBalance = balanceOf(userAddress);
             uint256 userPart = (nonRebasingSupply != 0) ? userBalance * deltaNR / nonRebasingSupply : 0;
-            nonRebaseInfo[i] = NonRebaseInfo(userAddress, userPart);
+            nonRebaseInfo[i].pool = userAddress;
+            nonRebaseInfo[i].amount = userPart;
         }
 
         emit TotalSupplyUpdatedHighres(
