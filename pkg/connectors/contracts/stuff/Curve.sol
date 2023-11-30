@@ -505,3 +505,38 @@ library CurveLibrary {
     }
 
 }
+
+interface IBooster{
+
+    struct PoolInfo {
+        address lptoken; //the curve lp token
+        address gauge; //the curve gauge
+        address rewards; //the main reward/staking contract
+        bool shutdown; //is this pool shutdown?
+        address factory; //a reference to the curve factory used to create this pool (needed for minting crv)
+    }
+
+    // PoolInfo[] public poolInfo;//list of convex pools, index(pid) -> pool
+    function poolInfo(uint256 pid) external returns(PoolInfo memory);
+    // mapping(address => address) public factoryCrv;//map defining CRV token used by a Curve factory
+    // mapping(address => bool) public activeMap;//map defining if a curve gauge/lp token is already being used or not
+    // mapping(uint256 => uint256) public shutdownBalances; //lp balances of a shutdown pool, index(pid) -> lp balance
+
+
+    /// END SETTER SECTION ///
+
+    //get pool count
+    function poolLength() external view returns (uint256);
+
+    //deposit lp tokens and stake
+    function deposit(uint256 _pid, uint256 _amount) external returns(bool);
+
+    //deposit all lp tokens and stake
+    function depositAll(uint256 _pid) external returns(bool);
+
+    //allow reward contracts to withdraw directly to user
+    function withdrawTo(uint256 _pid, uint256 _amount, address _to) external returns(bool);
+
+    //claim crv for a pool from the pool's factory and send to rewards
+    function claimCrv(uint256 _pid, address _gauge) external;
+}
