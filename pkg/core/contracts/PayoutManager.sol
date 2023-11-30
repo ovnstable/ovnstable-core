@@ -9,6 +9,7 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IUsdPlusToken.sol";
 
+import "hardhat/console.sol";
 
 abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -243,6 +244,8 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
         uint256 amountToken = info.amount;
         IERC20 token = IERC20(item.token);
+        console.log('Amount         %s', amountToken);
+        console.log('Amount balance %s', token.balanceOf(address(this)));
 
         if (amountToken > 0) {
             if (item.feePercent > 0) {
