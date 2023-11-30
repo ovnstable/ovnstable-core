@@ -12,12 +12,21 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
     let items = [];
-    items.push(...velocore());
+    // items.push(...velocore());
+    items.push(...own());
 
     await (await payoutManager.addItems(items)).wait();
 
     console.log('LineaPayoutListener setting done');
 
+    function own(){
+
+        let dex = 'PayoutManager';
+        let items = [];
+        items.push(createSkim(payoutManager.address, usdtPlus.address, 'USDT+', dex));
+
+        return items;
+    }
 
     function velocore() {
 

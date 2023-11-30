@@ -249,6 +249,18 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         return balanceOf(_owners.at(index));
     }
 
+    function totalSupplyOwners() external view returns (uint256){
+
+        uint256 owners = this.ownerLength();
+
+        uint256 total = 0;
+        for(uint256 index = 0; index < owners; index++){
+            total += this.balanceOf(_owners.at(index));
+        }
+
+        return total;
+    }
+
 
     /**
      * @return The total supply of USD+.

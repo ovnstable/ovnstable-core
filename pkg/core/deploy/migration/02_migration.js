@@ -21,46 +21,51 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    let usdPlus = (await getContract('UsdPlusTokenPure')).connect(wallet);
+    let usdPlus = (await getContract('UsdPlusToken')).connect(wallet);
+    let exchange = (await getContract('Exchange')).connect(wallet);
+
+    let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
+
+    usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address);
+
+    let implAddress;
+
+    console.log(`Deployer: ${wallet.address}`);
 
     console.log('[deployImplementation]');
 
-    let factory = await ethers.getContractFactory('UsdPlusTokenPure');
     let impl = await sampleModule.deployProxyImpl(hre, factory, {
         kind: 'uups',
         unsafeSkipStorageCheck: true,
         unsafeAllowRenames: true
     }, usdPlus.address);
 
-    let implAddress = impl.impl;
-    console.log(`NEW implementation:             ${implAddress}`);
+    implAddress = impl.impl;
+    console.log(`NEW implementation:              ${implAddress}`);
+
+    console.log('[makeUpgrade]');
 
     console.log(`Current implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
     await (await usdPlus.upgradeTo(implAddress)).wait();
     console.log(`New implementation address:     ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
 
+    console.log('[migrationRun]');
+    usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address, wallet);
 
-    usdPlus = await ethers.getContractAt('UsdPlusTokenPure', usdPlus.address);
+    await (await usdPlus.migrationInit(exchange.address, 6, wallet.address)).wait();
+    console.log('MigrationInit done()');
 
-    let roleManager = await getContract('RoleManager');
-    let payoutManager = await getContract('PayoutManager');
-    await (await usdPlus.setRoleManager(roleManager.address)).wait();
-    await (await usdPlus.setPayoutManager(payoutManager.address)).wait();
+    let size = 500;
+    let length = await usdPlus.migrationBatchLength(size);
+    console.log("length", length.toString());
 
-    console.log(`HasRole: ${await roleManager.hasRole(Roles.PORTFOLIO_AGENT_ROLE, wallet.address)}`);
+    for (let i = 0; i < length; i++) {
+        console.log(`iterate: ${i}/${length}`);
+        await (await usdPlus.migrationBatch(size, i)).wait();
+    }
 
-    // await (await usdPlus.fix()).wait();
-
-    console.log(`Pause: ${await usdPlus.paused()}`);
-    console.log(`TotalSupply:       ${await usdPlus.totalSupply()}`);
-    console.log(`TotalSupplyOwners: ${await usdPlus.totalSupplyOwners()}`);
-    await (await usdPlus.pause()).wait();
-
-    console.log(`Pause: ${await usdPlus.paused()}`);
-    console.log(`TotalSupply:       ${await usdPlus.totalSupply()}`);
-    console.log(`TotalSupplyOwners: ${await usdPlus.totalSupplyOwners()}`);
 
 };
 
 
-module.exports.tags = ['Pure'];
+module.exports.tags = ['Migration'];
