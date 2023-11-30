@@ -12,9 +12,10 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
     let items = [];
-    // items.push(...velocore());
+    items.push(...velocore());
     items.push(...own());
 
+    await (await payoutManager.removeItems()).wait();
     await (await payoutManager.addItems(items)).wait();
 
     console.log('LineaPayoutListener setting done');
@@ -24,6 +25,7 @@ module.exports = async () => {
         let dex = 'PayoutManager';
         let items = [];
         items.push(createSkim(payoutManager.address, usdtPlus.address, 'USDT+', dex));
+        items.push(createSkim(payoutManager.address, usdPlus.address, 'USD+', dex));
 
         return items;
     }
@@ -33,7 +35,8 @@ module.exports = async () => {
         let dex = 'Velocore';
 
         let items = [];
-        items.push(createSkim('0xB30e7A2E6f7389cA5dDc714Da4c991b7A1dCC88e', usdtPlus.address, 'USDC/USD+/USDT+', dex));
+        items.push(createCustomBribe('0x3F006B0493ff32B33be2809367F5F6722CB84a7b', usdPlus.address, 'USDC/USD+/USDT+', dex, '0x9582B6Ad01b308eDAc14CB9BDF21e7Da698b5EDD'));
+        items.push(createCustomBribe('0xB30e7A2E6f7389cA5dDc714Da4c991b7A1dCC88e', usdtPlus.address, 'USDC/USD+/USDT+', dex, '0xE0c6FDf4EFC676EB35EA094f2B01Af216F9C232c'));
 
         return items;
     }

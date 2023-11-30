@@ -1,7 +1,7 @@
 const {
     getContract,
     showM2M,
-    showRewardsFromPayout, execTimelock, findEvent
+    showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
@@ -37,13 +37,12 @@ async function main() {
     let exchange = await getContract('Exchange');
     let typePayout = getTypePayout();
 
-//    await execTimelock(async (timelock)=>{
-//        await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-//        await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
-//    })
+   // await execTimelock(async (timelock)=>{
+   //     await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+   // })
 
-    let usdPlus = await getContract('UsdPlusToken');
-    console.log((await usdPlus.balanceOf(COMMON.rewardWallet)).toString());
+    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+
     await showM2M();
 
     let odosParams;
@@ -76,7 +75,6 @@ async function main() {
         tx = await (await exchange.payout({gasLimit: 5_000_000})).wait();
     }
     console.log("Payout success");
-    console.log((await usdPlus.balanceOf(COMMON.rewardWallet)).toString());
 
     await showPayoutData(tx, exchange);
 
@@ -149,24 +147,11 @@ async function getOdosParams(exchange) {
 
 async function showPayoutData(tx, exchange) {
 
-    let usdPlus = await getContract('UsdPlusToken');
-
-    console.log(`tx.hash: ${tx.transactionHash}`);
-    console.log("USD+: " + fromUsdPlus(await usdPlus.balanceOf(COMMON.rewardWallet)));
-
-    let event = await findEvent(tx, exchange, 'PayoutEvent');
-
-    console.log('Profit:       ' + fromUsdPlus(await event.args[0].toString()));
-    console.log('ExcessProfit: ' + fromUsdPlus(await event.args[2].toString()));
-    console.log('Premium:      ' + fromUsdPlus(await event.args[3].toString()));
-    console.log('Loss:         ' + fromUsdPlus(await event.args[4].toString()));
-
+    await showPayoutEvent(tx, exchange);
     await showRewardsFromPayout(tx);
+    await showPoolOperationsFromPayout(tx);
 }
 
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 main()
     .then(() => process.exit(0))

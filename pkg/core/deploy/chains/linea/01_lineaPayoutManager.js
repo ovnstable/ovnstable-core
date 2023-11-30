@@ -2,6 +2,7 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {ethers} = require("hardhat");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -12,6 +13,7 @@ module.exports = async ({deployments}) => {
     let payoutManager = await ethers.getContract('LineaPayoutManager');
 
     await (await payoutManager.setRoleManager(roleManager.address)).wait();
+    await (await payoutManager.setRewardWallet(COMMON.rewardWallet)).wait();
     console.log('setRoleManager done()');
 
     let exchangeUsdPlus = await getContract('Exchange', 'linea');

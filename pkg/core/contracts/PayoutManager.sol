@@ -40,12 +40,15 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
     bool public disabled; // Admin can disable to executing PayoutDone
     IRoleManager public roleManager;
+    address public rewardWallet;
 
     function __PayoutManager_init() internal initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        rewardWallet = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -62,6 +65,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     event DisabledUpdated(bool disabled);
     event RoleManagerUpdated(address roleManager);
     event PayoutDoneDisabled();
+    event RewardWalletUpdated(address rewardWallet);
 
     // ---  modifiers
 
@@ -92,6 +96,13 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         roleManager = IRoleManager(_roleManager);
         emit RoleManagerUpdated(_roleManager);
     }
+
+    function setRewardWallet(address _rewardWallet) external onlyAdmin {
+        require(_rewardWallet != address(0), "Zero address not allowed");
+        rewardWallet = _rewardWallet;
+        emit RewardWalletUpdated(rewardWallet);
+    }
+
 
     // --- logic
 
@@ -235,17 +246,21 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
                     continue;
                 }
 
-                _distributeRebase(info, item);
+                if (item.operation == Operation.SKIM) {
+                    _skim(info,item);
+                } else {
+                    _custom(info, item);
+                }
             }
         }
+
+
     }
 
-    function _distributeRebase(NonRebaseInfo memory info, Item memory item) internal {
+    function _skim(NonRebaseInfo memory info, Item memory item) internal {
 
         uint256 amountToken = info.amount;
         IERC20 token = IERC20(item.token);
-        console.log('Amount         %s', amountToken);
-        console.log('Amount balance %s', token.balanceOf(address(this)));
 
         if (amountToken > 0) {
             if (item.feePercent > 0) {
@@ -261,10 +276,18 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
                 emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
             }
         }
-
-        require(token.balanceOf(address(this)) == 0, 'token balance is not zero');
     }
 
-    uint256[50] private __gap;
+    /**
+      * Override this method for unique behavior smart-contracts.
+      * If standard skim/sync/bribe not allow use.
+      */
+
+    function _custom(NonRebaseInfo memory info, Item memory item) internal virtual {
+        revert("Custom not implemented");
+    }
+
+
+    uint256[49] private __gap;
 
 }

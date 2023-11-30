@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset } = require("./assets");
+const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset, COMMON} = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
@@ -934,6 +934,51 @@ async function transferAsset(assetAddress, to, amount) {
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
+async function showPoolOperationsFromPayout(receipt){
+
+
+    let payoutManager = await getContract('LineaPayoutManager');
+
+    const rewardsItems = [];
+    receipt.logs.forEach((value, index) => {
+
+        try {
+            let log = payoutManager.interface.parseLog(value);
+            if (log.name === 'PoolOperation') {
+                rewardsItems.push({
+                    dexName: log.args[0].toString(),
+                    operation: log.args[1].toString(),
+                    poolName: log.args[2].toString(),
+                    pool: log.args[3].toString(),
+                    token: log.args[4].toString(),
+                    amount: log.args[5].toString(),
+                    to: log.args[6].toString(),
+                })
+            }
+        } catch (e) {
+        }
+    });
+
+    console.table(rewardsItems);
+}
+
+
+async function showPayoutEvent(receipt, exchange){
+
+    if (!exchange){
+        exchange = await getContract('Exchange');
+    }
+
+    let event = await findEvent(receipt, exchange, 'PayoutEvent');
+
+    if (event){
+        console.log('Profit:       ' + fromUsdPlus(await event.args[0].toString()));
+        console.log('ExcessProfit: ' + fromUsdPlus(await event.args[2].toString()));
+        console.log('Premium:      ' + fromUsdPlus(await event.args[3].toString()));
+        console.log('Loss:         ' + fromUsdPlus(await event.args[4].toString()));
+    }
+}
+
 async function showRewardsFromPayout(receipt) {
 
     let strategy = await getContract('StrategyEtsEta', 'arbitrum');
@@ -1101,4 +1146,6 @@ module.exports = {
     checkTimeLockBalance: checkTimeLockBalance,
     impersonateAccount: impersonateAccount,
     showRewardsFromPayout: showRewardsFromPayout,
+    showPoolOperationsFromPayout: showPoolOperationsFromPayout,
+    showPayoutEvent: showPayoutEvent,
 }
