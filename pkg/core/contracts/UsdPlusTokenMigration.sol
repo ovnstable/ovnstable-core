@@ -115,37 +115,14 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         DELETED_0 = bytes32(0);
         uint256 liquidityIndex = DELETED_1;
 
-        _rebasingCreditsPerToken = 10 ** 27;
+        _rebasingCreditsPerToken = 10 ** 54 / liquidityIndex;
         nonRebasingSupply = 0;
-        _totalSupply = rayToWad(rayMul(_totalSupply, liquidityIndex));
         _rebasingCredits = _totalSupply * 1e9;
 
         payoutManager = _payoutManager;
         exchange = _exchange;
         _decimals = decimals;
         _status = _NOT_ENTERED;
-    }
-
-    function migrationBatchLength(uint256 size) public view returns (uint256) {
-        uint256 len = _owners.length();
-        return (len / size * size == len) ? len / size : len / size + 1;
-    }
-
-    function migrationBatch(uint256 size, uint256 iter) public onlyDev {
-        uint256 liquidityIndex = DELETED_1;
-        uint256 len = _owners.length();
-        uint256 startIter = iter * size;
-        uint256 finishIter = (iter + 1) * size  > len ? len : (iter + 1) * size;
-
-        for (uint256 index = startIter; index < finishIter; index++) {
-            address user = _owners.at(index);
-            if (!migrated[user]) {
-                _creditBalances[user] = rayToWad(rayMul(_creditBalances[user], liquidityIndex));
-                _creditBalances[user] = _creditBalances[user].mulTruncate(_rebasingCreditsPerToken);
-                rebaseState[user] = RebaseOptions.OptIn;
-                migrated[user] = true;
-            }
-        }
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor

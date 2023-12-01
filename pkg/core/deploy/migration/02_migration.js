@@ -55,16 +55,6 @@ module.exports = async ({deployments}) => {
     await (await usdPlus.migrationInit(exchange.address, 6, wallet.address)).wait();
     console.log('MigrationInit done()');
 
-    let size = 500;
-    let length = await usdPlus.migrationBatchLength(size);
-    console.log("length", length.toString());
-
-    for (let i = 0; i < length; i++) {
-        console.log(`iterate: ${i}/${length}`);
-        await (await usdPlus.migrationBatch(size, i)).wait();
-    }
-
-
 };
 
 
