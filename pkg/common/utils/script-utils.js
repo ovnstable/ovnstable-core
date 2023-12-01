@@ -155,7 +155,7 @@ async function setDepositor(strategyName, strategy){
 async function addStrategyToApi(strategy, id){
     console.log(`Try to add strategy [${id}] to API`);
 
-    if (hre.network.name === 'localhost'){
+    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat'){
         console.log('Ignore add strategy to API for localhost network');
         return;
     }

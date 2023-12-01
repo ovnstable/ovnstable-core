@@ -12,7 +12,7 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('Aave', async (strategy) => {
         await (await strategy.setParams(
             {
                 dai: OPTIMISM.dai,
