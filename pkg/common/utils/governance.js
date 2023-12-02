@@ -234,7 +234,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     let roleManager = await getContract('RoleManager', stand);
 
 
-    let params = await getPrice();
 
     let tables = [];
 
