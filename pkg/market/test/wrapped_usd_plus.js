@@ -14,7 +14,7 @@ describe("WrappedUsdPlusToken", function () {
     let account;
     let usdPlus;
     let wrappedUsdPlus;
-
+    let newTotalSupply;
 
     sharedBeforeEach('deploy and setup', async () => {
         // need to run inside IDEA via node script running
@@ -52,8 +52,6 @@ describe("WrappedUsdPlusToken", function () {
         expect(await wrappedUsdPlus.previewDeposit(usdcAmountToDeposit)).to.equals(mintedWrappedAmount);
 
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
-
-        console.log("lol", (await usdPlus.totalSupply()).toString());
 
         newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
