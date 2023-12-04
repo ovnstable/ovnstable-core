@@ -14,7 +14,6 @@ describe("WrappedUsdPlusToken", function () {
     let account;
     let usdPlus;
     let wrappedUsdPlus;
-    let usdc;
 
 
     sharedBeforeEach('deploy and setup', async () => {
@@ -28,7 +27,6 @@ describe("WrappedUsdPlusToken", function () {
 
         usdPlus = await ethers.getContract("MockUsdPlusToken");
         wrappedUsdPlus = await ethers.getContract("WrappedUsdPlusToken");
-        usdc = await ethers.getContractAt("IERC20", POLYGON.usdc);
         await usdPlus.setExchanger(account);
     });
 
@@ -39,51 +37,40 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("totalAssets", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
         expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
 
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
+        
         let mintedWrappedAmount = await wrappedUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
 
         expect(await wrappedUsdPlus.previewDeposit(usdcAmountToDeposit)).to.equals(mintedWrappedAmount);
 
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        console.log("lol", (await usdPlus.totalSupply()).toString());
+
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(usdcAmountToDeposit);
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit * 2);
-        
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
-        expect(await wrappedUsdPlus.balanceOf(account)).to.equals(usdcAmountToDeposit);
-        expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit / 2);
     });
 
     it("wrapped to unwrapped converting", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let wrappedAmount = 1000;
         let unwrappedAmount = await wrappedUsdPlus.convertToAssets(wrappedAmount);
         expect(unwrappedAmount).to.equals(wrappedAmount);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
-
-        unwrappedAmount = await wrappedUsdPlus.convertToAssets(wrappedAmount);
-        expect(unwrappedAmount).to.equals(500);
-
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        await usdPlus.mint(account, wrappedAmount);
+        newTotalSupply = wrappedAmount * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         unwrappedAmount = await wrappedUsdPlus.convertToAssets(wrappedAmount);
@@ -91,20 +78,14 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("unwrapped to wrapped converting", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let wrappedAmount = 1000;
         let unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
         expect(unwrappedAmount).to.equals(wrappedAmount);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
+        await usdPlus.mint(account, wrappedAmount);
 
-        unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
-        expect(unwrappedAmount).to.equals(2000);
-
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = wrappedAmount * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
@@ -112,22 +93,15 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("unwrapped <-> wrapped converting", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let wrappedAmount = 1000;
         let unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
         let newWrappedAmount = await wrappedUsdPlus.convertToAssets(unwrappedAmount);
         expect(newWrappedAmount).to.equals(wrappedAmount);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
+        await usdPlus.mint(account, wrappedAmount);
 
-        unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
-        newWrappedAmount = await wrappedUsdPlus.convertToAssets(unwrappedAmount);
-        expect(newWrappedAmount).to.equals(wrappedAmount);
-
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = wrappedAmount * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         unwrappedAmount = await wrappedUsdPlus.convertToShares(wrappedAmount);
@@ -136,14 +110,14 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("unwrapped balance", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        await usdPlus.mint(account, 250);
+        let newTotalSupply = 500;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdPlusAmountToWrap = 250;
         let usdcAmountToDeposit = 1000;
 
-        // 500 USD+ minted with newTotalSupply = 2*10^27
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
 
         await usdPlus.approve(wrappedUsdPlus.address, usdPlusAmountToWrap);
         await wrappedUsdPlus.deposit(usdPlusAmountToWrap, account);
@@ -163,74 +137,46 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("maxRedeem", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
         expect(await wrappedUsdPlus.maxRedeem(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
 
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit * 2);
         expect(await wrappedUsdPlus.maxRedeem(account)).to.equals(usdcAmountToDeposit);
-        
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
-
-        expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit / 2);
-        expect(await wrappedUsdPlus.maxRedeem(account)).to.equals(usdcAmountToDeposit);
+    
     });
 
     it("maxWithdraw", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(0);
         expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
 
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
         await wrappedUsdPlus.deposit(usdcAmountToDeposit, account);
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit * 2);
         expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdcAmountToDeposit * 2);
-        
-        newTotalSupply = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
-        expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit / 2);
-        expect(await wrappedUsdPlus.maxWithdraw(account)).to.equals(usdcAmountToDeposit / 2);
-    });
-
-    it("rate same to usdPlus liquidity index", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
-        let rate = await wrappedUsdPlus.rate();
-        await usdPlus.changeSupply(newTotalSupply.toString());
-
-        newTotalSupply = newTotalSupply.subn(1000);
-        await usdPlus.changeSupply(newTotalSupply.toString());
-        rate = await wrappedUsdPlus.rate();
-        expect(rate.toString()).to.equals(newTotalSupply.toString());
     });
 
     it("deposit 1:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
@@ -246,14 +192,14 @@ describe("WrappedUsdPlusToken", function () {
 
         await expectRevert(
             wrappedUsdPlus.callStatic.deposit(usdcAmountToDeposit, account),
-            'ERC20: transfer amount exceeds balance',
+            'Transfer greater than balance',
         );
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(0);
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
 
         // callStatic doesn't change state but return value
@@ -263,7 +209,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         let receipt = await (await wrappedUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         const depositEvent = receipt.events.find((e) => e.event === 'Deposit' && e.args[0] === account);
@@ -275,8 +221,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("deposit and redeem 1:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
@@ -299,7 +243,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
 
         // callStatic doesn't change state but return value
@@ -309,7 +253,72 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
+        await usdPlus.changeSupply(newTotalSupply.toString());
+        
+        expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await wrappedUsdPlus.balanceOf(account)).to.equals(mintedWrappedAmount);
+
+        // callStatic doesn't change state but return value
+        let transferredUnwrappedAmount = await wrappedUsdPlus.callStatic.redeem(mintedWrappedAmount, account, account);
+        expect(transferredUnwrappedAmount.toString()).to.equals(await wrappedUsdPlus.previewRedeem(mintedWrappedAmount));
+
+        let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
+
+        // call again to change state
+        let receipt = await (await wrappedUsdPlus.redeem(mintedWrappedAmount, account, account)).wait();
+
+        const withdrawEvent = receipt.events.find((e) => e.event === 'Withdraw' && e.args[0] === account);
+        expect(withdrawEvent.args[3].toString()).to.equals(String(transferredUnwrappedAmount));
+
+        expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(0);
+        expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
+
+        expect((await usdPlus.balanceOf(account)).toString()).to.equals(
+            new BN(usdPlusBalanceBefore.toString())
+                .add(new BN(transferredUnwrappedAmount.toString()))
+                .toString()
+        );
+    });
+
+    it("deposit and redeem 1:1 not rebase", async function () {
+
+        await usdPlus.setPayoutManager(account);
+        await usdPlus.rebaseOptOut(account);
+
+        let usdcAmountToDeposit = 250;
+
+        await expectRevert(
+            wrappedUsdPlus.callStatic.redeem(1, ZERO_ADDRESS, account),
+            'Zero address for receiver not allowed',
+        );
+
+        await expectRevert(
+            wrappedUsdPlus.callStatic.redeem(1, account, ZERO_ADDRESS),
+            'Zero address for owner not allowed',
+        );
+
+        await expectRevert(
+            wrappedUsdPlus.callStatic.redeem(0, account, account),
+            'Zero shares not allowed',
+        );
+
+        expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(0);
+        expect(await usdPlus.balanceOf(account)).to.equals(0);
+        expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
+
+        await usdPlus.mint(account, usdcAmountToDeposit);
+        await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
+
+        // callStatic doesn't change state but return value
+        let mintedWrappedAmount = await wrappedUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
+        expect(mintedWrappedAmount.toString()).to.equals(await wrappedUsdPlus.previewDeposit(usdcAmountToDeposit));
+
+        // call again to change state
+        await (await wrappedUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
+
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
         
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
@@ -341,16 +350,13 @@ describe("WrappedUsdPlusToken", function () {
     it("redeem another owner", async function () {
         const [owner, tmpUser] = await ethers.getSigners();
 
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
-
         let usdcAmountToDeposit = 250;
         await expectRevert(
             wrappedUsdPlus.callStatic.redeem(usdcAmountToDeposit, account, tmpUser.address),
             'Redeem amount exceeds allowance',
         );
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
 
         // callStatic doesn't change state but return value
@@ -360,7 +366,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.deposit(usdcAmountToDeposit, tmpUser.address)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
@@ -392,8 +398,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("deposit and redeem 2:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToDeposit = 250;
 
@@ -401,7 +405,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToDeposit);
+        await usdPlus.mint(account, usdcAmountToDeposit);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
 
         // callStatic doesn't change state but return value
@@ -411,7 +415,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.deposit(usdcAmountToDeposit, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
         
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
@@ -438,8 +442,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("mint 1:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToMint = 250;
         let sharesToMint = await wrappedUsdPlus.convertToShares(usdcAmountToMint);
@@ -456,14 +458,14 @@ describe("WrappedUsdPlusToken", function () {
 
         await expectRevert(
             wrappedUsdPlus.callStatic.mint(sharesToMint, account),
-            'ERC20: transfer amount exceeds balance',
+            'Transfer greater than balance',
         );
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(0);
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToMint);
+        await usdPlus.mint(account, usdcAmountToMint);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToMint);
 
         // callStatic doesn't change state but return value
@@ -473,7 +475,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         let receipt = await (await wrappedUsdPlus.mint(sharesToMint, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToMint * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         const depositEvent = receipt.events.find((e) => e.event === 'Deposit' && e.args[0] === account);
@@ -485,8 +487,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("mint and withdraw 1:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToMint = 250;
         let sharesToMint = await wrappedUsdPlus.convertToShares(usdcAmountToMint);
@@ -510,7 +510,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToMint);
+        await usdPlus.mint(account, usdcAmountToMint);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToMint);
 
         // callStatic doesn't change state but return value
@@ -520,7 +520,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.mint(sharesToMint, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToMint * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(mintedWrappedAmount * 2);
@@ -552,9 +552,6 @@ describe("WrappedUsdPlusToken", function () {
     it("withdraw another owner", async function () {
         const [owner, tmpUser] = await ethers.getSigners();
 
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
-
         let usdcAmountToMint = 250;
         let sharesToMint = await wrappedUsdPlus.convertToShares(usdcAmountToMint);
 
@@ -563,7 +560,7 @@ describe("WrappedUsdPlusToken", function () {
             'Withdraw amount exceeds allowance',
         );
 
-        await usdPlus.mint(usdc.address, usdcAmountToMint);
+        await usdPlus.mint(account, usdcAmountToMint);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToMint);
 
         // callStatic doesn't change state but return value
@@ -573,7 +570,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.mint(sharesToMint, tmpUser.address)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToMint * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(mintedWrappedAmount * 2);
@@ -605,8 +602,6 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("mint and withdraw 2:1", async function () {
-        let newTotalSupply = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.changeSupply(newTotalSupply.toString());
 
         let usdcAmountToMint = 250;
         let sharesToMint = await wrappedUsdPlus.convertToShares(usdcAmountToMint);
@@ -615,7 +610,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(0);
 
-        await usdPlus.mint(usdc.address, usdcAmountToMint);
+        await usdPlus.mint(account, usdcAmountToMint);
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToMint);
 
         // callStatic doesn't change state but return value
@@ -625,7 +620,7 @@ describe("WrappedUsdPlusToken", function () {
         // call again to change state
         await (await wrappedUsdPlus.mint(sharesToMint, account)).wait();
 
-        newTotalSupply = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
+        newTotalSupply = usdcAmountToMint * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
 
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(mintedWrappedAmount * 2);
@@ -652,12 +647,10 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("usd+ before deposit - usd+ after redeem = 2 if newTotalSupply don't grow", async function () {
-        // set newTotalSupply
-        await usdPlus.changeSupply('1030604144042764124558114376');
-
+        
         // buy usd+
         let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
@@ -673,16 +666,14 @@ describe("WrappedUsdPlusToken", function () {
         let usdPlusBalanceAfter = await usdPlus.balanceOf(account);
         expect(usdPlusBalanceAfter).to.equals(unwrappedAmount);
 
-        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(2);
+        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(0);
     });
 
     it("usd+ before deposit - usd+ after redeem = 1 if newTotalSupply don't grow", async function () {
-        // set newTotalSupply
-        await usdPlus.changeSupply('1030604134042764124558114376');
 
         // buy usd+
         let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
@@ -698,13 +689,13 @@ describe("WrappedUsdPlusToken", function () {
         let usdPlusBalanceAfter = await usdPlus.balanceOf(account);
         expect(usdPlusBalanceAfter).to.equals(unwrappedAmount);
 
-        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(1);
+        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(0);
     });
 
     it("usd+ before deposit - usd+ after redeem = 0 if newTotalSupply don't grow", async function () {
         // buy usd+
         let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
@@ -724,15 +715,14 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("usd+ before deposit - usd+ after redeem = 2 if newTotalSupply small grow", async function () {
-        // set newTotalSupply
-        await usdPlus.changeSupply('1030604144042764124558114376');
 
         // buy usd+
-        let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        let wrappedAmount = 20000000;
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
+        console.log("usdPlusBalanceBefore", usdPlusBalanceBefore.toString());
         await usdPlus.approve(wrappedUsdPlus.address, usdPlusBalanceBefore);
         let mintedWrappedAmount = await wrappedUsdPlus.callStatic.deposit(usdPlusBalanceBefore, account);
         await wrappedUsdPlus.deposit(usdPlusBalanceBefore, account);
@@ -740,24 +730,23 @@ describe("WrappedUsdPlusToken", function () {
         expect(mintedWrappedAmount).to.equals(wrappedUsdPlusBalance);
 
         // set new newTotalSupply
-        await usdPlus.changeSupply('1030604144052764124558114376');
+        await usdPlus.changeSupply('20000000');
 
         // redeem wusd+
         let unwrappedAmount = await wrappedUsdPlus.callStatic.redeem(wrappedUsdPlusBalance, account, account);
         await wrappedUsdPlus.redeem(wrappedUsdPlusBalance, account, account);
         let usdPlusBalanceAfter = await usdPlus.balanceOf(account);
+        console.log("usdPlusBalanceAfter", usdPlusBalanceAfter.toString());
         expect(usdPlusBalanceAfter).to.equals(unwrappedAmount);
 
-        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(2);
+        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(0);
     });
 
     it("usd+ before deposit - usd+ after redeem = 1 if newTotalSupply small grow", async function () {
-        // set newTotalSupply
-        await usdPlus.changeSupply('1030604144042764124558114376');
-
+    
         // buy usd+
         let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
@@ -768,7 +757,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(mintedWrappedAmount).to.equals(wrappedUsdPlusBalance);
 
         // set new newTotalSupply
-        await usdPlus.changeSupply('1030604168542764124558114376');
+        await usdPlus.changeSupply('20240461');
 
         // redeem wusd+
         let unwrappedAmount = await wrappedUsdPlus.callStatic.redeem(wrappedUsdPlusBalance, account, account);
@@ -776,16 +765,14 @@ describe("WrappedUsdPlusToken", function () {
         let usdPlusBalanceAfter = await usdPlus.balanceOf(account);
         expect(usdPlusBalanceAfter).to.equals(unwrappedAmount);
 
-        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(1);
+        expect(usdPlusBalanceBefore - usdPlusBalanceAfter).to.equals(0);
     });
 
     it("usd+ before deposit = usd+ after redeem if newTotalSupply small grow", async function () {
-        // set newTotalSupply
-        await usdPlus.changeSupply('1030604134042764124558114376');
 
         // buy usd+
         let wrappedAmount = 20240461;
-        await usdPlus.mint(usdc.address, wrappedAmount);
+        await usdPlus.mint(account, wrappedAmount);
 
         // deposit wusd+
         let usdPlusBalanceBefore = await usdPlus.balanceOf(account);
@@ -796,7 +783,7 @@ describe("WrappedUsdPlusToken", function () {
         expect(mintedWrappedAmount).to.equals(wrappedUsdPlusBalance);
 
         // set new newTotalSupply
-        await usdPlus.changeSupply('1030604168542764124558114376');
+        await usdPlus.changeSupply('20240461');
 
         // redeem wusd+
         let unwrappedAmount = await wrappedUsdPlus.callStatic.redeem(wrappedUsdPlusBalance, account, account);

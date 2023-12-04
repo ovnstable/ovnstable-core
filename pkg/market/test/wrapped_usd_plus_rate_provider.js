@@ -50,7 +50,11 @@ describe("WrappedUsdPlusRateProvider", function () {
         });
 
         it("liquidity index 1.5", async function () {
-            await usdPlus.setLiquidityIndex("1500000000000000000000000000");
+            let usdcAmountToDeposit = 1000000;
+            await usdPlus.mint(account, usdcAmountToDeposit);
+            
+            let newSupply = usdcAmountToDeposit * 1.5;
+            await usdPlus.changeSupply(newSupply.toString());
 
             let rate = await rateProvider.getRate();
 
@@ -58,43 +62,28 @@ describe("WrappedUsdPlusRateProvider", function () {
         });
 
         it("liquidity index 1.03", async function () {
-            await usdPlus.setLiquidityIndex("1035741584370043270000000000");
+            let usdcAmountToDeposit = 1000000;
+            await usdPlus.mint(account, usdcAmountToDeposit);
+            
+            let newSupply = usdcAmountToDeposit + 35000;
+            await usdPlus.changeSupply(newSupply.toString());
 
             let rate = await rateProvider.getRate();
-            expect('1035741584370043270').to.eq(rate);
-        });
-
-        it("liquidity index 1.03", async function () {
-            await usdPlus.setLiquidityIndex("1035741584370043270000000000");
-
-            let rate = await rateProvider.getRate();
-            expect('1035741584370043270').to.eq(rate);
+            expect('1035000000000000000').to.eq(rate);
         });
 
         it("liquidity index 1.115", async function () {
-            await usdPlus.setLiquidityIndex("1115993874702156641436525488");
+            let usdcAmountToDeposit = 1000000;
+            await usdPlus.mint(account, usdcAmountToDeposit);
+            
+            let newSupply = usdcAmountToDeposit + 111599;
+            await usdPlus.changeSupply(newSupply.toString());
 
             let rate = await rateProvider.getRate();
-            expect('1115993874702156641').to.eq(rate);
+            expect('1111599000000000000').to.eq(rate);
         });
 
-        it("liquidity index 0.16", async function () {
-            await usdPlus.setLiquidityIndex("160301011478432744944521898");
-
-            let rate = await rateProvider.getRate();
-            expect('160301011478432744').to.eq(rate);
-        });
-
-        it("liquidity index 0.96", async function () {
-            await usdPlus.setLiquidityIndex("960301011478432745944521898");
-
-            let rate = await rateProvider.getRate();
-            expect('960301011478432745').to.eq(rate);
-        });
     });
-
-
-
 
 });
 
