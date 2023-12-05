@@ -7,19 +7,20 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     const usdPlusToken = await getContract("UsdPlusToken");
+    let roleManager = await getContract('RoleManager');
 
     let params;
 
     if (hre.network.name === "optimism_dai") {
-        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18, roleManager.address]};
     } else if (hre.network.name === "arbitrum_dai") {
-        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18]};
+        params = {args: [usdPlusToken.address, "Wrapped DAI+", "wDAI+", 18, roleManager.address]};
     } else if (hre.network.name === "arbitrum_eth") {
-        params = {args: [usdPlusToken.address, "Wrapped ETH+", "wETH+", 18]};
+        params = {args: [usdPlusToken.address, "Wrapped ETH+", "wETH+", 18, roleManager.address]};
     } else if (hre.network.name === "bsc_usdt") {
-        params = {args: [usdPlusToken.address, "Wrapped USDT+", "wUSDT+", 18]};
+        params = {args: [usdPlusToken.address, "Wrapped USDT+", "wUSDT+", 18, roleManager.address]};
     } else {
-        params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+", 6]};
+        params = {args: [usdPlusToken.address, "Wrapped USD+", "wUSD+", 6, roleManager.address]};
     }
 
     await deployProxy('WrappedUsdPlusToken', deployments, save, params);

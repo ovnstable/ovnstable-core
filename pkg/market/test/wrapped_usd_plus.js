@@ -7,6 +7,7 @@ const hre = require("hardhat");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 let {POLYGON} = require('@overnight-contracts/common/utils/assets');
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 
 describe("WrappedUsdPlusToken", function () {
@@ -36,6 +37,41 @@ describe("WrappedUsdPlusToken", function () {
         expect(assetToken.toString()).to.equals(usdPlus.address);
     });
 
+
+
+    describe('pause', function (){
+
+        it('revert: Restricted to Portfolio Agent', async function (){
+            await expectRevert(wrappedUsdPlus.pause(), "Restricted to Portfolio Agent");
+            await expectRevert(wrappedUsdPlus.unpause(), "Restricted to Portfolio Agent");
+        });
+
+        it('pause/unpause variable status', async function (){
+            await wrappedUsdPlus.setRoleManager(wrappedUsdPlus.address);
+            await wrappedUsdPlus.grantRole(Roles.PORTFOLIO_AGENT_ROLE, account);
+
+            expect(await wrappedUsdPlus.paused()).to.equal(false);
+            await wrappedUsdPlus.pause();
+            expect(await wrappedUsdPlus.paused()).to.equal(true);
+            await wrappedUsdPlus.unpause();
+            expect(await wrappedUsdPlus.paused()).to.equal(false);
+        });
+
+        it('revert: pause', async function(){
+
+            await wrappedUsdPlus.setRoleManager(wrappedUsdPlus.address);
+            await wrappedUsdPlus.grantRole(Roles.PORTFOLIO_AGENT_ROLE, account);
+            await wrappedUsdPlus.pause();
+
+            await expectRevert(wrappedUsdPlus.deposit(0, account), "pause");
+            await expectRevert(wrappedUsdPlus.mint(0, account), "pause");
+            await expectRevert(wrappedUsdPlus.withdraw(0, account, account), "pause");
+            await expectRevert(wrappedUsdPlus.redeem(0, account, account), "pause");
+        })
+
+    });
+
+
     it("totalAssets", async function () {
 
         let usdcAmountToDeposit = 250;
@@ -46,7 +82,7 @@ describe("WrappedUsdPlusToken", function () {
         await usdPlus.mint(account, usdcAmountToDeposit);
 
         await usdPlus.approve(wrappedUsdPlus.address, usdcAmountToDeposit);
-        
+
         let mintedWrappedAmount = await wrappedUsdPlus.callStatic.deposit(usdcAmountToDeposit, account);
 
         expect(await wrappedUsdPlus.previewDeposit(usdcAmountToDeposit)).to.equals(mintedWrappedAmount);
@@ -125,12 +161,12 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("maxDeposit", async function () {
-        let uint256max = new BN(2).pow(new BN(256)).subn(1); 
+        let uint256max = new BN(2).pow(new BN(256)).subn(1);
         expect(await wrappedUsdPlus.maxDeposit(account)).to.equals(uint256max.toString());
     });
 
     it("maxMint", async function () {
-        let uint256max = new BN(2).pow(new BN(256)).subn(1); 
+        let uint256max = new BN(2).pow(new BN(256)).subn(1);
         expect(await wrappedUsdPlus.maxMint(account)).to.equals(uint256max.toString());
     });
 
@@ -151,7 +187,7 @@ describe("WrappedUsdPlusToken", function () {
 
         expect(await wrappedUsdPlus.totalAssets()).to.equals(usdcAmountToDeposit * 2);
         expect(await wrappedUsdPlus.maxRedeem(account)).to.equals(usdcAmountToDeposit);
-    
+
     });
 
     it("maxWithdraw", async function () {
@@ -253,7 +289,7 @@ describe("WrappedUsdPlusToken", function () {
 
         newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
-        
+
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(mintedWrappedAmount);
@@ -318,7 +354,7 @@ describe("WrappedUsdPlusToken", function () {
 
         newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
-        
+
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(mintedWrappedAmount);
@@ -415,7 +451,7 @@ describe("WrappedUsdPlusToken", function () {
 
         newTotalSupply = usdcAmountToDeposit * 2;
         await usdPlus.changeSupply(newTotalSupply.toString());
-        
+
         expect(await usdPlus.balanceOf(wrappedUsdPlus.address)).to.equals(usdcAmountToDeposit * 2);
         expect(await usdPlus.balanceOf(account)).to.equals(0);
         expect(await wrappedUsdPlus.balanceOf(account)).to.equals(mintedWrappedAmount);
@@ -645,7 +681,7 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("usd+ before deposit - usd+ after redeem = 2 if newTotalSupply don't grow", async function () {
-        
+
         // buy usd+
         let wrappedAmount = 20240461;
         await usdPlus.mint(account, wrappedAmount);
@@ -741,7 +777,7 @@ describe("WrappedUsdPlusToken", function () {
     });
 
     it("usd+ before deposit - usd+ after redeem = 1 if newTotalSupply small grow", async function () {
-    
+
         // buy usd+
         let wrappedAmount = 20240461;
         await usdPlus.mint(account, wrappedAmount);
