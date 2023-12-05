@@ -10,7 +10,7 @@ import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
 
 import "./interfaces/IWrappedUsdPlusToken.sol";
 
-contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
 
 
@@ -44,19 +44,19 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
     }
 
     function _convertToSharesUp(uint256 assets) internal view returns (uint256) {
-        return assets.rayDiv(rate());
+        return assets.rayDiv(asset.liquidityIndex());
     }
 
     function _convertToSharesDown(uint256 assets) internal view returns (uint256) {
-        return assets.rayDivDown(rate());
+        return assets.rayDivDown(asset.liquidityIndex());
     }
 
     function _convertToAssetsUp(uint256 shares) internal view returns (uint256) {
-        return shares.rayMul(rate());
+        return shares.rayMul(asset.liquidityIndex());
     }
 
     function _convertToAssetsDown(uint256 shares) internal view returns (uint256) {
-        return shares.rayMulDown(rate());
+        return shares.rayMulDown(asset.liquidityIndex());
     }
 
 
@@ -206,8 +206,8 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         return assets;
     }
 
-    function rate() public view returns (uint256) {
-        return 10 ** 54 / asset.rebasingCreditsPerTokenHighres();
+    function rate() external view returns (uint256) {
+        return asset.liquidityIndex();
     }
 
 }
