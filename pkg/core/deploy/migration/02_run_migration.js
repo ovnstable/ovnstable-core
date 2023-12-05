@@ -1,7 +1,7 @@
 const {
     getContract,
     execTimelock,
-    initWallet,
+    initWallet, getWalletAddress,
 } = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
@@ -19,8 +19,9 @@ module.exports = async () => {
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
 
-    let usdPlusMigrationAddress = '0x31C92b4431514545Cb98bdAAdaccfa33a01a001d';
+    let usdPlusMigrationAddress = '0x031d595E8930745411256c13B0F72746903E84E3';
     let usdPlusPureAddress = '0x4F268ef41F76e5503144886A668fced37b674CE0';
+    let wrappedPureAddress = '0x4A8a5a4eC3D09Cee5Cb6D41315eE1d6C1E3030a5';
     let exchangeAddress = '0xe2827F67CCD724962D95d22f063E45259260605b';
     let startBlock = await ethers.provider.getBlockNumber();
 
@@ -38,15 +39,17 @@ module.exports = async () => {
             await wrapped.connect(timelock).pause();
         })
 
-        let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
+        // For redeploy migration contract
 
-        let impl = await sampleModule.deployProxyImpl(hre, factory, {
-            kind: 'uups',
-            unsafeSkipStorageCheck: true,
-            unsafeAllowRenames: true
-        }, usdPlus.address);
-
-        usdPlusMigrationAddress = impl.impl;
+        // let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
+        //
+        // let impl = await sampleModule.deployProxyImpl(hre, factory, {
+        //     kind: 'uups',
+        //     unsafeSkipStorageCheck: true,
+        //     unsafeAllowRenames: true
+        // }, usdPlus.address);
+        //
+        // usdPlusMigrationAddress = impl.impl;
     }
 
     let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
@@ -109,7 +112,12 @@ module.exports = async () => {
     await (await usdPlus.setRoleManager(roleManagerAddress)).wait();
     console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
 
-    console.log('====[UsdPlus Pure done]====');
+    console.log('====[UsdPlus Pure done]====\n\n\n');
+
+    console.log('====[Wrapped Pure]====');
+    console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
+    await (await wrapped.upgradeTo(wrappedPureAddress)).wait();
+    console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
 
     expect(roleManagerAddress).to.equal(await usdPlus.roleManager());
     expect(roleManagerAddress).to.equal(await exchange.roleManager());
@@ -118,17 +126,26 @@ module.exports = async () => {
     expect(decimals).to.equal(await usdPlus.decimals());
     expect(usdPlusPureAddress).to.equal(await getImplementationAddress(ethers.provider, usdPlus.address));
     expect(exchangeAddress).to.equal(await getImplementationAddress(ethers.provider, exchange.address));
+    expect(wrappedPureAddress).to.equal(await getImplementationAddress(ethers.provider, wrapped.address));
 
     await checksum(usdPlus, exchange, wrapped, startBlock);
 };
 
 
-async function checksum(usdPlus, exchange, wrapped, startBlock){
+async function checksum(usdPlus, exchange, wrapped, startBlock) {
 
     console.log('[checksum]');
     let items = [];
 
     let ownerLength = await usdPlus.ownerLength();
+
+    let walletAddress = await getWalletAddress();
+
+    let indexFirstUser = await usdPlus.ownerAt(0);
+    let indexMiddleUser = await usdPlus.ownerAt(Math.ceil(ownerLength / 2));
+    let indexLastUser = await usdPlus.ownerAt(ownerLength - 1);
+
+
     items.push(
         {
             name: 'Decimals',
@@ -147,43 +164,53 @@ async function checksum(usdPlus, exchange, wrapped, startBlock){
         },
         {
             name: 'ownerLength',
-            old: (await usdPlus.ownerLength({blockTag: 	startBlock})).toString(),
+            old: (await usdPlus.ownerLength({blockTag: startBlock})).toString(),
             new: (await usdPlus.ownerLength()).toString()
         },
         {
             name: 'totalSupply',
-            old: (await usdPlus.totalSupply({blockTag: 	startBlock})).toString(),
+            old: (await usdPlus.totalSupply({blockTag: startBlock})).toString(),
             new: (await usdPlus.totalSupply()).toString()
         },
         {
             name: 'exchange',
-            old: (await usdPlus.exchange({blockTag: 	startBlock})).toString(),
+            old: (await usdPlus.exchange({blockTag: startBlock})).toString(),
             new: (await usdPlus.exchange()).toString()
         },
-        // {
-        //     name: 'wrapped.getRate',
-        //     old: (await wrapped.rate({blockTag: 	startBlock})).toString(),
-        //     new: (await wrapped.rate()).toString()
-        // },
+        {
+            name: 'wrapped.getRate',
+            old: (await wrapped.rate({blockTag: 	startBlock})).toString(),
+            new: (await wrapped.rate()).toString()
+        },
         {
             name: 'wrapped.totalSupply',
-            old: (await wrapped.totalSupply({blockTag: 	startBlock})).toString(),
+            old: (await wrapped.totalSupply({blockTag: startBlock})).toString(),
             new: (await wrapped.totalSupply()).toString()
         },
         {
-            name: 'user_first',
-            old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0, {blockTag: 	startBlock}))),
-            new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(0)))
+            name: 'usdPlus_user_first',
+            old: fromAsset(await usdPlus.balanceOf(indexFirstUser, {blockTag: startBlock})),
+            new: fromAsset(await usdPlus.balanceOf(indexFirstUser))
         },
         {
-            name: 'user_middle',
-            old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(Math.ceil(ownerLength / 2),  {blockTag: 	startBlock}))),
-            new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(Math.ceil(ownerLength / 2))))
+            name: 'usdPlus_user_middle',
+            old: fromAsset(await usdPlus.balanceOf(indexMiddleUser, {blockTag: startBlock})),
+            new: fromAsset(await usdPlus.balanceOf(indexMiddleUser))
         },
         {
-            name: 'user_last',
-            old: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1, {blockTag: 	startBlock}))),
-            new: fromAsset(await usdPlus.balanceOf(await usdPlus.ownerAt(ownerLength - 1)))
+            name: 'usdPlus_user_last',
+            old: fromAsset(await usdPlus.balanceOf(indexLastUser, {blockTag: startBlock})),
+            new: fromAsset(await usdPlus.balanceOf(indexLastUser))
+        },
+        {
+            name: 'usdPlus_user_dev',
+            old: fromAsset(await usdPlus.balanceOf(walletAddress, {blockTag: startBlock})),
+            new: fromAsset(await usdPlus.balanceOf(walletAddress))
+        },
+        {
+            name: 'wrapped_user_dev',
+            old: fromAsset(await wrapped.balanceOf(walletAddress, {blockTag: startBlock})),
+            new: fromAsset(await wrapped.balanceOf(walletAddress))
         }
     )
 

@@ -23,12 +23,22 @@ module.exports = async ({deployments}) => {
     let wallet = await initWallet();
     let exchange = await getContract('Exchange');
     let usdPlus = await getContract('UsdPlusToken');
+    let wrapped = await getContract('WrappedUsdPlusToken');
+    let roleManager = await getContract('RoleManager');
+    let market = await getContract('Market');
 
-    let factory = await ethers.getContractFactory('UsdPlusToken');
-    usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address);
 
-    await exchange.unpause();
-    await usdPlus.unpause();
+    await execTimelock(async (timelock) => {
+        let roleManager = await getContract('RoleManager');
+        await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
+        await exchange.connect(timelock).unpause();
+        await wrapped.connect(timelock).unpause();
+        await usdPlus.connect(timelock).unpause();
+
+        await roleManager.connect(timelock).grantRole(Roles.FREE_RIDER_ROLE, wallet.address);
+    })
+
+    console.log(`HasRole: FREE_RIDER_ROLE: ${await roleManager.hasRole(Roles.FREE_RIDER_ROLE, wallet.address)}`);
 
     let assetAddress = await exchange.usdc();
 
@@ -45,6 +55,24 @@ module.exports = async ({deployments}) => {
     await exchange.redeem(asset.address, toAsset(1));
 
     await balance('after redeem');
+
+    await balanceWrapped('before buy wrapped');
+    await (await usdPlus.approve(market.address, toAsset(1))).wait();
+    await (await market.wrap(usdPlus.address, toAsset(1), wallet.address)).wait();
+
+    await balanceWrapped('after buy wrapped');
+
+    let amountToRedeem = await wrapped.convertToShares(toAsset(1));
+    await (await wrapped.approve(market.address, amountToRedeem)).wait();
+    await (await market.unwrap(usdPlus.address, amountToRedeem, wallet.address)).wait();
+
+    await balanceWrapped('after redeem wrapped');
+
+    async function balanceWrapped(label){
+        console.log(label)
+        console.log('totalSupply:       ' + await wrapped.totalSupply());
+        console.log('wUSD+:             ' + await wrapped.balanceOf((wallet.address)));
+    }
 
     async function balance(label){
         console.log(label);
