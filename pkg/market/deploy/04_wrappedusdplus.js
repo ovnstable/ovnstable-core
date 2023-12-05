@@ -2,6 +2,7 @@ const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -29,10 +30,17 @@ module.exports = async ({deployments}) => {
 
     let wrappedUsdPlusToken = await ethers.getContract('WrappedUsdPlusToken');
 
+    if (await wrappedUsdPlusToken.roleManager() === ZERO_ADDRESS){
+
+        let roleManager = await getContract('RoleManager');
+        await (await wrappedUsdPlusToken.setRoleManager(roleManager.address)).wait();
+    }
+
     console.log('WrappedUsdPlusToken deploy done()');
-    console.log('Symbol:   ' + await wrappedUsdPlusToken.symbol());
-    console.log('Name:     ' + await wrappedUsdPlusToken.name());
-    console.log('Decimals: ' + await wrappedUsdPlusToken.decimals());
+    console.log('Symbol:      ' + await wrappedUsdPlusToken.symbol());
+    console.log('Name:        ' + await wrappedUsdPlusToken.name());
+    console.log('Decimals:    ' + await wrappedUsdPlusToken.decimals());
+    console.log('RoleManager: ' + await wrappedUsdPlusToken.roleManager());
 };
 
 module.exports.tags = ['base', 'WrappedUsdPlusToken'];
