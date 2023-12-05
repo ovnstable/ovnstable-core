@@ -7,29 +7,50 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
+import "@overnight-contracts/core/contracts/interfaces/IRoleManager.sol";
 
 import "./interfaces/IWrappedUsdPlusToken.sol";
 
-contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
 
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     IUsdPlusToken public asset;
     uint8 private _decimals;
+    IRoleManager public roleManager;
+    bool public paused;
+
+    modifier onlyPortfolioAgent() {
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        _;
+    }
+
+    modifier notPaused() {
+        require(paused == false, "pause");
+        _;
+    }
+
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address usdPlusTokenAddress, string calldata name, string calldata symbol, uint8 decimals) initializer public {
+    function initialize(address usdPlusTokenAddress,
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        address roleManagerAddress
+    ) initializer public {
+
         __ERC20_init(name, symbol);
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _decimals = decimals;
 
         asset = IUsdPlusToken(usdPlusTokenAddress);
-
-        _decimals = decimals;
+        roleManager = IRoleManager(roleManagerAddress);
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -38,25 +59,33 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
     override
     {}
 
-    function setDecimals(uint8 decimals) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_decimals == 0, 'Decimals already set');
-        _decimals = decimals;
+    function pause() public onlyPortfolioAgent {
+        paused = true;
+    }
+
+    function unpause() public onlyPortfolioAgent {
+        paused = false;
+    }
+
+    function setRoleManager(address _roleManager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_roleManager != address(0), 'roleManager is zero');
+        roleManager = IRoleManager(_roleManager);
     }
 
     function _convertToSharesUp(uint256 assets) internal view returns (uint256) {
-        return assets.rayDiv(asset.liquidityIndex());
+        return assets.rayDiv(rate());
     }
 
     function _convertToSharesDown(uint256 assets) internal view returns (uint256) {
-        return assets.rayDivDown(asset.liquidityIndex());
+        return assets.rayDivDown(rate());
     }
 
     function _convertToAssetsUp(uint256 shares) internal view returns (uint256) {
-        return shares.rayMul(asset.liquidityIndex());
+        return shares.rayMul(rate());
     }
 
     function _convertToAssetsDown(uint256 shares) internal view returns (uint256) {
-        return shares.rayMulDown(asset.liquidityIndex());
+        return shares.rayMulDown(rate());
     }
 
 
@@ -91,7 +120,7 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
     }
 
     /// @inheritdoc IERC4626
-    function deposit(uint256 assets, address receiver) external override returns (uint256) {
+    function deposit(uint256 assets, address receiver) notPaused external override returns (uint256) {
         require(assets != 0, "Zero assets not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
@@ -119,7 +148,7 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
     }
 
     /// @inheritdoc IERC4626
-    function mint(uint256 shares, address receiver) external override returns (uint256) {
+    function mint(uint256 shares, address receiver) external notPaused override returns (uint256) {
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
@@ -147,7 +176,7 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
     }
 
     /// @inheritdoc IERC4626
-    function withdraw(uint256 assets, address receiver, address owner) external override returns (uint256) {
+    function withdraw(uint256 assets, address receiver, address owner) external notPaused override returns (uint256) {
         require(assets != 0, "Zero assets not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
         require(owner != address(0), "Zero address for owner not allowed");
@@ -182,7 +211,7 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
     }
 
     /// @inheritdoc IERC4626
-    function redeem(uint256 shares, address receiver, address owner) external override returns (uint256) {
+    function redeem(uint256 shares, address receiver, address owner) external notPaused override returns (uint256) {
         require(shares != 0, "Zero shares not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
         require(owner != address(0), "Zero address for owner not allowed");
@@ -206,7 +235,7 @@ contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgr
         return assets;
     }
 
-    function rate() external view returns (uint256) {
+    function rate() public view returns (uint256) {
         return asset.liquidityIndex();
     }
 
