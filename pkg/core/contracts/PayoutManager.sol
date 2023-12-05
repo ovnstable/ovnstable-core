@@ -247,7 +247,9 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
                 }
 
                 if (item.operation == Operation.SKIM) {
-                    _skim(info,item);
+                    _skim(info, item);
+                } else if (item.operation == Operation.BRIBE){
+                    _bribe(info, item);
                 } else {
                     _custom(info, item);
                 }
@@ -255,6 +257,31 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         }
 
 
+    }
+
+    /**
+    * Skim tokens from pool and transfer profit as bribes
+    */
+
+    function _bribe(NonRebaseInfo memory info, Item memory item) internal {
+
+        uint256 amountToken = info.amount;
+        IERC20 token = IERC20(item.token);
+        if (amountToken > 0) {
+            if (item.feePercent > 0) {
+                uint256 feeAmount = amountToken * item.feePercent / 100;
+                amountToken -= feeAmount;
+                if (feeAmount > 0) {
+                    token.transfer(item.feeReceiver, feeAmount);
+                    emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, feeAmount, item.feeReceiver);
+                }
+            }
+            if (amountToken > 0) {
+                token.approve(item.bribe, amountToken);
+                IBribe(item.bribe).notifyRewardAmount(item.token, amountToken);
+                emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.bribe);
+            }
+        }
     }
 
     function _skim(NonRebaseInfo memory info, Item memory item) internal {
@@ -290,4 +317,8 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
     uint256[49] private __gap;
 
+}
+
+interface IBribe {
+    function notifyRewardAmount(address token, uint amount) external;
 }
