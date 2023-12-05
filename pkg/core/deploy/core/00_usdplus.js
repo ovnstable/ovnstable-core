@@ -24,9 +24,9 @@ module.exports = async ({deployments}) => {
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }
-    await deployProxy('UsdPlusTokenPure', deployments, save, params);
+    await deployProxy('UsdPlusToken', deployments, save, params);
 
-    let usdPlus = await ethers.getContract('UsdPlusTokenPure');
+    let usdPlus = await ethers.getContract('UsdPlusToken');
 
     console.log('UsdPlusToken deploy done()');
     console.log('Symbol:      ' + await usdPlus.symbol());

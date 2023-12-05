@@ -39,7 +39,18 @@ task('deploy', 'deploy')
         settingId(hre);
         updateFeedData(hre);
 
-        await hre.run('deploy:main', args);
+
+        if (args.reset)
+            await evmCheckpoint('task', hre.network.provider);
+
+        try {
+            await hre.run('deploy:main', args);
+        } catch (e) {
+            console.error(e);
+        }
+
+        if (args.reset)
+            await evmRestore('task', hre.network.provider);
     });
 
 
