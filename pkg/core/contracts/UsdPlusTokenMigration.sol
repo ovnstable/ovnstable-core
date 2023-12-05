@@ -91,6 +91,24 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         _;
     }
 
+    function rayMul(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 RAY = 1e27;
+        uint256 halfRAY = RAY / 2;
+        if (a == 0 || b == 0) {
+            return 0;
+        }
+        require(a <= (type(uint256).max - halfRAY) / b, "Errors.MATH_MULTIPLICATION_OVERFLOW");
+        return (a * b + halfRAY) / RAY;
+    }
+
+    function rayToWad(uint256 a) internal pure returns (uint256) {
+        uint256 WAD_RAY_RATIO = 1e9;
+        uint256 halfRatio = WAD_RAY_RATIO / 2;
+        uint256 result = halfRatio + a;
+        require(result >= halfRatio, "Errors.MATH_ADDITION_OVERFLOW");
+        return result / WAD_RAY_RATIO;
+    }
+
     function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public onlyDev {
         require(nonRebasingSupply != 0, "already migrationInit");
 
@@ -99,6 +117,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
 
         _rebasingCreditsPerToken = 10 ** 54 / liquidityIndex;
         nonRebasingSupply = 0;
+        _totalSupply = rayToWad(rayMul(_totalSupply, liquidityIndex));
         _rebasingCredits = _totalSupply * 1e9;
 
         payoutManager = _payoutManager;
