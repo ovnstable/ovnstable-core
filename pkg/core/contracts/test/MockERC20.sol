@@ -15,4 +15,12 @@ contract MockERC20 is ERC20 {
     function burn(address to, uint256 amount) external {
         _burn(to, amount);
     }
+
+    function rebaseOptIn(address _pool) external {
+
+    }
+
+    function rebaseOptOut(address _pool) external {
+
+    }
 }

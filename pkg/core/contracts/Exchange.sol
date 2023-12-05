@@ -11,14 +11,12 @@ import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
-import "./interfaces/IGlobalPayoutListener.sol";
+import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
-import "./UsdPlusToken.sol";
-import "./libraries/WadRayMath.sol";
+import "./interfaces/IUsdPlusToken.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
-    using WadRayMath for uint256;
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
@@ -29,7 +27,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  fields
 
-    UsdPlusToken public usdPlus;
+    IUsdPlusToken public usdPlus;
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
@@ -54,7 +52,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange;
 
-    IGlobalPayoutListener public payoutListener;
+    IPayoutManager public payoutManager;
 
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
@@ -84,7 +82,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
-    event PayoutListenerUpdated(address payoutListener);
+    event PayoutManagerUpdated(address payoutManager);
     event InsuranceUpdated(address insurance);
     event BlockGetterUpdated(address blockGetter);
 
@@ -170,7 +168,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function setTokens(address _usdPlus, address _asset) external onlyAdmin {
         require(_usdPlus != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
-        usdPlus = UsdPlusToken(_usdPlus);
+        usdPlus = IUsdPlusToken(_usdPlus);
         usdc = IERC20(_asset);
         emit TokensUpdated(_usdPlus, _asset);
     }
@@ -193,9 +191,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RoleManagerUpdated(_roleManager);
     }
 
-    function setPayoutListener(address _payoutListener) external onlyAdmin {
-        payoutListener = IGlobalPayoutListener(_payoutListener);
-        emit PayoutListenerUpdated(_payoutListener);
+    function setPayoutManager(address _payoutManager) external onlyAdmin {
+        payoutManager = IPayoutManager(_payoutManager);
+        emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setInsurance(address _insurance) external onlyAdmin {
@@ -450,24 +448,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function negativeRebase(uint256 newLiquidityIndex) external onlyAdmin {
-
-        uint256 totalUsdPlus = usdPlus.totalSupply();
-        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
-
-        require(totalUsdPlus > totalNav, 'supply > nav');
-
-        if(newLiquidityIndex == 0){
-           newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-        }
-
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
-
-        // notify listener about payout done
-        if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone(address(usdPlus));
-        }
-    }
 
     /**
      * @dev Payout
@@ -511,7 +491,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 premium;
         uint256 loss;
 
-        uint256 newLiquidityIndex;
         uint256 delta;
 
         if (totalUsdPlus > totalNav) {
@@ -559,30 +538,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
-            newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-            delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
+            delta = totalNav * LIQ_DELTA_DM / usdPlus.totalSupply();
 
             if (abroadMax < delta) {
 
                 // Calculate the amount of USD+ to hit the maximum delta.
                 // We send the difference to the OVN wallet.
 
-                // How it works?
-                // 1. Calculating target liquidity index
-                // 2. Calculating target usdPlus.totalSupply
-                // 3. Calculating delta USD+ between target USD+ totalSupply and current USD+ totalSupply
-                // 4. Convert delta USD+ from scaled to normal amount
-
-                uint256 currentLiquidityIndex = usdPlus.liquidityIndex();
-                uint256 targetLiquidityIndex = abroadMax * currentLiquidityIndex / LIQ_DELTA_DM;
-                uint256 targetUsdPlusSupplyRay = totalNav.wadToRay().rayDiv(targetLiquidityIndex);
-                uint256 deltaUsdPlusSupplyRay = targetUsdPlusSupplyRay - usdPlus.scaledTotalSupply();
-                excessProfit = deltaUsdPlusSupplyRay.rayMulDown(currentLiquidityIndex).rayToWad();
+                uint256 newTotalSupply = totalNav * LIQ_DELTA_DM / abroadMax;
+                excessProfit = newTotalSupply - usdPlus.totalSupply();
 
                 // Mint USD+ to OVN wallet
                 require(profitRecipient != address(0), 'profitRecipient address is zero');
                 usdPlus.mint(profitRecipient, excessProfit);
-
             }
 
         }
@@ -595,33 +563,25 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         totalUsdPlus = usdPlus.totalSupply();
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
-        newLiquidityIndex = totalNav.wadToRay().rayDiv(usdPlus.scaledTotalSupply());
-        delta = (newLiquidityIndex * LIQ_DELTA_DM) / usdPlus.liquidityIndex();
-
         // Calculating how much users profit after excess fee
         uint256 profit = totalNav - totalUsdPlus;
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit + excessProfit;
 
-        // notify listener about payout undone
-        if (address(payoutListener) != address(0)) {
-            payoutListener.payoutUndone(address(usdPlus));
-        }
-
-        // set newLiquidityIndex
-        usdPlus.setLiquidityIndex(newLiquidityIndex);
+        (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus.changeSupply(totalNav);
+        usdPlus.mint(address(payoutManager), nonRebaseDelta);
 
         require(usdPlus.totalSupply() == totalNav,'total != nav');
         require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
 
         // notify listener about payout done
-        if (address(payoutListener) != address(0)) {
-            payoutListener.payoutDone(address(usdPlus));
+        if (address(payoutManager) != address(0)) {
+            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
         }
 
         emit PayoutEvent(
             profit,
-            newLiquidityIndex,
+            0,
             excessProfit,
             premium,
             loss

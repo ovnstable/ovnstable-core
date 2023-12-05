@@ -188,6 +188,8 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         impl = await sampleModule.deployProxyImpl(hre, contractFactory, {
             kind: 'uups',
             unsafeAllow: unsafeAllow,
+            // unsafeSkipStorageCheck: true,
+            // unsafeAllowRenames: true
         }, proxy.address);
 
         implAddress = impl.impl;

@@ -21,12 +21,12 @@ module.exports = async () => {
 //     items.push(...equalizer());
 //    items.push(...moonbase());
 //    items.push(...defiEdge());
+   items.push(...citadel());
 
-    let price = await getPrice();
 
 //    await (await pl.removeItem(usdPlus.address, '0x42731e7774cf1b389fe2d9552bbdd6e4bb05e42b', price)).wait();
 //    await (await pl.removeItems(price)).wait();
-    await (await pl.addItems(items, price)).wait();
+    await (await pl.addItems(items)).wait();
 
     console.log('BasePayoutListener setting done');
 
@@ -141,6 +141,22 @@ module.exports = async () => {
         return items;
     }
 
+    function citadel() {
+
+        let dex = 'Citadel';
+        let to = '0xf682B446eCa10af937381e5b915C193f175ab959';
+
+        let items = [];
+
+        items.push(createSkimToWithFee('0x3F50De34Cf2E72d173a018A18eDF935bC03D43c7', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x3F50De34Cf2E72d173a018A18eDF935bC03D43c7', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
+
+        return items;
+    }
+
+
+
+
     function defiEdge() {
 
         let dex = 'DefiEdge';
@@ -151,6 +167,8 @@ module.exports = async () => {
 
         return items;
     }
+
+
 
 };
 

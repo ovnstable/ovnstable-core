@@ -1,25 +1,27 @@
 const {expect} = require("chai");
-const chai = require("chai");
-const {deployments, ethers, getNamedAccounts} = require("hardhat");
-const BN = require("bn.js");
-const {constants} = require('@openzeppelin/test-helpers');
-const {ZERO_ADDRESS} = constants;
-const {logGas} = require("@overnight-contracts/common/utils/gas");
-
-const hre = require("hardhat");
+const {utils, BigNumber} = require("ethers");
+const hre = require('hardhat');
+const {getNamedAccounts, deployments, ethers} = require("hardhat");
+const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
-const {toE6, fromE6} = require("@overnight-contracts/common/utils/decimals");
-
-const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 
 
-describe("Liquidity Index", function () {
+describe("Token", function () {
 
-    let account;
     let usdPlus;
+    let account;
 
+    let user1;
+    let user2;
 
-    sharedBeforeEach('deploy token', async () => {
+    let nonRebaseUser1;
+    let nonRebaseUser2;
+
+    let fromAsset;
+    let toAsset;
+
+    beforeEach(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -27,770 +29,583 @@ describe("Liquidity Index", function () {
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
+        user1 = await createRandomWallet();
+        user2 = await createRandomWallet();
+        nonRebaseUser1 = await createRandomWallet();
+        nonRebaseUser2 = await createRandomWallet();
         usdPlus = await ethers.getContract("UsdPlusToken");
         await usdPlus.setExchanger(account);
+        await usdPlus.setPayoutManager(account);
+
+        await rebaseOptOut(nonRebaseUser1);
+        await rebaseOptOut(nonRebaseUser2);
+
+        let decimals = await usdPlus.decimals();
+        fromAsset = decimals === 18 ? fromE18 : fromE6;
+        toAsset = decimals === 18 ? toE18 : toE6;
     });
 
 
-    it("Mint with default liq index", async function () {
+    async function rebaseOptIn(user) {
+        await usdPlus.rebaseOptIn(user.address);
+    }
 
-        let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await logGas(usdPlus.mint(account, 1), "UsdPlusToken", "mint");
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(1000000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Mint with half liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 1);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(2000000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Mint with double liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 1);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(500000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Burn with default liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-        await usdPlus.burn(account, 1);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(1000000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Burn with half liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-        await usdPlus.burn(account, 1);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(2000000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Burn with double liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-        await usdPlus.burn(account, 1);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-        expect(scaledBalance).to.equals(500000000); // stored as rays
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(1);
-
-    });
-
-    it("Mint burn with complex liq index", async function () {
-
-        let newLiquidityIndex = new BN("1022809482605723771055655202");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 234141374);
-        await usdPlus.burn(account, 93143413);
-
-        let scaledBalance = await usdPlus.scaledBalanceOf(account);
-        console.log("ScaledBalance usdPlus: " + scaledBalance);
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(140997961);
-
-    });
+    async function rebaseOptOut(user) {
+        await usdPlus.rebaseOptOut(user.address);
+    }
 
 
-    it("Mint burn with changing liq index", async function () {
+    async function transfer(from, to, amount) {
+        await usdPlus.connect(from).transfer(to.address, toAsset(amount));
+    }
 
-        let firstLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(firstLiquidityIndex.toString());
+    async function mint(user, amount) {
+        await usdPlus.mint(user.address, toAsset(amount));
+    }
 
-        await usdPlus.mint(account, 16);
+    async function balanceOf(user, amount) {
+        let balanceValue = await usdPlus.balanceOf(user.address);
+        let balance = Math.ceil(fromAsset(balanceValue));
+        expect(balance).to.eq(amount);
+    }
 
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(16)
-
-        let secondLiquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(secondLiquidityIndex.toString());
-
-        balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(64);
-
-        await usdPlus.burn(account, 16);
-
-        balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(48);
-
-        await usdPlus.setLiquidityIndex(firstLiquidityIndex.toString());
-
-        balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(12);
-
-    });
-
-
-    it("Total supply with default liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)); // 10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-
-        let scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(2000000000); // stored as rays
-
+    async function totalSupply(amount) {
         let totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(2);
+        expect(fromAsset(totalSupply)).to.eq(amount);
+    }
 
-        await usdPlus.burn(account, 1);
+    async function changeTotalSupply(amount) {
+        await usdPlus.changeSupply(toAsset(amount));
+    }
 
-        scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(1000000000); // stored as rays
+    async function validateTotalSupply() {
 
-        totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(1);
+        // Validate rebasing and non rebasing credit accounting by calculating'
+        // total supply manually
+        const calculatedTotalSupply = (await usdPlus.rebasingCreditsHighres())
+            .mul(utils.parseUnits("1", 18))
+            .div(await usdPlus.rebasingCreditsPerTokenHighres())
+            .add(await usdPlus.nonRebasingSupply());
 
+
+        const totalSupply = Math.ceil(fromAsset(await usdPlus.totalSupply()));
+        await expect(Math.ceil(fromAsset(calculatedTotalSupply))).to.eq(totalSupply);
+    }
+
+    it("Should return the token name and symbol", async () => {
+        expect(await usdPlus.name()).to.equal("USD+");
+        expect(await usdPlus.symbol()).to.equal("USD+");
     });
 
-    it("Total supply with half liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-
-        let scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(4000000000); // stored as rays
-
-        let totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(2);
-
-        await usdPlus.burn(account, 1);
-
-        scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(2000000000); // stored as rays
-
-        totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(1);
-
-    });
-
-    it("Total supply with double liq index", async function () {
-
-        let newLiquidityIndex = new BN(10).pow(new BN(27)).muln(2); // 2*10^27
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 2);
-
-        let scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(1000000000); // stored as rays
-
-        let totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(2);
-
-        await usdPlus.burn(account, 1);
-
-        scaledTotalSupply = await usdPlus.scaledTotalSupply();
-        console.log("ScaledTotalSupply usdPlus: " + scaledTotalSupply);
-        expect(scaledTotalSupply).to.equals(500000000); // stored as rays
-
-        totalSupply = await usdPlus.totalSupply();
-        console.log("TotalSupply usdPlus: " + totalSupply);
-        expect(totalSupply).to.equals(1);
-
-    });
-
-    it("Token owners added/removed", async function () {
-
-        let newLiquidityIndex = new BN("1022809482605723771055655202");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let ownerLength;
-        ownerLength = await usdPlus.ownerLength();
-        console.log("ownerLength usdPlus: " + ownerLength);
-        expect(ownerLength).to.equals(0);
-
-        await usdPlus.mint(account, 93143413);
-
-        ownerLength = await usdPlus.ownerLength();
-        console.log("ownerLength usdPlus: " + ownerLength);
-        expect(ownerLength).to.equals(1);
-
-        await usdPlus.burn(account, 93143413);
-
-        ownerLength = await usdPlus.ownerLength();
-        console.log("ownerLength usdPlus: " + ownerLength);
-        expect(ownerLength).to.equals(0);
-
-    });
-
-    it("Token transfer", async function () {
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let firstLiquidityIndex = new BN(10).pow(new BN(27)).divn(2); // 5*10^26
-        await usdPlus.setLiquidityIndex(firstLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 16);
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(16)
-
-        await usdPlus.transfer(tmpUser.address, 10);
-
-        balance = await usdPlus.balanceOf(tmpUser.address);
-        console.log("tmpUser Balance usdPlus: " + balance);
-        expect(balance).to.equals(10);
-
-    });
-
-    it("Token transferFrom Full amount", async function () {
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        await usdPlus.mint(account, 93143413);
-
-        let newLiquidityIndex = new BN("1022809482605723771055655202");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(95267966)
-
-        await usdPlus.approve(tmpUser.address, balance);
-
-        let allowance = await usdPlus.allowance(account, tmpUser.address);
-        console.log("allowance usdPlus: " + allowance);
-        expect(allowance).to.equals(balance)
-
-        await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, balance);
-
-        balance = await usdPlus.balanceOf(tmpUser.address);
-        console.log("tmpUser Balance usdPlus: " + balance);
-        expect(balance).to.equals(balance);
-
-        balance = await usdPlus.balanceOf(account);
-        console.log("account Balance usdPlus: " + balance);
-        expect(balance).to.equals(0);
-
-        allowance = await usdPlus.allowance(account, tmpUser.address);
-        console.log("allowance usdPlus: " + allowance);
-        expect(allowance).to.equals(0)
-
-    });
-
-    it("Token transferFrom", async function () {
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1022809482605723771055655202");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        await usdPlus.mint(account, 93143413);
-
-        let balance = await usdPlus.balanceOf(account);
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(93143413)
-
-        await usdPlus.approve(tmpUser.address, 3143413);
-
-        let allowance = await usdPlus.allowance(account, tmpUser.address);
-        console.log("allowance usdPlus: " + allowance);
-        expect(allowance).to.equals(3143413)
-
-        await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 1143413);
-
-        balance = await usdPlus.balanceOf(tmpUser.address);
-        console.log("tmpUser Balance usdPlus: " + balance);
-        expect(balance).to.equals(1143413);
-
-        balance = await usdPlus.balanceOf(account);
-        console.log("account Balance usdPlus: " + balance);
-        expect(balance).to.equals(92000000);
-
-        allowance = await usdPlus.allowance(account, tmpUser.address);
-        console.log("allowance usdPlus: " + allowance);
-        expect(allowance).to.equals(2000000)
-
-        await expect(usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 2100000)).to.be.reverted;
-
-    });
-
-    it("Token approve", async function () {
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1022809482605723771055655202");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-        await usdPlus.mint(account, toE6(100));
-
-        let balance = fromE6(await usdPlus.balanceOf(account));
-        console.log("Balance usdPlus: " + balance);
-        expect(balance).to.equals(100)
-
-        await usdPlus.approve(tmpUser.address, toE6(100));
-
-        let allowance = fromE6(await usdPlus.allowance(account, tmpUser.address));
-        console.log("allowance usdPlus: " + allowance);
-        expect(allowance).to.equals(100);
-
-    });
-});
-
-
-describe("Total Mint/Burn/Supply", function () {
-
-    let usdPlus;
-    let account;
-
-    sharedBeforeEach('deploy token', async () => {
-        // need to run inside IDEA via node script running
-        await hre.run("compile");
-
-        await deployments.fixture(["UsdPlusToken"]);
-
-        const {deployer} = await getNamedAccounts();
-        account = deployer;
-        usdPlus = await ethers.getContract("UsdPlusToken");
-        await usdPlus.setExchanger(account);
-    });
-
-
-    it("Total Supply", async function () {
-
-        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await usdPlus.mint(account, toE6(100));
-
-        let balance = fromE6(await usdPlus.totalSupply());
-        expect(balance).to.equals(100)
-
-        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
-
-        balance = fromE6(await usdPlus.totalSupply());
-        expect(balance).to.equals(100.977699)
-    });
-
-    it("Total Mint", async function () {
-
-        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await usdPlus.mint(account, toE6(100));
-
-        let balance = fromE6(await usdPlus.totalMint());
-        expect(balance).to.equals(100);
-
-        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
-
-        balance = fromE6(await usdPlus.totalMint());
-        expect(balance).to.equals(100.977699)
-
-    });
-
-    it("Total Burn", async function () {
-
-        await usdPlus.setLiquidityIndex(new BN("1022809482605723771055655202").toString());
-        await usdPlus.mint(account, toE6(100));
-        await usdPlus.burn(account, toE6(50));
-
-        let balance = fromE6(await usdPlus.totalBurn());
-        expect(balance).to.equals(50);
-
-
-        await usdPlus.setLiquidityIndex(new BN("1032809482605723771055655202").toString());
-
-        balance = fromE6(await usdPlus.totalBurn());
-        expect(balance).to.equals(50.48885)
-    });
-
-});
-
-
-describe("ERC20", function () {
-
-    let account;
-    let usdPlus;
-    let recipient;
-
-
-    sharedBeforeEach('deploy token', async () => {
-        // need to run inside IDEA via node script running
-        await hre.run("compile");
-
-        await deployments.fixture(["UsdPlusToken"]);
-
-        const accounts = await getNamedAccounts();
-        account = accounts.deployer;
-        usdPlus = await ethers.getContract("UsdPlusToken");
-        await usdPlus.setExchanger(account);
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        recipient = tmpUser;
-    });
-
-    it('has a name', async function () {
-        expect(await usdPlus.name()).to.equal('USD+');
-    });
-
-    it('has a symbol', async function () {
-        expect(await usdPlus.symbol()).to.equal('USD+');
-    });
-
-    it('has 6 decimals', async function () {
+    it("Should have 6 decimals", async () => {
         expect(await usdPlus.decimals()).to.equal(6);
     });
 
+    it("Should return 0 balance for the zero address", async () => {
+        expect(
+            await usdPlus.balanceOf("0x0000000000000000000000000000000000000000")
+        ).to.equal(0);
+    });
 
-    describe("_transfer", function () {
+    it("Should not allow anyone to mint USD+ directly", async () => {
+        await expectRevert(
+            usdPlus.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
+    });
 
-        it('transfer', async function () {
+    it("Should allow a simple transfer of 1 USD+", async () => {
+        await usdPlus.mint(user2.address, toAsset(100));
+        await balanceOf(user1, 0);
+        await balanceOf(user2, 100);
+        await usdPlus.connect(user2).transfer(user1.address, toAsset(1));
+        await balanceOf(user1, 1);
+        await balanceOf(user2, 99);
+    });
 
-            await usdPlus.mint(account, 50);
-            await usdPlus.transfer(recipient.address, 50);
+    it("Should allow a transferFrom with an allowance", async () => {
+        await usdPlus.mint(user1.address, toAsset(1000));
 
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
-            expect(await usdPlus.balanceOf(account)).to.eq(0)
-        });
+        await usdPlus.connect(user1).approve(user2.address, toAsset(1000));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(toAsset(1000));
 
-        describe('when the sender is the zero address', function () {
-            it('reverts', async function () {
-                await expectRevert(usdPlus.transferFrom(ZERO_ADDRESS, recipient.address, 50),
-                    'ERC20: transfer from the zero address',
-                );
-            });
-        });
-
-        it('amount exceeds allowance', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
-
-            await usdPlus.mint(account, 50);
-            await expectRevert(usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50),
-                'UsdPlusToken: transfer amount exceeds allowance',
-            );
-        });
+        await usdPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(1));
+        await balanceOf(user2, 1);
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(toAsset(999));
 
     });
 
-    describe("approve", function () {
+    it("Should transfer the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
 
-        it('max 256', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
+        await usdPlus.mint(user1.address, toAsset(100));
 
-            let uint256Max = new BN(2).pow(new BN(256)).subn(1);
-            await usdPlus.approve(tmpUser.address, uint256Max.toString());
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 100);
 
-            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(uint256Max.toString())
-        });
+        const creditsBalanceOf = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
 
-        it('max 75 symbols', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
+        // Make rebase
+        await usdPlus.changeSupply(toAsset(250));
 
-            let uint256Max = new BN(2).pow(new BN(256)).subn(1);
-            await usdPlus.approve(tmpUser.address, "115792089237316195423570985008687907853269984665640564039457584007913129");
+        // Credits per token should be the same for the contract
+        let creditsBalanceOfNew = await usdPlus.creditsBalanceOf(nonRebaseUser1.address);
+        expect(creditsBalanceOf[0]).to.eq(creditsBalanceOfNew[0]);
+        expect(creditsBalanceOf[1]).to.eq(creditsBalanceOfNew[1]);
 
-            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(uint256Max.toString())
-        });
+        await validateTotalSupply();
+    });
 
+    it("Should transfer the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
 
-        it('max 40 symbols', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
 
-            let value = "1157920892373161954235709850086879078532";
-            await usdPlus.approve(tmpUser.address, value);
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+        await totalSupply(200);
 
-            expect((await usdPlus.allowance(account, tmpUser.address)).toString()).to.eq(value.toString())
-        });
+        await usdPlus.changeSupply(toAsset(300));
+        await totalSupply(250);
+        await balanceOf(user1, 150);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
 
+        // Give contract 100 USD+ from User1
+        await usdPlus.connect(user1).transfer(nonRebaseUser1.address, toAsset(50));
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 150);
 
-        it('transfer', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
-
-            await usdPlus.mint(account, 50);
-            await usdPlus.approve(tmpUser.address, 50);
-
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
-            expect(await usdPlus.balanceOf(account)).to.eq(50)
-
-            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
-
-            expect(await usdPlus.balanceOf(account)).to.eq(0)
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
-        });
-
-        it('increaseAllowance', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
-
-            await usdPlus.mint(account, 50);
-            await usdPlus.increaseAllowance(tmpUser.address, 25);
-            await usdPlus.increaseAllowance(tmpUser.address, 25);
-
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
-            expect(await usdPlus.balanceOf(account)).to.eq(50)
-
-            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
-
-            expect(await usdPlus.balanceOf(account)).to.eq(0)
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
-        });
-
-        it('decreaseAllowance', async function () {
-            const [owner, tmpUser] = await ethers.getSigners();
-
-            await usdPlus.mint(account, 50);
-            await usdPlus.increaseAllowance(tmpUser.address, 75);
-            await usdPlus.decreaseAllowance(tmpUser.address, 25);
-
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(0)
-            expect(await usdPlus.balanceOf(account)).to.eq(50)
-
-            await usdPlus.connect(tmpUser).transferFrom(account, tmpUser.address, 50);
-
-            expect(await usdPlus.balanceOf(account)).to.eq(0)
-            expect(await usdPlus.balanceOf(recipient.address)).to.eq(50)
-        });
-
-        describe('when the owner is the zero address', function () {
-            it('reverts', async function () {
-                await expectRevert(usdPlus.approve(ZERO_ADDRESS, 50),
-                    'ERC20: approve to the zero address',
-                );
-            });
-        });
-
+        await validateTotalSupply();
 
     });
 
+    it("Should transfer the correct amount from a non-rebasing account without previously set creditssPerToken to a rebasing account", async () => {
 
-    describe('_mint', function () {
-        const amount = 50;
-        it('rejects a null account', async function () {
-            await expectRevert(usdPlus.mint(ZERO_ADDRESS, amount), 'ERC20: mint to the zero address')
-        });
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
 
-        describe('for a non zero account', function () {
-            beforeEach('minting', async function () {
-                this.receipt = await usdPlus.mint(recipient.address, amount);
-            });
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+        await totalSupply(200);
 
-            it('increments totalSupply', async function () {
-                await usdPlus.mint(recipient.address, 1);
-                expect(await usdPlus.totalSupply()).to.equal(amount + 1);
-            });
+        // Transfer from contract to user
+        await usdPlus.connect(nonRebaseUser1).transfer(user1.address, toAsset(100));
+        await balanceOf(user1, 200);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 0);
 
-            it('increments recipient balance', async function () {
-                expect(await usdPlus.balanceOf(recipient.address)).to.equal(amount);
-            });
-
-            it('emits Transfer event', async function () {
-                let events = await usdPlus.queryFilter(usdPlus.filters.Transfer(ZERO_ADDRESS, recipient.address), this.receipt.blockNumber - 1, this.receipt.blockNumber + 1);
-                let value = events[0].args[2];
-                expect(value.toString()).to.equal("50");
-            });
-        });
+        await validateTotalSupply();
     });
+
+    it("Should transfer the correct amount from a non-rebasing account with previously set creditsPerToken to a rebasing account", async () => {
+
+
+        await mint(user1, 100);
+        await mint(nonRebaseUser1, 100);
+
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await changeTotalSupply(300);
+
+        await balanceOf(user1, 150);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await transfer(user1, nonRebaseUser1, 50);
+
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 150);
+
+        await transfer(nonRebaseUser1, user2, 150);
+
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 150);
+        await balanceOf(nonRebaseUser1, 0);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should transfer the correct amount from a non-rebasing account to a non-rebasing account with different previously set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+        await balanceOf(user1, 100);
+
+        await mint(nonRebaseUser1, 50);
+        await balanceOf(nonRebaseUser1, 50);
+
+        await changeTotalSupply(300);
+
+        await balanceOf(user1, 200);
+        await transfer(user1, nonRebaseUser2, 50);
+        await balanceOf(nonRebaseUser2, 50);
+
+        await changeTotalSupply(400);
+        await balanceOf(nonRebaseUser1, 50);
+        await balanceOf(nonRebaseUser2, 50);
+        await balanceOf(user1, 240);
+
+        await transfer(nonRebaseUser1, nonRebaseUser2, 10);
+        await balanceOf(nonRebaseUser2, 60);
+        await balanceOf(nonRebaseUser1, 40);
+
+        // Validate rebasing and non rebasing credit accounting by calculating'
+        // total supply manually
+        const creditBalanceMockNonRebasing = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
+        const balanceMockNonRebasing = creditBalanceMockNonRebasing[0]
+            .mul(utils.parseUnits("1", 18))
+            .div(creditBalanceMockNonRebasing[1]);
+
+        const creditBalanceMockNonRebasingTwo = await usdPlus.creditsBalanceOf(
+            nonRebaseUser2.address
+        );
+        const balanceMockNonRebasingTwo = creditBalanceMockNonRebasingTwo[0]
+            .mul(utils.parseUnits("1", 18))
+            .div(creditBalanceMockNonRebasingTwo[1]);
+
+        const calculatedTotalSupply = (await usdPlus.rebasingCreditsHighres())
+            .mul(utils.parseUnits("1", 18))
+            .div(await usdPlus.rebasingCreditsPerTokenHighres())
+            .add(balanceMockNonRebasing)
+            .add(balanceMockNonRebasingTwo);
+
+        await expect(calculatedTotalSupply).to.equal(
+            await usdPlus.totalSupply()
+        );
+    });
+
+    it("Should transferFrom the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+
+        await usdPlus.connect(user1).increaseAllowance(user2.address, toAsset(100));
+        await usdPlus.connect(user2).transferFrom(user1.address, nonRebaseUser1.address, toAsset(100));
+
+        await balanceOf(user1, 0);
+        await balanceOf(user2, 0);
+        await balanceOf(nonRebaseUser1, 100);
+
+        const creditsBalanceOf = await usdPlus.creditsBalanceOf(
+            nonRebaseUser1.address
+        );
+
+        // Make rebase
+        await changeTotalSupply(200);
+
+        // Credits per token should be the same for the contract
+
+        let creditsBalanceOfNew = await usdPlus.creditsBalanceOf(nonRebaseUser1.address);
+        expect(creditsBalanceOf[0]).to.eq(creditsBalanceOfNew[0]);
+        expect(creditsBalanceOf[1]).to.eq(creditsBalanceOfNew[1]);
+        await validateTotalSupply();
+
+    });
+
+    it("Should transferFrom the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+
+        await usdPlus.connect(user1).increaseAllowance(user2.address, toAsset(150));
+        await usdPlus.connect(user2).transferFrom(user1.address, nonRebaseUser1.address, toAsset(50));
+
+        await balanceOf(user1, 50);
+        await balanceOf(nonRebaseUser1, 50);
+
+        await changeTotalSupply(200);
+
+        await usdPlus.connect(user2).transferFrom(user1.address, nonRebaseUser1.address, toAsset(50));
+        await balanceOf(nonRebaseUser1, 100);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should transferFrom the correct amount from a non-rebasing account without previously set creditsPerToken to a rebasing account", async () => {
+
+        await mint(nonRebaseUser1, 100);
+        await mint(user1, 100);
+
+        await balanceOf(nonRebaseUser1, 100);
+        await balanceOf(user1, 100);
+
+        await usdPlus.connect(nonRebaseUser1).increaseAllowance(user1.address, toAsset(100));
+        await usdPlus.connect(user1).transferFrom(nonRebaseUser1.address, user1.address, toAsset(100));
+
+        await balanceOf(nonRebaseUser1, 0);
+        await balanceOf(user1, 200);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should transferFrom the correct amount from a non-rebasing account with previously set creditsPerToken to a rebasing account", async () => {
+
+        await mint(user1, 100);
+        await mint(nonRebaseUser1, 100);
+
+        await changeTotalSupply(300);
+
+        await balanceOf(user1, 150);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await transfer(user1, nonRebaseUser1, 50);
+
+        await balanceOf(user1, 100);
+        await balanceOf(nonRebaseUser1, 150);
+
+        await usdPlus.connect(nonRebaseUser1).increaseAllowance(user1.address, toAsset(150));
+        await usdPlus.connect(user1).transferFrom(nonRebaseUser1.address, user1.address, toAsset(150));
+
+        await balanceOf(user1, 250);
+        await balanceOf(nonRebaseUser1, 0);
+
+        await validateTotalSupply();
+
+    });
+
+    it("Should maintain the correct balances when rebaseOptIn is called from non-rebasing contract", async () => {
+
+        await mint(nonRebaseUser1, 100);
+        await balanceOf(nonRebaseUser1, 100);
+
+        const initialRebasingCredits = await usdPlus.rebasingCreditsHighres();
+        const initialTotalSupply = await usdPlus.totalSupply();
+
+        await changeTotalSupply(200);
+
+        const totalSupplyBefore = await usdPlus.totalSupply();
+
+        await balanceOf(nonRebaseUser1, 100);
+        await rebaseOptIn(nonRebaseUser1);
+        await balanceOf(nonRebaseUser1, 100);
+
+        expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
+
+        const rebasingCredits = await usdPlus.rebasingCreditsHighres();
+        const rebasingCreditsPerTokenHighres =
+          await usdPlus.rebasingCreditsPerTokenHighres();
+
+        const creditsAdded = BigNumber.from(toAsset("100"))
+          .mul(rebasingCreditsPerTokenHighres)
+          .div(utils.parseUnits("1", 18));
+
+        await expect(rebasingCredits).to.equal(
+          initialRebasingCredits.add(creditsAdded)
+        );
+
+        expect(await usdPlus.totalSupply()).to.equal(initialTotalSupply);
+
+
+        await validateTotalSupply();
+    });
+
+    it("Should maintain the correct balance when rebaseOptOut is called from rebasing EOA", async () => {
+
+
+        await mint(user1, 100);
+        await mint(user2, 100);
+
+        await changeTotalSupply(400);
+
+        const totalSupplyBefore = await usdPlus.totalSupply();
+
+        const initialRebasingCredits = await usdPlus.rebasingCreditsHighres();
+        const initialrebasingCreditsPerTokenHighres = await usdPlus.rebasingCreditsPerTokenHighres();
+
+        await rebaseOptOut(user1);
+
+        await balanceOf(user1, 200);
+        await balanceOf(user2, 200);
+
+        const rebasingCredits = await usdPlus.rebasingCreditsHighres();
+
+        const creditsDeducted = BigNumber.from(toAsset("200"))
+            .mul(initialrebasingCreditsPerTokenHighres)
+            .div(utils.parseUnits("1", 18));
+
+        await expect(rebasingCredits).to.equal(
+            initialRebasingCredits.sub(creditsDeducted)
+        );
+
+        expect(await usdPlus.totalSupply()).to.equal(totalSupplyBefore);
+    });
+
+    it("Should not allow EOA to call rebaseOptIn when already opted in to rebasing", async () => {
+        await expectRevert(usdPlus.rebaseOptIn(user1.address), "Account has not opted out");
+    });
+
+    it("Should not allow EOA to call rebaseOptOut when already opted out of rebasing", async () => {
+        await rebaseOptOut(user1);
+        await expectRevert(usdPlus.rebaseOptOut(user1.address), "Account has not opted in");
+    });
+
+    it("Should not allow Contract to call rebaseOptIn when already opted in to rebasing", async () => {
+        await expectRevert(usdPlus.rebaseOptIn(usdPlus.address), "Account has not opted out");
+    });
+
+    it("Should not allow Contract to call rebaseOptOut when already opted out of rebasing", async () => {
+        await rebaseOptOut(usdPlus);
+        await expectRevert(usdPlus.rebaseOptOut(usdPlus.address), "Account has not opted in");
+    });
+
+    it("Should maintain the correct balance on a partial transfer for a non-rebasing account without previously set creditsPerToken", async () => {
+
+        await mint(user1, 100);
+
+        await rebaseOptIn(nonRebaseUser1);
+
+        await transfer(user1, nonRebaseUser1, 100);
+        await balanceOf(nonRebaseUser1, 100);
+
+        await rebaseOptOut(user2);
+
+        await transfer(nonRebaseUser1, user2, 50);
+        await balanceOf(user2, 50);
+        await balanceOf(nonRebaseUser1, 50);
+
+        await transfer(nonRebaseUser1, user2, 25);
+        await balanceOf(user2, 75);
+        await balanceOf(nonRebaseUser1, 25);
+
+    });
+
+    it("Should maintain the same totalSupply on many transfers between different account types", async () => {
+
+        await mint(nonRebaseUser1, 50);
+        await mint(nonRebaseUser2, 50);
+
+        await mint(user1, 100);
+        await mint(user2, 100);
+
+        await rebaseOptOut(user1);
+        await rebaseOptIn(nonRebaseUser1);
+
+        const nonRebasingEOA = user1;
+        const rebasingEOA = user2;
+        const nonRebasingContract = nonRebaseUser2;
+        const rebasingContract = nonRebaseUser1;
+
+        const allAccounts = [
+            nonRebasingEOA,
+            rebasingEOA,
+            nonRebasingContract,
+            rebasingContract,
+        ];
+
+        const initialTotalSupply = await usdPlus.totalSupply();
+        for (let i = 0; i < 10; i++) {
+            for (const fromAccount of allAccounts) {
+                const toAccount =
+                    allAccounts[Math.floor(Math.random() * allAccounts.length)];
+
+                if (typeof fromAccount.transfer === "function") {
+                    // From account is a contract
+                    await fromAccount.transfer(
+                        toAccount.address,
+                        (await usdPlus.balanceOf(fromAccount.address)).div(2)
+                    );
+                } else {
+                    // From account is a EOA
+                    await usdPlus
+                        .connect(fromAccount)
+                        .transfer(
+                            toAccount.address,
+                            (await usdPlus.balanceOf(fromAccount.address)).div(2)
+                        );
+                }
+
+                await expect(await usdPlus.totalSupply()).to.equal(initialTotalSupply);
+            }
+        }
+    });
+
+    it("Should revert a transferFrom if an allowance is insufficient", async () => {
+        await mint(user1, 100);
+
+        await usdPlus.connect(user1).approve(user2.address, toAsset(10));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(10));
+        await expectRevert(usdPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(100)), "panic code 0x11");
+    });
+
+    it("Should allow to increase/decrease allowance", async () => {
+
+
+        await mint(user1, 1000);
+
+        await usdPlus.connect(user1).approve(user2.address, toAsset(1000));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(1000));
+
+        await usdPlus.connect(user1).decreaseAllowance(user2.address, toAsset(100));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(900));
+
+        await usdPlus.connect(user1).increaseAllowance(user2.address, toAsset(20));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(920));
+
+        // Decrease allowance more than what's there
+        await usdPlus.connect(user1).decreaseAllowance(user2.address, toAsset(950));
+        expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(0));
+
+    });
+
+    it("Should increase users balance on supply increase", async () => {
+
+        await mint(user1, 99);
+        await mint(user2, 1);
+
+        await changeTotalSupply(102);
+
+        let balanceUser1 = fromAsset(await usdPlus.balanceOf(user1.address));
+        let balanceUser2 = fromAsset(await usdPlus.balanceOf(user2.address));
+
+        expect(balanceUser1).to.eq(100.98);
+        expect(balanceUser2).to.eq(1.02);
+    });
+
+
+  it("Should exact transfer to new contract accounts", async () => {
+
+    // Add yield to so we need higher resolution
+    await mint(user1, 125);
+
+    // Helper to verify balance-exact transfers in
+    const checkTransferIn = async (amount) => {
+      const beforeReceiver = await usdPlus.balanceOf(nonRebaseUser1.address);
+      await usdPlus.connect(user1).transfer(nonRebaseUser1.address, amount);
+      const afterReceiver = await usdPlus.balanceOf(nonRebaseUser1.address);
+      expect(beforeReceiver.add(amount)).to.equal(afterReceiver);
+    };
+
+    // Helper to verify balance-exact transfers out
+    const checkTransferOut = async (amount) => {
+      const beforeReceiver = await usdPlus.balanceOf(nonRebaseUser1.address);
+      await usdPlus.connect(nonRebaseUser1).transfer(user1.address, amount);
+      const afterReceiver = await usdPlus.balanceOf(nonRebaseUser1.address);
+      expect(beforeReceiver.sub(amount)).to.equal(afterReceiver);
+    };
+
+    // In
+    await checkTransferIn(1);
+    await checkTransferIn(2);
+    await checkTransferIn(5);
+    await checkTransferIn(9);
+    await checkTransferIn(100);
+    await checkTransferIn(2);
+    await checkTransferIn(5);
+    await checkTransferIn(9);
+
+    // Out
+    await checkTransferOut(1);
+    await checkTransferOut(2);
+    await checkTransferOut(5);
+    await checkTransferOut(9);
+    await checkTransferOut(100);
+    await checkTransferOut(2);
+    await checkTransferOut(5);
+    await checkTransferOut(9);
+  });
 });
-
-
-describe("Full amounts", function () {
-
-    let account;
-    let usdPlus;
-    let recipient;
-
-    sharedBeforeEach('deploy token', async () => {
-        // need to run inside IDEA via node script running
-        await hre.run("compile");
-
-        await deployments.fixture(["TestUsdPlusToken"]);
-
-        const accounts = await getNamedAccounts();
-        account = accounts.deployer;
-        usdPlus = await ethers.getContract("TestUsdPlusToken");
-
-        await usdPlus.setExchanger(account);
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        recipient = tmpUser;
-    })
-
-    it("burn all", async function () {
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1041426431168978357972356323");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let currentBalanceStored = new BN("74140869013783546");
-        let amount = new BN("77212261");
-        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
-
-        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(currentBalance.eq(amount));
-
-        await usdPlus.burn(owner.address, amount.toString());
-
-        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(zeroBalance.eq(new BN(0)));
-
-        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect(zeroBalanceInner.eq(new BN(0)));
-
-    });
-
-    it("transfer all", async function () {
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1041426431168978357972356323");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let currentBalanceStored = new BN("74140869013783546");
-        let amount = new BN("77212261");
-        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
-
-        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(currentBalance.eq(amount));
-
-        await usdPlus.connect(owner).transfer(tmpUser.address, amount.toString());
-
-        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(zeroBalance.eq(new BN(0)));
-
-        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect(zeroBalanceInner.eq(new BN(0)));
-
-        let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
-        expect(tmpUserBalance.eq(amount));
-
-        let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
-        expect(tmpUserBalanceInner.eq(currentBalanceStored));
-
-    });
-
-    it("transferFrom all", async function () {
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1041426431168978357972356323");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let currentBalanceStored = new BN("74140869013783546");
-        let amount = new BN("77212261");
-        await usdPlus.mintTest(owner.address, currentBalanceStored.toString());
-
-        let currentBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(currentBalance.eq(amount));
-
-        await usdPlus.connect(owner).approve(tmpUser.address, amount.toString());
-
-        await usdPlus.connect(tmpUser).transferFrom(owner.address, tmpUser.address, amount.toString());
-
-        let zeroBalance = new BN((await usdPlus.balanceOf(owner.address)).toString());
-        expect(zeroBalance.eq(new BN(0)));
-
-        let zeroBalanceInner = new BN((await usdPlus.scaledBalanceOf(owner.address)).toString());
-        expect(zeroBalanceInner.eq(new BN(0)));
-
-        let tmpUserBalance = new BN((await usdPlus.balanceOf(tmpUser.address)).toString());
-        expect(tmpUserBalance.eq(amount));
-
-        let tmpUserBalanceInner = new BN((await usdPlus.scaledBalanceOf(tmpUser.address)).toString());
-        expect(tmpUserBalanceInner.eq(currentBalanceStored));
-
-    });
-
-    it("decreaseAllowance all", async function () {
-
-        const [owner, tmpUser] = await ethers.getSigners();
-
-        let newLiquidityIndex = new BN("1041426431168978357972356323");
-        await usdPlus.setLiquidityIndex(newLiquidityIndex.toString());
-
-        let currentBalanceStored = new BN("74140869013783546");
-        let amount = new BN("77212261");
-
-        let currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
-        expect(currentAllowance.eq(new BN(0)));
-
-        await usdPlus.approveTest(owner.address, tmpUser.address, currentBalanceStored.toString());
-
-        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
-        expect(currentAllowance.eq(amount));
-
-        await usdPlus.connect(owner).decreaseAllowance(tmpUser.address, amount.toString());
-
-        currentAllowance = new BN((await usdPlus.allowance(owner.address, tmpUser.address)).toString());
-        expect(currentAllowance.eq(new BN(0)));
-
-    });
-
-
-});
-

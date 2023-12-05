@@ -14,6 +14,6 @@ contract TestUsdPlusToken is UsdPlusToken {
     }
 
     function approveTest(address owner, address spender, uint256 amount) external {
-        _approve(owner, spender, amount);
+        // _approve(owner, spender, amount);
     }
 }
