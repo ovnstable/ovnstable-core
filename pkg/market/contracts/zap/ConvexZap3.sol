@@ -82,31 +82,46 @@ contract ConvexZap3CurveFraxbp is OdosZap {
         uint256 fraxBalance = fraxbp.balances(0);
         uint256 usdcBalance = fraxbp.balances(1);
 
-        (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
+        (uint256 fraxBalanceNotFinal, uint256 usdcBalanceNotFinal) = _getAmountToSwap(
+            amountsOut[1],
+            amountsOut[2],
+            fraxBalance,
+            usdcBalance,
+            10 ** IERC20Metadata(tokensOut[1]).decimals(),
+            10 ** IERC20Metadata(tokensOut[2]).decimals()
+        );
+
+        (uint256 tokensAmount0, uint256 fraxBpBalance) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
-            reserve0,
-            reserve1,
+            usdpBalance,
+            fraxbpBalance,
             10 ** IERC20Metadata(tokensOut[0]).decimals(),
-            10 ** IERC20Metadata(tokensOut[1]).decimals()
+            10 ** IERC20Metadata(tokensOut[2]).decimals()
         );
+
+
+
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
         IERC20 asset2 = IERC20(tokensOut[2]);
-        asset0.approve(address(pool), tokensAmount0);
-        asset1.approve(address(pool), tokensAmount1);
+        asset0.approve(address(finalPool), tokensAmount0);
+        asset1.approve(address(finalPool), tokensAmount1);
+        asset1.approve(address(finalPool), tokensAmount1);
         
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
+        uint256 amountAsset2Before = asset2.balanceOf(address(this));
 
-        pool.add_liquidity(
-            [tokensAmount0, tokensAmount1,tokensAmount2],
-            OvnMath.subBasisPoints(pool.calc_token_amount([tokensAmount0, tokensAmount1], true), stakeSlippageBP)
+        finalPool.add_liquidity(
+            [tokensAmount0, tokensAmount1, tokensAmount2],
+            OvnMath.subBasisPoints(IStableSwapPool.calc_token_amount([tokensAmount0, tokensAmount1, tokensAmount2], true), stakeSlippageBP)
         );
 
         uint256 amountAsset0After = asset0.balanceOf(address(this));
         uint256 amountAsset1After = asset1.balanceOf(address(this));
+        uint256 amountAsset2After = asset2.balanceOf(address(this));
 
         if (amountAsset0After > 0) {
             asset0.transfer(msg.sender, amountAsset0After);
@@ -115,14 +130,19 @@ contract ConvexZap3CurveFraxbp is OdosZap {
         if (amountAsset1After > 0) {
             asset1.transfer(msg.sender, amountAsset1After);
         }
+        if (amountAsset2After > 0) {
+            asset2.transfer(msg.sender, amountAsset2After);
+        }
 
-        uint256[] memory amountsPut = new uint256[](2);
+        uint256[] memory amountsPut = new uint256[](3);
         amountsPut[0] = amountAsset0Before - amountAsset0After;
         amountsPut[1] = amountAsset1Before - amountAsset1After;
+        amountsPut[2] = amountAsset2Before - amountAsset2After;
 
-        uint256[] memory amountsReturned = new uint256[](2);
+        uint256[] memory amountsReturned = new uint256[](3);
         amountsReturned[0] = amountAsset0After;
         amountsReturned[1] = amountAsset1After;
+        amountsReturned[2] = amountAsset2After;
         emit PutIntoPool(amountsPut, tokensOut);
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
