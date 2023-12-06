@@ -44,6 +44,8 @@ module.exports = async ({deployments}) => {
 
     let asset = await getERC20ByAddress(assetAddress);
 
+    await creditBalance('check credit balance');
+
     await balance('before buy');
 
     await asset.approve(exchange.address, toAsset(1));
@@ -81,6 +83,15 @@ module.exports = async ({deployments}) => {
         console.log(`USD+ balance:      ${await usdPlus.balanceOf(wallet.address)}`);
     }
 
+    async function creditBalance(label){
+        console.log(label);
+
+        console.log(`exact param:       ${await usdPlus.rebasingCreditsHighres()}`);
+        let totalSupply = await usdPlus.totalSupply();
+        let newLiqIndx = await usdPlus.rebasingCreditsPerTokenHighres();
+        let newCredit = totalSupply.mul(newLiqIndx).div(1e18); 
+        console.log(`calc param:        ${newCredit}`);
+    }
 
 
 
