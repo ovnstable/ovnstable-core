@@ -3,17 +3,12 @@ const {getContract, showM2M, getCoreAsset, getWalletAddress} = require("@overnig
 
 async function main() {
 
-    let usdPlusToken = await getContract('UsdPlusToken', 'localhost');
-    
-    let poolAddress = "0x77cA2ddfd61D1D5E5d709cF07549FEC3E2d80315";
+    let usdPlusToken = await getContract('WrappedUsdPlusToken', 'arbitrum_eth');
 
-    let amount = await usdPlusToken.balanceOf(poolAddress);
-    console.log('OldBalance', amount.toString());
+    // console.log(`rate:         ${await usdPlusToken.rate()}`);
+    await (await usdPlusToken.upgradeTo('0x45c753C213bF565076e73e4165743A8bE94D3d9e')).wait();
+    console.log(`rate:         ${await usdPlusToken.rate()}`);
 
-    await (await usdPlusToken.fix()).wait();
-    
-    amount = await usdPlusToken.balanceOf(poolAddress);
-    console.log('NewBalance', amount.toString());
 }
 
 
