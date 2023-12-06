@@ -16,11 +16,15 @@ const {sharedBeforeEach, evmCheckpoint, evmRestore} = require("@overnight-contra
 const {fromAsset, toE6, toAsset} = require("@overnight-contracts/common/utils/decimals");
 const {testUsdPlus} = require("@overnight-contracts/common/utils/governance");
 const {BigNumber} = require("ethers");
+const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 
 module.exports = async ({deployments}) => {
 
 
     let wallet = await initWallet();
+
+    let testWallet = await createRandomWallet();
+
     let exchange = await getContract('Exchange');
     let usdPlus = await getContract('UsdPlusToken');
     let wrapped = await getContract('WrappedUsdPlusToken');
@@ -44,6 +48,8 @@ module.exports = async ({deployments}) => {
 
     let asset = await getERC20ByAddress(assetAddress);
 
+    await creditBalance('check credit balance');
+
     await balance('before buy');
 
     await asset.approve(exchange.address, toAsset(1));
@@ -56,6 +62,9 @@ module.exports = async ({deployments}) => {
 
     await balance('after redeem');
 
+    await asset.approve(exchange.address, toAsset(1));
+    await exchange.buy(asset.address, toAsset(1));
+
     await balanceWrapped('before buy wrapped');
     await (await usdPlus.approve(market.address, toAsset(1))).wait();
     await (await market.wrap(usdPlus.address, toAsset(1), wallet.address)).wait();
@@ -67,6 +76,12 @@ module.exports = async ({deployments}) => {
     await (await market.unwrap(usdPlus.address, amountToRedeem, wallet.address)).wait();
 
     await balanceWrapped('after redeem wrapped');
+
+    await balance('before transfer');
+    await usdPlus.transfer(testWallet.address, toAsset(1));
+    await balance('after transfer');
+    await usdPlus.connect(testWallet).transfer(wallet.address, toAsset(1));
+    await balance('after return transfer');
 
     async function balanceWrapped(label){
         console.log(label)
@@ -81,6 +96,15 @@ module.exports = async ({deployments}) => {
         console.log(`USD+ balance:      ${await usdPlus.balanceOf(wallet.address)}`);
     }
 
+    async function creditBalance(label){
+        console.log(label);
+
+        console.log(`exact param:       ${await usdPlus.rebasingCreditsHighres()}`);
+        let totalSupply = await usdPlus.totalSupply();
+        let newLiqIndx = await usdPlus.rebasingCreditsPerTokenHighres();
+        let newCredit = totalSupply.mul(newLiqIndx).div(1e18); 
+        console.log(`calc param:        ${newCredit}`);
+    }
 
 
 
