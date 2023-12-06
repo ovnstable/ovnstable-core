@@ -36,7 +36,6 @@ module.exports = async ({deployments}) => {
     let market = await getContract('Market');
 
 
-    await transferAsset(ARBITRUM.weth, wallet.address);
     await prepareEnvironment();
 
     await execTimelock(async (timelock) => {
@@ -50,11 +49,12 @@ module.exports = async ({deployments}) => {
     })
 
     console.log(`HasRole: FREE_RIDER_ROLE: ${await roleManager.hasRole(Roles.FREE_RIDER_ROLE, wallet.address)}`);
-    let amount = '1000000000000000000'
+    let amount = toAsset(1);
 
     let assetAddress = await exchange.usdc();
 
     let asset = await getERC20ByAddress(assetAddress);
+    await transferAsset(assetAddress, wallet.address);
 
     await asset.approve(exchange.address, amount);
     await exchange.buy(asset.address, amount);
@@ -89,8 +89,10 @@ module.exports = async ({deployments}) => {
     await balanceWrapped('after redeem wrapped');
 
     await balance('before transfer');
+
     await usdPlus.transfer(testWallet.address, amount);
     await balance('after transfer');
+    console.log(`Balance testWallet: ${await usdPlus.balanceOf(testWallet.address)}`);
     await usdPlus.connect(testWallet).transfer(wallet.address, amount);
     await balance('after return transfer');
 
@@ -112,7 +114,6 @@ module.exports = async ({deployments}) => {
         console.log(label);
 
         console.log(`totalSupply:       ${await usdPlus.totalSupply()}`);
-        console.log(`totalSupplyOwners: ${await usdPlus.totalSupplyOwners()}`);
         console.log(`USD+ balance:      ${await usdPlus.balanceOf(wallet.address)}`);
     }
 

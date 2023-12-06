@@ -348,11 +348,11 @@
         {
           "indexed": false,
           "internalType": "address",
-          "name": "payoutListener",
+          "name": "payoutManager",
           "type": "address"
         }
       ],
-      "name": "PayoutListenerUpdated",
+      "name": "PayoutManagerUpdated",
       "type": "event"
     },
     {
@@ -895,19 +895,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "newLiquidityIndex",
-          "type": "uint256"
-        }
-      ],
-      "name": "negativeRebase",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "nextPayoutTime",
       "outputs": [
@@ -1014,10 +1001,10 @@
     },
     {
       "inputs": [],
-      "name": "payoutListener",
+      "name": "payoutManager",
       "outputs": [
         {
-          "internalType": "contract IGlobalPayoutListener",
+          "internalType": "contract IPayoutManager",
           "name": "",
           "type": "address"
         }
@@ -1304,11 +1291,11 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_payoutListener",
+          "name": "_payoutManager",
           "type": "address"
         }
       ],
-      "name": "setPayoutListener",
+      "name": "setPayoutManager",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1473,7 +1460,7 @@
       "name": "usdPlus",
       "outputs": [
         {
-          "internalType": "contract UsdPlusToken",
+          "internalType": "contract IUsdPlusToken",
           "name": "",
           "type": "address"
         }
