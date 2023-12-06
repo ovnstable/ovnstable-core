@@ -19,7 +19,7 @@ module.exports = async () => {
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
 
-    let usdPlusMigrationAddress = '0x031d595E8930745411256c13B0F72746903E84E3';
+    let usdPlusMigrationAddress = '0x6465f9f86b0fa28Fb40e7de20748018D54fa9137';
     let usdPlusPureAddress = '0x4F268ef41F76e5503144886A668fced37b674CE0';
     let wrappedPureAddress = '0x4A8a5a4eC3D09Cee5Cb6D41315eE1d6C1E3030a5';
     let exchangeAddress = '0xe2827F67CCD724962D95d22f063E45259260605b';
@@ -107,8 +107,10 @@ module.exports = async () => {
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
 
     usdPlus = await getContract('UsdPlusToken');
+    console.log('2. SetPause')
+    await (await usdPlus.pause()).wait();
 
-    console.log('2. SetRoleManager');
+    console.log('3. SetRoleManager');
     await (await usdPlus.setRoleManager(roleManagerAddress)).wait();
     console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
 
@@ -171,6 +173,11 @@ async function checksum(usdPlus, exchange, wrapped, startBlock) {
             name: 'totalSupply',
             old: (await usdPlus.totalSupply({blockTag: startBlock})).toString(),
             new: (await usdPlus.totalSupply()).toString()
+        },
+        {
+            name: 'totalSupplyOwners',
+            old: '-',
+            new: (await usdPlus.totalSupplyOwners()).toString()
         },
         {
             name: 'exchange',
