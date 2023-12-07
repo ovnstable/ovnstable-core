@@ -55,7 +55,7 @@ contract ConvexZap3CurveFraxbp is OdosZap {
         for (uint i = 0; i < reserves.length; i++) {
             total += reserves[i];
         }
-        // Guard against division by zero
+
         if (total == 0) {
             return (0, 0, 0);
         }
@@ -124,7 +124,9 @@ contract ConvexZap3CurveFraxbp is OdosZap {
 
         uint256[] memory amountsOut = _getAmountsOut(tokensOut, curveData);
         uint256[] memory amountsRatio = _countProportions(poolInfo.lptoken, fraxbp, tokensOut, amountsOut);
-        console.log(amountsOut[0], '-----_getAmountsOut');
+        console.log(amountsOut[0], '-----_getAmountsOut1');
+        console.log(amountsOut[1], '-----_getAmountsOut2');
+        console.log(amountsOut[2], '-----_getAmountsOut3');
         _addLiquidity(pool, fraxbp, tokensOut, amountsRatio);
         _depositToGauge(pool, gaugeOnly);
     }
