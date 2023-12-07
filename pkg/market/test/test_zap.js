@@ -146,9 +146,12 @@ let zaps = [
     },
 ];
 
+
 let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
 
-describe(`Test ${params.name}`, function () {
+if (!params) return;
+
+describe(`Test ${params?.name}`, function () {
 
     let zap;
 

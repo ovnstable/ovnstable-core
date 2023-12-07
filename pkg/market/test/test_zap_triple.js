@@ -22,9 +22,8 @@ let zaps = [
     {
         name: 'CurveOnConvexZap',
         gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
-        token0Out: 'usdPlus',
-        token1Out: 'frax',
-        token2Out: 'usdc',
+        token0Out: 'usdc',
+        token1Out: 'fraxbp',
         token0In: 'usdPlus',
         token1In: 'frax',
         token2In: 'dai',
@@ -33,7 +32,9 @@ let zaps = [
 
 let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
 
-describe(`Test ${params.name}`, function () {
+if (!params) return;
+
+describe(`Test ${params?.name}`, function () {
 
     let zap;
 
@@ -41,21 +42,19 @@ describe(`Test ${params.name}`, function () {
 
     let token0In;
     let token1In;
-    let token2In;
+
     let token0Out;
     let token1Out;
     let token2Out;
 
     let token0InDec;
     let token1InDec;
-    let token2InDec;
     let token0OutDec;
     let token1OutDec;
     let token2OutDec;
 
     let toToken0In;
     let toToken1In;
-    let toToken2In;
     let toToken0Out;
     let toToken1Out;
     let toToken2Out;
@@ -69,6 +68,7 @@ describe(`Test ${params.name}`, function () {
     let fromToken2Out;
 
     sharedBeforeEach('deploy and setup', async () => {
+        console.log("-----------_START---------------");
         await hre.run("compile");
         await resetHardhatToLastBlock();
         await deployments.fixture([params.name]);
@@ -80,14 +80,12 @@ describe(`Test ${params.name}`, function () {
         account = setUpParams.account;
         token0In = setUpParams.token0In;
         token1In = setUpParams.token1In;
-        token2In = setUpParams.token2In;
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
         token2Out = setUpParams.token2Out;
 
         token0InDec = await token0In.decimals();
         token1InDec = await token1In.decimals();
-        token2InDec = await token2In.decimals();
         token0OutDec = await token0Out.decimals();
         token1OutDec = await token1Out.decimals();
         token2OutDec = await token2Out.decimals();
@@ -96,10 +94,8 @@ describe(`Test ${params.name}`, function () {
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
-        toToken2In = token2InDec == 6 ? toE6 : toE18;
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
-        toToken2Out = token2OutDec == 6 ? toE6 : toE18;
 
         fromToken0In = token0InDec == 6 ? fromE6 : fromE18;
         fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
@@ -113,19 +109,17 @@ describe(`Test ${params.name}`, function () {
 
         const amountToken0In = toToken0In(100);
         const amountToken1In = toToken1In(100);
-        const amountToken2In = toToken2In(100);
         const amountToken0Out = toToken0Out(400);
         const amountToken1Out = toToken1Out(500);
         const amountToken2Out = toToken2Out(500);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
     it("swap and disbalance on one asset", async function () {
 
         const amountToken0In = toToken0In(100);
         const amountToken1In = toToken1In(100);
-        const amountToken2In = toToken2In(100);
         const amountToken0Out = toToken0Out(800);
         const amountToken1Out = toToken1Out(100);
         const amountToken2Out = toToken2Out(100);
@@ -139,11 +133,12 @@ describe(`Test ${params.name}`, function () {
         const amountToken1In = toToken1In(100);
         const amountToken0Out = toToken0Out(100);
         const amountToken1Out = toToken1Out(800);
+        const amountToken2Out = toToken2Out(800);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
-    async function check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out) {
+    async function check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out) {
 
         await showBalances();
 
@@ -151,6 +146,7 @@ describe(`Test ${params.name}`, function () {
         await (await token1In.approve(zap.address, toE18(10000))).wait();
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
+        await (await token2Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
         if ('pair' in params) {
@@ -165,12 +161,12 @@ describe(`Test ${params.name}`, function () {
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],
             inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
-            inputTokensPrices: [1, 1],
-            outputTokensDecimals: [token0OutDec, token1OutDec],
-            outputTokensAddresses: [token0Out.address, token1Out.address],
-            outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [1, 1],
+            inputTokensAmounts: [amountToken0In, amountToken1In, amountToken2In],
+            inputTokensPrices: [1, 1, 1],
+            outputTokensDecimals: [token0OutDec, token1OutDec, token2OutDec],
+            outputTokensAddresses: [token0Out.address, token1Out.address, token2Out.address],
+            outputTokensAmounts: [amountToken0Out, amountToken1Out, amountToken2Out],
+            outputTokensPrices: [1, 1, 1],
             proportion0: reserves[0] / sumReserves
         })
 
@@ -198,6 +194,8 @@ describe(`Test ${params.name}`, function () {
                 ...params,
             }
         )).wait();
+
+        console.log("-------------AFTER ZAPIN----------------");
 
         if ('tokenId' in params) {
             let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);
@@ -368,7 +366,9 @@ function calculateProportionForPool(
 
     const tokenOut0 = Number.parseFloat(new BigNumber(outputTokensAmounts[0].toString()).div(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(3).toString()) * outputTokensPrices[0];
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
-    const sumInitialOut = tokenOut0 + tokenOut1;
+    const tokenOut2 = Number.parseFloat(new BigNumber(outputTokensAmounts[2].toString()).div(new BigNumber(10).pow(outputTokensDecimals[2])).toFixed(3).toString()) * outputTokensPrices[2];
+
+    const sumInitialOut = tokenOut0 + tokenOut1 + tokenOut2;
     let sumInputs = 0;
     for (let i = 0; i < inputTokensAmounts.length; i++) {
         sumInputs += Number.parseFloat(new BigNumber(inputTokensAmounts[i].toString()).div(new BigNumber(10).pow(inputTokensDecimals[i])).toFixed(3).toString()) * inputTokensPrices[i];
@@ -497,6 +497,7 @@ async function setUp() {
         account: account,
         token0Out: (await getERC20(params.token0Out)).connect(account),
         token1Out: (await getERC20(params.token1Out)).connect(account),
+        token2Out: (await getERC20(params.token2Out)).connect(account),
         token0In: (await getERC20(params.token0In)).connect(account),
         token1In: (await getERC20(params.token1In)).connect(account),
     }

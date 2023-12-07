@@ -72,7 +72,6 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-
     function setSlippages(uint256 _stakeSlippageBP) external onlyAdmin {
         stakeSlippageBP = _stakeSlippageBP;
 
