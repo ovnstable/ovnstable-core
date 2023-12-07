@@ -13,7 +13,7 @@ import { StableMath } from "./libraries/StableMath.sol";
 
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
-import "hardhat/console.sol";
+import "./libraries/WadRayMath.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -272,9 +272,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        if (_creditBalances[_account] == 0) return 0;
-        return
-            _creditBalances[_account].divPrecisely(_creditsPerToken(_account));
+        if (_creditBalances[_account] == 0){
+            return 0;
+        } else {
+            uint256 creditBalancesRay = WadRayMath.wadToRay(_creditBalances[_account]);
+            uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(_account));
+            uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
+            return WadRayMath.rayToWad(balanceOfRay);
+        }
     }
 
     /**
@@ -765,15 +770,5 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
     }
 
-    
-    function fix() public {
-        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
-        require(devAddress == msg.sender, "Caller is not the Dev");
-
-        _rebasingCredits = 159689965005340906758239887954054;
-        _rebasingCreditsPerToken = 948303072605588442920865805;
-        _totalSupply = 168395494666669751490758;
-
-    }
 
 }

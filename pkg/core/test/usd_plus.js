@@ -133,6 +133,37 @@ describe("Token", function () {
 
     });
 
+
+    it('Should return correct balance for small amounts at mint/burn', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        for (const amount of amounts) {
+            await usdPlus.mint(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), amount);
+            await usdPlus.burn(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), '0');
+        }
+
+    });
+
+    it('Should return correct balance for small amounts at transfer', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        for (const amount of amounts) {
+            await usdPlus.mint(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), amount);
+            await usdPlus.connect(user1).transfer(user2.address, amount);
+            expect(usdPlus.balanceOf(user2.address), amount);
+            expect(usdPlus.balanceOf(user1.address), '0');
+            await usdPlus.burn(user2.address, amount);
+            expect(usdPlus.balanceOf(user2.address), '0');
+
+        }
+
+    });
+
     it("Should transfer the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
 
         await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
