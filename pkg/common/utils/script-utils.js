@@ -937,7 +937,17 @@ async function transferAsset(assetAddress, to, amount) {
 async function showPoolOperationsFromPayout(receipt){
 
 
-    let payoutManager = await getContract('LineaPayoutManager');
+    let stand = process.env.STAND;
+    let prefix;
+
+    let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc'];
+
+    for (const chain of chains) {
+        if (stand.includes(chain)){
+            prefix = chain.charAt(0).toUpperCase() + chain.slice(1);
+        }
+    }
+    let payoutManager = await getContract(`${prefix}PayoutManager`);
 
     const rewardsItems = [];
     receipt.logs.forEach((value, index) => {
