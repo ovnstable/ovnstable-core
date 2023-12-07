@@ -144,9 +144,9 @@ contract ConvexZap3CurveFraxbp is OdosZap {
             assetArr[i] = IERC20(tOut[i]);
         }
 
-        uint256 minAmount = poolFinal.calc_token_amount([tAmounts[0], tAmounts[1], tAmounts[0]], true);
+        uint256 minAmount = poolFinal.calc_token_amount([tAmounts[0], tAmounts[1], tAmounts[2]], true);
         poolFinal.add_liquidity(
-            [tAmounts[0], tAmounts[1], tAmounts[0]],
+            [tAmounts[0], tAmounts[1], tAmounts[2]],
             OvnMath.subBasisPoints(minAmount, stakeSlippageBP),
             true
         );
