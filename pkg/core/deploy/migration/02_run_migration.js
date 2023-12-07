@@ -20,7 +20,7 @@ module.exports = async () => {
     let wrapped = await getContract('WrappedUsdPlusToken');
 
     let usdPlusMigrationAddress = '0x6465f9f86b0fa28Fb40e7de20748018D54fa9137';
-    let usdPlusPureAddress = '0x4F268ef41F76e5503144886A668fced37b674CE0';
+    let usdPlusPureAddress = '0x8AD2F7a197f783fe78EfAA492d6C81533d408dAc';
     let wrappedPureAddress = '0x4A8a5a4eC3D09Cee5Cb6D41315eE1d6C1E3030a5';
     let exchangeAddress = '0xe2827F67CCD724962D95d22f063E45259260605b';
     let startBlock = await ethers.provider.getBlockNumber();
