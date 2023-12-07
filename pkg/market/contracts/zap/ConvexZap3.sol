@@ -5,7 +5,7 @@ import "./OdosZap.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
-contract ConvexZap3CurveFraxbp is OdosZap {
+contract ConvexZap3 is OdosZap {
     uint256 constant POOL_TOKENS = type(uint256).max;
 
     struct ZapParams {
@@ -99,6 +99,29 @@ contract ConvexZap3CurveFraxbp is OdosZap {
         amountsAll[2] = tAmount2;
 
         return amountsAll;
+    }
+
+    function getProportion(
+        address _gauge
+    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 token2Amount, uint256 denominator) {
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
+        address _token = gauge.lp_token();
+        IStableSwapPool pool = IStableSwapPool(_token);
+        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+        uint256 usdPlusAm = pool.balances(0);
+        address usdPlusAdd = pool.coins(0);
+        address fraxBp = pool.coins(1);
+
+        IStableSwapPool fraxbpPool = IStableSwapPool(fraxBp);
+        uint256 frax = fraxbpPool.balances(0);
+        uint256 usdc = fraxbpPool.balances(1);
+
+        console.log(usdPlusAm, 'usdPlusAm');
+        console.log(frax, 'frax');
+        console.log(usdc, 'usdc');
+        token0Amount = usdPlusAm;
+        token1Amount = frax / (10 ** (IERC20Metadata(fraxbpPool.coins(0)).decimals() - IERC20Metadata(usdPlusAdd).decimals()));
+        token2Amount = usdc;
     }
 
     function zapIn(SwapData memory swapData, ConvexZap3InParams memory curveData) external {

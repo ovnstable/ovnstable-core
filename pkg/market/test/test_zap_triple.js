@@ -3,8 +3,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat");
 const {
     transferAsset,
     getERC20,
-    transferETH,
-    initWallet,
     execTimelock,
     getContract,
     getChainId
@@ -20,13 +18,14 @@ const abiNFTPool = require("./abi/NFTPool.json");
 
 let zaps = [
     {
-        name: 'CurveOnConvexZap',
+        name: 'ConvexZap3',
         gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
-        token0Out: 'usdc',
-        token1Out: 'fraxbp',
-        token0In: 'usdPlus',
-        token1In: 'frax',
-        token2In: 'dai',
+        pid: 0,
+        token0In: 'dai',
+        token1In: 'usdc',
+        token0Out: 'usdPlus',
+        token1Out: 'frax',
+        token2Out: 'usdc',
     },
 ];
 
@@ -61,14 +60,13 @@ describe(`Test ${params?.name}`, function () {
 
     let fromToken0In;
     let fromToken1In;
-    let fromToken2In;
 
     let fromToken0Out;
     let fromToken1Out;
     let fromToken2Out;
 
     sharedBeforeEach('deploy and setup', async () => {
-        console.log("-----------_START---------------");
+        console.log(params, "-----------_START---------------");
         await hre.run("compile");
         await resetHardhatToLastBlock();
         await deployments.fixture([params.name]);
@@ -90,16 +88,19 @@ describe(`Test ${params?.name}`, function () {
         token1OutDec = await token1Out.decimals();
         token2OutDec = await token2Out.decimals();
 
-        console.log(token0InDec, token1InDec, token2InDec, token0OutDec, token1OutDec, token2OutDec);
+        console.log("----------DECIMALS--------");
+        console.log(token0InDec, token1InDec, token0OutDec, token1OutDec, token2OutDec);
+
+        console.log("----------token0InDec, token1InDec, token0OutDec, token1OutDec, token2OutDec--------");
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
+        toToken2Out = token2OutDec == 6 ? toE6 : toE18;
 
         fromToken0In = token0InDec == 6 ? fromE6 : fromE18;
         fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
-        fromToken2In = token2InDec == 6 ? fromE6 : fromE18;
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
         fromToken2Out = token2OutDec == 6 ? fromE6 : fromE18;
@@ -124,7 +125,7 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1Out = toToken1Out(100);
         const amountToken2Out = toToken2Out(100);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
     it("swap and disbalance on another asset", async function () {
@@ -142,12 +143,14 @@ describe(`Test ${params?.name}`, function () {
 
         await showBalances();
 
+        console.log(zap.address, '-------ADDRESS');
         await (await token0In.approve(zap.address, toE18(10000))).wait();
         await (await token1In.approve(zap.address, toE18(10000))).wait();
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
         await (await token2Out.approve(zap.address, toE18(10000))).wait();
 
+        console.log('-------222222');
         let reserves;
         if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -156,7 +159,10 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        const sumReserves = reserves[0].add(reserves[1])
+        console.log(+reserves[0], '-------reserves[0]');
+        console.log(+reserves[1], '-------reserves[1]');
+        console.log(+reserves[2], '-------reserves[2]');
+        const sumReserves = reserves[0].add(reserves[1]).add(reserves[2]);
 
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],
@@ -293,6 +299,11 @@ describe(`Test ${params?.name}`, function () {
         items.push({
             name: await token1Out.symbol(),
             balance: fromToken1Out(await token1Out.balanceOf(account.address))
+        });
+
+        items.push({
+            name: await token2Out.symbol(),
+            balance: fromToken2Out(await token2Out.balanceOf(account.address))
         });
 
         console.table(items);
@@ -439,7 +450,6 @@ function calculateProportionForPool(
 }
 
 async function setUp() {
-
     const signers = await ethers.getSigners();
     const account = signers[0];
 
@@ -480,6 +490,12 @@ async function setUp() {
 
     }
 
+    try {
+        let token = await getERC20(params.token2Out);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+
+    }
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
         let exchangeDaiPlus = await usdPlus.exchange();

@@ -246,14 +246,14 @@ async function isContract(address) {
 
 async function getContract(name, network) {
 
-    if (!network)
-        network = process.env.STAND;
+    if (!network) network = process.env.STAND;
 
     let ethers = hre.ethers;
     let wallet = await initWallet();
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        console.log(searchPath, 'searchPath')
         let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
     } catch (e) {

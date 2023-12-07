@@ -30,7 +30,7 @@ class Chain {
 
 function getNetworks() {
 
-    let accountsNetwork = accounts('polygon');
+    let accountsNetwork = accounts('arbitrum');
 
     let zkSync = isZkSync();
 
