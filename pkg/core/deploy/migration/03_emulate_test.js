@@ -43,7 +43,7 @@ module.exports = async ({deployments}) => {
         await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
         await exchange.connect(timelock).unpause();
         await wrapped.connect(timelock).unpause();
-        await usdPlus.connect(timelock).unpause();
+        // await usdPlus.connect(timelock).unpause();
 
         await roleManager.connect(timelock).grantRole(Roles.FREE_RIDER_ROLE, wallet.address);
     })
@@ -102,6 +102,7 @@ module.exports = async ({deployments}) => {
     await showM2M();
 
     await balance('after payout');
+    await creditBalance('creditBalance after payout');
 
     async function balanceWrapped(label){
         console.log(label)
