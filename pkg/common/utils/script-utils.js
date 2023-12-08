@@ -934,6 +934,35 @@ async function transferAsset(assetAddress, to, amount) {
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
+async function showProfitOnRewardWallet(receipt){
+
+    let usdPlus = await getContract('UsdPlusToken');
+
+    const items = [];
+
+    let balanceBefore = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber - 1});
+    let balanceAfter = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber});
+
+    let profit = balanceAfter.sub(balanceBefore);
+
+    items.push({
+        name: 'USD+ before:',
+        amount: fromAsset(balanceBefore)
+    })
+
+    items.push({
+        name: 'USD+ after:',
+        amount: fromAsset(balanceAfter)
+    })
+
+    items.push({
+        name: 'USD+ profit:',
+        amount: fromAsset(profit)
+    })
+
+    console.table(items);
+}
+
 async function showPoolOperationsFromPayout(receipt){
 
 
@@ -961,7 +990,7 @@ async function showPoolOperationsFromPayout(receipt){
                     poolName: log.args[2].toString(),
                     pool: log.args[3].toString(),
                     token: log.args[4].toString(),
-                    amount: log.args[5].toString(),
+                    amount: fromAsset(log.args[5].toString()),
                     to: log.args[6].toString(),
                 })
             }
@@ -1158,4 +1187,5 @@ module.exports = {
     showRewardsFromPayout: showRewardsFromPayout,
     showPoolOperationsFromPayout: showPoolOperationsFromPayout,
     showPayoutEvent: showPayoutEvent,
+    showProfitOnRewardWallet: showProfitOnRewardWallet,
 }

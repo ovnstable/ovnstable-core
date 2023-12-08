@@ -1,14 +1,15 @@
 const {
     getContract,
     showM2M,
-    showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent
+    showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent, transferETH,
+    getWalletAddress, showProfitOnRewardWallet
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 const {getOdosSwapData, getOdosAmountOut, getEmptyOdosData} = require("@overnight-contracts/common/utils/odos-helper");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
-
+const hre = require('hardhat');
 let zeroAddress = "0x0000000000000000000000000000000000000000";
 let odosEmptyData = {
     inputTokenAddress: zeroAddress,
@@ -36,6 +37,10 @@ async function main() {
 
     let exchange = await getContract('Exchange');
     let typePayout = getTypePayout();
+
+    if (hre.network.name === 'localhost'){
+        await transferETH(1, await getWalletAddress());
+    }
 
    // await execTimelock(async (timelock)=>{
    //     await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
@@ -150,6 +155,7 @@ async function showPayoutData(tx, exchange) {
     await showPayoutEvent(tx, exchange);
     await showRewardsFromPayout(tx);
     await showPoolOperationsFromPayout(tx);
+    await showProfitOnRewardWallet(tx);
 }
 
 
