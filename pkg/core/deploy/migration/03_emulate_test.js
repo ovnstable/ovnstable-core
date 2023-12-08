@@ -123,7 +123,8 @@ module.exports = async ({deployments}) => {
         console.log(`exact param:       ${await usdPlus.rebasingCreditsHighres()}`);
         let totalSupply = await usdPlus.totalSupply();
         let newLiqIndx = await usdPlus.rebasingCreditsPerTokenHighres();
-        let newCredit = totalSupply.mul(newLiqIndx).div('1000000000000000000');
+        let nonRebasingSupply = await usdPlus.nonRebasingSupply();
+        let newCredit = totalSupply.sub(nonRebasingSupply).mul(newLiqIndx).div(BigNumber.from('1000000000000000000'));
         console.log(`calc param:        ${newCredit}`);
     }
 
