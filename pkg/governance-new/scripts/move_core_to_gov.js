@@ -76,7 +76,10 @@ async function moveRules(name, oldAddress, newAddress) {
         hasUpgradeRole = false;
     }
 
-    await (await contract.grantRole(Roles.DEFAULT_ADMIN_ROLE, newAddress)).wait();
+
+    if (await contract.hasRole(Roles.DEFAULT_ADMIN_ROLE, newAddress) === false){
+        await (await contract.grantRole(Roles.DEFAULT_ADMIN_ROLE, newAddress)).wait();
+    }
 
     if (hasUpgradeRole) {
         await (await contract.grantRole(Roles.UPGRADER_ROLE, newAddress)).wait();
