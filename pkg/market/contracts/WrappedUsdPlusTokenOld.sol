@@ -11,7 +11,7 @@ import "@overnight-contracts/core/contracts/interfaces/IRoleManager.sol";
 
 import "./interfaces/IWrappedUsdPlusToken.sol";
 
-contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract WrappedUsdPlusTokenOld is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");

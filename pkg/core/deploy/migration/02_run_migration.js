@@ -19,10 +19,10 @@ module.exports = async () => {
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
 
-    let usdPlusMigrationAddress = '0x6465f9f86b0fa28Fb40e7de20748018D54fa9137';
-    let usdPlusPureAddress = '0x8AD2F7a197f783fe78EfAA492d6C81533d408dAc';
-    let wrappedPureAddress = '0x4A8a5a4eC3D09Cee5Cb6D41315eE1d6C1E3030a5';
-    let exchangeAddress = '0xe2827F67CCD724962D95d22f063E45259260605b';
+    let usdPlusMigrationAddress = '0x02ceEE3481341dBa79C574B1292e074b48587B87';
+    let usdPlusPureAddress = '0xdFF59a37eD7187Bf5C6a730C6C201DC00E58f0CC';
+    let wrappedPureAddress = '0xbF4864B29a4588244988b7b40EFbE7a77bB04417';
+    let exchangeAddress = '0xd486A151E63C344866BF084AD401cF30D3372B71';
     let startBlock = await ethers.provider.getBlockNumber();
 
     let roleManagerAddress = (await getContract('RoleManager')).address;

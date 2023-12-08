@@ -34,6 +34,7 @@ module.exports = async ({deployments}) => {
 
         let roleManager = await getContract('RoleManager');
         await (await wrappedUsdPlusToken.setRoleManager(roleManager.address)).wait();
+        console.log(`wrapped.setRoleManager(${roleManager.address}) done()`);
     }
 
     console.log('WrappedUsdPlusToken deploy done()');
