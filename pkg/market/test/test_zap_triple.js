@@ -16,15 +16,17 @@ const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 const abiNFTPool = require("./abi/NFTPool.json");
 
+// TODO: Proportions of triple tokens and etc
+// test not finished yet
 let zaps = [
     {
-        name: 'ConvexZap3',
+        name: 'test',
         gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
         pid: 0,
         token0In: 'dai',
         token1In: 'usdc',
         token0Out: 'usdPlus',
-        token1Out: 'frax',
+        token1Out: 'fraxbp',
         token2Out: 'usdc',
     },
 ];
@@ -161,8 +163,7 @@ describe(`Test ${params?.name}`, function () {
         }
         console.log(+reserves[0], '-------reserves[0]');
         console.log(+reserves[1], '-------reserves[1]');
-        console.log(+reserves[2], '-------reserves[2]');
-        const sumReserves = reserves[0].add(reserves[1]).add(reserves[2]);
+        const sumReserves = reserves[0].add(reserves[1]);
 
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],

@@ -6,23 +6,14 @@ import "./OdosZap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
 contract ConvexZap3 is OdosZap {
-    uint256 constant POOL_TOKENS = type(uint256).max;
 
     struct ZapParams {
         address odosRouter;
     }
 
-    struct AssetAmounts {
-        uint256 bValue;
-        uint256 aValue;
-    }
-
-    struct ConvexZap3InParams {
-        uint256[] amountsOut;
-        address curvePool;
-        address fraxbpPool;
+    struct CurveZapInParams {
         address gauge;
-        uint256 pid;
+        uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -30,8 +21,36 @@ contract ConvexZap3 is OdosZap {
         odosRouter = params.odosRouter;
     }
 
-    function _getAmountsOut(address[] memory tokensOut, ConvexZap3InParams memory curveData) internal returns (uint256[] memory) {
-        uint256[] memory amountsOut = new uint256[](POOL_TOKENS);
+    function getProportion(
+        address _gauge
+    ) public view returns (uint256 token0Amount, uint256 token1Amount) {
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
+        address _token = gauge.lp_token();
+        IStableSwapPool pool = IStableSwapPool(_token);
+        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+        uint256 usdPlusAm = pool.balances(0);
+        uint256 fraxBpAm = pool.balances(1);
+        address usdPlusAdd = pool.coins(0);
+        address fraxBp = pool.coins(1);
+
+        token0Amount = usdPlusAm / (10 **  IERC20Metadata(usdPlusAdd).decimals());
+        token1Amount = fraxBpAm / (10 ** IERC20Metadata(fraxBp).decimals());
+    }
+
+    function zapIn(SwapData memory swapData, CurveZapInParams memory curveData) external {
+        _prepareSwap(swapData);
+        _swap(swapData);
+
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(curveData.gauge);
+        address _token = gauge.lp_token();
+        IStableSwapPool pool = IStableSwapPool(_token);
+        address token0 = pool.coins(0);
+        address token1 = pool.coins(1);
+
+        address[] memory tokensOut = new address[](2);
+        tokensOut[0] = token0;
+        tokensOut[1] = token1;
+        uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
@@ -42,157 +61,55 @@ contract ConvexZap3 is OdosZap {
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        return amountsOut;
+        _addLiquidity(pool, tokensOut, amountsOut);
+        _depositToGauge(pool, gauge);
     }
 
-    function _getMultSwapRatio(
-        uint256[] memory tAmount,
-        uint256[] memory reserves,
-        uint256[] memory decimals
-    ) internal pure returns (uint256 newAmount0, uint256 newAmount1, uint256 newAmount2) {
-        uint256 total = 0;
-        uint256[] memory tokenProportion = new uint256[](POOL_TOKENS);
-        for (uint i = 0; i < reserves.length; i++) {
-            total += reserves[i];
-        }
-
-        if (total == 0) {
-            return (0, 0, 0);
-        }
-
-        for (uint i = 0; i < reserves.length; i++) {
-            uint percentage = ((reserves[i] * 100) / total) / 100;
-            tokenProportion[i] = tAmount[i] * 10 ** decimals[i] * percentage;
-        }
-
-        return (tokenProportion[0], tokenProportion[1], tokenProportion[2]);
-    }
-
-    function _countProportions(
-        address poolFinal,
-        address fraxbp,
-        address[] memory tOut,
-        uint256[] memory amountsOut
-    ) internal returns (uint256[] memory)  {
-        uint256 usdpBalance = IStableSwapPool(poolFinal).balances(0);
-        uint256 fraxBalance = IStableSwapPool(fraxbp).balances(0);
-        uint256 usdcBalance = IStableSwapPool(fraxbp).balances(1);
-        uint256[] memory decimalsArr = new uint256[](POOL_TOKENS);
-        uint256[] memory tokenReserves = new uint256[](POOL_TOKENS);
-        tokenReserves[0] = usdpBalance;
-        tokenReserves[1] = fraxBalance;
-        tokenReserves[2] = usdcBalance;
-
-        for (uint i = 0; i < POOL_TOKENS; i++) {
-            decimalsArr[i] = 10 ** IERC20Metadata(tOut[i]).decimals();
-        }
-
-        (uint256 tAmount0, uint256 tAmount1, uint256 tAmount2) = _getMultSwapRatio(
-            amountsOut,
-            tokenReserves,
-            decimalsArr
+    function _addLiquidity(IStableSwapPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+        uint256 reserve0 = pool.balances(0);
+        uint256 reserve1 = pool.balances(1);
+        (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
+            amountsOut[0],
+            amountsOut[1],
+            reserve0,
+            reserve1,
+            10 ** IERC20Metadata(tokensOut[0]).decimals(),
+            10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
 
-        uint256[] memory amountsAll = new uint256[](POOL_TOKENS);
-        amountsAll[0] = tAmount0;
-        amountsAll[1] = tAmount1;
-        amountsAll[2] = tAmount2;
+        IERC20 asset0 = IERC20(tokensOut[0]);
+        IERC20 asset1 = IERC20(tokensOut[1]);
+        asset0.approve(address(pool), tokensAmount0);
+        asset1.approve(address(pool), tokensAmount1);
 
-        return amountsAll;
-    }
+        uint256 amountAsset0Before = asset0.balanceOf(address(this));
+        uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-    function getProportion(
-        address _gauge
-    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 token2Amount, uint256 denominator) {
-        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
-        address _token = gauge.lp_token();
-        IStableSwapPool pool = IStableSwapPool(_token);
-        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
-        uint256 usdPlusAm = pool.balances(0);
-        address usdPlusAdd = pool.coins(0);
-        address fraxBp = pool.coins(1);
-
-        IStableSwapPool fraxbpPool = IStableSwapPool(fraxBp);
-        uint256 frax = fraxbpPool.balances(0);
-        uint256 usdc = fraxbpPool.balances(1);
-
-        console.log(usdPlusAm, 'usdPlusAm');
-        console.log(frax, 'frax');
-        console.log(usdc, 'usdc');
-        token0Amount = usdPlusAm;
-        token1Amount = frax / (10 ** (IERC20Metadata(fraxbpPool.coins(0)).decimals() - IERC20Metadata(usdPlusAdd).decimals()));
-        token2Amount = usdc;
-    }
-
-    function zapIn(SwapData memory swapData, ConvexZap3InParams memory curveData) external {
-        _prepareSwap(swapData);
-        _swap(swapData);
-
-        IBooster gauge = IBooster(curveData.gauge);
-        IRewardsOnlyGauge gaugeOnly = IRewardsOnlyGauge(curveData.gauge);
-        IBooster.PoolInfo memory poolInfo = gauge.poolInfo(curveData.pid);
-        IStableSwapPool pool = IStableSwapPool(poolInfo.lptoken);
-        console.log('--------------------zapIn');
-        address usdp = pool.coins(0);
-        address fraxbp = pool.coins(1);
-
-        IStableSwapPool fraxbpPool = IStableSwapPool(fraxbp);
-        address frax = fraxbpPool.coins(0);
-        address usdc = fraxbpPool.coins(1);
-
-        address[] memory tokensOut = new address[](POOL_TOKENS);
-        tokensOut[0] = usdp;
-        tokensOut[1] = frax;
-        tokensOut[2] = usdc;
-
-        uint256[] memory amountsOut = _getAmountsOut(tokensOut, curveData);
-        uint256[] memory amountsRatio = _countProportions(poolInfo.lptoken, fraxbp, tokensOut, amountsOut);
-        console.log(amountsOut[0], '-----_getAmountsOut1');
-        console.log(amountsOut[1], '-----_getAmountsOut2');
-        console.log(amountsOut[2], '-----_getAmountsOut3');
-        _addLiquidity(pool, fraxbp, tokensOut, amountsRatio);
-        _depositToGauge(pool, gaugeOnly);
-    }
-
-    function _addLiquidity(
-        IStableSwapPool poolFinal,
-        address fraxbp,
-        address[] memory tOut,
-        uint256[] memory tAmounts
-    ) internal {
-        IERC20[] memory assetArr = new IERC20[](POOL_TOKENS);
-
-        for (uint256 i = 0; i < tAmounts.length; i++) {
-            assetArr[i].approve(address(poolFinal), tAmounts[i]);
-            assetArr[i] = IERC20(tOut[i]);
-        }
-
-        uint256 minAmount = poolFinal.calc_token_amount([tAmounts[0], tAmounts[1], tAmounts[2]], true);
-        poolFinal.add_liquidity(
-            [tAmounts[0], tAmounts[1], tAmounts[2]],
-            OvnMath.subBasisPoints(minAmount, stakeSlippageBP),
-            true
+        pool.add_liquidity(
+            [tokensAmount0, tokensAmount1],
+            OvnMath.subBasisPoints(pool.calc_token_amount([tokensAmount0, tokensAmount1], true), stakeSlippageBP)
         );
 
-        AssetAmounts[] memory assetAmounts = new AssetAmounts[](POOL_TOKENS);
-        uint256[] memory amountsPut = new uint256[](POOL_TOKENS);
-        uint256[] memory amountsReturned = new uint256[](POOL_TOKENS);
+        uint256 amountAsset0After = asset0.balanceOf(address(this));
+        uint256 amountAsset1After = asset1.balanceOf(address(this));
 
-        for (uint256 i = 0; i < POOL_TOKENS; i++) {
-            assetAmounts[i] = AssetAmounts(assetArr[i].balanceOf(address(this)), assetArr[i].balanceOf(address(this)));
-
-            if (assetAmounts[i].aValue > 0) {
-                assetArr[i].transfer(msg.sender, assetAmounts[i].aValue);
-            }
+        if (amountAsset0After > 0) {
+            asset0.transfer(msg.sender, amountAsset0After);
         }
 
-        for (uint256 i = 0; i < POOL_TOKENS; i++) {
-            amountsPut[i] = assetAmounts[i].bValue - assetAmounts[i].aValue;
-            amountsReturned[i] = assetAmounts[i].aValue;
+        if (amountAsset1After > 0) {
+            asset1.transfer(msg.sender, amountAsset1After);
         }
 
-        emit PutIntoPool(amountsPut, tOut);
-        emit ReturnedToUser(amountsReturned, tOut);
+        uint256[] memory amountsPut = new uint256[](2);
+        amountsPut[0] = amountAsset0Before - amountAsset0After;
+        amountsPut[1] = amountAsset1Before - amountAsset1After;
+
+        uint256[] memory amountsReturned = new uint256[](2);
+        amountsReturned[0] = amountAsset0After;
+        amountsReturned[1] = amountAsset1After;
+        emit PutIntoPool(amountsPut, tokensOut);
+        emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
     function _depositToGauge(IStableSwapPool pool, IRewardsOnlyGauge gauge) internal {

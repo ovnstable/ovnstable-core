@@ -144,6 +144,14 @@ let zaps = [
         token0In: 'daiPlus',
         token1In: 'dai',
     },
+    {
+        name: 'ConvexZap3',
+        gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
+        token0In: 'dai',
+        token1In: 'usdc',
+        token0Out: 'usdPlus',
+        token1Out: 'fraxbp',
+    },
 ];
 
 
@@ -185,7 +193,6 @@ describe(`Test ${params?.name}`, function () {
         zap = await ethers.getContract(params.name);
 
         let setUpParams = await setUp();
-
         account = setUpParams.account;
         token0In = setUpParams.token0In;
         token1In = setUpParams.token1In;
@@ -257,7 +264,7 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        const sumReserves = reserves[0].add(reserves[1])
+        const sumReserves = reserves[0].add(reserves[1]);
 
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],
@@ -407,7 +414,7 @@ async function getOdosRequest(request) {
         "outputTokens": request.outputTokens,
         "userAddr": request.userAddr,
         "slippageLimitPercent": 1,
-        "sourceBlacklist": ["Hashflow"],
+        "sourceBlacklist": ["Hashflow", "Overnight Exchange"],
         "sourceWhitelist": [],
         "simulate": false,
         "pathViz": false,
@@ -462,18 +469,23 @@ function calculateProportionForPool(
         proportion0,
     }
 ) {
-
     const tokenOut0 = Number.parseFloat(new BigNumber(outputTokensAmounts[0].toString()).div(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(3).toString()) * outputTokensPrices[0];
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
     const sumInitialOut = tokenOut0 + tokenOut1;
     let sumInputs = 0;
     for (let i = 0; i < inputTokensAmounts.length; i++) {
-        sumInputs += Number.parseFloat(new BigNumber(inputTokensAmounts[i].toString()).div(new BigNumber(10).pow(inputTokensDecimals[i])).toFixed(3).toString()) * inputTokensPrices[i];
+        sumInputs += Number.parseFloat(
+          new BigNumber(inputTokensAmounts[i].toString())
+            .div(new BigNumber(10).pow(inputTokensDecimals[i]))
+            .toFixed(3)
+            .toString()
+          ) * inputTokensPrices[i];
     }
     sumInputs += sumInitialOut;
 
     const output0InMoneyWithProportion = sumInputs * proportion0;
     const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
+
     const inputTokens = inputTokensAddresses.map((address, index) => {
         return { "tokenAddress": address, "amount": inputTokensAmounts[index].toString() };
     });
@@ -559,13 +571,11 @@ async function setUp() {
     } catch (e) {
     }
     try {
-
         let token = await getERC20(params.token1In);
         await transferAsset(token.address, account.address);
     } catch (e) {
     }
     try {
-
         let token = await getERC20(params.token0Out);
         await transferAsset(token.address, account.address);
     } catch (e) {

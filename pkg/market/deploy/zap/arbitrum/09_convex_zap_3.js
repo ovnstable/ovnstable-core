@@ -1,5 +1,5 @@
 const { deployProxy } = require("@overnight-contracts/common/utils/deployProxy");
-const { ARBITRUM, OPTIMISM } = require("@overnight-contracts/common/utils/assets");
+const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const { ethers } = require("hardhat");
 
 module.exports = async ({ deployments }) => {
@@ -10,12 +10,11 @@ module.exports = async ({ deployments }) => {
 
     let params = {
         odosRouter: ARBITRUM.odosRouterV2,
-        chronosRouter: ARBITRUM.chronosRouter
     }
 
     let zap = await ethers.getContract('ConvexZap3');
     await (await zap.setParams(params)).wait();
-    console.log('VelodromeZap setParams done()');
+    console.log('ConvexZap3 setParams done()');
 };
 
 module.exports.tags = ['ConvexZap3'];

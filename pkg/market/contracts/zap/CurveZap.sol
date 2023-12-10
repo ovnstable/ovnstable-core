@@ -83,7 +83,7 @@ contract CurveZap is OdosZap {
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(address(pool), tokensAmount0);
         asset1.approve(address(pool), tokensAmount1);
-        
+
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
