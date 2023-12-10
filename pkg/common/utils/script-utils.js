@@ -253,7 +253,6 @@ async function getContract(name, network) {
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
-        console.log(searchPath, 'searchPath')
         let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
     } catch (e) {
