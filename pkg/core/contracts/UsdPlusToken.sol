@@ -40,7 +40,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     mapping(address => uint256) private _creditBalances;
 
-    bytes32 private DELETED_0;  // not used (_allowances)
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
 
@@ -63,7 +63,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     mapping(address => uint256) public nonRebasingCreditsPerToken;
     mapping(address => RebaseOptions) public rebaseState;
     EnumerableSet.AddressSet _nonRebaseOwners;
-    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _status; // ReentrancyGuard
     bool public paused;
@@ -94,6 +93,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
+
+    function fix(address roleManagerAddress) public {
+        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
+        require(devAddress == msg.sender, "Caller is not the Dev");
+
+        _status = _NOT_ENTERED;
+        paused = true;
+        roleManager = IRoleManager(roleManagerAddress);
+    }
+
 
     function initialize(string calldata name, string calldata symbol, uint8 decimals) initializer public {
         __Context_init_unchained();
@@ -366,8 +375,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
+        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
         _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(
-            _value
+            scaledAmount
         );
 
         _executeTransfer(_from, _to, _value);
@@ -435,7 +445,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _allowances[_owner][_spender];
+        uint256 currentAllowance = _allowances[_owner][_spender];
+        return currentAllowance.divPrecisely(_creditsPerToken(_owner));
     }
 
     /**
@@ -457,7 +468,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        _allowances[msg.sender][_spender] = _value;
+        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(msg.sender));
+        _allowances[msg.sender][_spender] = scaledAmount;
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
@@ -475,8 +487,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
+        uint256 scaledAmount = _addedValue.mulTruncate(_creditsPerToken(msg.sender));
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
-            .add(_addedValue);
+            .add(scaledAmount);
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
     }
@@ -494,10 +507,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (bool)
     {
         uint256 oldValue = _allowances[msg.sender][_spender];
-        if (_subtractedValue >= oldValue) {
+        uint256 scaledAmount = _subtractedValue.mulTruncate(_creditsPerToken(msg.sender));
+        if (scaledAmount >= oldValue) {
             _allowances[msg.sender][_spender] = 0;
         } else {
-            _allowances[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+            _allowances[msg.sender][_spender] = oldValue.sub(scaledAmount);
         }
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
