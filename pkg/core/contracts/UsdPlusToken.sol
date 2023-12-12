@@ -15,7 +15,6 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
-import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -95,15 +94,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
-
-    function fix(address roleManagerAddress) public {
-        address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
-        require(devAddress == msg.sender, "Caller is not the Dev");
-
-        _status = _NOT_ENTERED;
-        paused = false;                                 // maybe delete
-        roleManager = IRoleManager(roleManagerAddress); // maybe delete
-    }
 
 
     function initialize(string calldata name, string calldata symbol, uint8 decimals) initializer public {
