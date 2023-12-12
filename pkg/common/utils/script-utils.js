@@ -33,7 +33,8 @@ async function initWallet() {
         wallet = new Wallet(process.env.PK_POLYGON);
         wallet = (new Deployer(hre, wallet)).zkWallet;
     } else {
-        wallet = await new ethers.Wallet(process.env.PK_POLYGON, provider);
+        networkName = process.env.STAND;
+        wallet = await new ethers.Wallet(process.env['PK_' + networkName.toUpperCase()], provider);
     }
 
     console.log('[User] Wallet: ' + wallet.address);
@@ -246,8 +247,7 @@ async function isContract(address) {
 
 async function getContract(name, network) {
 
-    if (!network)
-        network = process.env.STAND;
+    if (!network) network = process.env.STAND;
 
     let ethers = hre.ethers;
     let wallet = await initWallet();
@@ -819,6 +819,9 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case ARBITRUM.wstEth:
                     from = "0x916792f7734089470de27297903bed8a4630b26d";
+                    break;
+                case ARBITRUM.fraxbp:
+                    from = "0x7D94283d7C15B87aeD6a296C3d1c2Fb334509907";
                     break;
                 default:
                     throw new Error('Unknown asset address');

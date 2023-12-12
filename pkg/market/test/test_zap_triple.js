@@ -3,8 +3,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat");
 const {
     transferAsset,
     getERC20,
-    transferETH,
-    initWallet,
     execTimelock,
     getContract,
     getChainId
@@ -18,142 +16,20 @@ const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 const abiNFTPool = require("./abi/NFTPool.json");
 
+// TODO: Proportions of triple tokens and etc
+// test not finished yet
 let zaps = [
     {
-        name: 'AerodromeZap',
-        gauge: '0x87803Cb321624921cedaAD4555F07Daa0D1Ed325',
-        token0Out: 'daiPlus',
-        token1Out: 'usdPlus',
-        token0In: 'usdbc',
-        token1In: 'dai',
-    },
-    {
-        name: 'BeefyAerodromeZap',
-        gauge: '0x661413c7baf43c53e6beff6567aad4b4f58bb10a',
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'CurveZap',
-        gauge: '0xc0798d022eEE81F1408895325A9fBe171d2a24f1',
-        token0Out: 'usdPlus',
-        token1Out: 'crvUsd',
-        token0In: 'usdbc',
-        token1In: 'dai',
-    },
-    {
-        name: 'AlienBaseZap',
-        gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
-        poolId: 7,
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'ArbidexZap',
-        gauge: '0xd2bcFd6b84E778D2DE5Bb6A167EcBBef5D053A06',
-        poolId: 8,
-        token0Out: 'usdPlus',
-        token1Out: 'usdc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'BaseSwapZap',
-        pair: '0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A',
-        gauge: '0xB404b32D20F780c7c2Fa44502096675867DecA1e',
-        tokenId: 0,
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'ChronosZap',
-        gauge: '0xcd4a56221175b88d4fb28ca2138d670cc1197ca9',
-        token0Out: 'usdPlus',
-        token1Out: 'daiPlus',
-        token0In: 'usdc',
-        token1In: 'dai',
-    },
-    {
-        name: 'DefiedgeZap',
-        gauge: '0xd1c33d0af58eb7403f7c01b21307713aa18b29d3',
-        chef: '0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088',
-        pid: 0,
-        token0Out: 'usdPlus',
-        token1Out: 'usdc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'DemetorZap',
-        gauge: '0xC8F82e522BC5ca3C340753b69Cb18e68dA216362',
-        token0Out: 'usds',
-        token1Out: 'usdPlus',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'RamsesZap',
-        gauge: '0x88d8D2bDC4f12862FbaBEA43cEc08B8FCD2234Da',
-        token0Out: 'usdPlus',
-        token1Out: 'daiPlus',
-        token0In: 'usdc',
-        token1In: 'dai',
-    },
-    {
-        name: 'SwapBasedZap',
-        gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // USDbC+/USD+
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'ThenaZap',
-        gauge: '0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc',
-        token0Out: 'usdt',
-        token1Out: 'usdplus',
-        token0In: 'usdc',
-    },
-    {
-        name: 'VelocimeterZap',
-        gauge: '0x0daf00a383f8897553ac1d03f4445b15afa1dcb9',
-        token0Out: 'daiPlus',
-        token1Out: 'usdPlus',
-        token0In: 'usdbc',
-        token1In: 'dai',
-    },
-    {
-        name: 'VelodromeZap',
-        gauge: '0xC263655114CdE848C73B899846FE7A2D219c10a8',
-        token0Out: 'usdPlus',
-        token1Out: 'usdc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'BeefyVelodromeZap',
-        gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
-        token0Out: 'usdPlus',
-        token1Out: 'usdc',
-        token0In: 'daiPlus',
-        token1In: 'dai',
-    },
-    {
-        name: 'ConvexZap',
+        name: 'test',
         gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
+        pid: 0,
         token0In: 'dai',
         token1In: 'usdc',
         token0Out: 'usdPlus',
         token1Out: 'fraxbp',
+        token2Out: 'usdc',
     },
 ];
-
 
 let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
 
@@ -167,25 +43,32 @@ describe(`Test ${params?.name}`, function () {
 
     let token0In;
     let token1In;
+
     let token0Out;
     let token1Out;
+    let token2Out;
 
     let token0InDec;
     let token1InDec;
     let token0OutDec;
     let token1OutDec;
+    let token2OutDec;
 
     let toToken0In;
     let toToken1In;
     let toToken0Out;
     let toToken1Out;
+    let toToken2Out;
 
     let fromToken0In;
     let fromToken1In;
+
     let fromToken0Out;
     let fromToken1Out;
+    let fromToken2Out;
 
     sharedBeforeEach('deploy and setup', async () => {
+        console.log(params, "-----------_START---------------");
         await hre.run("compile");
         await resetHardhatToLastBlock();
         await deployments.fixture([params.name]);
@@ -193,28 +76,36 @@ describe(`Test ${params?.name}`, function () {
         zap = await ethers.getContract(params.name);
 
         let setUpParams = await setUp();
+
         account = setUpParams.account;
         token0In = setUpParams.token0In;
         token1In = setUpParams.token1In;
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
+        token2Out = setUpParams.token2Out;
 
         token0InDec = await token0In.decimals();
         token1InDec = await token1In.decimals();
         token0OutDec = await token0Out.decimals();
         token1OutDec = await token1Out.decimals();
+        token2OutDec = await token2Out.decimals();
 
-        // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
+        console.log("----------DECIMALS--------");
+        console.log(token0InDec, token1InDec, token0OutDec, token1OutDec, token2OutDec);
+
+        console.log("----------token0InDec, token1InDec, token0OutDec, token1OutDec, token2OutDec--------");
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
+        toToken2Out = token2OutDec == 6 ? toE6 : toE18;
 
         fromToken0In = token0InDec == 6 ? fromE6 : fromE18;
         fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
+        fromToken2Out = token2OutDec == 6 ? fromE6 : fromE18;
     });
 
     it("swap and put nearly equal", async function () {
@@ -223,8 +114,9 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1In = toToken1In(100);
         const amountToken0Out = toToken0Out(400);
         const amountToken1Out = toToken1Out(500);
+        const amountToken2Out = toToken2Out(500);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
     it("swap and disbalance on one asset", async function () {
@@ -233,8 +125,9 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1In = toToken1In(100);
         const amountToken0Out = toToken0Out(800);
         const amountToken1Out = toToken1Out(100);
+        const amountToken2Out = toToken2Out(100);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
     it("swap and disbalance on another asset", async function () {
@@ -243,19 +136,23 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1In = toToken1In(100);
         const amountToken0Out = toToken0Out(100);
         const amountToken1Out = toToken1Out(800);
+        const amountToken2Out = toToken2Out(800);
 
-        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out);
     });
 
-    async function check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out) {
+    async function check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out, amountToken2Out) {
 
         await showBalances();
 
+        console.log(zap.address, '-------ADDRESS');
         await (await token0In.approve(zap.address, toE18(10000))).wait();
         await (await token1In.approve(zap.address, toE18(10000))).wait();
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
+        await (await token2Out.approve(zap.address, toE18(10000))).wait();
 
+        console.log('-------222222');
         let reserves;
         if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -264,17 +161,19 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
+        console.log(+reserves[0], '-------reserves[0]');
+        console.log(+reserves[1], '-------reserves[1]');
         const sumReserves = reserves[0].add(reserves[1]);
 
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],
             inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
-            inputTokensPrices: [1, 1],
-            outputTokensDecimals: [token0OutDec, token1OutDec],
-            outputTokensAddresses: [token0Out.address, token1Out.address],
-            outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [1, 1],
+            inputTokensAmounts: [amountToken0In, amountToken1In, amountToken2In],
+            inputTokensPrices: [1, 1, 1],
+            outputTokensDecimals: [token0OutDec, token1OutDec, token2OutDec],
+            outputTokensAddresses: [token0Out.address, token1Out.address, token2Out.address],
+            outputTokensAmounts: [amountToken0Out, amountToken1Out, amountToken2Out],
+            outputTokensPrices: [1, 1, 1],
             proportion0: reserves[0] / sumReserves
         })
 
@@ -303,6 +202,8 @@ describe(`Test ${params?.name}`, function () {
             }
         )).wait();
 
+        console.log("-------------AFTER ZAPIN----------------");
+
         if ('tokenId' in params) {
             let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);
             let lastTokenId = await gauge.lastTokenId();
@@ -326,7 +227,7 @@ describe(`Test ${params?.name}`, function () {
             params.tokenId = 0;
         }
 
-        // console.log(`Transaction was mined in block ${receipt.blockNumber}`);
+        console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
         await showBalances();
 
@@ -358,7 +259,7 @@ describe(`Test ${params?.name}`, function () {
         const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
         const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
 
-        // console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+        console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
@@ -401,6 +302,11 @@ describe(`Test ${params?.name}`, function () {
             balance: fromToken1Out(await token1Out.balanceOf(account.address))
         });
 
+        items.push({
+            name: await token2Out.symbol(),
+            balance: fromToken2Out(await token2Out.balanceOf(account.address))
+        });
+
         console.table(items);
     }
 
@@ -414,7 +320,7 @@ async function getOdosRequest(request) {
         "outputTokens": request.outputTokens,
         "userAddr": request.userAddr,
         "slippageLimitPercent": 1,
-        "sourceBlacklist": ["Hashflow", "Overnight Exchange"],
+        "sourceBlacklist": ["Hashflow"],
         "sourceWhitelist": [],
         "simulate": false,
         "pathViz": false,
@@ -434,9 +340,9 @@ async function getOdosRequest(request) {
             "simulate": true
         }
 
-        // console.log("assembleData: ", assembleData)
+        console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
-        // console.log("odos transaction simulation: ", transaction.data.simulation)
+        console.log("odos transaction simulation: ", transaction.data.simulation)
     } catch (e) {
         console.log("[zap] getSwapTransaction: ", e);
         return 0;
@@ -469,23 +375,20 @@ function calculateProportionForPool(
         proportion0,
     }
 ) {
+
     const tokenOut0 = Number.parseFloat(new BigNumber(outputTokensAmounts[0].toString()).div(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(3).toString()) * outputTokensPrices[0];
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
-    const sumInitialOut = tokenOut0 + tokenOut1;
+    const tokenOut2 = Number.parseFloat(new BigNumber(outputTokensAmounts[2].toString()).div(new BigNumber(10).pow(outputTokensDecimals[2])).toFixed(3).toString()) * outputTokensPrices[2];
+
+    const sumInitialOut = tokenOut0 + tokenOut1 + tokenOut2;
     let sumInputs = 0;
     for (let i = 0; i < inputTokensAmounts.length; i++) {
-        sumInputs += Number.parseFloat(
-            new BigNumber(inputTokensAmounts[i].toString())
-                .div(new BigNumber(10).pow(inputTokensDecimals[i]))
-                .toFixed(3)
-                .toString()
-        ) * inputTokensPrices[i];
+        sumInputs += Number.parseFloat(new BigNumber(inputTokensAmounts[i].toString()).div(new BigNumber(10).pow(inputTokensDecimals[i])).toFixed(3).toString()) * inputTokensPrices[i];
     }
     sumInputs += sumInitialOut;
 
     const output0InMoneyWithProportion = sumInputs * proportion0;
     const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
-
     const inputTokens = inputTokensAddresses.map((address, index) => {
         return { "tokenAddress": address, "amount": inputTokensAmounts[index].toString() };
     });
@@ -548,7 +451,6 @@ function calculateProportionForPool(
 }
 
 async function setUp() {
-
     const signers = await ethers.getSigners();
     const account = signers[0];
 
@@ -571,11 +473,13 @@ async function setUp() {
     } catch (e) {
     }
     try {
+
         let token = await getERC20(params.token1In);
         await transferAsset(token.address, account.address);
     } catch (e) {
     }
     try {
+
         let token = await getERC20(params.token0Out);
         await transferAsset(token.address, account.address);
     } catch (e) {
@@ -587,6 +491,12 @@ async function setUp() {
 
     }
 
+    try {
+        let token = await getERC20(params.token2Out);
+        await transferAsset(token.address, account.address);
+    } catch (e) {
+
+    }
     await execTimelock(async (timelock) => {
         let exchangeUsdPlus = await usdPlus.exchange();
         let exchangeDaiPlus = await usdPlus.exchange();
@@ -604,6 +514,7 @@ async function setUp() {
         account: account,
         token0Out: (await getERC20(params.token0Out)).connect(account),
         token1Out: (await getERC20(params.token1Out)).connect(account),
+        token2Out: (await getERC20(params.token2Out)).connect(account),
         token0In: (await getERC20(params.token0In)).connect(account),
         token1In: (await getERC20(params.token1In)).connect(account),
     }

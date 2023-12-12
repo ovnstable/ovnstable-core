@@ -5,7 +5,7 @@ import "./OdosZap.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
-contract CurveZap is OdosZap {
+contract ConvexZap is OdosZap {
 
     struct ZapParams {
         address odosRouter;
@@ -19,6 +19,25 @@ contract CurveZap is OdosZap {
     function setParams(ZapParams memory params) external onlyAdmin {
         require(params.odosRouter != address(0), "Zero address not allowed");
         odosRouter = params.odosRouter;
+    }
+
+    function getProportion(
+        address _gauge
+    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
+        address _token = gauge.lp_token();
+        IStableSwapPool pool = IStableSwapPool(_token);
+        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+        uint256 reserve0 = pool.balances(0);
+        uint256 reserve1 = pool.balances(1);
+        address token0 = pool.coins(0);
+        address token1 = pool.coins(1);
+        uint256 dec0 = IERC20Metadata(token0).decimals();
+        uint256 dec1 = IERC20Metadata(token1).decimals();
+        denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
+
+        token0Amount = reserve0 * (denominator / (10 ** dec0));
+        token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
     function zapIn(SwapData memory swapData, CurveZapInParams memory curveData) external {
@@ -47,24 +66,6 @@ contract CurveZap is OdosZap {
 
         _addLiquidity(pool, tokensOut, amountsOut);
         _depositToGauge(pool, gauge);
-    }
-
-    function getProportion(
-        address _gauge
-    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
-        address _token = gauge.lp_token();
-        IStableSwapPool pool = IStableSwapPool(_token);
-        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
-        uint256 reserve0 = pool.balances(0);
-        uint256 reserve1 = pool.balances(1);
-        address token0 = pool.coins(0);
-        address token1 = pool.coins(1);
-        uint256 dec0 = IERC20Metadata(token0).decimals();
-        uint256 dec1 = IERC20Metadata(token1).decimals();
-        denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
-        token0Amount = reserve0 * (denominator / (10 ** dec0));
-        token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
     function _addLiquidity(IStableSwapPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
