@@ -381,7 +381,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
 
         uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
 
-        if (_value == balanceOf(_from) || _value == balanceOf(_from) - 1) {
+        if (_value == allowance(_from, _to) || _value + 1 == allowance(_from, _to)) {
             _allowances[_from][msg.sender] = 0;
         } else {
             _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(scaledAmount);
@@ -604,7 +604,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         uint256 currentCredits = _creditBalances[_account];
         uint256 accountBalance = balanceOf(_account);
 
-        if (accountBalance == _amount || accountBalance - 1 == _amount) {
+        if (accountBalance == _amount || accountBalance == _amount + 1) {
             _creditBalances[_account] = 0;
         } else if (accountBalance > _amount) {
             _creditBalances[_account] = _creditBalances[_account].sub(creditAmount);
