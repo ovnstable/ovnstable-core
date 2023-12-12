@@ -380,9 +380,12 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
         uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
-        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(
-            scaledAmount
-        );
+
+        if (_value == balanceOf(_from) || _value == balanceOf(_from) - 1) {
+            _allowances[_from][msg.sender] = 0;
+        } else {
+            _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(scaledAmount);
+        }
 
         _executeTransfer(_from, _to, _value);
 
@@ -599,17 +602,12 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
         uint256 currentCredits = _creditBalances[_account];
+        uint256 accountBalance = balanceOf(_account);
 
-        // Remove the credits, burning rounding errors
-        if (
-            currentCredits == creditAmount || currentCredits - 1 == creditAmount
-        ) {
-            // Handle dust from rounding
+        if (accountBalance == _amount || accountBalance - 1 == _amount) {
             _creditBalances[_account] = 0;
-        } else if (currentCredits > creditAmount) {
-            _creditBalances[_account] = _creditBalances[_account].sub(
-                creditAmount
-            );
+        } else if (accountBalance > _amount) {
+            _creditBalances[_account] = _creditBalances[_account].sub(creditAmount);
         } else {
             revert("Remove exceeds balance");
         }

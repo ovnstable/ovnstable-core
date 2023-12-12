@@ -97,22 +97,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     constructor() initializer {}
 
     function fix(address roleManagerAddress) public {
-        console.log("fix msg.sender", msg.sender);
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
 
-        address curve = 0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e;
-
         _status = _NOT_ENTERED;
-        paused = false; //maybe false, depend on status
-        roleManager = IRoleManager(roleManagerAddress);
-
-        // all of this need to delete before deploy, its just for the curve test
-        uint256 all = _allowances[0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e][0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013];
-        console.log("internal allowances for curve", all);
-        all = _allowances[devAddress][0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e];
-        console.log("external allowances for curve", all);
-        console.log("external allowances for curve", allowance(devAddress, 0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e));
+        paused = false;                                 // maybe delete
+        roleManager = IRoleManager(roleManagerAddress); // maybe delete
     }
 
 
@@ -388,9 +378,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
         uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
-        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(
-            scaledAmount
-        );
+
+        if (_value == balanceOf(_from) || _value == balanceOf(_from) - 1) {
+            _allowances[_from][msg.sender] = 0;
+        } else {
+            _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(scaledAmount);
+        }
 
         _executeTransfer(_from, _to, _value);
 
@@ -607,17 +600,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
         uint256 currentCredits = _creditBalances[_account];
+        uint256 accountBalance = balanceOf(_account);
 
-        // Remove the credits, burning rounding errors
-        if (
-            currentCredits == creditAmount || currentCredits - 1 == creditAmount
-        ) {
-            // Handle dust from rounding
+        if (accountBalance == _amount || accountBalance - 1 == _amount) {
             _creditBalances[_account] = 0;
-        } else if (currentCredits > creditAmount) {
-            _creditBalances[_account] = _creditBalances[_account].sub(
-                creditAmount
-            );
+        } else if (accountBalance > _amount) {
+            _creditBalances[_account] = _creditBalances[_account].sub(creditAmount);
         } else {
             revert("Remove exceeds balance");
         }
