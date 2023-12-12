@@ -145,7 +145,7 @@ let zaps = [
         token1In: 'dai',
     },
     {
-        name: 'ConvexZap3',
+        name: 'ConvexZap',
         gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
         token0In: 'dai',
         token1In: 'usdc',
@@ -204,7 +204,7 @@ describe(`Test ${params?.name}`, function () {
         token0OutDec = await token0Out.decimals();
         token1OutDec = await token1Out.decimals();
 
-        console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
+        // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
@@ -326,7 +326,7 @@ describe(`Test ${params?.name}`, function () {
             params.tokenId = 0;
         }
 
-        console.log(`Transaction was mined in block ${receipt.blockNumber}`);
+        // console.log(`Transaction was mined in block ${receipt.blockNumber}`);
 
         await showBalances();
 
@@ -358,7 +358,7 @@ describe(`Test ${params?.name}`, function () {
         const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
         const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
 
-        console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+        // console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.03);
@@ -434,9 +434,9 @@ async function getOdosRequest(request) {
             "simulate": true
         }
 
-        console.log("assembleData: ", assembleData)
+        // console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
-        console.log("odos transaction simulation: ", transaction.data.simulation)
+        // console.log("odos transaction simulation: ", transaction.data.simulation)
     } catch (e) {
         console.log("[zap] getSwapTransaction: ", e);
         return 0;
@@ -475,11 +475,11 @@ function calculateProportionForPool(
     let sumInputs = 0;
     for (let i = 0; i < inputTokensAmounts.length; i++) {
         sumInputs += Number.parseFloat(
-          new BigNumber(inputTokensAmounts[i].toString())
-            .div(new BigNumber(10).pow(inputTokensDecimals[i]))
-            .toFixed(3)
-            .toString()
-          ) * inputTokensPrices[i];
+            new BigNumber(inputTokensAmounts[i].toString())
+                .div(new BigNumber(10).pow(inputTokensDecimals[i]))
+                .toFixed(3)
+                .toString()
+        ) * inputTokensPrices[i];
     }
     sumInputs += sumInitialOut;
 

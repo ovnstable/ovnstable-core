@@ -5,16 +5,16 @@ const { ethers } = require("hardhat");
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
-    await deployProxy('ConvexZap3', deployments, save);
-    console.log("ConvexZap3 deploy done()");
+    await deployProxy('ConvexZap', deployments, save);
+    console.log("ConvexZap deploy done()");
 
     let params = {
         odosRouter: ARBITRUM.odosRouterV2,
     }
 
-    let zap = await ethers.getContract('ConvexZap3');
+    let zap = await ethers.getContract('ConvexZap');
     await (await zap.setParams(params)).wait();
-    console.log('ConvexZap3 setParams done()');
+    console.log('ConvexZap setParams done()');
 };
 
-module.exports.tags = ['ConvexZap3'];
+module.exports.tags = ['ConvexZap'];
