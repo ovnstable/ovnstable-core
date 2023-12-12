@@ -15,6 +15,8 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -95,12 +97,22 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     constructor() initializer {}
 
     function fix(address roleManagerAddress) public {
+        console.log("fix msg.sender", msg.sender);
         address devAddress = 0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD;
         require(devAddress == msg.sender, "Caller is not the Dev");
 
+        address curve = 0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e;
+
         _status = _NOT_ENTERED;
-        paused = true;
+        paused = false; //maybe false, depend on status
         roleManager = IRoleManager(roleManagerAddress);
+
+        // all of this need to delete before deploy, its just for the curve test
+        uint256 all = _allowances[0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e][0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013];
+        console.log("internal allowances for curve", all);
+        all = _allowances[devAddress][0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e];
+        console.log("external allowances for curve", all);
+        console.log("external allowances for curve", allowance(devAddress, 0x58AC91f5BE7dC0c35b24B96B19BAc55FBB8E705e));
     }
 
 
@@ -446,6 +458,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (uint256)
     {
         uint256 currentAllowance = _allowances[_owner][_spender];
+
+        if (currentAllowance > (MAX_SUPPLY / 1e18)) {
+            return MAX_SUPPLY;
+        }
+
         return currentAllowance.divPrecisely(_creditsPerToken(_owner));
     }
 

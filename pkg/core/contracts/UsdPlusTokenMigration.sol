@@ -7,10 +7,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
 import "./interfaces/IPayoutManager.sol";
+import "./interfaces/IRoleManager.sol";
+import "./libraries/WadRayMath.sol";
 
 contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -50,6 +53,8 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
 
     // ReentrancyGuard logic
     uint256 private _status;
+    bool public paused;
+    IRoleManager public roleManager;
 
     modifier nonReentrant() {
         require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
@@ -445,6 +450,11 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         returns (uint256)
     {
         uint256 currentAllowance = _allowances[_owner][_spender];
+
+        if (currentAllowance > (MAX_SUPPLY / 1e18)) {
+            return MAX_SUPPLY;
+        }
+
         return currentAllowance.divPrecisely(_creditsPerToken(_owner));
     }
 
