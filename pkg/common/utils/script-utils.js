@@ -30,11 +30,11 @@ async function initWallet() {
     let provider = ethers.provider;
 
     if (process.env.STAND === 'zksync') {
-        wallet = new Wallet(process.env.PK_POLYGON);
+        wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
     } else {
         networkName = process.env.STAND;
-        wallet = await new ethers.Wallet(process.env['PK_' + networkName.toUpperCase()], provider);
+        wallet = await new ethers.Wallet(process.env['PK'], provider);
     }
 
     console.log('[User] Wallet: ' + wallet.address);

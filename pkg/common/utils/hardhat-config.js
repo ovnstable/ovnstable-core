@@ -30,7 +30,7 @@ class Chain {
 
 function getNetworks() {
 
-    let accountsNetwork = accounts(process.env.STAND);
+    let accountsNetwork = accounts('polygon');
 
     let zkSync = isZkSync();
 
