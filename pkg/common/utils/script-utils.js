@@ -33,8 +33,7 @@ async function initWallet() {
         wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
     } else {
-        networkName = process.env.ETH_NETWORK;
-        wallet = await new ethers.Wallet(process.env['PK_' + networkName], provider);
+        wallet = await new ethers.Wallet(process.env.PK, provider);
     }
 
     console.log('[User] Wallet: ' + wallet.address);
