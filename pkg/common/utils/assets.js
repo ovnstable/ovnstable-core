@@ -26,6 +26,15 @@ let BASE = {
     sonne: '0x22a2488fE295047Ba13BD8cCCdBC8361DBD8cf7c',
     crvUsd: '0x417Ac0e078398C154EdFadD9Ef675d30Be60Af93',
     moon: '0xeF0b2Ccb53A683fA48799245f376D6a60929f003',
+
+    // seamlesss
+    seamlessProvider: '0x0E02EB705be325407707662C6f6d3466E939f3a0',
+    seamlessRewardsController: '0x91ac2fff8cbef5859eaa6dda661febd533cd3780',
+    sUsdbc: '0x13a13869b814be8f13b86e9875ab51bda882e391',
+    sDai: '0x37eF72fAC21904EDd7e69f7c7AC98172849efF8e',
+    seam: '0x1c7a460413dd4e964f96d8dfc56e7223ce88cd85',
+
+
     // aave
     aaveProvider: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D',
     // moonwell
