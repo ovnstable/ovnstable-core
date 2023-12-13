@@ -7,10 +7,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
 import "./interfaces/IPayoutManager.sol";
+import "./interfaces/IRoleManager.sol";
+import "./libraries/WadRayMath.sol";
 
 contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -24,7 +27,7 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
 
     mapping(address => uint256) private _creditBalances; // сматчили переименовыванием _balances
 
-    bytes32 private DELETED_0; // тут был старый _allowances
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply; // сматчили без переименовывания и поменяли private на public
 
@@ -47,10 +50,11 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     mapping(address => uint256) public nonRebasingCreditsPerToken; // это новый маппинг, его не было в предыдущем usd+
     mapping(address => RebaseOptions) public rebaseState; // это новый маппинг, его не было в предыдущем usd+
     EnumerableSet.AddressSet _nonRebaseOwners;
-    mapping(address => mapping(address => uint256)) private _allowances; // старый маппинг, но на новом месте
 
     // ReentrancyGuard logic
     uint256 private _status;
+    bool public paused;
+    IRoleManager public roleManager;
 
     modifier nonReentrant() {
         require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
@@ -112,7 +116,6 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
     function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public onlyDev {
         require(nonRebasingSupply != 0, "already migrationInit");
 
-        DELETED_0 = bytes32(0);
         uint256 liquidityIndex = DELETED_1;
 
         _rebasingCreditsPerToken = 10 ** 54 / liquidityIndex;
@@ -376,9 +379,13 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
-        _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(
-            _value
-        );
+        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
+
+        if (_value == allowance(_from, _to) || _value + 1 == allowance(_from, _to)) {
+            _allowances[_from][msg.sender] = 0;
+        } else {
+            _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(scaledAmount);
+        }
 
         _executeTransfer(_from, _to, _value);
 
@@ -445,7 +452,13 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         override
         returns (uint256)
     {
-        return _allowances[_owner][_spender];
+        uint256 currentAllowance = _allowances[_owner][_spender];
+
+        if (currentAllowance > (MAX_SUPPLY / 1e18)) {
+            return MAX_SUPPLY;
+        }
+
+        return currentAllowance.divPrecisely(_creditsPerToken(_owner));
     }
 
     /**
@@ -467,7 +480,8 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         pause
         returns (bool)
     {
-        _allowances[msg.sender][_spender] = _value;
+        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(msg.sender));
+        _allowances[msg.sender][_spender] = scaledAmount;
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
@@ -485,8 +499,9 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         pause
         returns (bool)
     {
+        uint256 scaledAmount = _addedValue.mulTruncate(_creditsPerToken(msg.sender));
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
-            .add(_addedValue);
+            .add(scaledAmount);
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
     }
@@ -504,10 +519,11 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         returns (bool)
     {
         uint256 oldValue = _allowances[msg.sender][_spender];
-        if (_subtractedValue >= oldValue) {
+        uint256 scaledAmount = _subtractedValue.mulTruncate(_creditsPerToken(msg.sender));
+        if (scaledAmount >= oldValue) {
             _allowances[msg.sender][_spender] = 0;
         } else {
-            _allowances[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+            _allowances[msg.sender][_spender] = oldValue.sub(scaledAmount);
         }
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
@@ -586,17 +602,12 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
         uint256 currentCredits = _creditBalances[_account];
+        uint256 accountBalance = balanceOf(_account);
 
-        // Remove the credits, burning rounding errors
-        if (
-            currentCredits == creditAmount || currentCredits - 1 == creditAmount
-        ) {
-            // Handle dust from rounding
+        if (accountBalance == _amount || accountBalance == _amount + 1) {
             _creditBalances[_account] = 0;
-        } else if (currentCredits > creditAmount) {
-            _creditBalances[_account] = _creditBalances[_account].sub(
-                creditAmount
-            );
+        } else if (accountBalance > _amount) {
+            _creditBalances[_account] = _creditBalances[_account].sub(creditAmount);
         } else {
             revert("Remove exceeds balance");
         }
