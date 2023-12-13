@@ -10,7 +10,7 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    await settingSection('Seamless', async (strategy) => {
+    await settingSection('Seamless DAI', async (strategy) => {
         await (await strategy.setParams(
             {
                 dai: BASE.dai,

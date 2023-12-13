@@ -168,7 +168,7 @@ async function addStrategyToApi(strategy, id){
     }
 
     let type;
-    if (id.includes('SMM') || name.includes('ETS')){
+    if (id.includes('SMM') || id.includes('ETS')){
         type = 'ETS'
     }else {
         type = 'CORE';
