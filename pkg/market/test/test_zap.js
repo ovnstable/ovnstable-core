@@ -146,7 +146,7 @@ let zaps = [
     },
     {
         name: 'ConvexZap',
-        gauge: '0x4645e6476d3a5595be9efd39426cc10586a8393d',
+        pair: '0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013',
         token0In: 'dai',
         token1In: 'usdc',
         token0Out: 'usdPlus',

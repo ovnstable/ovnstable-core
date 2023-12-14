@@ -5,6 +5,8 @@ import "./OdosZap.sol";
 
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
+import "hardhat/console.sol";
+
 contract ConvexZap is OdosZap {
 
     struct ZapParams {
@@ -12,7 +14,7 @@ contract ConvexZap is OdosZap {
     }
 
     struct CurveZapInParams {
-        address gauge;
+        address pair;
         uint256[] amountsOut;
     }
 
@@ -22,16 +24,13 @@ contract ConvexZap is OdosZap {
     }
 
     function getProportion(
-        address _gauge
+        address _pair
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
-        address _token = gauge.lp_token();
-        IStableSwapPool pool = IStableSwapPool(_token);
-        // (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
-        uint256 reserve0 = pool.balances(0);
-        uint256 reserve1 = pool.balances(1);
-        address token0 = pool.coins(0);
-        address token1 = pool.coins(1);
+        IStableSwapPool pair = IStableSwapPool(_pair);
+        uint256 reserve0 = pair.balances(0);
+        uint256 reserve1 = pair.balances(1);
+        address token0 = pair.coins(0);
+        address token1 = pair.coins(1);
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -44,11 +43,9 @@ contract ConvexZap is OdosZap {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(curveData.gauge);
-        address _token = gauge.lp_token();
-        IStableSwapPool pool = IStableSwapPool(_token);
-        address token0 = pool.coins(0);
-        address token1 = pool.coins(1);
+        IStableSwapPool pair = IStableSwapPool(curveData.pair);
+        address token0 = pair.coins(0);
+        address token1 = pair.coins(1);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = token0;
@@ -64,13 +61,13 @@ contract ConvexZap is OdosZap {
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pool, tokensOut, amountsOut);
-        _depositToGauge(pool, gauge);
+        _addLiquidity(pair, tokensOut, amountsOut);
+        _returnToUser(pair);
     }
 
-    function _addLiquidity(IStableSwapPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        uint256 reserve0 = pool.balances(0);
-        uint256 reserve1 = pool.balances(1);
+    function _addLiquidity(IStableSwapPool pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+        uint256 reserve0 = pair.balances(0);
+        uint256 reserve1 = pair.balances(1);
         (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
@@ -82,15 +79,15 @@ contract ConvexZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(pool), tokensAmount0);
-        asset1.approve(address(pool), tokensAmount1);
+        asset0.approve(address(pair), tokensAmount0);
+        asset1.approve(address(pair), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        pool.add_liquidity(
+        pair.add_liquidity(
             [tokensAmount0, tokensAmount1],
-            OvnMath.subBasisPoints(pool.calc_token_amount([tokensAmount0, tokensAmount1], true), stakeSlippageBP)
+            OvnMath.subBasisPoints(pair.calc_token_amount([tokensAmount0, tokensAmount1], true), stakeSlippageBP)
         );
 
         uint256 amountAsset0After = asset0.balanceOf(address(this));
@@ -115,9 +112,8 @@ contract ConvexZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function _depositToGauge(IStableSwapPool pool, IRewardsOnlyGauge gauge) internal {
-        uint256 poolBalance = pool.balanceOf(address(this));
-        pool.approve(address(gauge), poolBalance);
-        gauge.deposit(poolBalance, msg.sender);
+    function _returnToUser(IStableSwapPool pair) internal {
+        uint256 poolBalance = pair.balanceOf(address(this));
+        pair.transfer(msg.sender, poolBalance);
     }
 }

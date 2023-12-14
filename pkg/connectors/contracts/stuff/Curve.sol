@@ -172,6 +172,8 @@ interface IStableSwapPool {
 
     function lp_token() external view returns (address);
 
+    function transfer(address _to, uint256 _value) external returns (bool);
+
     function calc_token_amount(uint256[3] memory _amounts, bool _is_deposit) external view returns (uint256);
 
     function calc_token_amount(uint256[2] memory _amounts, bool _is_deposit) external view returns (uint256);
