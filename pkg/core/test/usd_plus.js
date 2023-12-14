@@ -14,6 +14,7 @@ describe("Token", function () {
 
     let user1;
     let user2;
+    let user3;
 
     let nonRebaseUser1;
     let nonRebaseUser2;
@@ -31,6 +32,7 @@ describe("Token", function () {
         account = deployer;
         user1 = await createRandomWallet();
         user2 = await createRandomWallet();
+        user3 = await createRandomWallet();
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
         usdPlus = await ethers.getContract("UsdPlusToken");
@@ -147,9 +149,45 @@ describe("Token", function () {
 
     });
 
+    it('Should return correct balance for small amounts at mint/burn after shifted rebasingCreditsPerToken', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        await mint(user2, 12345);
+        await changeTotalSupply(12543);
+
+        for (const amount of amounts) {
+            await usdPlus.mint(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), amount);
+            await usdPlus.burn(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), '0');
+        }
+
+    });
+
     it('Should return correct balance for small amounts at transfer', async ()=>{
 
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        for (const amount of amounts) {
+            await usdPlus.mint(user1.address, amount);
+            expect(usdPlus.balanceOf(user1.address), amount);
+            await usdPlus.connect(user1).transfer(user2.address, amount);
+            expect(usdPlus.balanceOf(user2.address), amount);
+            expect(usdPlus.balanceOf(user1.address), '0');
+            await usdPlus.burn(user2.address, amount);
+            expect(usdPlus.balanceOf(user2.address), '0');
+
+        }
+
+    });
+
+    it('Should return correct balance for small amounts at transfer after shifted rebasingCreditsPerToken', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        await mint(user3, 12345);
+        await changeTotalSupply(12543);
 
         for (const amount of amounts) {
             await usdPlus.mint(user1.address, amount);
@@ -639,4 +677,117 @@ describe("Token", function () {
     await checkTransferOut(5);
     await checkTransferOut(9);
   });
+
+    it("assetToCredit converts asset", async () => {
+
+        await mint(user1, 99);
+        await mint(user2, 1);
+
+        let amount01 = {amount: "1",             credit: "1000000000"};
+        let amount02 = {amount: "1000",          credit: "1000000000000"};
+        let amount03 = {amount: "1000000",       credit: "1000000000000000"};
+        let amount04 = {amount: "1000000000",    credit: "1000000000000000000"};
+        let amount05 = {amount: "1000000000000", credit: "1000000000000000000000"};
+        
+        expect(await usdPlus.assetToCredit(user1.address, amount01.amount)).to.eq(amount01.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount02.amount)).to.eq(amount02.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount03.amount)).to.eq(amount03.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount04.amount)).to.eq(amount04.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount05.amount)).to.eq(amount05.credit);
+
+        await changeTotalSupply(102);
+
+        let amount11 = {amount: "1",             credit: "980392157"};
+        let amount12 = {amount: "1000",          credit: "980392156863"};
+        let amount13 = {amount: "1000000",       credit: "980392156862745"};
+        let amount14 = {amount: "1000000000",    credit: "980392156862745098"};
+        let amount15 = {amount: "1000000000000", credit: "980392156862745098039"};
+        
+        expect(await usdPlus.assetToCredit(user1.address, amount11.amount)).to.eq(amount11.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount12.amount)).to.eq(amount12.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount13.amount)).to.eq(amount13.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount14.amount)).to.eq(amount14.credit);
+        expect(await usdPlus.assetToCredit(user1.address, amount15.amount)).to.eq(amount15.credit);
+    });
+
+    it("creditToAsset converts credit", async () => {
+
+        await mint(user1, 99);
+        await mint(user2, 1);
+
+        let amount01 = {amount: "1",             credit: "1000000000"};
+        let amount02 = {amount: "1000",          credit: "1000000000000"};
+        let amount03 = {amount: "1000000",       credit: "1000000000000000"};
+        let amount04 = {amount: "1000000000",    credit: "1000000000000000000"};
+        let amount05 = {amount: "1000000000000", credit: "1000000000000000000000"};
+        
+        expect(await usdPlus.creditToAsset(user1.address, amount01.credit)).to.eq(amount01.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount02.credit)).to.eq(amount02.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount03.credit)).to.eq(amount03.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount04.credit)).to.eq(amount04.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount05.credit)).to.eq(amount05.amount);
+
+        await changeTotalSupply(102);
+
+        let amount11 = {amount: "1",             credit: "980392157"};
+        let amount12 = {amount: "1000",          credit: "980392156863"};
+        let amount13 = {amount: "1000000",       credit: "980392156862745"};
+        let amount14 = {amount: "1000000000",    credit: "980392156862745098"};
+        let amount15 = {amount: "1000000000000", credit: "980392156862745098039"};
+        
+        expect(await usdPlus.creditToAsset(user1.address, amount11.credit)).to.eq(amount11.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount12.credit)).to.eq(amount12.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount13.credit)).to.eq(amount13.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount14.credit)).to.eq(amount14.amount);
+        expect(await usdPlus.creditToAsset(user1.address, amount15.credit)).to.eq(amount15.amount);
+    });
+
+    it("subCredits work correct", async () => {
+
+        let amount1 = {credit1: "2000000000",       credit2: "1000000000",             error: "errorText", result: "1000000000"};
+        let amount2 = {credit1: "1000000000000",    credit2: "1000000",                error: "errorText", result: "999999000000"};
+        let amount3 = {credit1: "1000000000000000", credit2: "1000000000012345",       error: "errorText", result: "0"};
+        let amount4 = {credit1: "1000000000012345", credit2: "1000000000000000",       error: "errorText", result: "12345"};
+        let amount5 = {credit1: "1000000000000000", credit2: "1000000000000000",       error: "errorText", result: "0"};
+        let amount6 = {credit1: "1000000000000",    credit2: "1000000000000000000000", error: "errorText", result: "errorText"};
+        
+        expect(await usdPlus.subCredits(amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
+        expect(await usdPlus.subCredits(amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
+        expect(await usdPlus.subCredits(amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);
+        expect(await usdPlus.subCredits(amount4.credit1, amount4.credit2, amount4.error)).to.eq(amount4.result);
+        expect(await usdPlus.subCredits(amount5.credit1, amount5.credit2, amount5.error)).to.eq(amount5.result);
+        await expectRevert(usdPlus.subCredits(amount6.credit1, amount6.credit2, amount6.error), amount6.result);
+    });
+
+    it("Approve/allowance different numbers", async () => {
+
+        let amounts0 = [
+            "115792089237316195423570985008687907853269984665640564039457584007913129639935", // max
+            "115792089237316195423570985008687907853269984665640564039457584007913", // max / 1e9
+            "115792089237316195423570985008687907853269984665640564039457", // max / 1e18
+            "115792089237316195423570985008687907853269984665640", // max / 1e27
+            "115792089237316195423570985008687907853269", // max / 1e36
+            "115792089237316195423570985008688", // max / 1e45 + 1
+        ];
+
+        let amounts1 = [
+            "115792089237316195423570985008687", // max / 1e45
+            "115792089237316195423570", // max / 1e54
+            "115792089237316", // max / 1e63
+            "115792", // max / 1e72
+            "1"
+        ];
+
+        for (const amount of amounts0) {
+            await usdPlus.connect(user1).approve(user2.address, amount);
+            expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(amounts0[0]);
+        }
+
+        for (const amount of amounts1) {
+            await usdPlus.connect(user1).approve(user2.address, amount);
+            expect(await usdPlus.allowance(user1.address, user2.address)).to.eq(amount);
+        }
+
+    });
+
 });
