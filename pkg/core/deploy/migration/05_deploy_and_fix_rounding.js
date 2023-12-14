@@ -29,12 +29,12 @@ module.exports = async ({deployments}) => {
 
     let usdPlus2 = (await ethers.getContract('UsdPlusToken')).connect(wallet);
     let roleManager = await ethers.getContract('RoleManager');
-    await (await usdPlus2.fix(roleManager.address)).wait();
+    // await (await usdPlus2.fix(roleManager.address)).wait();
 
     let balance = await usdPlus.balanceOf(userAddress);
     console.log("user balance before", balance.toString());
 
-    await (await usdPlus.mint(userAddress, "100000000")).wait()
+    await (await usdPlus.mint(userAddress, "100000001")).wait()
 
     balance = await usdPlus.balanceOf(userAddress);
     console.log("user balance after", balance.toString());

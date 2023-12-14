@@ -14,7 +14,7 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
-
+import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -273,14 +273,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        if (_creditBalances[_account] == 0){
-            return 0;
-        } else {
-            uint256 creditBalancesRay = WadRayMath.wadToRay(_creditBalances[_account]);
-            uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(_account));
-            uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
-            return WadRayMath.rayToWad(balanceOfRay);
-        }
+        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
     }
 
     /**
@@ -353,6 +346,30 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return true;
     }
 
+    function assetToCredit(address owner, uint256 amount) private view returns(uint256 credit) {
+        uint256 amountRay = WadRayMath.wadToRay(amount);
+        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
+        uint256 creditRay = WadRayMath.rayMul(amountRay, creditsPerTokenRay);
+        return WadRayMath.rayToWad(creditRay);
+    }
+
+    function creditToAsset(address owner, uint256 credit) private view returns(uint256 asset) {
+        uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
+        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
+        uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
+        return WadRayMath.rayToWad(balanceOfRay);
+    }
+
+    function subCredits(uint256 credit1, uint256 credit2, string memory errorText) private view returns(uint256 resultCredit) {
+        if (credit1 >= credit2) {
+            return credit1 - credit2;
+        } else if (credit2 - credit1 < 1e6) {
+            return 0;
+        } else {
+            revert(errorText);
+        }
+    }
+
     /**
      * @dev Transfer tokens from one address to another.
      * @param _from The address you want to send tokens from.
@@ -367,13 +384,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
-        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(_from));
+        uint256 scaledAmount = assetToCredit(_from, _value);
 
-        if (_value == allowance(_from, _to) || _value + 1 == allowance(_from, _to)) {
-            _allowances[_from][msg.sender] = 0;
-        } else {
-            _allowances[_from][msg.sender] = _allowances[_from][msg.sender].sub(scaledAmount);
-        }
+        _allowances[_from][msg.sender] = subCredits(_allowances[_from][msg.sender], scaledAmount, "Allowance amount exceeds balance");
 
         _executeTransfer(_from, _to, _value);
 
@@ -401,13 +414,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         // Credits deducted and credited might be different due to the
         // differing creditsPerToken used by each account
-        uint256 creditsCredited = _value.mulTruncate(_creditsPerToken(_to));
-        uint256 creditsDeducted = _value.mulTruncate(_creditsPerToken(_from));
+        uint256 creditsCredited = assetToCredit(_to, _value);
+        uint256 creditsDeducted = assetToCredit(_from, _value);
 
-        _creditBalances[_from] = _creditBalances[_from].sub(
-            creditsDeducted,
-            "Transfer amount exceeds balance"
-        );
+        _creditBalances[_from] = subCredits(_creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
         _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
 
         if (isNonRebasingTo && !isNonRebasingFrom) {
@@ -446,7 +456,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             return MAX_SUPPLY;
         }
 
-        return currentAllowance.divPrecisely(_creditsPerToken(_owner));
+        return creditToAsset(_owner, currentAllowance);
     }
 
     /**
@@ -468,9 +478,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount = _value.mulTruncate(_creditsPerToken(msg.sender));
+        uint256 scaledAmount;
+        if (_value > (MAX_SUPPLY / 10 ** 27)) {
+            scaledAmount = MAX_SUPPLY;
+        } else {
+            scaledAmount = assetToCredit(msg.sender, _value);
+        }
         _allowances[msg.sender][_spender] = scaledAmount;
-        emit Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, scaledAmount);
         return true;
     }
 
@@ -487,7 +502,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount = _addedValue.mulTruncate(_creditsPerToken(msg.sender));
+        uint256 scaledAmount = assetToCredit(msg.sender, _addedValue);
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
             .add(scaledAmount);
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
@@ -506,13 +521,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 oldValue = _allowances[msg.sender][_spender];
-        uint256 scaledAmount = _subtractedValue.mulTruncate(_creditsPerToken(msg.sender));
-        if (scaledAmount >= oldValue) {
-            _allowances[msg.sender][_spender] = 0;
-        } else {
-            _allowances[msg.sender][_spender] = oldValue.sub(scaledAmount);
-        }
+        uint256 scaledAmount = assetToCredit(msg.sender, _subtractedValue);
+        _allowances[msg.sender][_spender] = (_allowances[msg.sender][_spender] >= scaledAmount) ? _allowances[msg.sender][_spender] - scaledAmount: 0;
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
     }
@@ -541,7 +551,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
 
-        uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
+        uint256 creditAmount = assetToCredit(_account, _amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
 
         // If the account is non rebasing and doesn't have a set creditsPerToken
@@ -588,17 +598,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _beforeTokenTransfer(address(0), _account, _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
-        uint256 creditAmount = _amount.mulTruncate(_creditsPerToken(_account));
-        uint256 currentCredits = _creditBalances[_account];
-        uint256 accountBalance = balanceOf(_account);
-
-        if (accountBalance == _amount || accountBalance == _amount + 1) {
-            _creditBalances[_account] = 0;
-        } else if (accountBalance > _amount) {
-            _creditBalances[_account] = _creditBalances[_account].sub(creditAmount);
-        } else {
-            revert("Remove exceeds balance");
-        }
+        uint256 creditAmount = assetToCredit(_account, _amount);
+        _creditBalances[_account] = subCredits(_creditBalances[_account], creditAmount, "Burn amount exceeds balance");
 
         // Remove from the credit tallies and non-rebasing supply
         if (isNonRebasingAccount) {

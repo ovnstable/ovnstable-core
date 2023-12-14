@@ -560,7 +560,7 @@ describe("Token", function () {
 
         await usdPlus.connect(user1).approve(user2.address, toAsset(10));
         expect(await usdPlus.allowance(user1.address, user2.address)).to.equal(toAsset(10));
-        await expectRevert(usdPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(100)), "panic code 0x11");
+        await expectRevert(usdPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(100)), "Allowance amount exceeds balance");
     });
 
     it("Should allow to increase/decrease allowance", async () => {
