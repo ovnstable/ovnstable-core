@@ -18,37 +18,53 @@ This repository contains all contracts Overnight
 
 1. Define ETH_NODE_URI_{CHAIN} - public RPC
 2. Define HARDHAT_BLOCK_NUMBER_{CHAIN} - blockNumber for startup hardhat node
-3. Define ETH_NETWORK - chain ID 
-4. Define STAND - stand id [polygon, bsc, optimism]
+3. Define ETH_NETWORK - chain ID [OPTIMISM, ARBITRUM and etc.]
+4. Define STAND - stand id [polygon, bsc, bsc_usdt, optimism_dai and etc.]
+5. Define PK - private key [can be any test key]
 
 ### For deploy
 
-1. Define PK_${CHAIN} if you need to deploy contracts to real chain
-2. Define GAS_PRICE - gas price if you need deploy
-3. Define ETHERSCAN_API_${CHAIN} - for verify contracts
+1. Define PK - if you need to deploy contracts to real chain
+2. Define ETHERSCAN_API_${CHAIN} - for verify contracts
 
  
 ```
 enum CHAIN:
 
 - POLYGON
-- FANTOM
 - OPTIMISM
 - BSC
+- BASE
+- ARBITRUM
+- ZKSYNC
+- LINEA 
 
 ```
-
 
 ## Modules:
 
 This repository contains is next modules:
 
 1) common - it contains common scripts for deploying, build, testing contracts
-2) governance - governance contracts
-3) core - core contracts 
-4) strategies - contains sub modules with strategies for each chain
+2) connectors - interfaces/libraries for integration with other protocols
+3) core - core contracts: UsdPlusToken/Exchange and etc.
+4) governance-new - new governance contracts
+5) leverage - RND contract with leverage strategies [DEPRECATED]
+6) lockup - contracts for lock OVN tokens
+7) market - ZapIns and WrappedUsdPlus contracts
+8) pools - deploy scripts and other date about USD+ pools on Balancer and etc.
+9) pre-sale - contracts of pre-sale OVN
+10) proposals - governance proposals
+11) recovery - information about recovery data after hachs
+12) strategies - contains sub modules with strategies for each chain
+13) swapper - RND on-chain swapper (1inch) 
+14) sy - integrate USD+ in Pendle 
 
-## How to deploy new core:
+
+
+## Tutorials [NOT ACTUAL]
+
+### How to deploy new core:
 
 1. Set in .env file your parameters and check actual gas price in gas station.
 2. Deploy core and setting in pkg/core
@@ -73,7 +89,7 @@ This repository contains is next modules:
 12. Add cash strategy in core.strategies and core contracts in dict.contracts.
 13. Set percentage in core.collateral after adding liquidity in cash strategy.
 
-## How to deploy new strategy:
+### How to deploy new strategy:
 
 1. Set in .env file your parameters and check actual gas price in gas station
 2. Deploy strategy in pkg/strategies/networkName
