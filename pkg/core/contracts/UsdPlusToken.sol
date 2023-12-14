@@ -14,7 +14,6 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -346,21 +345,42 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return true;
     }
 
-    function assetToCredit(address owner, uint256 amount) private view returns(uint256 credit) {
+    /**
+     * @dev Converts usd+ balance value to credits
+     * @param owner The address which owns the funds.
+     * @param amount The amount for conversion in usd+
+     * @return credit The number of tokens in credits
+     */
+    function assetToCredit(address owner, uint256 amount) public view returns(uint256 credit) {
         uint256 amountRay = WadRayMath.wadToRay(amount);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
         uint256 creditRay = WadRayMath.rayMul(amountRay, creditsPerTokenRay);
         return WadRayMath.rayToWad(creditRay);
     }
 
-    function creditToAsset(address owner, uint256 credit) private view returns(uint256 asset) {
+    /**
+     * @dev Converts credits balance value to usd+
+     * @param owner The address which owns the funds.
+     * @param credit The amount for conversion in credits
+     * @return asset The number of tokens in credits
+     */
+    function creditToAsset(address owner, uint256 credit) public view returns(uint256 asset) {
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
         uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
         return WadRayMath.rayToWad(balanceOfRay);
     }
 
-    function subCredits(uint256 credit1, uint256 credit2, string memory errorText) private view returns(uint256 resultCredit) {
+    /**
+     * @dev This method subtracts credits. Due to the fact that credits 
+     * are stored with increased accuracy (1e9), we consider as 
+     * the same number everything that differs by less than 1e6.
+     * @param credit1 The minuend number in credits (increased accuracy)
+     * @param credit2 The subtrahend number in credits (increased accuracy)
+     * @param errorText Text for error if the subtrahend is much greater than the minuend
+     * @return resultCredit The number of tokens in credits
+     */
+    function subCredits(uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
         if (credit1 >= credit2) {
             return credit1 - credit2;
         } else if (credit2 - credit1 < 1e6) {
@@ -452,7 +472,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     {
         uint256 currentAllowance = _allowances[_owner][_spender];
 
-        if (currentAllowance > (MAX_SUPPLY / 1e18)) {
+        // We reduce the maximum allowable value and setup MAX_SUPPLY
+        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
+        if (currentAllowance > (MAX_SUPPLY / 10 ** 36)) {
             return MAX_SUPPLY;
         }
 
@@ -479,7 +501,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (bool)
     {
         uint256 scaledAmount;
-        if (_value > (MAX_SUPPLY / 10 ** 27)) {
+
+        // We reduce the maximum allowable value and setup MAX_SUPPLY
+        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
+        if (_value > (MAX_SUPPLY / 10 ** 45)) {
             scaledAmount = MAX_SUPPLY;
         } else {
             scaledAmount = assetToCredit(msg.sender, _value);
