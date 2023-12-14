@@ -1,0 +1,162 @@
+{
+  "version": "1.0",
+  "chainId": 42161,
+  "createdAt": 1702565668588,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "",
+    "txBuilderVersion": "1.16.2",
+    "createdFromSafeAddress": "0x5cBb2167677c2259F421457542f6E5A805B1FF2F",
+    "createdFromOwnerAddress": "",
+    "checksum": ""
+  },
+  "transactions": [
+    {
+      "to": "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4",
+      "value": "0",
+      "data": null,
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "predecessor",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "salt",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          }
+        ],
+        "name": "schedule",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "target": "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",
+        "value": "0",
+        "data": "0x3659cfe600000000000000000000000009d9e27dfcbb027758021dbc995df159ccb13142",
+        "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "salt": "0x3b30fd626931d32a280b5c9b2eb954014f5e091b22a8da1074a4ffc125141af5",
+        "delay": "21600"
+      }
+    },
+    {
+      "to": "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4",
+      "value": "0",
+      "data": null,
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "predecessor",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "salt",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          }
+        ],
+        "name": "schedule",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "target": "0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8",
+        "value": "0",
+        "data": "0x3659cfe600000000000000000000000009d9e27dfcbb027758021dbc995df159ccb13142",
+        "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "salt": "0x3b30fd626931d32a280b5c9b2eb954014f5e091b22a8da1074a4ffc125141af5",
+        "delay": "21600"
+      }
+    },
+    {
+      "to": "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4",
+      "value": "0",
+      "data": null,
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "predecessor",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "salt",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          }
+        ],
+        "name": "schedule",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "target": "0xD4939D69B31fbE981ed6904A3aF43Ee1dc777Aab",
+        "value": "0",
+        "data": "0x3659cfe600000000000000000000000009d9e27dfcbb027758021dbc995df159ccb13142",
+        "predecessor": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "salt": "0x3b30fd626931d32a280b5c9b2eb954014f5e091b22a8da1074a4ffc125141af5",
+        "delay": "21600"
+      }
+    }
+  ]
+}
