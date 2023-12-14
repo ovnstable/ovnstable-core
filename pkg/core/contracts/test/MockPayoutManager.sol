@@ -5,6 +5,8 @@ import "../PayoutManager.sol";
 
 contract MockPayoutManager is PayoutManager {
 
+
+    bool public payoutDoneCalled;
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
@@ -12,4 +14,8 @@ contract MockPayoutManager is PayoutManager {
         __PayoutManager_init();
     }
 
+
+    function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external override {
+        payoutDoneCalled = true;
+    }
 }

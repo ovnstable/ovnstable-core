@@ -5,6 +5,8 @@ import "../UsdPlusToken.sol";
 
 contract TestUsdPlusToken is UsdPlusToken {
 
+    uint8 private decimalsTest;
+
     function mintTest(address to, uint256 amount) external {
         _mint(to, amount);
     }
@@ -15,5 +17,13 @@ contract TestUsdPlusToken is UsdPlusToken {
 
     function approveTest(address owner, address spender, uint256 amount) external {
         // _approve(owner, spender, amount);
+    }
+
+    function decimals() public override view returns (uint8){
+        return decimalsTest;
+    }
+
+    function setDecimals(uint8 _decimals) external {
+        decimalsTest = _decimals;
     }
 }

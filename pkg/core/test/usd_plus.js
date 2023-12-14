@@ -5,6 +5,7 @@ const {getNamedAccounts, deployments, ethers} = require("hardhat");
 const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
+const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 
 
 describe("Token", function () {
@@ -22,7 +23,7 @@ describe("Token", function () {
     let fromAsset;
     let toAsset;
 
-    beforeEach(async () => {
+    sharedBeforeEach(async () => {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
@@ -688,7 +689,7 @@ describe("Token", function () {
         let amount03 = {amount: "1000000",       credit: "1000000000000000"};
         let amount04 = {amount: "1000000000",    credit: "1000000000000000000"};
         let amount05 = {amount: "1000000000000", credit: "1000000000000000000000"};
-        
+
         expect(await usdPlus.assetToCredit(user1.address, amount01.amount)).to.eq(amount01.credit);
         expect(await usdPlus.assetToCredit(user1.address, amount02.amount)).to.eq(amount02.credit);
         expect(await usdPlus.assetToCredit(user1.address, amount03.amount)).to.eq(amount03.credit);
@@ -702,7 +703,7 @@ describe("Token", function () {
         let amount13 = {amount: "1000000",       credit: "980392156862745"};
         let amount14 = {amount: "1000000000",    credit: "980392156862745098"};
         let amount15 = {amount: "1000000000000", credit: "980392156862745098039"};
-        
+
         expect(await usdPlus.assetToCredit(user1.address, amount11.amount)).to.eq(amount11.credit);
         expect(await usdPlus.assetToCredit(user1.address, amount12.amount)).to.eq(amount12.credit);
         expect(await usdPlus.assetToCredit(user1.address, amount13.amount)).to.eq(amount13.credit);
@@ -720,7 +721,7 @@ describe("Token", function () {
         let amount03 = {amount: "1000000",       credit: "1000000000000000"};
         let amount04 = {amount: "1000000000",    credit: "1000000000000000000"};
         let amount05 = {amount: "1000000000000", credit: "1000000000000000000000"};
-        
+
         expect(await usdPlus.creditToAsset(user1.address, amount01.credit)).to.eq(amount01.amount);
         expect(await usdPlus.creditToAsset(user1.address, amount02.credit)).to.eq(amount02.amount);
         expect(await usdPlus.creditToAsset(user1.address, amount03.credit)).to.eq(amount03.amount);
@@ -734,7 +735,7 @@ describe("Token", function () {
         let amount13 = {amount: "1000000",       credit: "980392156862745"};
         let amount14 = {amount: "1000000000",    credit: "980392156862745098"};
         let amount15 = {amount: "1000000000000", credit: "980392156862745098039"};
-        
+
         expect(await usdPlus.creditToAsset(user1.address, amount11.credit)).to.eq(amount11.amount);
         expect(await usdPlus.creditToAsset(user1.address, amount12.credit)).to.eq(amount12.amount);
         expect(await usdPlus.creditToAsset(user1.address, amount13.credit)).to.eq(amount13.amount);
@@ -750,7 +751,7 @@ describe("Token", function () {
         let amount4 = {credit1: "1000000000012345", credit2: "1000000000000000",       error: "errorText", result: "12345"};
         let amount5 = {credit1: "1000000000000000", credit2: "1000000000000000",       error: "errorText", result: "0"};
         let amount6 = {credit1: "1000000000000",    credit2: "1000000000000000000000", error: "errorText", result: "errorText"};
-        
+
         expect(await usdPlus.subCredits(amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
         expect(await usdPlus.subCredits(amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
         expect(await usdPlus.subCredits(amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);

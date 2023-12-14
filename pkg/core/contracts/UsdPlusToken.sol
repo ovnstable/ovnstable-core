@@ -197,7 +197,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view returns (uint8) {
+    function decimals() public virtual view returns (uint8) {
         return _decimals;
     }
 
@@ -372,8 +372,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     /**
-     * @dev This method subtracts credits. Due to the fact that credits 
-     * are stored with increased accuracy (1e9), we consider as 
+     * @dev This method subtracts credits. Due to the fact that credits
+     * are stored with increased accuracy (1e9), we consider as
      * the same number everything that differs by less than 1e6.
      * @param credit1 The minuend number in credits (increased accuracy)
      * @param credit2 The subtrahend number in credits (increased accuracy)

@@ -41,9 +41,9 @@ describe("PayoutManager", function () {
         await hre.run("compile");
         const {deployer} = await getNamedAccounts();
 
-        await deployments.fixture(['MockPayoutManager']);
+        await deployments.fixture(['DefaultPayoutManager']);
 
-        pm = await ethers.getContract('MockPayoutManager');
+        pm = await ethers.getContract('DefaultPayoutManager');
         mockToken = await ethers.getContract('MockERC20');
         mockPool = await ethers.getContract('MockPool');
         mockBribe = await ethers.getContract('MockBribe');
@@ -313,8 +313,8 @@ describe("PayoutManager", function () {
 
         describe('permissions', ()=>{
 
-            it("[setDisabled] Restricted to admins", async function () {
-                await expectRevert(pm.connect(testAccount).setDisabled(true),'Restricted to admins');
+            it("[setDisabled] Restricted to Unit", async function () {
+                await expectRevert(pm.connect(testAccount).setDisabled(true),'Restricted to Unit');
             });
 
             it("[setRoleManager] Restricted to admins", async function () {
