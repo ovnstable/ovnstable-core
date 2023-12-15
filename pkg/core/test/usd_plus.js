@@ -752,12 +752,12 @@ describe("Token", function () {
         let amount5 = {credit1: "1000000000000000", credit2: "1000000000000000",       error: "errorText", result: "0"};
         let amount6 = {credit1: "1000000000000",    credit2: "1000000000000000000000", error: "errorText", result: "errorText"};
 
-        expect(await usdPlus.subCredits(amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
-        expect(await usdPlus.subCredits(amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
-        expect(await usdPlus.subCredits(amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);
-        expect(await usdPlus.subCredits(amount4.credit1, amount4.credit2, amount4.error)).to.eq(amount4.result);
-        expect(await usdPlus.subCredits(amount5.credit1, amount5.credit2, amount5.error)).to.eq(amount5.result);
-        await expectRevert(usdPlus.subCredits(amount6.credit1, amount6.credit2, amount6.error), amount6.result);
+        expect(await usdPlus.subCredits(user1.address, amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
+        expect(await usdPlus.subCredits(user1.address, amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
+        expect(await usdPlus.subCredits(user1.address, amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);
+        expect(await usdPlus.subCredits(user1.address, amount4.credit1, amount4.credit2, amount4.error)).to.eq(amount4.result);
+        expect(await usdPlus.subCredits(user1.address, amount5.credit1, amount5.credit2, amount5.error)).to.eq(amount5.result);
+        await expectRevert(usdPlus.subCredits(user1.address, amount6.credit1, amount6.credit2, amount6.error), amount6.result);
     });
 
     it("Approve/allowance different numbers", async () => {

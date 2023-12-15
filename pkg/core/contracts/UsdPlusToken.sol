@@ -374,17 +374,18 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev This method subtracts credits. Due to the fact that credits
      * are stored with increased accuracy (1e9), we consider as
-     * the same number everything that differs by less than 1e6.
+     * the same number everything that equal like amounts.
+     * @param owner The address which owns the funds.
      * @param credit1 The minuend number in credits (increased accuracy)
      * @param credit2 The subtrahend number in credits (increased accuracy)
      * @param errorText Text for error if the subtrahend is much greater than the minuend
      * @return resultCredit The number of tokens in credits
      */
-    function subCredits(uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
-        if (credit1 >= credit2) {
-            return credit1 - credit2;
-        } else if (credit2 - credit1 < 1e6) {
-            return 0;
+    function subCredits(address owner, uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
+        uint256 amount1 = creditToAsset(owner, credit1);
+        uint256 amount2 = creditToAsset(owner, credit2);
+        if (amount1 + 1 >= amount2) {
+            return credit1 >= credit2 ? credit1 - credit2 : 0;
         } else {
             revert(errorText);
         }
@@ -406,7 +407,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         uint256 scaledAmount = assetToCredit(_from, _value);
 
-        _allowances[_from][msg.sender] = subCredits(_allowances[_from][msg.sender], scaledAmount, "Allowance amount exceeds balance");
+        _allowances[_from][msg.sender] = subCredits(_from, _allowances[_from][msg.sender], scaledAmount, "Allowance amount exceeds balance");
 
         _executeTransfer(_from, _to, _value);
 
@@ -437,7 +438,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 creditsCredited = assetToCredit(_to, _value);
         uint256 creditsDeducted = assetToCredit(_from, _value);
 
-        _creditBalances[_from] = subCredits(_creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
+        _creditBalances[_from] = subCredits(_from, _creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
         _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
 
         if (isNonRebasingTo && !isNonRebasingFrom) {
@@ -624,7 +625,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = assetToCredit(_account, _amount);
-        _creditBalances[_account] = subCredits(_creditBalances[_account], creditAmount, "Burn amount exceeds balance");
+        _creditBalances[_account] = subCredits(_account, _creditBalances[_account], creditAmount, "Burn amount exceeds balance");
 
         // Remove from the credit tallies and non-rebasing supply
         if (isNonRebasingAccount) {
