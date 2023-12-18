@@ -352,6 +352,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @return credit The number of tokens in credits
      */
     function assetToCredit(address owner, uint256 amount) public view returns(uint256 credit) {
+        if (amount > MAX_SUPPLY / 10 ** 45) {
+            return MAX_SUPPLY;
+        }
         uint256 amountRay = WadRayMath.wadToRay(amount);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
         uint256 creditRay = WadRayMath.rayMul(amountRay, creditsPerTokenRay);
@@ -365,6 +368,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @return asset The number of tokens in credits
      */
     function creditToAsset(address owner, uint256 credit) public view returns(uint256 asset) {
+        if (credit >= MAX_SUPPLY / 10 ** 36) {
+            return MAX_SUPPLY;
+        }
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
         uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
@@ -384,7 +390,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function subCredits(address owner, uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
         uint256 amount1 = creditToAsset(owner, credit1);
         uint256 amount2 = creditToAsset(owner, credit2);
-        if (amount1 + 1 >= amount2) {
+        if (amount1 == MAX_SUPPLY || amount1 + 1 >= amount2) {
             return credit1 >= credit2 ? credit1 - credit2 : 0;
         } else {
             revert(errorText);
@@ -473,12 +479,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     {
         uint256 currentAllowance = _allowances[_owner][_spender];
 
-        // We reduce the maximum allowable value and setup MAX_SUPPLY
-        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
-        if (currentAllowance > (MAX_SUPPLY / 10 ** 36)) {
-            return MAX_SUPPLY;
-        }
-
         return creditToAsset(_owner, currentAllowance);
     }
 
@@ -501,15 +501,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount;
-
-        // We reduce the maximum allowable value and setup MAX_SUPPLY
-        // if call wadToRay and rayDiv for uint.max then node calculates this value for a very long time or crashes with a limit error
-        if (_value > (MAX_SUPPLY / 10 ** 45)) {
-            scaledAmount = MAX_SUPPLY;
-        } else {
-            scaledAmount = assetToCredit(msg.sender, _value);
-        }
+        uint256 scaledAmount = assetToCredit(msg.sender, _value);
         _allowances[msg.sender][_spender] = scaledAmount;
         emit Approval(msg.sender, _spender, scaledAmount);
         return true;
