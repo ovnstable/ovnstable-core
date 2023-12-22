@@ -1,30 +1,31 @@
 const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployProxy");
 const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
-const { BSC, BASE} = require("@overnight-contracts/common/utils/assets");
+const { BASE } = require("@overnight-contracts/common/utils/assets");
 
-let rebaseToken = '0x494cDC9ECdE630179f31754480acA7179000a881';
-let hedgeExchanger = '0x181AAb77E68CD6803f60cbAE88674dE20101bf3f';
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyEts', deployments, save, null);
+        await deployProxyMulti(name, 'StrategyEtsInch', deployments, save, null);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('AlphaBase', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
 
 async function getParams() {
     return {
+        rebaseToken: '0xF575a5bF866b14ebb57E344Dbce4Bb44dCeDbfE4',
+        hedgeExchanger: '0xe8CCF8F04dE2460313315abEAE9BE079813AE2FF',
         asset: BASE.usdbc,
-        rebaseToken: rebaseToken,
-        hedgeExchanger: hedgeExchanger,
+        underlyingAsset: BASE.usdc,
+        oracleAsset: BASE.chainlinkUsdc,
+        oracleUnderlyingAsset: BASE.chainlinkUsdc,
+        inchSwapper: BASE.inchSwapper,
     };
 }
 
 module.exports.tags = ['StrategyEtsAlpha'];
-module.exports.getParams = getParams;
-module.exports.strategyEtsAlpha = getParams;
+module.exports.strategyEtsAlphaParams = getParams;
