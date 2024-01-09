@@ -24,7 +24,8 @@ module.exports = async () => {
     // items.push(...arbidex());
     // items.push(...curve());
     // items.push(...coffeefi());
-    items.push(...horiza());
+    // items.push(...horiza());
+    items.push(...pancakeswap());
 
     // await (await pl.removeItems()).wait();
     await (await pl.addItems(items)).wait();
@@ -32,6 +33,26 @@ module.exports = async () => {
 
     console.log('ArbitrumPayoutManager setting done');
 
+    function pancakeswap(){
+
+        let dex = 'PancakeSwap';
+
+        let items = [];
+
+        items.push(createSkim('0xdAA80a051E22A7f7b0cfC33Aa29572fbDE65183E', ethPlus.address, 'WETH/ETH+', dex));
+
+        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdPlus.address, 'USD+/USDT+', dex));
+        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdtPlus.address, 'USD+/USDT+', dex));
+
+        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', ethPlus.address, 'USD+/ETH+', dex));
+        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', usdPlus.address, 'USD+/ETH+', dex));
+
+        items.push(createSkim('0xd01075f7314a6436e8B74fc18069848229D0c555', usdPlus.address, 'USD+/USDC', dex));
+
+
+
+        return items;
+    }
 
     function horiza(){
 
