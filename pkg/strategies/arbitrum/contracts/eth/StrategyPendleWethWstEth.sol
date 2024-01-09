@@ -215,7 +215,7 @@ contract StrategyPendleWethWstEth is Strategy {
             100, // fee 0.01%
             address(this),
             wstEthBalance,
-            OvnMath.subBasisPoints(_oracleWstEthToWeth(wstEthBalance), swapSlippageBP)
+            0
         );
     }
 
@@ -228,7 +228,7 @@ contract StrategyPendleWethWstEth is Strategy {
         _claimSpecPnp();
 
         // 3. Check and make PT and YT amounts equal
-        _equPtYt();
+//        _equPtYt();
 
         // 4. Sell rewards
         uint256 totalWeth;
