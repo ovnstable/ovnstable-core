@@ -57,7 +57,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
-    uint256 public abroadMin;
+    uint256 public abroadMin; // deprecated and not used in current version
     uint256 public abroadMax;
 
     address public insurance;
@@ -99,7 +99,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
     event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
-    event Abroad(uint256 min, uint256 max);
+    event MaxAbroad(uint256 abroad);
     event ProfitRecipientUpdated(address recipient);
     event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
     event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
@@ -149,7 +149,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         payoutTimeRange = 24 * 60 * 60; // 24 hours
 
-        abroadMin = 1000100;
         abroadMax = 1000350;
 
         oracleLossDenominator = 100000;
@@ -246,10 +245,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
 
-    function setAbroad(uint256 _min, uint256 _max) external onlyPortfolioAgent {
-        abroadMin = _min;
+    function setMaxAbroad(uint256 _max) external onlyPortfolioAgent {
         abroadMax = _max;
-        emit Abroad(abroadMin, abroadMax);
+        emit MaxAbroad(abroadMax);
     }
 
     function setPayoutTimes(
