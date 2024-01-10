@@ -18,7 +18,6 @@ import "./interfaces/IUsdPlusToken.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
-    bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
@@ -398,7 +397,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // Flag isBalanced take about:
         // PortfolioManager run balance function and unstake liquidity from non cash strategies
         // Check is not actual if stake/unstake will be only from cash strategy (for example Aave or Venus)
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender) && isBalanced) {
+        if (isBalanced) {
             require(lastBlockNumber < blockNumber, "Only once in block");
         }
 
@@ -410,14 +409,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 fee = isBuy ? buyFee : redeemFee;
         uint256 feeDenominator = isBuy ? buyFeeDenominator : redeemFeeDenominator;
 
-        uint256 feeAmount;
-        uint256 resultAmount;
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            feeAmount = (_amount * fee) / feeDenominator;
-            resultAmount = _amount - feeAmount;
-        } else {
-            resultAmount = _amount;
-        }
+        uint256 feeAmount = (_amount * fee) / feeDenominator;
+        uint256 resultAmount = _amount - feeAmount;
 
         return (resultAmount, feeAmount);
     }
