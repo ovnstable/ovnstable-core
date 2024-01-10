@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -312,7 +313,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(usdPlusAmount > 0, "Amount of USD+ is zero");
 
         uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
-        usdc.transferFrom(msg.sender, address(portfolioManager), _amount);
+        SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
         require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
 
         portfolioManager.deposit();
@@ -354,7 +355,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         usdPlus.burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
-        usdc.transfer(msg.sender, redeemAmount);
+        SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
@@ -532,7 +533,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             if(premium > 0 && swapData.amountIn != 0) {
                 portfolioManager.withdraw(premium);
-                usdc.transfer(insurance, premium);
+                SafeERC20.safeTransfer(usdc, insurance, premium);
 
                 IInsuranceExchange(insurance).premium(swapData);
                 totalNav = totalNav - _assetToRebase(premium);
