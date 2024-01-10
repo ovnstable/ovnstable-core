@@ -582,7 +582,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         emit PayoutEvent(
             profit,
-            0,
+            0, // Maintaining backward compatibility for analytic service. In a new version not used.
             excessProfit,
             premium,
             loss
