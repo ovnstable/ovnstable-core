@@ -21,8 +21,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
-    uint256 public constant LIQ_DELTA_DM   = 1000000; // 1e6
-    uint256 public constant FISK_FACTOR_DM = 100000;  // 1e5
+    uint256 public constant LIQ_DELTA_DM   = 1e6;
+    uint256 public constant FISK_FACTOR_DM = 1e5;
 
 
     // ---  fields
