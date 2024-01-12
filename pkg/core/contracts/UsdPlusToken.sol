@@ -615,7 +615,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             return;
         }
 
-        _beforeTokenTransfer(account, address(0), _amount);
+        _beforeTokenTransfer(_account, address(0), _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = assetToCredit(_account, _amount);
@@ -630,7 +630,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _totalSupply = _totalSupply.sub(_amount);
 
-        _afterTokenTransfer(account, address(0), _amount);
+        _afterTokenTransfer(_account, address(0), _amount);
 
         emit Transfer(_account, address(0), _amount);
     }
