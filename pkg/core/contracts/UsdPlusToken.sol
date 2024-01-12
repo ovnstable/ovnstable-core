@@ -676,7 +676,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         // Increase rebasing credits, totalSupply remains unchanged so no
         // adjustment necessary
-        _rebasingCredits = _rebasingCredits.add(_creditBalances[_address]);
+        _rebasingCredits = _rebasingCredits.add(newCreditBalance);
 
         rebaseState[_address] = RebaseOptions.OptIn;
 
