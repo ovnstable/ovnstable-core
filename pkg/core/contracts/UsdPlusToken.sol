@@ -609,6 +609,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function _burn(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Burn from the zero address");
         if (_amount == 0) {
+            emit Transfer(_account, address(0), _amount);
             return;
         }
 
