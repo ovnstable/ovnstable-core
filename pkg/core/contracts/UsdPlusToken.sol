@@ -144,19 +144,19 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
-        require(_exchanger != address(this), 'exchange is zero');
+        require(_exchanger != address(0), 'exchange is zero');
         exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
     }
 
     function setPayoutManager(address _payoutManager) external onlyAdmin {
-        require(_payoutManager != address(this), 'payoutManager is zero');
+        require(_payoutManager != address(0), 'payoutManager is zero');
         payoutManager = _payoutManager;
         emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(this), 'roleManager is zero');
+        require(_roleManager != address(0), 'roleManager is zero');
         roleManager = IRoleManager(_roleManager);
         emit RoleManagerUpdated(_roleManager);
     }
