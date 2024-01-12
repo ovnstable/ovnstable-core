@@ -125,9 +125,14 @@ async function settingSection(id, exec) {
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
-            await setDepositor(strategyName, strategy);
-            await addStrategyToApi(strategy, id);
             await exec(strategy);
+            try {
+                await setDepositor(strategyName, strategy);
+            } catch (e) {
+                console.log(`SetDepositor fail: ${e}`);
+            }
+
+            await addStrategyToApi(strategy, id);
             console.log(`[${strategyName}] setting done`)
         } catch (e) {
             console.error(`[${strategyName}] setting fail: ` + e);
