@@ -294,7 +294,8 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
      * This method should convert this asset to OVN.
      * @param swapData consist of odos data to make swap
      */
-    function premium(SwapData memory swapData) external onlyInsured {
+    function premium(SwapData memory swapData, uint256 premiumAmount) external onlyInsured {
+        require(premiumAmount >= swapData.amountIn, 'premiumAmount >= amountIn');
         _swap(swapData);
     }
 

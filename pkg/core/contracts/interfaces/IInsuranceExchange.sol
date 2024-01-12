@@ -23,7 +23,7 @@ interface IInsuranceExchange {
 
     function payout() external;
 
-    function premium(SwapData memory swapData) external;
+    function premium(SwapData memory swapData, uint256 premiumAmount) external;
 
     function compensate(SwapData memory swapData, uint256 assetAmount, address to) external;
 
