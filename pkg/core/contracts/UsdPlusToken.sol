@@ -139,7 +139,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     modifier notPaused() {
-        require(paused == false, "pause");
+        require(!paused, "pause");
         _;
     }
 
