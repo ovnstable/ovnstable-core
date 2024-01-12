@@ -125,7 +125,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() initializer public {
         __AccessControl_init();
