@@ -592,6 +592,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+
+        // If this is not a simulation, then we return the value is not used in any way
         return 0;
     }
 }
