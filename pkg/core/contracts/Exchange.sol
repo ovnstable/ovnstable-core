@@ -526,7 +526,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 portfolioManager.withdraw(premium);
                 SafeERC20.safeTransfer(usdc, insurance, premium);
 
-                IInsuranceExchange(insurance).premium(swapData);
+                IInsuranceExchange(insurance).premium(swapData, premium);
                 totalNav = totalNav - _assetToRebase(premium);
             }
 

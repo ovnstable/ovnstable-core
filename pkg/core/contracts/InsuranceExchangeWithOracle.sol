@@ -297,7 +297,8 @@ contract InsuranceExchangeWithOracle is IInsuranceExchange, Initializable, Acces
      * This method should convert this asset to OVN.
      * @param swapData consist of odos data to make swap
      */
-    function premium(SwapData memory swapData) external onlyInsured {
+    function premium(SwapData memory swapData, uint256 premiumAmount) external onlyInsured {
+        require(premiumAmount >= swapData.amountIn, 'premiumAmount >= amountIn');
         _swap(swapData);
     }
 
@@ -336,7 +337,7 @@ contract InsuranceExchangeWithOracle is IInsuranceExchange, Initializable, Acces
         uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
-        uint256 apprAmountOut = address(inputAsset) == address(asset) ? 
+        uint256 apprAmountOut = address(inputAsset) == address(asset) ?
             assetOracle.convert(address(outputAsset), address(asset), amountIn) :
             assetOracle.convert(address(asset), address(outputAsset), amountIn);
         apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
