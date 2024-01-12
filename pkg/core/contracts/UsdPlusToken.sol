@@ -793,8 +793,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             // transfer
             if (balanceOf(from) == 0) {
                 _owners.remove(from);
+            } else if (amount > 0) {
+                _owners.add(to);
             }
-            _owners.add(to);
         }
     }
 
