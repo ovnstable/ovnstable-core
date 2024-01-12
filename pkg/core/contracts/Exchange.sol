@@ -406,8 +406,16 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function _takeFee(uint256 _amount, bool isBuy) internal view returns (uint256, uint256){
 
-        uint256 fee = isBuy ? buyFee : redeemFee;
-        uint256 feeDenominator = isBuy ? buyFeeDenominator : redeemFeeDenominator;
+        uint256 fee;
+        uint256 feeDenominator;
+
+        if (isBuy) {
+            fee = buyFee;
+            feeDenominator = buyFeeDenominator;
+        } else {
+            fee = redeemFee;
+            feeDenominator = redeemFeeDenominator;
+        }
 
         uint256 feeAmount = (_amount * fee) / feeDenominator;
         uint256 resultAmount = _amount - feeAmount;
