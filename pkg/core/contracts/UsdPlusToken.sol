@@ -54,7 +54,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private DELETED_1; // not used (liquidityIndex)
     uint256 private DELETED_2; // not used (liquidityIndexDenominator)
 
-    EnumerableSet.AddressSet _owners;
+    EnumerableSet.AddressSet private _owners;
 
     address public exchange;
     uint8 private _decimals;
