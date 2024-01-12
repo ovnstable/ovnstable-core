@@ -219,6 +219,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
+        require(_feeDenominator >= _fee, "fee > denominator");
         buyFee = _fee;
         buyFeeDenominator = _feeDenominator;
         emit BuyFeeUpdated(buyFee, buyFeeDenominator);
@@ -226,6 +227,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
+        require(_feeDenominator >= _fee, "fee > denominator");
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
