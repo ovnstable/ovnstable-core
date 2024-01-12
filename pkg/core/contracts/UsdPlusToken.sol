@@ -368,7 +368,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @return asset The number of tokens in credits
      */
     function creditToAsset(address owner, uint256 credit) public view returns(uint256 asset) {
-        if (credit >= MAX_SUPPLY / 10 ** 36) {
+        if (credit >= MAX_SUPPLY / 10 ** 45) {
             return MAX_SUPPLY;
         }
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
