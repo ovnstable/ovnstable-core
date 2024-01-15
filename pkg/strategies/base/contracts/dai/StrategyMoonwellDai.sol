@@ -178,6 +178,15 @@ contract StrategyMoonwellDai is Strategy {
             dai.transfer(_to, totalDai);
         }
 
+
+        // Transfer rewards USDC to treasure
+        IERC20 usdc = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+        uint256 usdcBalance = usdc.balanceOf(address(this));
+        if(usdcBalance > 0){
+            usdc.transfer(0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46, usdcBalance);
+        }
+
+
         return totalDai;
     }
 
