@@ -4,9 +4,9 @@ const { getContract, getWalletAddress, getChainId, sleep } = require("./script-u
 const INCH_ROUTER_V5 = require("@overnight-contracts/core/test/abi/InchRouterV5.json");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
-async function inchSwapperUpdatePath(token0, token1, amountToken0) {
+async function inchSwapperUpdatePath(token0, token1, amountToken0, stand = process.env.STAND) {
 
-    let inchSwapper = await getContract('InchSwapper');
+    let inchSwapper = await getContract('InchSwapper', stand);
 
     let inchDataForSwapResponse0 = await getDataForSwap(
         await getChainId(),

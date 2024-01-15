@@ -13,7 +13,7 @@ const HedgeExchangerABI = require("./abi/HedgeExchanger.json");
 const InchSwapperABI = require("./abi/InchSwapper.json");
 const StakerABI = require("./abi/Staker.json");
 const { Roles } = require("./roles");
-const { ARBITRUM, OPTIMISM, BSC, getAsset} = require("./assets");
+const { ARBITRUM, OPTIMISM, BSC, getAsset, BASE} = require("./assets");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getDataForSwap } = require('./inch-helpers');
 
@@ -248,6 +248,8 @@ async function getTestAssets(to) {
         await transferAsset(BSC.usdt, to);
     } else if (stand === "arbitrum_usdt") {
         await transferAsset(ARBITRUM.usdt, to);
+    } else if (stand === "base_dai"){
+        await transferAsset(BASE.dai, to);
     } else {
         await transferAsset(getAsset('usdc'), to);
     }

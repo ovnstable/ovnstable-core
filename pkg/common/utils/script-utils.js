@@ -606,6 +606,20 @@ async function impersonateAccount(address) {
     return await hre.ethers.getSigner(address);
 }
 
+
+async function grantRoleInRoleManager(role, to){
+
+    if (!to){
+        to = await getWalletAddress();
+    }
+
+    await execTimelock(async (timelock)=>{
+        let roleManager = await getContract('RoleManager');
+        console.log(`[Scripts] GrantRole: ${role} to ${to} on RoleManager`);
+        await roleManager.connect(timelock).grantRole(role, to);
+    })
+}
+
 async function execTimelock(exec) {
 
 
@@ -1196,4 +1210,5 @@ module.exports = {
     showPoolOperationsFromPayout: showPoolOperationsFromPayout,
     showPayoutEvent: showPayoutEvent,
     showProfitOnRewardWallet: showProfitOnRewardWallet,
+    grantRoleInRoleManager: grantRoleInRoleManager,
 }
