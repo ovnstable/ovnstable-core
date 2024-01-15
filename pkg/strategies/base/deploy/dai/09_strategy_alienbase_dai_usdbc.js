@@ -9,7 +9,7 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('AlienBase DAI/USDbC', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
@@ -30,6 +30,7 @@ async function getParams() {
         pid: 12,
         uniswapV3Router: BASE.uniswapV3Router,
         poolFee: 100, // 0.01%
+        inchSwapper: BASE.inchSwapper,
     }
 
 }

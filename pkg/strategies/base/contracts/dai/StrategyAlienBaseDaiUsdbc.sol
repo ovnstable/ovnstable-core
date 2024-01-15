@@ -6,6 +6,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AlienBase.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 
 contract StrategyAlienBaseDaiUsdbc is Strategy {
 
@@ -25,6 +26,7 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
         uint256 pid;
         address uniswapV3Router;
         uint24 poolFee;
+        address inchSwapper;
     }
 
     // --- params
@@ -48,6 +50,8 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
 
     uint256 public daiDm;
     uint256 public usdbcDm;
+
+    IInchSwapper public inchSwapper;
 
     // --- events
 
@@ -86,6 +90,7 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
         daiDm = 10 ** IERC20Metadata(params.dai).decimals();
         usdbcDm = 10 ** IERC20Metadata(params.usdbc).decimals();
 
+        inchSwapper = IInchSwapper(params.inchSwapper);
         emit StrategyUpdatedParams();
     }
 
@@ -106,15 +111,9 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
         uint256 amountLpMin = OvnMath.subBasisPoints((totalLpBalance * daiBalance) / (reserveDai + reserveUsdbc * daiDm / usdbcDm), stakeSlippageBP);
 
         // swap
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(dai),
-            address(usdbc),
-            poolFee,
-            address(this),
-            amountDaiToSwap,
-            amountUsdbcMin
-        );
+
+        dai.approve(address(inchSwapper), amountDaiToSwap);
+        inchSwapper.swap(address(this), address(dai), address(usdbc), amountDaiToSwap, amountUsdbcMin);
 
         // count amounts
         daiBalance = dai.balanceOf(address(this));
@@ -175,15 +174,9 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
         // swap
         uint256 usdbcBalance = usdbc.balanceOf(address(this));
         uint256 amountDaiMin = OvnMath.subBasisPoints(_oracleUsdbcToDai(usdbcBalance), swapSlippageBP);
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(usdbc),
-            address(dai),
-            poolFee,
-            address(this),
-            usdbcBalance,
-            amountDaiMin
-        );
+
+        usdbc.approve(address(inchSwapper), usdbcBalance);
+        inchSwapper.swap(address(this), address(usdbc), address(dai), usdbcBalance, amountDaiMin);
 
         return dai.balanceOf(address(this));
     }
@@ -222,15 +215,9 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
         // swap
         uint256 usdbcBalance = usdbc.balanceOf(address(this));
         uint256 amountDaiMin = OvnMath.subBasisPoints(_oracleUsdbcToDai(usdbcBalance), swapSlippageBP);
-        UniswapV3Library.singleSwap(
-            uniswapV3Router,
-            address(usdbc),
-            address(dai),
-            poolFee,
-            address(this),
-            usdbcBalance,
-            amountDaiMin
-        );
+
+        usdbc.approve(address(inchSwapper), usdbcBalance);
+        inchSwapper.swap(address(this), address(usdbc), address(dai), usdbcBalance, amountDaiMin);
 
         return dai.balanceOf(address(this));
     }
@@ -273,37 +260,15 @@ contract StrategyAlienBaseDaiUsdbc is Strategy {
             masterChef.deposit(pid, 0);
         }
 
-        // sell rewards
-        uint256 totalDai;
-
         uint256 albBalance = alb.balanceOf(address(this));
-        if (albBalance > 0) {
-            uint256 usdbcAlbAmount = AlienBaseLibrary.getAmountOut(
-                address(alienBaseRouter),
-                address(alb),
-                address(weth),
-                address(usdbc),
-                albBalance
-            );
-            if (usdbcAlbAmount > 0) {
-                totalDai += AlienBaseLibrary.multiSwap(
-                    address(alienBaseRouter),
-                    address(alb),
-                    address(weth),
-                    address(usdbc),
-                    address(dai),
-                    albBalance,
-                    usdbcAlbAmount * 1e12 * 99 / 100,
-                    address(this)
-                );
-            }
+
+        // Problem with sell rewards on AlienBase.
+        // We will make it manually and return to pm.
+        if(albBalance > 0){
+            alb.transfer(0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD, albBalance);
         }
 
-        if (totalDai > 0) {
-            dai.transfer(_to, totalDai);
-        }
-
-        return totalDai;
+        return 0;
     }
 
     function _oracleUsdbcToDai(uint256 usdbcAmount) internal view returns (uint256) {
