@@ -38,6 +38,10 @@ module.exports = async () => {
     await (await exchange.setPayoutManager(payoutManager.address)).wait();
     console.log('exchange.setPayoutManager done');
 
+    console.log(`exchange.setProfitRecipient: ${COMMON.rewardWallet}`);
+    await (await exchange.setProfitRecipient(COMMON.rewardWallet)).wait();
+    console.log('exchange.setProfitRecipient done');
+
 };
 
 module.exports.tags = ['setting', 'SettingExchange'];
