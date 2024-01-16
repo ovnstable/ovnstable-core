@@ -26,6 +26,9 @@ describe("BASE", function () {
         case 'base_dai':
             strategyTest(params, 'BASE', 'dai', runStrategyLogic);
             break;
+        case 'base_usdc':
+            strategyTest(params, 'BASE', 'usdc', runStrategyLogic);
+            break;
         default:
             strategyTest(params, 'BASE', 'usdbc', runStrategyLogic);
             break;
