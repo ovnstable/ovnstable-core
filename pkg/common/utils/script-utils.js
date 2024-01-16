@@ -132,7 +132,11 @@ async function settingSection(id, exec) {
                 console.log(`SetDepositor fail: ${e}`);
             }
 
-            await addStrategyToApi(strategy, id);
+            try {
+                await addStrategyToApi(strategy, id);
+            } catch (e) {
+                console.log(`Add strategy to API error: ${e}`);
+            }
             console.log(`[${strategyName}] setting done`)
         } catch (e) {
             console.error(`[${strategyName}] setting fail: ` + e);
