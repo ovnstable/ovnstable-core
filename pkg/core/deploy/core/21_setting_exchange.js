@@ -26,8 +26,10 @@ module.exports = async () => {
         asset = BSC.usdt;
     } else if (hre.network.name === "arbitrum_usdt") {
         asset = ARBITRUM.usdt;
-    } else if(hre.network.name === "linea_usdt"){
+    } else if (hre.network.name === "linea_usdt") {
         asset = LINEA.usdt;
+    } else if (hre.network.name === "base_usdc") {
+        asset = BASE.usdc;
     } else {
         asset = getAsset('usdc');
     }

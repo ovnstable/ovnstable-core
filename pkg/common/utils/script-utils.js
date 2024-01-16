@@ -394,6 +394,8 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'arbitrum_eth') {
         return await getERC20('weth');
 
+    } else if (stand === 'base_usdc') {
+        return await getERC20('usdc');
     } else {
         return await getERC20('usdc');
     }

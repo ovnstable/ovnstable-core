@@ -28,6 +28,8 @@ module.exports = async () => {
         asset = BASE.dai;
     } else if(hre.network.name === "linea_usdt"){
         asset = LINEA.usdt;
+    } else if (hre.network.name === "base_usdc") {
+        asset = BASE.usdc;
     } else {
         asset = getAsset('usdc');
     }
@@ -41,8 +43,7 @@ module.exports = async () => {
     await (await pm.setAsset(asset)).wait();
     console.log("pm.setAsset done");
 
-    tx = await exchange.setRoleManager(roleManager.address);
-    await tx.wait();
+    await (await exchange.setRoleManager(roleManager.address)).wait();
     console.log("exchange.setRoleManager done");
 
 };

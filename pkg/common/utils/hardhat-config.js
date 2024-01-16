@@ -72,6 +72,14 @@ function getNetworks() {
             zksync: false,
         },
 
+        base_usdc: {
+            url: node_url('base'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: "auto",
+            zksync: false,
+        },
+
         linea_usdt: {
             url: node_url('linea'),
             accounts: accountsNetwork,
