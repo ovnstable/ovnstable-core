@@ -11,8 +11,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const usdPlus = await ethers.getContract("UsdPlusToken", wallet);
     const exchange = await ethers.getContract("Exchange", wallet);
-    const payoutManager = await ethers.getContract("PayoutManager", wallet);
-    const roleManager = await ethers.getContract("RoleManager", wallet);
+    const roleManager = await getContract("RoleManager");
+    const payoutManager = await getContract("PayoutManager");
 
     console.log('usdPlus.setExchanger: ' + exchange.address)
     await (await usdPlus.setExchanger(exchange.address)).wait();
