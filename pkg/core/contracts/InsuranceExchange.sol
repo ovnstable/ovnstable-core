@@ -316,11 +316,16 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
-        uint256 apprAmountOut = address(inputAsset) == address(asset) ?
-            assetOracle.convert(address(outputAsset), address(asset), amountIn) :
-            assetOracle.convert(address(asset), address(outputAsset), amountIn);
-        apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-        require(amountOut > apprAmountOut, 'Large swap slippage');
+
+        uint256 outAmountMin;
+        if(address(inputAsset) == address(asset)){
+            outAmountMin = assetOracle.convert(address(outputAsset), address(asset), amountIn);
+        }else {
+            outAmountMin = assetOracle.convert(address(asset), address(outputAsset), amountIn);
+        }
+
+        outAmountMin = outAmountMin * (10000 - swapSlippage) / 10000;
+        require(amountOut > outAmountMin, 'Large swap slippage');
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
