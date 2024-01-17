@@ -11,28 +11,26 @@ import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IInsuranceExchange.sol";
-import "./interfaces/IVelodromeTwap.sol";
-
-import "./interfaces/IRebaseToken.sol";
+import "./interfaces/IAssetOracle.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IRebaseToken.sol";
+
 
 contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using WadRayMath for uint256;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
-    bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant INSURED_ROLE = keccak256("INSURED_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
+
+    uint256 public constant DM = 1e5;
 
     IERC20 public asset; // OVN address
     IRebaseToken public rebase;
     address public odosRouter;
 
     uint256 public mintFee;
-    uint256 public mintFeeDenominator;
-
     uint256 public redeemFee;
-    uint256 public redeemFeeDenominator;
 
     uint256 public lastBlockNumber;
     uint256 public swapSlippage;
@@ -44,23 +42,28 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     mapping(address => uint256) public withdrawRequests;
     uint256 public requestWaitPeriod;
     uint256 public withdrawPeriod;
+
+    IAssetOracle public assetOracle;
     IRoleManager public roleManager;
 
     struct SetUpParams {
         address asset;
         address rebase;
         address odosRouter;
+        address assetOracle;
+        address roleManager;
     }
 
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
-    event RoleManagerUpdated(address roleManager);
     event MintBurn(string label, uint256 amount, uint256 fee, address sender);
     event NextPayoutTime(uint256 nextPayoutTime);
 
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() initializer public  {
         __AccessControl_init();
@@ -70,13 +73,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         mintFee = 0;
-        mintFeeDenominator = 100000;
-
         redeemFee = 0;
-        redeemFeeDenominator = 100000;
 
-        // 1637193600 = 2021-11-18T00:00:00Z
-        nextPayoutTime = 1637193600;
+        lastBlockNumber = block.number;
+
+        nextPayoutTime = block.timestamp;
         payoutPeriod = 24 * 60 * 60;
         payoutTimeRange = 8 * 60 * 60; // 8 hours
 
@@ -87,6 +88,8 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         withdrawPeriod = 345600;
 
         swapSlippage = 500; // 5%
+
+        _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
     }
 
 
@@ -111,16 +114,13 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         _;
     }
 
-
     modifier onlyUnit(){
         require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
     modifier oncePerBlock() {
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            require(lastBlockNumber < block.number, "Only once in block");
-        }
+        require(lastBlockNumber < block.number, "Only once in block");
         lastBlockNumber = block.number;
         _;
     }
@@ -129,7 +129,15 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         asset = IERC20(params.asset);
         rebase = IRebaseToken(params.rebase);
         odosRouter = params.odosRouter;
+        assetOracle = IAssetOracle(params.assetOracle);
+        roleManager = IRoleManager(params.roleManager);
     }
+
+    function setAssetOracle(address _assetOracle) external onlyAdmin {
+        require(_assetOracle != address(0), "Zero assetOracle not allowed");
+        assetOracle = IAssetOracle(_assetOracle);
+    }
+
 
     function setPayoutTimes(
         uint256 _nextPayoutTime,
@@ -144,27 +152,17 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         payoutTimeRange = _payoutTimeRange;
     }
 
-    function setMintFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
-        require(_feeDenominator != 0, "Zero denominator not allowed");
+    function setMintFee(uint256 _fee) external onlyPortfolioAgent {
         mintFee = _fee;
-        mintFeeDenominator = _feeDenominator;
     }
 
-    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
-        require(_feeDenominator != 0, "Zero denominator not allowed");
+    function setRedeemFee(uint256 _fee) external onlyPortfolioAgent {
         redeemFee = _fee;
-        redeemFeeDenominator = _feeDenominator;
     }
 
     function setWithdrawPeriod(uint256 _requestWaitPeriod, uint256 _withdrawPeriod) external onlyPortfolioAgent {
         requestWaitPeriod = _requestWaitPeriod;
         withdrawPeriod = _withdrawPeriod;
-    }
-
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
-        roleManager = IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
     }
 
     function setSwapSlippage(uint256 _swapSlippage) external onlyPortfolioAgent {
@@ -196,16 +194,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function _takeFee(uint256 _amount, bool isMint) internal view returns (uint256, uint256){
 
         uint256 fee = isMint ? mintFee : redeemFee;
-        uint256 feeDenominator = isMint ? mintFeeDenominator : redeemFeeDenominator;
 
-        uint256 feeAmount;
-        uint256 resultAmount;
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            feeAmount = (_amount * fee) / feeDenominator;
-            resultAmount = _amount - feeAmount;
-        } else {
-            resultAmount = _amount;
-        }
+        uint256 feeAmount = (_amount * fee) / DM;
+        uint256 resultAmount = _amount - feeAmount;
 
         return (resultAmount, feeAmount);
     }
@@ -325,21 +316,11 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
-        uint256 price = getTwapPrice(); // 1 ovn = price usd+
-        // price = price * getPlusTwapPrice(address(usdAsset)) / 1e6;
-
-        if (address(inputAsset) == address(asset)) {
-            // ovn --> usdc
-            uint256 apprAmountOut = amountIn * price / ovnDecimals;
-            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Large swap slippage (ovn --> usdc)');
-
-        } else {
-            // usdc --> ovn
-            uint256 apprAmountOut = amountIn * ovnDecimals / price;
-            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-            require(amountOut > apprAmountOut, 'Large swap slippage (usdc --> ovn)');
-        }
+        uint256 apprAmountOut = address(inputAsset) == address(asset) ?
+            assetOracle.convert(address(outputAsset), address(asset), amountIn) :
+            assetOracle.convert(address(asset), address(outputAsset), amountIn);
+        apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+        require(amountOut > apprAmountOut, 'Large swap slippage');
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
@@ -364,23 +345,5 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         }
         emit NextPayoutTime(nextPayoutTime);
     }
-
-    function getTwapPrice() public view returns (uint256) {
-        address poolAddress = 0x844D7d2fCa6786Be7De6721AabdfF6957ACE73a0;
-        IVelodromeTwap velodromeTwap = IVelodromeTwap(poolAddress);
-
-        uint256 lastIndex = velodromeTwap.observationLength() - 1;
-        uint256 firstIndex = lastIndex - 1;
-
-        IVelodromeTwap.Observation memory lastObservation = velodromeTwap.observations(lastIndex);
-        IVelodromeTwap.Observation memory firstObservation = velodromeTwap.observations(firstIndex);
-
-        uint256 timeElapsed = lastObservation.timestamp - firstObservation.timestamp;
-        uint256 reserve0 = (lastObservation.reserve0Cumulative - firstObservation.reserve0Cumulative) / timeElapsed;
-        uint256 reserve1 = (lastObservation.reserve1Cumulative - firstObservation.reserve1Cumulative) / timeElapsed;
-        uint256 ovnPrice = reserve1 * 10**IERC20Metadata(address(asset)).decimals() / reserve0; // 1 ovn = ovnPrice usd+
-        return ovnPrice;
-    }
-
 
 }
