@@ -527,6 +527,7 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
 async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
+    console.log(`SetUp: Network: ${network}; AssetName: ${assetName}`)
     await hre.run("compile");
     await resetHardhat(network);
 
@@ -547,6 +548,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
 
     if (strategyParams.isRunStrategyLogic) {
+        console.log(`RunStrategyLogic: ${strategyName}`)
         await runStrategyLogic(strategyName, strategy.address);
     }
 
