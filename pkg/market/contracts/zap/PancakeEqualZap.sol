@@ -50,7 +50,6 @@ contract PancakeEqualZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (pancakeEqualData.amountsOut[i] > 0) {
-                console.log("%s ", tokensOut[i]);
                 asset.transferFrom(msg.sender, address(this), pancakeEqualData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
