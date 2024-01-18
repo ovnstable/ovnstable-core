@@ -160,6 +160,22 @@ let zaps = [
         token0Out: 'usdcCircle',
         token1Out: 'usdPlus',
     },
+    {
+        name: 'PancakeEqualZap',
+        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+        token0In: 'usdc',
+        token1In: 'usdPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdt',
+    },
+    {
+        name: 'Pancake8020Zap',
+        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+        token0In: 'usdc',
+        token1In: 'usdPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdt',
+    },
 ];
 
 
