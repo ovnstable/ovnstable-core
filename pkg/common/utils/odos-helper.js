@@ -1,6 +1,7 @@
 const axios = require("axios");
 const BigNumber = require('bignumber.js');
 const {ethers} = require("hardhat");
+const {getChainId} = require("./script-utils");
 
 async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
 
@@ -50,7 +51,7 @@ async function getOdosRequest(request) {
     }
 
     let swapParams = {
-        "chainId": 10, //await getChainId(),
+        "chainId": await getChainId(),
         "gasPrice": 20,
         "inputTokens": [request.inputTokens],
         "outputTokens": [request.outputTokens],

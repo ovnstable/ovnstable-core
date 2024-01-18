@@ -42,9 +42,6 @@ async function main() {
         await transferETH(1, await getWalletAddress());
     }
 
-   // await execTimelock(async (timelock)=>{
-   //     await exchange.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-   // })
 
     await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
@@ -91,7 +88,7 @@ async function main() {
 function getTypePayout() {
     let stand = process.env.STAND;
 
-    if (stand === "optimism") {
+    if (stand === "optimism" || stand === 'arbitrum') {
         return TypePayout.INSURANCE;
     }
 

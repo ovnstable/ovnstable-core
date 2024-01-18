@@ -1,6 +1,7 @@
 const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 module.exports = async ({deployments, getNamedAccounts}) => {
     const {save} = deployments;
@@ -10,8 +11,9 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     console.log('Deployer: ' + deployer)
 
     await deployProxy('InsuranceExchange', deployments, save);
-    await deployProxyMulti('RebaseToken', 'RebaseToken', deployments, save, {});
-    await deployProxyMulti('AssetToken', 'RebaseToken', deployments, save, {});
+
+    await deployProxyMulti('RebaseToken', 'RebaseToken', deployments, save,  {args: ["Insurance", "Insurance", 18]});
+    await deployProxyMulti('AssetToken', 'RebaseToken', deployments, save,  {args: ["MockUSDC", "MockUSDC", 6]});
 
     await deploy('MockPortfolioManager', {
         from: deployer,
@@ -24,25 +26,26 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     let insurance = await ethers.getContract('InsuranceExchange');
     let pm = await ethers.getContract('MockPortfolioManager');
 
-
     await asset.setExchanger(deployer);
-    await asset.setName('MockUSDC', 'MockUSDC');
-
     await rebase.setExchanger(insurance.address);
-    await rebase.setName('Insurance', 'INSR');
 
 
     let params = {
         asset: asset.address,
         rebase: rebase.address,
-        odosRouter: OPTIMISM.odosRouterV2
+        odosRouter: OPTIMISM.odosRouterV2,
+        assetOracle: ZERO_ADDRESS,
+        roleManager: insurance.address,
     }
 
 
+    console.log(`SetUpParams: ${JSON.stringify(params)}`)
     await insurance.setUpParams(params);
     await insurance.grantRole(await insurance.PORTFOLIO_AGENT_ROLE(), deployer);
 
     await pm.setAsset(asset.address);
+
+    console.log('MockInsurance done()');
 };
 
 module.exports.tags = ['MockInsurance'];

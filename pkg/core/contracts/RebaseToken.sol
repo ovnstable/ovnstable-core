@@ -104,6 +104,9 @@ contract RebaseToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IE
 
 
     // ---  logic
+    function setDecimals(uint8 decimals) external onlyAdmin {
+        _decimals = decimals;
+    }
 
 
     function mint(address _sender, uint256 _amount) external onlyExchanger {
