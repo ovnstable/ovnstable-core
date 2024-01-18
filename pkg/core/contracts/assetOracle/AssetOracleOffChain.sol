@@ -25,6 +25,11 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
     uint256 public assetDm;
     uint256 public underlyingAssetDm;
 
+    uint256 public duration;
+    uint256 public lastTimeUpdatedPrice;
+
+    event UpdatePriceAssetUsd(uint256 price, uint256 lastTimeUpdatedPrice);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()  {
         _disableInitializers();
@@ -35,6 +40,8 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        duration = 24 * 60 * 60;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -62,6 +69,10 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
         uint256 maxPriceUsd;
     }
 
+    function setDuration(uint256 _duration) external onlyAdmin{
+        duration = _duration;
+    }
+
     function setParams(SetUpParams memory params) external onlyAdmin {
         asset = params.asset;
         underlyingAsset = params.underlyingAsset;
@@ -72,8 +83,9 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
         minPriceUsd = params.minPriceUsd;
         maxPriceUsd = params.maxPriceUsd;
 
-        assetDm = 10**IERC20Metadata(params.asset).decimals();
-        underlyingAssetDm = 10**IERC20Metadata(params.underlyingAsset).decimals();
+        assetDm = 10 ** IERC20Metadata(params.asset).decimals();
+        underlyingAssetDm = 10 ** IERC20Metadata(params.underlyingAsset).decimals();
+
     }
 
     function updatePriceAssetUsd(uint256 priceUsd) external onlyUnit {
@@ -81,18 +93,22 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
         require(priceUsd < maxPriceUsd, 'maxPriceUsd');
 
         priceAssetUsd = priceUsd;
+        lastTimeUpdatedPrice = block.timestamp;
+
+        emit UpdatePriceAssetUsd(priceUsd, lastTimeUpdatedPrice);
     }
 
     function convert(address assetIn, address assetOut, uint256 amountIn) external view returns (uint256 amountOut){
         require(assetIn == asset || assetIn == underlyingAsset, 'assetIn not acceptable');
         require(assetOut == asset || assetOut == underlyingAsset, 'assetOut not acceptable');
+        require(lastTimeUpdatedPrice + duration >= block.timestamp, 'price is old');
 
         uint256 priceUnderlyingUsd = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
 
-        if(assetIn == asset){
-            return ChainlinkLibrary.convertTokenToToken(amountIn, assetDm, underlyingAssetDm, priceAssetUsd, priceUnderlyingUsd);
-        }else{
-            return ChainlinkLibrary.convertTokenToToken(amountIn, underlyingAssetDm, assetDm, priceUnderlyingUsd, priceAssetUsd);
+        if (assetIn == asset) {
+            return (amountIn * priceAssetUsd) / (priceUnderlyingUsd * assetDm) / underlyingAssetDm;
+        } else {
+            return (amountIn * priceUnderlyingUsd * assetDm * underlyingAssetDm) / priceAssetUsd;
         }
     }
 
