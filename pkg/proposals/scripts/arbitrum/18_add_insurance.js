@@ -21,8 +21,8 @@ async function main() {
     values.push(0);
     abis.push(exchange.interface.encodeFunctionData('setInsurance', [insurance.address]));
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 }
 
 main()
