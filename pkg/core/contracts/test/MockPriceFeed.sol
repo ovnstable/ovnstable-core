@@ -7,9 +7,14 @@ contract MockPriceFeed is IPriceFeed {
 
 
     int256 public price;
+    uint8 public decimalsValue = 8;
 
     function setPrice(int256 _price) public {
         price = _price;
+    }
+
+    function setDecimals(uint8 decimals) public {
+        decimalsValue = decimals;
     }
 
     function latestAnswer() external view returns (int256){
@@ -33,7 +38,7 @@ contract MockPriceFeed is IPriceFeed {
     }
 
     function decimals() external view returns (uint8){
-        return 0;
+        return decimalsValue;
     }
 
     function description() external view returns (string memory){

@@ -14,6 +14,7 @@ import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IAssetOracle.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IRebaseToken.sol";
+import "./interfaces/IBlockGetter.sol";
 
 
 contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
@@ -45,6 +46,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
     IAssetOracle public assetOracle;
     IRoleManager public roleManager;
+    address public blockGetter;
 
     struct SetUpParams {
         address asset;
@@ -57,6 +59,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     event PayoutEvent(int256 profit, uint256 newLiquidityIndex);
     event MintBurn(string label, uint256 amount, uint256 fee, address sender);
     event NextPayoutTime(uint256 nextPayoutTime);
+    event BlockGetterUpdated(address blockGetter);
 
     // ---  constructor
 
@@ -120,8 +123,16 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     }
 
     modifier oncePerBlock() {
-        require(lastBlockNumber < block.number, "Only once in block");
-        lastBlockNumber = block.number;
+
+        uint256 blockNumber;
+        if (blockGetter != address(0)) {
+            blockNumber = IBlockGetter(blockGetter).getNumber();
+        } else {
+            blockNumber = block.number;
+        }
+
+        require(lastBlockNumber < blockNumber, "Only once in block");
+        lastBlockNumber = blockNumber;
         _;
     }
 
@@ -131,6 +142,12 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         odosRouter = params.odosRouter;
         assetOracle = IAssetOracle(params.assetOracle);
         roleManager = IRoleManager(params.roleManager);
+    }
+
+    function setBlockGetter(address _blockGetter) external onlyAdmin {
+        // blockGetter can be empty
+        blockGetter = _blockGetter;
+        emit BlockGetterUpdated(_blockGetter);
     }
 
     function setAssetOracle(address _assetOracle) external onlyAdmin {
@@ -313,18 +330,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
         uint256 amountIn = balanceInBefore - balanceInAfter;
         uint256 amountOut = balanceOutAfter - balanceOutBefore;
 
-        uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
-        uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
-
-
-        uint256 outAmountMin;
-        if(address(inputAsset) == address(asset)){
-            outAmountMin = assetOracle.convert(address(outputAsset), address(asset), amountIn);
-        }else {
-            outAmountMin = assetOracle.convert(address(asset), address(outputAsset), amountIn);
-        }
-
+        uint256 outAmountMin = assetOracle.convert(address(inputAsset), address(outputAsset), amountIn);
         outAmountMin = outAmountMin * (10000 - swapSlippage) / 10000;
+
         require(amountOut > outAmountMin, 'Large swap slippage');
     }
 

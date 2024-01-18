@@ -143,12 +143,16 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
      */
 
     function setUnderlyingItem(UnderlyingItem memory item) external onlyAdmin {
+        require(item.assetAddress != address(0), 'assetAddress is zero');
+        require(item.oracle != address(0), 'oracle is zero');
+
         item.dm = 10 ** IERC20Metadata(item.assetAddress).decimals();
         underlyingItems[item.assetAddress] = item;
     }
 
     /**
      * @dev Updates the USD price of the asset.
+     * Decimals in 1e8
      * @param priceUsd New USD price of Asset.
      */
     function updatePriceAssetUsd(uint256 priceUsd) external onlyUnit {
@@ -171,7 +175,6 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
     function convert(address assetIn, address assetOut, uint256 amountIn) external view returns (uint256 amountOut) {
         require(lastTimeUpdatedPrice + duration >= block.timestamp, 'price is old');
 
-
         UnderlyingItem memory item;
         if (assetIn == asset) {
             item = underlyingItems[assetOut];
@@ -182,16 +185,16 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
         }
 
         if (item.dm == 0) {
-            revert('assetIn/assetOut not acceptable');
+            revert('item is empty');
         }
 
         uint256 underlyingAssetDm = item.dm;
         uint256 priceUnderlyingUsd = ChainlinkLibrary.getPrice(IPriceFeed(item.oracle));
 
         if (assetIn == asset) {
-            return (amountIn * priceAssetUsd) / (priceUnderlyingUsd * assetDm) / underlyingAssetDm;
+            return ChainlinkLibrary.convertTokenToToken(amountIn, assetDm, underlyingAssetDm, priceAssetUsd, priceUnderlyingUsd);
         } else {
-            return (amountIn * priceUnderlyingUsd * assetDm * underlyingAssetDm) / priceAssetUsd;
+            return ChainlinkLibrary.convertTokenToToken(amountIn, underlyingAssetDm, assetDm, priceUnderlyingUsd, priceAssetUsd);
         }
 
     }
