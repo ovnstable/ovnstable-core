@@ -22,17 +22,22 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
     // State variables
     address public asset;
     uint256 public priceAssetUsd;
-    IPriceFeed public oracleUnderlyingAsset;
-    address public underlyingAsset;
     IRoleManager public roleManager;
     uint256 public minPriceUsd;
     uint256 public maxPriceUsd;
 
     uint256 public assetDm;
-    uint256 public underlyingAssetDm;
 
     uint256 public duration;
     uint256 public lastTimeUpdatedPrice;
+
+    mapping(address => UnderlyingItem) public underlyingItems;
+
+    struct UnderlyingItem {
+        uint256 dm;
+        address assetAddress;
+        address oracle;
+    }
 
     // Event triggered upon updating the USD price of the asset
     event UpdatePriceAssetUsd(uint256 price, uint256 lastTimeUpdatedPrice);
@@ -86,8 +91,6 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
      * @dev Struct for setting up contract parameters.
      */
     struct SetUpParams {
-        address oracleUnderlyingAsset;
-        address underlyingAsset;
         address roleManager;
         address asset;
         uint256 minPriceUsd;
@@ -108,16 +111,40 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
      */
     function setParams(SetUpParams memory params) external onlyAdmin {
         asset = params.asset;
-        underlyingAsset = params.underlyingAsset;
-
-        oracleUnderlyingAsset = IPriceFeed(params.oracleUnderlyingAsset);
         roleManager = IRoleManager(params.roleManager);
 
         minPriceUsd = params.minPriceUsd;
         maxPriceUsd = params.maxPriceUsd;
 
         assetDm = 10 ** IERC20Metadata(params.asset).decimals();
-        underlyingAssetDm = 10 ** IERC20Metadata(params.underlyingAsset).decimals();
+    }
+
+   /**
+    * @dev Removes an underlying item from the mapping.
+    * @param assetAddress Address of the underlying asset to be removed.
+    * Requirements:
+    * - The caller must have the DEFAULT_ADMIN_ROLE.
+    */
+
+    function removeUnderlyingItem(address assetAddress) external onlyAdmin {
+
+        underlyingItems[assetAddress] = UnderlyingItem({
+            dm: 0,
+            assetAddress: address(0),
+            oracle: address(0)
+        });
+    }
+
+    /**
+     * @dev Sets parameters for an underlying asset.
+     * @param item Struct containing parameters for the underlying asset.
+     * Requirements:
+     * - The caller must have the DEFAULT_ADMIN_ROLE.
+     */
+
+    function setUnderlyingItem(UnderlyingItem memory item) external onlyAdmin {
+        item.dm = 10 ** IERC20Metadata(item.assetAddress).decimals();
+        underlyingItems[item.assetAddress] = item;
     }
 
     /**
@@ -142,17 +169,31 @@ contract AssetOracleOffChain is IAssetOracle, Initializable, AccessControlUpgrad
      * @dev Return Amount of the output asset.
      */
     function convert(address assetIn, address assetOut, uint256 amountIn) external view returns (uint256 amountOut) {
-        require(assetIn == asset || assetIn == underlyingAsset, 'assetIn not acceptable');
-        require(assetOut == asset || assetOut == underlyingAsset, 'assetOut not acceptable');
         require(lastTimeUpdatedPrice + duration >= block.timestamp, 'price is old');
 
-        uint256 priceUnderlyingUsd = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
+
+        UnderlyingItem memory item;
+        if (assetIn == asset) {
+            item = underlyingItems[assetOut];
+        } else if (assetOut == asset) {
+            item = underlyingItems[assetIn];
+        } else {
+            revert('assetIn/assetOut not acceptable');
+        }
+
+        if (item.dm == 0) {
+            revert('assetIn/assetOut not acceptable');
+        }
+
+        uint256 underlyingAssetDm = item.dm;
+        uint256 priceUnderlyingUsd = ChainlinkLibrary.getPrice(IPriceFeed(item.oracle));
 
         if (assetIn == asset) {
             return (amountIn * priceAssetUsd) / (priceUnderlyingUsd * assetDm) / underlyingAssetDm;
         } else {
             return (amountIn * priceUnderlyingUsd * assetDm * underlyingAssetDm) / priceAssetUsd;
         }
+
     }
 
     /**

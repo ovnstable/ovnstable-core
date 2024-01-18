@@ -31,8 +31,6 @@ describe("AssetOracleOffChain", function () {
         underlyingOracle = await ethers.getContract('MockPriceFeed');
 
         let params = {
-            oracleUnderlyingAsset: underlyingOracle.address,
-            underlyingAsset: OPTIMISM.usdc,
             roleManager: oracle.address,
             asset: ovnToken.address,
             minPriceUsd: toE18(0.9),
@@ -42,6 +40,16 @@ describe("AssetOracleOffChain", function () {
 
         await oracle.setParams(params);
         await oracle.grantRole(Roles.UNIT_ROLE, account);
+
+        let item = {
+            assetAddress: OPTIMISM.usdc,
+            oracle: underlyingOracle.address,
+            dm: 0
+        }
+
+        await oracle.setUnderlyingItem(item);
+        await oracle.updatePriceAssetUsd(toE18(1));
+
     });
 
 
@@ -51,8 +59,12 @@ describe("AssetOracleOffChain", function () {
             expect(await oracle.assetDm()).to.eq(toE18(1));
         });
 
-        it('underlyingAssetDm', async function(){
-            expect(await oracle.underlyingAssetDm()).to.eq(toE6(1));
+        it('underlyingItem', async function(){
+
+            let item = await oracle.underlyingItems(OPTIMISM.usdc);
+            expect(item.oracle).to.eq(underlyingOracle.address);
+            expect(item.assetAddress).to.eq(OPTIMISM.usdc);
+            expect(item.dm).to.eq(toE6(1));
         });
     });
 
@@ -122,9 +134,23 @@ describe("AssetOracleOffChain", function () {
             expect(amountOut.toString()).to.eq('1');
         });
 
+
+
+        it('assetIn not acceptable', async function (){
+            await expectRevert(oracle.convert(OPTIMISM.dai, ovnToken.address, toE18(10)), 'assetIn/assetOut not acceptable');
+        });
+
+        it('assetOut not acceptable', async function (){
+            await expectRevert(oracle.convert(OPTIMISM.usdc, OPTIMISM.dai, toE18(10)), 'assetIn/assetOut not acceptable');
+        });
+
+        it('convertDuration: not support', async function (){
+            await expectRevert(oracle.convertDuration(OPTIMISM.usdc, ovnToken.address, toE18(10), 10), 'not support');
+        });
+
         it('revert: price is old', async function (){
 
-            await ethers.provider.send("evm_increaseTime", [24 * 60 * 60]);
+            await ethers.provider.send("evm_increaseTime", [25 * 60 * 60]);
             await ethers.provider.send('evm_mine');
 
             await expectRevert(oracle.convert(OPTIMISM.usdc, ovnToken.address, toE6(10)), 'price is old');
@@ -134,19 +160,6 @@ describe("AssetOracleOffChain", function () {
             await oracle.convert(OPTIMISM.usdc, ovnToken.address, toE6(10));
 
         });
-
-        it('assetIn not acceptable', async function (){
-            await expectRevert(oracle.convert(OPTIMISM.dai, ovnToken.address, toE18(10)), 'assetIn not acceptable');
-        });
-
-        it('assetOut not acceptable', async function (){
-            await expectRevert(oracle.convert(OPTIMISM.usdc, OPTIMISM.dai, toE18(10)), 'assetOut not acceptable');
-        });
-
-        it('convertDuration: not support', async function (){
-            await expectRevert(oracle.convertDuration(OPTIMISM.usdc, ovnToken.address, toE18(10), 10), 'not support');
-        });
-
     })
 
 
