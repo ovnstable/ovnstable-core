@@ -11,7 +11,7 @@ module.exports = async ({ deployments }) => {
         await deployProxyMulti(name, 'StrategySperInch', deployments, save, null);
     });
 
-    await settingSection('SperBeta', async (strategy) => {
+    await settingSection('SperBetaArb', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
