@@ -18,7 +18,7 @@ module.exports = async ({ deployments }) => {
 
 async function getParams() {
     return {
-        sper: ZERO_ADDRESS,
+        sper: '0xF64d2b156Bc6Dc4a2d1FdD9daE7F7C11E3069Bb9',
         asset: ARBITRUM.usdt,
         underlyingAsset: ARBITRUM.usdc,
         oracleAsset: ARBITRUM.oracleUsdt,
