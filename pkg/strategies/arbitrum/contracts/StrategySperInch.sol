@@ -89,7 +89,7 @@ contract StrategySperInch is Strategy {
         inchSwapper.swap(address(this), address(asset), address(underlyingAsset), _amount, amountOutMin);
         // mint by underlying
         uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
-        underlyingAsset.approve(address(sper), underlyingBalance);
+        underlyingAsset.transfer(address(sper), underlyingBalance);
         sper.stake(address(underlyingAsset), underlyingBalance);
     }
 
