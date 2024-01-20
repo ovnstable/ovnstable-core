@@ -20,7 +20,7 @@ async function getParams() {
     return {
         sper: '0xF64d2b156Bc6Dc4a2d1FdD9daE7F7C11E3069Bb9',
         asset: ARBITRUM.usdt,
-        underlyingAsset: ARBITRUM.usdc,
+        underlyingAsset: ARBITRUM.usdcCircle,
         oracleAsset: ARBITRUM.oracleUsdt,
         oracleUnderlyingAsset: ARBITRUM.oracleUsdc,
         inchSwapper: ARBITRUM.inchSwapper,
