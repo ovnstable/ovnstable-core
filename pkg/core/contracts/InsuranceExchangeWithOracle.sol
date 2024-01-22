@@ -304,14 +304,23 @@ contract InsuranceExchangeWithOracle is IInsuranceExchange, Initializable, Acces
 
     /**
      * @dev This function is calling when USD+ (or other plus) make payout and there are some loss value.
-     * This method should convert some OVN to asset and transfer it to the Exchanger contract.
+     * This method should convert some OVN to outputToken and transfer it to the PortfolioManager contract.
      * @param swapData consist of odos data to make swap
-     * @param assetAmount needed amount of asset to cover the loss
+     * @param outputAmount needed amount of outputToken (USDC|USDT|DAI) to cover the loss
      * @param to recipient of assets
      */
-    function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsured {
+    function compensate(SwapData memory swapData, uint256 outputAmount, address to) external onlyInsured {
+        require(swapData.inputTokenAddress == address(asset), 'asset != swapData.inputToken');
+
+        IERC20 outputToken = IERC20(swapData.outputTokenAddress);
+        uint256 expectedAmountOut = assetOracle.convert(address(asset), address(swapData.outputTokenAddress), swapData.amountIn);
+
         _swap(swapData);
-        IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
+
+        uint256 amountOut = outputToken.balanceOf(address(this));
+        require(amountOut < expectedAmountOut * (10000 + swapSlippage) / 10000, 'swapped too much');
+
+        outputToken.transfer(to, outputAmount);
     }
 
     function _swap(SwapData memory swapData) internal {
