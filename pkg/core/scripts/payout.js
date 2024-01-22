@@ -88,7 +88,7 @@ async function main() {
 function getTypePayout() {
     let stand = process.env.STAND;
 
-    if (stand === "optimism" || stand === 'arbitrum') {
+    if (stand === "optimism" || stand === 'arbitrum' || stand === 'arbitrum_usdt') {
         return TypePayout.INSURANCE;
     }
 
