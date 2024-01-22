@@ -79,8 +79,8 @@ contract Pancake8020Zap is OdosZap {
             dec1 * 1000000
         );
 
-        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96, TickMath.getSqrtRatioAtTick(tick + 4 * tickSpacing), int128(liquidity)));
-        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tick - 1 * tickSpacing), sqrtRatioX96, int128(liquidity)));
+        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96, TickMath.getSqrtRatioAtTick(tick + 2 * tickSpacing), int128(liquidity)));
+        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tick - 2 * tickSpacing), sqrtRatioX96, int128(liquidity)));
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
         token0Amount = amount0 * (denominator / (10 ** dec0));
@@ -113,7 +113,7 @@ contract Pancake8020Zap is OdosZap {
         result.amountAsset1Before = asset1.balanceOf(address(this));
         MintParams memory params = 
             MintParams(tokensOut[0], tokensOut[1], pair.fee(),
-                tick-1*tickSpacing, tick+4*tickSpacing, tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
+                tick-2*tickSpacing, tick+2*tickSpacing, tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
 
         npm.mint(params);
 
