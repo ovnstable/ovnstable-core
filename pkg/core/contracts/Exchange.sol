@@ -24,6 +24,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     uint256 public constant LIQ_DELTA_DM   = 1e6;
     uint256 public constant FISK_FACTOR_DM = 1e5;
 
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
 
     // ---  fields
 
@@ -73,6 +75,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     address public blockGetter;
     IRoleManager public roleManager;
 
+    uint256 private _reentrancyGuardStatus;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
@@ -105,6 +109,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
 
     // ---  modifiers
+
+    modifier nonReentrant() {
+        require(_reentrancyGuardStatus != _ENTERED, "ReentrancyGuard: reentrant call");
+        _reentrancyGuardStatus = _ENTERED;
+        _;
+        _reentrancyGuardStatus = _NOT_ENTERED;
+    }
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -286,12 +297,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // Minting USD+ in exchange for an asset
 
-    function mint(MintParams calldata params) external whenNotPaused returns (uint256) {
+    function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
         return _buy(params.asset, params.amount, params.referral);
     }
 
     // Deprecated method - not recommended for use
-    function buy(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
+    function buy(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
         return _buy(_asset, _amount, "");
     }
 
@@ -336,7 +347,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function redeem(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
+    function redeem(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
         require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
@@ -474,7 +485,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      */
 
 
-    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit returns (int256 swapAmount) {
+    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }
