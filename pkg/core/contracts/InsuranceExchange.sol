@@ -299,9 +299,10 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
      * @param to recipient of assets
      */
     function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsured {
-        uint256 usdPlusBefore = rebase.balanceOf(address(this));
+        IERC20 resultswapToken = IERC20(swapData.outputTokenAddress);
+        uint256 usdPlusBefore = resultswapToken.balanceOf(address(this));
         _swap(swapData);
-        uint256 usdPlusSwapped = rebase.balanceOf(address(this)) - usdPlusBefore;
+        uint256 usdPlusSwapped = resultswapToken.balanceOf(address(this)) - usdPlusBefore;
         require(usdPlusSwapped < assetAmount * (10000 + swapSlippage) / 10000, 'swapped not so much');
         require(usdPlusSwapped >= assetAmount, 'swapped not so little');
         IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
