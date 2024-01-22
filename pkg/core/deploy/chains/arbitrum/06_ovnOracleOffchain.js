@@ -25,20 +25,29 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     await (await oracle.setParams(params)).wait();
     console.log('SetParams done');
 
-    let item = {
+
+    let itemUsdtPlus = {
+        assetAddress: ARBITRUM.usdt,
+        oracle: ARBITRUM.oracleUsdt,
+        dm: 0
+    }
+
+    await (await oracle.setUnderlyingItem(itemUsdtPlus)).wait();
+
+    let itemUsdPlus = {
         assetAddress: ARBITRUM.usdc,
         oracle: ARBITRUM.oracleUsdc,
         dm: 0
     }
 
-    await (await oracle.setUnderlyingItem(item)).wait();
+    await (await oracle.setUnderlyingItem(itemUsdPlus)).wait();
 
-    item = (await oracle.underlyingItems(item.assetAddress));
-    console.log(`DM  ${item.dm.toString()}`);
+    itemUsdPlus = (await oracle.underlyingItems(itemUsdPlus.assetAddress));
+    console.log(`DM  ${itemUsdPlus.dm.toString()}`);
 
     await (await oracle.updatePriceAssetUsd(toE8(17.8))).wait();
 
-    console.log(`Add underlying item: ${JSON.stringify(item)} done`);
+    console.log(`Add underlying item: ${JSON.stringify(itemUsdPlus)} done`);
 };
 
 module.exports.tags = ['OvnOracleOffChain'];
