@@ -507,7 +507,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             loss = totalUsdPlus - totalNav;
             uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
 
-            if(loss <= oracleLossAmount){
+            if(loss <= oracleLossAmount) {
                 revert('OracleLoss');
             }else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
@@ -566,6 +566,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         totalUsdPlus = usdPlus.totalSupply();
         totalNav = _assetToRebase(mark2market.totalNetAssets());
+
+        require(totalNav >= totalUsdPlus, 'negative rebase');
 
         // Calculating how much users profit after excess fee
         uint256 profit = totalNav - totalUsdPlus;

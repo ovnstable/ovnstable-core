@@ -720,6 +720,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
+        require(_newTotalSupply >= _totalSupply, 'negative rebase');
 
         if (_totalSupply == _newTotalSupply) {
             emit TotalSupplyUpdatedHighres(
