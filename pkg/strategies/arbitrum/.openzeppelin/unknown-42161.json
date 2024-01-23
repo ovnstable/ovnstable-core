@@ -345,6 +345,11 @@
       "address": "0x135478A4729901651f106fD0Dc112b0FBdD670cf",
       "txHash": "0x4c82f9458d4bcef8ffdbede24e39388409adf398b67a96e1e7572d2bd18cbdca",
       "kind": "uups"
+    },
+    {
+      "address": "0x5bE626640d8aB1cF2B6421B1A05CbeeF124f6B37",
+      "txHash": "0x9c510d2539ebcb14269fc8aa8efd92dc56d357c63b2c351e79ac9550ba4c90d1",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -38059,7 +38064,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)3587",
+            "type": "t_contract(IRoleManager)27933",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
@@ -38075,7 +38080,7 @@
             "label": "sper",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(ISperStrategy)3654",
+            "type": "t_contract(ISperStrategy)28000",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:15"
           },
@@ -38083,7 +38088,7 @@
             "label": "asset",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:17"
           },
@@ -38091,7 +38096,7 @@
             "label": "underlyingAsset",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IERC20)2662",
+            "type": "t_contract(IERC20)3249",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:18"
           },
@@ -38099,7 +38104,7 @@
             "label": "inchSwapper",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IInchSwapper)3575",
+            "type": "t_contract(IInchSwapper)27845",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:19"
           },
@@ -38107,7 +38112,7 @@
             "label": "oracleAsset",
             "offset": 0,
             "slot": "305",
-            "type": "t_contract(IPriceFeed)2870",
+            "type": "t_contract(IPriceFeed)10217",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:21"
           },
@@ -38115,7 +38120,7 @@
             "label": "oracleUnderlyingAsset",
             "offset": 0,
             "slot": "306",
-            "type": "t_contract(IPriceFeed)2870",
+            "type": "t_contract(IPriceFeed)10217",
             "contract": "StrategySperInch",
             "src": "contracts/StrategySperInch.sol:22"
           },
@@ -38161,23 +38166,23 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)2662": {
+          "t_contract(IERC20)3249": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IInchSwapper)3575": {
+          "t_contract(IInchSwapper)27845": {
             "label": "contract IInchSwapper",
             "numberOfBytes": "20"
           },
-          "t_contract(IPriceFeed)2870": {
+          "t_contract(IPriceFeed)10217": {
             "label": "contract IPriceFeed",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)3587": {
+          "t_contract(IRoleManager)27933": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(ISperStrategy)3654": {
+          "t_contract(ISperStrategy)28000": {
             "label": "contract ISperStrategy",
             "numberOfBytes": "20"
           },
