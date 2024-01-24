@@ -350,6 +350,16 @@
       "address": "0x5bE626640d8aB1cF2B6421B1A05CbeeF124f6B37",
       "txHash": "0x9c510d2539ebcb14269fc8aa8efd92dc56d357c63b2c351e79ac9550ba4c90d1",
       "kind": "uups"
+    },
+    {
+      "address": "0x0f0d417bd98dC246b581d23CAE83584bd4096Cd6",
+      "txHash": "0x5e532c5b817e45097d3716ff2e65db29bf88b08a5256199d9ab2bcf9856e75ef",
+      "kind": "uups"
+    },
+    {
+      "address": "0x95bfd5F980aCc358Ecaafa84Ae61571750F46b1E",
+      "txHash": "0x51c3431772b323e1aca470520d769a4d303f61eeee1c2b694365682da7ecb21b",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -36512,7 +36522,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)27825",
+            "type": "t_contract(IRoleManager)27843",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
@@ -36614,7 +36624,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)27825": {
+          "t_contract(IRoleManager)27843": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
