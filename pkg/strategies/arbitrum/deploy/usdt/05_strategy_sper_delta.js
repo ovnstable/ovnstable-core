@@ -29,4 +29,4 @@ async function getParams() {
 
 module.exports.tags = ['StrategySperDelta'];
 module.exports.getParams = getParams;
-module.exports.strategySperBeta = getParams;
+module.exports.strategySperDelta = getParams;
