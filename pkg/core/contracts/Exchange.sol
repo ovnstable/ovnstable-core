@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -17,13 +18,14 @@ import "./interfaces/IUsdPlusToken.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
-    bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
-    uint256 public constant LIQ_DELTA_DM   = 1000000; // 1e6
-    uint256 public constant FISK_FACTOR_DM = 100000;  // 1e5
+    uint256 public constant LIQ_DELTA_DM   = 1e6;
+    uint256 public constant FISK_FACTOR_DM = 1e5;
 
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
 
     // ---  fields
 
@@ -57,7 +59,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
-    uint256 public abroadMin;
+    uint256 public abroadMin; // deprecated and not used in current version
     uint256 public abroadMax;
 
     address public insurance;
@@ -72,6 +74,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     address public blockGetter;
     IRoleManager public roleManager;
+
+    uint256 private _reentrancyGuardStatus;
 
     // ---  events
 
@@ -99,12 +103,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
     event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
-    event Abroad(uint256 min, uint256 max);
+    event MaxAbroad(uint256 abroad);
     event ProfitRecipientUpdated(address recipient);
     event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
     event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
 
     // ---  modifiers
+
+    modifier nonReentrant() {
+        require(_reentrancyGuardStatus != _ENTERED, "ReentrancyGuard: reentrant call");
+        _reentrancyGuardStatus = _ENTERED;
+        _;
+        _reentrancyGuardStatus = _NOT_ENTERED;
+    }
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -125,7 +136,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize() initializer public {
         __AccessControl_init();
@@ -149,7 +162,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         payoutTimeRange = 24 * 60 * 60; // 24 hours
 
-        abroadMin = 1000100;
         abroadMax = 1000350;
 
         oracleLossDenominator = 100000;
@@ -218,6 +230,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
+        require(_feeDenominator >= _fee, "fee > denominator");
         buyFee = _fee;
         buyFeeDenominator = _feeDenominator;
         emit BuyFeeUpdated(buyFee, buyFeeDenominator);
@@ -225,6 +238,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
         require(_feeDenominator != 0, "Zero denominator not allowed");
+        require(_feeDenominator >= _fee, "fee > denominator");
         redeemFee = _fee;
         redeemFeeDenominator = _feeDenominator;
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
@@ -246,10 +260,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
 
-    function setAbroad(uint256 _min, uint256 _max) external onlyPortfolioAgent {
-        abroadMin = _min;
+    function setMaxAbroad(uint256 _max) external onlyPortfolioAgent {
         abroadMax = _max;
-        emit Abroad(abroadMin, abroadMax);
+        emit MaxAbroad(abroadMax);
     }
 
     function setPayoutTimes(
@@ -284,12 +297,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // Minting USD+ in exchange for an asset
 
-    function mint(MintParams calldata params) external whenNotPaused returns (uint256) {
+    function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
         return _buy(params.asset, params.amount, params.referral);
     }
 
     // Deprecated method - not recommended for use
-    function buy(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
+    function buy(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
         return _buy(_asset, _amount, "");
     }
 
@@ -312,7 +325,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(usdPlusAmount > 0, "Amount of USD+ is zero");
 
         uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
-        usdc.transferFrom(msg.sender, address(portfolioManager), _amount);
+        SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
         require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
 
         portfolioManager.deposit();
@@ -334,7 +347,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function redeem(address _asset, uint256 _amount) external whenNotPaused returns (uint256) {
+    function redeem(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
         require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
@@ -354,7 +367,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         usdPlus.burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
-        usdc.transfer(msg.sender, redeemAmount);
+        SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
 
         emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
 
@@ -397,7 +410,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // Flag isBalanced take about:
         // PortfolioManager run balance function and unstake liquidity from non cash strategies
         // Check is not actual if stake/unstake will be only from cash strategy (for example Aave or Venus)
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender) && isBalanced) {
+        if (isBalanced) {
             require(lastBlockNumber < blockNumber, "Only once in block");
         }
 
@@ -406,17 +419,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function _takeFee(uint256 _amount, bool isBuy) internal view returns (uint256, uint256){
 
-        uint256 fee = isBuy ? buyFee : redeemFee;
-        uint256 feeDenominator = isBuy ? buyFeeDenominator : redeemFeeDenominator;
+        uint256 fee;
+        uint256 feeDenominator;
 
-        uint256 feeAmount;
-        uint256 resultAmount;
-        if (!roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
-            feeAmount = (_amount * fee) / feeDenominator;
-            resultAmount = _amount - feeAmount;
+        if (isBuy) {
+            fee = buyFee;
+            feeDenominator = buyFeeDenominator;
         } else {
-            resultAmount = _amount;
+            fee = redeemFee;
+            feeDenominator = redeemFeeDenominator;
         }
+
+        uint256 feeAmount = (_amount * fee) / feeDenominator;
+        uint256 resultAmount = _amount - feeAmount;
 
         return (resultAmount, feeAmount);
     }
@@ -470,7 +485,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      */
 
 
-    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit returns (int256 swapAmount) {
+    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }
@@ -503,7 +518,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             loss = totalUsdPlus - totalNav;
             uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
 
-            if(loss <= oracleLossAmount){
+            if(loss <= oracleLossAmount) {
                 revert('OracleLoss');
             }else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
@@ -532,9 +547,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             if(premium > 0 && swapData.amountIn != 0) {
                 portfolioManager.withdraw(premium);
-                usdc.transfer(insurance, premium);
+                SafeERC20.safeTransfer(usdc, insurance, premium);
 
-                IInsuranceExchange(insurance).premium(swapData);
+                IInsuranceExchange(insurance).premium(swapData, premium);
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
@@ -563,25 +578,27 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         totalUsdPlus = usdPlus.totalSupply();
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
+        require(totalNav >= totalUsdPlus, 'negative rebase');
+
         // Calculating how much users profit after excess fee
         uint256 profit = totalNav - totalUsdPlus;
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit + excessProfit;
 
         (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus.changeSupply(totalNav);
-        usdPlus.mint(address(payoutManager), nonRebaseDelta);
+
+        // notify listener about payout done
+        if (address(payoutManager) != address(0)) {
+            usdPlus.mint(address(payoutManager), nonRebaseDelta);
+            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
+        }
 
         require(usdPlus.totalSupply() == totalNav,'total != nav');
         require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
 
-        // notify listener about payout done
-        if (address(payoutManager) != address(0)) {
-            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
-        }
-
         emit PayoutEvent(
             profit,
-            0,
+            0, // Maintaining backward compatibility for analytic service. In a new version not used.
             excessProfit,
             premium,
             loss
@@ -600,6 +617,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             nextPayoutTime = nextPayoutTime + payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
+
+        // If this is not a simulation, then we return the value is not used in any way
         return 0;
     }
 }

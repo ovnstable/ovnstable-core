@@ -24,7 +24,7 @@ contract MockInsuranceExchange is IInsuranceExchange {
 
     }
 
-    function premium(SwapData memory swapData) external override {
+    function premium(SwapData memory swapData, uint256 premiumAmount) external override {
 
     }
 

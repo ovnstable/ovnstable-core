@@ -162,16 +162,6 @@ describe("Exchange", function () {
                         expect(9).to.equal(fromRebase(await usdPlus.balanceOf(account)));
                     });
 
-                    it("[FREE_RIDER_ROLE] rebase.mint | fee 10%", async function () {
-                        expect(0).to.equal(fromRebase(await usdPlus.balanceOf(account)));
-
-                        await exchange.setBuyFee(10000, 100000);
-                        await roleManager.grantRole(Roles.FREE_RIDER_ROLE, account);
-
-                        await mint(10);
-                        expect(10).to.equal(fromRebase(await usdPlus.balanceOf(account)));
-                    });
-
 
                     it("event EventExchange", async function () {
 
@@ -224,15 +214,6 @@ describe("Exchange", function () {
                     it("asset.transfer | fee 0", async function () {
                         await mint(100);
                         expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
-                        await redeem(100);
-                        expect(100).to.equal(fromAsset(await asset.balanceOf(account)));
-                    });
-
-                    it("[FREE_RIDER_ROLE] asset.transfer | fee 10%", async function () {
-                        await mint(100);
-                        expect(0).to.equal(fromAsset(await asset.balanceOf(account)));
-                        await exchange.setRedeemFee(10000, 100000);
-                        await roleManager.grantRole(await Roles.FREE_RIDER_ROLE, account);
                         await redeem(100);
                         expect(100).to.equal(fromAsset(await asset.balanceOf(account)));
                     });
@@ -354,7 +335,7 @@ describe("Exchange", function () {
                     await asset.mint(pm.address, toAsset(10));
 
                     await exchange.setProfitRecipient(testAccount.address);
-                    await exchange.setAbroad(0, 5000350);
+                    await exchange.setMaxAbroad(5000350);
 
                     expect(false).to.equal(await payoutManager.payoutDoneCalled());
                     await exchange.payout(false, odosEmptyData);
@@ -367,7 +348,7 @@ describe("Exchange", function () {
                     await asset.mint(pm.address, toAsset(10));
 
                     await exchange.setProfitRecipient(testAccount.address);
-                    await exchange.setAbroad(0, 5000350);
+                    await exchange.setMaxAbroad(5000350);
 
                     await usdPlus.setPayoutManager(account);
                     await usdPlus.rebaseOptOut(account);
@@ -384,7 +365,7 @@ describe("Exchange", function () {
                     await asset.mint(pm.address, toAsset(10));
 
                     await exchange.setProfitRecipient(testAccount.address);
-                    await exchange.setAbroad(0, 5000350);
+                    await exchange.setMaxAbroad(5000350);
 
                     await pm.setTotalRiskFactor(10000); // 10%
 
@@ -410,7 +391,7 @@ describe("Exchange", function () {
 
                     await exchange.setProfitRecipient(testAccount.address);
 
-                    await exchange.setAbroad(0, 1000350);
+                    await exchange.setMaxAbroad(1000350);
                     await pm.setTotalRiskFactor(0); // 0%
 
 
@@ -438,7 +419,7 @@ describe("Exchange", function () {
 
                     await exchange.setProfitRecipient(testAccount.address);
 
-                    await exchange.setAbroad(0, 1000350);
+                    await exchange.setMaxAbroad(1000350);
                     await pm.setTotalRiskFactor(50000); // 50%
 
                     let tx = await (await exchange.payout(false, odosEmptyData)).wait();
@@ -501,23 +482,7 @@ describe("Exchange", function () {
                     await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1))
                 });
 
-                it("buy into redeem&balance should pass with FREE_RIDER_ROLE", async function () {
-                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
-                    await pm.setIsBalanced(true);
-                    await multiCallWrapper.buyRedeem(asset.address, usdPlus.address, toAsset(1), toRebase(1));
-                });
 
-                it("two redeems&balance should pass with FREE_RIDER_ROLE", async function () {
-                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
-                    await pm.setIsBalanced(true);
-                    await multiCallWrapper.redeem2(asset.address, usdPlus.address, toRebase(1), toRebase(1));
-                });
-
-                it("redeem&balance into buy should pass with FREE_RIDER_ROLE", async function () {
-                    await roleManager.grantRole(Roles.FREE_RIDER_ROLE, multiCallWrapper.address);
-                    await pm.setIsBalanced(true);
-                    await multiCallWrapper.redeemBuy(asset.address, usdPlus.address, toRebase(1), toAsset(1));
-                });
             });
 
 

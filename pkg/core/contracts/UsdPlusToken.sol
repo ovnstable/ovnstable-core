@@ -54,7 +54,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private DELETED_1; // not used (liquidityIndex)
     uint256 private DELETED_2; // not used (liquidityIndexDenominator)
 
-    EnumerableSet.AddressSet _owners;
+    EnumerableSet.AddressSet private _owners;
 
     address public exchange;
     uint8 private _decimals;
@@ -92,7 +92,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
 
     function initialize(string calldata name, string calldata symbol, uint8 decimals) initializer public {
@@ -106,7 +108,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _decimals = decimals;
-        _rebasingCreditsPerToken = 10 ** 27;
+        _rebasingCreditsPerToken = WadRayMath.RAY;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -139,24 +141,24 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     modifier notPaused() {
-        require(paused == false, "pause");
+        require(!paused, "pause");
         _;
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
-        require(_exchanger != address(this), 'exchange is zero');
+        require(_exchanger != address(0), 'exchange is zero');
         exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
     }
 
     function setPayoutManager(address _payoutManager) external onlyAdmin {
-        require(_payoutManager != address(this), 'payoutManager is zero');
+        require(_payoutManager != address(0), 'payoutManager is zero');
         payoutManager = _payoutManager;
         emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(this), 'roleManager is zero');
+        require(_roleManager != address(0), 'roleManager is zero');
         roleManager = IRoleManager(_roleManager);
         emit RoleManagerUpdated(_roleManager);
     }
@@ -582,7 +584,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _totalSupply = _totalSupply.add(_amount);
 
-        require(_totalSupply < MAX_SUPPLY, "Max supply");
 
         _afterTokenTransfer(address(0), _account, _amount);
 
@@ -610,10 +611,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function _burn(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Burn from the zero address");
         if (_amount == 0) {
+            emit Transfer(_account, address(0), _amount);
             return;
         }
 
-        _beforeTokenTransfer(address(0), _account, _amount);
+        _beforeTokenTransfer(_account, address(0), _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
         uint256 creditAmount = assetToCredit(_account, _amount);
@@ -628,7 +630,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _totalSupply = _totalSupply.sub(_amount);
 
-        _afterTokenTransfer(address(0), _account, _amount);
+        _afterTokenTransfer(_account, address(0), _amount);
 
         emit Transfer(_account, address(0), _amount);
     }
@@ -674,7 +676,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         // Increase rebasing credits, totalSupply remains unchanged so no
         // adjustment necessary
-        _rebasingCredits = _rebasingCredits.add(_creditBalances[_address]);
+        _rebasingCredits = _rebasingCredits.add(newCreditBalance);
 
         rebaseState[_address] = RebaseOptions.OptIn;
 
@@ -718,6 +720,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (NonRebaseInfo [] memory, uint256)
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
+        require(_newTotalSupply >= _totalSupply, 'negative rebase');
 
         if (_totalSupply == _newTotalSupply) {
             emit TotalSupplyUpdatedHighres(
@@ -793,8 +796,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             // transfer
             if (balanceOf(from) == 0) {
                 _owners.remove(from);
+            } else if (amount > 0) {
+                _owners.add(to);
             }
-            _owners.add(to);
         }
     }
 
