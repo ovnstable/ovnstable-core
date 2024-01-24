@@ -266,6 +266,16 @@ async function prepareEnvironment() {
             let exchange = await getContract('Exchange', process.env.STAND);
             await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
             console.log('[Test] exchange.setBlockGetter(zero)');
+
+
+            try {
+                let inchSwapper = await getContract('InchSwapper', process.env.STAND);
+                let roleManager = await getContract('RoleManager', process.env.STAND);
+                await inchSwapper.connect(timelock).setParams(await getAsset('inchRouterV5'), ZERO_ADDRESS, roleManager.address);
+                console.log('[Test] inchSwapper.setBlockGetter(zero)');
+            } catch (e) {
+                console.log(`Cannot sen blockGetter: ${e}`);
+            }
         });
     }
 

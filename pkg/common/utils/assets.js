@@ -182,6 +182,7 @@ let ARBITRUM = {
     inchRouterV5: "0x1111111254EEB25477B68fb85Ed929f73A960582",
     ramsesRouter: "0xAAA87963EFeB6f7E0a2711F397663105Acb1805e",
     camelotRouter: "0xc873fecbd354f5a56e00e710b90ef4201db2448d",
+    camelotRouterV3: "0x1F721E2E82F6676FCE4eA07A5958cF098D339e18",
     traderJoeRouter: "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30",
     wombatRouter: '0xc4b2f992496376c6127e73f1211450322e580668',
     chronosRouter: "0xe708aa9e887980750c040a6a2cb901c37aa34f3b",
