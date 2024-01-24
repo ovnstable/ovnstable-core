@@ -7,7 +7,6 @@ import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
-import "hardhat/console.sol";
 
 contract StrategySiloUsdtUsdc is Strategy {
 
