@@ -132,7 +132,11 @@ async function settingSection(id, exec) {
                 console.log(`SetDepositor fail: ${e}`);
             }
 
-            await addStrategyToApi(strategy, id);
+            try {
+                await addStrategyToApi(strategy, id);
+            } catch (e) {
+                console.log(`Add strategy to API error: ${e}`);
+            }
             console.log(`[${strategyName}] setting done`)
         } catch (e) {
             console.error(`[${strategyName}] setting fail: ` + e);
@@ -396,6 +400,8 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'arbitrum_eth') {
         return await getERC20('weth');
 
+    } else if (stand === 'base_usdc') {
+        return await getERC20('usdc');
     } else {
         return await getERC20('usdc');
     }
