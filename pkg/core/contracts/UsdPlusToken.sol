@@ -207,6 +207,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _owners.length();
     }
 
+    function nonRebaseOwnersLength() external view returns (uint256) {
+        return _nonRebaseOwners.length();
+    }
+
     function ownerAt(uint256 index) external view returns (address) {
         return _owners.at(index);
     }
