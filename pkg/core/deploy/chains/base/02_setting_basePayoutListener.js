@@ -17,7 +17,7 @@ module.exports = async () => {
     //    items.push(...swapBased());
     //    items.push(...alienBase());
     //    items.push(...zyberSwap());
-    items.push(...aerodrome());
+    // items.push(...aerodrome());
     //     items.push(...equalizer());
     //    items.push(...moonbase());
     //    items.push(...defiEdge());
@@ -116,7 +116,8 @@ module.exports = async () => {
         // items.push(createBribeWithFee('0xc3B5ac236fb5AbE245310FeCa2526F89667D4CAe', usdPlus.address, 'vAMM-YFX/USD+', dex, '0x9a0efa1968837474e23c73b60f29d705d2eb8789', 20, COMMON.rewardWallet));
         // items.push(createBribe('0x61366A4e6b1DB1b85DD701f2f4BFa275EF271197', usdPlus.address, 'vAMM-OVN/USD+', dex, '0xD8847438AaEA2dD395bF2652a526B1CDd1F4E44D'));
 
-        items.push(createSkim('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdPlus.address, 'USDC+/USD+', dex));
+        // items.push(createSkim('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdPlus.address, 'USDC+/USD+', dex));
+        items.push(createSkim('0x08B935148AB10d3699Cb8d944519e8213abE6f1D', usdPlus.address, 'WETH/USD+', dex));
         return items;
     }
 

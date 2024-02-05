@@ -1,9 +1,9 @@
-const {ethers} = require("hardhat");
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createBribe, createCustom, createBribeWithFee} = require("@overnight-contracts/common/utils/payoutListener");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
+const { ethers } = require("hardhat");
+const { getContract, getPrice } = require("@overnight-contracts/common/utils/script-utils");
+const { createSkim, createBribe, createCustom, createBribeWithFee } = require("@overnight-contracts/common/utils/payoutListener");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
 const BigNumber = require('bignumber.js');
-const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async () => {
@@ -15,16 +15,17 @@ module.exports = async () => {
 
     let items = [];
 
-    items.push(...velodrome());
-//    items.push(...defiEdge());
+    // items.push(...velodrome());
+    //    items.push(...defiEdge());
 
-//    await (await pl.removeItem(usdPlus.address, '0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a')).wait();
-//    await (await pl.removeItem(usdPlus.address, '0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f')).wait();
-//    await (await pl.removeItems()).wait();
-    await (await pl.addItems(items, await getPrice())).wait();
+    //    await (await pl.removeItem(usdPlus.address, '0xDf4bB088B1F02881AD4497b6FA7C1E4F81B61C0a')).wait();
+    //    await (await pl.removeItem(usdPlus.address, '0x98dc12979a34ee2f7099b1cbd65f9080c5a3284f')).wait();
+    //    await (await pl.removeItems()).wait();
+    await (await pl.removeItem(usdPlus.address, '0x4f3d7a4eC52D1FCA78E1462A8507da497d8164C8')).wait();
+    // await (await pl.addItems(items, await getPrice())).wait();
 
-//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
-//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism_dai')).address)).wait();
+    //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism')).address)).wait();
+    //    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'optimism_dai')).address)).wait();
 
     console.log('OptimismPayoutListener setting done');
 

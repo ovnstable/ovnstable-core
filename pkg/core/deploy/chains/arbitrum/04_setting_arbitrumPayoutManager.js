@@ -1,10 +1,10 @@
-const {ethers} = require("hardhat");
-const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe,
+const { ethers } = require("hardhat");
+const { getContract, getPrice } = require("@overnight-contracts/common/utils/script-utils");
+const { createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe,
     createCustom
 } = require("@overnight-contracts/common/utils/payoutListener");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
-const {COMMON} = require("@overnight-contracts/common/utils/assets");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async () => {
@@ -33,28 +33,29 @@ module.exports = async () => {
 
     console.log('ArbitrumPayoutManager setting done');
 
-    function pancakeswap(){
+    function pancakeswap() {
 
         let dex = 'PancakeSwap';
 
         let items = [];
 
-        items.push(createSkim('0xdAA80a051E22A7f7b0cfC33Aa29572fbDE65183E', ethPlus.address, 'WETH/ETH+', dex));
+        // items.push(createSkim('0xdAA80a051E22A7f7b0cfC33Aa29572fbDE65183E', ethPlus.address, 'WETH/ETH+', dex));
 
-        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdPlus.address, 'USD+/USDT+', dex));
-        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdtPlus.address, 'USD+/USDT+', dex));
+        // items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdPlus.address, 'USD+/USDT+', dex));
+        // items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdtPlus.address, 'USD+/USDT+', dex));
 
-        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', ethPlus.address, 'USD+/ETH+', dex));
-        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', usdPlus.address, 'USD+/ETH+', dex));
+        // items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', ethPlus.address, 'USD+/ETH+', dex));
+        // items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', usdPlus.address, 'USD+/ETH+', dex));
 
-        items.push(createSkim('0xd01075f7314a6436e8B74fc18069848229D0c555', usdPlus.address, 'USD+/USDC', dex));
+        // items.push(createSkim('0xd01075f7314a6436e8B74fc18069848229D0c555', usdPlus.address, 'USD+/USDC', dex));
+        items.push(createSkim('0x714d48cb99b87f274b33a89fbb16ead191b40b6c', usdPlus.address, 'OVN/USD+', dex));
 
 
 
         return items;
     }
 
-    function horiza(){
+    function horiza() {
 
         let dex = 'Horiza';
 
@@ -70,7 +71,7 @@ module.exports = async () => {
         return items;
     }
 
-    function coffeefi(){
+    function coffeefi() {
 
         let dex = 'coffeefi';
 
@@ -84,7 +85,7 @@ module.exports = async () => {
         return items;
     }
 
-    function curve(){
+    function curve() {
 
         let dex = 'Curve';
 
@@ -94,7 +95,7 @@ module.exports = async () => {
 
     }
 
-    function shekelswap(){
+    function shekelswap() {
 
         let dex = 'ShekelSwap';
         let to = '0xa8866C8E6B0aC5EB38137371aADC4Fa9aeE5d08a';
@@ -108,7 +109,7 @@ module.exports = async () => {
     }
 
 
-    function wombat(){
+    function wombat() {
 
         let dex = 'Wombat';
 
@@ -119,7 +120,7 @@ module.exports = async () => {
 
     }
 
-    function chronos(){
+    function chronos() {
 
         let dex = 'Chronos';
 
