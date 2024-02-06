@@ -588,6 +588,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _totalSupply = _totalSupply.add(_amount);
 
+        require(_totalSupply <= MAX_SUPPLY, "Max supply");
 
         _afterTokenTransfer(address(0), _account, _amount);
 
