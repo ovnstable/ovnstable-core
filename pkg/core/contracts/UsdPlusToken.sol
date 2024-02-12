@@ -207,6 +207,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _owners.length();
     }
 
+    function nonRebaseOwnersLength() external view returns (uint256) {
+        return _nonRebaseOwners.length();
+    }
+
     function ownerAt(uint256 index) external view returns (address) {
         return _owners.at(index);
     }
@@ -584,6 +588,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _totalSupply = _totalSupply.add(_amount);
 
+        require(_totalSupply <= MAX_SUPPLY, "Max supply");
 
         _afterTokenTransfer(address(0), _account, _amount);
 
@@ -784,6 +789,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 amount
     ) internal {
 
+        if (from == to) {
+            return;
+        }
+
         if (from == address(0)) {
             // mint
             _owners.add(to);
@@ -797,6 +806,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             if (balanceOf(from) == 0) {
                 _owners.remove(from);
             } else if (amount > 0) {
+                _owners.add(to);
+            }
+            if (amount > 0) {
                 _owners.add(to);
             }
         }

@@ -486,6 +486,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
 
     function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
+        
+        require(address(payoutManager) != address(0) || usdPlus.nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
+
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }

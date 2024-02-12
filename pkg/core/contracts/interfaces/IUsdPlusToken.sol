@@ -97,6 +97,8 @@ interface IUsdPlusToken {
 
     function ownerLength() external view returns (uint256);
 
+    function nonRebaseOwnersLength() external view returns (uint256);
+
     function ownerAt(uint256 index) external view returns (address);
 
     function ownerBalanceAt(uint256 index) external view returns (uint256);
