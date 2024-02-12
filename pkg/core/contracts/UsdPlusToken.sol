@@ -789,6 +789,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 amount
     ) internal {
 
+        if (from == to) {
+            return;
+        }
+
         if (from == address(0)) {
             // mint
             _owners.add(to);
@@ -801,7 +805,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             // transfer
             if (balanceOf(from) == 0) {
                 _owners.remove(from);
-            } else if (amount > 0) {
+            }
+            if (amount > 0) {
                 _owners.add(to);
             }
         }
